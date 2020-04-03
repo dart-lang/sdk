@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/ir/static_type.dart';
@@ -32,7 +34,8 @@ main() {
 
 class Visitor extends StaticTypeVisitorBase {
   Visitor(ir.Component component)
-      : super(component, new ir.ClassHierarchy(component));
+      : super(component,
+            new ir.ClassHierarchy(component, new ir.CoreTypes(component)));
 
   ir.DartType getStaticType(ir.Expression node) {
     if (typeEnvironment == null) {
@@ -40,14 +43,14 @@ class Visitor extends StaticTypeVisitorBase {
       // as static type.
       return const ir.DynamicType();
     }
-    ir.TreeNode enclosingClass = node;
-    while (enclosingClass != null && enclosingClass is! ir.Class) {
-      enclosingClass = enclosingClass.parent;
+    ir.TreeNode enclosingMember = node;
+    while (enclosingMember != null && enclosingMember is! ir.Member) {
+      enclosingMember = enclosingMember.parent;
     }
     try {
-      typeEnvironment.thisType =
-          enclosingClass is ir.Class ? enclosingClass.thisType : null;
-      return node.getStaticType(typeEnvironment);
+      staticTypeContext =
+          new ir.StaticTypeContext(enclosingMember, typeEnvironment);
+      return node.getStaticType(staticTypeContext);
     } catch (e) {
       // The static type computation crashes on type errors. Use `dynamic`
       // as static type.

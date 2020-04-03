@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/rasta/issue_000033.dart:5:2: Warning: Method not found: 'JS'.
+// pkg/front_end/testcases/rasta/issue_000033.dart:5:2: Error: Method not found: 'JS'.
 // @JS()
 //  ^^
 //

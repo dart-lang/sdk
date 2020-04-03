@@ -4,39 +4,42 @@
 
 import 'dart:io';
 
+import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
+import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
-import 'package:front_end/src/testing/id.dart' show ActualData, Id;
-import 'package:front_end/src/testing/id_testing.dart';
 import 'package:test/test.dart';
 
 import '../util/id_testing_helper.dart';
 
 main(List<String> args) async {
-  Directory dataDir = new Directory.fromUri(Platform.script
-      .resolve('../../../front_end/test/flow_analysis/reachability/data'));
-  await runTests(dataDir,
-      args: args,
-      supportedMarkers: sharedMarkers,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      runTest:
-          runTestFor(const _ReachabilityDataComputer(), [analyzerNnbdConfig]));
+  Directory dataDir = Directory.fromUri(Platform.script.resolve(
+      '../../../_fe_analyzer_shared/test/flow_analysis/reachability/data'));
+  await NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
+    return runTests<Set<_ReachabilityAssertion>>(dataDir,
+        args: args,
+        createUriForFileName: createUriForFileName,
+        onFailure: onFailure,
+        runTest: runTestFor(
+            const _ReachabilityDataComputer(), [analyzerNnbdConfig]));
+  });
 }
 
 class FlowTestBase {
-  FlowAnalysisResult flowResult;
+  FlowAnalysisDataForTesting flowResult;
 
   /// Resolve the given [code] and track nullability in the unit.
   Future<void> trackCode(String code) async {
-    if (await checkTests(
+    TestResult<Set<_ReachabilityAssertion>> testResult = await checkTests(
         code,
         const _ReachabilityDataComputer(),
         FeatureSet.forTesting(
-            sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]))) {
+            sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]));
+    if (testResult.hasFailures) {
       fail('Failure(s)');
     }
   }
@@ -59,7 +62,7 @@ class _ReachabilityDataComputer
   void computeUnitData(TestingData testingData, CompilationUnit unit,
       Map<Id, ActualData<Set<_ReachabilityAssertion>>> actualMap) {
     var flowResult =
-        testingData.uriToFlowAnalysisResult[unit.declaredElement.source.uri];
+        testingData.uriToFlowAnalysisData[unit.declaredElement.source.uri];
     _ReachabilityDataExtractor(
             unit.declaredElement.source.uri, actualMap, flowResult)
         .run(unit);
@@ -68,7 +71,7 @@ class _ReachabilityDataComputer
 
 class _ReachabilityDataExtractor
     extends AstDataExtractor<Set<_ReachabilityAssertion>> {
-  final FlowAnalysisResult _flowResult;
+  final FlowAnalysisDataForTesting _flowResult;
 
   _ReachabilityDataExtractor(
       Uri uri,
@@ -79,17 +82,32 @@ class _ReachabilityDataExtractor
   @override
   Set<_ReachabilityAssertion> computeNodeValue(Id id, AstNode node) {
     Set<_ReachabilityAssertion> result = {};
-    if (_flowResult.unreachableNodes.contains(node)) {
+    if (node is Expression && node.parent is ExpressionStatement) {
+      // The reachability of an expression statement and the statement it
+      // contains should always be the same.  We check this with an assert
+      // statement, and only annotate the expression statement, to reduce the
+      // amount of redundancy in the test files.
+      assert(_flowResult.unreachableNodes.contains(node) ==
+          _flowResult.unreachableNodes.contains(node.parent));
+    } else if (_flowResult.unreachableNodes.contains(node)) {
       result.add(_ReachabilityAssertion.unreachable);
     }
     if (node is FunctionDeclaration) {
-      var body = node.functionExpression.body;
-      if (body != null &&
-          _flowResult.functionBodiesThatDontComplete.contains(body)) {
-        result.add(_ReachabilityAssertion.doesNotComplete);
-      }
+      _checkBodyCompletion(node.functionExpression.body, result);
+    } else if (node is ConstructorDeclaration) {
+      _checkBodyCompletion(node.body, result);
+    } else if (node is MethodDeclaration) {
+      _checkBodyCompletion(node.body, result);
     }
     return result.isEmpty ? null : result;
+  }
+
+  void _checkBodyCompletion(
+      FunctionBody body, Set<_ReachabilityAssertion> result) {
+    if (body != null &&
+        _flowResult.functionBodiesThatDontComplete.contains(body)) {
+      result.add(_ReachabilityAssertion.doesNotComplete);
+    }
   }
 }
 

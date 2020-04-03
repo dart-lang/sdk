@@ -9,8 +9,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/source.dart';
 
 /**
  * The scope defined by a block.
@@ -22,7 +20,7 @@ class BlockScope extends EnclosedScope {
    */
   BlockScope(Scope enclosingScope, Block block) : super(enclosingScope) {
     if (block == null) {
-      throw new ArgumentError("block cannot be null");
+      throw ArgumentError("block cannot be null");
     }
     _defineElements(block);
   }
@@ -66,7 +64,7 @@ class ClassScope extends EnclosedScope {
   ClassScope(Scope enclosingScope, ClassElement classElement)
       : super(enclosingScope) {
     if (classElement == null) {
-      throw new ArgumentError("class element cannot be null");
+      throw ArgumentError("class element cannot be null");
     }
     _defineMembers(classElement);
   }
@@ -128,21 +126,18 @@ class EnclosedScope extends Scope {
   EnclosedScope(this.enclosingScope);
 
   @override
-  Element internalLookup(
-      Identifier identifier, String name, LibraryElement referencingLibrary) {
-    Element element = localLookup(name, referencingLibrary);
+  Element internalLookup(String name) {
+    Element element = localLookup(name);
     if (element != null) {
       return element;
     }
     // Check enclosing scope.
-    return enclosingScope.internalLookup(identifier, name, referencingLibrary);
+    return enclosingScope.internalLookup(name);
   }
 
   @override
-  Element _internalLookupPrefixed(PrefixedIdentifier identifier, String prefix,
-      String name, LibraryElement referencingLibrary) {
-    return enclosingScope._internalLookupPrefixed(
-        identifier, prefix, name, referencingLibrary);
+  Element _internalLookupPrefixed(String prefix, String name) {
+    return enclosingScope._internalLookupPrefixed(prefix, name);
   }
 }
 
@@ -192,9 +187,9 @@ class FunctionScope extends EnclosedScope {
    * that represents the given [_functionElement].
    */
   FunctionScope(Scope enclosingScope, this._functionElement)
-      : super(new EnclosedScope(new EnclosedScope(enclosingScope))) {
+      : super(EnclosedScope(EnclosedScope(enclosingScope))) {
     if (_functionElement == null) {
-      throw new ArgumentError("function element cannot be null");
+      throw ArgumentError("function element cannot be null");
     }
     _defineTypeParameters();
   }
@@ -246,7 +241,7 @@ class FunctionTypeScope extends EnclosedScope {
    * that represents the given [_typeElement].
    */
   FunctionTypeScope(Scope enclosingScope, this._typeElement)
-      : super(new EnclosedScope(enclosingScope)) {
+      : super(EnclosedScope(enclosingScope)) {
     _defineTypeParameters();
   }
 
@@ -258,7 +253,7 @@ class FunctionTypeScope extends EnclosedScope {
       return;
     }
     _parametersDefined = true;
-    for (ParameterElement parameter in _typeElement.parameters) {
+    for (ParameterElement parameter in _typeElement.function.parameters) {
       define(parameter);
     }
   }
@@ -282,7 +277,7 @@ class ImplicitLabelScope {
   /**
    * The implicit label scope associated with the top level of a function.
    */
-  static const ImplicitLabelScope ROOT = const ImplicitLabelScope._(null, null);
+  static const ImplicitLabelScope ROOT = ImplicitLabelScope._(null, null);
 
   /**
    * The implicit label scope enclosing this implicit label scope.
@@ -323,7 +318,7 @@ class ImplicitLabelScope {
    * with the newly created scope.
    */
   ImplicitLabelScope nest(Statement statement) =>
-      new ImplicitLabelScope._(this, statement);
+      ImplicitLabelScope._(this, statement);
 }
 
 /**
@@ -407,11 +402,11 @@ class LibraryImportScope extends Scope {
   List<ExtensionElement> get extensions {
     if (_extensions == null) {
       _extensions = [];
-      for (var namespace in _importedNamespaces) {
-        for (var element in namespace.definedNames.values) {
-          if (element is ExtensionElement &&
-              element.name.isNotEmpty /* named */ &&
-              !_extensions.contains(element)) {
+      List<ImportElement> imports = _definingLibrary.imports;
+      int count = imports.length;
+      for (int i = 0; i < count; i++) {
+        for (var element in imports[i].namespace.definedNames.values) {
+          if (element is ExtensionElement && !_extensions.contains(element)) {
             _extensions.add(element);
           }
         }
@@ -428,35 +423,34 @@ class LibraryImportScope extends Scope {
   }
 
   @override
-  Source getSource(AstNode node) {
-    Source source = super.getSource(node);
-    if (source == null) {
-      source = _definingLibrary.definingCompilationUnit.source;
-    }
-    return source;
+  Element internalLookup(String name) {
+    return localLookup(name);
   }
 
   @override
-  Element internalLookup(
-      Identifier identifier, String name, LibraryElement referencingLibrary) {
-    Element element = localLookup(name, referencingLibrary);
+  Element localLookup(String name) {
+    var element = super.localLookup(name);
     if (element != null) {
       return element;
     }
-    element = _lookupInImportedNamespaces(
-        identifier, (Namespace namespace) => namespace.get(name));
+
+    element = _lookupInImportedNamespaces((namespace) {
+      return namespace.get(name);
+    });
     if (element != null) {
       defineNameWithoutChecking(name, element);
     }
+
     return element;
   }
 
   @override
   bool shouldIgnoreUndefined(Identifier node) {
     Iterable<NamespaceCombinator> getShowCombinators(
-            ImportElement importElement) =>
-        importElement.combinators.where((NamespaceCombinator combinator) =>
-            combinator is ShowElementCombinator);
+        ImportElement importElement) {
+      return importElement.combinators.whereType<ShowElementCombinator>();
+    }
+
     if (node is PrefixedIdentifier) {
       String prefix = node.prefix.name;
       String name = node.identifier.name;
@@ -506,7 +500,7 @@ class LibraryImportScope extends Scope {
   void _createImportedNamespaces() {
     List<ImportElement> imports = _definingLibrary.imports;
     int count = imports.length;
-    _importedNamespaces = new List<Namespace>(count);
+    _importedNamespaces = List<Namespace>(count);
     for (int i = 0; i < count; i++) {
       _importedNamespaces[i] = imports[i].namespace;
     }
@@ -518,20 +512,19 @@ class LibraryImportScope extends Scope {
    */
   void _definePrefixedNameWithoutChecking(
       String prefix, String name, Element element) {
-    _definedPrefixedNames ??= new HashMap<String, Map<String, Element>>();
+    _definedPrefixedNames ??= HashMap<String, Map<String, Element>>();
     Map<String, Element> unprefixedNames = _definedPrefixedNames.putIfAbsent(
-        prefix, () => new HashMap<String, Element>());
+        prefix, () => HashMap<String, Element>());
     unprefixedNames[name] = element;
   }
 
   @override
-  Element _internalLookupPrefixed(PrefixedIdentifier identifier, String prefix,
-      String name, LibraryElement referencingLibrary) {
+  Element _internalLookupPrefixed(String prefix, String name) {
     Element element = _localPrefixedLookup(prefix, name);
     if (element != null) {
       return element;
     }
-    element = _lookupInImportedNamespaces(identifier.identifier,
+    element = _lookupInImportedNamespaces(
         (Namespace namespace) => namespace.getPrefixed(prefix, name));
     if (element != null) {
       _definePrefixedNameWithoutChecking(prefix, name, element);
@@ -554,7 +547,7 @@ class LibraryImportScope extends Scope {
   }
 
   Element _lookupInImportedNamespaces(
-      Identifier identifier, Element lookup(Namespace namespace)) {
+      Element Function(Namespace namespace) lookup) {
     Element result;
 
     bool hasPotentialConflict = false;
@@ -570,8 +563,8 @@ class LibraryImportScope extends Scope {
     }
 
     if (hasPotentialConflict) {
-      var sdkElements = new Set<Element>();
-      var nonSdkElements = new Set<Element>();
+      var sdkElements = <Element>{};
+      var nonSdkElements = <Element>{};
       for (int i = 0; i < _importedNamespaces.length; i++) {
         Element element = lookup(_importedNamespaces[i]);
         if (element != null) {
@@ -583,10 +576,11 @@ class LibraryImportScope extends Scope {
         }
       }
       if (sdkElements.length > 1 || nonSdkElements.length > 1) {
-        var conflictingElements = <Element>[]
-          ..addAll(sdkElements)
-          ..addAll(nonSdkElements);
-        return new MultiplyDefinedElementImpl(
+        var conflictingElements = <Element>[
+          ...sdkElements,
+          ...nonSdkElements,
+        ];
+        return MultiplyDefinedElementImpl(
             _definingLibrary.context,
             _definingLibrary.session,
             conflictingElements.first.name,
@@ -607,14 +601,14 @@ class LibraryImportScope extends Scope {
  * A scope containing all of the names defined in a given library.
  */
 class LibraryScope extends EnclosedScope {
-  List<ExtensionElement> _extensions = <ExtensionElement>[];
+  final List<ExtensionElement> _extensions = <ExtensionElement>[];
 
   /**
    * Initialize a newly created scope representing the names defined in the
    * [definingLibrary].
    */
   LibraryScope(LibraryElement definingLibrary)
-      : super(new LibraryImportScope(definingLibrary)) {
+      : super(LibraryImportScope(definingLibrary)) {
     _defineTopLevelNames(definingLibrary);
 
     // For `dart:core` to be able to pass analysis, it has to have `dynamic`
@@ -683,7 +677,7 @@ class Namespace {
   /**
    * An empty namespace.
    */
-  static Namespace EMPTY = new Namespace(new HashMap<String, Element>());
+  static Namespace EMPTY = Namespace(HashMap<String, Element>());
 
   /**
    * A table mapping names that are defined in this namespace to the element
@@ -735,7 +729,7 @@ class NamespaceBuilder {
     }
     Map<String, Element> exportedNames = _getExportMapping(exportedLibrary);
     exportedNames = _applyCombinators(exportedNames, element.combinators);
-    return new Namespace(exportedNames);
+    return Namespace(exportedNames);
   }
 
   /**
@@ -743,7 +737,7 @@ class NamespaceBuilder {
    */
   Namespace createExportNamespaceForLibrary(LibraryElement library) {
     Map<String, Element> exportedNames = _getExportMapping(library);
-    return new Namespace(exportedNames);
+    return Namespace(exportedNames);
   }
 
   /**
@@ -762,9 +756,9 @@ class NamespaceBuilder {
     exportedNames = _applyCombinators(exportedNames, element.combinators);
     PrefixElement prefix = element.prefix;
     if (prefix != null) {
-      return new PrefixedNamespace(prefix.name, exportedNames);
+      return PrefixedNamespace(prefix.name, exportedNames);
     }
-    return new Namespace(exportedNames);
+    return Namespace(exportedNames);
   }
 
   /**
@@ -772,7 +766,7 @@ class NamespaceBuilder {
    * [library].
    */
   Namespace createPublicNamespaceForLibrary(LibraryElement library) {
-    Map<String, Element> definedNames = new HashMap<String, Element>();
+    Map<String, Element> definedNames = HashMap<String, Element>();
     _addPublicNames(definedNames, library.definingCompilationUnit);
     for (CompilationUnitElement compilationUnit in library.parts) {
       _addPublicNames(definedNames, compilationUnit);
@@ -784,10 +778,10 @@ class NamespaceBuilder {
     // which is not possible for `dynamic`.
     if (library.isDartCore) {
       definedNames['dynamic'] = DynamicElementImpl.instance;
-      definedNames['Never'] = BottomTypeImpl.instance.element;
+      definedNames['Never'] = NeverTypeImpl.instance.element;
     }
 
-    return new Namespace(definedNames);
+    return Namespace(definedNames);
   }
 
   /**
@@ -807,7 +801,7 @@ class NamespaceBuilder {
    */
   void _addIfPublic(Map<String, Element> definedNames, Element element) {
     String name = element.name;
-    if (name != null && !Scope.isPrivateName(name)) {
+    if (name != null && name.isNotEmpty && !Scope.isPrivateName(name)) {
       definedNames[name] = element;
     }
   }
@@ -856,7 +850,7 @@ class NamespaceBuilder {
         definedNames = _show(definedNames, combinator.shownNames);
       } else {
         // Internal error.
-        AnalysisEngine.instance.logger
+        AnalysisEngine.instance.instrumentationService
             .logError("Unknown type of combinator: ${combinator.runtimeType}");
       }
     }
@@ -874,7 +868,7 @@ class NamespaceBuilder {
       LibraryElement library, HashSet<LibraryElement> visitedElements) {
     visitedElements.add(library);
     try {
-      Map<String, Element> definedNames = new HashMap<String, Element>();
+      Map<String, Element> definedNames = HashMap<String, Element>();
       for (ExportElement element in library.exports) {
         LibraryElement exportedLibrary = element.exportedLibrary;
         if (exportedLibrary != null &&
@@ -890,9 +884,9 @@ class NamespaceBuilder {
         }
       }
       _addAllFromNamespace(
-          definedNames,
-          (library.context as InternalAnalysisContext)
-              .getPublicNamespace(library));
+        definedNames,
+        createPublicNamespaceForLibrary(library),
+      );
       return definedNames;
     } finally {
       visitedElements.remove(library);
@@ -905,11 +899,11 @@ class NamespaceBuilder {
     }
     if (library is LibraryElementImpl) {
       Map<String, Element> exportMapping =
-          _computeExportMapping(library, new HashSet<LibraryElement>());
-      library.exportNamespace = new Namespace(exportMapping);
+          _computeExportMapping(library, HashSet<LibraryElement>());
+      library.exportNamespace = Namespace(exportMapping);
       return exportMapping;
     }
-    return _computeExportMapping(library, new HashSet<LibraryElement>());
+    return _computeExportMapping(library, HashSet<LibraryElement>());
   }
 
   /**
@@ -918,8 +912,7 @@ class NamespaceBuilder {
    */
   Map<String, Element> _hide(
       Map<String, Element> definedNames, List<String> hiddenNames) {
-    Map<String, Element> newNames =
-        new HashMap<String, Element>.from(definedNames);
+    Map<String, Element> newNames = HashMap<String, Element>.from(definedNames);
     for (String name in hiddenNames) {
       newNames.remove(name);
       newNames.remove("$name=");
@@ -932,7 +925,7 @@ class NamespaceBuilder {
    */
   Map<String, Element> _show(
       Map<String, Element> definedNames, List<String> shownNames) {
-    Map<String, Element> newNames = new HashMap<String, Element>();
+    Map<String, Element> newNames = HashMap<String, Element>();
     for (String name in shownNames) {
       Element element = definedNames[name];
       if (element != null) {
@@ -967,6 +960,7 @@ class PrefixedNamespace implements Namespace {
    * A table mapping names that are defined in this namespace to the element
    * representing the thing declared with that name.
    */
+  @override
   final Map<String, Element> _definedNames;
 
   /**
@@ -1033,7 +1027,7 @@ abstract class Scope {
    * A table mapping names that are defined in this scope to the element
    * representing the thing declared with that name.
    */
-  Map<String, Element> _definedNames = null;
+  Map<String, Element> _definedNames;
 
   /**
    * Return the scope in which this scope is lexically enclosed.
@@ -1054,7 +1048,7 @@ abstract class Scope {
   void define(Element element) {
     String name = _getName(element);
     if (name != null && name.isNotEmpty) {
-      _definedNames ??= new HashMap<String, Element>();
+      _definedNames ??= HashMap<String, Element>();
       _definedNames.putIfAbsent(name, () => element);
     }
   }
@@ -1064,7 +1058,7 @@ abstract class Scope {
    * hiding.
    */
   void defineNameWithoutChecking(String name, Element element) {
-    _definedNames ??= new HashMap<String, Element>();
+    _definedNames ??= HashMap<String, Element>();
     _definedNames[name] = element;
   }
 
@@ -1073,45 +1067,23 @@ abstract class Scope {
    * hiding.
    */
   void defineWithoutChecking(Element element) {
-    _definedNames ??= new HashMap<String, Element>();
+    _definedNames ??= HashMap<String, Element>();
     _definedNames[_getName(element)] = element;
   }
 
   /**
-   * Return the source that contains the given [identifier], or the source
-   * associated with this scope if the source containing the identifier could
-   * not be determined.
-   */
-  Source getSource(AstNode identifier) {
-    CompilationUnit unit = identifier.thisOrAncestorOfType<CompilationUnit>();
-    if (unit != null) {
-      CompilationUnitElement unitElement = unit.declaredElement;
-      if (unitElement != null) {
-        return unitElement.source;
-      }
-    }
-    return null;
-  }
-
-  /**
    * Return the element with which the given [name] is associated, or `null` if
-   * the name is not defined within this scope. The [identifier] is the
-   * identifier node to lookup element for, used to report correct kind of a
-   * problem and associate problem with. The [referencingLibrary] is the library
-   * that contains the reference to the name, used to implement library-level
-   * privacy.
+   * the name is not defined within this scope.
    */
-  Element internalLookup(
-      Identifier identifier, String name, LibraryElement referencingLibrary);
+  Element internalLookup(String name);
 
   /**
    * Return the element with which the given [name] is associated, or `null` if
    * the name is not defined within this scope. This method only returns
    * elements that are directly defined within this scope, not elements that are
-   * defined in an enclosing scope. The [referencingLibrary] is the library that
-   * contains the reference to the name, used to implement library-level privacy.
+   * defined in an enclosing scope.
    */
-  Element localLookup(String name, LibraryElement referencingLibrary) {
+  Element localLookup(String name) {
     if (_definedNames != null) {
       return _definedNames[name];
     }
@@ -1126,10 +1098,10 @@ abstract class Scope {
    */
   Element lookup(Identifier identifier, LibraryElement referencingLibrary) {
     if (identifier is PrefixedIdentifier) {
-      return _internalLookupPrefixed(identifier, identifier.prefix.name,
-          identifier.identifier.name, referencingLibrary);
+      return _internalLookupPrefixed(
+          identifier.prefix.name, identifier.identifier.name);
     }
-    return internalLookup(identifier, identifier.name, referencingLibrary);
+    return internalLookup(identifier.name);
   }
 
   /**
@@ -1161,20 +1133,15 @@ abstract class Scope {
 
   /**
    * Return the element with which the given [prefix] and [name] are associated,
-   * or `null` if the name is not defined within this scope. The [identifier] is
-   * the identifier node to lookup element for, used to report correct kind of a
-   * problem and associate problem with. The [referencingLibrary] is the library
-   * that contains the reference to the name, used to implement library-level
-   * privacy.
+   * or `null` if the name is not defined within this scope.
    */
-  Element _internalLookupPrefixed(PrefixedIdentifier identifier, String prefix,
-      String name, LibraryElement referencingLibrary);
+  Element _internalLookupPrefixed(String prefix, String name);
 
   /**
    * Return `true` if the given [name] is a library-private name.
    */
   static bool isPrivateName(String name) =>
-      name != null && StringUtilities.startsWithChar(name, PRIVATE_NAME_PREFIX);
+      name != null && name.startsWith('_');
 }
 
 /**
@@ -1189,7 +1156,7 @@ class TypeParameterScope extends EnclosedScope {
   TypeParameterScope(Scope enclosingScope, TypeParameterizedElement element)
       : super(enclosingScope) {
     if (element == null) {
-      throw new ArgumentError("element cannot be null");
+      throw ArgumentError("element cannot be null");
     }
     _defineTypeParameters(element);
   }

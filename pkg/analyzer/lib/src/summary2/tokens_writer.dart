@@ -145,6 +145,8 @@ class TokensWriter {
       return UnlinkedTokenType.INDEX;
     } else if (type == TokenType.INDEX_EQ) {
       return UnlinkedTokenType.INDEX_EQ;
+    } else if (type == Keyword.INOUT) {
+      return UnlinkedTokenType.INOUT;
     } else if (type == TokenType.INT) {
       return UnlinkedTokenType.INT;
     } else if (type == Keyword.INTERFACE) {
@@ -191,6 +193,8 @@ class TokensWriter {
       return UnlinkedTokenType.OPEN_SQUARE_BRACKET;
     } else if (type == Keyword.OPERATOR) {
       return UnlinkedTokenType.OPERATOR;
+    } else if (type == Keyword.OUT) {
+      return UnlinkedTokenType.OUT;
     } else if (type == Keyword.PART) {
       return UnlinkedTokenType.PART;
     } else if (type == Keyword.PATCH) {

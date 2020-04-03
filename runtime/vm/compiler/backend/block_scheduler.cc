@@ -55,7 +55,7 @@ void BlockScheduler::AssignEdgeWeights(FlowGraph* flow_graph) {
   if (!FLAG_reorder_basic_blocks) {
     return;
   }
-  if (FLAG_precompiled_mode) {
+  if (CompilerState::Current().is_aot()) {
     return;
   }
 
@@ -159,7 +159,7 @@ static void Union(GrowableArray<Chain*>* chains,
 }
 
 void BlockScheduler::ReorderBlocks(FlowGraph* flow_graph) {
-  if (FLAG_precompiled_mode) {
+  if (CompilerState::Current().is_aot()) {
     ReorderBlocksAOT(flow_graph);
   } else {
     ReorderBlocksJIT(flow_graph);
@@ -220,7 +220,7 @@ void BlockScheduler::ReorderBlocksJIT(FlowGraph* flow_graph) {
   }
 
   // Ensure the checked entry remains first to avoid needing another offset on
-  // Instructions, compare Code::EntryPoint.
+  // Instructions, compare Code::EntryPointOf.
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   flow_graph->CodegenBlockOrder(true)->Add(graph_entry);
   FunctionEntryInstr* checked_entry = graph_entry->normal_entry();

@@ -19,12 +19,14 @@ import 'diagnostic_test.dart' as diagnostic;
 import 'document_highlights_test.dart' as document_highlights;
 import 'document_symbols_test.dart' as document_symbols;
 import 'file_modification_test.dart' as file_modification;
+import 'flutter_outline_test.dart' as flutter_outline;
 import 'folding_test.dart' as folding;
 import 'format_test.dart' as format;
 import 'hover_test.dart' as hover;
 import 'implementation_test.dart' as implementation;
 import 'initialization_test.dart' as initialization;
 import 'mapping_test.dart' as mapping;
+import 'outline_test.dart' as outline;
 import 'priority_files_test.dart' as priority_files;
 import 'references_test.dart' as references;
 import 'rename_test.dart' as rename;
@@ -33,7 +35,7 @@ import 'signature_help_test.dart' as signature_help;
 import 'super_test.dart' as get_super;
 import 'workspace_symbols_test.dart' as workspace_symbols;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     analyzer_status.main();
     cancel_request.main();
@@ -49,6 +51,7 @@ main() {
     document_highlights.main();
     document_symbols.main();
     file_modification.main();
+    flutter_outline.main();
     folding.main();
     format.main();
     get_super.main();
@@ -57,6 +60,7 @@ main() {
     initialization.main();
     lsp_packet_transformer.main();
     mapping.main();
+    outline.main();
     priority_files.main();
     references.main();
     rename.main();

@@ -5,8 +5,12 @@ import 'dart:io';
 
 import 'package:expect/expect.dart';
 
+import 'package:test_runner/src/feature.dart';
 import 'package:test_runner/src/path.dart';
+import 'package:test_runner/src/static_error.dart';
 import 'package:test_runner/src/test_file.dart';
+
+import 'utils.dart';
 
 // Note: This test file validates how some of the special markers used by the
 // test runner are parsed. But this test is also run *by* that same test
@@ -20,17 +24,18 @@ void main() {
   testParseOtherOptions();
   testParseEnvironment();
   testParsePackages();
+  testParseExperiments();
   testParseMultitest();
-  testParseMultiHtmltest();
   testParseErrorFlags();
   testParseErrorExpectations();
   testName();
   testMultitest();
+  testShardHash();
 }
 
 void testParseDill() {
   // Handles ".dill" files.
-  var file = parse("", path: "test.dill");
+  var file = parseTestFile("", path: "test.dill");
   Expect.isNotNull(file.vmOptions);
   Expect.equals(1, file.vmOptions.length);
   Expect.listEquals(<String>[], file.vmOptions.first);
@@ -56,7 +61,7 @@ void testParseDill() {
 
 void testParseVMOptions() {
   expectVMOptions(String source, List<List<String>> expected) {
-    var file = parse(source);
+    var file = parseTestFile(source);
     Expect.isNotNull(file.vmOptions);
     Expect.equals(expected.length, file.vmOptions.length);
     for (var i = 0; i < expected.length; i++) {
@@ -84,29 +89,31 @@ void testParseVMOptions() {
 
 void testParseOtherOptions() {
   // No options.
-  var file = parse("");
+  var file = parseTestFile("");
   Expect.listEquals(<String>[], file.dartOptions);
   Expect.listEquals(<String>[], file.sharedOptions);
   Expect.listEquals(<String>[], file.dart2jsOptions);
   Expect.listEquals(<String>[], file.ddcOptions);
   Expect.listEquals(<String>[], file.otherResources);
   Expect.listEquals(<String>[], file.sharedObjects);
+  Expect.listEquals(<String>[], file.requirements);
 
   // Single options split into words.
-  file = parse("""
+  file = parseTestFile("""
   /\/ DartOptions=dart options
   /\/ SharedOptions=shared options
   /\/ dart2jsOptions=dart2js options
   /\/ dartdevcOptions=ddc options
   /\/ OtherResources=other resources
   /\/ SharedObjects=shared objects
+  /\/ Requirements=nnbd nnbd-strong
   """);
   Expect.listEquals(["dart", "options"], file.dartOptions);
   Expect.listEquals(["shared", "options"], file.sharedOptions);
   Expect.listEquals(["dart2js", "options"], file.dart2jsOptions);
   Expect.listEquals(["ddc", "options"], file.ddcOptions);
   Expect.listEquals(["other", "resources"], file.otherResources);
-  Expect.listEquals(["shared", "objects"], file.sharedObjects);
+  Expect.listEquals([Feature.nnbd, Feature.nnbdStrong], file.requirements);
 
   // Disallows multiple lines for some options.
   expectParseThrows("""
@@ -125,9 +132,13 @@ void testParseOtherOptions() {
   /\/ dartdevcOptions=first
   /\/ dartdevcOptions=second
   """);
+  expectParseThrows("""
+  /\/ Requirements=nnbd
+  /\/ Requirements=nnbd-strong
+  """);
 
   // Merges multiple lines for others.
-  file = parse("""
+  file = parseTestFile("""
   /\/ OtherResources=other resources
   /\/ OtherResources=even more
   /\/ SharedObjects=shared objects
@@ -136,22 +147,27 @@ void testParseOtherOptions() {
   Expect.listEquals(
       ["other", "resources", "even", "more"], file.otherResources);
   Expect.listEquals(["shared", "objects", "many", "more"], file.sharedObjects);
+
+  // Disallows unrecognized features in requirements.
+  expectParseThrows("""
+  /\/ Requirements=unknown-feature
+  """);
 }
 
 void testParseEnvironment() {
   // No environment.
-  var file = parse("");
+  var file = parseTestFile("");
   Expect.isNull(file.environment);
 
   // Without values.
-  file = parse("""
+  file = parseTestFile("""
   /\/ Environment=some value
   /\/ Environment=another one
   """);
   Expect.mapEquals({"some value": "", "another one": ""}, file.environment);
 
   // With values.
-  file = parse("""
+  file = parseTestFile("""
   /\/ Environment=some value=its value
   /\/ Environment=another one   =   also value
   """);
@@ -162,18 +178,18 @@ void testParseEnvironment() {
 
 void testParsePackages() {
   // No option.
-  var file = parse("");
+  var file = parseTestFile("");
   Expect.isNull(file.packages);
 
   // Single option is converted to a path.
-  file = parse("""
+  file = parseTestFile("""
   /\/ Packages=packages thing
   """);
   Expect.isTrue(
       file.packages.endsWith("${Platform.pathSeparator}packages thing"));
 
   // "none" is left alone.
-  file = parse("""
+  file = parseTestFile("""
   /\/ Packages=none
   """);
   Expect.equals("none", file.packages);
@@ -185,74 +201,81 @@ void testParsePackages() {
   """);
 }
 
+void testParseExperiments() {
+  // No option.
+  var file = parseTestFile("");
+  Expect.isTrue(file.experiments.isEmpty);
+
+  // Single non-experiment option.
+  file = parseTestFile("""
+  /\/ SharedOptions=not-experiment
+  """);
+  Expect.isTrue(file.experiments.isEmpty);
+  Expect.listEquals(["not-experiment"], file.sharedOptions);
+
+  // Experiments.
+  file = parseTestFile("""
+  /\/ SharedOptions=--enable-experiment=flubber,gloop
+  """);
+  Expect.listEquals(["flubber", "gloop"], file.experiments);
+  Expect.isTrue(file.sharedOptions.isEmpty);
+
+  // Experiment option mixed with other options.
+  file = parseTestFile("""
+  /\/ SharedOptions=-a --enable-experiment=flubber --other
+  """);
+  Expect.listEquals(["flubber"], file.experiments);
+  Expect.listEquals(["-a", "--other"], file.sharedOptions);
+
+  // Poorly-formatted experiment option.
+  expectParseThrows("""
+  /\/ SharedOptions=stuff--enable-experiment=flubber,gloop
+  """);
+}
+
 void testParseMultitest() {
   // Not present.
-  var file = parse("");
+  var file = parseTestFile("");
   Expect.isFalse(file.isMultitest);
 
   // Present.
-  file = parse("""
+  file = parseTestFile("""
   main() {} /\/# 01: compile-time error
   """);
   Expect.isTrue(file.isMultitest);
 }
 
-void testParseMultiHtmltest() {
-  // Not present.
-  var file = parse("");
-  Expect.isFalse(file.isMultiHtmlTest);
-  Expect.listEquals(<String>[], file.subtestNames);
-
-  // Present.
-  // Note: the "${''}" is to prevent the test runner running *this* test file
-  // from parsing it as a multi-HTML test.
-  file = parse("""
-  main() {
-    useHtml\IndividualConfiguration();
-    group('pixel_manipulation', () {
-    });
-    group('arc', () {
-    });
-    group('drawImage_image_element', () {
-    });
-  }
-  """);
-  Expect.isTrue(file.isMultiHtmlTest);
-  Expect.listEquals(["pixel_manipulation", "arc", "drawImage_image_element"],
-      file.subtestNames);
-}
-
 void testParseErrorFlags() {
   // Not present.
-  var file = parse("");
+  var file = parseTestFile("");
   Expect.isFalse(file.hasSyntaxError);
   Expect.isFalse(file.hasCompileError);
   Expect.isFalse(file.hasRuntimeError);
   Expect.isFalse(file.hasStaticWarning);
   Expect.isFalse(file.hasCrash);
 
-  file = parse("@syntax\-error");
+  file = parseTestFile("@syntax\-error");
   Expect.isTrue(file.hasSyntaxError);
   Expect.isTrue(file.hasCompileError); // Note: true.
   Expect.isFalse(file.hasRuntimeError);
   Expect.isFalse(file.hasStaticWarning);
   Expect.isFalse(file.hasCrash);
 
-  file = parse("@compile\-error");
+  file = parseTestFile("@compile\-error");
   Expect.isFalse(file.hasSyntaxError);
   Expect.isTrue(file.hasCompileError);
   Expect.isFalse(file.hasRuntimeError);
   Expect.isFalse(file.hasStaticWarning);
   Expect.isFalse(file.hasCrash);
 
-  file = parse("@runtime\-error");
+  file = parseTestFile("@runtime\-error");
   Expect.isFalse(file.hasSyntaxError);
   Expect.isFalse(file.hasCompileError);
   Expect.isTrue(file.hasRuntimeError);
   Expect.isFalse(file.hasStaticWarning);
   Expect.isFalse(file.hasCrash);
 
-  file = parse("@static\-warning");
+  file = parseTestFile("@static\-warning");
   Expect.isFalse(file.hasSyntaxError);
   Expect.isFalse(file.hasCompileError);
   Expect.isFalse(file.hasRuntimeError);
@@ -457,6 +480,22 @@ int i = "s";
 /\/      ^^^
 /\/ [analyzer] Not error code.
 """);
+
+  // A CFE-only error with length one is treated as having no length.
+  expectParseErrorExpectations("""
+int i = "s";
+/\/      ^
+/\/ [cfe] Message.
+
+int j = "s";
+/\/      ^
+/\/ [analyzer] Error.BAD
+/\/ [cfe] Message.
+""", [
+    StaticError(line: 1, column: 9, length: null, message: "Message."),
+    StaticError(
+        line: 5, column: 9, length: 1, code: "Error.BAD", message: "Message."),
+  ]);
 }
 
 void testName() {
@@ -476,7 +515,7 @@ void testName() {
 }
 
 void testMultitest() {
-  var file = parse("", path: "origin.dart");
+  var file = parseTestFile("", path: "origin.dart");
   Expect.isFalse(file.hasSyntaxError);
   Expect.isFalse(file.hasCompileError);
   Expect.isFalse(file.hasRuntimeError);
@@ -520,22 +559,28 @@ void testMultitest() {
   Expect.isTrue(d.hasStaticWarning);
 }
 
+void testShardHash() {
+  // Test files with paths should successfully return some kind of integer. We
+  // don't want to depend on the hash algorithm, so we can't really be more
+  // specific than that.
+  var testFile = parseTestFile("", path: "a_test.dart");
+  Expect.isTrue(testFile.shardHash is int);
+
+  // VM test files are hard-coded to return hash zero because they don't have a
+  // path to base the hash on.
+  Expect.equals(0, TestFile.vmUnitTest().shardHash);
+}
+
 void expectParseErrorExpectations(String source, List<StaticError> errors) {
-  var file = parse(source);
+  var file = parseTestFile(source);
   Expect.listEquals(errors.map((error) => error.toString()).toList(),
       file.expectedErrors.map((error) => error.toString()).toList());
 }
 
 void expectFormatError(String source) {
-  Expect.throwsFormatException(() => parse(source));
+  Expect.throwsFormatException(() => parseTestFile(source));
 }
 
 void expectParseThrows(String source) {
-  Expect.throws(() => parse(source));
-}
-
-TestFile parse(String source, {String path = "some_test.dart"}) {
-  path = Path(path).absolute.toNativePath();
-  var suiteDirectory = Path(path).directoryPath;
-  return TestFile.parse(suiteDirectory, path, source);
+  Expect.throws(() => parseTestFile(source));
 }

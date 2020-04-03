@@ -1,0 +1,3 @@
+Logger get log => Zone.current[logKey] as Logger? ?? _default;
+
+Logger[StringToken] get[KeywordToken] log[StringToken] =>[SimpleToken] Zone[StringToken].[SimpleToken]current[StringToken][[BeginToken]logKey[StringToken]][SimpleToken] as[KeywordToken] Logger[StringToken]?[SimpleToken] ??[SimpleToken] _default[StringToken];[SimpleToken][SimpleToken]

@@ -122,10 +122,17 @@ class CodegenEnqueuerListener extends EnqueuerListener {
     }
 
     // TODO(fishythefish): Avoid registering unnecessary impacts.
-    if (_options.experimentNewRti && !_isNewRtiUsed) {
+    if (_options.useNewRti && !_isNewRtiUsed) {
       WorldImpactBuilderImpl newRtiImpact = new WorldImpactBuilderImpl();
       newRtiImpact.registerStaticUse(StaticUse.staticInvoke(
           _commonElements.rtiAddRulesMethod, CallStructure.TWO_ARGS));
+      newRtiImpact.registerStaticUse(StaticUse.staticInvoke(
+          _commonElements.rtiAddErasedTypesMethod, CallStructure.TWO_ARGS));
+      if (_options.enableVariance) {
+        newRtiImpact.registerStaticUse(StaticUse.staticInvoke(
+            _commonElements.rtiAddTypeParameterVariancesMethod,
+            CallStructure.TWO_ARGS));
+      }
       enqueuer.applyImpact(newRtiImpact);
       _isNewRtiUsed = true;
     }
@@ -172,7 +179,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
       // If the type is a web component, we need to ensure the constructors are
       // available to 'upgrade' the native object.
       TypeConstantValue type = constant;
-      if (type.representedType.isInterfaceType) {
+      if (type.representedType is InterfaceType) {
         InterfaceType representedType = type.representedType;
         _customElementsAnalysis.registerTypeConstant(representedType.element);
       }
@@ -182,7 +189,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
           _elementEnvironment.getThisType(_commonElements
               .getInstantiationClass(constant.typeArguments.length))));
 
-      if (_options.experimentNewRti) {
+      if (_options.useNewRti) {
         impactBuilder.registerStaticUse(StaticUse.staticInvoke(
             _commonElements.instantiatedGenericFunctionTypeNewRti,
             CallStructure.TWO_ARGS));

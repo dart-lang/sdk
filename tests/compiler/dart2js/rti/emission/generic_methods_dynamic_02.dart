@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // Based on language/generic_methods_dynamic_test/02
 
 library generic_methods_dynamic_test;

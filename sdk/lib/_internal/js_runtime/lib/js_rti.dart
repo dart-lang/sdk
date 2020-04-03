@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 /// This part contains helpers for supporting runtime type information.
 ///
 /// The helper use a mixture of Dart and JavaScript objects. To indicate which
@@ -94,10 +96,17 @@ getMangledTypeName(Type t) {
 // more compact that the inlined expansion.
 @pragma('dart2js:noInline')
 Object setRuntimeTypeInfo(Object target, var rti) {
-  assert(rti == null || isJsArray(rti));
-  String rtiName = JS_GET_NAME(JsGetName.RTI_NAME);
-  JS('var', r'#[#] = #', target, rtiName, rti);
-  return target;
+  if (JS_GET_FLAG('USE_NEW_RTI')) {
+    assert(rti != null);
+    var rtiProperty = JS_EMBEDDED_GLOBAL('', ARRAY_RTI_PROPERTY);
+    JS('var', r'#[#] = #', target, rtiProperty, rti);
+    return target;
+  } else {
+    assert(rti == null || isJsArray(rti));
+    String rtiName = JS_GET_NAME(JsGetName.RTI_NAME);
+    JS('var', r'#[#] = #', target, rtiName, rti);
+    return target;
+  }
 }
 
 /// Returns the runtime type information of [target]. The returned value is a
@@ -702,13 +711,10 @@ bool _isSubtype(var s, var sEnv, var t, var tEnv) {
     return false;
   }
 
-  // Generic function type parameters must match exactly, which would have
-  // exited earlier. The de Bruijn indexing ensures the representation as a
-  // small number can be used for type comparison.
   if (isGenericFunctionTypeParameter(s)) {
-    // TODO(sra): Use the bound of the type variable.
-    return false;
+    return _isSubtype(getIndex(sEnv, s), sEnv, t, tEnv);
   }
+
   if (isGenericFunctionTypeParameter(t)) return false;
 
   if (isNullType(s)) return true;
@@ -805,9 +811,8 @@ bool _isFunctionSubtype(var s, var sEnv, var t, var tEnv) {
     if (sGenericParameters != tGenericParameters) return false;
     // TODO(sra): Compare bounds, which should be 'equal' trees due to the de
     // Bruijn numbering of type parameters.
-    // TODO(sra): Extend [sEnv] and [tEnv] with bindings for the [s] and [t]
-    // type parameters to enable checking the bound against non-type-parameter
-    // terms.
+    sEnv = sEnv == null ? sBounds : concat(sBounds, sEnv);
+    tEnv = tEnv == null ? tBounds : concat(tBounds, tEnv);
   } else if (hasField(t, genericBoundsTag)) {
     return false;
   }
@@ -1123,3 +1128,5 @@ bool isInterestingBound(rti) =>
         rti,
         JS_BUILTIN(
             'depends:none;effects:none;', JsBuiltin.dartObjectConstructor));
+
+concat(Object a1, Object a2) => JS('JSArray', '#.concat(#)', a1, a2);

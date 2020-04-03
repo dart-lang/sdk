@@ -1,0 +1,22 @@
+main = <No Member>;
+library from "org-dartlang-test:///main.dart" as main {
+
+  abstract class _A&Object&B extends dart.core::Object implements main::B /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+    const synthetic constructor •() → main::_A&Object&B*
+      : super dart.core::Object::•()
+      ;
+    method bar() → dynamic {}
+  }
+  class A extends main::_A&Object&B {
+    synthetic constructor •() → main::A*
+      : super main::_A&Object&B::•()
+      ;
+    method foo() → dynamic {}
+  }
+  class B extends dart.core::Object {
+    synthetic constructor •() → main::B*
+      : super dart.core::Object::•()
+      ;
+    method bar() → dynamic {}
+  }
+}

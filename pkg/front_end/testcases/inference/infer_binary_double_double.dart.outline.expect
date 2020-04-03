@@ -1,0 +1,18 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static field core::bool* a_equal;
+static field core::bool* a_notEqual;
+static field core::double* a_add;
+static field core::double* a_subtract;
+static field core::double* a_multiply;
+static field core::double* a_divide;
+static field core::int* a_floorDivide;
+static field core::bool* a_greater;
+static field core::bool* a_less;
+static field core::bool* a_greaterEqual;
+static field core::bool* a_lessEqual;
+static field core::double* a_modulo;
+static method main() → dynamic
+  ;

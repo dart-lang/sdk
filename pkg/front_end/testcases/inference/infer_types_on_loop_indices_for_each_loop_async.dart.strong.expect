@@ -3,18 +3,15 @@ library test;
 // Problems in library:
 //
 // pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:17:44: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-// Try changing the type of the left hand side, or casting the right hand side to 'int'.
 //       int x = /*error:INVALID_ASSIGNMENT*/ i;
 //                                            ^
 //
 // pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:25:44: Error: A value of type 'T' can't be assigned to a variable of type 'int'.
-// Try changing the type of the left hand side, or casting the right hand side to 'int'.
 //       int x = /*error:INVALID_ASSIGNMENT*/ i;
 //                                            ^
 //
 // pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:38:45: Error: A value of type 'Foo' can't be assigned to a variable of type 'String'.
 //  - 'Foo' is from 'pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart'.
-// Try changing the type of the left hand side, or casting the right hand side to 'String'.
 //     String y = /*error:INVALID_ASSIGNMENT*/ x;
 //                                             ^
 //
@@ -50,7 +47,6 @@ class Bar<T extends asy::Stream<core::String*>* = asy::Stream<core::String*>*> e
   method foo(generic-covariant-impl self::Bar::T* t) → dynamic async {
     await for (core::String* i in t) {
       core::int* x = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:17:44: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-Try changing the type of the left hand side, or casting the right hand side to 'int'.
       int x = /*error:INVALID_ASSIGNMENT*/ i;
                                            ^" in i as{TypeError} core::int*;
     }
@@ -63,7 +59,6 @@ class Baz<T extends core::Object* = dynamic, E extends asy::Stream<self::Baz::T*
   method foo(generic-covariant-impl self::Baz::S* t) → dynamic async {
     await for (self::Baz::T* i in t) {
       core::int* x = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:25:44: Error: A value of type 'T' can't be assigned to a variable of type 'int'.
-Try changing the type of the left hand side, or casting the right hand side to 'int'.
       int x = /*error:INVALID_ASSIGNMENT*/ i;
                                            ^" in i as{TypeError} core::int*;
       self::Baz::T* y = i;
@@ -79,12 +74,11 @@ static method test() → dynamic async {
   await for (self::Foo* x in myStream) {
     core::String* y = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:38:45: Error: A value of type 'Foo' can't be assigned to a variable of type 'String'.
  - 'Foo' is from 'pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart'.
-Try changing the type of the left hand side, or casting the right hand side to 'String'.
     String y = /*error:INVALID_ASSIGNMENT*/ x;
                                             ^" in x as{TypeError} core::String*;
   }
   await for (dynamic x in myStream) {
-    core::String* y = x as{TypeError} core::String*;
+    core::String* y = x as{TypeError,ForDynamic} core::String*;
   }
   await for (final self::Foo* #t4 in myStream) {
     core::String* x = let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:45:21: Error: A value of type 'Foo' can't be assigned to a variable of type 'String'.
@@ -97,16 +91,16 @@ Try changing the type of the variable.
   dynamic z;
   await for (final self::Foo* #t6 in myStream) {
     z = #t6;
-    core::String* y = z as{TypeError} core::String*;
+    core::String* y = z as{TypeError,ForDynamic} core::String*;
   }
   asy::Stream<dynamic>* stream = myStream;
   await for (final dynamic #t7 in stream) {
-    self::Foo* x = #t7 as{TypeError} self::Foo*;
+    self::Foo* x = #t7 as{TypeError,ForDynamic} self::Foo*;
     self::Foo* y = x;
   }
   dynamic stream2 = myStream;
-  await for (final dynamic #t8 in stream2 as{TypeError} asy::Stream<dynamic>*) {
-    self::Foo* x = #t8 as{TypeError} self::Foo*;
+  await for (final dynamic #t8 in stream2 as{TypeError,ForDynamic} asy::Stream<dynamic>*) {
+    self::Foo* x = #t8 as{TypeError,ForDynamic} self::Foo*;
     self::Foo* y = x;
   }
   core::Map<core::String*, self::Foo*>* map = <core::String*, self::Foo*>{};
@@ -116,7 +110,7 @@ Try changing the type of the variable.
  - 'Stream' is from 'dart:async'.
   await for (var /*@ type=dynamic */ x in /*error:FOR_IN_OF_INVALID_TYPE*/ map) {
                                                                            ^" in map as{TypeError} asy::Stream<dynamic>*) {
-    core::String* y = x as{TypeError} core::String*;
+    core::String* y = x as{TypeError,ForDynamic} core::String*;
   }
 }
 static method main() → dynamic {}

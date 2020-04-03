@@ -10,5 +10,5 @@ import self as self;
 import "dart:core" as core;
 
 static method main() → dynamic {
-  (let final () →* core::Null* f = () → core::Null* {} in f).call();
+  (let final () →* core::Null? f = () → core::Null? {} in f).call();
 }

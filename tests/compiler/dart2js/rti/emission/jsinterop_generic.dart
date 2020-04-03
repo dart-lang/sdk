@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // dart2jsOptions=--strong
 
 @JS()
@@ -9,7 +11,7 @@ library foo;
 
 // TODO(johnniwinther): Avoid generating duplicate is/as function when multiple
 // jsinterop classes implement the same interface.
-/*class: global#JavaScriptObject:checks=[$asA,$asB,$asB,$isA,$isB,$isB],instance*/
+/*class: global#JavaScriptObject:checks=[$isA,$isB,$isB],instance*/
 
 import 'package:expect/expect.dart';
 import 'package:js/js.dart';

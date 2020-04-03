@@ -9,12 +9,12 @@ class DartdocDirectiveInfo {
 
   /// A regular expression used to match a macro directive. There is one group
   /// that contains the name of the template.
-  static final macroRegExp = new RegExp(r'{@macro\s+([^}]+)}');
+  static final macroRegExp = RegExp(r'{@macro\s+([^}]+)}');
 
   /// A regular expression used to match a template directive. There are two
   /// groups. The first contains the name of the template, the second contains
   /// the body of the template.
-  static final templateRegExp = new RegExp(
+  static final templateRegExp = RegExp(
       r'[ ]*{@template\s+(.+?)}([\s\S]+?){@endtemplate}[ ]*\n?',
       multiLine: true);
 
@@ -23,7 +23,7 @@ class DartdocDirectiveInfo {
   /// These are in the form:
   /// `{@youtube 560 315 https://www.youtube.com/watch?v=2uaoEDOgk_I}`.
   static final videoRegExp =
-      new RegExp(r'{@(youtube|animation)\s+[^}]+\s+[^}]+\s+([^}]+)}');
+      RegExp(r'{@(youtube|animation)\s+[^}]+\s+[^}]+\s+([^}]+)}');
 
   /// A table mapping the names of templates to the unprocessed bodies of the
   /// templates.

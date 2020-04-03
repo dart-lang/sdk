@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 library type_substitution_test;
 
 import 'package:expect/expect.dart';
@@ -58,6 +60,7 @@ testAsInstanceOf() async {
         new F();
       }
       ''');
+  var types = env.types;
   ClassEntity A = env.getElement("A");
   ClassEntity B = env.getElement("B");
   ClassEntity C = env.getElement("C");
@@ -68,34 +71,34 @@ testAsInstanceOf() async {
   DartType intType = env['int'];
   DartType stringType = env['String'];
 
-  InterfaceType C_int = instantiate(C, [intType]);
-  Expect.equals(instantiate(C, [intType]), C_int);
-  Expect.equals(instantiate(A, [intType]), env.types.asInstanceOf(C_int, A));
+  InterfaceType C_int = instantiate(types, C, [intType]);
+  Expect.equals(instantiate(types, C, [intType]), C_int);
+  Expect.equals(instantiate(types, A, [intType]), types.asInstanceOf(C_int, A));
 
-  InterfaceType D_int = instantiate(D, [stringType]);
-  Expect.equals(instantiate(A, [intType]), env.types.asInstanceOf(D_int, A));
+  InterfaceType D_int = instantiate(types, D, [stringType]);
+  Expect.equals(instantiate(types, A, [intType]), types.asInstanceOf(D_int, A));
 
-  InterfaceType E_int = instantiate(E, [intType]);
+  InterfaceType E_int = instantiate(types, E, [intType]);
   Expect.equals(
-      instantiate(A, [
-        instantiate(A, [intType])
+      instantiate(types, A, [
+        instantiate(types, A, [intType])
       ]),
-      env.types.asInstanceOf(E_int, A));
+      types.asInstanceOf(E_int, A));
 
-  InterfaceType F_int_string = instantiate(F, [intType, stringType]);
+  InterfaceType F_int_string = instantiate(types, F, [intType, stringType]);
   Expect.equals(
-      instantiate(B, [
-        instantiate(F, [intType, stringType])
+      instantiate(types, B, [
+        instantiate(types, F, [intType, stringType])
       ]),
-      env.types.asInstanceOf(F_int_string, B));
+      types.asInstanceOf(F_int_string, B));
   Expect.equals(
-      instantiate(A, [
-        instantiate(F, [
-          instantiate(B, [stringType]),
+      instantiate(types, A, [
+        instantiate(types, F, [
+          instantiate(types, B, [stringType]),
           intType
         ])
       ]),
-      env.types.asInstanceOf(F_int_string, A));
+      types.asInstanceOf(F_int_string, A));
 }
 
 /**
@@ -103,12 +106,13 @@ testAsInstanceOf() async {
  * through [name1] is the same as the type found through [name2].
  */
 void testSubstitution(
+    DartTypes dartTypes,
     ElementEnvironment elementEnvironment,
     List<DartType> arguments,
     List<DartType> parameters,
     DartType type1,
     DartType type2) {
-  DartType subst = type1.subst(arguments, parameters);
+  DartType subst = dartTypes.subst(arguments, parameters, type1);
   Expect.equals(
       type2, subst, "$type1.subst($arguments,$parameters)=$subst != $type2");
 }
@@ -119,26 +123,27 @@ testTypeSubstitution() async {
 
       main() => new Class();
       """);
+  var types = env.types;
   InterfaceType Class_T_S = env["Class"];
   Expect.isNotNull(Class_T_S);
-  Expect.isTrue(Class_T_S.isInterfaceType);
+  Expect.isTrue(Class_T_S is InterfaceType);
   Expect.equals(2, Class_T_S.typeArguments.length);
 
   DartType T = Class_T_S.typeArguments[0];
   Expect.isNotNull(T);
-  Expect.isTrue(T.isTypeVariable);
+  Expect.isTrue(T is TypeVariableType);
 
   DartType S = Class_T_S.typeArguments[1];
   Expect.isNotNull(S);
-  Expect.isTrue(S.isTypeVariable);
+  Expect.isTrue(S is TypeVariableType);
 
   DartType intType = env['int'];
   Expect.isNotNull(intType);
-  Expect.isTrue(intType.isInterfaceType);
+  Expect.isTrue(intType is InterfaceType);
 
   DartType StringType = env['String'];
   Expect.isNotNull(StringType);
-  Expect.isTrue(StringType.isInterfaceType);
+  Expect.isTrue(StringType is InterfaceType);
 
   ClassEntity ListClass = env.getElement('List');
   ClassEntity MapClass = env.getElement('Map');
@@ -146,75 +151,100 @@ testTypeSubstitution() async {
   List<DartType> parameters = <DartType>[T, S];
   List<DartType> arguments = <DartType>[intType, StringType];
 
-  testSubstitution(env.elementEnvironment, arguments, parameters,
-      const VoidType(), const VoidType());
-  testSubstitution(env.elementEnvironment, arguments, parameters,
-      const DynamicType(), const DynamicType());
+  testSubstitution(types, env.elementEnvironment, arguments, parameters,
+      types.voidType(), types.voidType());
+  testSubstitution(types, env.elementEnvironment, arguments, parameters,
+      types.dynamicType(), types.dynamicType());
   testSubstitution(
-      env.elementEnvironment, arguments, parameters, intType, intType);
+      types, env.elementEnvironment, arguments, parameters, intType, intType);
+  testSubstitution(types, env.elementEnvironment, arguments, parameters,
+      StringType, StringType);
   testSubstitution(
-      env.elementEnvironment, arguments, parameters, StringType, StringType);
-  testSubstitution(env.elementEnvironment, arguments, parameters,
-      instantiate(ListClass, [intType]), instantiate(ListClass, [intType]));
-  testSubstitution(env.elementEnvironment, arguments, parameters,
-      instantiate(ListClass, [T]), instantiate(ListClass, [intType]));
-  testSubstitution(env.elementEnvironment, arguments, parameters,
-      instantiate(ListClass, [S]), instantiate(ListClass, [StringType]));
-  testSubstitution(
+      types,
       env.elementEnvironment,
       arguments,
       parameters,
-      instantiate(ListClass, [
-        instantiate(ListClass, [T])
+      instantiate(types, ListClass, [intType]),
+      instantiate(types, ListClass, [intType]));
+  testSubstitution(
+      types,
+      env.elementEnvironment,
+      arguments,
+      parameters,
+      instantiate(types, ListClass, [T]),
+      instantiate(types, ListClass, [intType]));
+  testSubstitution(
+      types,
+      env.elementEnvironment,
+      arguments,
+      parameters,
+      instantiate(types, ListClass, [S]),
+      instantiate(types, ListClass, [StringType]));
+  testSubstitution(
+      types,
+      env.elementEnvironment,
+      arguments,
+      parameters,
+      instantiate(types, ListClass, [
+        instantiate(types, ListClass, [T])
       ]),
-      instantiate(ListClass, [
-        instantiate(ListClass, [intType])
+      instantiate(types, ListClass, [
+        instantiate(types, ListClass, [intType])
       ]));
   testSubstitution(
+      types,
       env.elementEnvironment,
       arguments,
       parameters,
-      instantiate(ListClass, [const DynamicType()]),
-      instantiate(ListClass, [const DynamicType()]));
+      instantiate(types, ListClass, [types.dynamicType()]),
+      instantiate(types, ListClass, [types.dynamicType()]));
   testSubstitution(
+      types,
       env.elementEnvironment,
       arguments,
       parameters,
-      instantiate(MapClass, [intType, StringType]),
-      instantiate(MapClass, [intType, StringType]));
+      instantiate(types, MapClass, [intType, StringType]),
+      instantiate(types, MapClass, [intType, StringType]));
   testSubstitution(
+      types,
       env.elementEnvironment,
       arguments,
       parameters,
-      instantiate(MapClass, [T, StringType]),
-      instantiate(MapClass, [intType, StringType]));
+      instantiate(types, MapClass, [T, StringType]),
+      instantiate(types, MapClass, [intType, StringType]));
   testSubstitution(
+      types,
       env.elementEnvironment,
       arguments,
       parameters,
-      instantiate(MapClass, [const DynamicType(), StringType]),
-      instantiate(MapClass, [const DynamicType(), StringType]));
-  testSubstitution(env.elementEnvironment, arguments, parameters, T, intType);
+      instantiate(types, MapClass, [types.dynamicType(), StringType]),
+      instantiate(types, MapClass, [types.dynamicType(), StringType]));
   testSubstitution(
-      env.elementEnvironment, arguments, parameters, S, StringType);
+      types, env.elementEnvironment, arguments, parameters, T, intType);
   testSubstitution(
+      types, env.elementEnvironment, arguments, parameters, S, StringType);
+  testSubstitution(
+      types,
       env.elementEnvironment,
       arguments,
       parameters,
-      new FunctionType(intType, [StringType], [], [], [], []),
-      new FunctionType(intType, [StringType], [], [], [], []));
+      types.functionType(intType, [StringType], [], [], [], []),
+      types.functionType(intType, [StringType], [], [], [], []));
   testSubstitution(
+      types,
       env.elementEnvironment,
       arguments,
       parameters,
-      new FunctionType(const VoidType(), [T, S], [], [], [], []),
-      new FunctionType(
-          const VoidType(), [intType, StringType], [], [], [], []));
+      types.functionType(types.voidType(), [T, S], [], [], [], []),
+      types.functionType(
+          types.voidType(), [intType, StringType], [], [], [], []));
   testSubstitution(
+      types,
       env.elementEnvironment,
       arguments,
       parameters,
-      new FunctionType(const VoidType(), [const DynamicType()], [], [], [], []),
-      new FunctionType(
-          const VoidType(), [const DynamicType()], [], [], [], []));
+      types.functionType(
+          types.voidType(), [types.dynamicType()], [], [], [], []),
+      types.functionType(
+          types.voidType(), [types.dynamicType()], [], [], [], []));
 }

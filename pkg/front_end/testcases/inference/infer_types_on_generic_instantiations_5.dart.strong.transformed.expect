@@ -3,7 +3,6 @@ library test;
 // Problems in library:
 //
 // pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_5.dart:30:26: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-// Try changing the type of the left hand side, or casting the right hand side to 'int'.
 //       . /*@target=B::m*/ m(null, null);
 //                          ^
 //
@@ -16,7 +15,7 @@ abstract class I<E extends core::Object* = dynamic> extends core::Object {
     ;
   abstract method m(dynamic a, (dynamic, self::I::E*) →* core::String* f) → core::String*;
 }
-abstract class A<E extends core::Object* = dynamic> extends core::Object implements self::I<self::A::E*> {
+abstract class A<E extends core::Object* = dynamic> extends core::Object implements self::I<self::A::E*> /*hasConstConstructor*/  {
   const constructor •() → self::A<self::A::E*>*
     : super core::Object::•()
     ;
@@ -28,7 +27,7 @@ abstract class M extends core::Object {
     : super core::Object::•()
     ;
 }
-class B<E extends core::Object* = dynamic> extends self::A<self::B::E*> implements self::M {
+class B<E extends core::Object* = dynamic> extends self::A<self::B::E*> implements self::M /*hasConstConstructor*/  {
   const constructor •() → self::B<self::B::E*>*
     : super self::A::•()
     ;
@@ -38,7 +37,6 @@ class B<E extends core::Object* = dynamic> extends self::A<self::B::E*> implemen
 }
 static method foo() → dynamic {
   core::int* y = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_5.dart:30:26: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-Try changing the type of the left hand side, or casting the right hand side to 'int'.
       . /*@target=B::m*/ m(null, null);
                          ^" in new self::B::•<dynamic>().{self::B::m}(null, null) as{TypeError} core::int*;
   core::String* z = new self::B::•<dynamic>().{self::B::m}(null, null);

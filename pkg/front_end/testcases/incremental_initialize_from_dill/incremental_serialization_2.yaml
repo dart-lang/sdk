@@ -1,0 +1,55 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Check that we don't crash when doing an actual partial component
+# (an actual delta).
+
+type: newworld
+incrementalSerialization: true
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart:
+        import "package:package1/lib1.dart";
+        import "package:package1/lib2.dart";
+        import "package:package1/lib3.dart";
+        main() {
+          lib1();
+          lib2();
+          lib3();
+        }
+      package1/lib1.dart:
+        lib1() {
+          return 42;
+        }
+      package1/lib2.dart:
+        lib2() {
+          return 42;
+        }
+      package1/lib3.dart:
+        import "package:package1/lib1.dart";
+        lib3() {
+          return lib1();
+        }
+      .packages: |
+        package1:package1
+    expectedLibraryCount: 4
+    incrementalSerializationDoesWork: true
+  - entry: main.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - package:package1/lib3.dart
+    sources:
+      package1/lib3.dart:
+        import "package:package1/lib1.dart";
+        lib3() {
+          return lib3_1();
+        }
+        lib3_1() {
+          return lib1();
+        }
+    expectedLibraryCount: 2
+    # Asking for a partial component, i.e. it's not self-contained.
+    noFullComponent: true

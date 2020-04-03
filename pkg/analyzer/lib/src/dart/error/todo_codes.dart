@@ -12,7 +12,7 @@ class TodoCode extends ErrorCode {
   /**
    * The single enum of TodoCode.
    */
-  static const TodoCode TODO = const TodoCode('TODO');
+  static const TodoCode TODO = TodoCode('TODO');
 
   /**
    * This matches the two common Dart task styles
@@ -28,7 +28,7 @@ class TodoCode extends ErrorCode {
    * * TODOS
    */
   static RegExp TODO_REGEX =
-      new RegExp("([\\s/\\*])((TODO[^\\w\\d][^\\r\\n]*)|(TODO:?\$))");
+      RegExp("([\\s/\\*])((TODO[^\\w\\d][^\\r\\n]*)|(TODO:?\$))");
 
   /**
    * Initialize a newly created error code to have the given [name].

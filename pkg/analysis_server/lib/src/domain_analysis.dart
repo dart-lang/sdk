@@ -12,15 +12,12 @@ import 'package:analysis_server/src/computer/computer_signature.dart';
 import 'package:analysis_server/src/computer/imported_elements_computer.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
-import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/request_converter.dart';
 import 'package:analysis_server/src/plugin/result_merger.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart' as engine;
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -31,45 +28,38 @@ import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 // TODO(devoncarew): See #31456 for the tracking issue to remove this flag.
 final bool disableManageImportsOnPaste = true;
 
-/**
- * Instances of the class [AnalysisDomainHandler] implement a [RequestHandler]
- * that handles requests in the `analysis` domain.
- */
+/// Instances of the class [AnalysisDomainHandler] implement a [RequestHandler]
+/// that handles requests in the `analysis` domain.
 class AnalysisDomainHandler extends AbstractRequestHandler {
-  /**
-   * Initialize a newly created handler to handle requests for the given [server].
-   */
+  /// Initialize a newly created handler to handle requests for the given
+  /// [server].
   AnalysisDomainHandler(AnalysisServer server) : super(server);
 
-  /**
-   * Implement the `analysis.getErrors` request.
-   */
+  /// Implement the `analysis.getErrors` request.
   Future<void> getErrors(Request request) async {
-    String file = new AnalysisGetErrorsParams.fromRequest(request).file;
+    var file = AnalysisGetErrorsParams.fromRequest(request).file;
 
     if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
       return;
     }
 
-    ResolvedUnitResult result = await server.getResolvedUnit(file);
+    var result = await server.getResolvedUnit(file);
 
     if (result?.state != ResultState.VALID) {
-      server.sendResponse(new Response.getErrorsInvalidFile(request));
+      server.sendResponse(Response.getErrorsInvalidFile(request));
       return;
     }
 
-    List<AnalysisError> protocolErrors = doAnalysisError_listFromEngine(result);
+    var protocolErrors = doAnalysisError_listFromEngine(result);
     server.sendResponse(
-        new AnalysisGetErrorsResult(protocolErrors).toResponse(request.id));
+        AnalysisGetErrorsResult(protocolErrors).toResponse(request.id));
   }
 
-  /**
-   * Implement the `analysis.getHover` request.
-   */
+  /// Implement the `analysis.getHover` request.
   Future<void> getHover(Request request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    var params = new AnalysisGetHoverParams.fromRequest(request);
+    var params = AnalysisGetHoverParams.fromRequest(request);
     var file = params.file;
 
     if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
@@ -77,13 +67,13 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     }
 
     // Prepare the resolved units.
-    ResolvedUnitResult result = await server.getResolvedUnit(file);
-    CompilationUnit unit = result?.unit;
+    var result = await server.getResolvedUnit(file);
+    var unit = result?.unit;
 
     // Prepare the hovers.
-    List<HoverInformation> hovers = <HoverInformation>[];
+    var hovers = <HoverInformation>[];
     if (unit != null) {
-      HoverInformation hoverInformation = new DartUnitHoverComputer(
+      var hoverInformation = DartUnitHoverComputer(
               server.getDartdocDirectiveInfoFor(result), unit, params.offset)
           .compute();
       if (hoverInformation != null) {
@@ -92,17 +82,14 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     }
 
     // Send the response.
-    server.sendResponse(
-        new AnalysisGetHoverResult(hovers).toResponse(request.id));
+    server.sendResponse(AnalysisGetHoverResult(hovers).toResponse(request.id));
   }
 
-  /**
-   * Implement the `analysis.getImportedElements` request.
-   */
+  /// Implement the `analysis.getImportedElements` request.
   Future<void> getImportedElements(Request request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    var params = new AnalysisGetImportedElementsParams.fromRequest(request);
+    var params = AnalysisGetImportedElementsParams.fromRequest(request);
     var file = params.file;
 
     if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
@@ -112,9 +99,9 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     //
     // Prepare the resolved unit.
     //
-    ResolvedUnitResult result = await server.getResolvedUnit(file);
+    var result = await server.getResolvedUnit(file);
     if (result?.state != ResultState.VALID) {
-      server.sendResponse(new Response.getImportedElementsInvalidFile(request));
+      server.sendResponse(Response.getImportedElementsInvalidFile(request));
       return;
     }
 
@@ -126,23 +113,21 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     if (disableManageImportsOnPaste) {
       elements = <ImportedElements>[];
     } else {
-      elements = new ImportedElementsComputer(
-              result.unit, params.offset, params.length)
-          .compute();
+      elements =
+          ImportedElementsComputer(result.unit, params.offset, params.length)
+              .compute();
     }
 
     //
     // Send the response.
     //
     server.sendResponse(
-        new AnalysisGetImportedElementsResult(elements).toResponse(request.id));
+        AnalysisGetImportedElementsResult(elements).toResponse(request.id));
   }
 
-  /**
-   * Implement the `analysis.getLibraryDependencies` request.
-   */
+  /// Implement the `analysis.getLibraryDependencies` request.
   Response getLibraryDependencies(Request request) {
-    return new Response.unsupportedFeature(request.id,
+    return Response.unsupportedFeature(request.id,
         'Please contact the Dart analyzer team if you need this request.');
 //    server.onAnalysisComplete.then((_) {
 //      LibraryDependencyCollector collector =
@@ -160,45 +145,42 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
 //    return Response.DELAYED_RESPONSE;
   }
 
-  /**
-   * Implement the `analysis.getNavigation` request.
-   */
+  /// Implement the `analysis.getNavigation` request.
   Future<void> getNavigation(Request request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    var params = new AnalysisGetNavigationParams.fromRequest(request);
-    String file = params.file;
-    int offset = params.offset;
-    int length = params.length;
+    var params = AnalysisGetNavigationParams.fromRequest(request);
+    var file = params.file;
+    var offset = params.offset;
+    var length = params.length;
 
     if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
       return;
     }
 
-    AnalysisDriver driver = server.getAnalysisDriver(file);
+    var driver = server.getAnalysisDriver(file);
     if (driver == null) {
-      server.sendResponse(new Response.getNavigationInvalidFile(request));
+      server.sendResponse(Response.getNavigationInvalidFile(request));
     } else {
       //
       // Allow plugins to start computing navigation data.
       //
-      plugin.AnalysisGetNavigationParams requestParams =
-          new plugin.AnalysisGetNavigationParams(file, offset, length);
-      Map<PluginInfo, Future<plugin.Response>> pluginFutures = server
-          .pluginManager
+      var requestParams =
+          plugin.AnalysisGetNavigationParams(file, offset, length);
+      var pluginFutures = server.pluginManager
           .broadcastRequest(requestParams, contextRoot: driver.contextRoot);
       //
       // Compute navigation data generated by server.
       //
-      List<AnalysisNavigationParams> allResults = <AnalysisNavigationParams>[];
-      ResolvedUnitResult result = await server.getResolvedUnit(file);
+      var allResults = <AnalysisNavigationParams>[];
+      var result = await server.getResolvedUnit(file);
       if (result?.state == ResultState.VALID) {
-        CompilationUnit unit = result?.unit;
-        NavigationCollectorImpl collector = new NavigationCollectorImpl();
+        var unit = result?.unit;
+        var collector = NavigationCollectorImpl();
         computeDartNavigation(
             server.resourceProvider, collector, unit, offset, length);
         collector.createRegions();
-        allResults.add(new AnalysisNavigationParams(
+        allResults.add(AnalysisNavigationParams(
             file, collector.regions, collector.targets, collector.files));
       }
       //
@@ -206,38 +188,35 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
       // navigation data.
       //
       if (pluginFutures != null) {
-        List<plugin.Response> responses = await waitForResponses(pluginFutures,
+        var responses = await waitForResponses(pluginFutures,
             requestParameters: requestParams);
-        for (plugin.Response response in responses) {
-          plugin.AnalysisGetNavigationResult result =
-              new plugin.AnalysisGetNavigationResult.fromResponse(response);
-          allResults.add(new AnalysisNavigationParams(
+        for (var response in responses) {
+          var result =
+              plugin.AnalysisGetNavigationResult.fromResponse(response);
+          allResults.add(AnalysisNavigationParams(
               file, result.regions, result.targets, result.files));
         }
       }
       //
       // Return the result.
       //
-      ResultMerger merger = new ResultMerger();
-      AnalysisNavigationParams mergedResults =
-          merger.mergeNavigation(allResults);
+      var merger = ResultMerger();
+      var mergedResults = merger.mergeNavigation(allResults);
       if (mergedResults == null) {
-        server.sendResponse(new AnalysisGetNavigationResult(
+        server.sendResponse(AnalysisGetNavigationResult(
                 <String>[], <NavigationTarget>[], <NavigationRegion>[])
             .toResponse(request.id));
       } else {
-        server.sendResponse(new AnalysisGetNavigationResult(mergedResults.files,
+        server.sendResponse(AnalysisGetNavigationResult(mergedResults.files,
                 mergedResults.targets, mergedResults.regions)
             .toResponse(request.id));
       }
     }
   }
 
-  /**
-   * Implement the `analysis.getReachableSources` request.
-   */
+  /// Implement the `analysis.getReachableSources` request.
   Response getReachableSources(Request request) {
-    return new Response.unsupportedFeature(request.id,
+    return Response.unsupportedFeature(request.id,
         'Please contact the Dart analyzer team if you need this request.');
 //    AnalysisGetReachableSourcesParams params =
 //        new AnalysisGetReachableSourcesParams.fromRequest(request);
@@ -252,11 +231,9 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
 //        .toResponse(request.id);
   }
 
-  /**
-   * Implement the `analysis.getSignature` request.
-   */
+  /// Implement the `analysis.getSignature` request.
   Future<void> getSignature(Request request) async {
-    var params = new AnalysisGetSignatureParams.fromRequest(request);
+    var params = AnalysisGetSignatureParams.fromRequest(request);
     var file = params.file;
 
     if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
@@ -264,26 +241,26 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     }
 
     // Prepare the resolved units.
-    ResolvedUnitResult result = await server.getResolvedUnit(file);
+    var result = await server.getResolvedUnit(file);
 
     if (result?.state != ResultState.VALID) {
-      server.sendResponse(new Response.getSignatureInvalidFile(request));
+      server.sendResponse(Response.getSignatureInvalidFile(request));
       return;
     }
 
     // Ensure the offset provided is a valid location in the file.
     final unit = result.unit;
-    final computer = new DartUnitSignatureComputer(
+    final computer = DartUnitSignatureComputer(
         server.getDartdocDirectiveInfoFor(result), unit, params.offset);
     if (!computer.offsetIsValid) {
-      server.sendResponse(new Response.getSignatureInvalidOffset(request));
+      server.sendResponse(Response.getSignatureInvalidOffset(request));
       return;
     }
 
     // Try to get a signature.
     final signature = computer.compute();
     if (signature == null) {
-      server.sendResponse(new Response.getSignatureUnknownFunction(request));
+      server.sendResponse(Response.getSignatureUnknownFunction(request));
       return;
     }
 
@@ -293,7 +270,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
   @override
   Response handleRequest(Request request) {
     try {
-      String requestName = request.method;
+      var requestName = request.method;
       if (requestName == ANALYSIS_REQUEST_GET_ERRORS) {
         getErrors(request);
         return Response.DELAYED_RESPONSE;
@@ -334,9 +311,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     return null;
   }
 
-  /**
-   * Implement the 'analysis.reanalyze' request.
-   */
+  /// Implement the 'analysis.reanalyze' request.
   Response reanalyze(Request request) {
     server.options.analytics?.sendEvent('analysis', 'reanalyze');
 
@@ -350,33 +325,30 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     //
     // Send the response.
     //
-    return new AnalysisReanalyzeResult().toResponse(request.id);
+    return AnalysisReanalyzeResult().toResponse(request.id);
   }
 
-  /**
-   * Implement the 'analysis.setAnalysisRoots' request.
-   */
+  /// Implement the 'analysis.setAnalysisRoots' request.
   Response setAnalysisRoots(Request request) {
-    var params = new AnalysisSetAnalysisRootsParams.fromRequest(request);
-    List<String> includedPathList = params.included;
-    List<String> excludedPathList = params.excluded;
+    var params = AnalysisSetAnalysisRootsParams.fromRequest(request);
+    var includedPathList = params.included;
+    var excludedPathList = params.excluded;
 
     server.options.analytics?.sendEvent('analysis', 'setAnalysisRoots',
         value: includedPathList.length);
 
     // validate
-    for (String path in includedPathList) {
+    for (var path in includedPathList) {
       if (!server.isValidFilePath(path)) {
-        return new Response.invalidFilePathFormat(request, path);
+        return Response.invalidFilePathFormat(request, path);
       }
     }
-    for (String path in excludedPathList) {
+    for (var path in excludedPathList) {
       if (!server.isValidFilePath(path)) {
-        return new Response.invalidFilePathFormat(request, path);
+        return Response.invalidFilePathFormat(request, path);
       }
     }
-    Map<String, String> packageRoots =
-        params.packageRoots ?? <String, String>{};
+    var packageRoots = params.packageRoots ?? <String, String>{};
 
     if (server.detachableFileSystemManager != null) {
       server.detachableFileSystemManager.setAnalysisRoots(
@@ -385,24 +357,19 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
       server.setAnalysisRoots(
           request.id, includedPathList, excludedPathList, packageRoots);
     }
-    return new AnalysisSetAnalysisRootsResult().toResponse(request.id);
+    return AnalysisSetAnalysisRootsResult().toResponse(request.id);
   }
 
-  /**
-   * Implement the 'analysis.setGeneralSubscriptions' request.
-   */
+  /// Implement the 'analysis.setGeneralSubscriptions' request.
   Response setGeneralSubscriptions(Request request) {
-    AnalysisSetGeneralSubscriptionsParams params =
-        new AnalysisSetGeneralSubscriptionsParams.fromRequest(request);
+    var params = AnalysisSetGeneralSubscriptionsParams.fromRequest(request);
     server.setGeneralAnalysisSubscriptions(params.subscriptions);
-    return new AnalysisSetGeneralSubscriptionsResult().toResponse(request.id);
+    return AnalysisSetGeneralSubscriptionsResult().toResponse(request.id);
   }
 
-  /**
-   * Implement the 'analysis.setPriorityFiles' request.
-   */
+  /// Implement the 'analysis.setPriorityFiles' request.
   Response setPriorityFiles(Request request) {
-    var params = new AnalysisSetPriorityFilesParams.fromRequest(request);
+    var params = AnalysisSetPriorityFilesParams.fromRequest(request);
 
     for (var file in params.files) {
       if (!server.isAbsoluteAndNormalized(file)) {
@@ -414,20 +381,18 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     //
     // Forward the request to the plugins.
     //
-    RequestConverter converter = new RequestConverter();
+    var converter = RequestConverter();
     server.pluginManager.setAnalysisSetPriorityFilesParams(
         converter.convertAnalysisSetPriorityFilesParams(params));
     //
     // Send the response.
     //
-    return new AnalysisSetPriorityFilesResult().toResponse(request.id);
+    return AnalysisSetPriorityFilesResult().toResponse(request.id);
   }
 
-  /**
-   * Implement the 'analysis.setSubscriptions' request.
-   */
+  /// Implement the 'analysis.setSubscriptions' request.
   Response setSubscriptions(Request request) {
-    var params = new AnalysisSetSubscriptionsParams.fromRequest(request);
+    var params = AnalysisSetSubscriptionsParams.fromRequest(request);
 
     for (var fileList in params.subscriptions.values) {
       for (var file in fileList) {
@@ -438,26 +403,27 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     }
 
     // parse subscriptions
-    Map<AnalysisService, Set<String>> subMap = mapMap(params.subscriptions,
-        valueCallback: (List<String> subscriptions) => subscriptions.toSet());
+    var subMap =
+        mapMap<AnalysisService, List<String>, AnalysisService, Set<String>>(
+            params.subscriptions,
+            valueCallback: (List<String> subscriptions) =>
+                subscriptions.toSet());
     server.setAnalysisSubscriptions(subMap);
     //
     // Forward the request to the plugins.
     //
-    RequestConverter converter = new RequestConverter();
+    var converter = RequestConverter();
     server.pluginManager.setAnalysisSetSubscriptionsParams(
         converter.convertAnalysisSetSubscriptionsParams(params));
     //
     // Send the response.
     //
-    return new AnalysisSetSubscriptionsResult().toResponse(request.id);
+    return AnalysisSetSubscriptionsResult().toResponse(request.id);
   }
 
-  /**
-   * Implement the 'analysis.updateContent' request.
-   */
+  /// Implement the 'analysis.updateContent' request.
   Response updateContent(Request request) {
-    var params = new AnalysisUpdateContentParams.fromRequest(request);
+    var params = AnalysisUpdateContentParams.fromRequest(request);
 
     for (var file in params.files.keys) {
       if (!server.isAbsoluteAndNormalized(file)) {
@@ -469,23 +435,21 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     //
     // Forward the request to the plugins.
     //
-    RequestConverter converter = new RequestConverter();
+    var converter = RequestConverter();
     server.pluginManager.setAnalysisUpdateContentParams(
         converter.convertAnalysisUpdateContentParams(params));
     //
     // Send the response.
     //
-    return new AnalysisUpdateContentResult().toResponse(request.id);
+    return AnalysisUpdateContentResult().toResponse(request.id);
   }
 
-  /**
-   * Implement the 'analysis.updateOptions' request.
-   */
+  /// Implement the 'analysis.updateOptions' request.
   Response updateOptions(Request request) {
     // options
-    var params = new AnalysisUpdateOptionsParams.fromRequest(request);
-    AnalysisOptions newOptions = params.options;
-    List<OptionUpdater> updaters = new List<OptionUpdater>();
+    var params = AnalysisUpdateOptionsParams.fromRequest(request);
+    var newOptions = params.options;
+    var updaters = <OptionUpdater>[];
     if (newOptions.generateDart2jsHints != null) {
       updaters.add((engine.AnalysisOptionsImpl options) {
         options.dart2jsHint = newOptions.generateDart2jsHints;
@@ -502,6 +466,6 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
       });
     }
     server.updateOptions(updaters);
-    return new AnalysisUpdateOptionsResult().toResponse(request.id);
+    return AnalysisUpdateOptionsResult().toResponse(request.id);
   }
 }

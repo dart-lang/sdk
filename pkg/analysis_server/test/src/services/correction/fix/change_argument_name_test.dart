@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ChangeArgumentNameTest);
   });
@@ -19,7 +19,7 @@ class ChangeArgumentNameTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CHANGE_ARGUMENT_NAME;
 
-  test_child_constructor() async {
+  Future<void> test_child_constructor() async {
     await resolveTestUnit('''
 f() => new A(children: 2);
 class A {
@@ -34,7 +34,7 @@ class A {
 ''');
   }
 
-  test_child_function() async {
+  Future<void> test_child_function() async {
     await resolveTestUnit('''
 f() {
   g(children: 0);
@@ -49,7 +49,7 @@ void g({int child}) {}
 ''');
   }
 
-  test_child_method() async {
+  Future<void> test_child_method() async {
     await resolveTestUnit('''
 f(A a) {
   a.m(children: 0);
@@ -68,7 +68,7 @@ class A {
 ''');
   }
 
-  test_children_constructor() async {
+  Future<void> test_children_constructor() async {
     await resolveTestUnit('''
 f() => new A(child: 2);
 class A {
@@ -83,7 +83,7 @@ class A {
 ''');
   }
 
-  test_children_function() async {
+  Future<void> test_children_function() async {
     await resolveTestUnit('''
 f() {
   g(child: 0);
@@ -98,7 +98,7 @@ void g({int children}) {}
 ''');
   }
 
-  test_children_method() async {
+  Future<void> test_children_method() async {
     await resolveTestUnit('''
 f(A a) {
   a.m(child: 0);
@@ -117,7 +117,7 @@ class A {
 ''');
   }
 
-  test_default_annotation() async {
+  Future<void> test_default_annotation() async {
     await resolveTestUnit('''
 @A(boot: 2)
 f() => null;
@@ -134,7 +134,7 @@ class A {
 ''');
   }
 
-  test_default_constructor() async {
+  Future<void> test_default_constructor() async {
     await resolveTestUnit('''
 f() => new A(boot: 2);
 class A {
@@ -149,7 +149,7 @@ class A {
 ''');
   }
 
-  test_default_function() async {
+  Future<void> test_default_function() async {
     await resolveTestUnit('''
 f() {
   g(boot: 0);
@@ -164,7 +164,7 @@ void g({int boat}) {}
 ''');
   }
 
-  test_default_method() async {
+  Future<void> test_default_method() async {
     await resolveTestUnit('''
 f(A a) {
   a.m(boot: 0);
@@ -183,7 +183,7 @@ class A {
 ''');
   }
 
-  test_default_redirectingConstructor() async {
+  Future<void> test_default_redirectingConstructor() async {
     await resolveTestUnit('''
 class A {
   A.one() : this.two(boot: 3);
@@ -198,7 +198,7 @@ class A {
 ''');
   }
 
-  test_default_superConstructor() async {
+  Future<void> test_default_superConstructor() async {
     await resolveTestUnit('''
 class A {
   A.a({int boat});
@@ -217,7 +217,7 @@ class B extends A {
 ''');
   }
 
-  test_tooDistant_constructor() async {
+  Future<void> test_tooDistant_constructor() async {
     await resolveTestUnit('''
 f() => new A(bbbbb: 2);
 class A {
@@ -227,7 +227,7 @@ class A {
     await assertNoFix();
   }
 
-  test_tooDistant_function() async {
+  Future<void> test_tooDistant_function() async {
     await resolveTestUnit('''
 f() {
   g(bbbbb: 0);
@@ -237,7 +237,7 @@ void g({int aaaaaaa}) {}
     await assertNoFix();
   }
 
-  test_tooDistant_method() async {
+  Future<void> test_tooDistant_method() async {
     await resolveTestUnit('''
 f(A a) {
   a.m(bbbbb: 0);

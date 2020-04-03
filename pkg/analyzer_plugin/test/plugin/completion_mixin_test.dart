@@ -33,20 +33,19 @@ class CompletionMixinTest with ResourceProviderMixin {
     packagePath1 = convertPath('/package1');
     filePath1 = join(packagePath1, 'lib', 'test.dart');
     newFile(filePath1, content: 'int foo = bar;');
-    contextRoot1 = new ContextRoot(packagePath1, <String>[]);
+    contextRoot1 = ContextRoot(packagePath1, <String>[]);
 
-    channel = new MockChannel();
-    plugin = new _TestServerPlugin(resourceProvider);
+    channel = MockChannel();
+    plugin = _TestServerPlugin(resourceProvider);
     plugin.start(channel);
   }
 
-  test_handleCompletionGetSuggestions() async {
+  Future<void> test_handleCompletionGetSuggestions() async {
     await plugin.handleAnalysisSetContextRoots(
-        new AnalysisSetContextRootsParams([contextRoot1]));
+        AnalysisSetContextRootsParams([contextRoot1]));
 
-    CompletionGetSuggestionsResult result =
-        await plugin.handleCompletionGetSuggestions(
-            new CompletionGetSuggestionsParams(filePath1, 13));
+    var result = await plugin.handleCompletionGetSuggestions(
+        CompletionGetSuggestionsParams(filePath1, 13));
     expect(result, isNotNull);
     expect(result.results, hasLength(3));
   }
@@ -64,7 +63,7 @@ class _TestCompletionContributor implements CompletionContributor {
       collector.offset = 1;
       collector.length = 2;
     }
-    for (CompletionSuggestion suggestion in suggestions) {
+    for (var suggestion in suggestions) {
       collector.addSuggestion(suggestion);
     }
   }
@@ -75,25 +74,24 @@ class _TestServerPlugin extends MockServerPlugin with CompletionMixin {
       : super(resourceProvider);
 
   CompletionSuggestion createSuggestion() {
-    return new CompletionSuggestion(
+    return CompletionSuggestion(
         CompletionSuggestionKind.IDENTIFIER, 1, '', 0, 0, false, false);
   }
 
   @override
   List<CompletionContributor> getCompletionContributors(String path) {
     return <CompletionContributor>[
-      new _TestCompletionContributor(
+      _TestCompletionContributor(
           <CompletionSuggestion>[createSuggestion(), createSuggestion()]),
-      new _TestCompletionContributor(
-          <CompletionSuggestion>[createSuggestion()]),
+      _TestCompletionContributor(<CompletionSuggestion>[createSuggestion()]),
     ];
   }
 
   @override
   Future<CompletionRequest> getCompletionRequest(
       CompletionGetSuggestionsParams parameters) async {
-    var result = new MockResolvedUnitResult();
-    return new DartCompletionRequestImpl(
+    var result = MockResolvedUnitResult();
+    return DartCompletionRequestImpl(
         resourceProvider, parameters.offset, result);
   }
 }

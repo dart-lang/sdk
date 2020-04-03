@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_CLASS_FINALIZER_H_
 #define RUNTIME_VM_CLASS_FINALIZER_H_
 
+#include <memory>
+
 #include "vm/allocation.h"
 #include "vm/growable_array.h"
 #include "vm/object.h"

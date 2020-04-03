@@ -45,13 +45,13 @@ class D extends C {
     getterOnly;
     getterOnly = 0;
 
-    this. /*@warning=GetterNotFound*/ missingField;
-    this. /*@warning=SetterNotFound*/ missingField = 0;
-    this. /*@warning=MethodNotFound*/ missingMethod();
+    this.missingField;
+    this.missingField = 0;
+    this.missingMethod();
 
-    /*@warning=GetterNotFound*/ missingField;
-    /*@warning=SetterNotFound*/ missingField = 0;
-    /*@warning=MethodNotFound*/ missingMethod();
+    missingField;
+    missingField = 0;
+    missingMethod();
   }
 }
 
@@ -60,6 +60,4 @@ class E extends D {
   void missingMethod() {}
 }
 
-main() {
-  new E().test();
-}
+main() {}

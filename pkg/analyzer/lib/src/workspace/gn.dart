@@ -2,21 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
 import 'dart:core';
 
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
-import 'package:analyzer/src/util/uri.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
-import 'package:package_config/packages.dart';
-import 'package:package_config/packages_file.dart';
-import 'package:package_config/src/packages_impl.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 /**
@@ -44,52 +41,36 @@ class GnWorkspace extends Workspace {
    * The absolute workspace root path (the directory containing the `.jiri_root`
    * directory).
    */
+  @override
   final String root;
 
   /**
-   * The paths to the .packages files.
-   */
-  final List<String> _packagesFilePaths;
-
-  /**
-   * The map of package locations indexed by package name.
-   *
-   * This is a cached field.
+   * The map from a package name to the list of its `lib/` folders.
    */
   Map<String, List<Folder>> _packageMap;
 
-  /**
-   * The package location strategy.
-   *
-   * This is a cached field.
-   */
-  Packages _packages;
+  GnWorkspace._(this.provider, this.root, this._packageMap);
 
-  GnWorkspace._(this.provider, this.root, this._packagesFilePaths);
-
-  @override
-  Map<String, List<Folder>> get packageMap =>
-      _packageMap ??= _convertPackagesToMap(packages);
-
-  Packages get packages => _packages ??= _createPackages();
+  @visibleForTesting
+  Map<String, List<Folder>> get packageMap => _packageMap;
 
   @override
   UriResolver get packageUriResolver =>
-      new PackageMapUriResolver(provider, packageMap);
+      PackageMapUriResolver(provider, _packageMap);
 
   @override
   SourceFactory createSourceFactory(DartSdk sdk, SummaryDataStore summaryData) {
     if (summaryData != null) {
-      throw new UnsupportedError(
+      throw UnsupportedError(
           'Summary files are not supported in a GN workspace.');
     }
     List<UriResolver> resolvers = <UriResolver>[];
     if (sdk != null) {
-      resolvers.add(new DartUriResolver(sdk));
+      resolvers.add(DartUriResolver(sdk));
     }
     resolvers.add(packageUriResolver);
-    resolvers.add(new ResourceUriResolver(provider));
-    return new SourceFactory(resolvers, packages, provider);
+    resolvers.add(ResourceUriResolver(provider));
+    return SourceFactory(resolvers);
   }
 
   /**
@@ -132,65 +113,6 @@ class GnWorkspace extends Workspace {
   }
 
   /**
-   * Creates an alternate representation for available packages.
-   */
-  Map<String, List<Folder>> _convertPackagesToMap(Packages packages) {
-    Map<String, List<Folder>> folderMap = new HashMap<String, List<Folder>>();
-    if (packages != null && packages != Packages.noPackages) {
-      var pathContext = provider.pathContext;
-      packages.asMap().forEach((String packageName, Uri uri) {
-        String filePath = fileUriToNormalizedPath(pathContext, uri);
-        folderMap[packageName] = [provider.getFolder(filePath)];
-      });
-    }
-    return folderMap;
-  }
-
-  /**
-   * Loads the packages from the .packages file.
-   */
-  Packages _createPackages() {
-    Map<String, Uri> map = _packagesFilePaths.map((String filePath) {
-      File configFile = provider.getFile(filePath);
-      List<int> bytes = configFile.readAsBytesSync();
-      return parse(bytes, configFile.toUri());
-    }).reduce((mapOne, mapTwo) {
-      mapOne.addAll(mapTwo);
-      return mapOne;
-    });
-    _resolveSymbolicLinks(map);
-    return new MapPackages(map);
-  }
-
-  /**
-   * Resolve any symbolic links encoded in the path to the given [folder].
-   */
-  String _resolveSymbolicLink(Folder folder) {
-    try {
-      return folder.resolveSymbolicLinksSync().path;
-    } on FileSystemException {
-      return folder.path;
-    }
-  }
-
-  /**
-   * Resolve any symbolic links encoded in the URI's in the given [map] by
-   * replacing the values in the map.
-   */
-  void _resolveSymbolicLinks(Map<String, Uri> map) {
-    path.Context pathContext = provider.pathContext;
-    for (String packageName in map.keys) {
-      String filePath = fileUriToNormalizedPath(pathContext, map[packageName]);
-      Folder folder = provider.getFolder(filePath);
-      String folderPath = _resolveSymbolicLink(folder);
-      // Add a '.' so that the URI is suitable for resolving relative URI's
-      // against it.
-      String uriPath = pathContext.join(folderPath, '.');
-      map[packageName] = pathContext.toUri(uriPath);
-    }
-  }
-
-  /**
    * Find the GN workspace that contains the given [filePath].
    *
    * Return `null` if a workspace could not be found. For a workspace to be
@@ -212,12 +134,21 @@ class GnWorkspace extends Workspace {
       if (folder.getChildAssumingFolder(_jiriRootName).exists) {
         // Found the .jiri_root file, must be a non-git workspace.
         String root = folder.path;
-        List<String> packagesFiles =
-            _findPackagesFile(provider, root, filePath);
+
+        var packagesFiles = _findPackagesFile(provider, root, filePath);
         if (packagesFiles.isEmpty) {
           return null;
         }
-        return new GnWorkspace._(provider, root, packagesFiles);
+
+        var packageMap = <String, List<Folder>>{};
+        for (var packagesFile in packagesFiles) {
+          var packages = parsePackagesFile(provider, packagesFile);
+          for (var package in packages.packages) {
+            packageMap[package.name] = [package.libFolder];
+          }
+        }
+
+        return GnWorkspace._(provider, root, packageMap);
       }
 
       // Go up a folder.
@@ -234,7 +165,7 @@ class GnWorkspace extends Workspace {
    * target. For a complete view of the package, all of these files need to be
    * taken into account.
    */
-  static List<String> _findPackagesFile(
+  static List<File> _findPackagesFile(
     ResourceProvider provider,
     String root,
     String filePath,
@@ -243,19 +174,17 @@ class GnWorkspace extends Workspace {
     String sourceDirectory = pathContext.relative(filePath, from: root);
     Folder outDirectory = _getOutDirectory(root, provider);
     if (outDirectory == null) {
-      return const <String>[];
+      return const <File>[];
     }
     Folder genDir = outDirectory.getChildAssumingFolder(
         pathContext.join('dartlang', 'gen', sourceDirectory));
     if (!genDir.exists) {
-      return const <String>[];
+      return const <File>[];
     }
     return genDir
         .getChildren()
-        .where((resource) => resource is File)
-        .map((resource) => resource as File)
+        .whereType<File>()
         .where((File file) => pathContext.extension(file.path) == '.packages')
-        .map((File file) => file.path)
         .toList();
   }
 
@@ -285,11 +214,7 @@ class GnWorkspace extends Workspace {
     if (!outDirectory.exists) {
       return null;
     }
-    return outDirectory
-        .getChildren()
-        .where((resource) => resource is Folder)
-        .map((resource) => resource as Folder)
-        .firstWhere((Folder folder) {
+    return outDirectory.getChildren().whereType<Folder>().firstWhere((folder) {
       String baseName = pathContext.basename(folder.path);
       // Taking a best guess to identify a build dir. This is clearly a fallback
       // to the config-based method.
@@ -306,8 +231,10 @@ class GnWorkspace extends Workspace {
  * a given package in a GnWorkspace.
  */
 class GnWorkspacePackage extends WorkspacePackage {
+  @override
   final String root;
 
+  @override
   final GnWorkspace workspace;
 
   GnWorkspacePackage(this.root, this.workspace);

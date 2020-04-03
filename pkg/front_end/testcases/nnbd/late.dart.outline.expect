@@ -1,140 +1,31 @@
-library;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/nnbd/late.dart:5:6: Error: Expected ';' after this.
-// late int lateStaticField;
-//      ^^^
-//
-// pkg/front_end/testcases/nnbd/late.dart:5:10: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
-// Try adding the name of the type of the variable or the keyword 'var'.
-// late int lateStaticField;
-//          ^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/late.dart:6:1: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
-// Try adding the name of the type of the variable or the keyword 'var'.
-// late final int finalLateStaticField;
-// ^^^^
-//
-// pkg/front_end/testcases/nnbd/late.dart:6:1: Error: Expected ';' after this.
-// late final int finalLateStaticField;
-// ^^^^
-//
-// pkg/front_end/testcases/nnbd/late.dart:6:16: Error: The final variable 'finalLateStaticField' must be initialized.
-// Try adding an initializer ('= <expression>') to the declaration.
-// late final int finalLateStaticField;
-//                ^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/late.dart:9:8: Error: Expected ';' after this.
-//   late int lateInstanceField;
-//        ^^^
-//
-// pkg/front_end/testcases/nnbd/late.dart:9:12: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
-// Try adding the name of the type of the variable or the keyword 'var'.
-//   late int lateInstanceField;
-//            ^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/late.dart:10:3: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
-// Try adding the name of the type of the variable or the keyword 'var'.
-//   late final int finalLateInstanceField = 0;
-//   ^^^^
-//
-// pkg/front_end/testcases/nnbd/late.dart:10:3: Error: Expected ';' after this.
-//   late final int finalLateInstanceField = 0;
-//   ^^^^
-//
-// pkg/front_end/testcases/nnbd/late.dart:12:15: Error: Expected ';' after this.
-//   static late int lateStaticField;
-//               ^^^
-//
-// pkg/front_end/testcases/nnbd/late.dart:12:15: Error: 'int' is already declared in this scope.
-//   static late int lateStaticField;
-//               ^^^
-// pkg/front_end/testcases/nnbd/late.dart:9:8: Context: Previous declaration of 'int'.
-//   late int lateInstanceField;
-//        ^^^
-//
-// pkg/front_end/testcases/nnbd/late.dart:12:19: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
-// Try adding the name of the type of the variable or the keyword 'var'.
-//   static late int lateStaticField;
-//                   ^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/late.dart:13:10: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
-// Try adding the name of the type of the variable or the keyword 'var'.
-//   static late final int finalLateStaticField = 0;
-//          ^^^^
-//
-// pkg/front_end/testcases/nnbd/late.dart:13:10: Error: Expected ';' after this.
-//   static late final int finalLateStaticField = 0;
-//          ^^^^
-//
-// pkg/front_end/testcases/nnbd/late.dart:13:10: Error: 'late' is already declared in this scope.
-//   static late final int finalLateStaticField = 0;
-//          ^^^^
-// pkg/front_end/testcases/nnbd/late.dart:10:3: Context: Previous declaration of 'late'.
-//   late final int finalLateInstanceField = 0;
-//   ^^^^
-//
-// pkg/front_end/testcases/nnbd/late.dart:9:3: Warning: 'late' isn't a type.
-//   late int lateInstanceField;
-//   ^^^^
-// pkg/front_end/testcases/nnbd/late.dart:9:3: Context: This isn't a type.
-//   late int lateInstanceField;
-//   ^^^^
-//
-// pkg/front_end/testcases/nnbd/late.dart:10:14: Warning: 'int' isn't a type.
-//   late final int finalLateInstanceField = 0;
-//              ^^^
-// pkg/front_end/testcases/nnbd/late.dart:10:14: Context: This isn't a type.
-//   late final int finalLateInstanceField = 0;
-//              ^^^
-//
-// pkg/front_end/testcases/nnbd/late.dart:12:10: Warning: 'late' isn't a type.
-//   static late int lateStaticField;
-//          ^^^^
-// pkg/front_end/testcases/nnbd/late.dart:12:10: Context: This isn't a type.
-//   static late int lateStaticField;
-//          ^^^^
-//
-// pkg/front_end/testcases/nnbd/late.dart:13:21: Warning: 'int' isn't a type.
-//   static late final int finalLateStaticField = 0;
-//                     ^^^
-// pkg/front_end/testcases/nnbd/late.dart:13:21: Context: This isn't a type.
-//   static late final int finalLateStaticField = 0;
-//                     ^^^
-//
-// pkg/front_end/testcases/nnbd/late.dart:5:1: Warning: 'late' isn't a type.
-// late int lateStaticField;
-// ^^^^
-// pkg/front_end/testcases/nnbd/late.dart:6:1: Context: This isn't a type.
-// late final int finalLateStaticField;
-// ^^^^
-//
-// pkg/front_end/testcases/nnbd/late.dart:6:12: Warning: 'int' isn't a type.
-// late final int finalLateStaticField;
-//            ^^^
-// pkg/front_end/testcases/nnbd/late.dart:5:6: Context: This isn't a type.
-// late int lateStaticField;
-//      ^^^
-//
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
 class Class extends core::Object {
-  field invalid-type int;
-  field dynamic lateInstanceField;
-  field dynamic late;
-  final field invalid-type finalLateInstanceField;
-  field dynamic lateStaticField;
-  final field invalid-type finalLateStaticField;
-  synthetic constructor •() → self::Class*
+  late field core::int lateInstanceField;
+  late final [setter] field core::int lateFinalInstanceField1;
+  late final [setter] field core::int lateFinalInstanceField2;
+  late final field core::int lateFinalInstanceFieldWithInit;
+  late field self::Class lateInstanceFieldThis;
+  late final field self::Class lateFinalInstanceFieldThis;
+  late static field core::int lateStaticField;
+  late static final field core::int lateFinalStaticField1;
+  late static final field core::int lateFinalStaticField2;
+  late static final field core::int lateFinalStaticFieldWithInit;
+  synthetic constructor •() → self::Class
     ;
   method method() → dynamic
     ;
+  method methodWithErrors() → dynamic
+    ;
 }
-static field invalid-type int;
-static field dynamic lateStaticField;
-static field dynamic late;
-static final field invalid-type finalLateStaticField;
+late static field core::int lateTopLevelField;
+late static final field core::int lateFinalTopLevelField;
+late static final field core::int lateFinalTopLevelFieldWithInit;
 static method main() → dynamic
+  ;
+static method noErrors() → dynamic
+  ;
+static method errors() → dynamic
   ;

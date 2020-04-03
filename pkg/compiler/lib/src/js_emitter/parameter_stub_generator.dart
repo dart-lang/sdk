@@ -16,6 +16,8 @@ import '../js_backend/native_data.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/runtime_types.dart';
 import '../js_backend/runtime_types_new.dart' show RecipeEncoder;
+import '../js_backend/type_reference.dart' show TypeReference;
+import '../js_model/type_recipe.dart' show TypeExpressionRecipe;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/codegen_world_builder.dart';
 import '../universe/selector.dart' show Selector;
@@ -34,7 +36,7 @@ class ParameterStubGenerator {
   final NativeEmitter _nativeEmitter;
   final Namer _namer;
   final RuntimeTypesEncoder _rtiEncoder;
-  final RecipeEncoder _rtiRecipeEncoder; // `null` if not experimentNewRti.
+  final RecipeEncoder _rtiRecipeEncoder; // `null` if not useNewRti.
   final NativeData _nativeData;
   final InterceptorData _interceptorData;
   final CodegenWorld _codegenWorld;
@@ -53,6 +55,7 @@ class ParameterStubGenerator {
       this._closedWorld,
       this._sourceInformationStrategy);
 
+  DartTypes get _dartTypes => _closedWorld.dartTypes;
   JElementEnvironment get _elementEnvironment =>
       _closedWorld.elementEnvironment;
 
@@ -178,11 +181,9 @@ class ParameterStubGenerator {
           DartType defaultType = _closedWorld.elementEnvironment
               .getTypeVariableDefaultType(typeVariable.element);
           if (_rtiRecipeEncoder != null) {
-            jsAst.Expression typeRti = _rtiRecipeEncoder.evaluateRecipe(
-                _emitter,
-                _rtiRecipeEncoder.encodeRecipeWithVariablesReplaceByAny(
-                    _emitter, defaultType));
-            targetArguments[count++] = typeRti;
+            defaultType = _eraseTypeVariablesToAny(defaultType);
+            targetArguments[count++] =
+                TypeReference(TypeExpressionRecipe(defaultType));
           } else {
             targetArguments[count++] = _rtiEncoder.getTypeRepresentation(
                 _emitter, defaultType, (_) => _emitter.constantReference(
@@ -242,6 +243,15 @@ class ParameterStubGenerator {
     jsAst.Name callName =
         (callSelector != null) ? _namer.invocationName(callSelector) : null;
     return new ParameterStubMethod(name, callName, function, element: member);
+  }
+
+  DartType _eraseTypeVariablesToAny(DartType type) {
+    if (!type.containsTypeVariables) return type;
+    Set<TypeVariableType> variables = Set();
+    type.forEachTypeVariable(variables.add);
+    assert(variables.isNotEmpty);
+    return _dartTypes.subst(List.filled(variables.length, _dartTypes.anyType()),
+        variables.toList(), type);
   }
 
   // We fill the lists depending on possible/invoked selectors. For example,

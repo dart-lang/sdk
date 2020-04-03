@@ -8,6 +8,7 @@ class Tag {
   static const int Something = 1;
 
   static const int Class = 2;
+  static const int Extension = 115;
 
   static const int FunctionNode = 3;
 
@@ -47,6 +48,7 @@ class Tag {
   static const int ConstructorInvocation = 31;
   static const int ConstConstructorInvocation = 32;
   static const int Not = 33;
+  static const int NullCheck = 117;
   static const int LogicalExpression = 34;
   static const int ConditionalExpression = 35;
   static const int StringConcatenation = 36;
@@ -80,6 +82,7 @@ class Tag {
   static const int ConstMapLiteral = 59;
   static const int SetLiteral = 109;
   static const int ConstSetLiteral = 110;
+  static const int FileUriExpression = 116;
 
   // Statements
   static const int ExpressionStatement = 61;
@@ -116,16 +119,9 @@ class Tag {
   static const int TypeParameterType = 95;
   static const int SimpleInterfaceType = 96;
   static const int SimpleFunctionType = 97;
-
-  // References
-  static const int NullReference = 99;
-  static const int ClassReference = 100;
-  static const int MemberReference = 101;
+  static const int NeverType = 98;
 
   static const int ConstantExpression = 106;
-
-  // Tag is deprecated since version 24.
-  static const int Deprecated_ConstantExpression = 107;
 
   /// 108 is occupied by [RedirectingFactoryConstructor] (member).
   /// 109 is occupied by [SetLiteral] (expression).
@@ -134,6 +130,9 @@ class Tag {
   /// 112 is occupied by [SetConcatenation] (expression).
   /// 113 is occupied by [MapConcatenation] (expression).
   /// 114 is occupied by [InstanceCreation] (expression).
+  /// 115 is occupied by [Extension].
+  /// 116 is occupied by [FileUriExpression] (expression).
+  /// 117 is occupied by [NullCheck] (expression).
 
   static const int SpecializedTagHighBit = 0x80; // 10000000
   static const int SpecializedTagMask = 0xF8; // 11111000
@@ -150,7 +149,7 @@ class Tag {
   /// Internal version of kernel binary format.
   /// Bump it when making incompatible changes in kernel binaries.
   /// Keep in sync with runtime/vm/kernel_binary.h, pkg/kernel/binary.md.
-  static const int BinaryFormatVersion = 29;
+  static const int BinaryFormatVersion = 40;
 }
 
 abstract class ConstantTag {

@@ -2,22 +2,35 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:io" show File;
-
-import "package:async_helper/async_helper.dart" show asyncTest;
-
-import "package:expect/expect.dart" show Expect;
+import "dart:io" show File, exitCode;
 
 import "generate_experimental_flags.dart"
-    show computeGeneratedFile, generateMessagesFile;
+    show
+        computeCfeGeneratedFile,
+        computeKernelGeneratedFile,
+        generateCfeFile,
+        generateKernelFile;
 
 main() {
-  asyncTest(() async {
-    Uri generatedFile = await computeGeneratedFile();
-    String generated = await generateMessagesFile();
-    String actual = (await new File.fromUri(generatedFile).readAsString())
+  {
+    Uri generatedFile = computeCfeGeneratedFile();
+    String generated = generateCfeFile();
+    String actual = (new File.fromUri(generatedFile).readAsStringSync())
         .replaceAll('\r\n', '\n');
-    Expect.stringEquals(generated, actual, """
+    check(generated, actual, generatedFile);
+  }
+  {
+    Uri generatedFile = computeKernelGeneratedFile();
+    String generated = generateKernelFile();
+    String actual = (new File.fromUri(generatedFile).readAsStringSync())
+        .replaceAll('\r\n', '\n');
+    check(generated, actual, generatedFile);
+  }
+}
+
+void check(String generated, String actual, Uri generatedFile) {
+  if (generated != actual) {
+    print("""
 ------------------------
 
 The generated file
@@ -28,5 +41,6 @@ is out of date. To regenerate the file, run
 
 ------------------------
 """);
-  });
+    exitCode = 1;
+  }
 }

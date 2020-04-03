@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:test/test.dart';
@@ -16,6 +17,7 @@ main() {
     defineReflectiveTests(ModifiersTest);
     defineReflectiveTests(MultipleTypeTest);
     defineReflectiveTests(PunctuationTest);
+    defineReflectiveTests(VarianceModifierTest);
   });
 }
 
@@ -305,5 +307,23 @@ bar() {}
 foo() {}
 bar() {}
 ''');
+  }
+}
+
+/**
+ * Test how well the parser recovers when there is extra variance modifiers.
+ */
+@reflectiveTest
+class VarianceModifierTest extends AbstractRecoveryTest {
+  void test_extraModifier_inClass() {
+    testRecovery('''
+class A<in out X> {}
+''', [ParserErrorCode.MULTIPLE_VARIANCE_MODIFIERS], '''
+class A<in X> {}
+''',
+        featureSet: FeatureSet.forTesting(
+          sdkVersion: '2.5.0',
+          additionalFeatures: [Feature.variance],
+        ));
   }
 }

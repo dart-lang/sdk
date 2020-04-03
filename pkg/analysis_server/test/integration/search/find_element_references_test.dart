@@ -10,7 +10,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FindElementReferencesTest);
   });
@@ -20,8 +20,8 @@ main() {
 class FindElementReferencesTest extends AbstractAnalysisServerIntegrationTest {
   String pathname;
 
-  test_badTarget() async {
-    String text = r'''
+  Future<void> test_badTarget() async {
+    var text = r'''
 main() {
   if /* target */ (true) {
     print('Hello');
@@ -34,12 +34,12 @@ main() {
     standardAnalysisSetup();
     await analysisFinished;
 
-    List<SearchResult> results = await _findElementReferences(text);
+    var results = await _findElementReferences(text);
     expect(results, isNull);
   }
 
-  test_findReferences() async {
-    String text = r'''
+  Future<void> test_findReferences() async {
+    var text = r'''
 main() {
   foo /* target */ ('Hello');
 }
@@ -52,9 +52,9 @@ foo(String str) {}
     standardAnalysisSetup();
     await analysisFinished;
 
-    List<SearchResult> results = await _findElementReferences(text);
+    var results = await _findElementReferences(text);
     expect(results, hasLength(1));
-    SearchResult result = results.first;
+    var result = results.first;
     expect(result.location.file, pathname);
     expect(result.isPotential, isFalse);
     expect(result.kind.name, SearchResultKind.INVOCATION.name);
@@ -62,11 +62,10 @@ foo(String str) {}
   }
 
   Future<List<SearchResult>> _findElementReferences(String text) async {
-    int offset = text.indexOf(' /* target */') - 1;
-    SearchFindElementReferencesResult result =
-        await sendSearchFindElementReferences(pathname, offset, false);
+    var offset = text.indexOf(' /* target */') - 1;
+    var result = await sendSearchFindElementReferences(pathname, offset, false);
     if (result.id == null) return null;
-    SearchResultsParams searchParams = await onSearchResults.first;
+    var searchParams = await onSearchResults.first;
     expect(searchParams.id, result.id);
     expect(searchParams.isLast, isTrue);
     return searchParams.results;

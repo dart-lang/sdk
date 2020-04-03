@@ -1,0 +1,27 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field self::B* b = null;
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+}
+class B extends core::Object {
+  synthetic constructor •() → self::B*
+    : super core::Object::•()
+    ;
+  operator +(core::int* i) → self::C*
+    return null;
+}
+class C extends self::B {
+  synthetic constructor •() → self::C*
+    : super self::B::•()
+    ;
+}
+static method main() → dynamic {
+  self::A* a;
+  let final self::A* #t1 = a in #t1.{core::Object::==}(null) ?{self::B*} null : #t1.{self::A::b} = #t1.{self::A::b}.{self::B::+}(1);
+  self::C* c = (let final self::A* #t2 = a in #t2.{core::Object::==}(null) ?{self::B*} null : let final self::B* #t3 = #t2.{self::A::b} in let final void #t4 = #t2.{self::A::b} = #t3.{self::B::+}(1) in #t3) as{TypeError} self::C*;
+}

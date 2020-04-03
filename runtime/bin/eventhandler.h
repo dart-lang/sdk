@@ -16,8 +16,8 @@ namespace bin {
 
 // Flags used to provide information and actions to the eventhandler
 // when sending a message about a file descriptor. These flags should
-// be kept in sync with the constants in socket_impl.dart. For more
-// information see the comments in socket_impl.dart
+// be kept in sync with the constants in socket_patch.dart. For more
+// information see the comments in socket_patch.dart
 enum MessageFlags {
   kInEvent = 0,
   kOutEvent = 1,
@@ -560,7 +560,7 @@ class DescriptorInfoMultipleMixin : public DI {
       pentry->token_count += count;
     }
     ASSERT(pentry->token_count <= kTokenCount);
-    bool is_ready = pentry->token_count > 0 && pentry->IsReady();
+    bool is_ready = pentry->IsReady();
     if (!was_ready && is_ready) {
       active_readers_.Add(pentry);
     }

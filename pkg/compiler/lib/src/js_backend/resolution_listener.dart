@@ -184,6 +184,12 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       _backendUsage.isNoSuchMethodUsed = true;
     }
 
+    if (_nativeData.isAllowInteropUsed) {
+      _backendUsage.processBackendImpact(_impacts.allowInterop);
+      enqueuer
+          .applyImpact(_impacts.allowInterop.createImpact(_elementEnvironment));
+    }
+
     if (!enqueuer.queueIsEmpty) return false;
 
     return true;
@@ -264,7 +270,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
           ..addAll(functionType.optionalParameterTypes)
           ..addAll(functionType.namedParameterTypes);
         for (var type in allParameterTypes) {
-          if (type.isFunctionType || type.isTypedef) {
+          if (type.withoutNullability is FunctionType) {
             var closureConverter = _commonElements.closureConverter;
             worldImpact.registerStaticUse(
                 new StaticUse.implicitInvoke(closureConverter));
@@ -437,7 +443,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       _registerBackendImpact(impactBuilder, _impacts.traceHelper);
     }
 
-    if (_options.experimentNewRti) {
+    if (_options.useNewRti) {
       _registerBackendImpact(impactBuilder, _impacts.rtiAddRules);
     }
 

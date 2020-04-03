@@ -33,9 +33,19 @@ public class RequestErrorCode {
   public static final String FILE_NOT_ANALYZED = "FILE_NOT_ANALYZED";
 
   /**
+   * A file was change while widget descriptions were being computed.
+   */
+  public static final String FLUTTER_GET_WIDGET_DESCRIPTION_CONTENT_MODIFIED = "FLUTTER_GET_WIDGET_DESCRIPTION_CONTENT_MODIFIED";
+
+  /**
    * The given location does not have a supported widget.
    */
   public static final String FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET = "FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET";
+
+  /**
+   * The given property expression is invalid, e.g. has a syntax error.
+   */
+  public static final String FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION = "FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION";
 
   /**
    * The given property identifier is not valid. It might have never been valid, or a change to code

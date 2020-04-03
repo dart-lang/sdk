@@ -369,8 +369,6 @@ class Enum extends Member {
     _parse(new Tokenizer(definition).tokenize());
   }
 
-  Enum._(this.name, this.docs);
-
   String get elementTypeName => '$servicePackage.element.$name';
 
   void generateEnum(JavaGenerator gen) {
@@ -755,8 +753,6 @@ class Type extends Member {
     _parse(new Tokenizer(definition).tokenize());
   }
 
-  Type._(this.parent, this.rawName, this.name, this.superName, this.docs);
-
   String get elementTypeName {
     if (isSimple) return null;
     return '$servicePackage.element.$name';
@@ -1038,11 +1034,8 @@ class TypeRef {
           writer.addLine('final JsonElement elem = json.get("$propertyName");');
           writer.addLine(
               'return elem != null ? elem.getAsBoolean() : $defaultValue;');
-        } else if (optional) {
-          writer.addLine('return json.get("$propertyName") == null ? '
-              'false : json.get("$propertyName").getAsBoolean();');
         } else {
-          writer.addLine('return json.get("$propertyName").getAsBoolean();');
+          writer.addLine('return getAsBoolean("$propertyName");');
         }
       }
     } else if (name == 'int') {
@@ -1057,8 +1050,7 @@ class TypeRef {
           writer.addLine('return json.get("$propertyName") == null ? '
               '-1 : json.get("$propertyName").getAsLong();');
         } else {
-          writer.addLine('return json.get("$propertyName") == null ? '
-              '-1 : json.get("$propertyName").getAsInt();');
+          writer.addLine('return getAsInt("$propertyName");');
         }
       }
     } else if (name == 'double') {
@@ -1080,11 +1072,8 @@ class TypeRef {
         } else {
           writer.addLine('return getListString("$propertyName");');
         }
-      } else if (optional) {
-        writer.addLine('return json.get("$propertyName") == null ? '
-            'null : json.get("$propertyName").getAsString();');
       } else {
-        writer.addLine('return json.get("$propertyName").getAsString();');
+        writer.addLine('return getAsString("$propertyName");');
       }
     } else if (isEnum) {
       if (isArray) {

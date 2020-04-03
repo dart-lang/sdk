@@ -5,16 +5,20 @@
 #ifndef RUNTIME_VM_OBJECT_GRAPH_H_
 #define RUNTIME_VM_OBJECT_GRAPH_H_
 
+#include <memory>
+
 #include "vm/allocation.h"
+#include "vm/dart_api_state.h"
 #include "vm/thread_stack_resource.h"
 
 namespace dart {
 
 class Array;
-class Isolate;
 class Object;
 class RawObject;
-class WriteStream;
+class CountingPage;
+
+#if !defined(PRODUCT)
 
 // Utility to traverse the object graph in an ordered fashion.
 // Example uses:
@@ -108,20 +112,130 @@ class ObjectGraph : public ThreadStackResource {
   // be live due to references from the stack or embedder handles.
   intptr_t InboundReferences(Object* obj, const Array& references);
 
-  enum SnapshotRoots { kVM, kUser };
-
-  // Write the isolate's object graph to 'stream'. Smis and nulls are omitted.
-  // Returns the number of nodes in the stream, including the root.
-  // If collect_garbage is false, the graph will include weakly-reachable
-  // objects.
-  // TODO(koda): Document format; support streaming/chunking.
-  intptr_t Serialize(WriteStream* stream,
-                     SnapshotRoots roots,
-                     bool collect_garbage);
-
  private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(ObjectGraph);
 };
+
+// Generates a dump of the heap, whose format is described in
+// runtime/vm/service/heap_snapshot.md.
+class HeapSnapshotWriter : public ThreadStackResource {
+ public:
+  explicit HeapSnapshotWriter(Thread* thread) : ThreadStackResource(thread) {}
+
+  void WriteSigned(int64_t value) {
+    EnsureAvailable((sizeof(value) * kBitsPerByte) / 7 + 1);
+
+    bool is_last_part = false;
+    while (!is_last_part) {
+      uint8_t part = value & 0x7F;
+      value >>= 7;
+      if ((value == 0 && (part & 0x40) == 0) ||
+          (value == static_cast<intptr_t>(-1) && (part & 0x40) != 0)) {
+        is_last_part = true;
+      } else {
+        part |= 0x80;
+      }
+      buffer_[size_++] = part;
+    }
+  }
+
+  void WriteUnsigned(uintptr_t value) {
+    EnsureAvailable((sizeof(value) * kBitsPerByte) / 7 + 1);
+
+    bool is_last_part = false;
+    while (!is_last_part) {
+      uint8_t part = value & 0x7F;
+      value >>= 7;
+      if (value == 0) {
+        is_last_part = true;
+      } else {
+        part |= 0x80;
+      }
+      buffer_[size_++] = part;
+    }
+  }
+
+  void WriteBytes(const void* bytes, intptr_t len) {
+    EnsureAvailable(len);
+    memmove(&buffer_[size_], bytes, len);
+    size_ += len;
+  }
+
+  void ScrubAndWriteUtf8(char* value) {
+    intptr_t len = strlen(value);
+    for (intptr_t i = len - 1; i >= 0; i--) {
+      if (value[i] == '@') {
+        value[i] = '\0';
+      }
+    }
+    WriteUtf8(value);
+  }
+
+  void WriteUtf8(const char* value) {
+    intptr_t len = strlen(value);
+    WriteUnsigned(len);
+    WriteBytes(value, len);
+  }
+
+  void AssignObjectId(RawObject* obj);
+  intptr_t GetObjectId(RawObject* obj) const;
+  void ClearObjectIds();
+  void CountReferences(intptr_t count);
+  void CountExternalProperty();
+
+  void Write();
+
+ private:
+  static const intptr_t kMetadataReservation = 512;
+  static const intptr_t kPreferredChunkSize = MB;
+
+  void SetupCountingPages();
+  bool OnImagePage(RawObject* obj) const;
+  CountingPage* FindCountingPage(RawObject* obj) const;
+
+  void EnsureAvailable(intptr_t needed);
+  void Flush(bool last = false);
+
+  uint8_t* buffer_ = nullptr;
+  intptr_t size_ = 0;
+  intptr_t capacity_ = 0;
+
+  intptr_t class_count_ = 0;
+  intptr_t object_count_ = 0;
+  intptr_t reference_count_ = 0;
+  intptr_t external_property_count_ = 0;
+
+  struct ImagePageRange {
+    uword base;
+    uword size;
+  };
+  // There are up to 4 images to consider:
+  // {instructions, data} x {vm isolate, current isolate}
+  static const intptr_t kMaxImagePages = 4;
+  ImagePageRange image_page_ranges_[kMaxImagePages];
+
+  DISALLOW_COPY_AND_ASSIGN(HeapSnapshotWriter);
+};
+
+class CountObjectsVisitor : public ObjectVisitor, public HandleVisitor {
+ public:
+  CountObjectsVisitor(Thread* thread, intptr_t class_count);
+  ~CountObjectsVisitor() {}
+
+  void VisitObject(RawObject* obj);
+  void VisitHandle(uword addr);
+
+  std::unique_ptr<intptr_t[]> new_count_;
+  std::unique_ptr<intptr_t[]> new_size_;
+  std::unique_ptr<intptr_t[]> new_external_size_;
+  std::unique_ptr<intptr_t[]> old_count_;
+  std::unique_ptr<intptr_t[]> old_size_;
+  std::unique_ptr<intptr_t[]> old_external_size_;
+
+  DISALLOW_COPY_AND_ASSIGN(CountObjectsVisitor);
+};
+
+#endif  // !defined(PRODUCT)
 
 }  // namespace dart
 

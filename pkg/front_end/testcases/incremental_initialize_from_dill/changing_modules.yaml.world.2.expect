@@ -1,0 +1,37 @@
+main = <No Member>;
+library from "package:example/a.dart" as a {
+
+  static method a() → dynamic {
+    a::la1();
+  }
+  static method la1() → dynamic {
+    dart.core::print("Hello from v0.1.0");
+  }
+}
+library from "package:example/b.dart" as b {
+
+  import "package:example/a.dart";
+
+  static method b() → dynamic {
+    a::a();
+  }
+}
+library from "package:foo/foo.dart" as foo {
+
+  import "package:example/b.dart";
+
+  static field dart.core::bool* foo1 = true;
+  static method foo() → dynamic {
+    dart.core::print("Hello from foo");
+    b::b();
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "package:foo/foo.dart";
+
+  static method main() → dynamic {
+    dart.core::print("hello");
+    foo::foo();
+  }
+}

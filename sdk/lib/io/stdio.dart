@@ -2,13 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.io;
 
+// These match enum StdioHandleType in file.h
 const int _stdioHandleTypeTerminal = 0;
 const int _stdioHandleTypePipe = 1;
 const int _stdioHandleTypeFile = 2;
 const int _stdioHandleTypeSocket = 3;
 const int _stdioHandleTypeOther = 4;
+const int _stdioHandleTypeError = 5;
 
 class _StdStream extends Stream<List<int>> {
   final Stream<List<int>> _stream;
@@ -39,7 +43,7 @@ class Stdin extends _StdStream implements Stream<List<int>> {
    * Blocks until a full line is available.
    *
    * Lines my be terminated by either `<CR><LF>` or `<LF>`. On Windows in cases
-   * where the [stdioType] of stdin is [StdioType.termimal] the terminator may
+   * where the [stdioType] of stdin is [StdioType.terminal] the terminator may
    * also be a single `<CR>`.
    *
    * Input bytes are converted to a string by [encoding].
@@ -434,7 +438,12 @@ StdioType stdioType(object) {
     object = object._stream;
   } else if (object == stdout || object == stderr) {
     int stdiofd = object == stdout ? _stdoutFD : _stderrFD;
-    switch (_StdIOUtils._getStdioHandleType(stdiofd)) {
+    final type = _StdIOUtils._getStdioHandleType(stdiofd);
+    if (type is OSError) {
+      throw FileSystemException(
+          "Failed to get type of stdio handle (fd $stdiofd)", "", type);
+    }
+    switch (type) {
       case _stdioHandleTypeTerminal:
         return StdioType.terminal;
       case _stdioHandleTypePipe:

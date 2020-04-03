@@ -2,22 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
+import 'dart:io' show Platform, Process, ProcessResult, exitCode;
 
-final String repoDir = _computeRepoDir();
+import '../test/utils/io_utils.dart' show computeRepoDir;
+
+final String repoDir = computeRepoDir();
 
 String get dartVm => Platform.executable;
 
 main(List<String> args) async {
   Stopwatch stopwatch = new Stopwatch()..start();
   List<Future> futures = new List<Future>();
+  futures.add(
+      run("pkg/front_end/test/explicit_creation_test.dart", [], filter: false));
   futures.add(run(
-    "pkg/front_end/test/fasta/messages_test.dart",
+    "pkg/front_end/test/fasta/messages_suite.dart",
     ["-DfastOnly=true"],
   ));
-  futures.add(run("pkg/front_end/test/spelling_test_not_src_test.dart", []));
-  futures.add(run("pkg/front_end/test/spelling_test_src_test.dart", []));
-  futures.add(run("pkg/front_end/test/lint_test.dart", []));
+  futures.add(run("pkg/front_end/test/spelling_test_not_src_suite.dart", []));
+  futures.add(run("pkg/front_end/test/spelling_test_src_suite.dart",
+      ["--", "spelling_test_src/front_end/..."]));
+  futures.add(run("pkg/front_end/test/lint_suite.dart", []));
+  futures.add(run("pkg/front_end/test/deps_test.dart", [], filter: false));
   await Future.wait(futures);
   print("\n-----------------------\n");
   print("Done with exitcode $exitCode in ${stopwatch.elapsedMilliseconds} ms");
@@ -51,18 +57,18 @@ Future<void> run(String script, List<String> scriptArguments,
     }
     stdout = stdout.trim();
     if (stdout.isNotEmpty) {
+      print("--- stdout start ---");
       print(stdout);
-      print("-----");
+      print("--- stdout end ---");
+    }
+
+    String stderr = result.stderr.toString().trim();
+    if (stderr.isNotEmpty) {
+      print("--- stderr start ---");
+      print(stderr);
+      print("--- stderr end ---");
     }
   } else {
     print("Running: $runWhat: Done in ${stopwatch.elapsedMilliseconds} ms.");
   }
-}
-
-String _computeRepoDir() {
-  ProcessResult result = Process.runSync(
-      'git', ['rev-parse', '--show-toplevel'],
-      runInShell: true,
-      workingDirectory: new File.fromUri(Platform.script).parent.path);
-  return (result.stdout as String).trim();
 }

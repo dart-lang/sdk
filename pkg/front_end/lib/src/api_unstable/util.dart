@@ -12,6 +12,16 @@ bool equalLists<T>(List<T> a, List<T> b) {
   return true;
 }
 
+bool equalSets<K>(Set<K> a, Set<K> b) {
+  if (identical(a, b)) return true;
+  if (a == null || b == null) return false;
+  if (a.length != b.length) return false;
+  for (K entry in a) {
+    if (!b.contains(entry)) return false;
+  }
+  return true;
+}
+
 bool equalMaps<K, V>(Map<K, V> a, Map<K, V> b) {
   if (identical(a, b)) return true;
   if (a == null || b == null) return false;

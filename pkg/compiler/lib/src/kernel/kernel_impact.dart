@@ -9,7 +9,6 @@ import '../common.dart';
 import '../common/names.dart';
 import '../common/resolution.dart';
 import '../common_elements.dart';
-import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
@@ -55,12 +54,13 @@ class KernelImpactBuilder extends ImpactBuilderBase
       this.currentMember,
       this.reporter,
       this._options,
+      ir.StaticTypeContext staticTypeContext,
       VariableScopeModel variableScopeModel,
       this._annotations,
       this._constantValuefier)
-      : this.impactBuilder = new ResolutionWorldImpactBuilder(currentMember),
-        super(elementMap.typeEnvironment, elementMap.classHierarchy,
-            variableScopeModel);
+      : this.impactBuilder = new ResolutionWorldImpactBuilder(
+            elementMap.commonElements.dartTypes, currentMember),
+        super(staticTypeContext, elementMap.classHierarchy, variableScopeModel);
 
   @override
   CommonElements get commonElements => elementMap.commonElements;
@@ -91,10 +91,13 @@ class KernelImpactConverter extends KernelImpactRegistryMixin {
   final MemberEntity currentMember;
   @override
   final ConstantValuefier _constantValuefier;
+  @override
+  final ir.StaticTypeContext staticTypeContext;
 
   KernelImpactConverter(this.elementMap, this.currentMember, this.reporter,
-      this._options, this._constantValuefier)
-      : this.impactBuilder = new ResolutionWorldImpactBuilder(currentMember);
+      this._options, this._constantValuefier, this.staticTypeContext)
+      : this.impactBuilder = new ResolutionWorldImpactBuilder(
+            elementMap.commonElements.dartTypes, currentMember);
 
   @override
   ir.TypeEnvironment get typeEnvironment => elementMap.typeEnvironment;
@@ -123,8 +126,10 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   ResolutionWorldImpactBuilder get impactBuilder;
   ir.TypeEnvironment get typeEnvironment;
   CommonElements get commonElements;
+  DartTypes get dartTypes => commonElements.dartTypes;
   NativeBasicData get _nativeBasicData;
   ConstantValuefier get _constantValuefier;
+  ir.StaticTypeContext get staticTypeContext;
 
   Object _computeReceiverConstraint(
       ir.DartType receiverType, ClassRelation relation) {
@@ -142,7 +147,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   @override
   void registerParameterCheck(ir.DartType irType) {
     DartType type = elementMap.getDartType(irType);
-    if (!type.isDynamic) {
+    if (type is! DynamicType) {
       impactBuilder.registerTypeUse(new TypeUse.parameterCheck(type));
     }
   }
@@ -169,9 +174,9 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
       List<ConstantValue> metadata =
           elementMap.elementEnvironment.getMemberMetadata(member);
       Iterable<String> createsAnnotations =
-          getCreatesAnnotations(reporter, commonElements, metadata);
+          getCreatesAnnotations(dartTypes, reporter, commonElements, metadata);
       Iterable<String> returnsAnnotations =
-          getReturnsAnnotations(reporter, commonElements, metadata);
+          getReturnsAnnotations(dartTypes, reporter, commonElements, metadata);
       impactBuilder.registerNativeData(elementMap.getNativeBehaviorForFieldLoad(
           field, createsAnnotations, returnsAnnotations,
           isJsInterop: isJsInterop));
@@ -190,9 +195,9 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
       List<ConstantValue> metadata =
           elementMap.elementEnvironment.getMemberMetadata(member);
       Iterable<String> createsAnnotations =
-          getCreatesAnnotations(reporter, commonElements, metadata);
+          getCreatesAnnotations(dartTypes, reporter, commonElements, metadata);
       Iterable<String> returnsAnnotations =
-          getReturnsAnnotations(reporter, commonElements, metadata);
+          getReturnsAnnotations(dartTypes, reporter, commonElements, metadata);
       impactBuilder.registerNativeData(elementMap.getNativeBehaviorForMethod(
           constructor, createsAnnotations, returnsAnnotations,
           isJsInterop: isJsInterop));
@@ -236,9 +241,9 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
       List<ConstantValue> metadata =
           elementMap.elementEnvironment.getMemberMetadata(member);
       Iterable<String> createsAnnotations =
-          getCreatesAnnotations(reporter, commonElements, metadata);
+          getCreatesAnnotations(dartTypes, reporter, commonElements, metadata);
       Iterable<String> returnsAnnotations =
-          getReturnsAnnotations(reporter, commonElements, metadata);
+          getReturnsAnnotations(dartTypes, reporter, commonElements, metadata);
       impactBuilder.registerNativeData(elementMap.getNativeBehaviorForMethod(
           procedure, createsAnnotations, returnsAnnotations,
           isJsInterop: isJsInterop));
@@ -248,22 +253,22 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   @override
   void registerIntLiteral(int value) {
     impactBuilder.registerConstantLiteral(
-        new IntConstantExpression(new BigInt.from(value).toUnsigned(64)));
+        new IntConstantValue(new BigInt.from(value).toUnsigned(64)));
   }
 
   @override
   void registerDoubleLiteral(double value) {
-    impactBuilder.registerConstantLiteral(new DoubleConstantExpression(value));
+    impactBuilder.registerConstantLiteral(new DoubleConstantValue(value));
   }
 
   @override
   void registerBoolLiteral(bool value) {
-    impactBuilder.registerConstantLiteral(new BoolConstantExpression(value));
+    impactBuilder.registerConstantLiteral(new BoolConstantValue(value));
   }
 
   @override
   void registerStringLiteral(String value) {
-    impactBuilder.registerConstantLiteral(new StringConstantExpression(value));
+    impactBuilder.registerConstantLiteral(new StringConstantValue(value));
   }
 
   @override
@@ -273,7 +278,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
 
   @override
   void registerNullLiteral() {
-    impactBuilder.registerConstantLiteral(new NullConstantExpression());
+    impactBuilder.registerConstantLiteral(new NullConstantValue());
   }
 
   @override
@@ -321,9 +326,9 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
     ImportEntity deferredImport = elementMap.getImport(import);
     impactBuilder.registerStaticUse(isConst
         ? new StaticUse.constConstructorInvoke(constructor, callStructure,
-            elementMap.getDartType(type), deferredImport)
+            elementMap.getDartType(type).withoutNullability, deferredImport)
         : new StaticUse.typedConstructorInvoke(constructor, callStructure,
-            elementMap.getDartType(type), deferredImport));
+            elementMap.getDartType(type).withoutNullability, deferredImport));
     if (type.typeArguments.any((ir.DartType type) => type is! ir.DynamicType)) {
       impactBuilder.registerFeature(Feature.TYPE_VARIABLE_BOUNDS_CHECK);
     }
@@ -355,8 +360,8 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
     assert(node.isConst);
     ConstructorEntity constructor = elementMap.getConstructor(node.target);
     if (commonElements.isSymbolConstructor(constructor)) {
-      ConstantValue value =
-          elementMap.getConstantValue(node.arguments.positional.first);
+      ConstantValue value = elementMap.getConstantValue(
+          staticTypeContext, node.arguments.positional.first);
       if (!value.isString) {
         // TODO(het): Get the actual span for the Symbol constructor argument
         reporter.reportErrorMessage(
@@ -452,7 +457,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
         new StaticUse.staticInvoke(target, callStructure, typeArguments));
 
     if (typeArguments.length != 1) return;
-    DartType matchedType = typeArguments.first;
+    DartType matchedType = dartTypes.eraseLegacy(typeArguments.first);
 
     if (matchedType is! InterfaceType) return;
     InterfaceType interfaceType = matchedType;
@@ -661,15 +666,8 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
       switch (kind) {
         case RuntimeTypeUseKind.string:
           if (!_options.laxRuntimeTypeToString) {
-            if (receiverDartType == commonElements.objectType) {
-              reporter.reportHintMessage(computeSourceSpanFromTreeNode(node),
-                  MessageKind.RUNTIME_TYPE_TO_STRING_OBJECT);
-            } else {
-              reporter.reportHintMessage(
-                  computeSourceSpanFromTreeNode(node),
-                  MessageKind.RUNTIME_TYPE_TO_STRING_SUBTYPE,
-                  {'receiverType': '${receiverDartType}.'});
-            }
+            reporter.reportHintMessage(computeSourceSpanFromTreeNode(node),
+                MessageKind.RUNTIME_TYPE_TO_STRING);
           }
           break;
         case RuntimeTypeUseKind.equals:
@@ -785,12 +783,6 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
     ImportEntity deferredImport = elementMap.getImport(import);
     impactBuilder.registerTypeUse(
         new TypeUse.typeLiteral(elementMap.getDartType(type), deferredImport));
-    if (type is ir.FunctionType) {
-      assert(type.typedef != null);
-      // TODO(johnniwinther): Can we avoid the typedef type altogether?
-      // We need to ensure that the typedef is live.
-      elementMap.getTypedefType(type.typedef);
-    }
   }
 
   @override
@@ -847,7 +839,8 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
         if (member.isAbstract) {
           cls = elementMap.elementEnvironment.getSuperClass(cls);
         } else {
-          return member.enclosingClass != commonElements.objectClass;
+          return member.enclosingClass != commonElements.objectClass &&
+              member.enclosingClass != commonElements.jsInterceptorClass;
         }
       }
       return false;
@@ -855,7 +848,8 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
 
     for (ir.SwitchCase switchCase in node.cases) {
       for (ir.Expression expression in switchCase.expressions) {
-        ConstantValue value = elementMap.getConstantValue(expression);
+        ConstantValue value =
+            elementMap.getConstantValue(staticTypeContext, expression);
         DartType type = value.getType(elementMap.commonElements);
         if (firstCaseType == null) {
           firstCase = expression;

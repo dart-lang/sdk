@@ -1,3 +1,5 @@
+// @dart = 2.6
+
 /**
  * An API for storing data in the browser that can be queried with SQL.
  *
@@ -30,7 +32,8 @@ import 'dart:_js_helper'
         Creates,
         JSName,
         Native,
-        JavaScriptIndexingBehavior;
+        JavaScriptIndexingBehavior,
+        Returns;
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -78,7 +81,7 @@ class SqlDatabase extends Interceptor {
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.openDatabase)');
 
-  final String version;
+  String get version native;
 
   @JSName('changeVersion')
   /**
@@ -184,9 +187,9 @@ class SqlError extends Interceptor {
 
   static const int VERSION_ERR = 2;
 
-  final int code;
+  int get code native;
 
-  final String message;
+  String get message native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -199,11 +202,11 @@ class SqlResultSet extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final int insertId;
+  int get insertId native;
 
-  final SqlResultSetRowList rows;
+  SqlResultSetRowList get rows native;
 
-  final int rowsAffected;
+  int get rowsAffected native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

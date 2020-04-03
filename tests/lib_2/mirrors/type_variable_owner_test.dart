@@ -7,7 +7,6 @@
 
 library test.type_variable_owner;
 
-@MirrorsUsed(targets: "test.type_variable_owner")
 import "dart:mirrors";
 
 import "package:expect/expect.dart";
@@ -40,10 +39,10 @@ testTypeVariableOfTypedef() {
   LibraryMirror thisLibrary =
       currentMirrorSystem().findLibrary(#test.type_variable_owner);
 
-  TypedefMirror predicateOfDynamic = reflectType(Predicate);
+  TypedefMirror predicateOfDynamic = reflectType(Predicate) as TypedefMirror;
   TypedefMirror predicateOfList =
-      (thisLibrary.declarations[#somePredicateOfList] as VariableMirror).type;
-  TypedefMirror predicateDecl = predicateOfList.originalDeclaration;
+      (thisLibrary.declarations[#somePredicateOfList] as VariableMirror).type as TypedefMirror;
+  TypedefMirror predicateDecl = predicateOfList.originalDeclaration as TypedefMirror;
 
   Expect.equals(predicateDecl, predicateOfDynamic.typeVariables[0].owner);
   Expect.equals(predicateDecl, predicateOfList.typeVariables[0].owner);

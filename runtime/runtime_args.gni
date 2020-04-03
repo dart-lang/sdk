@@ -28,7 +28,7 @@ declare_args() {
   dart_runtime_mode = "develop"
 
   # Explicitly set the target architecture to use a simulator.
-  # Available options are: arm, arm64, x64, ia32, and dbc.
+  # Available options are: arm, arm64, x64, ia32.
   dart_target_arch = target_cpu
 
   # The optimization level to use for debug builds. Defaults to 0 for builds with
@@ -80,7 +80,7 @@ declare_args() {
     dart_component_kind = "static_library"
   }
 
-  # Whether the VM's platform dill file contains bytecode.
+  # Controls whether the VM uses bytecode.
   dart_platform_bytecode = false
 
   # Whether the VM includes the kernel service in all modes (debug, release,
@@ -89,6 +89,9 @@ declare_args() {
 
   # Whether libdart should export the symbols of the Dart API.
   dart_lib_export_symbols = true
+
+  # Whether dart:wasm should be enabled.
+  dart_enable_wasm = false
 }
 
 declare_args() {

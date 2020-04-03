@@ -9,6 +9,7 @@
 #include "vm/heap/become.h"
 #include "vm/heap/freelist.h"
 #include "vm/isolate.h"
+#include "vm/isolate_reload.h"
 #include "vm/object.h"
 #include "vm/runtime_entry.h"
 #include "vm/visitor.h"
@@ -16,10 +17,16 @@
 namespace dart {
 
 bool RawObject::InVMIsolateHeap() const {
-  return Dart::vm_isolate()->heap()->Contains(ToAddr(this));
+  // All "vm-isolate" objects are pre-marked and in old space
+  // (see [Object::FinalizeVMIsolate]).
+  if (!IsOldObject() || !IsMarked()) return false;
+
+  auto heap = Dart::vm_isolate()->heap();
+  ASSERT(heap->UsedInWords(Heap::kNew) == 0);
+  return heap->old_space()->ContainsUnsafe(ToAddr(this));
 }
 
-void RawObject::Validate(Isolate* isolate) const {
+void RawObject::Validate(IsolateGroup* isolate_group) const {
   if (Object::void_class_ == reinterpret_cast<RawClass*>(kHeapObjectTag)) {
     // Validation relies on properly initialized class classes. Skip if the
     // VM is still being initialized.
@@ -56,12 +63,12 @@ void RawObject::Validate(Isolate* isolate) const {
       FATAL1("Old object missing kOldBit: %x\n", tags);
     }
   }
-  intptr_t class_id = ClassIdTag::decode(tags);
-  if (!isolate->class_table()->IsValidIndex(class_id)) {
+  const intptr_t class_id = ClassIdTag::decode(tags);
+  if (!isolate_group->class_table()->IsValidIndex(class_id)) {
     FATAL1("Invalid class id encountered %" Pd "\n", class_id);
   }
-  if ((class_id == kNullCid) &&
-      (isolate->class_table()->At(class_id) == NULL)) {
+  if (class_id == kNullCid &&
+      isolate_group->class_table()->HasValidClassAt(class_id)) {
     // Null class not yet initialized; skip.
     return;
   }
@@ -97,6 +104,13 @@ intptr_t RawObject::HeapSizeFromClass() const {
           reinterpret_cast<const RawInstructions*>(this);
       intptr_t instructions_size = Instructions::Size(raw_instructions);
       instance_size = Instructions::InstanceSize(instructions_size);
+      break;
+    }
+    case kInstructionsSectionCid: {
+      const RawInstructionsSection* raw_section =
+          reinterpret_cast<const RawInstructionsSection*>(this);
+      intptr_t section_size = InstructionsSection::Size(raw_section);
+      instance_size = InstructionsSection::InstanceSize(section_size);
       break;
     }
     case kContextCid: {
@@ -175,10 +189,11 @@ intptr_t RawObject::HeapSizeFromClass() const {
       instance_size = CodeSourceMap::InstanceSize(length);
       break;
     }
-    case kStackMapCid: {
-      const RawStackMap* map = reinterpret_cast<const RawStackMap*>(this);
-      intptr_t length = map->ptr()->length_;
-      instance_size = StackMap::InstanceSize(length);
+    case kCompressedStackMapsCid: {
+      const RawCompressedStackMaps* maps =
+          reinterpret_cast<const RawCompressedStackMaps*>(this);
+      intptr_t length = CompressedStackMaps::PayloadSizeOf(maps);
+      instance_size = CompressedStackMaps::InstanceSize(length);
       break;
     }
     case kLocalVarDescriptorsCid: {
@@ -207,19 +222,33 @@ intptr_t RawObject::HeapSizeFromClass() const {
       instance_size = element->HeapSize();
       break;
     }
+    case kWeakSerializationReferenceCid: {
+      instance_size = WeakSerializationReference::InstanceSize();
+      break;
+    }
     default: {
       // Get the (constant) instance size out of the class object.
       // TODO(koda): Add Size(ClassTable*) interface to allow caching in loops.
-      Isolate* isolate = Isolate::Current();
+      auto isolate_group = IsolateGroup::Current();
 #if defined(DEBUG)
-      ClassTable* class_table = isolate->class_table();
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      auto reload_context = isolate_group->reload_context();
+      const bool use_saved_class_table =
+          reload_context != nullptr ? reload_context->UseSavedSizeTableForGC()
+                                    : false;
+#else
+      const bool use_saved_class_table = false;
+#endif
+
+      auto class_table = isolate_group->class_table();
+      ASSERT(use_saved_class_table || class_table->SizeAt(class_id) > 0);
       if (!class_table->IsValidIndex(class_id) ||
-          !class_table->HasValidClassAt(class_id)) {
-        FATAL2("Invalid class id: %" Pd " from tags %x\n", class_id,
-               ptr()->tags_);
+          (!class_table->HasValidClassAt(class_id) && !use_saved_class_table)) {
+        FATAL3("Invalid cid: %" Pd ", obj: %p, tags: %x. Corrupt heap?",
+               class_id, this, static_cast<uint32_t>(ptr()->tags_));
       }
 #endif  // DEBUG
-      instance_size = isolate->GetClassSizeForHeapWalkAt(class_id);
+      instance_size = isolate_group->GetClassSizeForHeapWalkAt(class_id);
     }
   }
   ASSERT(instance_size != 0);
@@ -309,6 +338,13 @@ intptr_t RawObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
         break;
       }
 #undef RAW_VISITPOINTERS
+#define RAW_VISITPOINTERS(clazz) case k##clazz##Cid:
+      CLASS_LIST_WASM(RAW_VISITPOINTERS) {
+        // These wasm types do not have any fields or type arguments.
+        size = HeapSize();
+        break;
+      }
+#undef RAW_VISITPOINTERS
     case kFreeListElement: {
       uword addr = RawObject::ToAddr(this);
       FreeListElement* element = reinterpret_cast<FreeListElement*>(addr);
@@ -325,8 +361,8 @@ intptr_t RawObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
       size = HeapSize();
       break;
     default:
-      OS::PrintErr("Class Id: %" Pd "\n", class_id);
-      UNREACHABLE();
+      FATAL3("Invalid cid: %" Pd ", obj: %p, tags: %x. Corrupt heap?", class_id,
+             this, static_cast<uint32_t>(ptr()->tags_));
       break;
   }
 
@@ -345,6 +381,45 @@ intptr_t RawObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
 #else
   return size;
 #endif
+}
+
+void RawObject::VisitPointersPrecise(Isolate* isolate,
+                                     ObjectPointerVisitor* visitor) {
+  intptr_t class_id = GetClassId();
+  if (class_id < kNumPredefinedCids) {
+    VisitPointersPredefined(visitor, class_id);
+    return;
+  }
+
+  // N.B.: Not using the heap size!
+  uword next_field_offset = isolate->GetClassForHeapWalkAt(class_id)
+                                ->ptr()
+                                ->host_next_field_offset_in_words_
+                            << kWordSizeLog2;
+  ASSERT(next_field_offset > 0);
+  uword obj_addr = RawObject::ToAddr(this);
+  uword from = obj_addr + sizeof(RawObject);
+  uword to = obj_addr + next_field_offset - kWordSize;
+  const auto first = reinterpret_cast<RawObject**>(from);
+  const auto last = reinterpret_cast<RawObject**>(to);
+
+#if defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
+  const auto unboxed_fields_bitmap =
+      visitor->shared_class_table()->GetUnboxedFieldsMapAt(class_id);
+
+  if (!unboxed_fields_bitmap.IsEmpty()) {
+    intptr_t bit = sizeof(RawObject) / kWordSize;
+    for (RawObject** current = first; current <= last; current++) {
+      if (!unboxed_fields_bitmap.Get(bit++)) {
+        visitor->VisitPointer(current);
+      }
+    }
+  } else {
+    visitor->VisitPointers(first, last);
+  }
+#else
+  visitor->VisitPointers(first, last);
+#endif  // defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
 }
 
 bool RawObject::FindObject(FindObjectVisitor* visitor) {
@@ -448,6 +523,7 @@ REGULAR_VISITOR(Namespace)
 REGULAR_VISITOR(ParameterTypeCheck)
 REGULAR_VISITOR(SingleTargetCache)
 REGULAR_VISITOR(UnlinkedCall)
+REGULAR_VISITOR(MonomorphicSmiableCall)
 REGULAR_VISITOR(ICData)
 REGULAR_VISITOR(MegamorphicCache)
 REGULAR_VISITOR(ApiError)
@@ -490,9 +566,11 @@ NULL_VISITOR(TransferableTypedData)
 REGULAR_VISITOR(Pointer)
 NULL_VISITOR(DynamicLibrary)
 VARIABLE_NULL_VISITOR(Instructions, Instructions::Size(raw_obj))
+VARIABLE_NULL_VISITOR(InstructionsSection, InstructionsSection::Size(raw_obj))
 VARIABLE_NULL_VISITOR(PcDescriptors, raw_obj->ptr()->length_)
 VARIABLE_NULL_VISITOR(CodeSourceMap, raw_obj->ptr()->length_)
-VARIABLE_NULL_VISITOR(StackMap, raw_obj->ptr()->length_)
+VARIABLE_NULL_VISITOR(CompressedStackMaps,
+                      CompressedStackMaps::PayloadSizeOf(raw_obj))
 VARIABLE_NULL_VISITOR(OneByteString, Smi::Value(raw_obj->ptr()->length_))
 VARIABLE_NULL_VISITOR(TwoByteString, Smi::Value(raw_obj->ptr()->length_))
 // Abstract types don't have their visitor called.
@@ -502,15 +580,21 @@ UNREACHABLE_VISITOR(Error)
 UNREACHABLE_VISITOR(Number)
 UNREACHABLE_VISITOR(Integer)
 UNREACHABLE_VISITOR(String)
+UNREACHABLE_VISITOR(FutureOr)
 // Smi has no heap representation.
 UNREACHABLE_VISITOR(Smi)
+#if defined(DART_PRECOMPILED_RUNTIME)
+NULL_VISITOR(WeakSerializationReference)
+#else
+REGULAR_VISITOR(WeakSerializationReference)
+#endif
 
-bool RawCode::ContainsPC(RawObject* raw_obj, uword pc) {
-  if (raw_obj->IsCode()) {
-    RawCode* raw_code = static_cast<RawCode*>(raw_obj);
-    return RawInstructions::ContainsPC(raw_code->ptr()->instructions_, pc);
-  }
-  return false;
+bool RawCode::ContainsPC(const RawObject* raw_obj, uword pc) {
+  if (!raw_obj->IsCode()) return false;
+  auto const raw_code = static_cast<const RawCode*>(raw_obj);
+  const uword start = Code::PayloadStartOf(raw_code);
+  const uword size = Code::PayloadSizeOf(raw_code);
+  return (pc - start) <= size;  // pc may point just past last instruction.
 }
 
 intptr_t RawCode::VisitCodePointers(RawCode* raw_obj,
@@ -524,8 +608,7 @@ intptr_t RawCode::VisitCodePointers(RawCode* raw_obj,
   // instructions. The variable portion of a Code object describes where to
   // find those pointers for tracing.
   if (Code::AliveBit::decode(obj->state_bits_)) {
-    uword entry_point = reinterpret_cast<uword>(obj->instructions_->ptr()) +
-                        Instructions::HeaderSize();
+    uword entry_point = Code::PayloadStartOf(raw_obj);
     for (intptr_t i = 0; i < length; i++) {
       int32_t offset = obj->data()[i];
       visitor->VisitPointer(
@@ -567,12 +650,13 @@ intptr_t RawObjectPool::VisitObjectPoolPointers(RawObjectPool* raw_obj,
   return ObjectPool::InstanceSize(length);
 }
 
-bool RawInstructions::ContainsPC(RawInstructions* raw_instr, uword pc) {
-  uword start_pc =
-      reinterpret_cast<uword>(raw_instr->ptr()) + Instructions::HeaderSize();
-  uword end_pc = start_pc + Instructions::Size(raw_instr);
-  ASSERT(end_pc > start_pc);
-  return (pc >= start_pc) && (pc < end_pc);
+bool RawInstructions::ContainsPC(const RawInstructions* raw_instr, uword pc) {
+  const uword start = Instructions::PayloadStart(raw_instr);
+  const uword size = Instructions::Size(raw_instr);
+  // We use <= instead of < here because the saved-pc can be outside the
+  // instruction stream if the last instruction is a call we don't expect to
+  // return (e.g. because it throws an exception).
+  return (pc - start) <= size;
 }
 
 intptr_t RawInstance::VisitInstancePointers(RawInstance* raw_obj,
@@ -582,8 +666,8 @@ intptr_t RawInstance::VisitInstancePointers(RawInstance* raw_obj,
   uint32_t tags = raw_obj->ptr()->tags_;
   intptr_t instance_size = SizeTag::decode(tags);
   if (instance_size == 0) {
-    instance_size =
-        visitor->isolate()->GetClassSizeForHeapWalkAt(raw_obj->GetClassId());
+    instance_size = visitor->isolate_group()->GetClassSizeForHeapWalkAt(
+        raw_obj->GetClassId());
   }
 
   // Calculate the first and last raw object pointer fields.
@@ -615,5 +699,30 @@ DEFINE_LEAF_RUNTIME_ENTRY(void,
   HeapPage::Of(object)->RememberCard(slot);
 }
 END_LEAF_RUNTIME_ENTRY
+
+const char* RawPcDescriptors::KindToCString(Kind k) {
+  switch (k) {
+#define ENUM_CASE(name, init)                                                  \
+  case Kind::k##name:                                                          \
+    return #name;
+    FOR_EACH_RAW_PC_DESCRIPTOR(ENUM_CASE)
+#undef ENUM_CASE
+    default:
+      return nullptr;
+  }
+}
+
+bool RawPcDescriptors::ParseKind(const char* cstr, Kind* out) {
+  ASSERT(cstr != nullptr && out != nullptr);
+#define ENUM_CASE(name, init)                                                  \
+  if (strcmp(#name, cstr) == 0) {                                              \
+    *out = Kind::k##name;                                                      \
+    return true;                                                               \
+  }
+  FOR_EACH_RAW_PC_DESCRIPTOR(ENUM_CASE)
+#undef ENUM_CASE
+  return false;
+}
+#undef PREFIXED_NAME
 
 }  // namespace dart

@@ -2,39 +2,27 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * A utility class used to write logging information during a test.
- */
+/// A utility class used to write logging information during a test.
 class Logger {
-  /**
-   * The width of the field in which labels are printed.
-   */
+  /// The width of the field in which labels are printed.
   static const int _labelWidth = 8;
 
-  /**
-   * The separator used to separate the label from the content.
-   */
+  /// The separator used to separate the label from the content.
   static const String _separator = ' : ';
 
-  /**
-   * The sink to which the logged information should be written.
-   */
+  /// The sink to which the logged information should be written.
   final StringSink sink;
 
-  /**
-   * Initialize a newly created logger to write to the given [sink].
-   */
+  /// Initialize a newly created logger to write to the given [sink].
   Logger(this.sink);
 
-  /**
-   * Log the given information.
-   *
-   * The [label] is used to indicate the kind of information being logged, while
-   * the [content] contains the actual information. If a list of [arguments] is
-   * provided, then they will be written after the content.
-   */
-  void log(String label, String content, {List<String> arguments = null}) {
-    for (int i = _labelWidth - label.length; i > 0; i--) {
+  /// Log the given information.
+  ///
+  /// The [label] is used to indicate the kind of information being logged,
+  /// while the [content] contains the actual information. If a list of
+  /// [arguments] is provided, then they will be written after the content.
+  void log(String label, String content, {List<String> arguments}) {
+    for (var i = _labelWidth - label.length; i > 0; i--) {
       sink.write(' ');
     }
     sink.write(label);

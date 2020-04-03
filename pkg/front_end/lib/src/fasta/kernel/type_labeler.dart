@@ -23,7 +23,9 @@ import 'package:kernel/ast.dart'
         Library,
         ListConstant,
         MapConstant,
+        NeverType,
         NullConstant,
+        Nullability,
         PartialInstantiationConstant,
         Procedure,
         SetConstant,
@@ -52,10 +54,13 @@ import '../problems.dart' show unsupported;
 /// distinguish different types with the same name. This is used in diagnostic
 /// messages to indicate the origins of types occurring in the message.
 class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
-  List<LabeledNode> names = <LabeledNode>[];
-  Map<String, List<LabeledNode>> nameMap = <String, List<LabeledNode>>{};
+  final List<LabeledNode> names = <LabeledNode>[];
+  final Map<String, List<LabeledNode>> nameMap = <String, List<LabeledNode>>{};
+  final bool printNullability;
 
   List<Object> result;
+
+  TypeLabeler(this.printNullability);
 
   /// Pretty-print a type.
   /// When all types and constants appearing in the same message have been
@@ -126,6 +131,14 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     }
   }
 
+  void addNullability(Nullability nullability) {
+    if (printNullability) {
+      if (nullability == Nullability.nullable) {
+        result.add("?");
+      }
+    }
+  }
+
   void defaultDartType(DartType type) {}
   void visitTypedefType(TypedefType node) {}
 
@@ -137,6 +150,12 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   void visitBottomType(BottomType node) {
     // TODO(askesc): Throw internal error if BottomType appears in diagnostics.
     result.add("bottom-type");
+  }
+
+  void visitNeverType(NeverType node) {
+    // TODO(askesc): Consider throwing internal error if NeverType appears in
+    //  diagnostics.
+    result.add("Never");
   }
 
   void visitDynamicType(DynamicType node) {
@@ -161,6 +180,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
         node.parameter.name,
         enclosingLibrary == null ? unknownUri : enclosingLibrary.importUri,
         enclosingLibrary == null ? unknownUri : enclosingLibrary.fileUri));
+    addNullability(node.typeParameterTypeNullability);
   }
 
   void visitFunctionType(FunctionType node) {
@@ -178,6 +198,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
           result.add(" extends ");
           param.bound.accept(this);
         }
+        first = false;
       }
       result.add(">");
     }
@@ -214,6 +235,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
       result.add("}");
     }
     result.add(")");
+    addNullability(node.nullability);
   }
 
   void visitInterfaceType(InterfaceType node) {
@@ -233,6 +255,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
       }
       result.add(">");
     }
+    addNullability(node.nullability);
   }
 
   void defaultConstant(Constant node) {}
@@ -262,7 +285,8 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   }
 
   void visitInstanceConstant(InstanceConstant node) {
-    new InterfaceType(node.classNode, node.typeArguments).accept(this);
+    new InterfaceType(node.classNode, Nullability.legacy, node.typeArguments)
+        .accept(this);
     result.add(" {");
     bool first = true;
     for (Field field in node.classNode.fields) {

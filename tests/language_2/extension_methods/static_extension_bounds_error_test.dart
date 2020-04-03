@@ -26,7 +26,6 @@ class Rec<T extends Rec<T>> {}
 
 class RecSolution extends Rec<RecSolution> {}
 
-
 void main() {
   String s = "s";
   int i = 0;
@@ -36,15 +35,17 @@ void main() {
   s.e1;
 //  ^^
 // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
-// [cfe] unspecified
+// [cfe] The getter 'e1' isn't defined for the class 'String'.
   E1(s).e1;
 //^^
 // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
-// [cfe] unspecified
+//^
+// [cfe] Inferred type argument 'String' doesn't conform to the bound 'num' of the type variable 'T' on 'E1|get#e1'.
   E1<String>(s).e1;
 //   ^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
-// [cfe] unspecified
+//^
+// [cfe] Type argument 'String' doesn't conform to the bound 'num' of the type variable 'T' on 'E1|get#e1'.
 
   // Inferred types of int and double are ok
   i.e1;
@@ -58,15 +59,17 @@ void main() {
   s.e2;
 //  ^^
 // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
-// [cfe] unspecified
+// [cfe] The getter 'e2' isn't defined for the class 'String'.
   E2(s).e2;
 //^^
 // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
-// [cfe] unspecified
+//^
+// [cfe] Inferred type argument 'String' doesn't conform to the bound 'S' of the type variable 'T' on 'E2|get#e2'.
   E2<String, num>(s).e2;
 //   ^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
-// [cfe] unspecified
+//^
+// [cfe] Type argument 'String' doesn't conform to the bound 'S' of the type variable 'T' on 'E2|get#e2'.
 
   // Inferred types of int and double are ok
   i.e2;
@@ -81,15 +84,15 @@ void main() {
   s.f3(3);
 //  ^^
 // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
-// [cfe] unspecified
+// [cfe] Inferred type argument 'int' doesn't conform to the bound 'T' of the type variable 'S' on 'E3|f3'.
   E3(s).f3(3);
 //      ^^
 // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
-// [cfe] unspecified
+// [cfe] Inferred type argument 'int' doesn't conform to the bound 'T' of the type variable 'S' on 'E3|f3'.
   E3<String>(s).f3(3);
 //              ^^
 // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
-// [cfe] unspecified
+// [cfe] Inferred type argument 'int' doesn't conform to the bound 'T' of the type variable 'S' on 'E3|f3'.
 
   // Inferred type int for method type parameter is ok
   i.f3(3);
@@ -101,15 +104,15 @@ void main() {
   d.f3(3);
 //  ^^
 // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
-// [cfe] unspecified
+// [cfe] Inferred type argument 'int' doesn't conform to the bound 'T' of the type variable 'S' on 'E3|f3'.
   E3(d).f3(3);
 //      ^^
 // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
-// [cfe] unspecified
+// [cfe] Inferred type argument 'int' doesn't conform to the bound 'T' of the type variable 'S' on 'E3|f3'.
   E3<double>(d).f3(3);
 //              ^^
 // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
-// [cfe] unspecified
+// [cfe] Inferred type argument 'int' doesn't conform to the bound 'T' of the type variable 'S' on 'E3|f3'.
 
   RecSolution recs = RecSolution();
   Rec<dynamic> superRec = RecSolution(); // Super-bounded type.
@@ -123,13 +126,15 @@ void main() {
   superRec.e4;
 //         ^^
 // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
-// [cfe] unspecified
+// [cfe] The getter 'e4' isn't defined for the class 'Rec<dynamic>'.
   E4(superRec).e4;
 //^^
 // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
-// [cfe] unspecified
+//^
+// [cfe] Inferred type argument 'Rec<dynamic>' doesn't conform to the bound 'Rec<T>' of the type variable 'T' on 'E4|get#e4'.
   E4<Rec<dynamic>>(superRec).e4;
 //   ^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
-// [cfe] unspecified
+//^
+// [cfe] Type argument 'Rec<dynamic>' doesn't conform to the bound 'Rec<T>' of the type variable 'T' on 'E4|get#e4'.
 }

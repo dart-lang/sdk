@@ -84,7 +84,7 @@ def GenerateAnalysisOptions(options):
 
   To prevent dartanalyzer from tripping on the non-Dart files when it is
   started from the root dart-sdk directory.
-  https://github.com/Dart-Code/Dart-Code/issues/1295
+  https://github.com/dart-lang/sdk/issues/35562
 
   Args:
     options: supported options include: force, dir
@@ -96,6 +96,7 @@ def GenerateAnalysisOptions(options):
     - runtime/**
     - samples-dev/swarm/**
     - sdk/lib/**
+    - sdk_nnbd/lib/**
     - tests/**
     - third_party/observatory_pub_packages/**
     - third_party/pkg/**
@@ -106,7 +107,7 @@ def GenerateAnalysisOptions(options):
     - tools/dom/**
     - tools/sdks/dart-sdk/lib/**
     - tools/status_clean.dart
-    - xcodebuild / **"""
+    - xcodebuild/**"""
 
     fname = os.path.join(options.dir, "analysis_options.yaml")
 

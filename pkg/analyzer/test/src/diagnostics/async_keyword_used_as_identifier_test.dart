@@ -48,4 +48,49 @@ f() sync* {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 5),
     ]);
   }
+
+  test_yield_async() async {
+    await assertErrorsInCode('''
+f() async {
+  var yield = 1;
+}
+''', [
+      error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 18, 5),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 5),
+    ]);
+  }
+
+  test_yield_asyncStar() async {
+    await assertErrorsInCode('''
+f() async* {
+  var yield = 1;
+}
+''', [
+      error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 19, 5),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 19, 5),
+    ]);
+  }
+
+  test_yield_syncStar() async {
+    await assertErrorsInCode('''
+f() sync* {
+  var yield = 1;
+}
+''', [
+      error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 18, 5),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 5),
+    ]);
+  }
+
+  test_async_async() async {
+    await assertErrorsInCode(r'''
+class A {
+  m() async {
+    int async;
+  }
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 32, 5),
+    ]);
+  }
 }

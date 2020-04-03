@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_single_unit.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FlutterCorrectionTest);
   });
@@ -20,8 +20,9 @@ class FlutterCorrectionTest extends AbstractSingleUnitTest {
   int length = 0;
   FlutterCorrections corrections;
 
+  @override
   int findOffset(String search) {
-    int offset = testCode.indexOf(search);
+    var offset = testCode.indexOf(search);
     expect(offset, isNonNegative, reason: "Not found '$search' in\n$testCode");
     return offset;
   }

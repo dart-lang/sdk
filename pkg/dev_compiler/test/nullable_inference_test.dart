@@ -8,6 +8,7 @@ import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/type_environment.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:test/test.dart';
 
@@ -43,7 +44,7 @@ void main() {
     });
     test('Map', () async {
       await expectNotNull('main() { print({"x": null}); }',
-          '<dart.core::String*, dart.core::Null*>{"x": null}, "x"');
+          '<dart.core::String*, dart.core::Null?>{"x": null}, "x"');
     });
 
     test('Symbol', () async {
@@ -249,7 +250,7 @@ void main() {
 
   test('function expression', () async {
     await expectNotNull('main() { () => null; f() {}; f; }',
-        '() → dart.core::Null* => null, f');
+        '() → dart.core::Null? => null, f');
   });
 
   test('cascades (kernel let)', () async {
@@ -391,7 +392,7 @@ void main() {
         var x = () => 42;
         var y = (() => x = null);
       }''',
-          '() → dart.core::int* => 42, 42, () → dart.core::Null* => x = null');
+          '() → dart.core::int* => 42, 42, () → dart.core::Null? => x = null');
     });
     test('do not depend on unrelated variables', () async {
       await expectNotNull('''main() {
@@ -489,13 +490,25 @@ void main() {
 /// to be produced in the set of expressions that cannot be null by DDC's null
 /// inference.
 Future expectNotNull(String code, String expectedNotNull) async {
-  var component = await kernelCompile(code);
-  var collector = NotNullCollector();
-  component.accept(collector);
+  var result = await kernelCompile(code);
+  var collector = NotNullCollector(result.librariesFromDill);
+  result.component.accept(collector);
   var actualNotNull = collector.notNullExpressions
       // ConstantExpressions print the table offset - we want to compare
       // against the underlying constant value instead.
-      .map((e) => (e is ConstantExpression ? e.constant : e).toString())
+      .map((e) {
+        if (e is ConstantExpression) {
+          var c = e.constant;
+          if (c is DoubleConstant &&
+              c.value.isFinite &&
+              c.value.truncateToDouble() == c.value) {
+            // Print integer values as integers
+            return BigInt.from(c.value).toString();
+          }
+          return c.toString();
+        }
+        return e.leakingDebugToString();
+      })
       // Filter out our own NotNull annotations.  The library prefix changes
       // per test, so just filter on the suffix.
       .where((s) => !s.endsWith('::_NotNull {}'))
@@ -505,22 +518,32 @@ Future expectNotNull(String code, String expectedNotNull) async {
 
 /// Given the Dart [code], expects all the expressions inferred to be not-null.
 Future expectAllNotNull(String code) async {
-  (await kernelCompile(code)).accept(ExpectAllNotNull());
+  var result = (await kernelCompile(code));
+  result.component.accept(ExpectAllNotNull(result.librariesFromDill));
 }
 
 bool useAnnotations = false;
 NullableInference inference;
 
 class _TestRecursiveVisitor extends RecursiveVisitor<void> {
+  final Set<Library> librariesFromDill;
   int _functionNesting = 0;
+  TypeEnvironment _typeEnvironment;
+  StatefulStaticTypeContext _staticTypeContext;
+
+  _TestRecursiveVisitor(this.librariesFromDill);
 
   @override
-  visitComponent(Component node) {
-    var hierarchy = ClassHierarchy(node);
-    inference ??= NullableInference(JSTypeRep(
-      fe.TypeSchemaEnvironment(CoreTypes(node), hierarchy),
+  void visitComponent(Component node) {
+    var coreTypes = CoreTypes(node);
+    var hierarchy = ClassHierarchy(node, coreTypes);
+    var jsTypeRep = JSTypeRep(
+      fe.TypeSchemaEnvironment(coreTypes, hierarchy),
       hierarchy,
-    ));
+    );
+    _typeEnvironment = jsTypeRep.types;
+    _staticTypeContext = StatefulStaticTypeContext.stacked(_typeEnvironment);
+    inference ??= NullableInference(jsTypeRep, _staticTypeContext);
 
     if (useAnnotations) {
       inference.allowNotNullDeclarations = useAnnotations;
@@ -530,19 +553,44 @@ class _TestRecursiveVisitor extends RecursiveVisitor<void> {
   }
 
   @override
-  visitLibrary(Library node) {
-    if (node.isExternal ||
+  void visitLibrary(Library node) {
+    _staticTypeContext.enterLibrary(node);
+    if (librariesFromDill.contains(node) ||
         node.importUri.scheme == 'package' &&
             node.importUri.pathSegments[0] == 'meta') {
       return;
     }
     super.visitLibrary(node);
+    _staticTypeContext.leaveLibrary(node);
   }
 
   @override
-  visitFunctionNode(FunctionNode node) {
+  void visitField(Field node) {
+    _staticTypeContext.enterMember(node);
+    super.visitField(node);
+    _staticTypeContext.leaveMember(node);
+  }
+
+  @override
+  void visitConstructor(Constructor node) {
+    _staticTypeContext.enterMember(node);
+    super.visitConstructor(node);
+    _staticTypeContext.leaveMember(node);
+  }
+
+  @override
+  void visitProcedure(Procedure node) {
+    _staticTypeContext.enterMember(node);
+    super.visitProcedure(node);
+    _staticTypeContext.leaveMember(node);
+  }
+
+  @override
+  void visitFunctionNode(FunctionNode node) {
     _functionNesting++;
-    if (_functionNesting == 1) inference.enterFunction(node);
+    if (_functionNesting == 1) {
+      inference.enterFunction(node);
+    }
     super.visitFunctionNode(node);
     if (_functionNesting == 1) inference.exitFunction(node);
     _functionNesting--;
@@ -552,8 +600,10 @@ class _TestRecursiveVisitor extends RecursiveVisitor<void> {
 class NotNullCollector extends _TestRecursiveVisitor {
   final notNullExpressions = <Expression>[];
 
+  NotNullCollector(Set<Library> librariesFromDill) : super(librariesFromDill);
+
   @override
-  defaultExpression(Expression node) {
+  void defaultExpression(Expression node) {
     if (!inference.isNullable(node)) {
       notNullExpressions.add(node);
     }
@@ -562,8 +612,10 @@ class NotNullCollector extends _TestRecursiveVisitor {
 }
 
 class ExpectAllNotNull extends _TestRecursiveVisitor {
+  ExpectAllNotNull(Set<Library> librariesFromDill) : super(librariesFromDill);
+
   @override
-  defaultExpression(Expression node) {
+  void defaultExpression(Expression node) {
     expect(inference.isNullable(node), false,
         reason: 'expression `$node` should be inferred as not-null');
     super.defaultExpression(node);
@@ -573,7 +625,14 @@ class ExpectAllNotNull extends _TestRecursiveVisitor {
 fe.InitializedCompilerState _compilerState;
 final _fileSystem = fe.MemoryFileSystem(Uri.file('/memory/'));
 
-Future<Component> kernelCompile(String code) async {
+class CompileResult {
+  final Component component;
+  final Set<Library> librariesFromDill;
+
+  CompileResult(this.component, this.librariesFromDill);
+}
+
+Future<CompileResult> kernelCompile(String code) async {
   var succeeded = true;
   void diagnosticMessageHandler(fe.DiagnosticMessage message) {
     if (message.severity == fe.Severity.error) {
@@ -610,8 +669,10 @@ const nullCheck = const _NullCheck();
       experiments: const {},
       environmentDefines: const {});
   if (!identical(oldCompilerState, _compilerState)) inference = null;
-  fe.DdcResult result =
+  var result =
       await fe.compile(_compilerState, [mainUri], diagnosticMessageHandler);
   expect(succeeded, true);
-  return result.component;
+
+  var librariesFromDill = result.computeLibrariesFromDill();
+  return CompileResult(result.component, librariesFromDill);
 }

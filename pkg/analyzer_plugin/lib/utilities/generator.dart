@@ -6,34 +6,24 @@ import 'package:analyzer_plugin/channel/channel.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 
-/**
- * The result produced by a generator.
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// The result produced by a generator.
+///
+/// Clients may not extend, implement or mix-in this class.
 class GeneratorResult<T extends ResponseResult> {
-  /**
-   * The result to be sent to the server, or `null` if there is no response, as
-   * when the generator is generating a notification.
-   */
+  /// The result to be sent to the server, or `null` if there is no response, as
+  /// when the generator is generating a notification.
   final T result;
 
-  /**
-   * The notifications that should be sent to the server. The list will be empty
-   * if there are no notifications.
-   */
+  /// The notifications that should be sent to the server. The list will be
+  /// empty if there are no notifications.
   final List<Notification> notifications;
 
-  /**
-   * Initialize a newly created generator result with the given [result] and
-   * [notifications].
-   */
+  /// Initialize a newly created generator result with the given [result] and
+  /// [notifications].
   GeneratorResult(this.result, this.notifications);
 
-  /**
-   * Use the given communications [channel] to send the notifications to the
-   * server.
-   */
+  /// Use the given communications [channel] to send the notifications to the
+  /// server.
   void sendNotifications(PluginCommunicationChannel channel) {
     for (final notification in notifications) {
       channel.sendNotification(notification);

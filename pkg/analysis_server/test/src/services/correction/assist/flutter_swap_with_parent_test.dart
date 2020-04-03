@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FlutterSwapWithParentTest);
   });
@@ -19,7 +19,7 @@ class FlutterSwapWithParentTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.FLUTTER_SWAP_WITH_PARENT;
 
-  test_inCenter() async {
+  Future<void> test_inCenter() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
@@ -59,7 +59,7 @@ startResize() {}
 ''');
   }
 
-  test_notFormatted() async {
+  Future<void> test_notFormatted() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
@@ -110,7 +110,7 @@ class _State extends State<Foo> {
 }''');
   }
 
-  test_outerIsInChildren() async {
+  Future<void> test_outerIsInChildren() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';

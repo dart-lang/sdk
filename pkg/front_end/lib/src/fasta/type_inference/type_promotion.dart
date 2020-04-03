@@ -5,11 +5,13 @@
 import 'package:kernel/ast.dart'
     show DartType, Expression, TypeParameterType, VariableDeclaration;
 
+import 'package:kernel/type_environment.dart' show SubtypeCheckMode;
+
 import '../fasta_codes.dart' show templateInternalProblemStackNotEmpty;
 
 import '../problems.dart' show internalProblem;
 
-import '../kernel/kernel_shadow_ast.dart' show ShadowTypePromoter;
+import '../kernel/internal_ast.dart' show ShadowTypePromoter;
 
 import 'type_schema_environment.dart' show TypeSchemaEnvironment;
 
@@ -230,8 +232,8 @@ abstract class TypePromoterImpl extends TypePromoter {
   void enterLogicalExpression(Expression lhs, String operator) {
     debugEvent('enterLogicalExpression');
     // Figure out what the facts are based on possible LHS outcomes.
-    var trueFacts = _factsWhenTrue(lhs);
-    var falseFacts = _factsWhenFalse(lhs);
+    TypePromotionFact trueFacts = _factsWhenTrue(lhs);
+    TypePromotionFact falseFacts = _factsWhenFalse(lhs);
     // Record the fact that we are entering a new scope, and save the
     // appropriate facts for the case where the expression gets short-cut.
     bool isAnd = identical(operator, '&&');
@@ -246,8 +248,8 @@ abstract class TypePromoterImpl extends TypePromoter {
   void enterThen(Expression condition) {
     debugEvent('enterThen');
     // Figure out what the facts are based on possible condition outcomes.
-    var trueFacts = _factsWhenTrue(condition);
-    var falseFacts = _factsWhenFalse(condition);
+    TypePromotionFact trueFacts = _factsWhenTrue(condition);
+    TypePromotionFact falseFacts = _factsWhenFalse(condition);
     // Record the fact that we are entering a new scope, and save the "false"
     // facts for when we enter the "else" branch.
     _currentScope = new _ConditionalScope(_currentScope, falseFacts);
@@ -295,7 +297,7 @@ abstract class TypePromoterImpl extends TypePromoter {
   TypePromotionFact getFactForAccess(
       VariableDeclaration variable, int functionNestingLevel) {
     debugEvent('getFactForAccess');
-    var fact = _computeCurrentFactMap()[variable];
+    TypePromotionFact fact = _computeCurrentFactMap()[variable];
     TypePromotionFact._recordAccessedInScope(
         fact, _currentScope, functionNestingLevel);
     return fact;
@@ -309,7 +311,7 @@ abstract class TypePromoterImpl extends TypePromoter {
       VariableDeclaration variable, DartType type, int functionNestingLevel) {
     debugEvent('handleIsCheck');
     if (!isPromotionCandidate(variable)) return;
-    var isCheck = new _IsCheck(
+    _IsCheck isCheck = new _IsCheck(
         ++_lastFactSequenceNumber,
         variable,
         _currentFacts,
@@ -333,7 +335,7 @@ abstract class TypePromoterImpl extends TypePromoter {
   /// mutated.
   void mutateVariable(VariableDeclaration variable, int functionNestingLevel) {
     debugEvent('mutateVariable');
-    var fact = _computeCurrentFactMap()[variable];
+    TypePromotionFact fact = _computeCurrentFactMap()[variable];
     TypePromotionFact._recordMutatedInScope(fact, _currentScope);
     if (getVariableFunctionNestingLevel(variable) < functionNestingLevel) {
       setVariableMutatedInClosure(variable);
@@ -386,7 +388,7 @@ abstract class TypePromoterImpl extends TypePromoter {
     for (TypePromotionFact newState = _currentFacts;
         !identical(newState, commonAncestor);
         newState = newState.previous) {
-      var currentlyCached = _factCache[newState.variable];
+      TypePromotionFact currentlyCached = _factCache[newState.variable];
       // Note: Since we roll forward the most recent facts first, we need to be
       // careful not write an older fact over a newer one.
       if (currentlyCached == null ||
@@ -448,6 +450,7 @@ abstract class TypePromoterImpl extends TypePromoter {
 
   /// For internal debugging use, prints the current state followed by the event
   /// name.
+  // ignore: unused_element
   void _printEvent(String name) {
     Iterable<TypePromotionFact> factChain(TypePromotionFact fact) sync* {
       while (fact != null) {
@@ -654,13 +657,13 @@ class _IsCheck extends TypePromotionFact {
   @override
   DartType _computePromotedType(
       TypePromoterImpl promoter, TypePromotionScope scope) {
-    var previousPromotedType =
+    DartType previousPromotedType =
         previousForVariable?._computePromotedType(promoter, scope);
 
     // If the variable was mutated somewhere in the scope of the potential
     // promotion, promotion does not occur.
     if (_mutatedInScopes != null) {
-      for (var assignmentScope in _mutatedInScopes) {
+      for (TypePromotionScope assignmentScope in _mutatedInScopes) {
         if (assignmentScope.containsScope(scope)) {
           return previousPromotedType;
         }
@@ -672,7 +675,7 @@ class _IsCheck extends TypePromotionFact {
     // not occur.
     if (promoter.wasVariableMutatedAnywhere(variable) &&
         _accessedInClosureInScopes != null) {
-      for (var accessScope in _accessedInClosureInScopes) {
+      for (TypePromotionScope accessScope in _accessedInClosureInScopes) {
         if (accessScope.containsScope(scope)) {
           return previousPromotedType;
         }
@@ -681,17 +684,19 @@ class _IsCheck extends TypePromotionFact {
 
     // What we do now depends on the relationship between the previous type of
     // the variable and the type we are checking against.
-    var previousType = previousPromotedType ?? variable.type;
-    if (promoter.typeSchemaEnvironment.isSubtypeOf(checkedType, previousType)) {
+    DartType previousType = previousPromotedType ?? variable.type;
+    if (promoter.typeSchemaEnvironment.isSubtypeOf(
+        checkedType, previousType, SubtypeCheckMode.withNullabilities)) {
       // The type we are checking against is a subtype of the previous type of
       // the variable, so this is a refinement; we can promote.
       return checkedType;
     } else if (previousType is TypeParameterType &&
-        promoter.typeSchemaEnvironment
-            .isSubtypeOf(checkedType, previousType.bound)) {
+        promoter.typeSchemaEnvironment.isSubtypeOf(checkedType,
+            previousType.bound, SubtypeCheckMode.withNullabilities)) {
       // The type we are checking against is a subtype of the bound of the
       // previous type of the variable; we can promote the bound.
-      return new TypeParameterType(previousType.parameter, checkedType);
+      return new TypeParameterType.intersection(
+          previousType.parameter, previousType.nullability, checkedType);
     } else {
       // The types aren't sufficiently related; we can't promote.
       return previousPromotedType;

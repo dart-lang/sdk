@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of _js_helper;
 
 // Helper method used by internal libraries.
@@ -210,7 +212,7 @@ class _MatchImplementation implements RegExpMatch {
   }
 
   String namedGroup(String name) {
-    var groups = JS('Object', '#.groups', _match);
+    var groups = JS('Object|Null', '#.groups', _match);
     if (groups != null) {
       var result = JS('String|Null', '#[#]', groups, name);
       if (result != null || JS('bool', '# in #', name, groups)) {
@@ -221,7 +223,7 @@ class _MatchImplementation implements RegExpMatch {
   }
 
   Iterable<String> get groupNames {
-    var groups = JS('Object', '#.groups', _match);
+    var groups = JS('Object|Null', '#.groups', _match);
     if (groups != null) {
       var keys = new JSArray<String>.markGrowable(
           JS('returns:JSExtendableArray;new:true', 'Object.keys(#)', groups));

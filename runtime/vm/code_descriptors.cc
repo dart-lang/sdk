@@ -6,6 +6,8 @@
 
 #include "vm/compiler/compiler_state.h"
 #include "vm/log.h"
+#include "vm/object_store.h"
+#include "vm/zone_text_buffer.h"
 
 namespace dart {
 
@@ -13,16 +15,26 @@ void DescriptorList::AddDescriptor(RawPcDescriptors::Kind kind,
                                    intptr_t pc_offset,
                                    intptr_t deopt_id,
                                    TokenPosition token_pos,
-                                   intptr_t try_index) {
+                                   intptr_t try_index,
+                                   intptr_t yield_index) {
+  // yield index 0 is reserved for normal entry.
+  RELEASE_ASSERT(yield_index != 0);
+
   ASSERT((kind == RawPcDescriptors::kRuntimeCall) ||
-         (kind == RawPcDescriptors::kOther) || (deopt_id != DeoptId::kNone));
+         (kind == RawPcDescriptors::kBSSRelocation) ||
+         (kind == RawPcDescriptors::kOther) ||
+         (yield_index != RawPcDescriptors::kInvalidYieldIndex) ||
+         (deopt_id != DeoptId::kNone));
 
-  // When precompiling, we only use pc descriptors for exceptions.
-  if (!FLAG_precompiled_mode || try_index != -1) {
-    int32_t merged_kind_try =
-        RawPcDescriptors::MergedKindTry::Encode(kind, try_index);
+  // When precompiling, we only use pc descriptors for exceptions,
+  // relocations and yield indices.
+  if (!FLAG_precompiled_mode || try_index != -1 ||
+      yield_index != RawPcDescriptors::kInvalidYieldIndex ||
+      kind == RawPcDescriptors::kBSSRelocation) {
+    const int32_t kind_and_metadata =
+        RawPcDescriptors::KindAndMetadata::Encode(kind, try_index, yield_index);
 
-    PcDescriptors::EncodeInteger(&encoded_data_, merged_kind_try);
+    PcDescriptors::EncodeInteger(&encoded_data_, kind_and_metadata);
     PcDescriptors::EncodeInteger(&encoded_data_, pc_offset - prev_pc_offset);
     prev_pc_offset = pc_offset;
 
@@ -43,41 +55,197 @@ RawPcDescriptors* DescriptorList::FinalizePcDescriptors(uword entry_point) {
   return PcDescriptors::New(&encoded_data_);
 }
 
-void StackMapTableBuilder::AddEntry(intptr_t pc_offset,
-                                    BitmapBuilder* bitmap,
-                                    intptr_t register_bit_count) {
-  stack_map_ = StackMap::New(pc_offset, bitmap, register_bit_count);
-  list_.Add(stack_map_, Heap::kOld);
+// Encode unsigned integer |value| in LEB128 format and store into |data|.
+void CompressedStackMapsBuilder::EncodeLEB128(GrowableArray<uint8_t>* data,
+                                              uintptr_t value) {
+  while (true) {
+    uint8_t part = value & 0x7f;
+    value >>= 7;
+    if (value != 0) part |= 0x80;
+    data->Add(part);
+    if (value == 0) break;
+  }
 }
 
-bool StackMapTableBuilder::Verify() {
-  intptr_t num_entries = Length();
-  StackMap& map1 = StackMap::Handle();
-  StackMap& map2 = StackMap::Handle();
-  for (intptr_t i = 1; i < num_entries; i++) {
-    map1 = MapAt(i - 1);
-    map2 = MapAt(i);
-    // Ensure there are no duplicates and the entries are sorted.
-    if (map1.PcOffset() >= map2.PcOffset()) {
-      return false;
-    }
+void CompressedStackMapsBuilder::AddEntry(intptr_t pc_offset,
+                                          BitmapBuilder* bitmap,
+                                          intptr_t spill_slot_bit_count) {
+  ASSERT(bitmap != nullptr);
+  ASSERT(pc_offset > last_pc_offset_);
+  ASSERT(spill_slot_bit_count >= 0 && spill_slot_bit_count <= bitmap->Length());
+  auto const pc_delta = pc_offset - last_pc_offset_;
+  auto const non_spill_slot_bit_count = bitmap->Length() - spill_slot_bit_count;
+  EncodeLEB128(&encoded_bytes_, pc_delta);
+  EncodeLEB128(&encoded_bytes_, spill_slot_bit_count);
+  EncodeLEB128(&encoded_bytes_, non_spill_slot_bit_count);
+  bitmap->AppendAsBytesTo(&encoded_bytes_);
+  last_pc_offset_ = pc_offset;
+}
+
+RawCompressedStackMaps* CompressedStackMapsBuilder::Finalize() const {
+  if (encoded_bytes_.length() == 0) return CompressedStackMaps::null();
+  return CompressedStackMaps::NewInlined(encoded_bytes_);
+}
+
+CompressedStackMapsIterator::CompressedStackMapsIterator(
+    const CompressedStackMaps& maps,
+    const CompressedStackMaps& global_table)
+    : maps_(maps),
+      bits_container_(maps_.UsesGlobalTable() ? global_table : maps_) {
+  ASSERT(!maps_.IsGlobalTable());
+  ASSERT(!maps_.UsesGlobalTable() || bits_container_.IsGlobalTable());
+}
+
+CompressedStackMapsIterator::CompressedStackMapsIterator(
+    const CompressedStackMaps& maps)
+    : CompressedStackMapsIterator(
+          maps,
+          // Only look up the global table if the map will end up using it.
+          maps.UsesGlobalTable() ? CompressedStackMaps::Handle(
+                                       Thread::Current()
+                                           ->isolate()
+                                           ->object_store()
+                                           ->canonicalized_stack_map_entries())
+                                 : Object::null_compressed_stack_maps()) {}
+
+CompressedStackMapsIterator::CompressedStackMapsIterator(
+    const CompressedStackMapsIterator& it)
+    : maps_(it.maps_),
+      bits_container_(it.bits_container_),
+      next_offset_(it.next_offset_),
+      current_pc_offset_(it.current_pc_offset_),
+      current_global_table_offset_(it.current_global_table_offset_),
+      current_spill_slot_bit_count_(it.current_spill_slot_bit_count_),
+      current_non_spill_slot_bit_count_(it.current_spill_slot_bit_count_),
+      current_bits_offset_(it.current_bits_offset_) {}
+
+// Decode unsigned integer in LEB128 format from the payload of |maps| and
+// update |byte_index|.
+uintptr_t CompressedStackMapsIterator::DecodeLEB128(
+    const CompressedStackMaps& maps,
+    uintptr_t* byte_index) {
+  uword shift = 0;
+  uintptr_t value = 0;
+  uint8_t part = 0;
+  do {
+    ASSERT(*byte_index < maps.payload_size());
+    part = maps.PayloadByte((*byte_index)++);
+    value |= static_cast<uintptr_t>(part & 0x7f) << shift;
+    shift += 7;
+  } while ((part & 0x80) != 0);
+
+  return value;
+}
+
+bool CompressedStackMapsIterator::MoveNext() {
+  // Empty CompressedStackMaps are represented as null values.
+  if (maps_.IsNull() || next_offset_ >= maps_.payload_size()) return false;
+  uintptr_t offset = next_offset_;
+
+  auto const pc_delta = DecodeLEB128(maps_, &offset);
+  ASSERT(pc_delta <= (kMaxUint32 - current_pc_offset_));
+  current_pc_offset_ += pc_delta;
+
+  // Table-using CSMs have a table offset after the PC offset delta, whereas
+  // the post-delta part of inlined entries has the same information as
+  // global table entries.
+  if (maps_.UsesGlobalTable()) {
+    current_global_table_offset_ = DecodeLEB128(maps_, &offset);
+    ASSERT(current_global_table_offset_ < bits_container_.payload_size());
+
+    // Since generally we only use entries in the GC and the GC only needs
+    // the rest of the entry information if the PC offset matches, we lazily
+    // load and cache the information stored in the global object when it is
+    // actually requested.
+    current_spill_slot_bit_count_ = -1;
+    current_non_spill_slot_bit_count_ = -1;
+    current_bits_offset_ = -1;
+  } else {
+    current_spill_slot_bit_count_ = DecodeLEB128(maps_, &offset);
+    ASSERT(current_spill_slot_bit_count_ >= 0);
+
+    current_non_spill_slot_bit_count_ = DecodeLEB128(maps_, &offset);
+    ASSERT(current_non_spill_slot_bit_count_ >= 0);
+
+    const auto stackmap_bits =
+        current_spill_slot_bit_count_ + current_non_spill_slot_bit_count_;
+    const uintptr_t stackmap_size =
+        Utils::RoundUp(stackmap_bits, kBitsPerByte) >> kBitsPerByteLog2;
+    ASSERT(stackmap_size <= (maps_.payload_size() - offset));
+
+    current_bits_offset_ = offset;
+    offset += stackmap_size;
   }
+
+  next_offset_ = offset;
   return true;
 }
 
-RawArray* StackMapTableBuilder::FinalizeStackMaps(const Code& code) {
-  ASSERT(Verify());
-  intptr_t num_entries = Length();
-  if (num_entries == 0) {
-    return Object::empty_array().raw();
-  }
-  return Array::MakeFixedLength(list_);
+intptr_t CompressedStackMapsIterator::Length() {
+  EnsureFullyLoadedEntry();
+  return current_spill_slot_bit_count_ + current_non_spill_slot_bit_count_;
+}
+intptr_t CompressedStackMapsIterator::SpillSlotBitCount() {
+  EnsureFullyLoadedEntry();
+  return current_spill_slot_bit_count_;
 }
 
-RawStackMap* StackMapTableBuilder::MapAt(intptr_t index) const {
-  StackMap& map = StackMap::Handle();
-  map ^= list_.At(index);
-  return map.raw();
+bool CompressedStackMapsIterator::IsObject(intptr_t bit_index) {
+  EnsureFullyLoadedEntry();
+  ASSERT(!bits_container_.IsNull());
+  ASSERT(bit_index >= 0 && bit_index < Length());
+  const intptr_t byte_index = bit_index >> kBitsPerByteLog2;
+  const intptr_t bit_remainder = bit_index & (kBitsPerByte - 1);
+  uint8_t byte_mask = 1U << bit_remainder;
+  const intptr_t byte_offset = current_bits_offset_ + byte_index;
+  return (bits_container_.PayloadByte(byte_offset) & byte_mask) != 0;
+}
+
+void CompressedStackMapsIterator::LazyLoadGlobalTableEntry() {
+  ASSERT(maps_.UsesGlobalTable() && bits_container_.IsGlobalTable());
+  ASSERT(HasLoadedEntry());
+  ASSERT(current_global_table_offset_ < bits_container_.payload_size());
+
+  uintptr_t offset = current_global_table_offset_;
+  current_spill_slot_bit_count_ = DecodeLEB128(bits_container_, &offset);
+  ASSERT(current_spill_slot_bit_count_ >= 0);
+
+  current_non_spill_slot_bit_count_ = DecodeLEB128(bits_container_, &offset);
+  ASSERT(current_non_spill_slot_bit_count_ >= 0);
+
+  const auto stackmap_bits = Length();
+  const uintptr_t stackmap_size =
+      Utils::RoundUp(stackmap_bits, kBitsPerByte) >> kBitsPerByteLog2;
+  ASSERT(stackmap_size <= (bits_container_.payload_size() - offset));
+
+  current_bits_offset_ = offset;
+}
+
+const char* CompressedStackMapsIterator::ToCString(Zone* zone) const {
+  ZoneTextBuffer b(zone, 100);
+  CompressedStackMapsIterator it(*this);
+  // If we haven't loaded an entry yet, do so (but don't skip the current
+  // one if we have!)
+  if (!it.HasLoadedEntry()) {
+    if (!it.MoveNext()) return b.buffer();
+  }
+  bool first_entry = true;
+  do {
+    if (first_entry) {
+      first_entry = false;
+    } else {
+      b.AddString("\n");
+    }
+    b.Printf("0x%08x: ", it.pc_offset());
+    for (intptr_t i = 0, n = it.Length(); i < n; i++) {
+      b.AddString(it.IsObject(i) ? "1" : "0");
+    }
+  } while (it.MoveNext());
+  return b.buffer();
+}
+
+const char* CompressedStackMapsIterator::ToCString() const {
+  return ToCString(Thread::Current()->zone());
 }
 
 RawExceptionHandlers* ExceptionHandlerList::FinalizeExceptionHandlers(
@@ -99,13 +267,13 @@ RawExceptionHandlers* ExceptionHandlerList::FinalizeExceptionHandlers(
              (list_[i].pc_offset == ExceptionHandlers::kInvalidPcOffset));
       handlers.SetHandlerInfo(i, list_[i].outer_try_index, list_[i].pc_offset,
                               list_[i].needs_stacktrace, has_catch_all,
-                              list_[i].token_pos, list_[i].is_generated);
+                              list_[i].is_generated);
       handlers.SetHandledTypes(i, Array::empty_array());
     } else {
       const bool has_catch_all = ContainsDynamic(*list_[i].handler_types);
       handlers.SetHandlerInfo(i, list_[i].outer_try_index, list_[i].pc_offset,
                               list_[i].needs_stacktrace, has_catch_all,
-                              list_[i].token_pos, list_[i].is_generated);
+                              list_[i].is_generated);
       handlers.SetHandledTypes(i, *list_[i].handler_types);
     }
   }
@@ -356,7 +524,7 @@ void CodeSourceMapBuilder::NoteDescriptor(RawPcDescriptors::Kind kind,
   const uint8_t kCanThrow =
       RawPcDescriptors::kIcCall | RawPcDescriptors::kUnoptStaticCall |
       RawPcDescriptors::kRuntimeCall | RawPcDescriptors::kOther;
-  if (stack_traces_only_ && ((kind & kCanThrow) != 0)) {
+  if ((kind & kCanThrow) != 0) {
     BufferChangePosition(pos);
     BufferAdvancePC(pc_offset - buffered_pc_offset_);
     FlushBuffer();
@@ -546,7 +714,8 @@ void CodeSourceMapReader::DumpInlineIntervals(uword start) {
   int32_t current_pc_offset = 0;
   function_stack.Add(&root_);
 
-  THR_Print("Inline intervals {\n");
+  THR_Print("Inline intervals for function '%s' {\n",
+            root_.ToFullyQualifiedCString());
   while (stream.PendingBytes() > 0) {
     uint8_t opcode = stream.Read<uint8_t>();
     switch (opcode) {
@@ -599,7 +768,8 @@ void CodeSourceMapReader::DumpSourcePositions(uword start) {
   function_stack.Add(&root_);
   token_positions.Add(CodeSourceMapBuilder::kInitialPosition);
 
-  THR_Print("Source positions {\n");
+  THR_Print("Source positions for function '%s' {\n",
+            root_.ToFullyQualifiedCString());
   while (stream.PendingBytes() > 0) {
     uint8_t opcode = stream.Read<uint8_t>();
     switch (opcode) {

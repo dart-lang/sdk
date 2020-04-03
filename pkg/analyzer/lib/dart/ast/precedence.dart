@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/scanner/token.dart';
+import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 
 /// Opaque representation of Dart expression precedence.
 ///
@@ -59,6 +59,7 @@ class Precedence {
 
   const Precedence._(this._index);
 
+  @override
   int get hashCode => _index.hashCode;
 
   /// Returns `true` if this precedence represents a looser binding than

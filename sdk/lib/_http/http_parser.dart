@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart._http;
 
 // Global constants.
@@ -244,9 +246,11 @@ class _HttpParser extends Stream<_HttpIncoming> {
   int _statusCode = 0;
   int _statusCodeLength = 0;
   final List<int> _method = [];
-  final List<int> _uri_or_reason_phrase = [];
+  final List<int> _uriOrReasonPhrase = [];
   final List<int> _headerField = [];
   final List<int> _headerValue = [];
+  // The limit for method, uriOrReasonPhrase, header field and value
+  int _headerSizeLimit = 8 * 1024;
 
   int _httpVersion;
   int _transferLength = -1;
@@ -256,8 +260,14 @@ class _HttpParser extends Stream<_HttpIncoming> {
 
   bool _noMessageBody = false;
   int _remainingContent = -1;
+  bool _contentLength = false;
+  bool _transferEncoding = false;
+  bool connectMethod = false;
 
   _HttpHeaders _headers;
+
+  // The limit for parsing chunk size
+  int _chunkSizeLimit = 0x7FFFFFFF;
 
   // The current incoming connection.
   _HttpIncoming _incoming;
@@ -317,8 +327,13 @@ class _HttpParser extends Stream<_HttpIncoming> {
     try {
       _doParse();
     } catch (e, s) {
-      _state = _State.FAILURE;
-      _reportError(e, s);
+      if (_state >= _State.CHUNK_SIZE_STARTING_CR && _state <= _State.BODY) {
+        _state = _State.FAILURE;
+        _reportBodyError(e, s);
+      } else {
+        _state = _State.FAILURE;
+        _reportHttpError(e, s);
+      }
     }
   }
 
@@ -326,6 +341,19 @@ class _HttpParser extends Stream<_HttpIncoming> {
   // parsing and return. This will be in case of either an upgrade
   // request or a request or response with an empty body.
   bool _headersEnd() {
+    // If method is CONNECT, response parser should ignore any Content-Length or
+    // Transfer-Encoding header fields in a successful response.
+    // [RFC 7231](https://tools.ietf.org/html/rfc7231#section-4.3.6)
+    if (!_requestParser &&
+        _statusCode >= 200 &&
+        _statusCode < 300 &&
+        connectMethod) {
+      _transferLength = -1;
+      _headers.chunkedTransferEncoding = false;
+      _chunked = false;
+      _headers.removeAll(HttpHeaders.contentLengthHeader);
+      _headers.removeAll(HttpHeaders.transferEncodingHeader);
+    }
     _headers._mutable = false;
 
     _transferLength = _headers.contentLength;
@@ -348,14 +376,13 @@ class _HttpParser extends Stream<_HttpIncoming> {
     _createIncoming(_transferLength);
     if (_requestParser) {
       _incoming.method = new String.fromCharCodes(_method);
-      _incoming.uri =
-          Uri.parse(new String.fromCharCodes(_uri_or_reason_phrase));
+      _incoming.uri = Uri.parse(new String.fromCharCodes(_uriOrReasonPhrase));
     } else {
       _incoming.statusCode = _statusCode;
-      _incoming.reasonPhrase = new String.fromCharCodes(_uri_or_reason_phrase);
+      _incoming.reasonPhrase = new String.fromCharCodes(_uriOrReasonPhrase);
     }
     _method.clear();
-    _uri_or_reason_phrase.clear();
+    _uriOrReasonPhrase.clear();
     if (_connectionUpgrade) {
       _incoming.upgraded = true;
       _parserCalled = false;
@@ -400,10 +427,10 @@ class _HttpParser extends Stream<_HttpIncoming> {
     assert(!_parserCalled);
     _parserCalled = true;
     if (_state == _State.CLOSED) {
-      throw new HttpException("Data on closed connection");
+      throw HttpException("Data on closed connection");
     }
     if (_state == _State.FAILURE) {
-      throw new HttpException("Data on failed connection");
+      throw HttpException("Data on failed connection");
     }
     while (_buffer != null &&
         _index < _buffer.length &&
@@ -425,11 +452,11 @@ class _HttpParser extends Stream<_HttpIncoming> {
           } else {
             // Start parsing method.
             if (!_isTokenChar(byte)) {
-              throw new HttpException("Invalid request method");
+              throw HttpException("Invalid request method");
             }
-            _method.add(byte);
+            _addWithValidation(_method, byte);
             if (!_requestParser) {
-              throw new HttpException("Invalid response line");
+              throw HttpException("Invalid response line");
             }
             _state = _State.REQUEST_LINE_METHOD;
           }
@@ -446,21 +473,21 @@ class _HttpParser extends Stream<_HttpIncoming> {
             // method anymore.
             _httpVersionIndex++;
             if (_requestParser) {
-              throw new HttpException("Invalid request line");
+              throw HttpException("Invalid request line");
             }
             _state = _State.RESPONSE_HTTP_VERSION;
           } else {
             // Did not parse HTTP version. Expect method instead.
             for (int i = 0; i < _httpVersionIndex; i++) {
-              _method.add(_Const.HTTP[i]);
+              _addWithValidation(_method, _Const.HTTP[i]);
             }
             if (byte == _CharCode.SP) {
               _state = _State.REQUEST_LINE_URI;
             } else {
-              _method.add(byte);
+              _addWithValidation(_method, byte);
               _httpVersion = _HttpVersion.UNDETERMINED;
               if (!_requestParser) {
-                throw new HttpException("Invalid response line");
+                throw HttpException("Invalid response line");
               }
               _state = _State.REQUEST_LINE_METHOD;
             }
@@ -489,7 +516,8 @@ class _HttpParser extends Stream<_HttpIncoming> {
             // HTTP version parsed.
             _state = _State.RESPONSE_LINE_STATUS_CODE;
           } else {
-            throw new HttpException("Invalid response line");
+            throw HttpException(
+                "Invalid response line, failed to parse HTTP version");
           }
           break;
 
@@ -500,24 +528,24 @@ class _HttpParser extends Stream<_HttpIncoming> {
             if (_Const.SEPARATOR_MAP[byte] ||
                 byte == _CharCode.CR ||
                 byte == _CharCode.LF) {
-              throw new HttpException("Invalid request method");
+              throw HttpException("Invalid request method");
             }
-            _method.add(byte);
+            _addWithValidation(_method, byte);
           }
           break;
 
         case _State.REQUEST_LINE_URI:
           if (byte == _CharCode.SP) {
-            if (_uri_or_reason_phrase.length == 0) {
-              throw new HttpException("Invalid request URI");
+            if (_uriOrReasonPhrase.length == 0) {
+              throw HttpException("Invalid request, empty URI");
             }
             _state = _State.REQUEST_LINE_HTTP_VERSION;
             _httpVersionIndex = 0;
           } else {
             if (byte == _CharCode.CR || byte == _CharCode.LF) {
-              throw new HttpException("Invalid request URI");
+              throw HttpException("Invalid request, unexpected $byte in URI");
             }
-            _uri_or_reason_phrase.add(byte);
+            _addWithValidation(_uriOrReasonPhrase, byte);
           }
           break;
 
@@ -537,7 +565,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
               _persistentConnection = false;
               _httpVersionIndex++;
             } else {
-              throw new HttpException("Invalid response line");
+              throw HttpException("Invalid response, invalid HTTP version");
             }
           } else {
             if (byte == _CharCode.CR) {
@@ -565,8 +593,11 @@ class _HttpParser extends Stream<_HttpIncoming> {
             _state = _State.RESPONSE_LINE_ENDING;
           } else {
             _statusCodeLength++;
-            if ((byte < 0x30 && 0x39 < byte) || _statusCodeLength > 3) {
-              throw new HttpException("Invalid response status code");
+            if (byte < 0x30 || byte > 0x39) {
+              throw HttpException("Invalid response status code with $byte");
+            } else if (_statusCodeLength > 3) {
+              throw HttpException(
+                  "Invalid response, status code is over 3 digits");
             } else {
               _statusCode = _statusCode * 10 + byte - 0x30;
             }
@@ -578,24 +609,19 @@ class _HttpParser extends Stream<_HttpIncoming> {
             _state = _State.RESPONSE_LINE_ENDING;
           } else {
             if (byte == _CharCode.CR || byte == _CharCode.LF) {
-              throw new HttpException("Invalid response reason phrase");
+              throw HttpException(
+                  "Invalid response, unexpected $byte in reason phrase");
             }
-            _uri_or_reason_phrase.add(byte);
+            _addWithValidation(_uriOrReasonPhrase, byte);
           }
           break;
 
         case _State.RESPONSE_LINE_ENDING:
           _expect(byte, _CharCode.LF);
           _messageType == _MessageType.RESPONSE;
-          if (_statusCode < 100 || _statusCode > 599) {
-            throw new HttpException("Invalid response status code");
-          } else {
-            // Check whether this response will never have a body.
-            if (_statusCode <= 199 ||
-                _statusCode == 204 ||
-                _statusCode == 304) {
-              _noMessageBody = true;
-            }
+          // Check whether this response will never have a body.
+          if (_statusCode <= 199 || _statusCode == 204 || _statusCode == 304) {
+            _noMessageBody = true;
           }
           _state = _State.HEADER_START;
           break;
@@ -609,7 +635,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
             _index--; // Make the new state see the LF again.
           } else {
             // Start of new header field.
-            _headerField.add(_toLowerCaseByte(byte));
+            _addWithValidation(_headerField, _toLowerCaseByte(byte));
             _state = _State.HEADER_FIELD;
           }
           break;
@@ -619,9 +645,9 @@ class _HttpParser extends Stream<_HttpIncoming> {
             _state = _State.HEADER_VALUE_START;
           } else {
             if (!_isTokenChar(byte)) {
-              throw new HttpException("Invalid header field name");
+              throw HttpException("Invalid header field name, with $byte");
             }
-            _headerField.add(_toLowerCaseByte(byte));
+            _addWithValidation(_headerField, _toLowerCaseByte(byte));
           }
           break;
 
@@ -632,7 +658,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
             _state = _State.HEADER_VALUE_FOLD_OR_END;
           } else if (byte != _CharCode.SP && byte != _CharCode.HT) {
             // Start of new header value.
-            _headerValue.add(byte);
+            _addWithValidation(_headerValue, byte);
             _state = _State.HEADER_VALUE;
           }
           break;
@@ -643,7 +669,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
           } else if (byte == _CharCode.LF) {
             _state = _State.HEADER_VALUE_FOLD_OR_END;
           } else {
-            _headerValue.add(byte);
+            _addWithValidation(_headerValue, byte);
           }
           break;
 
@@ -658,11 +684,23 @@ class _HttpParser extends Stream<_HttpIncoming> {
           } else {
             String headerField = new String.fromCharCodes(_headerField);
             String headerValue = new String.fromCharCodes(_headerValue);
-            if (headerField == "transfer-encoding" &&
-                _caseInsensitiveCompare("chunked".codeUnits, _headerValue)) {
-              _chunked = true;
+            if (headerField == HttpHeaders.contentLengthHeader) {
+              // Content Length header should not have more than one occurance
+              // or coexist with Transfer Encoding header.
+              if (_contentLength || _transferEncoding) {
+                _statusCode = HttpStatus.badRequest;
+              }
+              _contentLength = true;
+            } else if (headerField == HttpHeaders.transferEncodingHeader) {
+              _transferEncoding = true;
+              if (_caseInsensitiveCompare("chunked".codeUnits, _headerValue)) {
+                _chunked = true;
+              }
+              if (_contentLength) {
+                _statusCode = HttpStatus.badRequest;
+              }
             }
-            if (headerField == "connection") {
+            if (headerField == HttpHeaders.connectionHeader) {
               List<String> tokens = _tokenizeFieldValue(headerValue);
               final bool isResponse = _messageType == _MessageType.RESPONSE;
               final bool isUpgradeCode =
@@ -675,10 +713,10 @@ class _HttpParser extends Stream<_HttpIncoming> {
                     (isUpgrade && isResponse && isUpgradeCode)) {
                   _connectionUpgrade = true;
                 }
-                _headers._add(headerField, tokens[i]);
+                _headers.add(headerField, tokens[i]);
               }
             } else {
-              _headers._add(headerField, headerValue);
+              _headers.add(headerField, headerValue);
             }
             _headerField.clear();
             _headerValue.clear();
@@ -690,8 +728,8 @@ class _HttpParser extends Stream<_HttpIncoming> {
               _index--; // Make the new state see the LF again.
             } else {
               // Start of new header field.
-              _headerField.add(_toLowerCaseByte(byte));
               _state = _State.HEADER_FIELD;
+              _addWithValidation(_headerField, _toLowerCaseByte(byte));
             }
           }
           break;
@@ -700,10 +738,8 @@ class _HttpParser extends Stream<_HttpIncoming> {
           _expect(byte, _CharCode.LF);
           if (_headersEnd()) {
             return;
-          } else {
-            break;
           }
-          return;
+          break;
 
         case _State.CHUNK_SIZE_STARTING_CR:
           _expect(byte, _CharCode.CR);
@@ -722,6 +758,10 @@ class _HttpParser extends Stream<_HttpIncoming> {
             _state = _State.CHUNK_SIZE_EXTENSION;
           } else {
             int value = _expectHexDigit(byte);
+            // Checks whether (_remaingingContent * 16 + value) overflows.
+            if (_remainingContent > _chunkSizeLimit >> 4) {
+              throw HttpException('Chunk size overflows the integer');
+            }
             _remainingContent = _remainingContent * 16 + value;
           }
           break;
@@ -819,8 +859,8 @@ class _HttpParser extends Stream<_HttpIncoming> {
       if (_state != _State.UPGRADED &&
           !(_state == _State.START && !_requestParser) &&
           !(_state == _State.BODY && !_chunked && _transferLength == -1)) {
-        _bodyController.addError(
-            new HttpException("Connection closed while receiving data"));
+        _reportBodyError(
+            HttpException("Connection closed while receiving data"));
       }
       _closeIncoming(true);
       _controller.close();
@@ -829,8 +869,8 @@ class _HttpParser extends Stream<_HttpIncoming> {
     // If the connection is idle the HTTP stream is closed.
     if (_state == _State.START) {
       if (!_requestParser) {
-        _reportError(new HttpException(
-            "Connection closed before full header was received"));
+        _reportHttpError(
+            HttpException("Connection closed before full header was received"));
       }
       _controller.close();
       return;
@@ -845,8 +885,8 @@ class _HttpParser extends Stream<_HttpIncoming> {
       _state = _State.FAILURE;
       // Report the error through the error callback if any. Otherwise
       // throw the error.
-      _reportError(new HttpException(
-          "Connection closed before full header was received"));
+      _reportHttpError(
+          HttpException("Connection closed before full header was received"));
       _controller.close();
       return;
     }
@@ -857,8 +897,8 @@ class _HttpParser extends Stream<_HttpIncoming> {
       _state = _State.FAILURE;
       // Report the error through the error callback if any. Otherwise
       // throw the error.
-      _reportError(
-          new HttpException("Connection closed before full body was received"));
+      _reportHttpError(
+          HttpException("Connection closed before full body was received"));
     }
     _controller.close();
   }
@@ -878,9 +918,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
   bool get upgrade => _connectionUpgrade && _state == _State.UPGRADED;
   bool get persistentConnection => _persistentConnection;
 
-  void set isHead(bool value) {
-    if (value) _noMessageBody = true;
-  }
+  void set isHead(bool value) => _noMessageBody = value ?? false;
 
   _HttpDetachedIncoming detachIncoming() {
     // Simulate detached by marking as upgraded.
@@ -903,7 +941,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
     _headerField.clear();
     _headerValue.clear();
     _method.clear();
-    _uri_or_reason_phrase.clear();
+    _uriOrReasonPhrase.clear();
 
     _statusCode = 0;
     _statusCodeLength = 0;
@@ -916,6 +954,9 @@ class _HttpParser extends Stream<_HttpIncoming> {
 
     _noMessageBody = false;
     _remainingContent = -1;
+
+    _contentLength = false;
+    _transferEncoding = false;
 
     _headers = null;
   }
@@ -962,7 +1003,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
   }
 
   // expected should already be lowercase.
-  bool _caseInsensitiveCompare(List<int> expected, List<int> value) {
+  static bool _caseInsensitiveCompare(List<int> expected, List<int> value) {
     if (expected.length != value.length) return false;
     for (int i = 0; i < expected.length; i++) {
       if (expected[i] != _toLowerCaseByte(value[i])) return false;
@@ -970,9 +1011,9 @@ class _HttpParser extends Stream<_HttpIncoming> {
     return true;
   }
 
-  int _expect(int val1, int val2) {
+  void _expect(int val1, int val2) {
     if (val1 != val2) {
-      throw new HttpException("Failed to parse HTTP");
+      throw HttpException("Failed to parse HTTP, $val1 does not match $val2");
     }
   }
 
@@ -984,8 +1025,51 @@ class _HttpParser extends Stream<_HttpIncoming> {
     } else if (0x61 <= byte && byte <= 0x66) {
       return byte - 0x61 + 10; // a - f
     } else {
-      throw new HttpException("Failed to parse HTTP");
+      throw HttpException(
+          "Failed to parse HTTP, $byte is expected to be a Hex digit");
     }
+  }
+
+  void _addWithValidation(List<int> list, int byte) {
+    if (list.length < _headerSizeLimit) {
+      list.add(byte);
+    } else {
+      _reportSizeLimitError();
+    }
+  }
+
+  void _reportSizeLimitError() {
+    String method = "";
+    switch (_state) {
+      case _State.START:
+      case _State.METHOD_OR_RESPONSE_HTTP_VERSION:
+      case _State.REQUEST_LINE_METHOD:
+        method = "Method";
+        break;
+
+      case _State.REQUEST_LINE_URI:
+        method = "URI";
+        break;
+
+      case _State.RESPONSE_LINE_REASON_PHRASE:
+        method = "Reason phrase";
+        break;
+
+      case _State.HEADER_START:
+      case _State.HEADER_FIELD:
+        method = "Header field";
+        break;
+
+      case _State.HEADER_VALUE_START:
+      case _State.HEADER_VALUE:
+        method = "Header value";
+        break;
+
+      default:
+        throw UnsupportedError("Unexpected state: $_state");
+        break;
+    }
+    throw HttpException("$method exceeds the $_headerSizeLimit size limit");
   }
 
   void _createIncoming(int transferLength) {
@@ -1053,10 +1137,20 @@ class _HttpParser extends Stream<_HttpIncoming> {
     }
   }
 
-  void _reportError(error, [stackTrace]) {
+  void _reportHttpError(error, [stackTrace]) {
     if (_socketSubscription != null) _socketSubscription.cancel();
     _state = _State.FAILURE;
     _controller.addError(error, stackTrace);
     _controller.close();
+  }
+
+  void _reportBodyError(error, [stackTrace]) {
+    if (_socketSubscription != null) _socketSubscription.cancel();
+    _state = _State.FAILURE;
+    _bodyController.addError(error, stackTrace);
+    // In case of drain(), error event will close the stream.
+    if (_bodyController != null) {
+      _bodyController.close();
+    }
   }
 }

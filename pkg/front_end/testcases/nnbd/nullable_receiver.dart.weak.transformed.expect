@@ -1,0 +1,163 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:20:5: Error: Property 'length' cannot be accessed on 'String?' because it is potentially null.
+// Try accessing using ?. instead.
+//   s.length;
+//     ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:21:5: Error: Method 'substring' cannot be called on 'String?' because it is potentially null.
+// Try calling using ?. instead.
+//   s.substring(1, 1);
+//     ^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:23:5: Error: Method 'foo' cannot be called on 'A?' because it is potentially null.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/nullable_receiver.dart'.
+// Try calling using ?. instead.
+//   a.foo();
+//     ^^^
+//
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:24:5: Error: Property 'bar' cannot be accessed on 'A?' because it is potentially null.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/nullable_receiver.dart'.
+// Try accessing using ?. instead.
+//   a.bar;
+//     ^^^
+//
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:25:5: Error: Property 'baz' cannot be accessed on 'A?' because it is potentially null.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/nullable_receiver.dart'.
+// Try accessing using ?. instead.
+//   a.baz = 42;
+//     ^^^
+//
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:26:4: Error: Can't use an expression of type 'A?' as a function because it's potentially null.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/nullable_receiver.dart'.
+// Try calling using ?.call instead.
+//   a();
+//    ^
+//
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:27:5: Error: Method 'toString' cannot be called on 'B?' because it is potentially null.
+//  - 'B' is from 'pkg/front_end/testcases/nnbd/nullable_receiver.dart'.
+// Try calling using ?. instead.
+//   b.toString(0);
+//     ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:29:17: Error: Can't tear off method 'call' from a potentially null value.
+//   Function f1 = a;
+//                 ^
+//
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:30:24: Error: Can't tear off method 'call' from a potentially null value.
+//   void Function() f2 = a;
+//                        ^
+//
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:31:25: Error: Can't tear off method 'call' from a potentially null value.
+//   void Function()? f3 = a;
+//                         ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  method foo() → dynamic {}
+  get bar() → core::int
+    return 42;
+  set baz(core::int value) → void {}
+  method call() → void {}
+}
+class B extends core::Object {
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+  method toString([core::int extra = #C1]) → core::String
+    return super.{core::Object::toString}();
+}
+static method error(core::String? s, self::A? a, self::B? b) → dynamic {
+  let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_receiver.dart:20:5: Error: Property 'length' cannot be accessed on 'String?' because it is potentially null.
+Try accessing using ?. instead.
+  s.length;
+    ^^^^^^" in s.{core::String::length};
+  let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_receiver.dart:21:5: Error: Method 'substring' cannot be called on 'String?' because it is potentially null.
+Try calling using ?. instead.
+  s.substring(1, 1);
+    ^^^^^^^^^" in s.{core::String::substring}(1, 1);
+  let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_receiver.dart:23:5: Error: Method 'foo' cannot be called on 'A?' because it is potentially null.
+ - 'A' is from 'pkg/front_end/testcases/nnbd/nullable_receiver.dart'.
+Try calling using ?. instead.
+  a.foo();
+    ^^^" in a.{self::A::foo}();
+  let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_receiver.dart:24:5: Error: Property 'bar' cannot be accessed on 'A?' because it is potentially null.
+ - 'A' is from 'pkg/front_end/testcases/nnbd/nullable_receiver.dart'.
+Try accessing using ?. instead.
+  a.bar;
+    ^^^" in a.{self::A::bar};
+  let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_receiver.dart:25:5: Error: Property 'baz' cannot be accessed on 'A?' because it is potentially null.
+ - 'A' is from 'pkg/front_end/testcases/nnbd/nullable_receiver.dart'.
+Try accessing using ?. instead.
+  a.baz = 42;
+    ^^^" in a.{self::A::baz} = 42;
+  let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_receiver.dart:26:4: Error: Can't use an expression of type 'A?' as a function because it's potentially null.
+ - 'A' is from 'pkg/front_end/testcases/nnbd/nullable_receiver.dart'.
+Try calling using ?.call instead.
+  a();
+   ^" in a.{self::A::call}();
+  let final<BottomType> #t7 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_receiver.dart:27:5: Error: Method 'toString' cannot be called on 'B?' because it is potentially null.
+ - 'B' is from 'pkg/front_end/testcases/nnbd/nullable_receiver.dart'.
+Try calling using ?. instead.
+  b.toString(0);
+    ^^^^^^^^" in b.{self::B::toString}(0);
+  core::Function f1 = let final<BottomType> #t8 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_receiver.dart:29:17: Error: Can't tear off method 'call' from a potentially null value.
+  Function f1 = a;
+                ^" in a as{TypeError} core::Function;
+  () → void f2 = let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_receiver.dart:30:24: Error: Can't tear off method 'call' from a potentially null value.
+  void Function() f2 = a;
+                       ^" in a as{TypeError} () → void;
+  () →? void f3 = let final<BottomType> #t10 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_receiver.dart:31:25: Error: Can't tear off method 'call' from a potentially null value.
+  void Function()? f3 = a;
+                        ^" in a as{TypeError} () →? void;
+}
+static method ok<T extends core::Object? = core::Object?>(core::String? s, self::A? a, self::ok::T% t, self::B? b, core::Invocation i) → dynamic {
+  s.{core::String::==}(s);
+  a.{core::Object::==}(a);
+  t.{core::Object::==}(t);
+  b.{core::Object::==}(b);
+  s.{core::String::hashCode};
+  a.{core::Object::hashCode};
+  t.{core::Object::hashCode};
+  b.{core::Object::hashCode};
+  s.{core::Object::toString}();
+  a.{core::Object::toString}();
+  t.{core::Object::toString}();
+  b.{self::B::toString}();
+  try {
+    s.{core::Object::noSuchMethod}(i);
+  }
+  on dynamic catch(final dynamic e, final core::StackTrace t) {
+  }
+  try {
+    a.{core::Object::noSuchMethod}(i);
+  }
+  on dynamic catch(final dynamic e, final core::StackTrace t) {
+  }
+  try {
+    t.{core::Object::noSuchMethod}(i);
+  }
+  on dynamic catch(final dynamic e, final core::StackTrace t) {
+  }
+  try {
+    b.{core::Object::noSuchMethod}(i);
+  }
+  on dynamic catch(final dynamic e, final core::StackTrace t) {
+  }
+  s.{core::Object::runtimeType};
+  a.{core::Object::runtimeType};
+  t.{core::Object::runtimeType};
+  b.{core::Object::runtimeType};
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = 42
+}

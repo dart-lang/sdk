@@ -1,0 +1,61 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application with a number of modules.
+# Recompile the same thing again and make sure the calculated dependencies are
+# the same.
+
+type: newworld
+modules:
+  module:
+    module/a.dart: |
+      import 'package:module/b.dart';
+
+      class A extends A2<B> { }
+      class A2<T> { }
+    module/b.dart: |
+      class B { }
+    module/.packages: |
+      module:.
+worlds:
+  - entry: main.dart
+    fromComponent: true
+    sources:
+      main.dart: |
+        import 'package:module/a.dart';
+        class Foo extends A {}
+      .packages: |
+        module:module
+    modules:
+      - module
+    expectedLibraryCount: 3
+    neededDillLibraries:
+      - package:module/a.dart
+      - package:module/b.dart
+    expectedContent:
+      org-dartlang-test:///main.dart:
+        - Class Foo
+      package:module/a.dart:
+        - Class A
+        - Class A2
+      package:module/b.dart:
+        - Class B
+  - entry: main.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    # Nothing actually updated, as such everything is expected as before.
+    modules:
+      - module
+    expectedLibraryCount: 3
+    neededDillLibraries:
+      - package:module/a.dart
+      - package:module/b.dart
+    expectedContent:
+      org-dartlang-test:///main.dart:
+        - Class Foo
+      package:module/a.dart:
+        - Class A
+        - Class A2
+      package:module/b.dart:
+        - Class B

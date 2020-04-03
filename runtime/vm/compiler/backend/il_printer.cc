@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 #include "vm/compiler/backend/il_printer.h"
 
 #include "vm/compiler/backend/il.h"
 #include "vm/compiler/backend/range_analysis.h"
+#include "vm/compiler/ffi/native_calling_convention.h"
 #include "vm/os.h"
 #include "vm/parser.h"
 
@@ -15,17 +14,10 @@ namespace dart {
 
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 
-DEFINE_FLAG(bool,
-            display_sorted_ic_data,
-            false,
-            "Calls display a unary, sorted-by count form of ICData");
-DEFINE_FLAG(bool, print_environments, false, "Print SSA environments.");
 DEFINE_FLAG(charp,
             print_flow_graph_filter,
             NULL,
             "Print only IR of functions with matching names");
-
-DECLARE_FLAG(bool, trace_inlining_intervals);
 
 // Checks whether function's name matches the given filter, which is
 // a comma-separated list of strings.
@@ -73,6 +65,16 @@ bool FlowGraphPrinter::PassesFilter(const char* filter,
 bool FlowGraphPrinter::ShouldPrint(const Function& function) {
   return PassesFilter(FLAG_print_flow_graph_filter, function);
 }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
+DEFINE_FLAG(bool,
+            display_sorted_ic_data,
+            false,
+            "Calls display a unary, sorted-by count form of ICData");
+DEFINE_FLAG(bool, print_environments, false, "Print SSA environments.");
+
+DECLARE_FLAG(bool, trace_inlining_intervals);
 
 void FlowGraphPrinter::PrintGraph(const char* phase, FlowGraph* flow_graph) {
   LogBlock lb;
@@ -345,12 +347,15 @@ void Definition::PrintTo(BufferFormatter* f) const {
     range_->PrintTo(f);
   }
 
-  if (type_ != NULL &&
-      ((type_->ToNullableCid() != kDynamicCid) ||
-       !type_->ToAbstractType()->IsDynamicType() || !type_->is_nullable())) {
+  if (type_ != NULL) {
     f->Print(" ");
     type_->PrintTo(f);
   }
+}
+
+void CheckNullInstr::PrintOperandsTo(BufferFormatter* f) const {
+  Definition::PrintOperandsTo(f);
+  f->Print(IsArgumentCheck() ? ", ArgumentError" : ", NoSuchMethodError");
 }
 
 void Definition::PrintOperandsTo(BufferFormatter* f) const {
@@ -367,6 +372,10 @@ void RedefinitionInstr::PrintOperandsTo(BufferFormatter* f) const {
   if (constrained_type_ != nullptr) {
     f->Print(" ^ %s", constrained_type_->ToCString());
   }
+}
+
+void ReachabilityFenceInstr::PrintOperandsTo(BufferFormatter* f) const {
+  value()->PrintTo(f);
 }
 
 void Value::PrintTo(BufferFormatter* f) const {
@@ -485,24 +494,14 @@ void AssertBooleanInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 void ClosureCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print(" function=");
-  InputAt(0)->PrintTo(f);
+  InputAt(InputCount() - 1)->PrintTo(f);
   f->Print("<%" Pd ">", type_args_len());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     f->Print(", ");
-    PushArgumentAt(i)->value()->PrintTo(f);
+    ArgumentValueAt(i)->PrintTo(f);
   }
   if (entry_kind() == Code::EntryKind::kUnchecked) {
     f->Print(" using unchecked entrypoint");
-  }
-}
-
-void FfiCallInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print(" pointer=");
-  InputAt(TargetAddressIndex())->PrintTo(f);
-  for (intptr_t i = 0, n = InputCount(); i < n - 1; ++i) {
-    f->Print(", ");
-    InputAt(i)->PrintTo(f);
-    f->Print(" (@%s)", arg_locations_[i].ToCString());
   }
 }
 
@@ -510,7 +509,7 @@ void InstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print(" %s<%" Pd ">", function_name().ToCString(), type_args_len());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     f->Print(", ");
-    PushArgumentAt(i)->value()->PrintTo(f);
+    ArgumentValueAt(i)->PrintTo(f);
   }
   if (HasICData()) {
     if (FLAG_display_sorted_ic_data) {
@@ -522,21 +521,35 @@ void InstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   if (result_type() != nullptr) {
     f->Print(", result_type = %s", result_type()->ToCString());
   }
+  if (entry_kind() == Code::EntryKind::kUnchecked) {
+    f->Print(" using unchecked entrypoint");
+  }
 }
 
 void PolymorphicInstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print(" %s<%" Pd ">", instance_call()->function_name().ToCString(),
-           instance_call()->type_args_len());
+  f->Print(" %s<%" Pd ">", function_name().ToCString(), type_args_len());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     f->Print(", ");
-    PushArgumentAt(i)->value()->PrintTo(f);
+    ArgumentValueAt(i)->PrintTo(f);
   }
   PrintTargetsHelper(f, targets_, FlowGraphPrinter::kPrintAll);
   if (complete()) {
     f->Print(" COMPLETE");
   }
-  if (instance_call()->entry_kind() == Code::EntryKind::kUnchecked) {
+  if (entry_kind() == Code::EntryKind::kUnchecked) {
     f->Print(" using unchecked entrypoint");
+  }
+}
+
+void DispatchTableCallInstr::PrintOperandsTo(BufferFormatter* f) const {
+  const String& name =
+      String::Handle(interface_target().QualifiedUserVisibleName());
+  f->Print(" cid=");
+  class_id()->PrintTo(f);
+  f->Print(" %s<%" Pd ">", name.ToCString(), type_args_len());
+  for (intptr_t i = 0; i < ArgumentCount(); ++i) {
+    f->Print(", ");
+    ArgumentValueAt(i)->PrintTo(f);
   }
 }
 
@@ -579,7 +592,7 @@ void StaticCallInstr::PrintOperandsTo(BufferFormatter* f) const {
            type_args_len());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     if (i > 0) f->Print(", ");
-    PushArgumentAt(i)->value()->PrintTo(f);
+    ArgumentValueAt(i)->PrintTo(f);
   }
   if (entry_kind() == Code::EntryKind::kUnchecked) {
     f->Print(", using unchecked entrypoint");
@@ -616,7 +629,13 @@ void StoreInstanceFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
   instance()->PrintTo(f);
   f->Print(" . %s = ", slot().Name());
   value()->PrintTo(f);
-  if (!ShouldEmitStoreBarrier()) f->Print(", barrier removed");
+
+  // Here, we just print the value of the enum field. We would prefer to get
+  // the final decision on whether a store barrier will be emitted by calling
+  // ShouldEmitStoreBarrier(), but that can change parts of the flow graph.
+  if (emit_store_barrier_ == kNoStoreBarrier) {
+    f->Print(", NoStoreBarrier");
+  }
 }
 
 void IfThenElseInstr::PrintOperandsTo(BufferFormatter* f) const {
@@ -625,7 +644,7 @@ void IfThenElseInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 void LoadStaticFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
-  field_value()->PrintTo(f);
+  f->Print("%s", String::Handle(StaticField().name()).ToCString());
 }
 
 void StoreStaticFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
@@ -652,11 +671,10 @@ void RelationalOpInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 void AllocateObjectInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s", String::Handle(cls().ScrubbedName()).ToCString());
-  for (intptr_t i = 0; i < ArgumentCount(); i++) {
+  for (intptr_t i = 0; i < InputCount(); ++i) {
     f->Print(", ");
-    PushArgumentAt(i)->value()->PrintTo(f);
+    InputAt(i)->PrintTo(f);
   }
-
   if (Identity().IsNotAliased()) {
     f->Print(" <not-aliased>");
   }
@@ -674,6 +692,11 @@ void MaterializeObjectInstr::PrintOperandsTo(BufferFormatter* f) const {
 void LoadFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
   instance()->PrintTo(f);
   f->Print(" . %s%s", slot().Name(), slot().is_immutable() ? " {final}" : "");
+}
+
+void LoadUntaggedInstr::PrintOperandsTo(BufferFormatter* f) const {
+  object()->PrintTo(f);
+  f->Print(", %" Pd, offset());
 }
 
 void InstantiateTypeInstr::PrintOperandsTo(BufferFormatter* f) const {
@@ -881,8 +904,11 @@ void JoinEntryInstr::PrintTo(BufferFormatter* f) const {
 }
 
 void IndirectEntryInstr::PrintTo(BufferFormatter* f) const {
-  ASSERT(try_index() == kInvalidTryIndex);
-  f->Print("B%" Pd "[join indirect]:%" Pd " pred(", block_id(), GetDeoptId());
+  f->Print("B%" Pd "[join indirect", block_id());
+  if (try_index() != kInvalidTryIndex) {
+    f->Print(" try_idx %" Pd, try_index());
+  }
+  f->Print("]:%" Pd " pred(", GetDeoptId());
   for (intptr_t i = 0; i < predecessors_.length(); ++i) {
     if (i > 0) f->Print(", ");
     f->Print("B%" Pd, predecessors_[i]->block_id());
@@ -979,12 +1005,6 @@ void IntConverterInstr::PrintOperandsTo(BufferFormatter* f) const {
   Definition::PrintOperandsTo(f);
 }
 
-void UnboxedWidthExtenderInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%" Pd " -> 4 (%s), ", from_width_bytes(),
-           RepresentationToCString(representation()));
-  Definition::PrintOperandsTo(f);
-}
-
 void BitCastInstr::PrintOperandsTo(BufferFormatter* f) const {
   Definition::PrintOperandsTo(f);
   f->Print(" (%s -> %s)", RepresentationToCString(from()),
@@ -1051,13 +1071,38 @@ void NativeEntryInstr::PrintTo(BufferFormatter* f) const {
   BlockEntryWithInitialDefs::PrintInitialDefinitionsTo(f);
 }
 
+void ReturnInstr::PrintOperandsTo(BufferFormatter* f) const {
+  Instruction::PrintOperandsTo(f);
+  if (yield_index() != RawPcDescriptors::kInvalidYieldIndex) {
+    f->Print(", yield_index = %" Pd "", yield_index());
+  }
+}
+
+void FfiCallInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print(" pointer=");
+  InputAt(TargetAddressIndex())->PrintTo(f);
+  for (intptr_t i = 0, n = InputCount(); i < n - 1; ++i) {
+    f->Print(", ");
+    InputAt(i)->PrintTo(f);
+    f->Print(" (@");
+    marshaller_.Location(i).PrintTo(f);
+    f->Print(")");
+  }
+}
+
 void NativeReturnInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
+  f->Print(" (@");
+  marshaller_.Location(compiler::ffi::kResultIndex).PrintTo(f);
+  f->Print(")");
 }
 
 void NativeParameterInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s as %s", loc_.ToCString(),
-           RepresentationToCString(representation_));
+  // Where the calling convention puts it.
+  marshaller_.Location(index_).PrintTo(f);
+  f->Print(" at ");
+  // Where the arguments are when pushed on the stack.
+  marshaller_.NativeLocationOfNativeParameter(index_).PrintTo(f);
 }
 
 void CatchBlockEntryInstr::PrintTo(BufferFormatter* f) const {
@@ -1082,6 +1127,13 @@ void StoreIndexedUnsafeInstr::PrintOperandsTo(BufferFormatter* f) const {
   index()->PrintTo(f);
   f->Print(" + %" Pd "], ", offset());
   value()->PrintTo(f);
+}
+
+void StoreIndexedInstr::PrintOperandsTo(BufferFormatter* f) const {
+  Instruction::PrintOperandsTo(f);
+  if (!ShouldEmitStoreBarrier()) {
+    f->Print(", NoStoreBarrier");
+  }
 }
 
 void TailCallInstr::PrintOperandsTo(BufferFormatter* f) const {
@@ -1172,7 +1224,11 @@ const char* Environment::ToCString() const {
   return Thread::Current()->zone()->MakeCopyOfString(buffer);
 }
 
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
 #else  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
 
 const char* Instruction::ToCString() const {
   return DebugName();
@@ -1210,8 +1266,8 @@ bool FlowGraphPrinter::ShouldPrint(const Function& function) {
   return false;
 }
 
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
 #endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

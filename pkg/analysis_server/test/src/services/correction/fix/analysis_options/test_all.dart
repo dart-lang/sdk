@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'remove_setting_test.dart' as remove_setting;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     remove_setting.main();
   });

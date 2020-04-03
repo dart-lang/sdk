@@ -5,13 +5,15 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -19,6 +21,7 @@ import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer/src/summary2/type_builder.dart';
 
 /// The context of a unit - the context of the bundle, and the unit tokens.
 class LinkedUnitContext {
@@ -81,8 +84,11 @@ class LinkedUnitContext {
     return _unit.featureSet.isEnabled(Feature.non_nullable);
   }
 
-  TypeProvider get typeProvider =>
-      bundleContext.elementFactory.analysisContext.typeProvider;
+  TypeProvider get typeProvider {
+    var libraryReference = libraryContext.reference;
+    var libraryElement = libraryReference.element as LibraryElementImpl;
+    return libraryElement.typeProvider;
+  }
 
   CompilationUnit get unit => _unit;
 
@@ -131,7 +137,7 @@ class LinkedUnitContext {
   /// Return the [LibraryElement] referenced in the [node].
   LibraryElement directiveLibrary(UriBasedDirective node) {
     var uriStr = LazyDirective.getSelectedUri(node);
-    if (uriStr == null || uriStr.isEmpty) return null;
+    if (uriStr == null) return null;
     return bundleContext.elementFactory.libraryOfUri(uriStr);
   }
 
@@ -148,6 +154,8 @@ class LinkedUnitContext {
       }
     } else if (node is ConstructorDeclaration) {
       return LazyConstructorDeclaration.getCodeLength(this, node);
+    } else if (node is EnumConstantDeclaration) {
+      return LazyEnumConstantDeclaration.getCodeLength(this, node);
     } else if (node is EnumDeclaration) {
       return LazyEnumDeclaration.getCodeLength(this, node);
     } else if (node is ExtensionDeclaration) {
@@ -181,6 +189,8 @@ class LinkedUnitContext {
       return 0;
     } else if (node is ConstructorDeclaration) {
       return LazyConstructorDeclaration.getCodeOffset(this, node);
+    } else if (node is EnumConstantDeclaration) {
+      return LazyEnumConstantDeclaration.getCodeOffset(this, node);
     } else if (node is EnumDeclaration) {
       return LazyEnumDeclaration.getCodeOffset(this, node);
     } else if (node is ExtensionDeclaration) {
@@ -233,7 +243,12 @@ class LinkedUnitContext {
   }
 
   DartType getDefaultType(TypeParameter node) {
-    return LazyTypeParameter.getDefaultType(_astReader, node);
+    var type = LazyTypeParameter.getDefaultType(_astReader, node);
+    if (type is TypeBuilder) {
+      type = (type as TypeBuilder).build();
+      LazyAst.setDefaultType(node, type);
+    }
+    return type;
   }
 
   String getDefaultValueCode(AstNode node) {
@@ -429,6 +444,14 @@ class LinkedUnitContext {
     } else {
       throw StateError('${node.runtimeType}');
     }
+  }
+
+  int getLanguageVersionMajor(CompilationUnit node) {
+    return LazyCompilationUnit.getLanguageVersionMajor(node);
+  }
+
+  int getLanguageVersionMinor(CompilationUnit node) {
+    return LazyCompilationUnit.getLanguageVersionMinor(node);
   }
 
   Comment getLibraryDocumentationComment(CompilationUnit unit) {
@@ -647,7 +670,7 @@ class LinkedUnitContext {
     } else if (node is ExtensionDeclaration) {
       return node.typeParameters;
     } else if (node is FieldFormalParameter) {
-      return null;
+      return node.typeParameters;
     } else if (node is FunctionDeclaration) {
       LazyFunctionDeclaration.readFunctionExpression(_astReader, node);
       return getTypeParameters2(node.functionExpression);
@@ -670,6 +693,12 @@ class LinkedUnitContext {
     } else {
       throw UnimplementedError('${node.runtimeType}');
     }
+  }
+
+  Token getTypeParameterVariance(TypeParameter node) {
+    // TODO (kallentu) : Clean up TypeParameterImpl casting once variance is
+    // added to the interface.
+    return (node as TypeParameterImpl).varianceKeyword;
   }
 
   WithClause getWithClause(AstNode node) {
@@ -720,6 +749,10 @@ class LinkedUnitContext {
     return LazyVariableDeclaration.hasInitializer(node);
   }
 
+  bool hasOperatorEqualParameterTypeFromObject(MethodDeclaration node) {
+    return LazyAst.hasOperatorEqualParameterTypeFromObject(node);
+  }
+
   bool hasOverrideInferenceDone(AstNode node) {
     // Only nodes in the libraries being linked might be not inferred yet.
     if (_astReader.isLazy) return true;
@@ -732,6 +765,8 @@ class LinkedUnitContext {
       return node.abstractKeyword != null;
     } else if (node is ClassTypeAlias) {
       return node.abstractKeyword != null;
+    } else if (node is ConstructorDeclaration) {
+      return false;
     } else if (node is FunctionDeclaration) {
       return false;
     } else if (node is MethodDeclaration) {
@@ -891,7 +926,7 @@ class LinkedUnitContext {
     var kind = linkedType.kind;
     if (kind == LinkedNodeTypeKind.bottom) {
       var nullabilitySuffix = _nullabilitySuffix(linkedType.nullabilitySuffix);
-      return BottomTypeImpl.instance.withNullability(nullabilitySuffix);
+      return NeverTypeImpl.instance.withNullability(nullabilitySuffix);
     } else if (kind == LinkedNodeTypeKind.dynamic_) {
       return DynamicTypeImpl.instance;
     } else if (kind == LinkedNodeTypeKind.function) {
@@ -925,8 +960,6 @@ class LinkedUnitContext {
         _typeParameters.remove(--_nextSyntheticTypeParameterId);
       }
 
-      var nullabilitySuffix = _nullabilitySuffix(linkedType.nullabilitySuffix);
-
       GenericTypeAliasElement typedefElement;
       List<DartType> typedefTypeArguments = const <DartType>[];
       if (linkedType.functionTypedef != 0) {
@@ -936,16 +969,22 @@ class LinkedUnitContext {
             linkedType.functionTypedefTypeArguments.map(readType).toList();
       }
 
-      return FunctionTypeImpl.synthetic(
-              returnType, typeParameters, formalParameters,
-              element: typedefElement, typeArguments: typedefTypeArguments)
-          .withNullability(nullabilitySuffix);
+      var nullabilitySuffix = _nullabilitySuffix(linkedType.nullabilitySuffix);
+
+      return FunctionTypeImpl(
+        typeFormals: typeParameters,
+        parameters: formalParameters,
+        returnType: returnType,
+        nullabilitySuffix: nullabilitySuffix,
+        element: typedefElement,
+        typeArguments: typedefTypeArguments,
+      );
     } else if (kind == LinkedNodeTypeKind.interface) {
       var element = bundleContext.elementOfIndex(linkedType.interfaceClass);
       var nullabilitySuffix = _nullabilitySuffix(linkedType.nullabilitySuffix);
-      return InterfaceTypeImpl.explicit(
-        element,
-        linkedType.interfaceTypeArguments.map(readType).toList(),
+      return InterfaceTypeImpl(
+        element: element,
+        typeArguments: linkedType.interfaceTypeArguments.map(readType).toList(),
         nullabilitySuffix: nullabilitySuffix,
       );
     } else if (kind == LinkedNodeTypeKind.typeParameter) {
@@ -959,7 +998,10 @@ class LinkedUnitContext {
         element = bundleContext.elementOfIndex(index);
       }
       var nullabilitySuffix = _nullabilitySuffix(linkedType.nullabilitySuffix);
-      return TypeParameterTypeImpl(element).withNullability(nullabilitySuffix);
+      return TypeParameterTypeImpl(
+        element: element,
+        nullabilitySuffix: nullabilitySuffix,
+      );
     } else if (kind == LinkedNodeTypeKind.void_) {
       return VoidTypeImpl.instance;
     } else {
@@ -977,6 +1019,10 @@ class LinkedUnitContext {
     } else {
       throw StateError('${node.runtimeType}');
     }
+  }
+
+  void setOperatorEqualParameterTypeFromObject(AstNode node, bool value) {
+    LazyAst.setOperatorEqualParameterTypeFromObject(node, value);
   }
 
   void setOverrideInferenceDone(AstNode node) {

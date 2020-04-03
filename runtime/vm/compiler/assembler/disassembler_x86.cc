@@ -1442,6 +1442,12 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
       get_modrm(*current, &mod, &regop, &rm);
       Print("cvtdq2pd %s,", NameOfXMMRegister(regop));
       current += PrintRightXMMOperand(current);
+    } else if (opcode == 0xB8) {
+      // POPCNT.
+      current += PrintOperands(mnemonic, REG_OPER_OP_ORDER, current);
+    } else if (opcode == 0xBD) {
+      // LZCNT (rep BSR encoding).
+      current += PrintOperands("lzcnt", REG_OPER_OP_ORDER, current);
     } else {
       UnimplementedInstruction();
     }
@@ -1585,7 +1591,7 @@ const char* DisassemblerX64::TwoByteMnemonic(uint8_t opcode) {
         "cpuid", "bt",   "shld",    "shld",    NULL,     NULL,
         NULL,    NULL,   NULL,      "bts",     "shrd",   "shrd",
         NULL,    "imul", "cmpxchg", "cmpxchg", NULL,     NULL,
-        NULL,    NULL,   "movzxb",  "movzxw",  NULL,     NULL,
+        NULL,    NULL,   "movzxb",  "movzxw",  "popcnt", NULL,
         NULL,    NULL,   "bsf",     "bsr",     "movsxb", "movsxw"};
     return mnemonics[opcode - 0xA2];
   }
@@ -1767,7 +1773,7 @@ int DisassemblerX64::InstructionDecode(uword pc) {
         // mov reg8,imm8 or mov reg32,imm32
         uint8_t opcode = *data;
         data++;
-        uint8_t is_not_8bit = (opcode >= 0xB8);
+        const bool is_not_8bit = opcode >= 0xB8;
         int reg = (opcode & 0x7) | (rex_b() ? 8 : 0);
         if (is_not_8bit) {
           Print("mov%s %s,", operand_size_code(), NameOfCPURegister(reg));
@@ -1970,7 +1976,7 @@ void Disassembler::DecodeInstruction(char* hex_buffer,
     remaining_size -= 2;
   }
   hex_buffer[hex_index] = '\0';
-  if (out_instr_len) {
+  if (out_instr_len != nullptr) {
     *out_instr_len = instruction_length;
   }
 

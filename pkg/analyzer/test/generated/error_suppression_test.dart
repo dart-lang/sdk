@@ -2,13 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'resolver_test_case.dart';
+import '../src/dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,221 +15,215 @@ main() {
 }
 
 @reflectiveTest
-class ErrorSuppressionTest extends ResolverTestCase {
+class ErrorSuppressionTest extends DriverResolutionTest with PackageMixin {
   String get ignoredCode => 'const_initialized_with_non_constant_value';
 
-  List<ErrorCode> get reportedCodes => [
-        CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-      ];
-
-  List<ErrorCode> get reportedCodesWithAssignment => [
-        StaticTypeWarningCode.INVALID_ASSIGNMENT,
-        CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-      ];
-
   test_error_code_mismatch() async {
-    Source source = addSource('''
+    await assertErrorsInCode('''
 // ignore: $ignoredCode
 int x = '';
 const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, reportedCodesWithAssignment);
+''', [
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 61, 2),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 75,
+          1),
+    ]);
   }
 
   test_ignore_first() async {
-    Source source = addSource('''
+    await assertErrorsInCode('''
 // ignore: invalid_assignment
 int x = '';
 // ... but no ignore here ...
 const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, reportedCodes);
+''', [
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 82,
+          1),
+    ]);
   }
 
   test_ignore_first_trailing() async {
-    Source source = addSource('''
+    await assertErrorsInCode('''
 int x = ''; // ignore: invalid_assignment
 // ... but no ignore here ...
 const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, reportedCodes);
+''', [
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 82,
+          1),
+    ]);
   }
 
   test_ignore_for_file() async {
-    Source source = addSource('''
+    await assertErrorsInCode('''
 int x = '';  //INVALID_ASSIGNMENT
 const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 // ignore_for_file: invalid_assignment
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, reportedCodes);
+''', [
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 44,
+          1),
+    ]);
   }
 
   test_ignore_for_file_whitespace_variant() async {
-    Source source = addSource('''
+    await assertNoErrorsInCode('''
 //ignore_for_file:   $ignoredCode , invalid_assignment
 int x = '';  //INVALID_ASSIGNMENT
 const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 ''');
-    await computeAnalysisResult(source);
-    assertErrors(source, []);
   }
 
   test_ignore_only_trailing() async {
-    Source source = addSource('''
+    await assertNoErrorsInCode('''
 int x = ''; // ignore: invalid_assignment
 ''');
-    await computeAnalysisResult(source);
-    assertErrors(source, []);
   }
 
   test_ignore_second() async {
-    Source source = addSource('''
+    await assertErrorsInCode('''
 //INVALID_ASSIGNMENT
 int x = '';
 // ignore: $ignoredCode
 const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+''', [
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 29, 2),
+    ]);
   }
 
   test_ignore_second_trailing() async {
-    Source source = addSource('''
+    await assertErrorsInCode('''
 //INVALID_ASSIGNMENT
 int x = '';
 const y = x; // ignore: $ignoredCode
+''', [
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 29, 2),
+    ]);
+  }
+
+  test_ignore_uniqueName() async {
+    addMetaPackage();
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+int f({@Required('x') int a}) => 0;
+
+// ignore: missing_required_param_with_details
+int x = f();
 ''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
   }
 
   test_ignore_upper_case() async {
-    Source source = addSource('''
+    await assertNoErrorsInCode('''
 int x = ''; // ignore: INVALID_ASSIGNMENT
 ''');
-    await computeAnalysisResult(source);
-    assertErrors(source, []);
   }
 
   test_invalid_error_code() async {
-    Source source = addSource('''
+    await assertErrorsInCode('''
 // ignore: right_format_wrong_code
 int x = '';
 const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, reportedCodesWithAssignment);
+''', [
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 43, 2),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 57,
+          1),
+    ]);
   }
 
   test_missing_error_codes() async {
-    Source source = addSource('''
+    await assertErrorsInCode('''
     int x = 3;
 // ignore:
 const String y = x; //INVALID_ASSIGNMENT, CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, reportedCodesWithAssignment);
+''', [
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 43,
+          1),
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 43, 1),
+    ]);
   }
 
   test_missing_metadata_suffix() async {
-    Source source = addSource('''
+    await assertErrorsInCode('''
 // ignore invalid_assignment
 String y = 3; //INVALID_ASSIGNMENT
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+''', [
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 40, 1),
+    ]);
   }
 
   test_multiple_comments() async {
-    Source source = addSource('''
+    await assertErrorsInCode('''
 int x = ''; //This is the first comment...
 // ignore: $ignoredCode
 const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+''', [
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 8, 2),
+    ]);
   }
 
   test_multiple_ignore_for_files() async {
-    Source source = addSource('''
+    await assertNoErrorsInCode('''
 int x = '';  //INVALID_ASSIGNMENT
 const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 // ignore_for_file: invalid_assignment,$ignoredCode
 ''');
-    await computeAnalysisResult(source);
-    assertErrors(source, []);
   }
 
   test_multiple_ignores() async {
-    Source source = addSource('''
+    await assertNoErrorsInCode('''
 int x = 3;
 // ignore: invalid_assignment, $ignoredCode
 const String y = x; //INVALID_ASSIGNMENT, CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 ''');
-    await computeAnalysisResult(source);
-    assertErrors(source, []);
   }
 
   test_multiple_ignores_trailing() async {
-    Source source = addSource('''
+    await assertNoErrorsInCode('''
 int x = 3;
 const String y = x; // ignore: invalid_assignment, $ignoredCode
 ''');
-    await computeAnalysisResult(source);
-    assertErrors(source, []);
   }
 
   test_multiple_ignores_whitespace_variant_1() async {
-    Source source = addSource('''
+    await assertNoErrorsInCode('''
 int x = 3;
 //ignore:invalid_assignment,$ignoredCode
 const String y = x; //INVALID_ASSIGNMENT, CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 ''');
-    await computeAnalysisResult(source);
-    assertErrors(source, []);
   }
 
   test_multiple_ignores_whitespace_variant_2() async {
-    Source source = addSource('''
+    await assertNoErrorsInCode('''
 int x = 3;
 //ignore: invalid_assignment,$ignoredCode
 const String y = x; //INVALID_ASSIGNMENT, CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 ''');
-    await computeAnalysisResult(source);
-    assertErrors(source, []);
   }
 
   test_multiple_ignores_whitespace_variant_3() async {
-    Source source = addSource('''
+    await assertNoErrorsInCode('''
 int x = 3;
 // ignore: invalid_assignment,$ignoredCode
 const String y = x; //INVALID_ASSIGNMENT, CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 ''');
-    await computeAnalysisResult(source);
-    assertErrors(source, []);
   }
 
   test_no_ignores() async {
-    Source source = addSource('''
+    await assertErrorsInCode('''
 int x = '';  //INVALID_ASSIGNMENT
 const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, reportedCodesWithAssignment);
+''', [
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 8, 2),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 44,
+          1),
+    ]);
   }
 
   test_trailing_not_above() async {
-    Source source = addSource('''
+    await assertErrorsInCode('''
 int x = ''; // ignore: invalid_assignment
 int y = '';
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      StaticTypeWarningCode.INVALID_ASSIGNMENT,
+''', [
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 50, 2),
     ]);
   }
 }

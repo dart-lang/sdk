@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 /// This library defines the representation of runtime types.
 part of dart._runtime;
 
@@ -19,7 +21,7 @@ final metadata = JS('', 'Symbol("metadata")');
 ///
 ///   - All other types are represented as instances of class [DartType],
 ///     defined in this module.
-///     - Dynamic, Void, and Bottom are singleton instances of sentinal
+///     - Dynamic, Void, and Bottom are singleton instances of sentinel
 ///       classes.
 ///     - Function types are instances of subclasses of AbstractFunctionType.
 ///
@@ -44,10 +46,9 @@ final metadata = JS('', 'Symbol("metadata")');
 ///
 ///     T.is(o): Implements 'o is T'.
 ///     T.as(o): Implements 'o as T'.
-///     T._check(o): Implements the type assertion of 'T x = o;'
 ///
 /// By convention, we used named JavaScript functions for these methods with the
-/// name 'is_X', 'as_X' and 'check_X' for various X to indicate the type or the
+/// name 'is_X' and 'as_X' for various X to indicate the type or the
 /// implementation strategy for the test (e.g 'is_String', 'is_G' for generic
 /// types, etc.)
 // TODO(jmesserly): we shouldn't implement Type here. It should be moved down
@@ -61,10 +62,7 @@ class DartType implements Type {
   bool is_T(object) => instanceOf(object, this);
 
   @JSExportName('as')
-  as_T(object) => cast(object, this, false);
-
-  @JSExportName('_check')
-  check_T(object) => cast(object, this, true);
+  as_T(object) => cast(object, this);
 }
 
 class DynamicType extends DartType {
@@ -75,21 +73,47 @@ class DynamicType extends DartType {
 
   @JSExportName('as')
   as_T(object) => object;
-
-  @JSExportName('_check')
-  check_T(object) => object;
 }
 
 @notNull
 bool _isJsObject(obj) => JS('!', '# === #', getReifiedType(obj), jsobject);
 
 /// Asserts that [f] is a native JS functions and returns it if so.
-/// This function should be used to ensure that a function is a native
-/// JS functions in contexts that expect that.
+///
+/// This function should be used to ensure that a function is a native JS
+/// function before it is passed to native JS code.
+@NoReifyGeneric()
 F assertInterop<F extends Function>(F f) {
-  // TODO(vsm): Throw a more specific error if this fails.
-  assert(_isJsObject(f));
+  assert(_isJsObject(f) || !JS('bool', '# instanceof #.Function', f, global_),
+      'Dart function requires `allowInterop` to be passed to JavaScript.');
   return f;
+}
+
+bool isDartFunction(obj) =>
+    JS<bool>('!', '# instanceof Function', obj) &&
+    JS<bool>('!', '#[#] != null', obj, _runtimeType);
+
+Expando<Function> _assertInteropExpando = Expando<Function>();
+
+@NoReifyGeneric()
+F tearoffInterop<F extends Function>(F f) {
+  // Wrap a JS function with a closure that ensures all function arguments are
+  // native JS functions.
+  if (!_isJsObject(f)) return f;
+  var ret = _assertInteropExpando[f];
+  if (ret == null) {
+    ret = JS(
+        '',
+        'function (...arguments) {'
+            ' var args = arguments.map(#);'
+            ' return #.apply(this, args);'
+            '}',
+        assertInterop,
+        f);
+    _assertInteropExpando[f] = ret;
+  }
+  // Suppress a cast back to F.
+  return JS('', '#', ret);
 }
 
 /// The Dart type that represents a JavaScript class(/constructor) type.
@@ -147,10 +171,7 @@ class LazyJSType extends DartType {
   bool is_T(obj) => isRawJSType(obj) || instanceOf(obj, this);
 
   @JSExportName('as')
-  as_T(obj) => obj == null || is_T(obj) ? obj : castError(obj, this, false);
-
-  @JSExportName('_check')
-  check_T(obj) => obj == null || is_T(obj) ? obj : castError(obj, this, true);
+  as_T(obj) => obj == null || is_T(obj) ? obj : castError(obj, this);
 }
 
 /// An anonymous JS type
@@ -165,10 +186,7 @@ class AnonymousJSType extends DartType {
   bool is_T(obj) => _isJsObject(obj) || instanceOf(obj, this);
 
   @JSExportName('as')
-  as_T(obj) => obj == null || _isJsObject(obj) ? obj : cast(obj, this, false);
-
-  @JSExportName('_check')
-  check_T(obj) => obj == null || _isJsObject(obj) ? obj : cast(obj, this, true);
+  as_T(obj) => obj == null || _isJsObject(obj) ? obj : cast(obj, this);
 }
 
 void _warn(arg) {
@@ -334,12 +352,11 @@ FunctionType _createSmall(returnType, List required) => JS('', '''(() => {
 })()''');
 
 class FunctionType extends AbstractFunctionType {
-  final returnType;
-  List args;
-  List optionals;
+  final Type returnType;
+  final List args;
+  final List optionals;
+  // Named arguments native JS Object of the form { namedArgName: namedArgType }
   final named;
-  // TODO(vsm): This is just parameter metadata for now.
-  List metadata = [];
   String _stringValue;
 
   /// Construct a function type.
@@ -380,26 +397,7 @@ class FunctionType extends AbstractFunctionType {
     return _memoizeArray(_fnTypeTypeMap, keys, create);
   }
 
-  List _process(List array) {
-    var result = [];
-    for (var i = 0; JS<bool>('!', '# < #.length', i, array); ++i) {
-      var arg = JS('', '#[#]', array, i);
-      if (JS('!', '# instanceof Array', arg)) {
-        JS('', '#.push(#.slice(1))', metadata, arg);
-        JS('', '#.push(#[0])', result, arg);
-      } else {
-        JS('', '#.push([])', metadata);
-        JS('', '#.push(#)', result, arg);
-      }
-    }
-    return result;
-  }
-
-  FunctionType(this.returnType, this.args, this.optionals, this.named) {
-    this.args = _process(this.args);
-    this.optionals = _process(this.optionals);
-    // TODO(vsm): Add named arguments.
-  }
+  FunctionType(this.returnType, this.args, this.optionals, this.named);
 
   toString() => name;
 
@@ -475,7 +473,7 @@ class FunctionType extends AbstractFunctionType {
   }
 
   @JSExportName('as')
-  as_T(obj, [@notNull bool isImplicit = false]) {
+  as_T(obj) {
     if (obj == null) return obj;
     if (JS('!', 'typeof # == "function"', obj)) {
       var actual = JS('', '#[#]', obj, _runtimeType);
@@ -485,11 +483,8 @@ class FunctionType extends AbstractFunctionType {
         return obj;
       }
     }
-    return castError(obj, this, isImplicit);
+    return castError(obj, this);
   }
-
-  @JSExportName('_check')
-  check_T(obj) => as_T(obj, true);
 }
 
 /// A type variable, used by [GenericFunctionType] to represent a type formal.
@@ -499,6 +494,13 @@ class TypeVariable extends DartType {
   TypeVariable(this.name);
 
   toString() => name;
+}
+
+class Variance {
+  static const int unrelated = 0;
+  static const int covariant = 1;
+  static const int contravariant = 2;
+  static const int invariant = 3;
 }
 
 class GenericFunctionType extends AbstractFunctionType {
@@ -659,13 +661,7 @@ class GenericFunctionType extends AbstractFunctionType {
   @JSExportName('as')
   as_T(obj) {
     if (obj == null || is_T(obj)) return obj;
-    return castError(obj, this, false);
-  }
-
-  @JSExportName('_check')
-  check_T(obj) {
-    if (obj == null || is_T(obj)) return obj;
-    return castError(obj, this, true);
+    return castError(obj, this);
   }
 }
 
@@ -714,17 +710,6 @@ FunctionType fnType(returnType, List args, [@undefined extra]) =>
 /// this type with `gFnType(T => [T, [T]], T => [Iterable$(T)])`.
 gFnType(instantiateFn, typeBounds) =>
     GenericFunctionType(instantiateFn, typeBounds);
-
-/// TODO(vsm): Remove when mirrors is deprecated.
-/// This is a temporary workaround to support dart:mirrors, which doesn't
-/// understand generic methods.
-getFunctionTypeMirror(AbstractFunctionType type) {
-  if (type is GenericFunctionType) {
-    var typeArgs = List.filled(type.formalCount, dynamic);
-    return type.instantiate(typeArgs);
-  }
-  return type;
-}
 
 /// Whether the given JS constructor [obj] is a Dart class type.
 @notNull
@@ -851,9 +836,6 @@ bool _isBottom(type) => JS('!', '# == # || # == #', type, bottom, type, Null);
 
 @notNull
 bool _isTop(type) {
-  if (_isFutureOr(type)) {
-    return _isTop(JS('', '#[0]', getGenericArgs(type)));
-  }
   return JS('!', '# == # || # == # || # == #', type, Object, type, dynamic,
       type, void_);
 }
@@ -883,6 +865,8 @@ bool _isSubtype(t1, t2) => JS('', '''(() => {
     if (${_isFutureOr(t2)}) {
       let t2TypeArg = ${getGenericArgs(t2)}[0];
       // FutureOr<A> <: FutureOr<B> iff A <: B
+      // TODO(nshahan): Proven to not actually be true and needs cleanup.
+      // https://github.com/dart-lang/sdk/issues/38818
       return $_isSubtype(t1TypeArg, t2TypeArg);
     }
 
@@ -953,19 +937,20 @@ bool _isSubtype(t1, t2) => JS('', '''(() => {
     // Without type bounds all will instantiate to dynamic. Only need to check
     // further if at least one of the functions has type bounds.
     if ($t1.hasTypeBounds || $t2.hasTypeBounds) {
-      // Check the bounds of the type parameters of g1 and g2.
-      // given a type parameter `T1 extends U1` from g1, and a type parameter
-      // `T2 extends U2` from g2, we must ensure that:
-      //
-      //      U2 == U1
+      // Check the bounds of the type parameters of g1 and g2. Given a type
+      // parameter `T1 extends U1` from g1, and a type parameter `T2 extends U2`
+      // from g2, we must ensure that U1 and U2 are mutual subtypes.
       //
       // (Note there is no variance in the type bounds of type parameters of
       // generic functions).
       let t1Bounds = $t1.instantiateTypeBounds(fresh);
       let t2Bounds = $t2.instantiateTypeBounds(fresh);
       for (let i = 0; i < formalCount; i++) {
-        if (t2Bounds[i] != t1Bounds[i]) {
-          return false;
+        if (t1Bounds[i] != t2Bounds[i]) {
+          if (!($_isSubtype(t1Bounds[i], t2Bounds[i])
+              && $_isSubtype(t2Bounds[i], t1Bounds[i]))) {
+            return false;
+          }
         }
       }
     }
@@ -1013,9 +998,23 @@ bool _isInterfaceSubtype(t1, t2) => JS('', '''(() => {
     if (typeArguments1.length != typeArguments2.length) {
       $assertFailed();
     }
+    let variances = $getGenericArgVariances($t1);
     for (let i = 0; i < typeArguments1.length; ++i) {
-      if (!$_isSubtype(typeArguments1[i], typeArguments2[i])) {
-        return false;
+      // When using implicit variance, variances will be undefined and
+      // considered covariant.
+      if (variances === void 0 || variances[i] == ${Variance.covariant}) {
+        if (!$_isSubtype(typeArguments1[i], typeArguments2[i])) {
+          return false;
+        }
+      } else if (variances[i] == ${Variance.contravariant}) {
+        if (!$_isSubtype(typeArguments2[i], typeArguments1[i])) {
+          return false;
+        }
+      } else if (variances[i] == ${Variance.invariant}) {
+        if (!$_isSubtype(typeArguments1[i], typeArguments2[i]) ||
+            !$_isSubtype(typeArguments2[i], typeArguments1[i])) {
+          return false;
+        }
       }
     }
     return true;

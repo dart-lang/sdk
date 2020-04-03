@@ -29,16 +29,16 @@ Class 'A', script = '#lib'
 Field 'foo1', type = dart:core::int, getter = 'get:foo1', setter = 'set:foo1', reflectable
     value = null
 
-Field 'foo2', type = dart:core::int, getter = 'get:foo2', setter = 'set:foo2', reflectable
+Field 'foo2', type = dart:core::int, getter = 'get:foo2', setter = 'set:foo2', reflectable, has-initializer
     value = null
 
-Field 'foo3', type = dart:core::int, getter = 'get:foo3', setter = 'set:foo3', reflectable
+Field 'foo3', type = dart:core::int, getter = 'get:foo3', setter = 'set:foo3', reflectable, has-initializer
     value = const 42
 
 Field 'foo4', type = dart:core::int, getter = 'get:foo4', setter = 'set:foo4', reflectable
     value = null
 
-Field 'foo5', type = dart:core::int, getter = 'get:foo5', setter = 'set:foo5', reflectable
+Field 'foo5', type = dart:core::int, getter = 'get:foo5', setter = 'set:foo5', reflectable, has-initializer
     value = const 43
 
 Function '', constructor, reflectable, debuggable
@@ -51,15 +51,14 @@ Bytecode {
   Push                 FP[-6]
   PushInt              42
   StoreFieldTOS        CP#0
-  Push                 FP[-6]
   PushInt              43
-  StoreFieldTOS        CP#2
+  Drop1
   Push                 FP[-6]
   Push                 FP[-5]
-  StoreFieldTOS        CP#4
+  StoreFieldTOS        CP#2
   Push                 FP[-6]
   PushInt              44
-  StoreFieldTOS        CP#2
+  StoreFieldTOS        CP#4
   Push                 FP[-6]
   DirectCall           CP#6, 1
   Drop1
@@ -70,9 +69,9 @@ Nullable fields: [#lib::A::foo1 (field), #lib::A::foo2 (field)]
 ConstantPool {
   [0] = InstanceField #lib::A::foo3 (field)
   [1] = Reserved
-  [2] = InstanceField #lib::A::foo5 (field)
+  [2] = InstanceField #lib::A::foo4 (field)
   [3] = Reserved
-  [4] = InstanceField #lib::A::foo4 (field)
+  [4] = InstanceField #lib::A::foo5 (field)
   [5] = Reserved
   [6] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
   [7] = Reserved
@@ -89,17 +88,16 @@ Bytecode {
   Push                 FP[-7]
   PushInt              42
   StoreFieldTOS        CP#0
-  Push                 FP[-7]
   PushInt              43
-  StoreFieldTOS        CP#2
+  Drop1
   Push                 FP[-7]
   Push                 FP[-6]
-  StoreFieldTOS        CP#4
+  StoreFieldTOS        CP#2
   Push                 FP[-7]
   Push                 FP[-5]
   PushInt              1
   AddInt
-  StoreFieldTOS        CP#2
+  StoreFieldTOS        CP#4
   Push                 FP[-7]
   DirectCall           CP#6, 1
   Drop1
@@ -110,9 +108,9 @@ Nullable fields: [#lib::A::foo2 (field), #lib::A::foo4 (field)]
 ConstantPool {
   [0] = InstanceField #lib::A::foo3 (field)
   [1] = Reserved
-  [2] = InstanceField #lib::A::foo5 (field)
+  [2] = InstanceField #lib::A::foo1 (field)
   [3] = Reserved
-  [4] = InstanceField #lib::A::foo1 (field)
+  [4] = InstanceField #lib::A::foo5 (field)
   [5] = Reserved
   [6] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
   [7] = Reserved
@@ -164,13 +162,13 @@ ConstantPool {
 Class 'B', script = '#lib'
     extends #lib::A
 
-Field 'foo6', type = dart:core::int, getter = 'get:foo6', setter = 'set:foo6', reflectable
+Field 'foo6', type = dart:core::int, getter = 'get:foo6', setter = 'set:foo6', reflectable, has-initializer
     value = const 46
 
-Field 'foo7', type = dart:core::int, reflectable, static
+Field 'foo7', type = dart:core::int, reflectable, static, has-initializer
     value = const 47
 
-Field 'foo8', type = dart:core::int, reflectable, static, const, final
+Field 'foo8', type = dart:core::int, reflectable, static, const, final, has-initializer
     value = const 48
 
 Function '', constructor, reflectable, debuggable
@@ -205,9 +203,8 @@ Function 'c2', constructor, reflectable, debuggable
 Bytecode {
   Entry                0
   CheckStack           0
-  Push                 FP[-7]
   PushInt              46
-  StoreFieldTOS        CP#0
+  Drop1
   Push                 FP[-7]
   PushInt              50
   StoreFieldTOS        CP#0

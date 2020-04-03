@@ -13,7 +13,7 @@ void script() {
     if (iterations <= 0) {
       return;
     }
-    new List<int>(size);
+    new List<int>.filled(size, 0);
     new Timer(duration, () => grow(iterations - 1, size, duration));
   };
   grow(100, 1 << 24, new Duration(seconds: 1));

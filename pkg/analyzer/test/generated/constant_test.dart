@@ -5,7 +5,6 @@
 @deprecated
 library analyzer.test.constant_test;
 
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -63,7 +62,7 @@ class Center extends Align {
     expect(result.isValid, isTrue);
     DartObject value = result.value;
     expect(value, isNotNull);
-    expect(value.type.name, 'Center');
+    assertType(value.type, 'Center');
     DartObject superclassFields = value.getField(GenericState.SUPERCLASS_FIELD);
     DartObject widthFactor = superclassFields.getField('widthFactor');
     expect(widthFactor, isNotNull);
@@ -79,7 +78,7 @@ class C {
     expect(result.isValid, isTrue);
     DartObject value = result.value;
     expect(value, isNotNull);
-    expect(value.type.name, 'C');
+    assertType(value.type, 'C');
   }
 
   test_constructorInvocation_fieldInitializer() async {
@@ -92,10 +91,10 @@ class C {
     expect(result.isValid, isTrue);
     DartObject value = result.value;
     expect(value, isNotNull);
-    expect(value.type.name, 'C');
+    assertType(value.type, 'C');
     DartObject x = value.getField('x');
     expect(x, isNotNull);
-    expect(x.type.name, 'int');
+    assertType(x.type, 'int');
     expect(x.toIntValue(), 2);
   }
 
@@ -107,7 +106,7 @@ class C {
     expect(result.isValid, isTrue);
     DartObject value = result.value;
     expect(value, isNotNull);
-    expect(value.type.name, 'C');
+    assertType(value.type, 'C');
   }
 
   test_constructorInvocation_noConstConstructor() async {
@@ -129,7 +128,7 @@ class C {
     expect(result.isValid, isTrue);
     DartObject value = result.value;
     expect(value, isNotNull);
-    expect(value.type.name, 'C');
+    assertType(value.type, 'C');
   }
 
   test_divide_double_double() async {
@@ -140,7 +139,7 @@ class C {
     var result = await _getExpressionValue("3.2 / 0.0");
     expect(result.isValid, isTrue);
     DartObject value = result.value;
-    expect(value.type.name, "double");
+    assertType(value.type, "double");
     expect(value.toDoubleValue().isInfinite, isTrue);
   }
 
@@ -254,6 +253,14 @@ class C {
   test_literal_list() async {
     var result = await _getExpressionValue("const ['a', 'b', 'c']");
     expect(result.isValid, isTrue);
+  }
+
+  test_literal_list_forElement() async {
+    var result = await _getExpressionValue('''
+const [for (var i = 0; i < 4; i++) i]
+''');
+    expect(result.isValid, isFalse);
+    expect(result.errors, isNotEmpty);
   }
 
   test_literal_map() async {
@@ -455,7 +462,7 @@ class C {
   Future<void> _assertValueBool(bool expectedValue, String contents) async {
     var result = await _getExpressionValue(contents);
     DartObject value = result.value;
-    expect(value.type.name, "bool");
+    assertType(value.type, "bool");
     expect(value.toBoolValue(), expectedValue);
   }
 
@@ -463,7 +470,7 @@ class C {
     var result = await _getExpressionValue(contents);
     expect(result.isValid, isTrue);
     DartObject value = result.value;
-    expect(value.type.name, "double");
+    assertType(value.type, "double");
     expect(value.toDoubleValue(), expectedValue);
   }
 
@@ -471,34 +478,27 @@ class C {
     var result = await _getExpressionValue(contents);
     expect(result.isValid, isTrue);
     DartObject value = result.value;
-    expect(value.type.name, "int");
+    assertType(value.type, "int");
     expect(value.toIntValue(), expectedValue);
   }
 
   Future<void> _assertValueString(String expectedValue, String contents) async {
     var result = await _getExpressionValue(contents);
     DartObject value = result.value;
-    expect(value, isNotNull);
-    ParameterizedType type = value.type;
-    expect(type, isNotNull);
-    expect(type.name, "String");
-    expect(value.toStringValue(), expectedValue);
+    assertType(value.type, 'String');
   }
 
   Future<EvaluationResult> _getExpressionValue(String expressionCode,
-      {String context: ''}) async {
-    var path = convertPath('/test/lib/test.dart');
-
-    var file = newFile(path, content: '''
+      {String context = ''}) async {
+    await resolveTestCode('''
 var x = $expressionCode;
 
 $context
 ''');
 
-    await resolveTestFile();
-
     var expression = findNode.variableDeclaration('x =').initializer;
 
+    var file = getFile(result.path);
     var evaluator = ConstantEvaluator(
       file.createSource(result.uri),
       result.typeProvider,

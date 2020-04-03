@@ -697,13 +697,10 @@ void testCompleteErrorWithCustomFuture() {
 }
 
 void testCompleteErrorWithNull() {
-  asyncStart();
   final completer = new Completer<int>();
-  completer.future.catchError((e) {
-    Expect.isTrue(e is NullThrownError);
-    asyncEnd();
+  Expect.throwsArgumentError(() {
+    completer.completeError(null);
   });
-  completer.completeError(null);
 }
 
 void testChainedFutureValue() {
@@ -1248,7 +1245,7 @@ class UglyFuture implements Future<dynamic> {
   UglyFuture(int badness)
       : _result = (badness == 0) ? 42 : new UglyFuture(badness - 1);
   Future<S> then<S>(action(value), {Function onError}) {
-    var c = new Completer();
+    var c = new Completer<S>();
     c.complete(new Future.microtask(() => action(_result)));
     return c.future;
   }

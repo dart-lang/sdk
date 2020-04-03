@@ -1,0 +1,453 @@
+Condition,Test,Expectations,Comment,Issue,Issue state
+,codegen/gvn_dynamic_field_get_test,Fail,Issue 18519,https://dartbug.com/18519,open
+,codegen/list_tracer_length_test,Fail,Issue 33051,https://dartbug.com/33051,open
+,codegen/logical_expression_test,Fail,Issue 17027,https://dartbug.com/17027,open
+,codegen/side_effect_tdiv_regression_test,Fail,Issue 33050,https://dartbug.com/33050,open
+,codegen/simple_function_subtype_test,Fail,simple_function_subtype_test is temporarily(?) disabled due to new method for building function type tests.,,
+,end_to_end/generate_code_with_compile_time_errors_test,RuntimeError,not supported yet with the new FE.,,
+,end_to_end/show_package_warnings_test,RuntimeError,missing errors from the FE,,
+,inference/simple_inferrer_const_closure2_test,Fail,Issue 16507,https://dartbug.com/16507,open
+,inference/simple_inferrer_const_closure_test,Fail,Issue 16507,https://dartbug.com/16507,open
+,inference/simple_inferrer_global_field_closure_test,Fail,Issue 16507,https://dartbug.com/16507,open
+,sourcemaps/d2js_validity_test,RuntimeError,Issue 33072,https://dartbug.com/33072,open
+,sourcemaps/deferred_d2js_validity_test,RuntimeError,Issue 33072,https://dartbug.com/33072,open
+$compiler == dart2js,bounds_check4a_test,RuntimeError,Issue 32741,https://dartbug.com/32741,open
+$compiler == dart2js,bounds_check4b_test,RuntimeError,Issue 32741,https://dartbug.com/32741,open
+$compiler == dart2js,generic_class_is_test,Fail,Issue 32004,https://dartbug.com/32004,open
+$compiler == dart2js,jsinterop_test/01,MissingCompileTimeError,Issue 34174,https://dartbug.com/34174,open
+$compiler == dart2js,jsinterop_test/02,MissingCompileTimeError,Issue 34174,https://dartbug.com/34174,open
+$compiler == dart2js,jsinterop_test/03,MissingCompileTimeError,Issue 34174,https://dartbug.com/34174,open
+$compiler == dart2js,jsinterop_test/04,MissingCompileTimeError,Issue 34174,https://dartbug.com/34174,open
+$compiler == dart2js,jsinterop_test/35,MissingCompileTimeError,Issue 33834,https://dartbug.com/33834,open
+$compiler == dart2js,jsinterop_test/37,MissingCompileTimeError,Issue 33834,https://dartbug.com/33834,open
+$compiler == dart2js,jsinterop_test/38,MissingCompileTimeError,Issue 34174,https://dartbug.com/34174,open
+$compiler == dart2js,jsinterop_test/42,MissingCompileTimeError,Issue 34174,https://dartbug.com/34174,open
+$compiler == dart2js,jsinterop_test/43,MissingCompileTimeError,Issue 34345,https://dartbug.com/34345,open
+$compiler == dart2js,jsinterop_test/44,MissingCompileTimeError,Issue 34345,https://dartbug.com/34345,open
+$compiler == dart2js,jsinterop_test/45,MissingCompileTimeError,Issue 34345,https://dartbug.com/34345,open
+$compiler == dart2js,jsinterop_test/46,MissingCompileTimeError,Issue 34174,https://dartbug.com/34174,open
+$compiler == dart2js,jsinterop_test/51,MissingCompileTimeError,Issue 34174,https://dartbug.com/34174,open
+$compiler == dart2js,jsinterop_test/52,MissingCompileTimeError,Issue 34345,https://dartbug.com/34345,open
+$compiler == dart2js,jsinterop_test/53,MissingCompileTimeError,Issue 34345,https://dartbug.com/34345,open
+$compiler == dart2js,jsinterop_test/54,MissingCompileTimeError,Issue 34345,https://dartbug.com/34345,open
+$compiler == dart2js,many_instantiations_test/01,Crash,Issue 33819,https://dartbug.com/33819,open
+$compiler == dart2js,no_such_method_test,Fail,Wrong Invocation.memberName.,,
+$compiler == dart2js,non_jsinterop_test/01,MissingCompileTimeError,Issue 34174,https://dartbug.com/34174,open
+$compiler == dart2js,non_jsinterop_test/02,MissingCompileTimeError,Issue 34174,https://dartbug.com/34174,open
+$compiler == dart2js,non_jsinterop_test/03,MissingCompileTimeError,Issue 34174,https://dartbug.com/34174,open
+$compiler == dart2js,non_jsinterop_test/04,MissingCompileTimeError,Issue 34174,https://dartbug.com/34174,open
+$compiler == dart2js,non_jsinterop_test/35,MissingCompileTimeError,Issue 33834,https://dartbug.com/33834,open
+$compiler == dart2js,non_jsinterop_test/37,MissingCompileTimeError,Issue 33834,https://dartbug.com/33834,open
+$compiler == dart2js,non_jsinterop_test/38,MissingCompileTimeError,Issue 34174,https://dartbug.com/34174,open
+$compiler == dart2js,non_jsinterop_test/42,MissingCompileTimeError,Issue 34174,https://dartbug.com/34174,open
+$compiler == dart2js,non_jsinterop_test/43,MissingCompileTimeError,Issue 34345,https://dartbug.com/34345,open
+$compiler == dart2js,non_jsinterop_test/44,MissingCompileTimeError,Issue 34345,https://dartbug.com/34345,open
+$compiler == dart2js,non_jsinterop_test/45,MissingCompileTimeError,Issue 34345,https://dartbug.com/34345,open
+$compiler == dart2js,non_jsinterop_test/46,MissingCompileTimeError,Issue 34174,https://dartbug.com/34174,open
+$compiler == dart2js,non_jsinterop_test/51,MissingCompileTimeError,Issue 34174,https://dartbug.com/34174,open
+$compiler == dart2js,non_jsinterop_test/52,MissingCompileTimeError,Issue 34345,https://dartbug.com/34345,open
+$compiler == dart2js,non_jsinterop_test/53,MissingCompileTimeError,Issue 34345,https://dartbug.com/34345,open
+$compiler == dart2js,non_jsinterop_test/54,MissingCompileTimeError,Issue 34345,https://dartbug.com/34345,open
+$runtime == jsshell,timer_test,Fail,Issue 7728.,https://dartbug.com/7728,closed
+$runtime == none,timer_negative_test,"Fail, OK",A negative runtime test.,,
+$compiler == dart2js && $runtime == d8,deferred_fail_and_retry_test,RuntimeError,Uses XHR in dart:html,,
+$compiler == dart2js && $runtime == d8,deferred_with_csp_nonce_test,RuntimeError,Uses dart:html,,
+$compiler == dart2js && $runtime == none,*,"Fail, Pass",TODO(ahe): Triage these tests.,,
+$compiler == dart2js && $csp,js_interop_optional_arg_test,RuntimeError,Issue 31082,https://dartbug.com/31082,open
+$compiler == dart2js && $csp,js_interop_test,RuntimeError,Issue 31082,https://dartbug.com/31082,open
+$compiler == dart2js && $minified,closure_capture2_test,Pass,Passes for the wrong reason,,
+$compiler == dart2js && $minified,deferred/reflect_multiple_annotations_test,Crash,NoSuchMethodError: The getter 'closureClassEntity' was called on null.,,
+$compiler == dart2js && $minified,deferred/reflect_multiple_default_arg_test,Crash,NoSuchMethodError: The getter 'closureClassEntity' was called on null.,,
+$compiler == dart2js && $minified,mirrors_used_warning_test/minif,"Fail, OK",Tests warning that minified code will be broken.,,
+$compiler == dart2js && $minified,runtime_type_test,"Fail, OK",Tests extected output of Type.toString().,,
+$compiler == dart2js && $minified,to_string_test,Fail,Issue 7179.,https://dartbug.com/7179,closed
+$compiler == dart2js && $minified,type_literal_test,"Fail, OK",Tests expected output of Type.toString().,,
+$compiler == dart2js && $minified,typevariable_typedef_test,"Fail, OK",Tests expected output of Type.toString().,,
+$compiler == dart2js && ($runtime == chrome || $runtime == chromeOnAndroid || $runtime == ff || $runtime == safari),isolate2_test/01,Fail,Issue 14458.,https://dartbug.com/14458,closed
+$compiler == none && $runtime == vm,invalid_annotation_test/01,"MissingCompileTimeError, OK",vm is lazy,,
+$compiler == dart2js,fake_thing_test,RuntimeError,Issue 13010,https://dartbug.com/13010,open
+$compiler == dart2js,field_type2_test,CompileTimeError,Issue 33762,https://dartbug.com/33762,open
+$compiler == dart2js,field_type_test,CompileTimeError,Issue 33762,https://dartbug.com/33762,open
+$compiler == dart2js,native_exceptions1_frog_test,CompileTimeError,Issue 33762,https://dartbug.com/33762,open
+$compiler == dart2js,native_mixin_with_plain_test,CompileTimeError,Issue 33762,https://dartbug.com/33762,open
+$compiler == dart2js,native_window1_frog_test,CompileTimeError,Issue 33762,https://dartbug.com/33762,open
+$compiler == dart2js,native_window2_frog_test,CompileTimeError,Issue 33762,https://dartbug.com/33762,open
+$compiler == dart2js,subclassing_constructor_1_test,CompileTimeError,Issue 33762,https://dartbug.com/33762,open
+$compiler == dart2js && $minified,optimization_hints_test,"RuntimeError, OK",Test relies on unminified names.,,
+$compiler == dart2js,arithmetic_int64_test,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,async_star_cancel_while_paused_test,RuntimeError,Issue 22853,https://dartbug.com/22853,open
+$compiler == dart2js,bit_operations_test,"RuntimeError, OK",non JS number semantics,,
+$compiler == dart2js,bit_operations_test/03,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,bit_operations_test/04,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,bit_operations_test/none,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,call_method_must_not_be_field_test/03,RuntimeError,Issue 32155,https://dartbug.com/32155,closed
+$compiler == dart2js,call_method_must_not_be_getter_test/03,RuntimeError,Issue 32155,https://dartbug.com/32155,closed
+$compiler == dart2js,canonical_const2_test,"RuntimeError, OK",non JS number semantics,,
+$compiler == dart2js,closure_type_arguments_test,Crash,Issue 34272,https://dartbug.com/34272,open
+$compiler == dart2js,config_import_corelib_test,CompileTimeError,"we need a special platform.dill file for categories=all. Once we fix that, all dart:* are supported when using '--categories=all' so this will become a RuntimeError, OK.",,
+$compiler == dart2js,config_import_test,RuntimeError,Test flag is not passed to the compiler.,,
+$compiler == dart2js,const_constructor3_test/04,MissingCompileTimeError,OK - Subtype check uses JS number semantics.,,
+$compiler == dart2js,const_dynamic_type_literal_test/03,Pass,but it shouldn't until we fix issue 17207,https://dartbug.com/17207,open
+$compiler == dart2js,const_switch_test/02,"RuntimeError, OK",constant identity based on JS constants,,
+$compiler == dart2js,const_switch_test/04,"RuntimeError, OK",constant identity based on JS constants,,
+$compiler == dart2js,covariant_subtyping_test,Crash,Unsupported operation: Unsupported type parameter type node E.,,
+$compiler == dart2js,deferred_not_loaded_check_test,RuntimeError,Test out of date. Issue 31933,https://dartbug.com/31933,open
+$compiler == dart2js,deopt_inlined_function_lazy_test,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,deopt_smi_op_test,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,double_identical_test,RuntimeError,"Negative and positive zero are distinct, but not in dart2js; bug #11551.",https://dartbug.com/11551,open
+$compiler == dart2js,double_int_to_string_test,"RuntimeError, OK",non JS number semantics,,
+$compiler == dart2js,expect_test,"RuntimeError, OK",Issue 13080,https://dartbug.com/13080,closed
+$compiler == dart2js,external_test/10,CompileTimeError,External non-js-interop function are treated as compile-time errors.,,
+$compiler == dart2js,external_test/13,CompileTimeError,External non-js-interop function are treated as compile-time errors.,,
+$compiler == dart2js,external_test/20,CompileTimeError,External non-js-interop function are treated as compile-time errors.,,
+$compiler == dart2js,full_stacktrace1_test,RuntimeError,Issue 12698,https://dartbug.com/12698,closed
+$compiler == dart2js,full_stacktrace2_test,RuntimeError,Issue 12698,https://dartbug.com/12698,closed
+$compiler == dart2js,full_stacktrace3_test,RuntimeError,Issue 12698,https://dartbug.com/12698,closed
+$compiler == dart2js,guess_cid_test,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,identical_closure2_test,RuntimeError,non JS number semantics,,
+$compiler == dart2js,identical_closure2_test,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,infinity_test,RuntimeError,non JS number semantics - Issue 4984,https://dartbug.com/4984,closed
+$compiler == dart2js,int2_test,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,int64_literal_test/01,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,int64_literal_test/02,"RuntimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,int64_literal_test/04,"RuntimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,int64_literal_test/05,"RuntimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,int64_literal_test/06,"RuntimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,int64_literal_test/11,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,int64_literal_test/12,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,int64_literal_test/14,"RuntimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,int64_literal_test/16,"RuntimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,int64_literal_test/17,"RuntimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,int64_literal_test/19,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,int64_literal_test/none,"RuntimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,integer_division_by_zero_test,RuntimeError,Issue 8301,https://dartbug.com/8301,closed
+$compiler == dart2js,issue23244_test,RuntimeError,Isolates - enum canonicalization - Issue 23244,https://dartbug.com/23244,closed
+$compiler == dart2js,left_shift_test,RuntimeError,non JS number semantics,,
+$compiler == dart2js,library_env_test/has_io_support,"RuntimeError, OK",dart2js doesn't support io when compiling on --categories=Client,,
+$compiler == dart2js,library_env_test/has_mirror_support,Fail,mirrors not supported on web,,
+$compiler == dart2js,library_env_test/has_no_mirror_support,Pass,fails for the wrong reason.,,
+$compiler == dart2js,mint_arithmetic_test,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,mint_arithmetic_test,RuntimeError,non JS number semantics,,
+$compiler == dart2js,mint_compares_test,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,mint_identical_test,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,mock_writable_final_field_test,RuntimeError,Issue 30847,https://dartbug.com/30847,closed
+$compiler == dart2js,modulo_test,RuntimeError,non JS number semantics,,
+$compiler == dart2js,nan_identical_test,RuntimeError,Issue 11551,https://dartbug.com/11551,open
+$compiler == dart2js,number_identity_test,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,numbers_test,"RuntimeError, OK",non JS number semantics,,
+$compiler == dart2js,partial_instantiation_eager_bounds_check_test,RuntimeError,Issue #34295,https://dartbug.com/34295,open
+$compiler == dart2js,partial_tearoff_instantiation_test/05,Pass,for the wrong reason.,,
+$compiler == dart2js,partial_tearoff_instantiation_test/06,Pass,for the wrong reason.,,
+$compiler == dart2js,partial_tearoff_instantiation_test/07,Pass,for the wrong reason.,,
+$compiler == dart2js,partial_tearoff_instantiation_test/08,Pass,for the wrong reason.,,
+$compiler == dart2js,regress_24283_test,"RuntimeError, OK",non JS number semantics,,
+$compiler == dart2js,stacktrace_demangle_ctors_test,RuntimeError,Issue 12698,https://dartbug.com/12698,closed
+$compiler == dart2js,stacktrace_rethrow_error_test/none,RuntimeError,Issue 12698,https://dartbug.com/12698,closed
+$compiler == dart2js,stacktrace_rethrow_error_test/withtraceparameter,RuntimeError,Issue 12698,https://dartbug.com/12698,closed
+$compiler == dart2js,stacktrace_rethrow_nonerror_test,RuntimeError,Issue 12698,https://dartbug.com/12698,closed
+$compiler == dart2js,truncdiv_zero_test,RuntimeError,non JS number semantics - Issue 15246,https://dartbug.com/15246,closed
+$compiler == dart2js,type_constants_test/none,RuntimeError,Issue 35052,https://dartbug.com/35052,open
+$builder_tag == dart2js_production && $compiler == dart2js,control_flow_collections/for_non_bool_condition_test,Crash,Issue 36442,https://dartbug.com/36442,
+$compiler == dart2js && $runtime == chrome && $system == macos,await_future_test,"Pass, Timeout",Issue 26735,https://dartbug.com/26735,closed
+$compiler == dart2js && $runtime == ff,round_test,"Pass, Fail, OK",Fixed in ff 35. Common JavaScript engine Math.round bug.,,
+$compiler == dart2js && $runtime == jsshell,async_call_test,RuntimeError,Timer interface not supported: Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async_star_await_pauses_test,RuntimeError,Need triage,,
+$compiler == dart2js && $runtime == jsshell,async_star_no_cancel2_test,RuntimeError,Need triage,,
+$compiler == dart2js && $runtime == jsshell,async_star_no_cancel_test,RuntimeError,Need triage,,
+$compiler == dart2js && $runtime == jsshell,regress_23996_test,RuntimeError,"Jsshell does not provide non-zero timers, Issue 7728",https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime != none && $checked,syncstar_covariant_type_test,RuntimeError,"dart2js misplaces check in Iterator, not Iterable.",,
+$compiler == dart2js && $runtime != none && $checked,syncstar_dcall_type_test,RuntimeError,"dart2js misplaces check in Iterator, not Iterable.",,
+$compiler == dart2js && $runtime == safari,round_test,"Fail, OK",Common JavaScript engine Math.round bug.,,
+$compiler == dart2js && $system == windows,string_literals_test,"Pass, RuntimeError",Failures on dart2js-win7-chrome-4-4-be and dart2js-win7-ie11ff-4-4-be,,
+$compiler == dart2js && $checked,canonical_const2_test,"RuntimeError, OK",non JS number semantics,,
+$compiler == dart2js && $checked,const_switch_test/02,"RuntimeError, OK",constant identity based on JS constants,,
+$compiler == dart2js && $checked,const_switch_test/04,"RuntimeError, OK",constant identity based on JS constants,,
+$compiler == dart2js && $checked,deferred_not_loaded_check_test,RuntimeError,Test out of date. Issue 31933,https://dartbug.com/31933,open
+$compiler == dart2js && $checked,double_int_to_string_test,"RuntimeError, OK",non JS number semantics,,
+$compiler == dart2js && $checked,expect_test,"RuntimeError, OK",Issue 13080,https://dartbug.com/13080,closed
+$compiler == dart2js && $checked,full_stacktrace1_test,RuntimeError,Issue 12698,https://dartbug.com/12698,closed
+$compiler == dart2js && $checked,full_stacktrace2_test,RuntimeError,Issue 12698,https://dartbug.com/12698,closed
+$compiler == dart2js && $checked,full_stacktrace3_test,RuntimeError,Issue 12698,https://dartbug.com/12698,closed
+$compiler == dart2js && $checked,generalized_void_syntax_test,CompileTimeError,Issue #30176.,https://dartbug.com/30176,open
+$compiler == dart2js && $checked,generic_function_dcall_test/01,Crash,Unsupported operation: Unsupported type parameter type node T.,,
+$compiler == dart2js && $checked,generic_tearoff_test,Crash,Unsupported operation: Unsupported type parameter type node T.,,
+$compiler == dart2js && $checked,identical_closure2_test,RuntimeError,non JS number semantics,,
+$compiler == dart2js && $checked,infinity_test,RuntimeError,non JS number semantics - Issue 4984,https://dartbug.com/4984,closed
+$compiler == dart2js && $checked,integer_division_by_zero_test,RuntimeError,Issue 8301,https://dartbug.com/8301,closed
+$compiler == dart2js && $checked,invocation_mirror2_test,RuntimeError,mirrors not supported,,
+$compiler == dart2js && $checked,left_shift_test,RuntimeError,non JS number semantics,,
+$compiler == dart2js && $checked,mint_arithmetic_test,RuntimeError,non JS number semantics,,
+$compiler == dart2js && $checked,mock_writable_final_field_test,RuntimeError,Issue 30847,https://dartbug.com/30847,closed
+$compiler == dart2js && $checked,modulo_test,RuntimeError,non JS number semantics,,
+$compiler == dart2js && $checked,nan_identical_test,RuntimeError,Issue 11551,https://dartbug.com/11551,open
+$compiler == dart2js && $checked,numbers_test,"RuntimeError, OK",non JS number semantics,,
+$compiler == dart2js && $checked,regress_27617_test/1,Crash,Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant,,
+$compiler == dart2js && $checked,regress_30339_test,RuntimeError,Issue 26429,https://dartbug.com/26429,closed
+$compiler == dart2js && $checked,regress_31057_test,Crash,Unsupported operation: Unsupported type parameter type node B.,,
+$compiler == dart2js && $checked,stacktrace_demangle_ctors_test,RuntimeError,Issue 12698,https://dartbug.com/12698,closed
+$compiler == dart2js && $checked,stacktrace_rethrow_error_test/none,RuntimeError,Issue 12698,https://dartbug.com/12698,closed
+$compiler == dart2js && $checked,stacktrace_rethrow_error_test/withtraceparameter,RuntimeError,Issue 12698,https://dartbug.com/12698,closed
+$compiler == dart2js && $checked,stacktrace_rethrow_nonerror_test,RuntimeError,Issue 12698,https://dartbug.com/12698,closed
+$compiler == dart2js && $checked,stacktrace_test,RuntimeError,Issue 12698,https://dartbug.com/12698,closed
+$compiler == dart2js && $checked,truncdiv_zero_test,RuntimeError,non JS number semantics - Issue 15246,https://dartbug.com/15246,closed
+$compiler == dart2js && $checked,type_parameter_test/06,Crash,Internal Error: Unexpected type variable in static context.,,
+$compiler == dart2js && $checked,type_parameter_test/09,Crash,Internal Error: Unexpected type variable in static context.,,
+$compiler == dart2js && $checked,type_variable_scope_test/03,Crash,Internal Error: Unexpected type variable in static context.,,
+$compiler == dart2js && $host_checked,async_return_types_test/nestedFuture,Crash,file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||,,
+$compiler == dart2js && $host_checked,async_star_cancel_while_paused_test,Crash,file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||,,
+$compiler == dart2js && $host_checked,await_not_started_immediately_test,Crash,Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).,,
+$compiler == dart2js && $host_checked,closure_self_reference_test,Crash,file:*/pkg/compiler/lib/src/ssa/nodes.dart': Failed assertion: line 641 pos 12: 'isClosed()': is not true.,,
+$compiler == dart2js && $host_checked,issue23244_test,Crash,file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||,,
+$compiler == dart2js && $host_checked,partial_tearoff_instantiation_test/05,Crash,"Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)",,
+$compiler == dart2js && $host_checked,partial_tearoff_instantiation_test/06,Crash,"Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)",,
+$compiler == dart2js && $host_checked,partial_tearoff_instantiation_test/07,Crash,"Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)",,
+$compiler == dart2js && $host_checked,partial_tearoff_instantiation_test/08,Crash,"Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)",,
+$compiler == dart2js && $minified,async_return_types_test/nestedFuture,Crash,"Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]",https://dartbug.com/1,closed
+$compiler == dart2js && $minified,async_star_cancel_while_paused_test,Crash,"Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]",https://dartbug.com/1,closed
+$compiler == dart2js && $minified,await_not_started_immediately_test,Crash,Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).,,
+$compiler == dart2js && $minified,cyclic_type2_test,RuntimeError,Issue 31054,https://dartbug.com/31054,open
+$compiler == dart2js && $minified,cyclic_type_test/0*,RuntimeError,Issue 31054,https://dartbug.com/31054,open
+$compiler == dart2js && $minified,f_bounded_quantification4_test,RuntimeError,Issue 31054,https://dartbug.com/31054,open
+$compiler == dart2js && $minified,f_bounded_quantification5_test,RuntimeError,Issue 31054,https://dartbug.com/31054,open
+$compiler == dart2js && $minified,generic_closure_test/01,RuntimeError,Uses runtimeType.toString(),,
+$compiler == dart2js && $minified,invocation_mirror2_test,RuntimeError,mirrors not supported,,
+$compiler == dart2js && $minified,issue23244_test,Crash,"Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]",https://dartbug.com/1,closed
+$compiler == dart2js && $minified,mixin_generic_test,RuntimeError,Issue 12605,https://dartbug.com/12605,closed
+$compiler == dart2js && $minified,mixin_mixin2_test,RuntimeError,Issue 31054,https://dartbug.com/31054,open
+$compiler == dart2js && $minified,mixin_mixin3_test,RuntimeError,Issue 31054,https://dartbug.com/31054,open
+$compiler == dart2js && $minified,mixin_mixin4_test,RuntimeError,Issue 31054,https://dartbug.com/31054,open
+$compiler == dart2js && $minified,mixin_mixin5_test,RuntimeError,Issue 31054,https://dartbug.com/31054,open
+$compiler == dart2js && $minified,mixin_mixin6_test,RuntimeError,Issue 31054,https://dartbug.com/31054,open
+$compiler == dart2js && $minified,mixin_mixin_bound2_test,RuntimeError,Issue 31054,https://dartbug.com/31054,open
+$compiler == dart2js && $minified,mixin_mixin_bound_test,RuntimeError,Issue 31054,https://dartbug.com/31054,open
+$compiler == dart2js && $minified,mixin_mixin_type_arguments_test,RuntimeError,Issue 31054,https://dartbug.com/31054,open
+$compiler == dart2js && $minified,regress_21795_test,RuntimeError,Issue 12605,https://dartbug.com/12605,closed
+$compiler == dart2js && $minified,runtime_type_function_test,RuntimeError,Uses runtimeType.toString(),,
+$compiler == dart2js && $minified,stack_trace_test,"RuntimeError, OK",Stack trace not preserved in minified code.,,
+$compiler == dart2js && $minified,symbol_conflict_test,RuntimeError,Issue 23857,https://dartbug.com/23857,open
+$compiler == dart2js && $runtime == chrome,html/element_types_keygen_test,RuntimeError,Issue 29055,https://dartbug.com/29055,open
+$compiler == dart2js && $runtime == chrome,html/media_stream_test,RuntimeError,Please triage.,,
+$compiler == dart2js && $runtime == chrome,html/speechrecognition_test,RuntimeError,Please triage.,,
+$compiler == dart2js && $runtime == chrome && $csp,html/worker_test/functional,RuntimeError,Issue 32261,https://dartbug.com/32261,closed
+$compiler == dart2js && $runtime == chromeOnAndroid,html/audiobuffersourcenode_test/supported,Fail,TODO(dart2js-team): Please triage this failure.,,
+$compiler == dart2js && $runtime == chromeOnAndroid,html/audiocontext_test/supported,RuntimeError,TODO(dart2js-team): Please triage this failure.,,
+$compiler == dart2js && $runtime == chromeOnAndroid,html/canvasrenderingcontext2d_test/drawImage_video_element,Fail,TODO(dart2js-team): Please triage this failure.,,
+$compiler == dart2js && $runtime == chromeOnAndroid,html/canvasrenderingcontext2d_test/drawImage_video_element_dataUrl,Fail,TODO(dart2js-team): Please triage this failure.,,
+$compiler == dart2js && $runtime == chromeOnAndroid,html/canvasrenderingcontext2d_test/fillText,Fail,TODO(dart2js-team): Please triage this failure.,,
+$compiler == dart2js && $runtime == chromeOnAndroid,html/element_types_datalist_test,Fail,TODO(dart2js-team): Please triage this failure.,,
+$compiler == dart2js && $runtime == chromeOnAndroid,html/input_element_week_test,Fail,TODO(dart2js-team): Please triage this failure.,,
+$compiler == dart2js && $runtime == chromeOnAndroid,html/media_stream_test,Fail,TODO(dart2js-team): Please triage this failure.,,
+$compiler == dart2js && $runtime == chromeOnAndroid,html/rtc_test,Fail,TODO(dart2js-team): Please triage this failure.,,
+$compiler == dart2js && $runtime == chromeOnAndroid,html/speechrecognition_test,Fail,TODO(dart2js-team): Please triage this failure.,,
+$compiler == dart2js && $runtime == chromeOnAndroid,html/xhr_test/json,Fail,TODO(dart2js-team): Please triage this failure.,,
+$compiler == dart2js && $runtime == chromeOnAndroid,typed_data/setRange_2_test,RuntimeError,TODO(dart2js-team): Please triage this failure.,,
+$compiler == dart2js && $runtime == chromeOnAndroid,typed_data/setRange_3_test,RuntimeError,TODO(dart2js-team): Please triage this failure.,,
+$compiler == dart2js && $runtime != d8,html/html_mock_test,RuntimeError,Issue 31038,https://dartbug.com/31038,open
+$compiler == dart2js && $runtime == ff,html/element_animate_test/timing_dict,RuntimeError,Issue 26730,https://dartbug.com/26730,open
+$compiler == dart2js && $runtime == ff,html/element_types_content_test,"Pass, RuntimeError","Issues 28983, 29922",,
+$compiler == dart2js && $runtime == ff,html/element_types_keygen_test,RuntimeError,Issue 29922,https://dartbug.com/29922,closed
+$compiler == dart2js && $runtime == ff,html/element_types_shadow_test,"Pass, RuntimeError","Issues 28983, 29922",,
+$compiler == dart2js && $runtime == ff,html/fontface_test,Fail,Fontface not supported on ff,,
+$compiler == dart2js && $runtime == ff,html/interactive_media_test,RuntimeError,Not supported in FF,,
+$compiler == dart2js && $runtime == ff,html/messageevent_test,"Pass, RuntimeError",Issue 28983,https://dartbug.com/28983,closed
+$compiler == dart2js && $runtime == ff,html/serialized_script_value_test,"Pass, RuntimeError",Issue 28983,https://dartbug.com/28983,closed
+$compiler == dart2js && $runtime == ff,html/speechrecognition_test,RuntimeError,Please triage.,,
+$compiler == dart2js && $runtime == ff,html/text_event_test,Fail,Issue 17893,https://dartbug.com/17893,closed
+$compiler == dart2js && $runtime == ff,html/webgl_1_test,"Pass, Fail",Issue 8219,https://dartbug.com/8219,closed
+$compiler == dart2js && $runtime == ie11,html/element_types_content_test,RuntimeError,Issue 29922,https://dartbug.com/29922,closed
+$compiler == dart2js && $runtime == ie11,html/element_types_datalist_test,RuntimeError,Issue 29922,https://dartbug.com/29922,closed
+$compiler == dart2js && $runtime == ie11,html/element_types_details_test,RuntimeError,Issue 29922,https://dartbug.com/29922,closed
+$compiler == dart2js && $runtime == ie11,html/element_types_embed_test,RuntimeError,Issue 29922,https://dartbug.com/29922,closed
+$compiler == dart2js && $runtime == ie11,html/element_types_keygen_test,RuntimeError,Issue 29922,https://dartbug.com/29922,closed
+$compiler == dart2js && $runtime == ie11,html/element_types_meter_test,RuntimeError,Issue 29922,https://dartbug.com/29922,closed
+$compiler == dart2js && $runtime == ie11,html/element_types_object_test,RuntimeError,Issue 29922,https://dartbug.com/29922,closed
+$compiler == dart2js && $runtime == ie11,html/element_types_output_test,RuntimeError,Issue 29922,https://dartbug.com/29922,closed
+$compiler == dart2js && $runtime == ie11,html/element_types_progress_test,RuntimeError,Issue 29922,https://dartbug.com/29922,closed
+$compiler == dart2js && $runtime == ie11,html/element_types_shadow_test,RuntimeError,Issue 29922,https://dartbug.com/29922,closed
+$compiler == dart2js && $runtime == ie11,html/element_types_template_test,RuntimeError,Issue 29922,https://dartbug.com/29922,closed
+$compiler == dart2js && $runtime == ie11,html/element_types_track_test,RuntimeError,Issue 29922,https://dartbug.com/29922,closed
+$compiler == dart2js && $runtime == jsshell,async/catch_errors12_test,Fail,Timer interface not supported: Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/catch_errors13_test,Fail,Timer interface not supported: Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/catch_errors14_test,Fail,Timer interface not supported: Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/catch_errors15_test,Fail,Timer interface not supported: Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/catch_errors18_test,Fail,Timer interface not supported: Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/catch_errors19_test,Fail,Timer interface not supported: Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/catch_errors20_test,Fail,Timer interface not supported: Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/catch_errors22_test,RuntimeError,Timer interface not supported: Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/catch_errors28_test,Fail,Timer interface not supported: Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/catch_errors8_test,Fail,Timer interface not supported: Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/future_constructor2_test,Fail,Timer interface not supported: Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/future_test,RuntimeError,Timer interface not supported; Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/multiple_timer_test,"RuntimeError, OK",Needs Timer to run.,,
+$compiler == dart2js && $runtime == jsshell,async/periodic_timer2_test,Fail,Timer interface not supported: Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/periodic_timer3_test,Fail,Timer interface not supported: Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/periodic_timer4_test,Fail,Timer interface not supported: Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/run_zoned7_test,RuntimeError,Timer interface not supported: Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/run_zoned8_test,Fail,Timer interface not supported: Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/schedule_microtask_test,Fail,Preamble file does not correctly implement scheduleImmediate.,,
+$compiler == dart2js && $runtime == jsshell,async/slow_consumer2_test,RuntimeError,Timer interface not supported; Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/slow_consumer3_test,RuntimeError,Timer interface not supported; Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/slow_consumer_test,RuntimeError,Timer interface not supported; Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/stream_controller_async_test,RuntimeError,Timer interface not supported: Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/stream_controller_test,Fail,Timer interface not supported: Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/stream_from_iterable_test,RuntimeError,Timer interface not supported: Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/stream_periodic2_test,RuntimeError,Timer interface not supported: Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/stream_periodic3_test,RuntimeError,Timer interface not supported: Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/stream_periodic4_test,RuntimeError,Timer interface not supported: Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/stream_periodic5_test,RuntimeError,Timer interface not supported: Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/stream_periodic6_test,RuntimeError,Timer interface not supported: Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/stream_periodic_test,RuntimeError,Timer interface not supported: Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/stream_state_nonzero_timer_test,RuntimeError,Timer interface not supported: Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/stream_subscription_cancel_test,RuntimeError,Timer interface not supported: Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/stream_take_test,Fail,Timer interface not supported: Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/stream_timeout_test,RuntimeError,Timer interface not supported: Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/stream_transformation_broadcast_test,RuntimeError,Timer interface not supported: Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/timer_cancel1_test,RuntimeError,Timer interface not supported: Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/timer_cancel2_test,RuntimeError,Timer interface not supported: Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/timer_cancel_test,RuntimeError,Timer interface not supported: Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/timer_isActive_test,RuntimeError,Timer interface not supported: Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/timer_repeat_test,RuntimeError,Timer interface not supported: Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/timer_test,RuntimeError,Timer interface not supported: Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/zone_bind_test,Fail,Timer interface not supported: Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/zone_create_periodic_timer_test,RuntimeError,Timer interface not supported: Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/zone_create_timer2_test,RuntimeError,Timer interface not supported: Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == jsshell,async/zone_empty_description2_test,RuntimeError,Timer interface not supported: Issue 7728.,https://dartbug.com/7728,closed
+$compiler == dart2js && $runtime == safari,html/css_test/functional/functional,RuntimeError,Issue 32576,https://dartbug.com/32576,closed
+$compiler == dart2js && $runtime == safari,html/element_types_content_test,RuntimeError,Issue 29922,https://dartbug.com/29922,closed
+$compiler == dart2js && $runtime == safari,html/element_types_datalist_test,RuntimeError,Issue 29922,https://dartbug.com/29922,closed
+$compiler == dart2js && $runtime == safari,html/element_types_shadow_test,RuntimeError,Issue 29922,https://dartbug.com/29922,closed
+$compiler == dart2js && $runtime == safari,html/notification_test,"Pass, RuntimeError",Safari doesn't let us access the fields of the Notification to verify them.,,
+$compiler == dart2js && $runtime == safari,html/storage_promise_test,RuntimeError,Not supported on Safari,,
+$compiler == dart2js && $browser,html/notification_permission_test,"Timeout, Pass",Issue 32002,https://dartbug.com/32002,open
+$compiler == dart2js && $browser,js/null_test,RuntimeError,Issue 30652,https://dartbug.com/30652,open
+$compiler == dart2js && $browser && $csp,html/custom/element_upgrade_test,Fail,Issue 17298,https://dartbug.com/17298,closed
+$compiler == dart2js && $browser && $csp,html/custom/js_custom_test,Fail,Issue 14643,https://dartbug.com/14643,open
+$compiler == dart2js && !$csp && $minified,html/audiobuffersourcenode_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/audiocontext_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/cache_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/custom_element_method_clash_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/custom_element_name_clash_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/custom_elements_23127_test,Crash,"Assertion failure: Cannot find value local(B2T.created#a) in (type_variable_local(B2T.T), local(C2T.created#a), local(C2T.created#b), local(C2T.created#c), BoxLocal(_box_0)) for j:constructor(C2T.created).",,
+$compiler == dart2js && !$csp && $minified,html/custom_tags_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/dart_object_local_storage_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/datalistelement_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/document_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/documentfragment_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/dom_constructors_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/domparser_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/element_add_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/element_animate_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/element_constructor_1_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/element_dimensions_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/element_offset_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/element_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/element_types_constructors2_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/element_types_constructors3_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/element_types_constructors4_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/element_types_constructors5_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/element_types_constructors6_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/element_types_content_test,RuntimeError,Issue 29922,https://dartbug.com/29922,closed
+$compiler == dart2js && !$csp && $minified,html/element_types_datalist_test,RuntimeError,Issue 29922,https://dartbug.com/29922,closed
+$compiler == dart2js && !$csp && $minified,html/element_types_details_test,RuntimeError,Issue 29922,https://dartbug.com/29922,closed
+$compiler == dart2js && !$csp && $minified,html/element_types_embed_test,RuntimeError,Issue 29922,https://dartbug.com/29922,closed
+$compiler == dart2js && !$csp && $minified,html/element_types_meter_test,RuntimeError,Issue 29922,https://dartbug.com/29922,closed
+$compiler == dart2js && !$csp && $minified,html/element_types_object_test,RuntimeError,Issue 29922,https://dartbug.com/29922,closed
+$compiler == dart2js && !$csp && $minified,html/element_types_output_test,RuntimeError,Issue 29922,https://dartbug.com/29922,closed
+$compiler == dart2js && !$csp && $minified,html/element_types_progress_test,RuntimeError,Issue 29922,https://dartbug.com/29922,closed
+$compiler == dart2js && !$csp && $minified,html/element_types_shadow_test,RuntimeError,Issue 29922,https://dartbug.com/29922,closed
+$compiler == dart2js && !$csp && $minified,html/element_types_template_test,RuntimeError,Issue 29922,https://dartbug.com/29922,closed
+$compiler == dart2js && !$csp && $minified,html/element_types_track_test,RuntimeError,Issue 29922,https://dartbug.com/29922,closed
+$compiler == dart2js && !$csp && $minified,html/form_data_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/history_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/indexeddb_1_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/keyboard_event_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/mediasource_test,"RuntimeError, Crash",NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/mutationobserver_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/node_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/node_validator_important_if_you_suppress_make_the_bug_critical_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/notification_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/performance_api_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/range_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/request_animation_frame_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/rtc_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/shadow_dom_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/svg_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/svgelement_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/transition_event_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/trusted_html_tree_sanitizer_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/typed_arrays_1_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/webgl_extensions_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/websocket_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && !$csp && $minified,html/websql_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && $host_checked,html/custom/mirrors_2_test,Crash,file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.,,
+$compiler == dart2js && $host_checked,html/custom/mirrors_test,Crash,file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.,,
+$compiler == dart2js && $host_checked,html/indexeddb_3_test,Crash,file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.,,
+$compiler == dart2js && $host_checked,html/indexeddb_5_test,Crash,file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.,,
+$compiler == dart2js && $host_checked,html/js_function_getter_test/call getter as function,Crash,FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory)),,
+$compiler == dart2js && $host_checked,html/js_typed_interop_side_cast_exp_test,Crash,file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.,,
+$compiler == dart2js && $ie,html/fontface_loaded_test,RuntimeError,FontFace polyfill?,,
+$compiler == dart2js && $ie,html/fontface_test,Fail,Fontface not supported on ie,,
+$compiler == dart2js && $minified,html/canvas_pixel_array_type_alias_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && $minified,html/canvas_pixel_array_type_alias_test/types2_runtimeTypeName,"Fail, OK",Issue 12605,https://dartbug.com/12605,closed
+$compiler == dart2js && $minified,html/custom/mirrors_2_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && $minified,html/custom/mirrors_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && $minified,html/custom_elements_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && $minified,html/element_classes_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && $minified,html/element_types_keygen_test,RuntimeError,Issue 29922,https://dartbug.com/29922,closed
+$compiler == dart2js && $minified,html/js_function_getter_trust_types_test,Crash,NoSuchMethodError: Class 'InterfaceType' has no instance getter 'isObject'.,,
+$compiler == dart2js && $minified,html/js_typed_interop_bind_this_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && $minified,html/js_typed_interop_side_cast_exp_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && $minified,html/js_typed_interop_window_property_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && $minified,html/js_util_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && $minified,html/media_stream_test,"RuntimeError, Crash",NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && $minified,html/postmessage_structured_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && $minified,html/speechrecognition_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && $minified,html/webgl_1_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
+$compiler == dart2js && ($runtime == ff || $runtime == safari || $ie),html/custom/attribute_changed_callback_test/unsupported_on_polyfill,Fail,Polyfill does not support,,
+$compiler == dart2js && ($runtime == ff || $runtime == safari || $ie),html/custom/entered_left_view_test/viewless_document,Fail,Polyfill does not handle this,,
+$compiler == dart2js,bigint_from_test,RuntimeError,Issue 32589,https://dartbug.com/32589,closed
+$compiler == dart2js,bit_twiddling_test/int64,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,compare_to2_test,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,core_runtime_types_test,RuntimeError,Issue 34147,https://dartbug.com/34147,open
+$compiler == dart2js,date_time11_test,"RuntimeError, Pass","Fails when US is on winter time, issue 31285.",https://dartbug.com/31285,closed
+$compiler == dart2js,double_ceil_test/int64,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,double_floor_test/int64,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,double_round_test/int64,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,double_truncate_test/int64,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,error_stack_trace1_test,RuntimeError,Issue 12399,https://dartbug.com/12399,closed
+$compiler == dart2js,int_from_environment_int64_test,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,int_parse_radix_int64_test/01,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,int_parse_radix_int64_test/02,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,int_parse_radix_int64_test/none,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,integer_arith_vm_test/modPow,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,integer_arith_vm_test/none,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,integer_to_string_test/01,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,iterable_return_type_test/02,RuntimeError,Dart2js does not support Uint64*.,,
+$compiler == dart2js,list_unmodifiable_test,"Pass, RuntimeError",Issue 28712,https://dartbug.com/28712,closed
+$compiler != app_jitk && $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkb && $compiler != dartkp && $runtime != none,map_keys2_test,RuntimeError,needs Dart 2 is checks,,
+$compiler == dart2js && $runtime == chromeOnAndroid,string_trimlr_test/unicode63,RuntimeError,Uses Unicode 6.2.0 or earlier.,,
+$compiler == dart2js && $runtime == d8,uri_base_test,RuntimeError,D8 uses a custom uri scheme for Uri.base,,
+$compiler == dart2js && !$browser,package_resource_test,RuntimeError,Issue 26842,https://dartbug.com/26842,closed
+$compiler == dart2js && $checked,error_stack_trace1_test,RuntimeError,Issue 12399,https://dartbug.com/12399,closed
+$compiler == dart2js && $checked,iterable_return_type_test/01,RuntimeError,Issue 20085,https://dartbug.com/20085,closed
+$compiler == dart2js && $checked,iterable_return_type_test/02,RuntimeError,Dart2js does not support Uint64*.,,
+$compiler == dart2js && $checked,list_replace_range_test,RuntimeError,Issue 32010,https://dartbug.com/32010,open
+$compiler == dart2js && $checked,symbol_reserved_word_test/03,RuntimeError,"Issue 19972, new Symbol('void') should be allowed.",https://dartbug.com/19972,closed
+$compiler == dart2js && $minified,error_stack_trace1_test,RuntimeError,Issue 12399,https://dartbug.com/12399,closed
+$compiler == dart2js && $minified,iterable_return_type_test/02,RuntimeError,Dart2js does not support Uint64*.,,
+$compiler == dart2js && $minified,list_concurrent_modify_test,RuntimeError,dart2js does not fully implement these,,
+$compiler == dart2js && $minified,nsm_invocation_test,RuntimeError,Symbols don't match due to minifiaction.,,
+$compiler == dart2js && $minified,symbol_reserved_word_test/03,RuntimeError,"Issue 19972, new Symbol('void') should be allowed.",https://dartbug.com/19972,closed
+$runtime != none && ($compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk),bit_twiddling_test/int64,"RuntimeError, OK",Requires fixed-size int64 support.,,
+$runtime != none && ($compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk),compare_to2_test,"RuntimeError, OK",Requires fixed-size int64 support.,,
+$runtime != none && ($compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk),double_ceil_test/int64,"RuntimeError, OK",Requires fixed-size int64 support.,,
+$runtime != none && ($compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk),double_floor_test/int64,"RuntimeError, OK",Requires fixed-size int64 support.,,
+$runtime != none && ($compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk),double_round_test/int64,"RuntimeError, OK",Requires fixed-size int64 support.,,
+$runtime != none && ($compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk),double_truncate_test/int64,"RuntimeError, OK",Requires fixed-size int64 support.,,
+$runtime != none && ($compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk),hash_set_test/01,RuntimeError,non JS number semantics - Issue 11551,https://dartbug.com/11551,open
+$runtime != none && ($compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk),int_modulo_arith_test/modPow,RuntimeError,Issue 29921,https://dartbug.com/29921,closed
+$runtime != none && ($compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk),integer_arith_vm_test/modPow,RuntimeError,"Issues 10245, 30170",,
+$runtime != none && ($compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk),integer_parsed_arith_vm_test,RuntimeError,"Issues 10245, 29921",,
+$runtime != none && ($compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk),integer_parsed_div_rem_vm_test,RuntimeError,Issue 29921,https://dartbug.com/29921,closed
+$runtime != none && ($compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk),integer_parsed_mul_div_vm_test,RuntimeError,Issue 29921,https://dartbug.com/29921,closed
+$runtime != none && ($compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk),regress_r21715_test,RuntimeError,Requires fixed-size int64 support.,,

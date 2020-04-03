@@ -7,19 +7,15 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 
-/**
- * A [RequestHandler] that handles requests in the `flutter` domain.
- */
+/// A [RequestHandler] that handles requests in the `flutter` domain.
 class FlutterDomainHandler extends AbstractRequestHandler {
-  /**
-   * Initialize a newly created handler to handle requests for the given [server].
-   */
+  /// Initialize a newly created handler to handle requests for the given
+  /// [server].
   FlutterDomainHandler(AnalysisServer server) : super(server);
 
-  /**
-   * Implement the 'flutter.getWidgetDescription' request.
-   */
+  /// Implement the 'flutter.getWidgetDescription' request.
   void getWidgetDescription(Request request) async {
     var params = FlutterGetWidgetDescriptionParams.fromRequest(request);
     var file = params.file;
@@ -36,10 +32,24 @@ class FlutterDomainHandler extends AbstractRequestHandler {
 
     var computer = server.flutterWidgetDescriptions;
 
-    var result = await computer.getDescription(
-      resolvedUnit,
-      offset,
-    );
+    FlutterGetWidgetDescriptionResult result;
+    try {
+      result = await computer.getDescription(
+        resolvedUnit,
+        offset,
+      );
+    } on InconsistentAnalysisException {
+      server.sendResponse(
+        Response(
+          request.id,
+          error: RequestError(
+            RequestErrorCode.FLUTTER_GET_WIDGET_DESCRIPTION_CONTENT_MODIFIED,
+            'Concurrent modification detected.',
+          ),
+        ),
+      );
+      return;
+    }
 
     if (result == null) {
       server.sendResponse(
@@ -62,7 +72,7 @@ class FlutterDomainHandler extends AbstractRequestHandler {
   @override
   Response handleRequest(Request request) {
     try {
-      String requestName = request.method;
+      var requestName = request.method;
       if (requestName == FLUTTER_REQUEST_GET_WIDGET_DESCRIPTION) {
         getWidgetDescription(request);
         return Response.DELAYED_RESPONSE;
@@ -80,9 +90,7 @@ class FlutterDomainHandler extends AbstractRequestHandler {
     return null;
   }
 
-  /**
-   * Implement the 'flutter.setPropertyValue' request.
-   */
+  /// Implement the 'flutter.setPropertyValue' request.
   void setPropertyValue(Request request) async {
     var params = FlutterSetWidgetPropertyValueParams.fromRequest(request);
 
@@ -107,14 +115,15 @@ class FlutterDomainHandler extends AbstractRequestHandler {
     );
   }
 
-  /**
-   * Implement the 'flutter.setSubscriptions' request.
-   */
+  /// Implement the 'flutter.setSubscriptions' request.
   Response setSubscriptions(Request request) {
-    var params = new FlutterSetSubscriptionsParams.fromRequest(request);
-    Map<FlutterService, Set<String>> subMap = mapMap(params.subscriptions,
-        valueCallback: (List<String> subscriptions) => subscriptions.toSet());
+    var params = FlutterSetSubscriptionsParams.fromRequest(request);
+    var subMap =
+        mapMap<FlutterService, List<String>, FlutterService, Set<String>>(
+            params.subscriptions,
+            valueCallback: (List<String> subscriptions) =>
+                subscriptions.toSet());
     server.setFlutterSubscriptions(subMap);
-    return new FlutterSetSubscriptionsResult().toResponse(request.id);
+    return FlutterSetSubscriptionsResult().toResponse(request.id);
   }
 }

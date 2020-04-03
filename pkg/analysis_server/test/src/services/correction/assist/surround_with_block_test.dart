@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SurroundWithBlockTest);
   });
@@ -19,7 +19,7 @@ class SurroundWithBlockTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.SURROUND_WITH_BLOCK;
 
-  test_notStatementInBlock() async {
+  Future<void> test_notStatementInBlock() async {
     await resolveTestUnit('''
 main() {
   while (true)
@@ -31,7 +31,7 @@ main() {
     await assertNoAssist();
   }
 
-  test_twoStatements() async {
+  Future<void> test_twoStatements() async {
     await resolveTestUnit('''
 main() {
 // start

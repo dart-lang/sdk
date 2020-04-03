@@ -8,7 +8,6 @@ library dart2js.type_system;
 import 'common.dart';
 import 'common/names.dart' show Identifiers, Uris;
 import 'constants/constant_system.dart' as constant_system;
-import 'constants/expressions.dart' show ConstantExpression;
 import 'constants/values.dart';
 import 'elements/entities.dart';
 import 'elements/types.dart';
@@ -21,6 +20,8 @@ import 'universe/selector.dart' show Selector;
 
 /// The common elements and types in Dart.
 abstract class CommonElements {
+  DartTypes get dartTypes;
+
   /// The `Object` class defined in 'dart:core'.
   ClassEntity get objectClass;
 
@@ -104,6 +105,12 @@ abstract class CommonElements {
 
   /// The dart:_internal library.
   LibraryEntity get internalLibrary;
+
+  /// The dart:js library.
+  LibraryEntity get dartJsLibrary;
+
+  /// The package:js library.
+  LibraryEntity get packageJsLibrary;
 
   /// The `NativeTypedData` class from dart:typed_data.
   ClassEntity get typedDataClass;
@@ -212,6 +219,8 @@ abstract class CommonElements {
   /// Returns `true` if [element] is a superclass of `List`.
   bool isListSupertype(ClassEntity element);
 
+  InterfaceType getConstantListTypeFor(InterfaceType sourceType);
+
   InterfaceType getConstantMapTypeFor(InterfaceType sourceType,
       {bool hasProtoKey: false, bool onlyStringKeys: false});
 
@@ -295,6 +304,8 @@ abstract class CommonElements {
   ClassEntity get jsUnknownJavaScriptObjectClass;
 
   ClassEntity get jsJavaScriptFunctionClass;
+
+  InterfaceType get jsJavaScriptFunctionType;
 
   ClassEntity get jsJavaScriptObjectClass;
 
@@ -488,31 +499,35 @@ abstract class CommonElements {
   FunctionEntity get typeLiteralMaker;
   FunctionEntity get checkTypeBound;
   FieldEntity get rtiAsField;
-  FieldEntity get rtiCheckField;
   FieldEntity get rtiIsField;
   FieldEntity get rtiRestField;
+  FieldEntity get rtiPrecomputed1Field;
   FunctionEntity get rtiEvalMethod;
   FunctionEntity get rtiBindMethod;
   FunctionEntity get rtiAddRulesMethod;
+  FunctionEntity get rtiAddErasedTypesMethod;
+  FunctionEntity get rtiAddTypeParameterVariancesMethod;
 
+  FunctionEntity get installSpecializedIsTest;
+  FunctionEntity get installSpecializedAsCheck;
   FunctionEntity get generalIsTestImplementation;
   FunctionEntity get generalAsCheckImplementation;
-  FunctionEntity get generalTypeCheckImplementation;
+  FunctionEntity get generalNullableIsTestImplementation;
+  FunctionEntity get generalNullableAsCheckImplementation;
 
+  FunctionEntity get specializedIsObject;
+  FunctionEntity get specializedAsObject;
+  FunctionEntity get specializedIsTop;
+  FunctionEntity get specializedAsTop;
   FunctionEntity get specializedIsBool;
   FunctionEntity get specializedAsBoolNullable;
-  FunctionEntity get specializedCheckBoolNullable;
   FunctionEntity get specializedAsDoubleNullable;
-  FunctionEntity get specializedCheckDoubleNullable;
   FunctionEntity get specializedIsInt;
   FunctionEntity get specializedAsIntNullable;
-  FunctionEntity get specializedCheckIntNullable;
   FunctionEntity get specializedIsNum;
   FunctionEntity get specializedAsNumNullable;
-  FunctionEntity get specializedCheckNumNullable;
   FunctionEntity get specializedIsString;
   FunctionEntity get specializedAsStringNullable;
-  FunctionEntity get specializedCheckStringNullable;
 
   FunctionEntity get instantiatedGenericFunctionTypeNewRti;
   FunctionEntity get closureFunctionType;
@@ -541,12 +556,14 @@ abstract class CommonElements {
 
   ClassEntity getDefaultSuperclass(
       ClassEntity cls, NativeBasicData nativeBasicData);
+
+  // From package:js
+  FunctionEntity get jsAllowInterop;
 }
 
 abstract class KCommonElements implements CommonElements {
   // From package:js
   ClassEntity get jsAnnotationClass;
-
   ClassEntity get jsAnonymousClass;
 
   ClassEntity get pragmaClass;
@@ -642,10 +659,12 @@ abstract class JCommonElements implements CommonElements {
 
 class CommonElementsImpl
     implements CommonElements, KCommonElements, JCommonElements {
+  @override
+  final DartTypes dartTypes;
   final ElementEnvironment _env;
   final CompilerOptions _options;
 
-  CommonElementsImpl(this._env, this._options);
+  CommonElementsImpl(this.dartTypes, this._env, this._options);
 
   ClassEntity _objectClass;
   @override
@@ -782,6 +801,16 @@ class CommonElementsImpl
   @override
   LibraryEntity get internalLibrary => _internalLibrary ??=
       _env.lookupLibrary(Uris.dart__internal, required: true);
+
+  LibraryEntity _dartJsLibrary;
+  @override
+  LibraryEntity get dartJsLibrary =>
+      _dartJsLibrary ??= _env.lookupLibrary(Uris.dart_js);
+
+  LibraryEntity _packageJsLibrary;
+  @override
+  LibraryEntity get packageJsLibrary =>
+      _packageJsLibrary ??= _env.lookupLibrary(Uris.package_js);
 
   ClassEntity _typedDataClass;
   @override
@@ -991,11 +1020,18 @@ class CommonElementsImpl
     return _env.getRawType(cls);
   }
 
-  /// Create the instantiation of [cls] with the given [typeArguments].
+  /// Create the instantiation of [cls] with the given [typeArguments] and
+  /// [nullability].
   InterfaceType _createInterfaceType(
       ClassEntity cls, List<DartType> typeArguments) {
     return _env.createInterfaceType(cls, typeArguments);
   }
+
+  @override
+  InterfaceType getConstantListTypeFor(InterfaceType sourceType) =>
+      dartTypes.treatAsRawType(sourceType)
+          ? _env.getRawType(jsArrayClass)
+          : _env.createInterfaceType(jsArrayClass, sourceType.typeArguments);
 
   @override
   InterfaceType getConstantMapTypeFor(InterfaceType sourceType,
@@ -1003,17 +1039,16 @@ class CommonElementsImpl
     ClassEntity classElement = onlyStringKeys
         ? (hasProtoKey ? constantProtoMapClass : constantStringMapClass)
         : generalConstantMapClass;
-    List<DartType> typeArgument = sourceType.typeArguments;
-    if (sourceType.treatAsRaw) {
+    if (dartTypes.treatAsRawType(sourceType)) {
       return _env.getRawType(classElement);
     } else {
-      return _env.createInterfaceType(classElement, typeArgument);
+      return _env.createInterfaceType(classElement, sourceType.typeArguments);
     }
   }
 
   @override
   InterfaceType getConstantSetTypeFor(InterfaceType sourceType) =>
-      sourceType.treatAsRaw
+      dartTypes.treatAsRawType(sourceType)
           ? _env.getRawType(constSetLiteralClass)
           : _env.createInterfaceType(
               constSetLiteralClass, sourceType.typeArguments);
@@ -1298,6 +1333,10 @@ class CommonElementsImpl
   ClassEntity get jsJavaScriptFunctionClass => _jsJavaScriptFunctionClass ??=
       _findInterceptorsClass('JavaScriptFunction');
 
+  @override
+  InterfaceType get jsJavaScriptFunctionType =>
+      _getRawType(jsJavaScriptFunctionClass);
+
   ClassEntity _jsJavaScriptObjectClass;
   @override
   ClassEntity get jsJavaScriptObjectClass =>
@@ -1429,28 +1468,22 @@ class CommonElementsImpl
   ClassEntity get jsConstClass =>
       _jsConstClass ??= _findClass(foreignLibrary, 'JS_CONST');
 
+  // From dart:js
+  FunctionEntity _jsAllowInterop;
+  @override
+  FunctionEntity get jsAllowInterop => _jsAllowInterop ??=
+      _findLibraryMember(dartJsLibrary, 'allowInterop', required: false);
+
   // From package:js
   ClassEntity _jsAnnotationClass;
   @override
-  ClassEntity get jsAnnotationClass {
-    if (_jsAnnotationClass == null) {
-      LibraryEntity library = _env.lookupLibrary(Uris.package_js);
-      if (library == null) return null;
-      _jsAnnotationClass = _findClass(library, 'JS');
-    }
-    return _jsAnnotationClass;
-  }
+  ClassEntity get jsAnnotationClass => _jsAnnotationClass ??=
+      _findClass(packageJsLibrary, 'JS', required: false);
 
   ClassEntity _jsAnonymousClass;
   @override
-  ClassEntity get jsAnonymousClass {
-    if (_jsAnonymousClass == null) {
-      LibraryEntity library = _env.lookupLibrary(Uris.package_js);
-      if (library == null) return null;
-      _jsAnonymousClass = _findClass(library, '_Anonymous');
-    }
-    return _jsAnonymousClass;
-  }
+  ClassEntity get jsAnonymousClass => _jsAnonymousClass ??=
+      _findClass(packageJsLibrary, '_Anonymous', required: false);
 
   @override
   FunctionEntity findHelperFunction(String name) => _findHelperFunction(name);
@@ -1472,10 +1505,9 @@ class CommonElementsImpl
 
   ClassEntity _typeLiteralClass;
   @override
-  ClassEntity get typeLiteralClass =>
-      _typeLiteralClass ??= _options.experimentNewRti
-          ? _findRtiClass('_Type')
-          : _findHelperClass('TypeImpl');
+  ClassEntity get typeLiteralClass => _typeLiteralClass ??= _options.useNewRti
+      ? _findRtiClass('_Type')
+      : _findHelperClass('TypeImpl');
 
   ClassEntity _constMapLiteralClass;
   @override
@@ -1762,7 +1794,7 @@ class CommonElementsImpl
       _findHelperFunction('throwNoSuchMethod');
 
   @override
-  FunctionEntity get createRuntimeType => _options.experimentNewRti
+  FunctionEntity get createRuntimeType => _options.useNewRti
       ? _findRtiFunction('createRuntimeType')
       : _findHelperFunction('createRuntimeType');
 
@@ -1885,14 +1917,14 @@ class CommonElementsImpl
   @override
   FieldEntity get rtiIsField => _rtiIsField ??= _findRtiClassField('_is');
 
-  FieldEntity _rtiCheckField;
-  @override
-  FieldEntity get rtiCheckField =>
-      _rtiCheckField ??= _findRtiClassField('_check');
-
   FieldEntity _rtiRestField;
   @override
   FieldEntity get rtiRestField => _rtiRestField ??= _findRtiClassField('_rest');
+
+  FieldEntity _rtiPrecomputed1Field;
+  @override
+  FieldEntity get rtiPrecomputed1Field =>
+      _rtiPrecomputed1Field ??= _findRtiClassField('_precomputed1');
 
   FunctionEntity _rtiEvalMethod;
   @override
@@ -1909,11 +1941,36 @@ class CommonElementsImpl
   FunctionEntity get rtiAddRulesMethod =>
       _rtiAddRulesMethod ??= _findClassMember(_rtiUniverseClass, 'addRules');
 
+  FunctionEntity _rtiAddErasedTypesMethod;
+  @override
+  FunctionEntity get rtiAddErasedTypesMethod => _rtiAddErasedTypesMethod ??=
+      _findClassMember(_rtiUniverseClass, 'addErasedTypes');
+
+  FunctionEntity _rtiAddTypeParameterVariancesMethod;
+  @override
+  FunctionEntity get rtiAddTypeParameterVariancesMethod =>
+      _rtiAddTypeParameterVariancesMethod ??=
+          _findClassMember(_rtiUniverseClass, 'addTypeParameterVariances');
+
+  @override
+  FunctionEntity get installSpecializedIsTest =>
+      _findRtiFunction('_installSpecializedIsTest');
+
+  @override
+  FunctionEntity get installSpecializedAsCheck =>
+      _findRtiFunction('_installSpecializedAsCheck');
+
   FunctionEntity _generalIsTestImplementation;
   @override
   FunctionEntity get generalIsTestImplementation =>
       _generalIsTestImplementation ??=
           _findRtiFunction('_generalIsTestImplementation');
+
+  FunctionEntity _generalNullableIsTestImplementation;
+  @override
+  FunctionEntity get generalNullableIsTestImplementation =>
+      _generalNullableIsTestImplementation ??=
+          _findRtiFunction('_generalNullableIsTestImplementation');
 
   FunctionEntity _generalAsCheckImplementation;
   @override
@@ -1921,11 +1978,27 @@ class CommonElementsImpl
       _generalAsCheckImplementation ??=
           _findRtiFunction('_generalAsCheckImplementation');
 
-  FunctionEntity _generalTypeCheckImplementation;
+  FunctionEntity _generalNullableAsCheckImplementation;
   @override
-  FunctionEntity get generalTypeCheckImplementation =>
-      _generalTypeCheckImplementation ??=
-          _findRtiFunction('_generalTypeCheckImplementation');
+  FunctionEntity get generalNullableAsCheckImplementation =>
+      _generalNullableAsCheckImplementation ??=
+          _findRtiFunction('_generalNullableAsCheckImplementation');
+
+  FunctionEntity _specializedIsObject;
+  @override
+  FunctionEntity get specializedIsObject =>
+      _specializedIsObject ??= _findRtiFunction('_isObject');
+
+  FunctionEntity _specializedAsObject;
+  @override
+  FunctionEntity get specializedAsObject =>
+      _specializedAsObject ??= _findRtiFunction('_asObject');
+
+  @override
+  FunctionEntity get specializedIsTop => _findRtiFunction('_isTop');
+
+  @override
+  FunctionEntity get specializedAsTop => _findRtiFunction('_asTop');
 
   @override
   FunctionEntity get specializedIsBool => _findRtiFunction('_isBool');
@@ -1935,16 +2008,8 @@ class CommonElementsImpl
       _findRtiFunction('_asBoolNullable');
 
   @override
-  FunctionEntity get specializedCheckBoolNullable =>
-      _findRtiFunction('_checkBoolNullable');
-
-  @override
   FunctionEntity get specializedAsDoubleNullable =>
       _findRtiFunction('_asDoubleNullable');
-
-  @override
-  FunctionEntity get specializedCheckDoubleNullable =>
-      _findRtiFunction('_checkDoubleNullable');
 
   @override
   FunctionEntity get specializedIsInt => _findRtiFunction('_isInt');
@@ -1954,10 +2019,6 @@ class CommonElementsImpl
       _findRtiFunction('_asIntNullable');
 
   @override
-  FunctionEntity get specializedCheckIntNullable =>
-      _findRtiFunction('_checkIntNullable');
-
-  @override
   FunctionEntity get specializedIsNum => _findRtiFunction('_isNum');
 
   @override
@@ -1965,19 +2026,11 @@ class CommonElementsImpl
       _findRtiFunction('_asNumNullable');
 
   @override
-  FunctionEntity get specializedCheckNumNullable =>
-      _findRtiFunction('_checkNumNullable');
-
-  @override
   FunctionEntity get specializedIsString => _findRtiFunction('_isString');
 
   @override
   FunctionEntity get specializedAsStringNullable =>
       _findRtiFunction('_asStringNullable');
-
-  @override
-  FunctionEntity get specializedCheckStringNullable =>
-      _findRtiFunction('_checkStringNullable');
 
   @override
   FunctionEntity get instantiatedGenericFunctionTypeNewRti =>
@@ -2230,7 +2283,8 @@ abstract class ElementEnvironment {
   /// Calls [f] for each supertype of [cls].
   void forEachSupertype(ClassEntity cls, void f(InterfaceType supertype));
 
-  /// Create the instantiation of [cls] with the given [typeArguments].
+  /// Create the instantiation of [cls] with the given [typeArguments] and
+  /// [nullability].
   InterfaceType createInterfaceType(
       ClassEntity cls, List<DartType> typeArguments);
 
@@ -2241,9 +2295,16 @@ abstract class ElementEnvironment {
   /// where all types arguments are `dynamic`.
   InterfaceType getRawType(ClassEntity cls);
 
+  /// Returns the 'JS-interop type' of [cls]; that is, the instantiation of
+  /// [cls] where all type arguments are 'any'.
+  InterfaceType getJsInteropType(ClassEntity cls);
+
   /// Returns the 'this type' of [cls]. That is, the instantiation of [cls]
   /// where the type arguments are the type variables of [cls].
   InterfaceType getThisType(ClassEntity cls);
+
+  /// Returns the instantiation of [cls] to bounds.
+  InterfaceType getClassInstantiationToBounds(ClassEntity cls);
 
   /// Returns `true` if [cls] is generic.
   bool isGenericClass(ClassEntity cls);
@@ -2258,6 +2319,9 @@ abstract class ElementEnvironment {
   /// `Object`.
   DartType getTypeVariableBound(TypeVariableEntity typeVariable);
 
+  /// Returns the variances for each type parameter in [cls].
+  List<Variance> getTypeVariableVariances(ClassEntity cls);
+
   /// Returns the type of [function].
   FunctionType getFunctionType(FunctionEntity function);
 
@@ -2270,13 +2334,6 @@ abstract class ElementEnvironment {
   /// Returns the type of [field].
   DartType getFieldType(FieldEntity field);
 
-  /// Returns the 'unaliased' type of [type]. For typedefs this is the function
-  /// type it is an alias of, for other types it is the type itself.
-  ///
-  /// Use this during resolution to ensure that the alias has been computed.
-  // TODO(johnniwinther): Remove this when the resolver is removed.
-  DartType getUnaliasedType(DartType type);
-
   /// Returns `true` if [cls] is a Dart enum class.
   bool isEnumClass(ClassEntity cls);
 }
@@ -2285,9 +2342,6 @@ abstract class KElementEnvironment extends ElementEnvironment {
   /// Calls [f] for each class that is mixed into [cls] or one of its
   /// superclasses.
   void forEachMixin(ClassEntity cls, void f(ClassEntity mixin));
-
-  /// Gets the constant value of [field], or `null` if [field] is non-const.
-  ConstantExpression getFieldConstantForTesting(FieldEntity field);
 
   /// Returns `true` if [member] a the synthetic getter `loadLibrary` injected
   /// on deferred libraries.

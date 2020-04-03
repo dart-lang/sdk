@@ -20,8 +20,6 @@ namespace compiler {
 class Assembler;
 class Label;
 
-#if !defined(TARGET_ARCH_DBC)
-
 class GraphIntrinsifier : public AllStatic {
  public:
   static intptr_t ParameterSlotFromSp();
@@ -36,7 +34,6 @@ class GraphIntrinsifier : public AllStatic {
 #define DECLARE_FUNCTION(class_name, function_name, enum_name, fp)             \
   static void enum_name(Assembler* assembler, Label* normal_ir_body);
 
-  // On DBC graph intrinsics are handled in the same way as non-graph ones.
   GRAPH_INTRINSICS_LIST(DECLARE_FUNCTION)
 
 #undef DECLARE_FUNCTION
@@ -48,18 +45,6 @@ class GraphIntrinsifier : public AllStatic {
 
 #undef DECLARE_FUNCTION
 };
-
-#else  // !defined(TARGET_ARCH_DBC)
-
-class GraphIntrinsifier : public AllStatic {
- public:
-  static bool GraphIntrinsify(const ParsedFunction& parsed_function,
-                              FlowGraphCompiler* compiler) {
-    return false;
-  }
-};
-
-#endif  // !defined(TARGET_ARCH_DBC)
 
 }  // namespace compiler
 }  // namespace dart

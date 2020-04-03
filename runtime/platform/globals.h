@@ -128,6 +128,12 @@
 #define DEBUG_ONLY(code)
 #endif  // defined(DEBUG)
 
+#if defined(DEBUG)
+#define UNLESS_DEBUG(code)
+#else  // defined(DEBUG)
+#define UNLESS_DEBUG(code) code
+#endif  // defined(DEBUG)
+
 namespace dart {
 
 struct simd128_value_t {
@@ -246,6 +252,14 @@ typedef simd128_value_t fpu_register_t;
 #endif
 
 #ifdef _MSC_VER
+#define DART_FLATTEN
+#elif __GNUC__
+#define DART_FLATTEN __attribute__((flatten))
+#else
+#error Automatic compiler detection failed.
+#endif
+
+#ifdef _MSC_VER
 #elif __GNUC__
 #define DART_HAS_COMPUTED_GOTO 1
 #else
@@ -299,8 +313,7 @@ typedef simd128_value_t fpu_register_t;
 #endif
 
 #if !defined(TARGET_ARCH_ARM) && !defined(TARGET_ARCH_X64) &&                  \
-    !defined(TARGET_ARCH_IA32) && !defined(TARGET_ARCH_ARM64) &&               \
-    !defined(TARGET_ARCH_DBC)
+    !defined(TARGET_ARCH_IA32) && !defined(TARGET_ARCH_ARM64)
 // No target architecture specified pick the one matching the host architecture.
 #if defined(HOST_ARCH_ARM)
 #define TARGET_ARCH_ARM 1
@@ -319,12 +332,6 @@ typedef simd128_value_t fpu_register_t;
 #define TARGET_ARCH_IS_32_BIT 1
 #elif defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
 #define TARGET_ARCH_IS_64_BIT 1
-#elif defined(TARGET_ARCH_DBC)
-#if defined(ARCH_IS_32_BIT)
-#define TARGET_ARCH_IS_32_BIT 1
-#else
-#define TARGET_ARCH_IS_64_BIT 1
-#endif
 #else
 #error Automatic target architecture detection failed.
 #endif
@@ -363,9 +370,6 @@ typedef simd128_value_t fpu_register_t;
 #define USING_SIMULATOR 1
 #endif
 
-#elif defined(TARGET_ARCH_DBC)
-#define USING_SIMULATOR 1
-
 #else
 #error Unknown architecture.
 #endif
@@ -374,19 +378,6 @@ typedef simd128_value_t fpu_register_t;
 #define TARGET_ARCH_IS_32_BIT 1
 #elif defined(ARCH_IS_64_BIT)
 #define TARGET_ARCH_IS_64_BIT 1
-#endif
-
-// Determine whether HOST_ARCH equals TARGET_ARCH.
-#if defined(HOST_ARCH_ARM) && defined(TARGET_ARCH_ARM)
-#define HOST_ARCH_EQUALS_TARGET_ARCH 1
-#elif defined(HOST_ARCH_ARM64) && defined(TARGET_ARCH_ARM64)
-#define HOST_ARCH_EQUALS_TARGET_ARCH 1
-#elif defined(HOST_ARCH_IA32) && defined(TARGET_ARCH_IA32)
-#define HOST_ARCH_EQUALS_TARGET_ARCH 1
-#elif defined(HOST_ARCH_X64) && defined(TARGET_ARCH_X64)
-#define HOST_ARCH_EQUALS_TARGET_ARCH 1
-#else
-// HOST_ARCH != TARGET_ARCH.
 #endif
 
 #if !defined(TARGET_OS_ANDROID) && !defined(TARGET_OS_FUCHSIA) &&              \
@@ -419,10 +410,8 @@ typedef simd128_value_t fpu_register_t;
 #define DUAL_MAPPING_SUPPORTED 1
 #endif
 
-// Disable background threads by default on armv5te. The relevant
-// implementations are uniprocessors.
-#if !defined(TARGET_ARCH_ARM_5TE)
-#define ARCH_IS_MULTI_CORE 1
+#if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
+#define SUPPORT_UNBOXED_INSTANCE_FIELDS
 #endif
 
 // Short form printf format specifiers
@@ -605,40 +594,6 @@ inline double MicrosecondsToMilliseconds(int64_t micros) {
 template <typename T>
 static inline void USE(T) {}
 
-// Use implicit_cast as a safe version of static_cast or const_cast
-// for upcasting in the type hierarchy (i.e. casting a pointer to Foo
-// to a pointer to SuperclassOfFoo or casting a pointer to Foo to
-// a const pointer to Foo).
-// When you use implicit_cast, the compiler checks that the cast is safe.
-// Such explicit implicit_casts are necessary in surprisingly many
-// situations where C++ demands an exact type match instead of an
-// argument type convertible to a target type.
-//
-// The From type can be inferred, so the preferred syntax for using
-// implicit_cast is the same as for static_cast etc.:
-//
-//   implicit_cast<ToType>(expr)
-//
-// implicit_cast would have been part of the C++ standard library,
-// but the proposal was submitted too late.  It will probably make
-// its way into the language in the future.
-template <typename To, typename From>
-inline To implicit_cast(From const& f) {
-  return f;
-}
-
-// Use like this: down_cast<T*>(foo);
-template <typename To, typename From>  // use like this: down_cast<T*>(foo);
-inline To down_cast(From* f) {         // so we only accept pointers
-  // Ensures that To is a sub-type of From *.  This test is here only
-  // for compile-time type checking, and has no overhead in an
-  // optimized build at run-time, as it will be optimized away completely.
-  if (false) {
-    implicit_cast<From, To>(0);
-  }
-  return static_cast<To>(f);
-}
-
 // The type-based aliasing rule allows the compiler to assume that
 // pointers of different types (for some definition of different)
 // never alias each other. Thus the following code does not work:
@@ -754,6 +709,11 @@ static inline void StoreUnaligned(T* ptr, T value) {
 #define STDIN_FILENO 0
 #define STDOUT_FILENO 1
 #define STDERR_FILENO 2
+#endif
+
+#ifndef PATH_MAX
+// Most platforms use PATH_MAX, but in Windows it's called MAX_PATH.
+#define PATH_MAX MAX_PATH
 #endif
 
 }  // namespace dart

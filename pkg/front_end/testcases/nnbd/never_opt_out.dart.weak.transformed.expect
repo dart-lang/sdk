@@ -1,0 +1,75 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "never_opt_out_lib.dart" as nev;
+
+import "org-dartlang-testcase:///never_opt_out_lib.dart";
+
+static field Never* optOutNever;
+static field core::Null? inferredOptOutNever = nev::optInNever;
+static method main() → dynamic {
+  Never* localNever = null;
+  core::Null? localNull = null;
+  Never inferredLocalNever = nev::optInNever;
+  localNever = localNever;
+  self::optOutNever = localNever;
+  nev::optInNever = localNever;
+  localNull = localNever;
+  self::inferredOptOutNever = localNever;
+  inferredLocalNever = localNever;
+  localNever = self::optOutNever;
+  self::optOutNever = self::optOutNever;
+  nev::optInNever = self::optOutNever;
+  localNull = self::optOutNever;
+  self::inferredOptOutNever = self::optOutNever;
+  inferredLocalNever = self::optOutNever;
+  localNever = nev::optInNever;
+  self::optOutNever = nev::optInNever;
+  nev::optInNever = nev::optInNever;
+  localNull = nev::optInNever;
+  self::inferredOptOutNever = nev::optInNever;
+  inferredLocalNever = nev::optInNever;
+  localNever = localNull;
+  self::optOutNever = localNull;
+  nev::optInNever = localNull as{TypeError} Never;
+  localNull = localNull;
+  self::inferredOptOutNever = localNull;
+  inferredLocalNever = localNull as{TypeError} Never;
+  localNever = self::inferredOptOutNever;
+  self::optOutNever = self::inferredOptOutNever;
+  nev::optInNever = self::inferredOptOutNever as{TypeError} Never;
+  localNull = self::inferredOptOutNever;
+  self::inferredOptOutNever = self::inferredOptOutNever;
+  inferredLocalNever = self::inferredOptOutNever as{TypeError} Never;
+  localNever = inferredLocalNever;
+  self::optOutNever = inferredLocalNever;
+  nev::optInNever = inferredLocalNever;
+  localNull = inferredLocalNever;
+  self::inferredOptOutNever = inferredLocalNever;
+  inferredLocalNever = inferredLocalNever;
+  self::throws(() → Never => self::optOutNever = nev::throwing());
+  self::throws(() → Never => localNever = nev::throwing());
+  self::throws(() → Never => self::optOutNever = nev::throwing());
+  self::throws(() → Never => nev::optInNever = nev::throwing());
+  self::throws(() → Never => self::inferredOptOutNever = nev::throwing());
+  self::throws(() → Never => inferredLocalNever = nev::throwing());
+}
+static method throws(() →* void f) → dynamic {
+  try {
+    f.call();
+  }
+  on dynamic catch(final dynamic _) {
+    return;
+  }
+  throw "Expected exception";
+}
+
+library /*isNonNullableByDefault*/;
+import self as nev;
+import "never_opt_out.dart" as self;
+
+import "org-dartlang-testcase:///never_opt_out.dart";
+
+static field Never optInNever = self::optOutNever;
+static method throwing() → Never
+  return throw "Never!";

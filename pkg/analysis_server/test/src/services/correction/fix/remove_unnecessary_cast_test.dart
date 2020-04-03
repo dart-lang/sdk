@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveUnnecessaryCastTest);
   });
@@ -20,7 +20,7 @@ class RemoveUnnecessaryCastTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_UNNECESSARY_CAST;
 
-  test_assignment() async {
+  Future<void> test_assignment() async {
     await resolveTestUnit('''
 main(Object p) {
   if (p is String) {
@@ -39,7 +39,7 @@ main(Object p) {
 ''');
   }
 
-  test_assignment_all() async {
+  Future<void> test_assignment_all() async {
     await resolveTestUnit('''
 main(Object p, Object q) {
   if (p is String) {

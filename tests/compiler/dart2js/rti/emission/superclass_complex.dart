@@ -2,13 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /*class: A:checkedTypeArgument,checks=[],typeArgument*/
 class A<T> {}
 
 /*class: B:checkedInstance,checks=[],indirectInstance*/
 class B<T> {}
 
-/*class: C:checks=[$asB],instance*/
+/*class: C:checks=[],instance*/
 class C<T> extends B<A<T>> {}
 
 @pragma('dart2js:noInline')

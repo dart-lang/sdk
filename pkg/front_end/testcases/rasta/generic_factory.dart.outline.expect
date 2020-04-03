@@ -2,13 +2,27 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/rasta/generic_factory.dart:16:19: Warning: Couldn't find constructor 'Missing'.
+// pkg/front_end/testcases/rasta/generic_factory.dart:16:19: Error: Couldn't find constructor 'Missing'.
 //   factory A.c() = Missing;
 //                   ^
 //
-// pkg/front_end/testcases/rasta/generic_factory.dart:16:11: Warning: Redirection constructor target not found: 'Missing'
+// pkg/front_end/testcases/rasta/generic_factory.dart:16:19: Error: Redirection constructor target not found: 'Missing'
 //   factory A.c() = Missing;
-//           ^
+//                   ^
+//
+// pkg/front_end/testcases/rasta/generic_factory.dart:15:19: Error: The constructor function type 'B<C1> Function()' isn't a subtype of 'A<T> Function()'.
+//  - 'B' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
+//  - 'C1' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
+//   factory A.b() = B<C1>.a;
+//                   ^
+//
+// pkg/front_end/testcases/rasta/generic_factory.dart:23:19: Error: The constructor function type 'C<C2> Function()' isn't a subtype of 'B<S> Function()'.
+//  - 'C' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
+//  - 'C2' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
+//   factory B.b() = C<C2>;
+//                   ^
 //
 import self as self;
 import "dart:core" as core;

@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'constants.dart';
 import 'widget_description.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ContainerPropertiesTest);
     defineReflectiveTests(ContainerPropertyAlignmentTest);
@@ -19,7 +19,7 @@ main() {
 
 @reflectiveTest
 class ContainerPropertiesTest extends WidgetDescriptionBase {
-  test_container_existing() async {
+  Future<void> test_container_existing() async {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -48,7 +48,7 @@ void main() {
     expect(childrenNames, isNot(contains('child')));
   }
 
-  test_container_virtual() async {
+  Future<void> test_container_virtual() async {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -81,7 +81,7 @@ void main() {
 
 @reflectiveTest
 class ContainerPropertyAlignmentTest extends WidgetDescriptionBase {
-  test_read_hasAlign_notSimple() async {
+  Future<void> test_read_hasAlign_notSimple() async {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -98,7 +98,7 @@ void main() {
     expect(alignmentProperty.expression, isNull);
   }
 
-  test_read_hasAlign_simple() async {
+  Future<void> test_read_hasAlign_simple() async {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -130,7 +130,7 @@ void main() {
 ''');
   }
 
-  test_read_hasContainer() async {
+  Future<void> test_read_hasContainer() async {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -162,7 +162,7 @@ void main() {
 ''');
   }
 
-  test_read_hasContainer_directional() async {
+  Future<void> test_read_hasContainer_directional() async {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -194,7 +194,7 @@ void main() {
 ''');
   }
 
-  test_write_hasAlign_change() async {
+  Future<void> test_write_hasAlign_change() async {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -226,7 +226,7 @@ void main() {
 ''');
   }
 
-  test_write_hasAlign_remove() async {
+  Future<void> test_write_hasAlign_remove() async {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -255,7 +255,7 @@ void main() {
 ''');
   }
 
-  test_write_hasContainer_add() async {
+  Future<void> test_write_hasContainer_add() async {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -286,7 +286,7 @@ void main() {
 ''');
   }
 
-  test_write_hasContainer_change() async {
+  Future<void> test_write_hasContainer_change() async {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -318,7 +318,7 @@ void main() {
 ''');
   }
 
-  test_write_hasContainer_remove() async {
+  Future<void> test_write_hasContainer_remove() async {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -347,7 +347,7 @@ void main() {
 ''');
   }
 
-  test_write_hasPadding_add() async {
+  Future<void> test_write_hasPadding_add() async {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -380,7 +380,7 @@ void main() {
 ''');
   }
 
-  test_write_noContainer_add() async {
+  Future<void> test_write_noContainer_add() async {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -437,7 +437,7 @@ void main() {
 
 @reflectiveTest
 class ContainerPropertyPaddingTest extends WidgetDescriptionBase {
-  test_read_hasContainer_all() async {
+  Future<void> test_read_hasContainer_all() async {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -515,7 +515,7 @@ void main() {
 ''');
   }
 
-  test_read_hasContainer_fromLTRB() async {
+  Future<void> test_read_hasContainer_fromLTRB() async {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -593,7 +593,7 @@ void main() {
 ''');
   }
 
-  test_read_hasContainer_only() async {
+  Future<void> test_read_hasContainer_only() async {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -663,7 +663,7 @@ void main() {
 ''');
   }
 
-  test_read_hasContainer_symmetric() async {
+  Future<void> test_read_hasContainer_symmetric() async {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -741,7 +741,7 @@ void main() {
 ''');
   }
 
-  test_read_hasPadding_only() async {
+  Future<void> test_read_hasPadding_only() async {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -811,7 +811,7 @@ void main() {
 ''');
   }
 
-  test_write_hasAlign_add_only() async {
+  Future<void> test_write_hasAlign_add_only() async {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -845,7 +845,7 @@ void main() {
 ''');
   }
 
-  test_write_hasContainer_add_only() async {
+  Future<void> test_write_hasContainer_add_only() async {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -877,7 +877,7 @@ void main() {
 ''');
   }
 
-  test_write_hasContainer_change_all() async {
+  Future<void> test_write_hasContainer_change_all() async {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -910,7 +910,7 @@ void main() {
 ''');
   }
 
-  test_write_hasContainer_change_only() async {
+  Future<void> test_write_hasContainer_change_only() async {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -943,7 +943,7 @@ void main() {
 ''');
   }
 
-  test_write_hasContainer_change_remove() async {
+  Future<void> test_write_hasContainer_change_remove() async {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -975,7 +975,7 @@ void main() {
 ''');
   }
 
-  test_write_hasContainer_change_symmetric_both() async {
+  Future<void> test_write_hasContainer_change_symmetric_both() async {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -1008,7 +1008,7 @@ void main() {
 ''');
   }
 
-  test_write_hasContainer_change_symmetric_horizontal() async {
+  Future<void> test_write_hasContainer_change_symmetric_horizontal() async {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -1041,7 +1041,7 @@ void main() {
 ''');
   }
 
-  test_write_hasContainer_change_symmetric_vertical() async {
+  Future<void> test_write_hasContainer_change_symmetric_vertical() async {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -1074,7 +1074,7 @@ void main() {
 ''');
   }
 
-  test_write_hasPadding_change_only() async {
+  Future<void> test_write_hasPadding_change_only() async {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -1107,7 +1107,7 @@ void main() {
 ''');
   }
 
-  test_write_noContainer_add_only() async {
+  Future<void> test_write_noContainer_add_only() async {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 

@@ -6,8 +6,7 @@ library document_register_basic_test;
 
 import 'dart:html';
 
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
+import 'package:async_helper/async_minitest.dart';
 
 import 'utils.dart';
 
@@ -41,12 +40,10 @@ abstract class BadC extends HtmlElement {
   BadC.created() : super.created();
 }
 
-main() {
-  useHtmlConfiguration();
-
+main() async {
   // Adapted from Blink's fast/dom/custom/document-register-basic test.
 
-  setUp(() => customElementsReady);
+  await customElementsReady;
 
   test('Testing document.registerElement2() basic behaviors', () {
     document.registerElement2(Foo.tag, {'prototype': Foo});

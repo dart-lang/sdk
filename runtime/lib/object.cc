@@ -109,7 +109,9 @@ DEFINE_NATIVE_ENTRY(Object_haveSameRuntimeType, 0, 2) {
         AbstractType::Handle(left.GetType(Heap::kNew));
     const AbstractType& right_type =
         AbstractType::Handle(right.GetType(Heap::kNew));
-    return Bool::Get(left_type.raw() == right_type.raw()).raw();
+    return Bool::Get(
+               left_type.IsEquivalent(right_type, TypeEquality::kSyntactical))
+        .raw();
   }
 
   if (!cls.IsGeneric()) {
@@ -127,7 +129,7 @@ DEFINE_NATIVE_ENTRY(Object_haveSameRuntimeType, 0, 2) {
   const intptr_t num_type_params = cls.NumTypeParameters();
   return Bool::Get(left_type_arguments.IsSubvectorEquivalent(
                        right_type_arguments, num_type_args - num_type_params,
-                       num_type_params))
+                       num_type_params, TypeEquality::kSyntactical))
       .raw();
 }
 
@@ -184,35 +186,14 @@ DEFINE_NATIVE_ENTRY(Type_getHashCode, 0, 1) {
   return Smi::New(hash_val);
 }
 
-DEFINE_NATIVE_ENTRY(LibraryPrefix_invalidateDependentCode, 0, 1) {
-  const LibraryPrefix& prefix =
-      LibraryPrefix::CheckedHandle(zone, arguments->NativeArgAt(0));
-  prefix.InvalidateDependentCode();
-  return Bool::Get(true).raw();
-}
-
-DEFINE_NATIVE_ENTRY(LibraryPrefix_load, 0, 1) {
-  const LibraryPrefix& prefix =
-      LibraryPrefix::CheckedHandle(zone, arguments->NativeArgAt(0));
-  bool hasCompleted = prefix.LoadLibrary();
-  return Bool::Get(hasCompleted).raw();
-}
-
-DEFINE_NATIVE_ENTRY(LibraryPrefix_loadError, 0, 1) {
-  const LibraryPrefix& prefix =
-      LibraryPrefix::CheckedHandle(zone, arguments->NativeArgAt(0));
-  // Currently all errors are Dart instances, e.g. I/O errors
-  // created by deferred loading code. LanguageErrors from
-  // failed loading or finalization attempts are propagated and result
-  // in the isolate's death.
-  const Instance& error = Instance::Handle(zone, prefix.LoadError());
-  return error.raw();
-}
-
-DEFINE_NATIVE_ENTRY(LibraryPrefix_isLoaded, 0, 1) {
-  const LibraryPrefix& prefix =
-      LibraryPrefix::CheckedHandle(zone, arguments->NativeArgAt(0));
-  return Bool::Get(prefix.is_loaded()).raw();
+DEFINE_NATIVE_ENTRY(Type_equality, 0, 2) {
+  const Type& type = Type::CheckedHandle(zone, arguments->NativeArgAt(0));
+  const Instance& other =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(1));
+  if (type.raw() == other.raw()) {
+    return Bool::True().raw();
+  }
+  return Bool::Get(type.IsEquivalent(other, TypeEquality::kSyntactical)).raw();
 }
 
 DEFINE_NATIVE_ENTRY(Internal_inquireIs64Bit, 0, 0) {
@@ -226,6 +207,10 @@ DEFINE_NATIVE_ENTRY(Internal_inquireIs64Bit, 0, 0) {
 DEFINE_NATIVE_ENTRY(Internal_unsafeCast, 0, 1) {
   UNREACHABLE();  // Should be erased at Kernel translation time.
   return arguments->NativeArgAt(0);
+}
+
+DEFINE_NATIVE_ENTRY(Internal_reachabilityFence, 0, 1) {
+  return Object::null();
 }
 
 static bool ExtractInterfaceTypeArgs(Zone* zone,
@@ -339,11 +324,11 @@ DEFINE_NATIVE_ENTRY(Internal_extractTypeArguments, 0, 2) {
   Array& args_desc = Array::Handle(zone);
   Array& args = Array::Handle(zone);
   if (extracted_type_args.IsNull()) {
-    args_desc = ArgumentsDescriptor::New(0, 1);
+    args_desc = ArgumentsDescriptor::NewBoxed(0, 1);
     args = Array::New(1);
     args.SetAt(0, extract);
   } else {
-    args_desc = ArgumentsDescriptor::New(num_type_args, 1);
+    args_desc = ArgumentsDescriptor::NewBoxed(num_type_args, 1);
     args = Array::New(2);
     args.SetAt(0, extracted_type_args);
     args.SetAt(1, extract);

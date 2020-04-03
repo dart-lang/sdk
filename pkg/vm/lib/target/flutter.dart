@@ -5,6 +5,7 @@ library vm.target.flutter;
 
 import 'package:kernel/ast.dart' show Component, Library;
 import 'package:kernel/core_types.dart' show CoreTypes;
+import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/transformations/track_widget_constructor_locations.dart';
 import 'package:vm/target/vm.dart' show VmTarget;
@@ -37,10 +38,10 @@ class FlutterTarget extends VmTarget {
         // PRODUCT mode.
         'dart:mirrors',
 
-        'dart:profiler',
         'dart:typed_data',
         'dart:nativewrappers',
         'dart:io',
+        'dart:wasm',
 
         // Required for flutter.
         'dart:ui',
@@ -48,12 +49,19 @@ class FlutterTarget extends VmTarget {
       ];
 
   @override
+  List<String> get extraRequiredLibrariesPlatform => const <String>[];
+
+  @override
   void performPreConstantEvaluationTransformations(
       Component component,
       CoreTypes coreTypes,
       List<Library> libraries,
       DiagnosticReporter diagnosticReporter,
-      {void logger(String msg)}) {
+      {void logger(String msg),
+      ChangedStructureNotifier changedStructureNotifier}) {
+    super.performPreConstantEvaluationTransformations(
+        component, coreTypes, libraries, diagnosticReporter,
+        logger: logger);
     if (flags.trackWidgetCreation) {
       if (_widgetTracker == null) {
         _widgetTracker = WidgetCreatorTracker();

@@ -22,7 +22,7 @@ class AnalysisOptionsErrorCode extends ErrorCode {
    * 3: the error message
    */
   static const AnalysisOptionsErrorCode INCLUDED_FILE_PARSE_ERROR =
-      const AnalysisOptionsErrorCode(
+      AnalysisOptionsErrorCode(
           'INCLUDED_FILE_PARSE_ERROR', '{3} in {0}({1}..{2})');
 
   /**
@@ -32,7 +32,7 @@ class AnalysisOptionsErrorCode extends ErrorCode {
    * 0: the error message from the parse error
    */
   static const AnalysisOptionsErrorCode PARSE_ERROR =
-      const AnalysisOptionsErrorCode('PARSE_ERROR', '{0}');
+      AnalysisOptionsErrorCode('PARSE_ERROR', '{0}');
 
   /**
    * Initialize a newly created error code to have the given [name].
@@ -57,16 +57,16 @@ class AnalysisOptionsHintCode extends ErrorCode {
    * 0: the uri of the file which should be renamed
    */
   static const AnalysisOptionsHintCode DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME =
-      const AnalysisOptionsHintCode(
+      AnalysisOptionsHintCode(
           'DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME',
           "The name of the analysis options file {0} is deprecated;"
-          " consider renaming it to analysis_options.yaml.");
+              " consider renaming it to analysis_options.yaml.");
 
   /**
    * An error code indicating that the enablePreviewDart2 setting is deprecated.
    */
   static const AnalysisOptionsHintCode PREVIEW_DART_2_SETTING_DEPRECATED =
-      const AnalysisOptionsHintCode('PREVIEW_DART_2_SETTING_DEPRECATED',
+      AnalysisOptionsHintCode('PREVIEW_DART_2_SETTING_DEPRECATED',
           "The 'enablePreviewDart2' setting is deprecated.",
           correction: "It is no longer necessary to explicitly enable Dart 2.");
 
@@ -74,7 +74,7 @@ class AnalysisOptionsHintCode extends ErrorCode {
    * An error code indicating that strong-mode: true is deprecated.
    */
   static const AnalysisOptionsHintCode STRONG_MODE_SETTING_DEPRECATED =
-      const AnalysisOptionsHintCode('STRONG_MODE_SETTING_DEPRECATED',
+      AnalysisOptionsHintCode('STRONG_MODE_SETTING_DEPRECATED',
           "The 'strong-mode: true' setting is deprecated.",
           correction:
               "It is no longer necessary to explicitly enable strong mode.");
@@ -83,7 +83,7 @@ class AnalysisOptionsHintCode extends ErrorCode {
    * An error code indicating that the enablePreviewDart2 setting is deprecated.
    */
   static const AnalysisOptionsHintCode SUPER_MIXINS_SETTING_DEPRECATED =
-      const AnalysisOptionsHintCode('SUPER_MIXINS_SETTING_DEPRECATED',
+      AnalysisOptionsHintCode('SUPER_MIXINS_SETTING_DEPRECATED',
           "The 'enableSuperMixins' setting is deprecated.",
           correction:
               "Support has been added to the language for 'mixin' based mixins.");
@@ -113,7 +113,7 @@ class AnalysisOptionsWarningCode extends ErrorCode {
    * An error code indicating that the given option is deprecated.
    */
   static const AnalysisOptionsWarningCode ANALYSIS_OPTION_DEPRECATED =
-      const AnalysisOptionsWarningCode('ANALYSIS_OPTION_DEPRECATED',
+      AnalysisOptionsWarningCode('ANALYSIS_OPTION_DEPRECATED',
           "The option '{0}' is no longer supported.");
 
   /**
@@ -124,7 +124,7 @@ class AnalysisOptionsWarningCode extends ErrorCode {
    * 1: the path of the file containing the include directive
    */
   static const AnalysisOptionsWarningCode INCLUDE_FILE_NOT_FOUND =
-      const AnalysisOptionsWarningCode('INCLUDE_FILE_NOT_FOUND',
+      AnalysisOptionsWarningCode('INCLUDE_FILE_NOT_FOUND',
           "The include file {0} in {1} cannot be found.");
 
   /**
@@ -137,7 +137,7 @@ class AnalysisOptionsWarningCode extends ErrorCode {
    * 3: the warning message
    */
   static const AnalysisOptionsWarningCode INCLUDED_FILE_WARNING =
-      const AnalysisOptionsWarningCode('INCLUDED_FILE_WARNING',
+      AnalysisOptionsWarningCode('INCLUDED_FILE_WARNING',
           "Warning in the included options file {0}({1}..{2}): {3}");
 
   /**
@@ -145,7 +145,7 @@ class AnalysisOptionsWarningCode extends ErrorCode {
    * value for an option and a detail message is provided.
    */
   static const AnalysisOptionsWarningCode INVALID_OPTION =
-      const AnalysisOptionsWarningCode(
+      AnalysisOptionsWarningCode(
           'INVALID_OPTION', "Invalid option specified for '{0}': {1}");
 
   /**
@@ -155,14 +155,14 @@ class AnalysisOptionsWarningCode extends ErrorCode {
    * 0: the section name
    */
   static const AnalysisOptionsWarningCode INVALID_SECTION_FORMAT =
-      const AnalysisOptionsWarningCode(
+      AnalysisOptionsWarningCode(
           'INVALID_SECTION_FORMAT', "Invalid format for the '{0}' section.");
 
   /**
    * An error code indicating that strong-mode: false is has been removed.
    */
   static const AnalysisOptionsWarningCode SPEC_MODE_REMOVED =
-      const AnalysisOptionsWarningCode('SPEC_MODE_REMOVED',
+      AnalysisOptionsWarningCode('SPEC_MODE_REMOVED',
           "The option 'strong-mode: false' is no longer supported.",
           correction:
               "It's recommended to remove the 'strong-mode:' setting (and make "
@@ -176,7 +176,7 @@ class AnalysisOptionsWarningCode extends ErrorCode {
    * 0: the unrecognized error code
    */
   static const AnalysisOptionsWarningCode UNRECOGNIZED_ERROR_CODE =
-      const AnalysisOptionsWarningCode(
+      AnalysisOptionsWarningCode(
           'UNRECOGNIZED_ERROR_CODE', "'{0}' isn't a recognized error code.");
 
   /**
@@ -189,10 +189,10 @@ class AnalysisOptionsWarningCode extends ErrorCode {
    * 2: the legal value
    */
   static const AnalysisOptionsWarningCode UNSUPPORTED_OPTION_WITH_LEGAL_VALUE =
-      const AnalysisOptionsWarningCode(
+      AnalysisOptionsWarningCode(
           'UNSUPPORTED_OPTION_WITH_LEGAL_VALUE',
           "The option '{1}' isn't supported by '{0}'. "
-          "Try using the only supported option: '{2}'.");
+              "Try using the only supported option: '{2}'.");
 
   /**
    * An error code indicating that a plugin is being configured with an
@@ -204,7 +204,7 @@ class AnalysisOptionsWarningCode extends ErrorCode {
    * 2: legal values
    */
   static const AnalysisOptionsWarningCode UNSUPPORTED_OPTION_WITH_LEGAL_VALUES =
-      const AnalysisOptionsWarningCode('UNSUPPORTED_OPTION_WITH_LEGAL_VALUES',
+      AnalysisOptionsWarningCode('UNSUPPORTED_OPTION_WITH_LEGAL_VALUES',
           "The option '{1}' isn't supported by '{0}'.",
           correction: "Try using one of the supported options: {2}.");
 
@@ -217,7 +217,7 @@ class AnalysisOptionsWarningCode extends ErrorCode {
    * 1: the unsupported option key
    */
   static const AnalysisOptionsWarningCode UNSUPPORTED_OPTION_WITHOUT_VALUES =
-      const AnalysisOptionsWarningCode(
+      AnalysisOptionsWarningCode(
     'UNSUPPORTED_OPTION_WITHOUT_VALUES',
     "The option '{1}' isn't supported by '{0}'.",
   );
@@ -232,7 +232,7 @@ class AnalysisOptionsWarningCode extends ErrorCode {
    * 2: legal values
    */
   static const AnalysisOptionsWarningCode UNSUPPORTED_VALUE =
-      const AnalysisOptionsWarningCode(
+      AnalysisOptionsWarningCode(
           'UNSUPPORTED_VALUE', "The value '{1}' isn't supported by '{0}'.",
           correction: "Try using one of the supported options: {2}.");
 

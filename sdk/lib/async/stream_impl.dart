@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.async;
 
 /** Abstract and private interface for a place to put events. */
@@ -87,6 +89,7 @@ class _BufferingStreamSubscription<T>
   static const int _STATE_PAUSE_COUNT = 128;
 
   /* Event handlers provided in constructor. */
+  @pragma("vm:entry-point")
   _DataHandler<T> _onData;
   Function _onError;
   _DoneHandler _onDone;
@@ -959,6 +962,7 @@ class _StreamIterator<T> implements StreamIterator<T> {
   ///
   /// After calling [moveNext] and the returned future has completed
   /// with `false`, or after calling [cancel]: `null`.
+  @pragma("vm:entry-point")
   Object _stateData;
 
   /// Whether the iterator is between calls to `moveNext`.

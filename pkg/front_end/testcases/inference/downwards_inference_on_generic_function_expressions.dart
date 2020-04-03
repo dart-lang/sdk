@@ -9,7 +9,7 @@ void test() {
   {
     String f<S>(int x) => null;
     var /*@ type=<S extends Object* = dynamic>(int*) ->* String* */ v = f;
-    v = <T> /*@ returnType=Null* */ (int x) => null;
+    v = <T> /*@ returnType=Null? */ (int x) => null;
     v = <T> /*@ returnType=String* */ (int x) => "hello";
     v = /*error:INVALID_ASSIGNMENT*/ <T> /*@ returnType=String* */ (String x) =>
         "hello";
@@ -21,7 +21,7 @@ void test() {
   {
     String f<S>(int x) => null;
     var /*@ type=<S extends Object* = dynamic>(int*) ->* String* */ v = f;
-    v = <T> /*@ returnType=Null* */ (/*@ type=int* */ x) => null;
+    v = <T> /*@ returnType=Null? */ (/*@ type=int* */ x) => null;
     v = <T> /*@ returnType=String* */ (/*@ type=int* */ x) => "hello";
     v = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*/ <
             T> /*@ returnType=String* */ (/*@ type=int* */ x) =>
@@ -36,7 +36,7 @@ void test() {
   {
     List<String> f<S>(int x) => null;
     var /*@ type=<S extends Object* = dynamic>(int*) ->* List<String*>* */ v = f;
-    v = <T> /*@ returnType=Null* */ (int x) => null;
+    v = <T> /*@ returnType=Null? */ (int x) => null;
     v = <T> /*@ returnType=List<String*>* */ (int x) => /*@ typeArgs=String* */ [
           "hello"
         ];

@@ -73,7 +73,8 @@ def VersionSteps(build_info):
             print 'No sanity checking on bleeding edge'
         else:
             assert (channel == bot_utils.Channel.STABLE or
-                    channel == bot_utils.Channel.DEV)
+                    channel == bot_utils.Channel.DEV or
+                    channel == bot_utils.Channel.BETA)
             latest_version = GetLatestVersionFromGCS(channel)
             version = utils.GetVersion()
             print 'Latests version on GCS: %s' % latest_version

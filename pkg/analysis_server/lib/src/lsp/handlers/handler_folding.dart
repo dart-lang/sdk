@@ -14,12 +14,14 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 class FoldingHandler
     extends MessageHandler<FoldingRangeParams, List<FoldingRange>> {
   FoldingHandler(LspAnalysisServer server) : super(server);
+  @override
   Method get handlesMessage => Method.textDocument_foldingRange;
 
   @override
   LspJsonHandler<FoldingRangeParams> get jsonHandler =>
       FoldingRangeParams.jsonHandler;
 
+  @override
   Future<ErrorOr<List<FoldingRange>>> handle(
       FoldingRangeParams params, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
@@ -31,8 +33,7 @@ class FoldingHandler
 
     return unit.mapResult((unit) {
       final lineInfo = unit.lineInfo;
-      final regions =
-          new DartUnitFoldingComputer(lineInfo, unit.unit).compute();
+      final regions = DartUnitFoldingComputer(lineInfo, unit.unit).compute();
 
       return success(
         regions.map((region) => toFoldingRange(lineInfo, region)).toList(),

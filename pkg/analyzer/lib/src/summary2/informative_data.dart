@@ -116,6 +116,8 @@ class _SetInformativeId extends SimpleAstVisitor<void> {
     setData(
       node,
       UnlinkedInformativeDataBuilder.enumConstantDeclaration(
+        codeOffset: node.offset,
+        codeLength: node.length,
         documentationComment_tokens: _nodeCommentTokens(node),
         nameOffset: node.name.offset,
       ),

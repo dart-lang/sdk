@@ -6,7 +6,7 @@ part of $LIBRARYNAME;
 
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
-  Object get result {
+  Object$NULLABLE get result {
     var res = JS('Null|String|NativeByteBuffer', '#.result', this);
     if (res is ByteBuffer) {
       return new Uint8List.view(res);

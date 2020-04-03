@@ -9,7 +9,7 @@ Library '#lib'
 
 Class '', script = '#lib'
 
-Field 'c1', type = #lib::A, getter = 'get:c1', reflectable, static, const, final
+Field 'c1', type = #lib::A, getter = 'get:c1', reflectable, static, const, final, has-initializer
     initializer
 Bytecode {
   Entry                0
@@ -22,13 +22,13 @@ ConstantPool {
 }
 
 
-Field 'c2', type = dart:core::String, reflectable, static, const, final
+Field 'c2', type = dart:core::String, reflectable, static, const, final, has-initializer
     value = 'hello!'
 
-Field 'c3', type = dart:core::int, reflectable, static, const, final
+Field 'c3', type = dart:core::int, reflectable, static, const, final, has-initializer
     value = const 6
 
-Field 'c4', type = #lib::C, getter = 'get:c4', reflectable, static, const, final
+Field 'c4', type = #lib::C, getter = 'get:c4', reflectable, static, const, final, has-initializer
     initializer
 Bytecode {
   Entry                0
@@ -41,7 +41,7 @@ ConstantPool {
 }
 
 
-Field 'c5', type = #lib::D, getter = 'get:c5', reflectable, static, const, final
+Field 'c5', type = #lib::D, getter = 'get:c5', reflectable, static, const, final, has-initializer
     initializer
 Bytecode {
   Entry                0
@@ -54,7 +54,7 @@ ConstantPool {
 }
 
 
-Field 'fieldWithDoubleLiteralInitializer', type = dart:core::double, reflectable, static
+Field 'fieldWithDoubleLiteralInitializer', type = dart:core::double, reflectable, static, has-initializer
     value = const 1.0
 
 Function 'test_constants1', static, reflectable, debuggable
@@ -205,8 +205,8 @@ Function 'test_map_literal', static, reflectable, debuggable
 
 Bytecode {
   Entry                2
-  CheckStack           0
   CheckFunctionTypeArgs 1, r0
+  CheckStack           0
   PushConstant         CP#0
   PushConstant         CP#1
   PushInt              4
@@ -332,8 +332,8 @@ Function 'test_type_literal', static, reflectable, debuggable
 
 Bytecode {
   Entry                1
-  CheckStack           0
   CheckFunctionTypeArgs 1, r0
+  CheckStack           0
   PushConstant         CP#0
   DirectCall           CP#1, 1
   Drop1
@@ -420,7 +420,7 @@ Field 'index', type = dart:core::int, getter = 'get:index', reflectable, final
 Field '_name', type = dart:core::String, getter = 'get:_name', reflectable, final
     value = null
 
-Field 'values', type = dart:core::List < #lib::A >, getter = 'get:values', reflectable, static, const, final
+Field 'values', type = dart:core::List < #lib::A >, getter = 'get:values', reflectable, static, const, final, has-initializer
     initializer
 Bytecode {
   Entry                0
@@ -433,7 +433,7 @@ ConstantPool {
 }
 
 
-Field 'elem1', type = #lib::A, getter = 'get:elem1', reflectable, static, const, final
+Field 'elem1', type = #lib::A, getter = 'get:elem1', reflectable, static, const, final, has-initializer
     initializer
 Bytecode {
   Entry                0
@@ -446,7 +446,7 @@ ConstantPool {
 }
 
 
-Field 'elem2', type = #lib::A, getter = 'get:elem2', reflectable, static, const, final
+Field 'elem2', type = #lib::A, getter = 'get:elem2', reflectable, static, const, final, has-initializer
     initializer
 Bytecode {
   Entry                0
@@ -459,7 +459,7 @@ ConstantPool {
 }
 
 
-Field 'elem3', type = #lib::A, getter = 'get:elem3', reflectable, static, const, final
+Field 'elem3', type = #lib::A, getter = 'get:elem3', reflectable, static, const, final, has-initializer
     initializer
 Bytecode {
   Entry                0
@@ -472,7 +472,7 @@ ConstantPool {
 }
 
 
-Field 'elem4', type = #lib::A, getter = 'get:elem4', reflectable, static, const, final
+Field 'elem4', type = #lib::A, getter = 'get:elem4', reflectable, static, const, final, has-initializer
     initializer
 Bytecode {
   Entry                0
@@ -684,7 +684,7 @@ ConstantPool {
 ]library #lib from "#lib" as #lib {
 
   typedef GenericFunctionType = <X extends dart.core::Object* = dynamic>(X*) →* X*;
-  class A extends dart.core::Object {
+  class A extends dart.core::Object /*isEnum*/  {
     final field dart.core::int* index;
     final field dart.core::String* _name;
     static const field dart.core::List<#lib::A*>* values = #C13;
@@ -698,31 +698,31 @@ ConstantPool {
     method toString() → dart.core::String*
       return this.{=#lib::A::_name};
   }
-  class B extends dart.core::Object {
+  class B extends dart.core::Object /*hasConstConstructor*/  {
     final field dart.core::int* i;
     const constructor •(dart.core::int* i) → #lib::B*
       : #lib::B::i = i, super dart.core::Object::•()
       ;
   }
-  class C extends #lib::B {
+  class C extends #lib::B /*hasConstConstructor*/  {
     final field dart.core::int* j;
     const constructor •(dart.core::int* a, dart.core::int* b, dart.core::int* c) → #lib::C*
       : #lib::C::j = a.{dart.core::num::+}(b), super #lib::B::•(c.{dart.core::num::*}(5))
       ;
   }
-  class D extends dart.core::Object {
+  class D extends dart.core::Object /*hasConstConstructor*/  {
     final field dynamic x;
     final field dynamic y;
     const constructor •(dynamic x, [dynamic y = #C14]) → #lib::D*
       : #lib::D::x = x, #lib::D::y = y, super dart.core::Object::•()
       ;
   }
-  class E<T extends dart.core::Object* = dynamic> extends dart.core::Object {
+  class E<T extends dart.core::Object* = dynamic> extends dart.core::Object /*hasConstConstructor*/  {
     const constructor •() → #lib::E<#lib::E::T*>*
       : super dart.core::Object::•()
       ;
   }
-  class F<P extends dart.core::Object* = dynamic, Q extends dart.core::Object* = dynamic> extends #lib::E<dart.core::Map<#lib::F::P*, #lib::F::Q*>*> {
+  class F<P extends dart.core::Object* = dynamic, Q extends dart.core::Object* = dynamic> extends #lib::E<dart.core::Map<#lib::F::P*, #lib::F::Q*>*> /*hasConstConstructor*/  {
     const constructor •() → #lib::F<#lib::F::P*, #lib::F::Q*>*
       : super #lib::E::•()
       ;

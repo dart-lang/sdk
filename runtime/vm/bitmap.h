@@ -6,6 +6,7 @@
 #define RUNTIME_VM_BITMAP_H_
 
 #include "vm/allocation.h"
+#include "vm/growable_array.h"
 #include "vm/thread_state.h"
 #include "vm/zone.h"
 
@@ -43,6 +44,7 @@ class BitmapBuilder : public ZoneAllocated {
   void SetRange(intptr_t min, intptr_t max, bool value);
 
   void Print() const;
+  void AppendAsBytesTo(GrowableArray<uint8_t>* bytes) const;
 
  private:
   static const intptr_t kInitialSizeInBytes = 16;

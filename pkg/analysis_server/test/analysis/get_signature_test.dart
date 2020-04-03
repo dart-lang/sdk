@@ -13,7 +13,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../analysis_abstract.dart';
 import '../mocks.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisSignatureTest);
   });
@@ -22,26 +22,26 @@ main() {
 @reflectiveTest
 class AnalysisSignatureTest extends AbstractAnalysisTest {
   Future<Response> prepareRawSignature(String search) {
-    int offset = findOffset(search);
+    var offset = findOffset(search);
     return prepareRawSignatureAt(offset);
   }
 
   Future<Response> prepareRawSignatureAt(int offset, {String file}) async {
     await waitForTasksFinished();
-    Request request =
-        new AnalysisGetSignatureParams(file ?? testFile, offset).toRequest('0');
+    var request =
+        AnalysisGetSignatureParams(file ?? testFile, offset).toRequest('0');
     return waitResponse(request);
   }
 
   Future<AnalysisGetSignatureResult> prepareSignature(String search) {
-    int offset = findOffset(search);
+    var offset = findOffset(search);
     return prepareSignatureAt(offset);
   }
 
   Future<AnalysisGetSignatureResult> prepareSignatureAt(int offset,
       {String file}) async {
-    Response response = await prepareRawSignatureAt(offset, file: file);
-    return new AnalysisGetSignatureResult.fromResponse(response);
+    var response = await prepareRawSignatureAt(offset, file: file);
+    return AnalysisGetSignatureResult.fromResponse(response);
   }
 
   @override
@@ -50,7 +50,7 @@ class AnalysisSignatureTest extends AbstractAnalysisTest {
     createProject();
   }
 
-  test_constructor() async {
+  Future<void> test_constructor() async {
     addTestFile('''
 /// MyClass doc
 class MyClass {
@@ -62,16 +62,16 @@ main() {
 }
 ''');
     var result = await prepareSignature('/*^*/');
-    expect(result.name, equals("MyClass"));
-    expect(result.dartdoc, equals("MyClass constructor doc"));
+    expect(result.name, equals('MyClass'));
+    expect(result.dartdoc, equals('MyClass constructor doc'));
     expect(result.parameters, hasLength(2));
     expect(result.parameters[0],
-        equals(new ParameterInfo(ParameterKind.REQUIRED, "name", "String")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
     expect(result.parameters[1],
-        equals(new ParameterInfo(ParameterKind.NAMED, "length", "int")));
+        equals(ParameterInfo(ParameterKind.NAMED, 'length', 'int')));
   }
 
-  test_constructor_factory() async {
+  Future<void> test_constructor_factory() async {
     addTestFile('''
 /// MyClass doc
 class MyClass {
@@ -87,16 +87,16 @@ main() {
 }
 ''');
     var result = await prepareSignature('/*^*/');
-    expect(result.name, equals("MyClass"));
-    expect(result.dartdoc, equals("MyClass factory constructor doc"));
+    expect(result.name, equals('MyClass'));
+    expect(result.dartdoc, equals('MyClass factory constructor doc'));
     expect(result.parameters, hasLength(2));
     expect(result.parameters[0],
-        equals(new ParameterInfo(ParameterKind.REQUIRED, "name", "String")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
     expect(result.parameters[1],
-        equals(new ParameterInfo(ParameterKind.NAMED, "length", "int")));
+        equals(ParameterInfo(ParameterKind.NAMED, 'length', 'int')));
   }
 
-  test_constructor_named() async {
+  Future<void> test_constructor_named() async {
     addTestFile('''
 /// MyClass doc
 class MyClass {
@@ -108,16 +108,16 @@ main() {
 }
 ''');
     var result = await prepareSignature('/*^*/');
-    expect(result.name, equals("MyClass.foo"));
-    expect(result.dartdoc, equals("MyClass.foo constructor doc"));
+    expect(result.name, equals('MyClass.foo'));
+    expect(result.dartdoc, equals('MyClass.foo constructor doc'));
     expect(result.parameters, hasLength(2));
     expect(result.parameters[0],
-        equals(new ParameterInfo(ParameterKind.REQUIRED, "name", "String")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
     expect(result.parameters[1],
-        equals(new ParameterInfo(ParameterKind.NAMED, "length", "int")));
+        equals(ParameterInfo(ParameterKind.NAMED, 'length', 'int')));
   }
 
-  test_does_not_walk_up_over_closure() async {
+  Future<void> test_does_not_walk_up_over_closure() async {
     addTestFile('''
 one(String name, int length) {}
 main() {
@@ -132,7 +132,7 @@ main() {
         equals(RequestErrorCode.GET_SIGNATURE_UNKNOWN_FUNCTION));
   }
 
-  test_error_file_not_analyzed() async {
+  Future<void> test_error_file_not_analyzed() async {
     var result = await prepareRawSignatureAt(0,
         file: convertPath('/not/in/project.dart'));
     expect(result.error, isNotNull);
@@ -140,7 +140,7 @@ main() {
         result.error.code, equals(RequestErrorCode.GET_SIGNATURE_INVALID_FILE));
   }
 
-  test_error_function_unknown() async {
+  Future<void> test_error_function_unknown() async {
     addTestFile('''
 someFunc(/*^*/);
 ''');
@@ -150,7 +150,7 @@ someFunc(/*^*/);
         equals(RequestErrorCode.GET_SIGNATURE_UNKNOWN_FUNCTION));
   }
 
-  test_error_offset_invalid() async {
+  Future<void> test_error_offset_invalid() async {
     addTestFile('''
 a() {}
 ''');
@@ -160,7 +160,7 @@ a() {}
         equals(RequestErrorCode.GET_SIGNATURE_INVALID_OFFSET));
   }
 
-  test_function_expression() async {
+  Future<void> test_function_expression() async {
     addTestFile('''
 /// f doc
 int Function(String) f(String s) => (int i) => int.parse(s) + i;
@@ -169,14 +169,14 @@ main() {
 }
 ''');
     var result = await prepareSignature('/*^*/');
-    expect(result.name, equals("f"));
-    expect(result.dartdoc, equals("f doc"));
+    expect(result.name, equals('f'));
+    expect(result.dartdoc, equals('f doc'));
     expect(result.parameters, hasLength(1));
     expect(result.parameters[0],
-        equals(new ParameterInfo(ParameterKind.REQUIRED, "s", "String")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 's', 'String')));
   }
 
-  test_function_from_other_file() async {
+  Future<void> test_function_from_other_file() async {
     newFile('/project/bin/other.dart', content: '''
 /// one doc
 one(String name, int length) {}
@@ -191,16 +191,16 @@ main() {
 }
 ''');
     var result = await prepareSignature('/*^*/');
-    expect(result.name, equals("one"));
-    expect(result.dartdoc, equals("one doc"));
+    expect(result.name, equals('one'));
+    expect(result.dartdoc, equals('one doc'));
     expect(result.parameters, hasLength(2));
     expect(result.parameters[0],
-        equals(new ParameterInfo(ParameterKind.REQUIRED, "name", "String")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
     expect(result.parameters[1],
-        equals(new ParameterInfo(ParameterKind.REQUIRED, "length", "int")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 'length', 'int')));
   }
 
-  test_function_irrelevant_parens() async {
+  Future<void> test_function_irrelevant_parens() async {
     addTestFile('''
 /// one doc
 one(String name, int length) {}
@@ -209,16 +209,16 @@ main() {
 }
 ''');
     var result = await prepareSignature('/*^*/');
-    expect(result.name, equals("one"));
-    expect(result.dartdoc, equals("one doc"));
+    expect(result.name, equals('one'));
+    expect(result.dartdoc, equals('one doc'));
     expect(result.parameters, hasLength(2));
     expect(result.parameters[0],
-        equals(new ParameterInfo(ParameterKind.REQUIRED, "name", "String")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
     expect(result.parameters[1],
-        equals(new ParameterInfo(ParameterKind.REQUIRED, "length", "int")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 'length', 'int')));
   }
 
-  test_function_named() async {
+  Future<void> test_function_named() async {
     addTestFile('''
 /// one doc
 one(String name, {int length}) {}
@@ -227,16 +227,16 @@ main() {
 }
 ''');
     var result = await prepareSignature('/*^*/');
-    expect(result.name, equals("one"));
-    expect(result.dartdoc, equals("one doc"));
+    expect(result.name, equals('one'));
+    expect(result.dartdoc, equals('one doc'));
     expect(result.parameters, hasLength(2));
     expect(result.parameters[0],
-        equals(new ParameterInfo(ParameterKind.REQUIRED, "name", "String")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
     expect(result.parameters[1],
-        equals(new ParameterInfo(ParameterKind.NAMED, "length", "int")));
+        equals(ParameterInfo(ParameterKind.NAMED, 'length', 'int')));
   }
 
-  test_function_named_with_default_int() async {
+  Future<void> test_function_named_with_default_int() async {
     addTestFile('''
 /// one doc
 one(String name, {int length = 1}) {}
@@ -245,18 +245,18 @@ main() {
 }
 ''');
     var result = await prepareSignature('/*^*/');
-    expect(result.name, equals("one"));
-    expect(result.dartdoc, equals("one doc"));
+    expect(result.name, equals('one'));
+    expect(result.dartdoc, equals('one doc'));
     expect(result.parameters, hasLength(2));
     expect(result.parameters[0],
-        equals(new ParameterInfo(ParameterKind.REQUIRED, "name", "String")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
     expect(
         result.parameters[1],
-        equals(new ParameterInfo(ParameterKind.NAMED, "length", "int",
-            defaultValue: "1")));
+        equals(ParameterInfo(ParameterKind.NAMED, 'length', 'int',
+            defaultValue: '1')));
   }
 
-  test_function_named_with_default_string() async {
+  Future<void> test_function_named_with_default_string() async {
     addTestFile('''
 /// one doc
 one(String name, {String email = "a@b.c"}) {}
@@ -265,18 +265,18 @@ main() {
 }
 ''');
     var result = await prepareSignature('/*^*/');
-    expect(result.name, equals("one"));
-    expect(result.dartdoc, equals("one doc"));
+    expect(result.name, equals('one'));
+    expect(result.dartdoc, equals('one doc'));
     expect(result.parameters, hasLength(2));
     expect(result.parameters[0],
-        equals(new ParameterInfo(ParameterKind.REQUIRED, "name", "String")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
     expect(
         result.parameters[1],
-        equals(new ParameterInfo(ParameterKind.NAMED, "email", "String",
+        equals(ParameterInfo(ParameterKind.NAMED, 'email', 'String',
             defaultValue: '"a@b.c"')));
   }
 
-  test_function_nested_call_inner() async {
+  Future<void> test_function_nested_call_inner() async {
     // eg. foo(bar(1, 2));
     addTestFile('''
 /// one doc
@@ -288,14 +288,14 @@ main() {
 }
 ''');
     var result = await prepareSignature('/*^*/');
-    expect(result.name, equals("two"));
-    expect(result.dartdoc, equals("two doc"));
+    expect(result.name, equals('two'));
+    expect(result.dartdoc, equals('two doc'));
     expect(result.parameters, hasLength(1));
     expect(result.parameters[0],
-        equals(new ParameterInfo(ParameterKind.REQUIRED, "two", "String")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 'two', 'String')));
   }
 
-  test_function_nested_call_outer() async {
+  Future<void> test_function_nested_call_outer() async {
     // eg. foo(bar(1, 2));
     addTestFile('''
 /// one doc
@@ -307,14 +307,14 @@ main() {
 }
 ''');
     var result = await prepareSignature('/*^*/');
-    expect(result.name, equals("one"));
-    expect(result.dartdoc, equals("one doc"));
+    expect(result.name, equals('one'));
+    expect(result.dartdoc, equals('one doc'));
     expect(result.parameters, hasLength(1));
     expect(result.parameters[0],
-        equals(new ParameterInfo(ParameterKind.REQUIRED, "one", "String")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 'one', 'String')));
   }
 
-  test_function_no_dart_doc() async {
+  Future<void> test_function_no_dart_doc() async {
     addTestFile('''
 one(String name, int length) {}
 main() {
@@ -322,16 +322,16 @@ main() {
 }
 ''');
     var result = await prepareSignature('/*^*/');
-    expect(result.name, equals("one"));
+    expect(result.name, equals('one'));
     expect(result.dartdoc, isNull);
     expect(result.parameters, hasLength(2));
     expect(result.parameters[0],
-        equals(new ParameterInfo(ParameterKind.REQUIRED, "name", "String")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
     expect(result.parameters[1],
-        equals(new ParameterInfo(ParameterKind.REQUIRED, "length", "int")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 'length', 'int')));
   }
 
-  test_function_optional() async {
+  Future<void> test_function_optional() async {
     addTestFile('''
 /// one doc
 one(String name, [int length]) {}
@@ -340,16 +340,16 @@ main() {
 }
 ''');
     var result = await prepareSignature('/*^*/');
-    expect(result.name, equals("one"));
-    expect(result.dartdoc, equals("one doc"));
+    expect(result.name, equals('one'));
+    expect(result.dartdoc, equals('one doc'));
     expect(result.parameters, hasLength(2));
     expect(result.parameters[0],
-        equals(new ParameterInfo(ParameterKind.REQUIRED, "name", "String")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
     expect(result.parameters[1],
-        equals(new ParameterInfo(ParameterKind.OPTIONAL, "length", "int")));
+        equals(ParameterInfo(ParameterKind.OPTIONAL, 'length', 'int')));
   }
 
-  test_function_optional_with_default() async {
+  Future<void> test_function_optional_with_default() async {
     addTestFile('''
 /// one doc
 one(String name, [int length = 11]) {}
@@ -358,18 +358,18 @@ main() {
 }
 ''');
     var result = await prepareSignature('/*^*/');
-    expect(result.name, equals("one"));
-    expect(result.dartdoc, equals("one doc"));
+    expect(result.name, equals('one'));
+    expect(result.dartdoc, equals('one doc'));
     expect(result.parameters, hasLength(2));
     expect(result.parameters[0],
-        equals(new ParameterInfo(ParameterKind.REQUIRED, "name", "String")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
     expect(
         result.parameters[1],
-        equals(new ParameterInfo(ParameterKind.OPTIONAL, "length", "int",
-            defaultValue: "11")));
+        equals(ParameterInfo(ParameterKind.OPTIONAL, 'length', 'int',
+            defaultValue: '11')));
   }
 
-  test_function_required() async {
+  Future<void> test_function_required() async {
     addTestFile('''
 /// one doc
 one(String name, int length) {}
@@ -378,16 +378,16 @@ main() {
 }
 ''');
     var result = await prepareSignature('/*^*/');
-    expect(result.name, equals("one"));
-    expect(result.dartdoc, equals("one doc"));
+    expect(result.name, equals('one'));
+    expect(result.dartdoc, equals('one doc'));
     expect(result.parameters, hasLength(2));
     expect(result.parameters[0],
-        equals(new ParameterInfo(ParameterKind.REQUIRED, "name", "String")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
     expect(result.parameters[1],
-        equals(new ParameterInfo(ParameterKind.REQUIRED, "length", "int")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 'length', 'int')));
   }
 
-  test_function_zero_arguments() async {
+  Future<void> test_function_zero_arguments() async {
     addTestFile('''
 /// one doc
 one() {}
@@ -396,13 +396,13 @@ main() {
 }
 ''');
     var result = await prepareSignature('/*^*/');
-    expect(result.name, equals("one"));
-    expect(result.dartdoc, equals("one doc"));
+    expect(result.name, equals('one'));
+    expect(result.dartdoc, equals('one doc'));
     expect(result.parameters, hasLength(0));
   }
 
-  test_invalidFilePathFormat_notAbsolute() async {
-    var request = new AnalysisGetSignatureParams('test.dart', 0).toRequest('0');
+  Future<void> test_invalidFilePathFormat_notAbsolute() async {
+    var request = AnalysisGetSignatureParams('test.dart', 0).toRequest('0');
     var response = await waitResponse(request);
     expect(
       response,
@@ -410,9 +410,9 @@ main() {
     );
   }
 
-  test_invalidFilePathFormat_notNormalized() async {
+  Future<void> test_invalidFilePathFormat_notNormalized() async {
     var request =
-        new AnalysisGetSignatureParams(convertPath('/foo/../bar/test.dart'), 0)
+        AnalysisGetSignatureParams(convertPath('/foo/../bar/test.dart'), 0)
             .toRequest('0');
     var response = await waitResponse(request);
     expect(
@@ -421,7 +421,7 @@ main() {
     );
   }
 
-  test_method_instance() async {
+  Future<void> test_method_instance() async {
     addTestFile('''
 /// MyClass doc
 class MyClass {
@@ -436,16 +436,16 @@ main() {
 }
 ''');
     var result = await prepareSignature('/*^*/');
-    expect(result.name, equals("myMethod"));
-    expect(result.dartdoc, equals("MyClass instance method"));
+    expect(result.name, equals('myMethod'));
+    expect(result.dartdoc, equals('MyClass instance method'));
     expect(result.parameters, hasLength(2));
     expect(result.parameters[0],
-        equals(new ParameterInfo(ParameterKind.REQUIRED, "name", "String")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
     expect(result.parameters[1],
-        equals(new ParameterInfo(ParameterKind.NAMED, "length", "int")));
+        equals(ParameterInfo(ParameterKind.NAMED, 'length', 'int')));
   }
 
-  test_method_static() async {
+  Future<void> test_method_static() async {
     addTestFile('''
 /// MyClass doc
 class MyClass {
@@ -459,12 +459,12 @@ main() {
 }
 ''');
     var result = await prepareSignature('/*^*/');
-    expect(result.name, equals("myStaticMethod"));
-    expect(result.dartdoc, equals("MyClass static method"));
+    expect(result.name, equals('myStaticMethod'));
+    expect(result.dartdoc, equals('MyClass static method'));
     expect(result.parameters, hasLength(2));
     expect(result.parameters[0],
-        equals(new ParameterInfo(ParameterKind.REQUIRED, "name", "String")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
     expect(result.parameters[1],
-        equals(new ParameterInfo(ParameterKind.NAMED, "length", "int")));
+        equals(ParameterInfo(ParameterKind.NAMED, 'length', 'int')));
   }
 }

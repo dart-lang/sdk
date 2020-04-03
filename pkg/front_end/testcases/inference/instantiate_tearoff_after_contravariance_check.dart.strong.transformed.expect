@@ -7,9 +7,9 @@ class C<T extends core::Object* = dynamic> extends core::Object {
     : super core::Object::•()
     ;
   method f<U extends core::Object* = dynamic>(self::C::f::U* x) → (self::C::T*) →* void
-    return (self::C::T* y) → core::Null* {};
+    return (self::C::T* y) → core::Null? {};
 }
 static method test(self::C<core::String*>* c) → void {
-  (core::int*) →* (core::String*) →* void tearoff = c.{self::C::f} as{TypeError} <U extends core::Object* = dynamic>(U) →* (core::String*) →* void<core::int*>;
+  (core::int*) →* (core::String*) →* void tearoff = c.{self::C::f} as{TypeError,CovarianceCheck} <U extends core::Object* = dynamic>(U*) →* (core::String*) →* void<core::int*>;
 }
 static method main() → dynamic {}

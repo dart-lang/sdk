@@ -6,6 +6,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../generated/test_support.dart';
 import '../dart/resolution/driver_resolution.dart';
 
 main() {
@@ -36,9 +37,10 @@ void main() {
 }
 ''');
 
-    await _resolveTestFile('/lib1.dart');
-    await _resolveTestFile('/lib2.dart');
-    assertTestErrorsWithCodes([HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    await _resolveFile('/lib1.dart');
+    await _resolveFile('/lib2.dart', [
+      error(HintCode.INVALID_USE_OF_PROTECTED_MEMBER, 56, 1),
+    ]);
   }
 
   test_extendingSubclass() async {
@@ -52,6 +54,30 @@ class A {
 class B extends A {
   void b() => a();
 }''');
+  }
+
+  test_extension_outsideClassAndFile() async {
+    addMetaPackage();
+    newFile('/lib1.dart', content: r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  void a(int i) {}
+}
+''');
+    newFile('/lib2.dart', content: r'''
+import 'lib1.dart';
+extension E on A {
+  e() {
+    a(7);
+  }
+}
+''');
+
+    await _resolveFile('/lib1.dart');
+    await _resolveFile('/lib2.dart', [
+      error(HintCode.INVALID_USE_OF_PROTECTED_MEMBER, 51, 1),
+    ]);
   }
 
   test_field() async {
@@ -84,9 +110,10 @@ abstract class B {
 }
 ''');
 
-    await _resolveTestFile('/lib1.dart');
-    await _resolveTestFile('/lib2.dart');
-    assertTestErrorsWithCodes([HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    await _resolveFile('/lib1.dart');
+    await _resolveFile('/lib2.dart', [
+      error(HintCode.INVALID_USE_OF_PROTECTED_MEMBER, 60, 1),
+    ]);
   }
 
   test_field_subclassAndSameLibrary() async {
@@ -121,9 +148,8 @@ mixin M on A {
 }
 ''');
 
-    await _resolveTestFile('/lib1.dart');
-    await _resolveTestFile('/lib2.dart');
-    assertNoTestErrors();
+    await _resolveFile('/lib1.dart');
+    await _resolveFile('/lib2.dart');
   }
 
   test_function_outsideClassAndLibrary() async {
@@ -143,9 +169,10 @@ main() {
 }
 ''');
 
-    await _resolveTestFile('/lib1.dart');
-    await _resolveTestFile('/lib2.dart');
-    assertTestErrorsWithCodes([HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    await _resolveFile('/lib1.dart');
+    await _resolveFile('/lib2.dart', [
+      error(HintCode.INVALID_USE_OF_PROTECTED_MEMBER, 40, 1),
+    ]);
   }
 
   test_function_sameLibrary() async {
@@ -206,9 +233,10 @@ class B {
 }
 ''');
 
-    await _resolveTestFile('/lib1.dart');
-    await _resolveTestFile('/lib2.dart');
-    assertTestErrorsWithCodes([HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    await _resolveFile('/lib1.dart');
+    await _resolveFile('/lib2.dart', [
+      error(HintCode.INVALID_USE_OF_PROTECTED_MEMBER, 52, 1),
+    ]);
   }
 
   test_getter_subclass() async {
@@ -246,9 +274,8 @@ import 'lib1.dart';
 f() {}
 ''');
 
-    await _resolveTestFile('/lib1.dart');
-    await _resolveTestFile('/lib2.dart');
-    assertNoTestErrors();
+    await _resolveFile('/lib1.dart');
+    await _resolveFile('/lib2.dart');
   }
 
   test_method_outsideClassAndLibrary() async {
@@ -268,9 +295,10 @@ class B {
 }
 ''');
 
-    await _resolveTestFile('/lib1.dart');
-    await _resolveTestFile('/lib2.dart');
-    assertTestErrorsWithCodes([HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    await _resolveFile('/lib1.dart');
+    await _resolveFile('/lib2.dart', [
+      error(HintCode.INVALID_USE_OF_PROTECTED_MEMBER, 53, 1),
+    ]);
   }
 
   test_method_subclass() async {
@@ -308,6 +336,9 @@ class B extends Object with A {
   }
 
   test_mixingIn_asParameter() async {
+    // TODO(srawlins): This test verifies that the analyzer **allows**
+    // protected members to be called from static members, which violates the
+    // protected spec.
     addMetaPackage();
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -336,6 +367,9 @@ main() {
   }
 
   test_setter_outsideClassAndFile() async {
+    // TODO(srawlins): This test verifies that the analyzer **allows**
+    // protected members to be called on objects other than `this`, which
+    // violates the protected spec.
     addMetaPackage();
     newFile('/lib1.dart', content: r'''
 import 'package:meta/meta.dart';
@@ -354,14 +388,15 @@ class B {
 }
 ''');
 
-    await _resolveTestFile('/lib1.dart');
-    await _resolveTestFile('/lib2.dart');
-    assertTestErrorsWithCodes([HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    await _resolveFile('/lib1.dart');
+    await _resolveFile('/lib2.dart', [
+      error(HintCode.INVALID_USE_OF_PROTECTED_MEMBER, 56, 1),
+    ]);
   }
 
   test_setter_sameClass() async {
     addMetaPackage();
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class A {
   int _a;
@@ -371,7 +406,9 @@ class A {
     this.a = a;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_FIELD, 49, 2),
+    ]);
   }
 
   test_setter_subclass() async {
@@ -418,10 +455,14 @@ main() {
     // annotation is being applied to the wrong kind of declaration.
   }
 
-  /// Resolve the test file at [path].
+  /// Resolve the file with the given [path].
   ///
   /// Similar to ResolutionTest.resolveTestFile, but a custom path is supported.
-  Future<void> _resolveTestFile(String path) async {
+  Future<void> _resolveFile(
+    String path, [
+    List<ExpectedError> expectedErrors = const [],
+  ]) async {
     result = await resolveFile(convertPath(path));
+    assertErrorsInResolvedUnit(result, expectedErrors);
   }
 }

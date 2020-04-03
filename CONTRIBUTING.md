@@ -115,3 +115,5 @@ All files in the Dart project must start with the following header. If you add a
 ## The small print
 
 Contributions made by corporations are covered by a different agreement than the one above, the [Software Grant and Corporate Contributor License Agreement](http://code.google.com/legal/corporate-cla-v1.0.html).
+
+We pledge to maintain an open and welcoming environment. For details, see our [code of conduct](https://dart.dev/code-of-conduct).

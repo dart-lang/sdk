@@ -1,0 +1,46 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/interface_covariantInterface_from_class.dart:15:7: Error: Can't use implicitly 'out' variable 'T' in an 'in' position in supertype 'A'.
+// class B<T> implements A<F<T>> {
+//       ^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/interface_covariantInterface_from_class.dart:19:16: Error: Can't use implicitly 'out' variable 'T' in an 'in' position in supertype 'A'.
+// abstract class I<T> implements A<F<T>> {
+//                ^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/interface_covariantInterface_from_class.dart:23:16: Error: Can't use implicitly 'out' variable 'T' in an 'in' position in supertype 'B'.
+// abstract class C<T> extends B<F<T>> implements I<F<T>> {}
+//                ^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/interface_covariantInterface_from_class.dart:23:16: Error: Can't use implicitly 'out' variable 'T' in an 'in' position in supertype 'I'.
+// abstract class C<T> extends B<F<T>> implements I<F<T>> {}
+//                ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef F<contravariant T extends core::Object* = dynamic> = (T*) →* void;
+abstract class A<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::T*>*
+    ;
+  abstract method f(generic-covariant-impl self::A::T* x, core::int* y) → void;
+}
+class B<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::B<self::B::T*>*
+    ;
+  method f((self::B::T*) →* void x, core::int* y) → void
+    ;
+}
+abstract class I<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::I<self::I::T*>*
+    ;
+  abstract method f((self::I::T*) →* void x, core::Object* y) → void;
+}
+abstract class C<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::C<self::C::T*>*
+    ;
+}
+static method main() → void
+  ;

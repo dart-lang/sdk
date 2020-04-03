@@ -7,35 +7,89 @@ part of sample_profiler;
 abstract class CallTreeNode<NodeT extends M.CallTreeNode>
     implements M.CallTreeNode {
   final List<NodeT> children;
-  final int count;
-  final int inclusiveNativeAllocations;
-  final int exclusiveNativeAllocations;
+  int get count => _count;
+  int _count = 0;
+  int inclusiveNativeAllocations = 0;
+  int exclusiveNativeAllocations = 0;
   double get percentage => _percentage;
   double _percentage = 0.0;
-  final Set<String> attributes = new Set<String>();
+  final attributes = <String>{};
+
+  // Used for building timeline
+  int frameId = null;
+  int parentId = null;
 
   // Either a ProfileCode or a ProfileFunction.
   Object get profileData;
   String get name;
 
-  CallTreeNode(this.children, this.count, this.inclusiveNativeAllocations,
-      this.exclusiveNativeAllocations);
+  CallTreeNode(this.children,
+      [this._count = 0,
+      this.inclusiveNativeAllocations = 0,
+      this.exclusiveNativeAllocations = 0]) {}
+
+  NodeT getChild(int index);
+
+  void sortChildren() {
+    children.sort((a, b) => b.count - a.count);
+    children.forEach((NodeT child) => child.sortChildren());
+  }
+
+  void tick(Map sample, {bool exclusive = false}) {
+    ++_count;
+    if (SampleProfile._isNativeAllocationSample(sample)) {
+      final allocationSize = sample[SampleProfile._kNativeAllocationSizeBytes];
+      if (exclusive) {
+        exclusiveNativeAllocations += allocationSize;
+      }
+      inclusiveNativeAllocations += allocationSize;
+    }
+  }
 }
 
 class CodeCallTreeNode extends CallTreeNode<CodeCallTreeNode>
     implements M.CodeCallTreeNode {
   final ProfileCode profileCode;
+  final SampleProfile profile;
 
   Object get profileData => profileCode;
 
   String get name => profileCode.code.name;
 
-  final Set<String> attributes = new Set<String>();
+  final attributes = <String>{};
   CodeCallTreeNode(this.profileCode, int count, int inclusiveNativeAllocations,
       int exclusiveNativeAllocations)
-      : super(new List<CodeCallTreeNode>(), count, inclusiveNativeAllocations,
+      : profile = profileCode.profile,
+        super(<CodeCallTreeNode>[], count, inclusiveNativeAllocations,
             exclusiveNativeAllocations) {
     attributes.addAll(profileCode.attributes);
+  }
+
+  CodeCallTreeNode.fromIndex(this.profile, int tableIndex)
+      : profileCode = profile.codes[tableIndex],
+        super(<CodeCallTreeNode>[]);
+
+  CodeCallTreeNode getChild(int codeTableIndex) {
+    final length = children.length;
+    int i = 0;
+    while (i < length) {
+      final child = children[i];
+      final childTableIndex = child.profileCode.tableIndex;
+      if (childTableIndex == codeTableIndex) {
+        return child;
+      }
+      if (childTableIndex > codeTableIndex) {
+        break;
+      }
+      ++i;
+    }
+    final child = CodeCallTreeNode.fromIndex(profile, codeTableIndex);
+    if (i < length) {
+      children.insert(i, child);
+    } else {
+      children.add(child);
+    }
+    return child;
   }
 }
 
@@ -58,7 +112,7 @@ class CodeCallTree extends CallTree<CodeCallTreeNode>
   }
 
   CodeCallTree filtered(CallTreeNodeFilter filter) {
-    var treeFilter = new _FilteredCodeCallTreeBuilder(filter, this);
+    final treeFilter = _FilteredCodeCallTreeBuilder(filter, this);
     treeFilter.build();
     if ((treeFilter.filtered.root.inclusiveNativeAllocations != null) &&
         (treeFilter.filtered.root.inclusiveNativeAllocations != 0)) {
@@ -137,7 +191,8 @@ class FunctionCallTreeNodeCode {
 class FunctionCallTreeNode extends CallTreeNode<FunctionCallTreeNode>
     implements M.FunctionCallTreeNode {
   final ProfileFunction profileFunction;
-  final codes = new List<FunctionCallTreeNodeCode>();
+  final SampleProfile profile;
+  final codes = <FunctionCallTreeNodeCode>[];
   int _totalCodeTicks = 0;
   int get totalCodesTicks => _totalCodeTicks;
 
@@ -146,69 +201,43 @@ class FunctionCallTreeNode extends CallTreeNode<FunctionCallTreeNode>
 
   FunctionCallTreeNode(this.profileFunction, int count,
       inclusiveNativeAllocations, exclusiveNativeAllocations)
-      : super(new List<FunctionCallTreeNode>(), count,
-            inclusiveNativeAllocations, exclusiveNativeAllocations) {
+      : profile = profileFunction.profile,
+        super(<FunctionCallTreeNode>[], count, inclusiveNativeAllocations,
+            exclusiveNativeAllocations) {
     profileFunction._addKindBasedAttributes(attributes);
   }
 
-  // Does this function have an optimized version of itself?
-  bool hasOptimizedCode() {
-    for (var nodeCode in codes) {
-      var profileCode = nodeCode.code;
-      if (!profileCode.code.isDartCode) {
-        continue;
-      }
-      if (profileCode.code.function != profileFunction.function) {
-        continue;
-      }
-      if (profileCode.code.isOptimized) {
-        return true;
-      }
-    }
-    return false;
-  }
+  FunctionCallTreeNode.fromIndex(this.profile, int tableIndex)
+      : profileFunction = profile.functions[tableIndex],
+        super(<FunctionCallTreeNode>[]);
 
-  // Does this function have an unoptimized version of itself?
-  bool hasUnoptimizedCode() {
-    for (var nodeCode in codes) {
-      var profileCode = nodeCode.code;
-      if (!profileCode.code.isDartCode) {
-        continue;
+  FunctionCallTreeNode getChild(int functionTableIndex) {
+    final length = children.length;
+    int i = 0;
+    while (i < length) {
+      final child = children[i];
+      final childTableIndex = child.profileFunction.tableIndex;
+      if (childTableIndex == functionTableIndex) {
+        return child;
       }
-      if (profileCode.code.kind == M.CodeKind.stub) {
-        continue;
+      if (childTableIndex > functionTableIndex) {
+        break;
       }
-      if (!profileCode.code.isOptimized) {
-        return true;
-      }
+      ++i;
     }
-    return false;
-  }
-
-  // Has this function been inlined in another function?
-  bool isInlined() {
-    for (var nodeCode in codes) {
-      var profileCode = nodeCode.code;
-      if (!profileCode.code.isDartCode) {
-        continue;
-      }
-      if (profileCode.code.kind == M.CodeKind.stub) {
-        continue;
-      }
-      // If the code's function isn't this function.
-      if (profileCode.code.function != profileFunction.function) {
-        return true;
-      }
+    final child = FunctionCallTreeNode.fromIndex(profile, functionTableIndex);
+    if (i < length) {
+      children.insert(i, child);
+    } else {
+      children.add(child);
     }
-    return false;
+    return child;
   }
-
-  setCodeAttributes() {}
 }
 
 /// Predicate filter function. Returns true if path from root to [node] and all
 /// of [node]'s children should be added to the filtered tree.
-typedef bool CallTreeNodeFilter(CallTreeNode node);
+typedef CallTreeNodeFilter = bool Function(CallTreeNode node);
 
 /// Build a filter version of a FunctionCallTree.
 abstract class _FilteredCallTreeBuilder<NodeT extends CallTreeNode> {
@@ -263,7 +292,6 @@ abstract class _FilteredCallTreeBuilder<NodeT extends CallTreeNode> {
         current.children.add(child);
       }
       current = child;
-      assert(current.count == toAdd.count);
     }
     return current;
   }
@@ -328,16 +356,16 @@ class _FilteredFunctionCallTreeBuilder
       : super(
             filter,
             tree,
-            new FunctionCallTree(
+            FunctionCallTree(
                 tree.inclusive,
-                new FunctionCallTreeNode(
+                FunctionCallTreeNode(
                     tree.root.profileData,
                     tree.root.count,
                     tree.root.inclusiveNativeAllocations,
                     tree.root.exclusiveNativeAllocations)));
 
   _copyNode(FunctionCallTreeNode node) {
-    return new FunctionCallTreeNode(node.profileData, node.count,
+    return FunctionCallTreeNode(node.profileData, node.count,
         node.inclusiveNativeAllocations, node.exclusiveNativeAllocations);
   }
 }
@@ -348,16 +376,16 @@ class _FilteredCodeCallTreeBuilder
       : super(
             filter,
             tree,
-            new CodeCallTree(
+            CodeCallTree(
                 tree.inclusive,
-                new CodeCallTreeNode(
+                CodeCallTreeNode(
                     tree.root.profileData,
                     tree.root.count,
                     tree.root.inclusiveNativeAllocations,
                     tree.root.exclusiveNativeAllocations)));
 
   _copyNode(CodeCallTreeNode node) {
-    return new CodeCallTreeNode(node.profileData, node.count,
+    return CodeCallTreeNode(node.profileData, node.count,
         node.inclusiveNativeAllocations, node.exclusiveNativeAllocations);
   }
 }
@@ -375,7 +403,7 @@ class FunctionCallTree extends CallTree<FunctionCallTreeNode>
   }
 
   FunctionCallTree filtered(CallTreeNodeFilter filter) {
-    var treeFilter = new _FilteredFunctionCallTreeBuilder(filter, this);
+    final treeFilter = _FilteredFunctionCallTreeBuilder(filter, this);
     treeFilter.build();
     if ((treeFilter.filtered.root.inclusiveNativeAllocations != null) &&
         (treeFilter.filtered.root.inclusiveNativeAllocations != 0)) {
@@ -464,24 +492,21 @@ class InlineIntervalTick {
 }
 
 class ProfileCode implements M.ProfileCode {
+  final int tableIndex;
   final SampleProfile profile;
   final Code code;
   int exclusiveTicks;
   int inclusiveTicks;
-  int exclusiveNativeAllocations;
-  int inclusiveNativeAllocations;
   double normalizedExclusiveTicks = 0.0;
   double normalizedInclusiveTicks = 0.0;
-  final addressTicks = new Map<int, CodeTick>();
-  final intervalTicks = new Map<int, InlineIntervalTick>();
+  final addressTicks = <int, CodeTick>{};
+  final intervalTicks = <int, InlineIntervalTick>{};
   String formattedInclusiveTicks = '';
   String formattedExclusiveTicks = '';
   String formattedExclusivePercent = '';
-  String formattedCpuTime = '';
-  String formattedOnStackTime = '';
-  final Set<String> attributes = new Set<String>();
-  final Map<ProfileCode, int> callers = new Map<ProfileCode, int>();
-  final Map<ProfileCode, int> callees = new Map<ProfileCode, int>();
+  final Set<String> attributes = <String>{};
+  final callers = <ProfileCode, int>{};
+  final callees = <ProfileCode, int>{};
 
   void _processTicks(List<dynamic> profileTicks) {
     assert(profileTicks != null);
@@ -492,7 +517,7 @@ class ProfileCode implements M.ProfileCode {
       var address = int.parse(profileTicks[i] as String, radix: 16);
       var exclusive = profileTicks[i + 1] as int;
       var inclusive = profileTicks[i + 2] as int;
-      var tick = new CodeTick(exclusive, inclusive);
+      var tick = CodeTick(exclusive, inclusive);
       addressTicks[address] = tick;
 
       var interval = code.findInterval(address);
@@ -500,7 +525,7 @@ class ProfileCode implements M.ProfileCode {
         var intervalTick = intervalTicks[interval.start];
         if (intervalTick == null) {
           // Insert into map.
-          intervalTick = new InlineIntervalTick(interval.start);
+          intervalTick = InlineIntervalTick(interval.start);
           intervalTicks[interval.start] = intervalTick;
         }
         intervalTick._inclusiveTicks += inclusive;
@@ -509,7 +534,17 @@ class ProfileCode implements M.ProfileCode {
     }
   }
 
-  ProfileCode.fromMap(this.profile, this.code, Map data) {
+  void clearTicks() {
+    exclusiveTicks = 0;
+    inclusiveTicks = 0;
+    normalizedExclusiveTicks = 0;
+    normalizedInclusiveTicks = 0;
+    formattedInclusiveTicks = '';
+    formattedExclusiveTicks = '';
+    formattedExclusivePercent = '';
+  }
+
+  ProfileCode.fromMap(this.tableIndex, this.profile, this.code, Map data) {
     assert(profile != null);
     assert(code != null);
 
@@ -548,22 +583,8 @@ class ProfileCode implements M.ProfileCode {
       _processTicks(ticks);
     }
 
-    if (data.containsKey('exclusiveNativeAllocations') &&
-        data.containsKey('inclusiveNativeAllocations')) {
-      exclusiveNativeAllocations =
-          int.parse(data['exclusiveNativeAllocations']);
-      inclusiveNativeAllocations =
-          int.parse(data['inclusiveNativeAllocations']);
-    }
-
     formattedExclusivePercent =
         Utils.formatPercent(exclusiveTicks, profile.sampleCount);
-
-    formattedCpuTime = Utils.formatTimeMilliseconds(
-        profile.approximateMillisecondsForCount(exclusiveTicks));
-
-    formattedOnStackTime = Utils.formatTimeMilliseconds(
-        profile.approximateMillisecondsForCount(inclusiveTicks));
 
     formattedInclusiveTicks =
         '${Utils.formatPercent(inclusiveTicks, profile.sampleCount)} '
@@ -589,15 +610,43 @@ class ProfileCode implements M.ProfileCode {
     }
     callees[callee] = r + count;
   }
+
+  void _normalizeTicks() {
+    normalizedExclusiveTicks = exclusiveTicks / profile.sampleCount;
+    normalizedInclusiveTicks = inclusiveTicks / profile.sampleCount;
+
+    formattedExclusivePercent =
+        Utils.formatPercent(exclusiveTicks, profile.sampleCount);
+
+    formattedInclusiveTicks =
+        '${Utils.formatPercent(inclusiveTicks, profile.sampleCount)} '
+        '($inclusiveTicks)';
+
+    formattedExclusiveTicks =
+        '${Utils.formatPercent(exclusiveTicks, profile.sampleCount)} '
+        '($exclusiveTicks)';
+  }
+
+  void tickTag() {
+    // All functions *except* those for tags are ticked in the VM while
+    // generating the CpuSamples response.
+    if (code.kind != M.CodeKind.tag) {
+      throw StateError('Only tags should be ticked. '
+          'Attempted to tick: ${code.name}');
+    }
+    ++exclusiveTicks;
+    ++inclusiveTicks;
+    _normalizeTicks();
+  }
 }
 
 class ProfileFunction implements M.ProfileFunction {
+  final int tableIndex;
   final SampleProfile profile;
   final ServiceFunction function;
-  // List of compiled code objects containing this function.
-  final List<ProfileCode> profileCodes = new List<ProfileCode>();
-  final Map<ProfileFunction, int> callers = new Map<ProfileFunction, int>();
-  final Map<ProfileFunction, int> callees = new Map<ProfileFunction, int>();
+  final String resolvedUrl;
+  final callers = <ProfileFunction, int>{};
+  final callees = <ProfileFunction, int>{};
 
   // Absolute ticks:
   int exclusiveTicks = 0;
@@ -607,71 +656,19 @@ class ProfileFunction implements M.ProfileFunction {
   double normalizedExclusiveTicks = 0.0;
   double normalizedInclusiveTicks = 0.0;
 
-  // Native allocations:
-  int exclusiveNativeAllocations = 0;
-  int inclusiveNativeAllocations = 0;
-
   String formattedInclusiveTicks = '';
   String formattedExclusiveTicks = '';
   String formattedExclusivePercent = '';
-  String formattedCpuTime = '';
-  String formattedOnStackTime = '';
-  final Set<String> attributes = new Set<String>();
+  final attributes = <String>{};
 
-  int _sortCodes(ProfileCode a, ProfileCode b) {
-    if (a.code.isOptimized == b.code.isOptimized) {
-      return b.code.profile.exclusiveTicks - a.code.profile.exclusiveTicks;
-    }
-    if (a.code.isOptimized) {
-      return -1;
-    }
-    return 1;
-  }
-
-  // Does this function have an optimized version of itself?
-  bool hasOptimizedCode() {
-    for (var profileCode in profileCodes) {
-      if (profileCode.code.function != function) {
-        continue;
-      }
-      if (profileCode.code.isOptimized) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  // Does this function have an unoptimized version of itself?
-  bool hasUnoptimizedCode() {
-    for (var profileCode in profileCodes) {
-      if (profileCode.code.kind == M.CodeKind.stub) {
-        continue;
-      }
-      if (!profileCode.code.isDartCode) {
-        continue;
-      }
-      if (!profileCode.code.isOptimized) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  // Has this function been inlined in another function?
-  bool isInlined() {
-    for (var profileCode in profileCodes) {
-      if (profileCode.code.kind == M.CodeKind.stub) {
-        continue;
-      }
-      if (!profileCode.code.isDartCode) {
-        continue;
-      }
-      // If the code's function isn't this function.
-      if (profileCode.code.function != function) {
-        return true;
-      }
-    }
-    return false;
+  void clearTicks() {
+    exclusiveTicks = 0;
+    inclusiveTicks = 0;
+    normalizedExclusiveTicks = 0;
+    normalizedInclusiveTicks = 0;
+    formattedInclusiveTicks = '';
+    formattedExclusiveTicks = '';
+    formattedExclusivePercent = '';
   }
 
   void _addKindBasedAttributes(Set<String> attribs) {
@@ -693,45 +690,14 @@ class ProfileFunction implements M.ProfileFunction {
     }
   }
 
-  ProfileFunction.fromMap(this.profile, this.function, Map data) {
+  ProfileFunction.fromMap(
+      this.tableIndex, this.profile, this.function, Map data)
+      : resolvedUrl = data['resolvedUrl'] {
     function.profile = this;
-    for (var codeIndex in data['codes']) {
-      var profileCode = profile.codes[codeIndex];
-      profileCodes.add(profileCode);
-    }
-    profileCodes.sort(_sortCodes);
-
     _addKindBasedAttributes(attributes);
     exclusiveTicks = data['exclusiveTicks'];
     inclusiveTicks = data['inclusiveTicks'];
-
-    normalizedExclusiveTicks = exclusiveTicks / profile.sampleCount;
-    normalizedInclusiveTicks = inclusiveTicks / profile.sampleCount;
-
-    if (data.containsKey('exclusiveNativeAllocations') &&
-        data.containsKey('inclusiveNativeAllocations')) {
-      exclusiveNativeAllocations =
-          int.parse(data['exclusiveNativeAllocations']);
-      inclusiveNativeAllocations =
-          int.parse(data['inclusiveNativeAllocations']);
-    }
-
-    formattedExclusivePercent =
-        Utils.formatPercent(exclusiveTicks, profile.sampleCount);
-
-    formattedCpuTime = Utils.formatTimeMilliseconds(
-        profile.approximateMillisecondsForCount(exclusiveTicks));
-
-    formattedOnStackTime = Utils.formatTimeMilliseconds(
-        profile.approximateMillisecondsForCount(inclusiveTicks));
-
-    formattedInclusiveTicks =
-        '${Utils.formatPercent(inclusiveTicks, profile.sampleCount)} '
-        '($inclusiveTicks)';
-
-    formattedExclusiveTicks =
-        '${Utils.formatPercent(exclusiveTicks, profile.sampleCount)} '
-        '($exclusiveTicks)';
+    _normalizeTicks();
   }
 
   _recordCaller(ProfileFunction caller, int count) {
@@ -749,6 +715,34 @@ class ProfileFunction implements M.ProfileFunction {
     }
     callees[callee] = r + count;
   }
+
+  void _normalizeTicks() {
+    normalizedExclusiveTicks = exclusiveTicks / profile.sampleCount;
+    normalizedInclusiveTicks = inclusiveTicks / profile.sampleCount;
+
+    formattedExclusivePercent =
+        Utils.formatPercent(exclusiveTicks, profile.sampleCount);
+
+    formattedInclusiveTicks =
+        '${Utils.formatPercent(inclusiveTicks, profile.sampleCount)} '
+        '($inclusiveTicks)';
+
+    formattedExclusiveTicks =
+        '${Utils.formatPercent(exclusiveTicks, profile.sampleCount)} '
+        '($exclusiveTicks)';
+  }
+
+  void tickTag() {
+    // All functions *except* those for functions are ticked in the VM while
+    // generating the CpuSamples response.
+    if (function.kind != M.FunctionKind.tag) {
+      throw StateError('Only tags should be ticked. '
+          'Attempted to tick: ${function.name}');
+    }
+    ++exclusiveTicks;
+    ++inclusiveTicks;
+    _normalizeTicks();
+  }
 }
 
 class SampleProfile extends M.SampleProfile {
@@ -757,35 +751,66 @@ class SampleProfile extends M.SampleProfile {
   int sampleCount = 0;
   int samplePeriod = 0;
   double sampleRate = 0.0;
-
-  int stackDepth = 0;
+  int pid = 0;
+  int maxStackDepth = 0;
 
   double timeSpan = 0.0;
 
-  final Map<String, List> tries = <String, List>{};
-  final List<ProfileCode> codes = new List<ProfileCode>();
+  M.SampleProfileTag tagOrder = M.SampleProfileTag.none;
+
+  final _functionTagMapping = <String, int>{};
+  final _codeTagMapping = <String, int>{};
+
+  final List samples = [];
+  final codes = <ProfileCode>[];
   bool _builtCodeCalls = false;
-  final List<ProfileFunction> functions = new List<ProfileFunction>();
+  final functions = <ProfileFunction>[];
   bool _builtFunctionCalls = false;
+
+  static const String _kCode = 'code';
+  static const String _kCodes = '_codes';
+  static const String _kCodeStack = '_codeStack';
+  static const String _kFunction = 'function';
+  static const String _kFunctions = 'functions';
+  static const String _kNativeAllocationSizeBytes =
+      '_nativeAllocationSizeBytes';
+  static const String _kPid = 'pid';
+  static const String _kSampleCount = 'sampleCount';
+  static const String _kSamplePeriod = 'samplePeriod';
+  static const String _kSamples = 'samples';
+  static const String _kStack = 'stack';
+  static const String _kMaxStackDepth = 'maxStackDepth';
+  static const String _kTimeSpan = 'timespan';
+  static const String _kUserTag = 'userTag';
+  static const String _kVmTag = 'vmTag';
+
+  // Names of special tag types.
+  static const String kNativeTag = 'Native';
+  static const String kRootTag = 'Root';
+  static const String kRuntimeTag = 'Runtime';
+  static const String kTruncatedTag = '[Truncated]';
+
+  // Used to stash trie information in samples for timeline processing.
+  static const String kTimelineFunctionTrie = 'timelineFunctionTrie';
 
   CodeCallTree loadCodeTree(M.ProfileTreeDirection direction) {
     switch (direction) {
       case M.ProfileTreeDirection.inclusive:
-        return _loadCodeTree(true, tries['inclusiveCodeTrie']);
+        return _loadCodeTree(true);
       case M.ProfileTreeDirection.exclusive:
-        return _loadCodeTree(false, tries['exclusiveCodeTrie']);
+        return _loadCodeTree(false);
     }
-    throw new Exception('Unknown ProfileTreeDirection');
+    throw Exception('Unknown ProfileTreeDirection');
   }
 
   FunctionCallTree loadFunctionTree(M.ProfileTreeDirection direction) {
     switch (direction) {
       case M.ProfileTreeDirection.inclusive:
-        return _loadFunctionTree(true, tries['inclusiveFunctionTrie']);
+        return _loadFunctionTree(true);
       case M.ProfileTreeDirection.exclusive:
-        return _loadFunctionTree(false, tries['exclusiveFunctionTrie']);
+        return _loadFunctionTree(false);
     }
-    throw new Exception('Unknown ProfileTreeDirection');
+    throw Exception('Unknown ProfileTreeDirection');
   }
 
   buildCodeCallerAndCallees() {
@@ -807,14 +832,14 @@ class SampleProfile extends M.SampleProfile {
   }
 
   clear() {
+    pid = -1;
     sampleCount = 0;
     samplePeriod = 0;
     sampleRate = 0.0;
-    stackDepth = 0;
+    maxStackDepth = 0;
     timeSpan = 0.0;
     codes.clear();
     functions.clear();
-    tries.clear();
     _builtCodeCalls = false;
     _builtFunctionCalls = false;
   }
@@ -823,266 +848,401 @@ class SampleProfile extends M.SampleProfile {
     await loadProgress(owner, profile).drain();
   }
 
-  static Future sleep([Duration duration = const Duration(microseconds: 0)]) {
-    final Completer completer = new Completer();
-    new Timer(duration, () => completer.complete());
-    return completer.future;
-  }
+  static Future sleep([Duration duration = const Duration(microseconds: 0)]) =>
+      Future.delayed(duration);
 
-  Stream<double> loadProgress(ServiceObjectOwner owner, ServiceMap profile) {
-    Logger.root.info('sampling counters ${profile['counters']}');
-
-    var progress = new StreamController<double>.broadcast();
-
-    (() async {
-      final Stopwatch watch = new Stopwatch();
-      watch.start();
-      int count = 0;
-      var needToUpdate = () {
-        count++;
-        if (((count % 256) == 0) && (watch.elapsedMilliseconds > 16)) {
-          watch.reset();
-          return true;
-        }
+  Future _loadCommon(ServiceObjectOwner owner, ServiceMap profile,
+      [StreamController<double> progress]) async {
+    final watch = Stopwatch();
+    watch.start();
+    int count = 0;
+    var needToUpdate = () {
+      if (progress == null) {
         return false;
-      };
-      var signal = (double p) {
-        progress.add(p);
-        return sleep();
-      };
-      try {
-        clear();
-        progress.add(0.0);
-        if (profile == null) {
-          return;
-        }
+      }
+      count++;
+      if (((count % 256) == 0) && (watch.elapsedMilliseconds > 16)) {
+        watch.reset();
+        return true;
+      }
+      return false;
+    };
+    var signal = (double p) {
+      if (progress == null) {
+        return null;
+      }
+      progress.add(p);
+      return sleep();
+    };
+    try {
+      clear();
+      progress?.add(0.0);
+      if (profile == null) {
+        return;
+      }
 
-        if ((owner != null) && (owner is Isolate)) {
-          isolate = owner;
-          isolate.resetCachedProfileData();
-        }
+      if ((owner != null) && (owner is Isolate)) {
+        isolate = owner;
+        isolate.resetCachedProfileData();
+      }
 
-        sampleCount = profile['sampleCount'];
-        samplePeriod = profile['samplePeriod'];
-        sampleRate = (Duration.microsecondsPerSecond / samplePeriod);
-        stackDepth = profile['stackDepth'];
-        timeSpan = profile['timeSpan'];
+      pid = profile[_kPid];
+      sampleCount = profile[_kSampleCount];
+      samplePeriod = profile[_kSamplePeriod];
+      sampleRate = (Duration.microsecondsPerSecond / samplePeriod);
+      maxStackDepth = profile[_kMaxStackDepth];
+      timeSpan = profile[_kTimeSpan];
 
-        num length = profile['codes'].length + profile['functions'].length;
+      num length = 0;
 
-        // Process code table.
-        for (var codeRegion in profile['codes']) {
+      if (profile.containsKey(_kCodes)) {
+        length += profile[_kCodes].length;
+      }
+      length += profile[_kFunctions].length;
+
+      // Process code table.
+      int tableIndex = 0;
+      if (profile.containsKey(_kCodes)) {
+        for (var codeRegion in profile[_kCodes]) {
           if (needToUpdate()) {
             await signal(count * 100.0 / length);
           }
-          Code code = codeRegion['code'];
+          Code code = codeRegion[_kCode];
           assert(code != null);
-          codes.add(new ProfileCode.fromMap(this, code, codeRegion));
+          codes.add(ProfileCode.fromMap(tableIndex, this, code, codeRegion));
+          ++tableIndex;
         }
-        // Process function table.
-        for (var profileFunction in profile['functions']) {
-          if (needToUpdate()) {
-            await signal(count * 100 / length);
-          }
-          ServiceFunction function = profileFunction['function'];
-          assert(function != null);
-          functions.add(
-              new ProfileFunction.fromMap(this, function, profileFunction));
-        }
-
-        tries['exclusiveCodeTrie'] =
-            new Uint32List.fromList(profile['exclusiveCodeTrie'].cast<int>());
-        tries['inclusiveCodeTrie'] =
-            new Uint32List.fromList(profile['inclusiveCodeTrie'].cast<int>());
-        tries['exclusiveFunctionTrie'] = new Uint32List.fromList(
-            profile['exclusiveFunctionTrie'].cast<int>());
-        tries['inclusiveFunctionTrie'] = new Uint32List.fromList(
-            profile['inclusiveFunctionTrie'].cast<int>());
-      } finally {
-        progress.close();
       }
-    }());
+      // Process function table.
+      tableIndex = 0;
+      for (var profileFunction in profile[_kFunctions]) {
+        if (needToUpdate()) {
+          await signal(count * 100 / length);
+        }
+        ServiceFunction function = profileFunction[_kFunction];
+        assert(function != null);
+        functions.add(ProfileFunction.fromMap(
+            tableIndex, this, function, profileFunction));
+        ++tableIndex;
+      }
+      if (profile.containsKey(_kCodes)) {
+        _buildCodeTagMapping();
+      }
+
+      _buildFunctionTagMapping();
+
+      samples.addAll(profile[_kSamples]);
+    } finally {
+      progress?.close();
+    }
+  }
+
+  Stream<double> loadProgress(ServiceObjectOwner owner, ServiceMap profile) {
+    Logger.root.info('sampling counters ${profile['_counters']}');
+
+    var progress = StreamController<double>.broadcast();
+
+    _loadCommon(owner, profile, progress);
     return progress.stream;
   }
 
-  // Data shared across calls to _read*TrieNode.
-  int _dataCursor = 0;
+  // Helpers for reading optional flags from a sample.
+  static bool _isNativeEntryTag(Map sample) =>
+      sample.containsKey('nativeEntryTag');
+  static bool _isRuntimeEntryTag(Map sample) =>
+      sample.containsKey('runtimeEntryTag');
+  static bool _isTruncated(Map sample) => sample.containsKey('truncated');
+  static bool _isNativeAllocationSample(Map sample) =>
+      sample.containsKey('_nativeAllocationSizeBytes');
 
-  // The code trie is serialized as a list of integers. Each node
-  // is recreated by consuming some portion of the list. The format is as
-  // follows:
-  // [0] index into codeTable of code object.
-  // [1] tick count (number of times this stack frame occured).
-  // [2] child node count
-  // Reading the trie is done by recursively reading the tree depth-first
-  // pre-order.
-  CodeCallTree _loadCodeTree(bool inclusive, List<int> data) {
-    if (data == null) {
-      return null;
+  int _getProfileFunctionTagIndex(String tag) {
+    if (_functionTagMapping.containsKey(tag)) {
+      return _functionTagMapping[tag];
     }
-    if (data.length < 3) {
-      // Not enough for root node.
-      return null;
-    }
-    // Read the tree, returns the root node.
-    var root = _readCodeTrie(data);
-    return new CodeCallTree(inclusive, root);
+    throw ArgumentError('$tag is not a valid tag!');
   }
 
-  CodeCallTreeNode _readCodeTrieNode(List<int> data) {
-    // Lookup code object.
-    var codeIndex = data[_dataCursor++];
-    var code = codes[codeIndex];
-    // Node tick counter.
-    var count = data[_dataCursor++];
-    // Child node count.
-    var children = data[_dataCursor++];
-    // Inclusive native allocations.
-    var inclusiveNativeAllocations = data[_dataCursor++];
-    // Exclusive native allocations.
-    var exclusiveNativeAllocations = data[_dataCursor++];
-    // Create node.
-    var node = new CodeCallTreeNode(
-        code, count, inclusiveNativeAllocations, exclusiveNativeAllocations);
-    node.children.length = children;
-    return node;
+  int _getProfileCodeTagIndex(String tag) {
+    if (_codeTagMapping.containsKey(tag)) {
+      return _codeTagMapping[tag];
+    }
+    throw ArgumentError('$tag is not a valid tag!');
   }
 
-  CodeCallTreeNode _readCodeTrie(List<int> data) {
-    final nodeStack = new List<CodeCallTreeNode>();
-    final childIndexStack = new List<int>();
+  void _buildFunctionTagMapping() {
+    for (int i = 0; i < functions.length; ++i) {
+      final function = functions[i].function;
+      if (function.kind == M.FunctionKind.tag) {
+        _functionTagMapping[function.name] = i;
+      }
+    }
+  }
 
-    _dataCursor = 0;
-    // Read root.
-    var root = _readCodeTrieNode(data);
+  void _buildCodeTagMapping() {
+    for (int i = 0; i < codes.length; ++i) {
+      final code = codes[i].code;
+      if (code.kind == M.CodeKind.tag) {
+        _codeTagMapping[code.name] = i;
+      }
+    }
+  }
 
-    // Push root onto stack.
-    if (root.children.length > 0) {
-      nodeStack.add(root);
-      childIndexStack.add(0);
+  void _clearProfileFunctionTagTicks() =>
+      _functionTagMapping.forEach((String name, int tableIndex) {
+        // Truncated tag is ticked in the VM, so don't clear it.
+        if (name != kTruncatedTag) {
+          functions[tableIndex].clearTicks();
+        }
+      });
+
+  void _clearProfileCodeTagTicks() =>
+      _codeTagMapping.forEach((String name, int tableIndex) {
+        // Truncated tag is ticked in the VM, so don't clear it.
+        if (name != kTruncatedTag) {
+          codes[tableIndex].clearTicks();
+        }
+      });
+
+  NodeT _appendUserTag<NodeT extends CallTreeNode>(
+      String userTag, NodeT current, Map sample) {
+    bool isCode = (current is CodeCallTreeNode);
+    try {
+      final tableIndex = isCode
+          ? _getProfileCodeTagIndex(userTag)
+          : _getProfileFunctionTagIndex(userTag);
+      current = current.getChild(tableIndex);
+      current.tick(sample);
+    } catch (_) {/* invalid tag */} finally {
+      return current;
+    }
+  }
+
+  NodeT _appendTruncatedTag<NodeT extends CallTreeNode>(
+      NodeT current, Map sample) {
+    final isCode = (current is CodeCallTreeNode);
+    try {
+      final tableIndex = isCode
+          ? _getProfileCodeTagIndex(kTruncatedTag)
+          : _getProfileFunctionTagIndex(kTruncatedTag);
+      current = current.getChild(tableIndex);
+      current.tick(sample);
+      // We don't need to tick the tag itself since this is done in the VM for
+      // the truncated tag, unlike other VM and user tags.
+    } catch (_) {/* invalid tag */} finally {
+      return current;
+    }
+  }
+
+  FunctionCallTreeNode _getFunctionTagAndTick(
+      String tag, FunctionCallTreeNode current, Map sample) {
+    try {
+      final tableIndex = _getProfileFunctionTagIndex(tag);
+      current = current.getChild(tableIndex);
+      current.tick(sample);
+    } catch (_) {/* invalid tag */} finally {
+      return current;
+    }
+  }
+
+  CodeCallTreeNode _getCodeTagAndTick(
+      String tag, CodeCallTreeNode current, Map sample) {
+    try {
+      final tableIndex = _getProfileCodeTagIndex(tag);
+      current = current.getChild(tableIndex);
+      current.tick(sample);
+    } catch (_) {/* invalid tag */} finally {
+      return current;
+    }
+  }
+
+  NodeT _getTagAndTick<NodeT extends CallTreeNode>(
+      String tag, NodeT current, Map sample) {
+    if (current is FunctionCallTreeNode) {
+      return _getFunctionTagAndTick(tag, current, sample) as NodeT;
+    } else if (current is CodeCallTreeNode) {
+      return _getCodeTagAndTick(tag, current, sample) as NodeT;
+    }
+    throw ArgumentError('Unexpected tree type: $NodeT');
+  }
+
+  NodeT _appendVMTag<NodeT extends CallTreeNode>(
+      String vmTag, NodeT current, Map sample) {
+    if (_isNativeEntryTag(sample)) {
+      return _getTagAndTick(kNativeTag, current, sample);
+    } else if (_isRuntimeEntryTag(sample)) {
+      return _getTagAndTick(kRuntimeTag, current, sample);
+    } else {
+      return _getTagAndTick(vmTag, current, sample);
+    }
+  }
+
+  NodeT _appendSpecificNativeRuntimeEntryVMTag<NodeT extends CallTreeNode>(
+      NodeT current, Map sample) {
+    // Only Native and Runtime entries have a second VM tag.
+    if (!_isNativeEntryTag(sample) && !_isRuntimeEntryTag(sample)) {
+      return current;
+    }
+    final vmTag = sample[_kVmTag];
+    return _getTagAndTick(vmTag, current, sample);
+  }
+
+  NodeT _appendVMTags<NodeT extends CallTreeNode>(
+      String vmTag, NodeT current, Map sample) {
+    current = _appendVMTag(vmTag, current, sample);
+    current = _appendSpecificNativeRuntimeEntryVMTag(current, sample);
+    return current;
+  }
+
+  void _tickTags(String vmTag, String userTag, bool tickCode) {
+    if (tickCode) {
+      final vmTagIndex = _getProfileCodeTagIndex(vmTag);
+      codes[vmTagIndex].tickTag();
+
+      final userTagIndex = _getProfileCodeTagIndex(userTag);
+      codes[userTagIndex].tickTag();
+    } else {
+      final vmTagIndex = _getProfileFunctionTagIndex(vmTag);
+      functions[vmTagIndex].tickTag();
+
+      final userTagIndex = _getProfileFunctionTagIndex(userTag);
+      functions[userTagIndex].tickTag();
+    }
+  }
+
+  NodeT _appendTags<NodeT extends CallTreeNode>(
+      String vmTag, String userTag, NodeT current, Map sample) {
+    final tickCode = (current is M.CodeCallTreeNode);
+    _tickTags(vmTag, userTag, tickCode);
+    if (tagOrder == M.SampleProfileTag.none) {
+      return current;
+    }
+    // User first.
+    if (tagOrder == M.SampleProfileTag.userVM ||
+        tagOrder == M.SampleProfileTag.userOnly) {
+      current = _appendUserTag(userTag, current, sample);
+      // Only user.
+      if (tagOrder == M.SampleProfileTag.userOnly) {
+        return current;
+      }
+      return _appendVMTags(vmTag, current, sample);
     }
 
-    while (nodeStack.length > 0) {
-      var lastIndex = nodeStack.length - 1;
-      // Pop parent from stack.
-      var parent = nodeStack[lastIndex];
-      var childIndex = childIndexStack[lastIndex];
+    // VM first.
+    current = _appendVMTags(vmTag, current, sample);
+    // Only VM.
+    if (tagOrder == M.SampleProfileTag.vmOnly) {
+      return current;
+    }
+    return _appendUserTag(userTag, current, sample);
+  }
 
-      // Read child node.
-      assert(childIndex < parent.children.length);
-      var node = _readCodeTrieNode(data);
-      parent.children[childIndex++] = node;
+  NodeT _processFrame<NodeT extends CallTreeNode>(NodeT parent, int sampleIndex,
+      Map sample, List<int> stack, int frameIndex, bool inclusive) {
+    final child = parent.getChild(stack[frameIndex]);
+    child.tick(sample, exclusive: (frameIndex == 0));
+    return child;
+  }
 
-      // If parent still has children, update child index.
-      if (childIndex < parent.children.length) {
-        childIndexStack[lastIndex] = childIndex;
+  FunctionCallTreeNode buildFunctionTrie(bool inclusive) {
+    final root = FunctionCallTreeNode.fromIndex(
+        this, _getProfileFunctionTagIndex(kRootTag));
+
+    for (int sampleIndex = 0; sampleIndex < samples.length; ++sampleIndex) {
+      final sample = samples[sampleIndex];
+      FunctionCallTreeNode current = root;
+      // Tick the root for each sample as we always visit the root node.
+      root.tick(sample);
+
+      // VM + User tags.
+      final vmTag = sample[_kVmTag];
+      final userTag = sample[_kUserTag];
+      final stack = sample[_kStack].cast<int>();
+      current = _appendTags(vmTag, userTag, current, sample);
+
+      if (inclusive) {
+        if (_isTruncated(sample)) {
+          current = _appendTruncatedTag(current, sample);
+        }
+        for (int frameIndex = stack.length - 1; frameIndex >= 0; --frameIndex) {
+          current = _processFrame(
+              current, sampleIndex, sample, stack, frameIndex, true);
+        }
+
+        // Used by the timeline to find the root of each sample.
+        sample[kTimelineFunctionTrie] = current;
       } else {
-        // Finished processing parent node.
-        nodeStack.removeLast();
-        childIndexStack.removeLast();
-      }
+        for (int frameIndex = 0; frameIndex < stack.length; ++frameIndex) {
+          current = _processFrame(
+              current, sampleIndex, sample, stack, frameIndex, false);
+        }
 
-      // If node has children, push onto stack.
-      if (node.children.length > 0) {
-        nodeStack.add(node);
-        childIndexStack.add(0);
+        if (_isTruncated(sample)) {
+          current = _appendTruncatedTag(current, sample);
+        }
       }
     }
-
     return root;
   }
 
-  FunctionCallTree _loadFunctionTree(bool inclusive, List<int> data) {
-    if (data == null) {
-      return null;
-    }
-    if (data.length < 3) {
-      // Not enough integers for 1 node.
-      return null;
-    }
-    // Read the tree, returns the root node.
-    var root = _readFunctionTrie(data);
-    return new FunctionCallTree(inclusive, root);
-  }
+  CodeCallTreeNode buildCodeTrie(bool inclusive) {
+    final root =
+        CodeCallTreeNode.fromIndex(this, _getProfileCodeTagIndex(kRootTag));
 
-  FunctionCallTreeNode _readFunctionTrieNode(List<int> data) {
-    // Read index into function table.
-    var index = data[_dataCursor++];
-    // Lookup function object.
-    var function = functions[index];
-    // Counter.
-    var count = data[_dataCursor++];
-    // Inclusive native allocations.
-    var inclusiveNativeAllocations = data[_dataCursor++];
-    // Exclusive native allocations.
-    var exclusiveNativeAllocations = data[_dataCursor++];
-    // Create node.
-    var node = new FunctionCallTreeNode(function, count,
-        inclusiveNativeAllocations, exclusiveNativeAllocations);
-    // Number of code index / count pairs.
-    var codeCount = data[_dataCursor++];
-    node.codes.length = codeCount;
-    var totalCodeTicks = 0;
-    for (var i = 0; i < codeCount; i++) {
-      var codeIndex = data[_dataCursor++];
-      var code = codes[codeIndex];
-      assert(code != null);
-      var codeTicks = data[_dataCursor++];
-      totalCodeTicks += codeTicks;
-      var nodeCode = new FunctionCallTreeNodeCode(code, codeTicks);
-      node.codes[i] = nodeCode;
-    }
-    node.setCodeAttributes();
-    node._totalCodeTicks = totalCodeTicks;
-    // Number of children.
-    var childCount = data[_dataCursor++];
-    node.children.length = childCount;
-    return node;
-  }
+    for (int sampleIndex = 0; sampleIndex < samples.length; ++sampleIndex) {
+      final sample = samples[sampleIndex];
 
-  FunctionCallTreeNode _readFunctionTrie(List<int> data) {
-    final nodeStack = new List<FunctionCallTreeNode>();
-    final childIndexStack = new List<int>();
+      CodeCallTreeNode current = root;
+      // Tick the root for each sample as we always visit the root node.
+      root.tick(sample);
 
-    _dataCursor = 0;
+      // VM + User tags.
+      final vmTag = sample[_kVmTag];
+      final userTag = sample[_kUserTag];
+      final stack = sample[_kCodeStack].cast<int>();
+      current = _appendTags(vmTag, userTag, current, sample);
 
-    // Read root.
-    var root = _readFunctionTrieNode(data);
-
-    // Push root onto stack.
-    if (root.children.length > 0) {
-      nodeStack.add(root);
-      childIndexStack.add(0);
-    }
-
-    while (nodeStack.length > 0) {
-      var lastIndex = nodeStack.length - 1;
-      // Pop parent from stack.
-      var parent = nodeStack[lastIndex];
-      var childIndex = childIndexStack[lastIndex];
-
-      // Read child node.
-      assert(childIndex < parent.children.length);
-      var node = _readFunctionTrieNode(data);
-      parent.children[childIndex++] = node;
-
-      // If parent still has children, update child index.
-      if (childIndex < parent.children.length) {
-        childIndexStack[lastIndex] = childIndex;
+      if (inclusive) {
+        if (_isTruncated(sample)) {
+          current = _appendTruncatedTag(current, sample);
+        }
+        for (int frameIndex = stack.length - 1; frameIndex >= 0; --frameIndex) {
+          current = _processFrame(
+              current, sampleIndex, sample, stack, frameIndex, true);
+        }
       } else {
-        // Finished processing parent node.
-        nodeStack.removeLast();
-        childIndexStack.removeLast();
-      }
+        for (int frameIndex = 0; frameIndex < stack.length; ++frameIndex) {
+          current = _processFrame(
+              current, sampleIndex, sample, stack, frameIndex, false);
+        }
 
-      // If node has children, push onto stack.
-      if (node.children.length > 0) {
-        nodeStack.add(node);
-        childIndexStack.add(0);
+        if (_isTruncated(sample)) {
+          current = _appendTruncatedTag(current, sample);
+        }
       }
     }
-
     return root;
+  }
+
+  FunctionCallTree _loadFunctionTree(bool inclusive) {
+    // Since we're only ticking tag functions when building the trie, we need
+    // to clean up ticks from previous tree builds.
+    _clearProfileFunctionTagTicks();
+
+    // Read the tree, returns the root node.
+    final root = buildFunctionTrie(inclusive);
+    root.sortChildren();
+    return FunctionCallTree(inclusive, root);
+  }
+
+  CodeCallTree _loadCodeTree(bool inclusive) {
+    // Since we're only ticking tag code when building the trie, we need
+    // to clean up ticks from previous tree builds.
+    _clearProfileCodeTagTicks();
+
+    // Read the tree, returns the root node.
+    final root = buildCodeTrie(inclusive);
+    root.sortChildren();
+    return CodeCallTree(inclusive, root);
   }
 
   int approximateMillisecondsForCount(count) {

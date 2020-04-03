@@ -4,22 +4,31 @@
 
 library fasta.builtin_type_builder;
 
-import 'package:kernel/ast.dart' show DartType;
+import 'package:kernel/ast.dart' show DartType, Nullability;
 
-import 'builder.dart' show LibraryBuilder, TypeBuilder, TypeDeclarationBuilder;
+import 'library_builder.dart';
+import 'nullability_builder.dart';
+import 'type_builder.dart';
 
-abstract class BuiltinTypeBuilder extends TypeDeclarationBuilder {
+import 'type_declaration_builder.dart';
+
+abstract class BuiltinTypeBuilder extends TypeDeclarationBuilderImpl {
   final DartType type;
 
   BuiltinTypeBuilder(
       String name, this.type, LibraryBuilder compilationUnit, int charOffset)
       : super(null, 0, name, compilationUnit, charOffset);
 
-  DartType buildType(LibraryBuilder library, List<TypeBuilder> arguments) =>
-      type;
+  DartType buildType(LibraryBuilder library,
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments,
+      [bool notInstanceContext]) {
+    // TODO(dmitryas): Use [nullabilityBuilder].
+    return type;
+  }
 
-  DartType buildTypesWithBuiltArguments(
-      LibraryBuilder library, List<DartType> arguments) {
+  DartType buildTypesWithBuiltArguments(LibraryBuilder library,
+      Nullability nullability, List<DartType> arguments) {
+    // TODO(dmitryas): Use [nullability].
     return type;
   }
 

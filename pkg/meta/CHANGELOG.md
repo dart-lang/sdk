@@ -1,3 +1,8 @@
+## 1.1.8
+
+* Introduce `@nonVirtual` to annotate instance members that should not be
+  overridden in subclasses or when mixed in.
+
 ## 1.1.7
 
 * Introduce `@sealed` to declare that a class or mixin is not allowed as a

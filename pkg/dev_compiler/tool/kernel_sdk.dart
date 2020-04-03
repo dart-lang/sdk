@@ -7,6 +7,7 @@ import 'dart:async';
 import 'dart:convert' show json;
 import 'dart:io';
 import 'package:args/args.dart' show ArgParser;
+import 'package:build_integration/file_system/multi_root.dart';
 import 'package:dev_compiler/src/compiler/module_builder.dart';
 import 'package:dev_compiler/src/compiler/shared_command.dart'
     show SharedCompilerOptions;
@@ -16,10 +17,11 @@ import 'package:dev_compiler/src/kernel/compiler.dart';
 import 'package:front_end/src/api_unstable/ddc.dart'
     show
         CompilerOptions,
-        kernelForModule,
         DiagnosticMessage,
-        printDiagnosticMessage,
-        Severity;
+        Severity,
+        StandardFileSystem,
+        kernelForModule,
+        printDiagnosticMessage;
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:path/path.dart' as p;
@@ -55,17 +57,33 @@ Future main(List<String> args) async {
     }
   }
 
+  var customScheme = 'org-dartlang-sdk';
+  var fileSystem = MultiRootFileSystem(
+      customScheme, [Uri.base], StandardFileSystem.instance);
+  var sdkRoot = Uri.parse('$customScheme:/');
+  var packagesFileUri = sdkRoot
+      .resolve(p.relative(Uri.file(packagesPath).path, from: Uri.base.path));
+  if (packagesFileUri.scheme != customScheme) {
+    throw 'packagesPath has to be under ${Uri.base}';
+  }
+  var librariesSpecificationUri = sdkRoot
+      .resolve(p.relative(Uri.file(librarySpecPath).path, from: Uri.base.path));
+  if (librariesSpecificationUri.scheme != customScheme) {
+    throw 'librarySpecPath has to be under ${Uri.base}';
+  }
+
   var options = CompilerOptions()
     ..compileSdk = true
-    // TODO(sigmund): remove these two unnecessary options when possible.
-    ..sdkRoot = Uri.base
-    ..packagesFileUri = Uri.base.resolveUri(Uri.file(packagesPath))
-    ..librariesSpecificationUri = Uri.base.resolveUri(Uri.file(librarySpecPath))
+    ..fileSystem = fileSystem
+    ..sdkRoot = sdkRoot
+    ..packagesFileUri = packagesFileUri
+    ..librariesSpecificationUri = librariesSpecificationUri
     ..target = target
     ..onDiagnostic = onDiagnostic
     ..environmentDefines = {};
 
   var inputs = target.extraRequiredLibraries.map(Uri.parse).toList();
+
   var compilerResult = await kernelForModule(inputs, options);
   var component = compilerResult.component;
 
@@ -79,12 +97,13 @@ Future main(List<String> args) async {
       component,
       compilerResult.classHierarchy,
       SharedCompilerOptions(moduleName: 'dart_sdk'),
-      {}).emitModule(component, [], [], {});
+      const {},
+      const {}).emitModule(component);
   var moduleFormats = {
     'amd': ModuleFormat.amd,
     'common': ModuleFormat.common,
     'es6': ModuleFormat.es6,
-    'legacy': ModuleFormat.legacy,
+    'legacy': ModuleFormat.ddc,
   };
 
   for (var name in moduleFormats.keys) {
@@ -94,7 +113,11 @@ Future main(List<String> args) async {
     var mapPath = '$jsPath.map';
     await Directory(jsDir).create();
     var jsCode = jsProgramToCode(jsModule, format,
-        jsUrl: jsPath, mapUrl: mapPath, buildSourceMap: true);
+        jsUrl: jsPath,
+        mapUrl: mapPath,
+        buildSourceMap: true,
+        customScheme: customScheme,
+        component: component);
     await File(jsPath).writeAsString(jsCode.code);
     await File(mapPath).writeAsString(json.encode(jsCode.sourceMap));
   }

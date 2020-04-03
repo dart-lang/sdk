@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:path/path.dart' as p;
+import 'package:smith/configuration.dart' show NnbdMode;
+
 import 'configuration.dart' show Compiler;
 import 'utils.dart';
 
@@ -56,7 +58,7 @@ String _toJSIdentifier(String name) {
 
   // Escape any invalid characters
   StringBuffer buffer;
-  for (int i = 0; i < name.length; i++) {
+  for (var i = 0; i < name.length; i++) {
     var ch = name[i];
     var needsEscape = ch == r'$' || _invalidCharInIdentifier.hasMatch(ch);
     if (needsEscape && buffer == null) {
@@ -145,10 +147,12 @@ bool _invalidVariableName(String keyword, {bool strictMode = true}) {
 /// [testJSDir] is the relative path to the build directory where the
 /// dartdevc-generated JS file is stored.
 String dartdevcHtml(String testName, String testNameAlias, String testJSDir,
-    Compiler compiler) {
+    Compiler compiler, NnbdMode mode) {
   var testId = pathToJSIdentifier(testName);
   var testIdAlias = pathToJSIdentifier(testNameAlias);
   var isKernel = compiler == Compiler.dartdevk;
+  var isNnbd = mode != NnbdMode.legacy;
+  var isNnbdStrong = mode == NnbdMode.strong;
   var sdkPath = isKernel ? 'kernel/amd/dart_sdk' : 'js/amd/dart_sdk';
   var pkgDir = isKernel ? 'pkg_kernel' : 'pkg';
   var packagePaths = testPackages
@@ -214,33 +218,22 @@ requirejs(["$testName", "dart_sdk", "async_helper"],
     return lines.join("\\n");
   };
 
-  let pendingCallbacks = 0;
-  let waitForDone = false, isDone = false;
-
   sdk.dart.addAsyncCallback = function() {
-    pendingCallbacks++;
-    if (!waitForDone) {
-      // When the first callback is added, signal that test_controller.js
-      // should wait until done.
-      waitForDone = true;
-      dartPrint('unittest-suite-wait-for-done');
-    }
+    async_helper.async_helper.asyncStart();
   };
 
   sdk.dart.removeAsyncCallback = function() {
-    if (--pendingCallbacks <= 0) {
-      // We might be done with async callbacks. Schedule a task to check.
-      // Note: can't use a Promise here, because the unhandled rejection event
-      // is fired as a task, rather than a microtask. `setTimeout` will create a
-      // task, giving an unhandled promise reject time to fire before this does.
-      setTimeout(() => {
-        if (pendingCallbacks <= 0 && !isDone) {
-          isDone = true;
-          dartPrint('unittest-suite-done');
-        }
-      }, 0);
-    }
+    // removeAsyncCallback() is called *before* the async operation is
+    // performed, but we don't want to report the test as being done until
+    // after that operation completes, so wait for that callback to run.
+    setTimeout(() => {
+      async_helper.async_helper.asyncEnd();
+    }, 0);
   };
+
+  if ($isNnbd) {
+    sdk.dart.strictSubtypeChecks($isNnbdStrong);
+  }
 
   dartMainRunner(function testMainWrapper() {
     // Some callbacks are not scheduled with timers/microtasks, so they don't

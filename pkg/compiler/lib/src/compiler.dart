@@ -38,7 +38,7 @@ import 'js_model/js_strategy.dart';
 import 'kernel/kernel_strategy.dart';
 import 'kernel/loader.dart' show KernelLoaderTask, KernelResult;
 import 'null_compiler_output.dart' show NullCompilerOutput;
-import 'options.dart' show CompilerOptions, DiagnosticOptions;
+import 'options.dart' show CompilerOptions;
 import 'serialization/task.dart';
 import 'serialization/strategies.dart';
 import 'ssa/nodes.dart' show HInstruction;
@@ -144,7 +144,7 @@ abstract class Compiler {
     if (makeReporter != null) {
       _reporter = makeReporter(this, options);
     } else {
-      _reporter = new CompilerDiagnosticReporter(this, options);
+      _reporter = new CompilerDiagnosticReporter(this);
     }
     kernelFrontEndTask = new GenericTask('Front end', measurer);
     frontendStrategy = new KernelFrontendStrategy(
@@ -184,8 +184,10 @@ abstract class Compiler {
     return new JsBackendStrategy(this);
   }
 
-  ResolutionWorldBuilder get resolutionWorldBuilder =>
-      enqueuer.resolution.worldBuilder;
+  ResolutionWorldBuilder resolutionWorldBuilderForTesting;
+
+  KClosedWorld get frontendClosedWorldForTesting =>
+      resolutionWorldBuilderForTesting.closedWorldForTesting;
 
   CodegenWorldBuilder get codegenWorldBuilder {
     assert(
@@ -301,24 +303,12 @@ abstract class Compiler {
     }
   }
 
-  /// Starts the resolution phase, creating the [ResolutionEnqueuer] if not
-  /// already created.
-  ///
-  /// During normal compilation resolution only started once, but through
-  /// [analyzeUri] resolution is started repeatedly.
-  ResolutionEnqueuer startResolution() {
-    ResolutionEnqueuer resolutionEnqueuer;
-    if (enqueuer.hasResolution) {
-      resolutionEnqueuer = enqueuer.resolution;
-    } else {
-      resolutionEnqueuer = enqueuer.createResolutionEnqueuer();
-      frontendStrategy.onResolutionStart();
-    }
-    return resolutionEnqueuer;
-  }
-
   JClosedWorld computeClosedWorld(Uri rootLibraryUri, Iterable<Uri> libraries) {
-    ResolutionEnqueuer resolutionEnqueuer = startResolution();
+    ResolutionEnqueuer resolutionEnqueuer = enqueuer.createResolutionEnqueuer();
+    if (retainDataForTesting) {
+      resolutionWorldBuilderForTesting = resolutionEnqueuer.worldBuilder;
+    }
+    frontendStrategy.onResolutionStart();
     for (LibraryEntity library
         in frontendStrategy.elementEnvironment.libraries) {
       frontendStrategy.elementEnvironment.forEachClass(library,
@@ -361,7 +351,8 @@ abstract class Compiler {
     assert(mainFunction != null);
     checkQueue(resolutionEnqueuer);
 
-    JClosedWorld closedWorld = closeResolution(mainFunction);
+    JClosedWorld closedWorld =
+        closeResolution(mainFunction, resolutionEnqueuer.worldBuilder);
     if (retainDataForTesting) {
       backendClosedWorldForTesting = closedWorld;
     }
@@ -444,7 +435,8 @@ abstract class Compiler {
   }
 
   /// Perform the steps needed to fully end the resolution phase.
-  JClosedWorld closeResolution(FunctionEntity mainFunction) {
+  JClosedWorld closeResolution(FunctionEntity mainFunction,
+      ResolutionWorldBuilder resolutionWorldBuilder) {
     phase = PHASE_DONE_RESOLVING;
 
     KClosedWorld kClosedWorld = resolutionWorldBuilder.closeWorld(reporter);
@@ -639,7 +631,7 @@ class SuppressionInfo {
 class CompilerDiagnosticReporter extends DiagnosticReporter {
   final Compiler compiler;
   @override
-  final DiagnosticOptions options;
+  CompilerOptions get options => compiler.options;
 
   Entity _currentElement;
   bool hasCrashed = false;
@@ -652,7 +644,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
   /// suppressed for each library.
   Map<Uri, SuppressionInfo> suppressedWarnings = <Uri, SuppressionInfo>{};
 
-  CompilerDiagnosticReporter(this.compiler, this.options);
+  CompilerDiagnosticReporter(this.compiler);
 
   Entity get currentElement => _currentElement;
 
@@ -661,7 +653,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
       [Map arguments = const {}]) {
     SourceSpan span = spanFromSpannable(spannable);
     MessageTemplate template = MessageTemplate.TEMPLATES[messageKind];
-    Message message = template.message(arguments, options.terseDiagnostics);
+    Message message = template.message(arguments, options);
     return new DiagnosticMessage(span, spannable, message);
   }
 
@@ -838,7 +830,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
 
   void pleaseReportCrash() {
     print(MessageTemplate.TEMPLATES[MessageKind.PLEASE_REPORT_THE_CRASH]
-        .message({'buildId': compiler.options.buildId}));
+        .message({'buildId': compiler.options.buildId}, options));
   }
 
   /// Finds the approximate [Element] for [node]. [currentElement] is used as
@@ -856,7 +848,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
   @override
   void log(message) {
     Message msg = MessageTemplate.TEMPLATES[MessageKind.GENERIC]
-        .message({'text': '$message'});
+        .message({'text': '$message'}, options);
     reportDiagnostic(new DiagnosticMessage(null, null, msg),
         const <DiagnosticMessage>[], api.Diagnostic.VERBOSE_INFO);
   }
@@ -909,7 +901,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
         MessageTemplate template = MessageTemplate.TEMPLATES[kind];
         Message message = template.message(
             {'warnings': info.warnings, 'hints': info.hints, 'uri': uri},
-            options.terseDiagnostics);
+            options);
         reportDiagnostic(new DiagnosticMessage(null, null, message),
             const <DiagnosticMessage>[], api.Diagnostic.HINT);
       });

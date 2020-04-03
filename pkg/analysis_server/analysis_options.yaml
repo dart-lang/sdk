@@ -1,16 +1,39 @@
+include: package:pedantic/analysis_options.1.8.0.yaml
+
 analyzer:
   # This currently finds ~1,200 implicit-casts issues when enabled.
   # strong-mode:
   #   implicit-casts: false
   exclude:
     - test/mock_packages/**
+  errors:
+    # Increase the severity of the unused_import hint.
+    unused_import: warning
+    # TODO(srawlins): At the time of writing, 20 violations in lib/. The fix
+    # is not mechanical; each violation probably needs to be scrutinized.
+    unawaited_futures: ignore
 
 linter:
   rules:
-    - empty_constructor_bodies # pedantic
     - empty_statements
-    - prefer_equal_for_default_values # pedantic
-    - prefer_is_empty # pedantic
-    - prefer_is_not_empty # pedantic
     - unnecessary_brace_in_string_interps
-    - valid_regexps # pedantic
+    #
+    # Delta from pedantic 1.8.0 to 1.9.0
+    #
+    - always_declare_return_types
+    - always_require_non_null_named_parameters
+    - annotate_overrides
+    - avoid_null_checks_in_equality_operators
+    - camel_case_extensions
+    - omit_local_variable_types
+    - prefer_adjacent_string_concatenation
+    - prefer_collection_literals
+    - prefer_conditional_assignment
+    - prefer_final_fields
+    - prefer_for_elements_to_map_fromIterable
+    - prefer_generic_function_type_aliases
+    - prefer_if_null_operators
+    - prefer_single_quotes
+    - prefer_spread_collections
+    - unnecessary_this
+    - use_function_type_syntax_for_parameters

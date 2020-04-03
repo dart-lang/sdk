@@ -41,8 +41,8 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    *
    * * [ObjectStore.openCursor]
    */
-  Stream<CursorWithValue> openCursor({key, KeyRange range, String direction,
-      bool autoAdvance}) {
+  Stream<CursorWithValue> openCursor({key, KeyRange$NULLABLE range,
+      String$NULLABLE direction, bool$NULLABLE autoAdvance}) {
     var key_OR_range = null;
     if (key != null) {
       if (range != null) {
@@ -69,8 +69,8 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    *
    * * [ObjectStore.openCursor]
    */
-  Stream<Cursor> openKeyCursor({key, KeyRange range, String direction,
-      bool autoAdvance}) {
+  Stream<Cursor> openKeyCursor({key, KeyRange$NULLABLE range,
+      String$NULLABLE direction, bool$NULLABLE autoAdvance}) {
     var key_OR_range = null;
     if (key != null) {
       if (range != null) {

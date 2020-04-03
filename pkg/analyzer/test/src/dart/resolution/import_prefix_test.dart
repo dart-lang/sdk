@@ -7,7 +7,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
-import 'resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,21 +15,16 @@ main() {
 }
 
 @reflectiveTest
-class ImportPrefixDriverResolutionTest extends DriverResolutionTest
-    with ImportPrefixResolutionMixin {}
-
-mixin ImportPrefixResolutionMixin implements ResolutionTest {
+class ImportPrefixDriverResolutionTest extends DriverResolutionTest {
   test_asExpression_expressionStatement() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 import 'dart:async' as p;
 
 main() {
   p; // use
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+''', [
+      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 38, 1),
     ]);
 
     var pRef = findNode.simple('p; // use');
@@ -39,15 +33,16 @@ main() {
   }
 
   test_asExpression_forIn_iterable() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 import 'dart:async' as p;
 
 main() {
   for (var x in p) {}
 }
-''');
-    await resolveTestFile();
-    assertHasTestErrors();
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 47, 1),
+      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 52, 1),
+    ]);
 
     var xRef = findNode.simple('x in');
     expect(xRef.staticElement, isNotNull);
@@ -58,7 +53,7 @@ main() {
   }
 
   test_asExpression_instanceCreation_argument() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 import 'dart:async' as p;
 
 class C<T> {
@@ -68,10 +63,9 @@ class C<T> {
 main() {
   var x = new C(p);
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 66, 1),
+      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 76, 1),
     ]);
 
     var pRef = findNode.simple('p);');
@@ -80,15 +74,13 @@ main() {
   }
 
   test_asPrefix_methodInvocation() async {
-    addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 import 'dart:math' as p;
 
 main() {
   p.max(0, 0);
 }
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
 
     var pRef = findNode.simple('p.max');
     assertElement(pRef, findElement.prefix('p'));
@@ -96,15 +88,13 @@ main() {
   }
 
   test_asPrefix_prefixedIdentifier() async {
-    addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 import 'dart:async' as p;
 
 main() {
   p.Future;
 }
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
 
     var pRef = findNode.simple('p.Future');
     assertElement(pRef, findElement.prefix('p'));

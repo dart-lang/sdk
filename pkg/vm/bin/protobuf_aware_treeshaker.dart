@@ -29,7 +29,9 @@ import 'dart:typed_data';
 
 import 'package:args/args.dart';
 import 'package:kernel/kernel.dart';
-import 'package:kernel/binary/limited_ast_to_binary.dart';
+import 'package:kernel/binary/ast_to_binary.dart';
+import 'package:vm/kernel_front_end.dart'
+    show runGlobalTransformations, ErrorDetector;
 import 'package:kernel/target/targets.dart' show TargetFlags, getTarget;
 import 'package:meta/meta.dart';
 import 'package:vm/target/install.dart' show installAdditionalTargets;
@@ -45,14 +47,19 @@ ArgResults parseArgs(List<String> args) {
     ..addOption('target',
         allowed: ['dart_runner', 'flutter', 'flutter-runner', 'vm'],
         defaultsTo: 'vm',
-        help: 'A platform.dill file to append to the input. If not given, no '
-            'platform.dill will be appended.')
+        help: 'Target platform.')
+    ..addFlag('aot',
+        help: 'If set, produces kernel file for AOT compilation (enables '
+            'global transformations). Otherwise, writes regular dill.',
+        defaultsTo: false)
+    ..addFlag('gen-bytecode',
+        help:
+            'If true, the kernel file will be output in bytecode format. Defaults to true if --aot, false otherwise')
     ..addFlag('write-txt',
         help: 'Also write the result in kernel-text format as <out.dill>.txt',
         defaultsTo: false)
     ..addFlag('remove-core-libs',
-        help:
-            'If set, the resulting dill file will not include `dart:` libraries',
+        help: 'If set, the output dill file will not include `dart:` libraries',
         defaultsTo: false)
     ..addMultiOption('define',
         abbr: 'D',
@@ -70,6 +77,7 @@ ArgResults parseArgs(List<String> args) {
   } on FormatException catch (e) {
     print(e.message);
   }
+
   if (argResults == null || argResults['help'] || argResults.rest.length != 2) {
     String script = 'protobuf_aware_treeshaker.dart';
     print(
@@ -77,6 +85,11 @@ ArgResults parseArgs(List<String> args) {
     print('Usage: $script [args] <input.dill> <output.dill>');
 
     print(argParser.usage);
+    exit(-1);
+  }
+
+  if (argResults['aot'] && argResults['remove-core-libs']) {
+    print('The `--aot` option is incompatible with `--remove-core-libs`');
     exit(-1);
   }
 
@@ -103,22 +116,50 @@ Future main(List<String> args) async {
 
   installAdditionalTargets();
 
-  treeshaker.TransformationInfo info = treeshaker.transformComponent(
-      component, environment, getTarget(argResults['target'], TargetFlags()),
-      collectInfo: argResults['verbose']);
+  final target = getTarget(argResults['target'], TargetFlags());
 
-  if (argResults['verbose']) {
-    for (String fieldName in info.removedMessageFields) {
-      print('Removed $fieldName');
-    }
-    for (Class removedClass in info.removedMessageClasses) {
-      print('Removed $removedClass');
+  // The [component] is treeshaken and has TFA annotations. Write output.
+  if (argResults['aot']) {
+    const bool useGlobalTypeFlowAnalysis = true;
+    const bool enableAsserts = false;
+    const bool useProtobufAwareTreeShaker = true;
+    final nopErrorDetector = ErrorDetector();
+    runGlobalTransformations(
+      target,
+      component,
+      useGlobalTypeFlowAnalysis,
+      enableAsserts,
+      useProtobufAwareTreeShaker,
+      nopErrorDetector,
+    );
+  } else {
+    treeshaker.TransformationInfo info = treeshaker.transformComponent(
+        component, environment, target,
+        collectInfo: argResults['verbose']);
+
+    if (argResults['verbose']) {
+      for (String fieldName in info.removedMessageFields) {
+        print('Removed $fieldName');
+      }
+      for (Class removedClass in info.removedMessageClasses) {
+        print('Removed $removedClass');
+      }
     }
   }
 
-  await writeComponent(component, output,
-      removeCoreLibs: argResults['remove-core-libs'],
-      removeSource: argResults['remove-source']);
+  if (argResults['aot']) {
+    // Write kernel file for AOT compilation.
+    final sink = File(output).openWrite();
+    final printer = BinaryPrinter(sink);
+    printer.writeComponentFile(component);
+    await sink.close();
+  } else {
+    // Clean out the AOT-only TFA annotations and write regular dill.
+    component.metadata.clear();
+    await writeComponent(component, output,
+        removeCoreLibs: argResults['remove-core-libs'],
+        removeSource: argResults['remove-source']);
+  }
   if (argResults['write-txt']) {
     writeComponentToText(component, path: output + '.txt');
   }
@@ -144,11 +185,11 @@ Future writeComponent(Component component, String filename,
   }
 
   final sink = File(filename).openWrite();
-  final printer = LimitedBinaryPrinter(sink, (lib) {
+  final printer = BinaryPrinter(sink, libraryFilter: (lib) {
     if (removeCoreLibs && isCoreLibrary(lib)) return false;
     if (isLibEmpty(lib)) return false;
     return true;
-  }, /*excludeUriToSource=*/ removeSource);
+  }, includeSources: !removeSource);
 
   printer.writeComponentFile(component);
   await sink.close();

@@ -11,24 +11,24 @@ import '../../../../support/abstract_context.dart';
 
 mixin DartChangeBuilderMixin implements AbstractContextTest {
   SourceEdit getEdit(DartChangeBuilder builder) {
-    List<SourceEdit> edits = getEdits(builder);
+    var edits = getEdits(builder);
     expect(edits, hasLength(1));
     return edits[0];
   }
 
   List<SourceEdit> getEdits(DartChangeBuilder builder) {
-    SourceChange sourceChange = builder.sourceChange;
+    var sourceChange = builder.sourceChange;
     expect(sourceChange, isNotNull);
 
-    List<SourceFileEdit> fileEdits = sourceChange.edits;
+    var fileEdits = sourceChange.edits;
     expect(fileEdits, hasLength(1));
 
-    SourceFileEdit fileEdit = fileEdits[0];
+    var fileEdit = fileEdits[0];
     expect(fileEdit, isNotNull);
     return fileEdit.edits;
   }
 
   /// Return a newly created Dart change builder.
   DartChangeBuilderImpl newBuilder() =>
-      new DartChangeBuilder(session) as DartChangeBuilderImpl;
+      DartChangeBuilder(session) as DartChangeBuilderImpl;
 }

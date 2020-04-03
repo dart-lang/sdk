@@ -5,9 +5,12 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
@@ -33,39 +36,49 @@ main() {
 class FileSystemStateTest with ResourceProviderMixin {
   MockSdk sdk;
 
-  final ByteStore byteStore = new MemoryByteStore();
-  final FileContentOverlay contentOverlay = new FileContentOverlay();
+  final ByteStore byteStore = MemoryByteStore();
+  final FileContentOverlay contentOverlay = FileContentOverlay();
 
-  final StringBuffer logBuffer = new StringBuffer();
+  final StringBuffer logBuffer = StringBuffer();
   final _GeneratedUriResolverMock generatedUriResolver =
-      new _GeneratedUriResolverMock();
+      _GeneratedUriResolverMock();
   SourceFactory sourceFactory;
   PerformanceLog logger;
 
   FileSystemState fileSystemState;
 
   void setUp() {
-    logger = new PerformanceLog(logBuffer);
-    sdk = new MockSdk(resourceProvider: resourceProvider);
-    sourceFactory = new SourceFactory([
-      new DartUriResolver(sdk),
+    logger = PerformanceLog(logBuffer);
+    sdk = MockSdk(resourceProvider: resourceProvider);
+    sourceFactory = SourceFactory([
+      DartUriResolver(sdk),
       generatedUriResolver,
-      new PackageMapUriResolver(resourceProvider, <String, List<Folder>>{
+      PackageMapUriResolver(resourceProvider, <String, List<Folder>>{
         'aaa': [getFolder('/aaa/lib')],
         'bbb': [getFolder('/bbb/lib')],
       }),
-      new ResourceUriResolver(resourceProvider)
-    ], null, resourceProvider);
-    AnalysisOptions analysisOptions = new AnalysisOptionsImpl();
-    fileSystemState = new FileSystemState(
-        logger,
-        byteStore,
-        contentOverlay,
-        resourceProvider,
-        sourceFactory,
-        analysisOptions,
-        new Uint32List(0),
-        new Uint32List(0));
+      ResourceUriResolver(resourceProvider)
+    ]);
+    AnalysisOptions analysisOptions = AnalysisOptionsImpl();
+    var featureSetProvider = FeatureSetProvider.build(
+      resourceProvider: resourceProvider,
+      packages: Packages.empty,
+      packageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
+      nonPackageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
+    );
+    fileSystemState = FileSystemState(
+      logger,
+      byteStore,
+      contentOverlay,
+      resourceProvider,
+      'contextName',
+      sourceFactory,
+      analysisOptions,
+      DeclaredVariables(),
+      Uint32List(0),
+      Uint32List(0),
+      featureSetProvider,
+    );
   }
 
   test_definedClassMemberNames() {
@@ -118,13 +131,8 @@ var G, H;
     expect(_excludeSdk(file.directReferencedFiles), isEmpty);
     expect(file.isPart, isFalse);
     expect(file.library, isNull);
-    if (AnalysisDriver.useSummary2) {
-      expect(file.unlinked2, isNotNull);
-      expect(file.unlinked2.exports, isEmpty);
-    } else {
-      expect(file.unlinked, isNotNull);
-      expect(file.unlinked.classes, isEmpty);
-    }
+    expect(file.unlinked2, isNotNull);
+    expect(file.unlinked2.exports, isEmpty);
   }
 
   test_getFileForPath_emptyUri() {
@@ -214,13 +222,7 @@ class A1 {}
 
     expect(file.isPart, isFalse);
     expect(file.library, isNull);
-    if (AnalysisDriver.useSummary2) {
-      expect(file.unlinked2, isNotNull);
-    } else {
-      expect(file.unlinked, isNotNull);
-      expect(file.unlinked.classes, hasLength(1));
-      expect(file.unlinked.classes[0].name, 'A1');
-    }
+    expect(file.unlinked2, isNotNull);
 
     expect(_excludeSdk(file.importedFiles), hasLength(2));
     expect(file.importedFiles[0].path, a2);
@@ -291,13 +293,7 @@ class A2 {}
     expect(file_a2.path, a2);
     expect(file_a2.uri, Uri.parse('package:aaa/a2.dart'));
 
-    if (AnalysisDriver.useSummary2) {
-      expect(file_a2.unlinked2, isNotNull);
-    } else {
-      expect(file_a2.unlinked, isNotNull);
-      expect(file_a2.unlinked.classes, hasLength(1));
-      expect(file_a2.unlinked.classes[0].name, 'A2');
-    }
+    expect(file_a2.unlinked2, isNotNull);
 
     expect(_excludeSdk(file_a2.importedFiles), isEmpty);
     expect(file_a2.exportedFiles, isEmpty);
@@ -408,7 +404,7 @@ class D implements C {}
     String templatePath = convertPath('/aaa/lib/foo.dart');
     String generatedPath = convertPath('/generated/aaa/lib/foo.dart');
 
-    Source generatedSource = new _SourceMock(generatedPath, uri);
+    Source generatedSource = _SourceMock(generatedPath, uri);
 
     generatedUriResolver.resolveAbsoluteFunction =
         (uri, actualUri) => generatedSource;
@@ -514,11 +510,7 @@ A foo(B p) {
 class A {}
 ''');
     FileState file = fileSystemState.getFileForPath(path);
-    if (AnalysisDriver.useSummary2) {
-      expect(file.definedTopLevelNames, contains('A'));
-    } else {
-      expect(file.unlinked.classes[0].name, 'A');
-    }
+    expect(file.definedTopLevelNames, contains('A'));
     List<int> signature = file.apiSignature;
 
     // Update the resource and refresh the file state.
@@ -528,11 +520,7 @@ class B {}
     bool apiSignatureChanged = file.refresh();
     expect(apiSignatureChanged, isTrue);
 
-    if (AnalysisDriver.useSummary2) {
-      expect(file.definedTopLevelNames, contains('B'));
-    } else {
-      expect(file.unlinked.classes[0].name, 'B');
-    }
+    expect(file.definedTopLevelNames, contains('B'));
     expect(file.apiSignature, isNot(signature));
   }
 
@@ -568,22 +556,14 @@ class C {
 
     // Get the file, prepare unlinked.
     FileState file = fileSystemState.getFileForPath(path);
-    if (AnalysisDriver.useSummary2) {
-      expect(file.unlinked2, isNotNull);
-    } else {
-      expect(file.unlinked, isNotNull);
-    }
+    expect(file.unlinked2, isNotNull);
 
     // Make the unlinked unit in the byte store zero-length, damaged.
     byteStore.put(file.test.unlinkedKey, <int>[]);
 
     // Refresh should not fail, zero bytes in the store are ignored.
     file.refresh();
-    if (AnalysisDriver.useSummary2) {
-      expect(file.unlinked2, isNotNull);
-    } else {
-      expect(file.unlinked, isNotNull);
-    }
+    expect(file.unlinked2, isNotNull);
   }
 
   test_subtypedNames() {
@@ -704,7 +684,7 @@ class _GeneratedUriResolverMock implements UriResolver {
 
   @override
   noSuchMethod(Invocation invocation) {
-    throw new StateError('Unexpected invocation of ${invocation.memberName}');
+    throw StateError('Unexpected invocation of ${invocation.memberName}');
   }
 
   @override
@@ -735,6 +715,6 @@ class _SourceMock implements Source {
 
   @override
   noSuchMethod(Invocation invocation) {
-    throw new StateError('Unexpected invocation of ${invocation.memberName}');
+    throw StateError('Unexpected invocation of ${invocation.memberName}');
   }
 }

@@ -23,7 +23,7 @@ class AnalysisSessionHelperTest extends DriverResolutionTest {
   @override
   void setUp() {
     super.setUp();
-    helper = new AnalysisSessionHelper(driver.currentSession);
+    helper = AnalysisSessionHelper(driver.currentSession);
   }
 
   test_getClass_defined() async {
@@ -76,11 +76,9 @@ import 'a.dart';
   }
 
   test_getElementDeclaration_class() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {}
 ''');
-    await resolveTestFile();
-
     var element = findElement.class_('A');
     var result = await helper.getElementDeclaration(element);
     ClassDeclaration node = result.node;
@@ -88,12 +86,10 @@ class A {}
   }
 
   test_getResolvedUnitByElement() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {}
 class B {}
 ''');
-    await resolveTestFile();
-
     var element = findNode.classDeclaration('A').declaredElement;
     var resolvedUnit = await helper.getResolvedUnitByElement(element);
     expect(resolvedUnit.unit.declarations, hasLength(2));

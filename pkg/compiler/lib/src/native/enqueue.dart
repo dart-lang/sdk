@@ -112,6 +112,11 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
             _dartTypes.isSubtype(type,
                 _elementEnvironment.getRawType(_commonElements.jsArrayClass))) {
           registerInstantiation(type);
+        } else if (_dartTypes.isSubtype(
+            type,
+            _elementEnvironment
+                .getRawType(_commonElements.jsJavaScriptObjectClass))) {
+          matchingClasses.add(type.element);
         }
         // TODO(johnniwinther): Improve spec string precision to handle type
         // arguments and implements relations that preserve generics. Currently
@@ -127,7 +132,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
           InterfaceType specType = _elementEnvironment.getRawType(type.element);
           return _dartTypes.isSubtype(nativeType, specType);
         }));
-      } else if (type.isDynamic) {
+      } else if (type is DynamicType) {
         matchingClasses.addAll(_unusedClasses);
       } else {
         assert(type is VoidType, '$type was ${type.runtimeType}');

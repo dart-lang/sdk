@@ -5,7 +5,7 @@
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer_cli/src/options.dart';
 
 /// Compute the severity of the error; however:
@@ -18,8 +18,7 @@ ErrorSeverity computeSeverity(
   AnalysisOptions analysisOptions,
 ) {
   if (analysisOptions != null) {
-    ErrorProcessor processor =
-        ErrorProcessor.getProcessor(analysisOptions, error);
+    var processor = ErrorProcessor.getProcessor(analysisOptions, error);
     // If there is a processor for this error, defer to it.
     if (processor != null) {
       return processor.severity;
@@ -37,8 +36,7 @@ ErrorSeverity computeSeverity(
 /// [error] (or `null` if it's to be suppressed).
 ErrorSeverity determineProcessedSeverity(AnalysisError error,
     CommandLineOptions commandLineOptions, AnalysisOptions analysisOptions) {
-  ErrorSeverity severity =
-      computeSeverity(error, commandLineOptions, analysisOptions);
+  var severity = computeSeverity(error, commandLineOptions, analysisOptions);
   // Skip TODOs categorically unless escalated to ERROR or HINT (#26215).
   if (error.errorCode.type == ErrorType.TODO &&
       severity == ErrorSeverity.INFO) {

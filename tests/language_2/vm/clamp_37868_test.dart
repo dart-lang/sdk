@@ -13,8 +13,15 @@ import 'dart:typed_data';
 @pragma("vm:never-inline")
 foo(List<int> x) => Uint8ClampedList.fromList(x);
 
+@pragma("vm:never-inline")
+bar(List<int> x) => Uint8List.fromList(x);
+
+@pragma("vm:never-inline")
+baz(List<int> x) => Int8List.fromList(x);
+
 main() {
-  var x = [
+  // Proper values.
+  final List<int> x = [
     9223372036854775807,
     -9223372036854775808,
     9223372032559808513,
@@ -25,10 +32,34 @@ main() {
     -2147483648,
     255,
     -255,
+    11,
+    -11,
+    0,
+    -1,
   ];
-  var y = foo(x);
-  for (int i = 0; i < y.length; i += 2) {
-    Expect.equals(255, y[i]);
-    Expect.equals(0, y[i + 1]);
+  Expect.listEquals(
+      [255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 11, 0, 0, 0], foo(x));
+  Expect.listEquals(
+      [255, 0, 1, 255, 0, 0, 255, 0, 255, 1, 11, 245, 0, 255], bar(x));
+  Expect.listEquals([-1, 0, 1, -1, 0, 0, -1, 0, -1, 1, 11, -11, 0, -1], baz(x));
+
+  // Hidden null.
+  final List<int> a = [1, null, 2];
+  int num_exceptions = 0;
+  try {
+    foo(a);
+  } on NoSuchMethodError catch (e) {
+    num_exceptions++;
   }
+  try {
+    bar(a);
+  } on NoSuchMethodError catch (e) {
+    num_exceptions++;
+  }
+  try {
+    baz(a);
+  } on NoSuchMethodError catch (e) {
+    num_exceptions++;
+  }
+  Expect.equals(3, num_exceptions);
 }

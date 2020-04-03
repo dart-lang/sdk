@@ -2,34 +2,21 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference_new/dependency_only_if_overloaded.dart:17:72: Error: Can't infer the type of 'b': circularity found during type inference.
+// pkg/front_end/testcases/inference_new/dependency_only_if_overloaded.dart:15:5: Error: Can't infer the type of 'a': circularity found during type inference.
 // Specify the type explicitly.
-// var  /*@error=CantInferTypeDueToCircularity*/ b = a/*@error=UndefinedMethod*/();
-//                                                                        ^
-//
-// pkg/front_end/testcases/inference_new/dependency_only_if_overloaded.dart:15:72: Error: Can't infer the type of 'a': circularity found during type inference.
-// Specify the type explicitly.
-// var  /*@error=CantInferTypeDueToCircularity*/ a = /*@returnType=num*/ () =>
-//                                                                        ^
-//
-// pkg/front_end/testcases/inference_new/dependency_only_if_overloaded.dart:17:77: Error: The method 'call' isn't defined for the class 'invalid-type'.
-// Try correcting the name to the name of an existing method, or defining a method named 'call'.
-// var  /*@error=CantInferTypeDueToCircularity*/ b = a/*@error=UndefinedMethod*/();
-//                                                                             ^
+// var a = /*@ returnType=num* */ () => intValue /*@target=num::+*/ + b;
+//     ^
 //
 import self as self;
 import "dart:core" as core;
 
-static field core::int intValue = 0;
-static field core::num numValue = 0;
-static field core::double doubleValue = 0.0;
-static field invalid-type a = (() → core::num => self::intValue.{core::num::+}(self::b as{TypeError} core::num)) as{TypeError} invalid-type;
-static field invalid-type b = invalid-expression "pkg/front_end/testcases/inference_new/dependency_only_if_overloaded.dart:17:77: Error: The method 'call' isn't defined for the class 'invalid-type'.
-Try correcting the name to the name of an existing method, or defining a method named 'call'.
-var  /*@error=CantInferTypeDueToCircularity*/ b = a/*@error=UndefinedMethod*/();
-                                                                            ^";
-static field () → core::num c = () → core::num => self::numValue.{core::num::+}(self::d);
-static field core::num d = self::c.call();
-static field () → core::double e = () → core::double => self::doubleValue.{core::double::+}(self::f);
-static field core::double f = self::e.call();
+static field core::int* intValue = 0;
+static field core::num* numValue = 0;
+static field core::double* doubleValue = 0.0;
+static field invalid-type a = (() → core::num* => self::intValue.{core::num::+}(self::b as{TypeError,ForDynamic} core::num*)) as{TypeError} invalid-type;
+static field dynamic b = self::a.call();
+static field () →* core::num* c = () → core::num* => self::numValue.{core::num::+}(self::d);
+static field core::num* d = self::c.call();
+static field () →* core::double* e = () → core::double* => self::doubleValue.{core::double::+}(self::f);
+static field core::double* f = self::e.call();
 static method main() → dynamic {}

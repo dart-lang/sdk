@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 main() {
   staticCalledInForLoop();
   staticCalledInForInLoop();
@@ -84,7 +86,7 @@ class Class {
   Class.constructorNotCalledInForLoop();
 
   // TODO(johnniwinther): Should we track instance calls in loops?
-  /*member: Class.instanceCalledInForLoop:*/
+  /*member: Class.instanceCalledInForLoop:loop*/
   instanceCalledInForLoop() {}
 
   /*member: Class.instanceNotCalledInForLoop:*/

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart._js_helper;
 
 // Helper method used by internal libraries.
@@ -79,7 +81,9 @@ class JSSyntaxRegExp implements RegExp {
   bool get _isMultiLine => JS("bool", "#.multiline", _nativeRegExp);
   bool get _isCaseSensitive => JS("bool", "!#.ignoreCase", _nativeRegExp);
   bool get _isUnicode => JS("bool", "#.unicode", _nativeRegExp);
-  bool get _isDotAll => JS("bool", "#.dotAll", _nativeRegExp);
+  // The "dotAll" property is not available on all browsers, but our internals
+  // currently assume this is non-null.  Coerce to false if not present.
+  bool get _isDotAll => JS("bool", "#.dotAll == true", _nativeRegExp);
 
   static makeNative(@nullCheck String source, bool multiLine,
       bool caseSensitive, bool unicode, bool dotAll, bool global) {
@@ -199,7 +203,7 @@ class _MatchImplementation implements RegExpMatch {
   }
 
   String namedGroup(String name) {
-    var groups = JS('Object', '#.groups', _match);
+    var groups = JS('Object|Null', '#.groups', _match);
     if (groups != null) {
       var result = JS('String|Null', '#[#]', groups, name);
       if (result != null || JS<bool>('!', '# in #', name, groups)) {
@@ -210,7 +214,7 @@ class _MatchImplementation implements RegExpMatch {
   }
 
   Iterable<String> get groupNames {
-    var groups = JS('Object', '#.groups', _match);
+    var groups = JS('Object|Null', '#.groups', _match);
     if (groups != null) {
       var keys = JSArray<String>.of(JS('', 'Object.keys(#)', groups));
       return SubListIterable(keys, 0, null);

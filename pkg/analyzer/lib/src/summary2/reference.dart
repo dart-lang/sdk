@@ -77,7 +77,7 @@ class Reference {
   /// Return the child with the given name, create if does not exist yet.
   Reference getChild(String name) {
     var map = _children ??= <String, Reference>{};
-    return map[name] ??= new Reference._(this, name);
+    return map[name] ??= Reference._(this, name);
   }
 
   /// If the reference has element, and it is for the [node], return `true`.
@@ -99,5 +99,6 @@ class Reference {
     _children.remove(name);
   }
 
+  @override
   String toString() => parent == null ? 'root' : '$parent::$name';
 }

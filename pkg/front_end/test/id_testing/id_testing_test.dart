@@ -2,17 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
+import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
+    show DataInterpreter, StringDataInterpreter, runTests;
+import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'dart:io' show Directory, Platform;
 import 'package:front_end/src/fasta/messages.dart' show FormattedMessage;
-import 'package:front_end/src/testing/id.dart' show ActualData, Id;
-import 'package:front_end/src/testing/id_testing.dart'
-    show DataInterpreter, StringDataInterpreter, runTests;
-import 'package:front_end/src/testing/id_testing.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart'
     show
         CfeDataExtractor,
         InternalCompilerResult,
         DataComputer,
+        TestConfig,
         defaultCfeConfig,
         createUriForFileName,
         onFailure,
@@ -29,9 +30,8 @@ import 'package:kernel/ast.dart'
 
 main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-  await runTests(dataDir,
+  await runTests<String>(dataDir,
       args: args,
-      supportedMarkers: [cfeMarker],
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(const IdTestingDataComputer(), [defaultCfeConfig]));
@@ -41,31 +41,40 @@ class IdTestingDataComputer extends DataComputer<String> {
   const IdTestingDataComputer();
 
   @override
-  void computeMemberData(InternalCompilerResult compilerResult, Member member,
+  void computeMemberData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Member member,
       Map<Id, ActualData<String>> actualMap,
       {bool verbose}) {
     member.accept(new IdTestingDataExtractor(compilerResult, actualMap));
   }
 
   @override
-  void computeClassData(InternalCompilerResult compilerResult, Class cls,
+  void computeClassData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Class cls,
       Map<Id, ActualData<String>> actualMap,
       {bool verbose}) {
     new IdTestingDataExtractor(compilerResult, actualMap).computeForClass(cls);
   }
 
-  void computeLibraryData(InternalCompilerResult compilerResult,
-      Library library, Map<Id, ActualData<String>> actualMap,
+  void computeLibraryData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Library library,
+      Map<Id, ActualData<String>> actualMap,
       {bool verbose}) {
     new IdTestingDataExtractor(compilerResult, actualMap)
-        .computeForLibrary(library, useFileUri: true);
+        .computeForLibrary(library);
   }
 
   @override
   bool get supportsErrors => true;
 
-  String computeErrorData(
-      InternalCompilerResult compiler, Id id, List<FormattedMessage> errors) {
+  String computeErrorData(TestConfig config, InternalCompilerResult compiler,
+      Id id, List<FormattedMessage> errors) {
     return errorsToText(errors);
   }
 

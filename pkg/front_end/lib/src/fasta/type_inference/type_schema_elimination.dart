@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-import 'package:kernel/ast.dart'
-    show DartType, DynamicType, FunctionType, InterfaceType, NamedType;
+import 'package:kernel/ast.dart' hide MapEntry;
+import 'package:kernel/src/replacement_visitor.dart';
 
-import 'package:kernel/core_types.dart' show CoreTypes;
-
-import 'type_schema.dart' show TypeSchemaVisitor, UnknownType;
+import 'type_schema.dart' show UnknownType;
 
 /// Returns the greatest closure of the given type [schema] with respect to `?`.
 ///
@@ -22,8 +20,14 @@ import 'type_schema.dart' show TypeSchemaVisitor, UnknownType;
 ///
 /// Note that the greatest closure of a type schema is always a supertype of any
 /// type which matches the schema.
-DartType greatestClosure(CoreTypes coreTypes, DartType schema) =>
-    _TypeSchemaEliminationVisitor.run(coreTypes, false, schema);
+DartType greatestClosure(DartType schema, DartType bottomType) {
+  assert(bottomType == const NeverType(Nullability.nonNullable) ||
+      bottomType is InterfaceType &&
+          bottomType.classNode.enclosingLibrary.importUri.scheme == "dart" &&
+          bottomType.classNode.enclosingLibrary.importUri.path == "core" &&
+          bottomType.classNode.name == "Null");
+  return _TypeSchemaEliminationVisitor.run(false, schema, bottomType);
+}
 
 /// Returns the least closure of the given type [schema] with respect to `?`.
 ///
@@ -38,93 +42,47 @@ DartType greatestClosure(CoreTypes coreTypes, DartType schema) =>
 ///
 /// Note that the least closure of a type schema is always a subtype of any type
 /// which matches the schema.
-DartType leastClosure(CoreTypes coreTypes, DartType schema) =>
-    _TypeSchemaEliminationVisitor.run(coreTypes, true, schema);
+DartType leastClosure(DartType schema, DartType bottomType) {
+  assert(bottomType == const NeverType(Nullability.nonNullable) ||
+      bottomType is InterfaceType &&
+          bottomType.classNode.enclosingLibrary.importUri.scheme == "dart" &&
+          bottomType.classNode.enclosingLibrary.importUri.path == "core" &&
+          bottomType.classNode.name == "Null");
+  return _TypeSchemaEliminationVisitor.run(true, schema, bottomType);
+}
 
 /// Visitor that computes least and greatest closures of a type schema.
 ///
 /// Each visitor method returns `null` if there are no `?`s contained in the
 /// type, otherwise it returns the result of substituting `?` with `Null` or
 /// `Object`, as appropriate.
-class _TypeSchemaEliminationVisitor extends TypeSchemaVisitor<DartType> {
-  final DartType nullType;
+class _TypeSchemaEliminationVisitor extends ReplacementVisitor {
+  final DartType bottomType;
 
   bool isLeastClosure;
 
-  _TypeSchemaEliminationVisitor(CoreTypes coreTypes, this.isLeastClosure)
-      : nullType = coreTypes.nullClass.rawType;
+  _TypeSchemaEliminationVisitor(this.isLeastClosure, this.bottomType);
 
-  @override
-  DartType visitFunctionType(FunctionType node) {
-    DartType newReturnType = node.returnType.accept(this);
+  void changeVariance() {
     isLeastClosure = !isLeastClosure;
-    List<DartType> newPositionalParameters = null;
-    for (int i = 0; i < node.positionalParameters.length; i++) {
-      DartType substitution = node.positionalParameters[i].accept(this);
-      if (substitution != null) {
-        newPositionalParameters ??=
-            node.positionalParameters.toList(growable: false);
-        newPositionalParameters[i] = substitution;
-      }
-    }
-    List<NamedType> newNamedParameters = null;
-    for (int i = 0; i < node.namedParameters.length; i++) {
-      DartType substitution = node.namedParameters[i].type.accept(this);
-      if (substitution != null) {
-        newNamedParameters ??= node.namedParameters.toList(growable: false);
-        newNamedParameters[i] = new NamedType(
-            node.namedParameters[i].name, substitution,
-            isRequired: node.namedParameters[i].isRequired);
-      }
-    }
-    isLeastClosure = !isLeastClosure;
-    DartType typedefType = node.typedefType?.accept(this);
-    if (newReturnType == null &&
-        newPositionalParameters == null &&
-        newNamedParameters == null &&
-        typedefType == null) {
-      // No types had to be substituted.
-      return null;
-    } else {
-      return new FunctionType(
-          newPositionalParameters ?? node.positionalParameters,
-          newReturnType ?? node.returnType,
-          namedParameters: newNamedParameters ?? node.namedParameters,
-          typeParameters: node.typeParameters,
-          requiredParameterCount: node.requiredParameterCount,
-          typedefType: typedefType);
-    }
   }
 
   @override
-  DartType visitInterfaceType(InterfaceType node) {
-    List<DartType> newTypeArguments = null;
-    for (int i = 0; i < node.typeArguments.length; i++) {
-      DartType substitution = node.typeArguments[i].accept(this);
-      if (substitution != null) {
-        newTypeArguments ??= node.typeArguments.toList(growable: false);
-        newTypeArguments[i] = substitution;
-      }
+  DartType defaultDartType(DartType node) {
+    if (node is UnknownType) {
+      return isLeastClosure ? bottomType : const DynamicType();
     }
-    if (newTypeArguments == null) {
-      // No type arguments needed to be substituted.
-      return null;
-    } else {
-      return new InterfaceType(node.classNode, newTypeArguments);
-    }
+    return null;
   }
-
-  @override
-  DartType visitUnknownType(UnknownType node) =>
-      isLeastClosure ? nullType : const DynamicType();
 
   /// Runs an instance of the visitor on the given [schema] and returns the
   /// resulting type.  If the schema contains no instances of `?`, the original
   /// schema object is returned to avoid unnecessary allocation.
   static DartType run(
-      CoreTypes coreTypes, bool isLeastClosure, DartType schema) {
-    var visitor = new _TypeSchemaEliminationVisitor(coreTypes, isLeastClosure);
-    var result = schema.accept(visitor);
+      bool isLeastClosure, DartType schema, DartType bottomType) {
+    _TypeSchemaEliminationVisitor visitor =
+        new _TypeSchemaEliminationVisitor(isLeastClosure, bottomType);
+    DartType result = schema.accept(visitor);
     assert(visitor.isLeastClosure == isLeastClosure);
     return result ?? schema;
   }

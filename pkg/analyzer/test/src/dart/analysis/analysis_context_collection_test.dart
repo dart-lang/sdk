@@ -18,7 +18,7 @@ main() {
 @reflectiveTest
 class AnalysisContextCollectionTest with ResourceProviderMixin {
   void setUp() {
-    new MockSdk(resourceProvider: resourceProvider);
+    MockSdk(resourceProvider: resourceProvider);
   }
 
   test_contextFor_noContext() {
@@ -47,14 +47,14 @@ class AnalysisContextCollectionTest with ResourceProviderMixin {
 
   test_new_includedPaths_notAbsolute() {
     expect(
-      () => new AnalysisContextCollectionImpl(includedPaths: ['root']),
+      () => AnalysisContextCollectionImpl(includedPaths: ['root']),
       throwsArgumentError,
     );
   }
 
   test_new_includedPaths_notNormalized() {
     expect(
-      () => new AnalysisContextCollectionImpl(
+      () => AnalysisContextCollectionImpl(
           includedPaths: [convertPath('/root/lib/../lib')]),
       throwsArgumentError,
     );
@@ -93,7 +93,7 @@ class AnalysisContextCollectionTest with ResourceProviderMixin {
 
   test_new_sdkPath_notAbsolute() {
     expect(
-      () => new AnalysisContextCollectionImpl(
+      () => AnalysisContextCollectionImpl(
           includedPaths: ['/root'], sdkPath: 'sdk'),
       throwsArgumentError,
     );
@@ -101,7 +101,7 @@ class AnalysisContextCollectionTest with ResourceProviderMixin {
 
   test_new_sdkPath_notNormalized() {
     expect(
-      () => new AnalysisContextCollectionImpl(
+      () => AnalysisContextCollectionImpl(
           includedPaths: [convertPath('/root')], sdkPath: '/home/sdk/../sdk'),
       throwsArgumentError,
     );
@@ -109,7 +109,7 @@ class AnalysisContextCollectionTest with ResourceProviderMixin {
 
   AnalysisContextCollectionImpl _newCollection(
       {@required List<String> includedPaths}) {
-    return new AnalysisContextCollectionImpl(
+    return AnalysisContextCollectionImpl(
       resourceProvider: resourceProvider,
       includedPaths: includedPaths,
       sdkPath: convertPath(sdkRoot),

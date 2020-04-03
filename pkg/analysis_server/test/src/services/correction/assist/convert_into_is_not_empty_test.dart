@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertIntoIsNotEmptyTest);
   });
@@ -19,7 +19,7 @@ class ConvertIntoIsNotEmptyTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.CONVERT_INTO_IS_NOT_EMPTY;
 
-  test_noBang() async {
+  Future<void> test_noBang() async {
     verifyNoTestUnitErrors = false;
     await resolveTestUnit('''
 main(String str) {
@@ -29,7 +29,7 @@ main(String str) {
     await assertNoAssistAt('isEmpty;');
   }
 
-  test_noIsNotEmpty() async {
+  Future<void> test_noIsNotEmpty() async {
     await resolveTestUnit('''
 class A {
   bool get isEmpty => false;
@@ -41,7 +41,7 @@ main(A a) {
     await assertNoAssistAt('isEmpty;');
   }
 
-  test_notInPrefixExpression() async {
+  Future<void> test_notInPrefixExpression() async {
     await resolveTestUnit('''
 main(String str) {
   str.isEmpty;
@@ -50,7 +50,7 @@ main(String str) {
     await assertNoAssistAt('isEmpty;');
   }
 
-  test_notIsEmpty() async {
+  Future<void> test_notIsEmpty() async {
     await resolveTestUnit('''
 main(int p) {
   !p.isEven;
@@ -59,7 +59,7 @@ main(int p) {
     await assertNoAssistAt('isEven;');
   }
 
-  test_on_isEmpty() async {
+  Future<void> test_on_isEmpty() async {
     await resolveTestUnit('''
 main(String str) {
   !str.isEmpty;
@@ -72,7 +72,7 @@ main(String str) {
 ''');
   }
 
-  test_on_str() async {
+  Future<void> test_on_str() async {
     await resolveTestUnit('''
 main(String str) {
   !str.isEmpty;
@@ -85,7 +85,7 @@ main(String str) {
 ''');
   }
 
-  test_propertyAccess() async {
+  Future<void> test_propertyAccess() async {
     await resolveTestUnit('''
 main(String str) {
   !'text'.isEmpty;

@@ -10,11 +10,9 @@ import 'name_suggestion_test.dart' as name_suggestion_test;
 import 'organize_directives_test.dart' as organize_directives_test;
 import 'sort_members_test.dart' as sort_members_test;
 import 'status_test.dart' as status_test;
-import 'strings_test.dart' as strings_test;
 import 'util_test.dart' as util_test;
 
-/// Utility for manually running all tests.
-main() {
+void main() {
   defineReflectiveSuite(() {
     change_test.main();
     levenshtein_test.main();
@@ -22,7 +20,6 @@ main() {
     organize_directives_test.main();
     sort_members_test.main();
     status_test.main();
-    strings_test.main();
     util_test.main();
   }, name: 'correction');
 }

@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
@@ -25,8 +23,7 @@ class A {
 var a = new A();
 var b = a.g();
 ''');
-    TopLevelVariableDeclaration b = result.unit.declarations[2];
-    expect(b.variables.variables[0].declaredElement.type.toString(), 'int');
+    assertType(findElement.topVar('b').type, 'int');
   }
 
   test_field() async {
@@ -36,8 +33,7 @@ class A {
 }
 var b = new A().g;
 ''');
-    TopLevelVariableDeclaration b = result.unit.declarations[1];
-    expect(b.variables.variables[0].declaredElement.type.toString(), 'int');
+    assertType(findElement.topVar('b').type, 'int');
   }
 
   test_field_call() async {
@@ -48,8 +44,7 @@ class A {
 var a = new A();
 var b = a.g();
 ''');
-    TopLevelVariableDeclaration b = result.unit.declarations[2];
-    expect(b.variables.variables[0].declaredElement.type.toString(), 'int');
+    assertType(findElement.topVar('b').type, 'int');
   }
 
   test_field_imported() async {
@@ -62,7 +57,7 @@ class A {
 import 'a.dart';
 var b = new A().f;
 ''');
-    assertElementTypeString(findElement.topVar('b').type, 'int');
+    assertType(findElement.topVar('b').type, 'int');
   }
 
   test_field_prefixedIdentifier() async {
@@ -73,8 +68,7 @@ class A {
 var a = new A();
 var b = a.g;
 ''');
-    TopLevelVariableDeclaration b = result.unit.declarations[2];
-    expect(b.variables.variables[0].declaredElement.type.toString(), 'int');
+    assertType(findElement.topVar('b').type, 'int');
   }
 
   test_getter() async {
@@ -84,8 +78,7 @@ class A {
 }
 var b = new A().g;
 ''');
-    TopLevelVariableDeclaration b = result.unit.declarations[1];
-    expect(b.variables.variables[0].declaredElement.type.toString(), 'int');
+    assertType(findElement.topVar('b').type, 'int');
   }
 
   test_implicitlyTyped() async {
@@ -107,7 +100,7 @@ class A {
 var a = new A();
 var b = a.g();
 ''', [
-      error(StrongModeCode.TOP_LEVEL_INSTANCE_GETTER, 57, 5),
+      error(StrongModeCode.TOP_LEVEL_INSTANCE_GETTER, 59, 1),
     ]);
   }
 
@@ -130,7 +123,7 @@ class A {
 var a = new A();
 var b = a.g();
 ''', [
-      error(StrongModeCode.TOP_LEVEL_INSTANCE_GETTER, 56, 5),
+      error(StrongModeCode.TOP_LEVEL_INSTANCE_GETTER, 58, 1),
     ]);
   }
 
@@ -467,7 +460,6 @@ class A {
 var a = new A();
 var b = a.g;
 ''');
-    TopLevelVariableDeclaration b = result.unit.declarations[2];
-    expect(b.variables.variables[0].declaredElement.type.toString(), 'int');
+    assertType(findElement.topVar('b').type, 'int');
   }
 }

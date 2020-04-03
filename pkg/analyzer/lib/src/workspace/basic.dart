@@ -3,11 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/workspace/simple.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
-import 'package:package_config/packages.dart';
 
 /**
  * Information about a default Dart workspace.
@@ -23,14 +22,16 @@ class BasicWorkspace extends SimpleWorkspace {
   BasicWorkspacePackage _theOnlyPackage;
 
   BasicWorkspace._(
-      ResourceProvider provider, String root, ContextBuilder builder)
-      : super(provider, root, builder);
+    ResourceProvider provider,
+    Map<String, List<Folder>> packageMap,
+    String root,
+  ) : super(provider, packageMap, root);
 
   @override
   WorkspacePackage findPackageFor(String filePath) {
     final Folder folder = provider.getFolder(filePath);
     if (provider.pathContext.isWithin(root, folder.path)) {
-      _theOnlyPackage ??= new BasicWorkspacePackage(root, this);
+      _theOnlyPackage ??= BasicWorkspacePackage(root, this);
       return _theOnlyPackage;
     } else {
       return null;
@@ -45,12 +46,15 @@ class BasicWorkspace extends SimpleWorkspace {
    * (or [path]'s parent if [path] points to a file).
    */
   static BasicWorkspace find(
-      ResourceProvider provider, String path, ContextBuilder builder) {
+    ResourceProvider provider,
+    Map<String, List<Folder>> packageMap,
+    String path,
+  ) {
     Resource resource = provider.getResource(path);
     if (resource is File) {
       path = resource.parent.path;
     }
-    return new BasicWorkspace._(provider, path, builder);
+    return BasicWorkspace._(provider, packageMap, path);
   }
 }
 
@@ -62,8 +66,10 @@ class BasicWorkspace extends SimpleWorkspace {
  * a given package in a [BasicWorkspace].
  */
 class BasicWorkspacePackage extends WorkspacePackage {
+  @override
   final String root;
 
+  @override
   final BasicWorkspace workspace;
 
   BasicWorkspacePackage(this.root, this.workspace);

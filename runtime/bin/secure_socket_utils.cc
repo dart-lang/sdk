@@ -39,7 +39,7 @@ void SecureSocketUtils::FetchErrorString(const SSL* ssl,
     }
     if ((path != NULL) && (line >= 0)) {
       const char* file = strrchr(path, sep[0]);
-      path = file ? file + 1 : path;
+      path = file != nullptr ? file + 1 : path;
       text_buffer->Printf("(%s:%d)", path, line);
     }
   }

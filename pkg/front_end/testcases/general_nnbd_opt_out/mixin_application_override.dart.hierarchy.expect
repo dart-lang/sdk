@@ -1,0 +1,1301 @@
+Object:
+  superclasses:
+  interfaces:
+  classMembers:
+    Object._haveSameRuntimeType
+    Object.toString
+    Object.runtimeType
+    Object._toString
+    Object._simpleInstanceOf
+    Object._hashCodeRnd
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._objectHashCode
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+
+S:
+  superclasses:
+    Object
+  interfaces:
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+
+M:
+  superclasses:
+    Object
+  interfaces:
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    M.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+
+M1:
+  superclasses:
+    Object
+  interfaces:
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+
+M2:
+  superclasses:
+    Object
+  interfaces:
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+
+MX:
+  superclasses:
+    Object
+  interfaces:
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+
+A0:
+  superclasses:
+    Object
+      -> S
+  interfaces: M
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    A0.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    A0.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+S with M1:
+  superclasses:
+    Object
+      -> S
+  interfaces: M1
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+A1:
+  superclasses:
+    Object
+      -> S
+        -> _A1&S&M1
+  interfaces: M1, M
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    A1.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    A1.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+S with M1:
+  superclasses:
+    Object
+      -> S
+  interfaces: M1
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+_A2&S&M1 with M2:
+  superclasses:
+    Object
+      -> S
+        -> _A2&S&M1
+  interfaces: M1, M2
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+A2:
+  superclasses:
+    Object
+      -> S
+        -> _A2&S&M1
+          -> _A2&S&M1&M2
+  interfaces: M1, M2, M
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    A2.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    A2.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+S with M:
+  superclasses:
+    Object
+      -> S
+  interfaces: M
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    S with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    S with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+A0X:
+  superclasses:
+    Object
+      -> S
+        -> _A0X&S&M
+  interfaces: M, MX
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    S with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    S with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+S with M1:
+  superclasses:
+    Object
+      -> S
+  interfaces: M1
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+_A1X&S&M1 with M:
+  superclasses:
+    Object
+      -> S
+        -> _A1X&S&M1
+  interfaces: M1, M
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    _A1X&S&M1 with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    _A1X&S&M1 with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+A1X:
+  superclasses:
+    Object
+      -> S
+        -> _A1X&S&M1
+          -> _A1X&S&M1&M
+  interfaces: M1, M, MX
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    _A1X&S&M1 with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    _A1X&S&M1 with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+S with M1:
+  superclasses:
+    Object
+      -> S
+  interfaces: M1
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+_A2X&S&M1 with M2:
+  superclasses:
+    Object
+      -> S
+        -> _A2X&S&M1
+  interfaces: M1, M2
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+_A2X&S&M1&M2 with M:
+  superclasses:
+    Object
+      -> S
+        -> _A2X&S&M1
+          -> _A2X&S&M1&M2
+  interfaces: M1, M2, M
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    _A2X&S&M1&M2 with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    _A2X&S&M1&M2 with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+A2X:
+  superclasses:
+    Object
+      -> S
+        -> _A2X&S&M1
+          -> _A2X&S&M1&M2
+            -> _A2X&S&M1&M2&M
+  interfaces: M1, M2, M, MX
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    _A2X&S&M1&M2 with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    _A2X&S&M1&M2 with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+S with M:
+  superclasses:
+    Object
+      -> S
+  interfaces: M
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    S with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    S with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+B0:
+  superclasses:
+    Object
+      -> S
+        -> _B0&S&M
+  interfaces: M
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    S with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    S with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+S with M1:
+  superclasses:
+    Object
+      -> S
+  interfaces: M1
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+_B1&S&M1 with M:
+  superclasses:
+    Object
+      -> S
+        -> _B1&S&M1
+  interfaces: M1, M
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    _B1&S&M1 with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    _B1&S&M1 with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+B1:
+  superclasses:
+    Object
+      -> S
+        -> _B1&S&M1
+          -> _B1&S&M1&M
+  interfaces: M1, M
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    _B1&S&M1 with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    _B1&S&M1 with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+S with M1:
+  superclasses:
+    Object
+      -> S
+  interfaces: M1
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+_B2&S&M1 with M2:
+  superclasses:
+    Object
+      -> S
+        -> _B2&S&M1
+  interfaces: M1, M2
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+_B2&S&M1&M2 with M:
+  superclasses:
+    Object
+      -> S
+        -> _B2&S&M1
+          -> _B2&S&M1&M2
+  interfaces: M1, M2, M
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    _B2&S&M1&M2 with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    _B2&S&M1&M2 with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+B2:
+  superclasses:
+    Object
+      -> S
+        -> _B2&S&M1
+          -> _B2&S&M1&M2
+            -> _B2&S&M1&M2&M
+  interfaces: M1, M2, M
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    _B2&S&M1&M2 with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    _B2&S&M1&M2 with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+S with M:
+  superclasses:
+    Object
+      -> S
+  interfaces: M
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    S with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    S with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+_B0X&S&M with MX:
+  superclasses:
+    Object
+      -> S
+        -> _B0X&S&M
+  interfaces: M, MX
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    S with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    S with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+B0X:
+  superclasses:
+    Object
+      -> S
+        -> _B0X&S&M
+          -> _B0X&S&M&MX
+  interfaces: M, MX
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    S with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    S with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+S with M1:
+  superclasses:
+    Object
+      -> S
+  interfaces: M1
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+_B1X&S&M1 with M:
+  superclasses:
+    Object
+      -> S
+        -> _B1X&S&M1
+  interfaces: M1, M
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    _B1X&S&M1 with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    _B1X&S&M1 with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+_B1X&S&M1&M with MX:
+  superclasses:
+    Object
+      -> S
+        -> _B1X&S&M1
+          -> _B1X&S&M1&M
+  interfaces: M1, M, MX
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    _B1X&S&M1 with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    _B1X&S&M1 with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+B1X:
+  superclasses:
+    Object
+      -> S
+        -> _B1X&S&M1
+          -> _B1X&S&M1&M
+            -> _B1X&S&M1&M&MX
+  interfaces: M1, M, MX
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    _B1X&S&M1 with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    _B1X&S&M1 with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+S with M1:
+  superclasses:
+    Object
+      -> S
+  interfaces: M1
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+_B2X&S&M1 with M2:
+  superclasses:
+    Object
+      -> S
+        -> _B2X&S&M1
+  interfaces: M1, M2
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+_B2X&S&M1&M2 with M:
+  superclasses:
+    Object
+      -> S
+        -> _B2X&S&M1
+          -> _B2X&S&M1&M2
+  interfaces: M1, M2, M
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    _B2X&S&M1&M2 with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    _B2X&S&M1&M2 with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+_B2X&S&M1&M2&M with MX:
+  superclasses:
+    Object
+      -> S
+        -> _B2X&S&M1
+          -> _B2X&S&M1&M2
+            -> _B2X&S&M1&M2&M
+  interfaces: M1, M2, M, MX
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    _B2X&S&M1&M2 with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    _B2X&S&M1&M2 with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+B2X:
+  superclasses:
+    Object
+      -> S
+        -> _B2X&S&M1
+          -> _B2X&S&M1&M2
+            -> _B2X&S&M1&M2&M
+              -> _B2X&S&M1&M2&M&MX
+  interfaces: M1, M2, M, MX
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    _B2X&S&M1&M2 with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    _B2X&S&M1&M2 with M.M.foo%S.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:

@@ -119,7 +119,10 @@ RawObject* CompilationTraceLoader::CompileTrace(uint8_t* buffer,
   Function& dispatcher = Function::Handle(zone_);
   for (intptr_t argc = 1; argc <= 4; argc++) {
     const intptr_t kTypeArgsLen = 0;
-    arguments_descriptor = ArgumentsDescriptor::New(kTypeArgsLen, argc);
+
+    // TODO(dartbug.com/33549): Update this code to use the size of the
+    // parameters when supporting calls to closures with unboxed parameters.
+    arguments_descriptor = ArgumentsDescriptor::NewBoxed(kTypeArgsLen, argc);
     dispatcher = closure_class.GetInvocationDispatcher(
         Symbols::Call(), arguments_descriptor,
         RawFunction::kInvokeFieldDispatcher, true /* create_if_absent */);
@@ -279,7 +282,7 @@ RawObject* CompilationTraceLoader::CompileTriple(const char* uri_cstr,
   if (!field_.IsNull() && field_.is_const() && field_.is_static() &&
       (field_.StaticValue() == Object::sentinel().raw())) {
     processed = true;
-    error_ = field_.Initialize();
+    error_ = field_.InitializeStatic();
     if (error_.IsError()) {
       if (FLAG_trace_compilation_trace) {
         THR_Print(
@@ -336,7 +339,7 @@ RawObject* CompilationTraceLoader::CompileTriple(const char* uri_cstr,
   }
 
   if (!field_.IsNull() && field_.is_static() && !field_.is_const() &&
-      field_.has_initializer()) {
+      field_.has_nontrivial_initializer()) {
     processed = true;
     function_ = field_.EnsureInitializerFunction();
     error_ = CompileFunction(function_);
@@ -449,9 +452,6 @@ static char* CompilerFlags() {
   ADD_FLAG(causal_async_stacks);
   ADD_FLAG(fields_may_be_reset);
 #undef ADD_FLAG
-  buffer.AddString(FLAG_use_bytecode_compiler || FLAG_enable_interpreter
-                       ? " bytecode"
-                       : " no-bytecode");
 
   return buffer.Steal();
 }
@@ -500,7 +500,7 @@ void TypeFeedbackSaver::SaveFields() {
       WriteString(str_);
 
       WriteInt(field_.guarded_cid());
-      WriteInt(field_.is_nullable());
+      WriteInt(static_cast<intptr_t>(field_.is_nullable()));
     }
   }
 }
@@ -523,8 +523,8 @@ void TypeFeedbackSaver::Visit(const Function& function) {
   code_ = function.CurrentCode();
   intptr_t usage = function.usage_counter();
   if (usage < 0) {
-    // Usage is set to INT_MIN while in the background compilation queue ...
-    usage = (usage - INT_MIN) + FLAG_optimization_counter_threshold;
+    // Usage is set to INT32_MIN while in the background compilation queue ...
+    usage = (usage - INT32_MIN) + FLAG_optimization_counter_threshold;
   } else if (code_.is_optimized()) {
     // ... and set to 0 when an optimizing compile completes.
     usage = usage + FLAG_optimization_counter_threshold;
@@ -673,7 +673,7 @@ RawObject* TypeFeedbackLoader::CheckHeader() {
   const char* version =
       reinterpret_cast<const char*>(stream_->AddressOfCurrentPosition());
   ASSERT(version != NULL);
-  if (strncmp(version, expected_version, version_len)) {
+  if (strncmp(version, expected_version, version_len) != 0) {
     const intptr_t kMessageBufferSize = 256;
     char message_buffer[kMessageBufferSize];
     char* actual_version = Utils::StrNDup(version, version_len);
@@ -695,7 +695,7 @@ RawObject* TypeFeedbackLoader::CheckHeader() {
   ASSERT(features != NULL);
   intptr_t buffer_len = Utils::StrNLen(features, stream_->PendingBytes());
   if ((buffer_len != expected_len) ||
-      strncmp(features, expected_features, expected_len)) {
+      (strncmp(features, expected_features, expected_len) != 0)) {
     const String& msg = String::Handle(String::NewFormatted(
         Heap::kOld,
         "Feedback not compatible with the current VM configuration: "
@@ -783,7 +783,7 @@ RawObject* TypeFeedbackLoader::LoadFields() {
         field_.set_is_nullable(true);
       } else {
         field_.set_guarded_cid(guarded_cid);
-        field_.set_is_nullable(is_nullable || field_.is_nullable());
+        field_.set_is_nullable((is_nullable != 0) || field_.is_nullable());
       }
 
       // TODO(rmacnak): Merge other field type feedback.

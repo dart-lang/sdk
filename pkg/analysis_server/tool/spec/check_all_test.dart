@@ -9,15 +9,13 @@ import 'package:path/path.dart';
 
 import 'generate_all.dart';
 
-/**
- * Check that all targets have been code generated.  If they haven't tell the
- * user to run generate_all.dart.
- */
-main() async {
-  String script = Platform.script.toFilePath(windows: Platform.isWindows);
-  List<String> components = split(script);
-  int index = components.indexOf('analysis_server');
-  String pkgPath = joinAll(components.sublist(0, index + 1));
+/// Check that all targets have been code generated.  If they haven't tell the
+/// user to run generate_all.dart.
+void main() async {
+  var script = Platform.script.toFilePath(windows: Platform.isWindows);
+  var components = split(script);
+  var index = components.indexOf('analysis_server');
+  var pkgPath = joinAll(components.sublist(0, index + 1));
   await GeneratedContent.checkAll(
       pkgPath, join(pkgPath, 'tool', 'spec', 'generate_all.dart'), allTargets);
 }

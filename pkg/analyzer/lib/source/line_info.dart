@@ -42,9 +42,9 @@ class LineInfo {
    */
   LineInfo(this.lineStarts) {
     if (lineStarts == null) {
-      throw new ArgumentError("lineStarts must be non-null");
+      throw ArgumentError("lineStarts must be non-null");
     } else if (lineStarts.isEmpty) {
-      throw new ArgumentError("lineStarts must be non-empty");
+      throw ArgumentError("lineStarts must be non-empty");
     }
   }
 
@@ -53,7 +53,7 @@ class LineInfo {
    * given file [content].
    */
   factory LineInfo.fromContent(String content) =>
-      new LineInfo(StringUtilities.computeLineStarts(content));
+      LineInfo(StringUtilities.computeLineStarts(content));
 
   /**
    * The number of lines.
@@ -82,11 +82,11 @@ class LineInfo {
       // Before kicking off a full binary search, do a quick check here to see
       // if the new offset is on that exact line.
       if (min == lineStarts.length - 1 || offset < lineStarts[min + 1]) {
-        return new CharacterLocation(min + 1, offset - lineStarts[min] + 1);
+        return CharacterLocation(min + 1, offset - lineStarts[min] + 1);
       }
     }
 
-    // Binary search to fine the line containing this offset.
+    // Binary search to find the line containing this offset.
     while (min < max) {
       var midpoint = (max - min + 1) ~/ 2 + min;
 
@@ -99,7 +99,7 @@ class LineInfo {
 
     _previousLine = min;
 
-    return new CharacterLocation(min + 1, offset - lineStarts[min] + 1);
+    return CharacterLocation(min + 1, offset - lineStarts[min] + 1);
   }
 
   /**
@@ -108,7 +108,7 @@ class LineInfo {
    */
   int getOffsetOfLine(int lineNumber) {
     if (lineNumber < 0 || lineNumber >= lineCount) {
-      throw new ArgumentError(
+      throw ArgumentError(
           'Invalid line number: $lineNumber; must be between 0 and ${lineCount - 1}');
     }
     return lineStarts[lineNumber];

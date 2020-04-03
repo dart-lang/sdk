@@ -16,9 +16,9 @@ class B<T> {
 class C<U> extends B<Future<U>> {
   void operator []=(Object x, Object y) {}
   void h() {
-    // Note: the index is inferred with an empty context due to issue 31336.
     super /*@target=B::[]=*/ [
-        /*@ typeArgs=dynamic */ f()] = /*@ typeArgs=List<Future<C::U*>*>* */ f();
+            /*@ typeArgs=Map<int*, Future<C::U*>*>* */ f()] =
+        /*@ typeArgs=List<Future<C::U*>*>* */ f();
   }
 }
 

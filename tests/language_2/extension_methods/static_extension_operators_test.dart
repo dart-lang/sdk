@@ -75,7 +75,7 @@ void main() {
   expect("a[b]", a[b]--, "a[b]=(a[b]-1)");
 
   // Combinations.
-  expect("(a+b[b(c)](a*b))", a + b[c[a] = b(c)](a * b), "c[a]=b(c)");
+  expect("(a+b[b(c)]((a*b)))", a + b[c[a] = b(c)](a * b), "c[a]=b(c)");
 
   // Operator precedence is unaffected by being extensions.
   expect("(c<((-a)|(b^((~c)&((a<<b)>>((c-a)+((((b*c)~/a)%b)/c)))))))",

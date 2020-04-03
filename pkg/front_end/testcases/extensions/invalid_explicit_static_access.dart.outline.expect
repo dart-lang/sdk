@@ -1,0 +1,27 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension Extension on core::String* {
+  static method method = self::Extension|method;
+  static get getter = get self::Extension|getter;
+  static get property = get self::Extension|property;
+  static field field = self::Extension|field;
+  static set setter = set self::Extension|setter;
+  static set property = set self::Extension|property;
+}
+static field dynamic Extension|field;
+static method Extension|method() → dynamic
+  ;
+static get Extension|getter() → dynamic
+  ;
+static set Extension|setter(dynamic _) → void
+  ;
+static get Extension|property() → dynamic
+  ;
+static set Extension|property(dynamic _) → void
+  ;
+static method main() → dynamic
+  ;
+static method errors() → dynamic
+  ;

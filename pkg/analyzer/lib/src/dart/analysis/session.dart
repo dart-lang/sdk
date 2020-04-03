@@ -10,12 +10,17 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/analysis/uri_converter.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as driver;
 import 'package:analyzer/src/dart/analysis/uri_converter.dart';
+import 'package:analyzer/src/dart/element/class_hierarchy.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/resolver.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:meta/meta.dart';
 
 /// A concrete implementation of an analysis session.
 class AnalysisSessionImpl implements AnalysisSession {
@@ -26,7 +31,7 @@ class AnalysisSessionImpl implements AnalysisSession {
   TypeProvider _typeProvider;
 
   /// The type system being used by the analysis driver.
-  TypeSystem _typeSystem;
+  TypeSystemImpl _typeSystem;
 
   /// The URI converter used to convert between URI's and file paths.
   UriConverter _uriConverter;
@@ -34,11 +39,14 @@ class AnalysisSessionImpl implements AnalysisSession {
   /// The cache of libraries for URIs.
   final Map<String, LibraryElement> _uriToLibraryCache = {};
 
+  final ClassHierarchy classHierarchy = ClassHierarchy();
+  final InheritanceManager3 inheritanceManager = InheritanceManager3();
+
   /// Initialize a newly created analysis session.
   AnalysisSessionImpl(this._driver);
 
   @override
-  AnalysisContext get analysisContext => _driver.analysisContext;
+  AnalysisContext get analysisContext => _driver?.analysisContext;
 
   @override
   DeclaredVariables get declaredVariables => _driver.declaredVariables;
@@ -49,33 +57,41 @@ class AnalysisSessionImpl implements AnalysisSession {
   @override
   SourceFactory get sourceFactory => _driver.sourceFactory;
 
+  @Deprecated('Use LibraryElement.typeProvider')
   @override
   Future<TypeProvider> get typeProvider async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     _checkConsistency();
     if (_typeProvider == null) {
       LibraryElement coreLibrary = await _driver.getLibraryByUri('dart:core');
       LibraryElement asyncLibrary = await _driver.getLibraryByUri('dart:async');
-      _typeProvider = new TypeProviderImpl(coreLibrary, asyncLibrary);
+      _typeProvider = TypeProviderImpl(
+        coreLibrary: coreLibrary,
+        asyncLibrary: asyncLibrary,
+        isNonNullableByDefault: false,
+      );
     }
     return _typeProvider;
   }
 
+  @Deprecated('Use LibraryElement.typeSystem')
   @override
-  Future<TypeSystem> get typeSystem async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
+  Future<TypeSystemImpl> get typeSystem async {
     _checkConsistency();
     if (_typeSystem == null) {
-      _typeSystem = new Dart2TypeSystem(await typeProvider);
+      var typeProvider = await this.typeProvider;
+      _typeSystem = TypeSystemImpl(
+        implicitCasts: true,
+        isNonNullableByDefault: false,
+        strictInference: false,
+        typeProvider: typeProvider,
+      );
     }
     return _typeSystem;
   }
 
   @override
   UriConverter get uriConverter {
-    return _uriConverter ??= new DriverBasedUriConverter(_driver);
+    return _uriConverter ??= DriverBasedUriConverter(_driver);
   }
 
   @deprecated
@@ -95,8 +111,6 @@ class AnalysisSessionImpl implements AnalysisSession {
 
   @override
   Future<LibraryElement> getLibraryByUri(String uri) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     _checkConsistency();
     var libraryElement = _uriToLibraryCache[uri];
     if (libraryElement == null) {
@@ -179,14 +193,15 @@ class AnalysisSessionImpl implements AnalysisSession {
   /// an [InconsistentAnalysisException] if they might not be.
   void _checkConsistency() {
     if (_driver.currentSession != this) {
-      throw new InconsistentAnalysisException();
+      throw InconsistentAnalysisException();
     }
   }
 
   void _checkElementOfThisSession(Element element) {
     if (element.session != this) {
-      throw new ArgumentError(
-          '(${element.runtimeType}) $element was not produced by '
+      var elementStr = element.getDisplayString(withNullability: true);
+      throw ArgumentError(
+          '(${element.runtimeType}) $elementStr was not produced by '
           'this session.');
     }
   }
@@ -199,30 +214,78 @@ class SynchronousSession {
 
   final DeclaredVariables declaredVariables;
 
-  TypeProvider _typeProvider;
+  TypeProvider _typeProviderLegacy;
+  TypeProvider _typeProviderNonNullableByDefault;
 
-  TypeSystem _typeSystem;
+  TypeSystemImpl _typeSystemLegacy;
+  TypeSystemImpl _typeSystemNonNullableByDefault;
+
+  InheritanceManager3 _inheritanceManager;
 
   SynchronousSession(this.analysisOptions, this.declaredVariables);
 
-  TypeProvider get typeProvider => _typeProvider;
-
-  set typeProvider(TypeProvider typeProvider) {
-    if (_typeProvider != null) {
-      throw StateError('TypeProvider can be set only once.');
-    }
-    _typeProvider = typeProvider;
+  InheritanceManager3 get inheritanceManager {
+    return _inheritanceManager ??= InheritanceManager3();
   }
 
-  TypeSystem get typeSystem {
-    return _typeSystem ??= Dart2TypeSystem(
-      typeProvider,
-      implicitCasts: analysisOptions.implicitCasts,
-    );
+  @Deprecated('Use LibraryElement.typeProvider')
+  TypeProvider get typeProvider => _typeProviderLegacy;
+
+  TypeProvider get typeProviderLegacy {
+    return _typeProviderLegacy;
+  }
+
+  TypeProvider get typeProviderNonNullableByDefault {
+    return _typeProviderNonNullableByDefault;
+  }
+
+  @Deprecated('Use LibraryElement.typeSystem')
+  TypeSystemImpl get typeSystem {
+    return typeSystemLegacy;
+  }
+
+  TypeSystemImpl get typeSystemLegacy {
+    return _typeSystemLegacy;
+  }
+
+  TypeSystemImpl get typeSystemNonNullableByDefault {
+    return _typeSystemNonNullableByDefault;
   }
 
   void clearTypeProvider() {
-    _typeProvider = null;
-    _typeSystem = null;
+    _typeProviderLegacy = null;
+    _typeProviderNonNullableByDefault = null;
+
+    _typeSystemLegacy = null;
+    _typeSystemNonNullableByDefault = null;
+
+    _inheritanceManager = null;
+  }
+
+  void setTypeProviders({
+    @required TypeProvider legacy,
+    @required TypeProvider nonNullableByDefault,
+  }) {
+    if (_typeProviderLegacy != null ||
+        _typeProviderNonNullableByDefault != null) {
+      throw StateError('TypeProvider(s) can be set only once.');
+    }
+
+    _typeProviderLegacy = legacy;
+    _typeProviderNonNullableByDefault = nonNullableByDefault;
+
+    _typeSystemLegacy = TypeSystemImpl(
+      implicitCasts: analysisOptions.implicitCasts,
+      isNonNullableByDefault: false,
+      strictInference: analysisOptions.strictInference,
+      typeProvider: _typeProviderLegacy,
+    );
+
+    _typeSystemNonNullableByDefault = TypeSystemImpl(
+      implicitCasts: analysisOptions.implicitCasts,
+      isNonNullableByDefault: true,
+      strictInference: analysisOptions.strictInference,
+      typeProvider: _typeProviderNonNullableByDefault,
+    );
   }
 }

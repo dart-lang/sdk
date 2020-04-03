@@ -6,21 +6,21 @@ import 'package:test/test.dart';
 
 import '../../../tool/lsp_spec/markdown.dart';
 
-main() {
+void main() {
   group('markdown parser', () {
     test('extracts a typescript fenced block from Markdown', () {
-      final String input = '''
+      final input = '''
 ```typescript
 CONTENT
 ```
     ''';
-      final List<String> output = extractTypeScriptBlocks(input);
+      final output = extractTypeScriptBlocks(input);
       expect(output, hasLength(1));
       expect(output, contains('CONTENT'));
     });
 
     test('does not extract unknown code blocks', () {
-      final String input = '''
+      final input = '''
 ```
 CONTENT
 ```
@@ -29,12 +29,12 @@ CONTENT
 CONTENT
 ```
     ''';
-      final List<String> output = extractTypeScriptBlocks(input);
+      final output = extractTypeScriptBlocks(input);
       expect(output, hasLength(0));
     });
 
     test('extracts multiple code blocks', () {
-      final String input = '''
+      final input = '''
 ```typescript
 CONTENT1
 ```
@@ -43,7 +43,7 @@ CONTENT1
 CONTENT2
 ```
     ''';
-      final List<String> output = extractTypeScriptBlocks(input);
+      final output = extractTypeScriptBlocks(input);
       expect(output, hasLength(2));
       expect(output, contains('CONTENT1'));
       expect(output, contains('CONTENT2'));

@@ -130,6 +130,12 @@ declare_args() {
 
   # Compile for Thread Sanitizer to find threading bugs.
   is_tsan = false
+
+  # Compile for Undefined Behavior Sanitizer to find reliance on undefined behavior.
+  is_ubsan = false
+
+  # Compile for execution in user-mode QEMU.
+  is_qemu = false
 }
 
 # =============================================================================
@@ -198,7 +204,7 @@ if (current_os == "win") {
 
 # These Sanitizers all imply using the Clang compiler. On Windows they either
 # don't work or work differently.
-if (!is_clang && (is_asan || is_lsan || is_tsan || is_msan)) {
+if (!is_clang && (is_asan || is_lsan || is_msan || is_tsan || is_ubsan)) {
   is_clang = true
 }
 

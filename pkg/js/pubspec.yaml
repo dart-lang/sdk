@@ -1,5 +1,5 @@
 name: js
-version: 0.6.2
+version: 0.6.3
 author: Dart Team <misc@dartlang.org>
 description: Access JavaScript from Dart.
 homepage: https://github.com/dart-lang/sdk/tree/master/pkg/js

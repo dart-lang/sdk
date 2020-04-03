@@ -299,14 +299,10 @@ library;
 // typedef Typedef = Object Function();
 //         ^^^^^^^
 //
-// pkg/front_end/testcases/general/duplicated_declarations.dart:65:19: Warning: 'C' isn't a type.
+// pkg/front_end/testcases/general/duplicated_declarations.dart:65:19: Error: 'C' isn't a type.
 // class Sub extends C {
 //                   ^
 // pkg/front_end/testcases/general/duplicated_declarations.dart:65:19: Context: This isn't a type.
-// class Sub extends C {
-//                   ^
-//
-// pkg/front_end/testcases/general/duplicated_declarations.dart:65:19: Error: 'C' isn't a type.
 // class Sub extends C {
 //                   ^
 //
@@ -332,7 +328,7 @@ class C#3 extends core::Object { // from org-dartlang-testcase:///duplicated_dec
     ;
 }
 class C#2 extends core::Object { // from org-dartlang-testcase:///duplicated_declarations_part.dart
-  field dynamic field;
+  field core::String* field;
   constructor •(dynamic a) → self::C#2*
     ;
   method m() → dynamic
@@ -347,7 +343,7 @@ class C#1 extends core::Object {
     ;
 }
 class C extends core::Object {
-  field dynamic field;
+  field core::String* field;
   constructor •(dynamic a) → self::C*
     ;
   method m() → dynamic
@@ -363,7 +359,7 @@ class Sub extends core::Object {
   method m() → dynamic
     ;
 }
-class Enum#4 extends core::Object { // from org-dartlang-testcase:///duplicated_declarations_part.dart
+class Enum#4 extends core::Object /*isEnum*/  { // from org-dartlang-testcase:///duplicated_declarations_part.dart
   final field core::int* index;
   final field core::String* _name;
   static const field core::List<self::Enum#4*>* values = const <self::Enum#4*>[self::Enum#4::a];
@@ -374,7 +370,7 @@ class Enum#4 extends core::Object { // from org-dartlang-testcase:///duplicated_
   method toString() → core::String*
     return this.{=self::Enum#4::_name};
 }
-class Enum#3 extends core::Object { // from org-dartlang-testcase:///duplicated_declarations_part.dart
+class Enum#3 extends core::Object /*isEnum*/  { // from org-dartlang-testcase:///duplicated_declarations_part.dart
   final field core::int* index;
   final field core::String* _name;
   static const field core::List<self::Enum#3*>* values = const <self::Enum#3*>[self::Enum#3::a, self::Enum#3::b, self::Enum#3::c];
@@ -387,7 +383,7 @@ class Enum#3 extends core::Object { // from org-dartlang-testcase:///duplicated_
   method toString() → core::String*
     return this.{=self::Enum#3::_name};
 }
-class Enum#2 extends core::Object { // from org-dartlang-testcase:///duplicated_declarations_part.dart
+class Enum#2 extends core::Object /*isEnum*/  { // from org-dartlang-testcase:///duplicated_declarations_part.dart
   final field core::int* index;
   final field core::String* _name;
   static const field core::List<self::Enum#2*>* values = const <self::Enum#2*>[self::Enum#2::Enum, self::Enum#2::a, self::Enum#2::b];
@@ -400,7 +396,7 @@ class Enum#2 extends core::Object { // from org-dartlang-testcase:///duplicated_
   method toString() → core::String*
     return this.{=self::Enum#2::_name};
 }
-class Enum#1 extends core::Object {
+class Enum#1 extends core::Object /*isEnum*/  {
   final field core::int* index;
   final field core::String* _name;
   static const field core::List<self::Enum#1*>* values = const <self::Enum#1*>[self::Enum#1::a, self::Enum#1::b, self::Enum#1::c];
@@ -413,7 +409,7 @@ class Enum#1 extends core::Object {
   method toString() → core::String*
     return this.{=self::Enum#1::_name};
 }
-class Enum extends core::Object {
+class Enum extends core::Object /*isEnum*/  {
   final field core::int* index;
   final field core::String* _name;
   static const field core::List<self::Enum*>* values = const <self::Enum*>[self::Enum::Enum, self::Enum::a, self::Enum::b];
@@ -426,7 +422,7 @@ class Enum extends core::Object {
   method toString() → core::String*
     return this.{=self::Enum::_name};
 }
-class AnotherEnum extends core::Object {
+class AnotherEnum extends core::Object /*isEnum*/  {
   final field core::int* index;
   final field core::String* _name;
   static const field core::List<self::AnotherEnum*>* values = const <self::AnotherEnum*>[self::AnotherEnum::a, self::AnotherEnum::b, self::AnotherEnum::c];
@@ -439,7 +435,7 @@ class AnotherEnum extends core::Object {
   method toString() → core::String*
     return this.{=self::AnotherEnum::_name};
 }
-static field dynamic field;
+static field core::String* field;
 static method main() → dynamic
   ;
 static method foo() → dynamic

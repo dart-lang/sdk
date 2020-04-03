@@ -287,8 +287,17 @@ DEFINE_NATIVE_ENTRY(OneByteString_splitWithCharCode, 0, 2) {
 }
 
 DEFINE_NATIVE_ENTRY(OneByteString_allocate, 0, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Smi, length_obj, arguments->NativeArgAt(0));
-  return OneByteString::New(length_obj.Value(), Heap::kNew);
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, length_obj, arguments->NativeArgAt(0));
+  const int64_t length = length_obj.AsInt64Value();
+  if ((length < 0) || (length > OneByteString::kMaxElements)) {
+    // Assume that negative lengths are the result of wrapping in code in
+    // string_patch.dart.
+    const Instance& exception =
+        Instance::Handle(thread->isolate()->object_store()->out_of_memory());
+    Exceptions::Throw(thread, exception);
+    UNREACHABLE();
+  }
+  return OneByteString::New(static_cast<intptr_t>(length), Heap::kNew);
 }
 
 DEFINE_NATIVE_ENTRY(OneByteString_allocateFromOneByteList, 0, 3) {

@@ -22,21 +22,19 @@ main() {
 class AssertWithNnbdTest extends DriverResolutionTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
+    ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
 
   @override
   bool get typeToStringWithNullability => true;
 
-  @failingTest
   test_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() {
   assert(a());
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(findNode.methodInvocation('a('), 'bool Function()');
   }
 }
@@ -45,21 +43,19 @@ T a<T>() => throw '';
 class DoWithNnbdTest extends DriverResolutionTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
+    ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
 
   @override
   bool get typeToStringWithNullability => true;
 
-  @failingTest
   test_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() {
   do {} while(a())
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(findNode.methodInvocation('a('), 'bool Function()');
   }
 }
@@ -68,71 +64,61 @@ T a<T>() => throw '';
 class ForWithNnbdTest extends DriverResolutionTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
+    ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
 
   @override
   bool get typeToStringWithNullability => true;
 
-  @failingTest
   test_awaitForIn_dynamic_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() async {
   await for (var e in a()) {}
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(
-        findNode.methodInvocation('a('), 'Stream<dynamic> Function()');
+        findNode.methodInvocation('a('), 'Stream<Object?> Function()');
   }
 
-  @failingTest
   test_awaitForIn_int_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() async {
   await for (int e in a()) {}
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(findNode.methodInvocation('a('), 'Stream<int> Function()');
   }
 
-  @failingTest
   test_for_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() {
   for (int i = 0; a(); i++) {}
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(findNode.methodInvocation('a('), 'bool Function()');
   }
 
-  @failingTest
   test_forIn_dynamic_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() {
   for (var e in a()) {}
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(
-        findNode.methodInvocation('a('), 'Iterable<dynamic> Function()');
+        findNode.methodInvocation('a('), 'Iterable<Object?> Function()');
   }
 
-  @failingTest
   test_forIn_int_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() {
   for (int e in a()) {}
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(
         findNode.methodInvocation('a('), 'Iterable<int> Function()');
   }
@@ -142,21 +128,19 @@ T a<T>() => throw '';
 class IfWithNnbdTest extends DriverResolutionTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
+    ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
 
   @override
   bool get typeToStringWithNullability => true;
 
-  @failingTest
   test_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() {
   if (a()) {}
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(findNode.methodInvocation('a('), 'bool Function()');
   }
 }
@@ -165,21 +149,19 @@ T a<T>() => throw '';
 class WhileWithNnbdTest extends DriverResolutionTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
+    ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
 
   @override
   bool get typeToStringWithNullability => true;
 
-  @failingTest
   test_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() {
   while (a()) {}
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(findNode.methodInvocation('a('), 'bool Function()');
   }
 }

@@ -15,7 +15,7 @@ class PathFilter {
   final String root;
 
   /// List of ignore patterns that paths are tested against.
-  final List<Glob> _ignorePatterns = new List<Glob>();
+  final List<Glob> _ignorePatterns = <Glob>[];
 
   /// Construct a new path filter rooted at [root] with [ignorePatterns].
   /// If [pathContext] is not specified, then the system path context is used.
@@ -37,14 +37,14 @@ class PathFilter {
     _ignorePatterns.clear();
     if (ignorePatterns != null) {
       for (var ignorePattern in ignorePatterns) {
-        _ignorePatterns.add(new Glob(pathContext.separator, ignorePattern));
+        _ignorePatterns.add(Glob(pathContext.separator, ignorePattern));
       }
     }
   }
 
   @override
   String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     for (Glob pattern in _ignorePatterns) {
       sb.write('$pattern ');
     }

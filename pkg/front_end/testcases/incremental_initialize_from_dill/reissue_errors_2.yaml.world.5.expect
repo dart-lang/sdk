@@ -1,0 +1,35 @@
+main = <No Member>;
+library from "org-dartlang-test:///b.dart" as b {
+//
+// Problems in library:
+//
+// org-dartlang-test:///b.dart:3:7: Error: 'B' is a supertype of itself.
+// class B extends A {}
+//       ^
+//
+
+  import "org-dartlang-test:///main.dart";
+
+  class B extends dart.core::Object {
+    synthetic constructor •() → b::B*
+      : super dart.core::Object::•()
+      ;
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+//
+// Problems in library:
+//
+// org-dartlang-test:///main.dart:3:7: Error: 'A' is a supertype of itself.
+// class A extends B {}
+//       ^
+//
+
+  import "org-dartlang-test:///b.dart";
+
+  class A extends dart.core::Object {
+    synthetic constructor •() → main::A*
+      : super dart.core::Object::•()
+      ;
+  }
+}

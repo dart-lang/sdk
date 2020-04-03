@@ -18,9 +18,8 @@ main() {
 
 @reflectiveTest
 class _PackageMapUriResolverTest {
-  static const Map<String, List<Folder>> EMPTY_MAP =
-      const <String, List<Folder>>{};
-  MemoryResourceProvider provider = new MemoryResourceProvider();
+  static const Map<String, List<Folder>> EMPTY_MAP = <String, List<Folder>>{};
+  MemoryResourceProvider provider = MemoryResourceProvider();
 
   void test_isPackageUri() {
     Uri uri = Uri.parse('package:test/test.dart');
@@ -42,13 +41,13 @@ class _PackageMapUriResolverTest {
 
   void test_new_null_packageMap() {
     expect(() {
-      new PackageMapUriResolver(provider, null);
+      PackageMapUriResolver(provider, null);
     }, throwsArgumentError);
   }
 
   void test_new_null_resourceProvider() {
     expect(() {
-      new PackageMapUriResolver(null, <String, List<Folder>>{});
+      PackageMapUriResolver(null, <String, List<Folder>>{});
     }, throwsArgumentError);
   }
 
@@ -56,14 +55,14 @@ class _PackageMapUriResolverTest {
     var a = provider.newFile(provider.convertPath('/aaa/a.dart'), '');
     var b = provider.newFile(provider.convertPath('/bbb/b.dart'), '');
     expect(() {
-      new PackageMapUriResolver(provider, <String, List<Folder>>{
+      PackageMapUriResolver(provider, <String, List<Folder>>{
         'pkg': <Folder>[a.parent, b.parent]
       });
     }, throwsArgumentError);
   }
 
   void test_resolve_nonPackage() {
-    UriResolver resolver = new PackageMapUriResolver(provider, EMPTY_MAP);
+    UriResolver resolver = PackageMapUriResolver(provider, EMPTY_MAP);
     Uri uri = Uri.parse('dart:core');
     Source result = resolver.resolveAbsolute(uri);
     expect(result, isNull);
@@ -75,7 +74,7 @@ class _PackageMapUriResolverTest {
     provider.newFile(pkgFileA, 'library lib_a;');
     provider.newFile(pkgFileB, 'library lib_b;');
     PackageMapUriResolver resolver =
-        new PackageMapUriResolver(provider, <String, List<Folder>>{
+        PackageMapUriResolver(provider, <String, List<Folder>>{
       'pkgA': <Folder>[provider.getResource(provider.convertPath('/pkgA/lib'))],
       'pkgB': <Folder>[provider.getResource(provider.convertPath('/pkgB/lib'))]
     });
@@ -98,28 +97,28 @@ class _PackageMapUriResolverTest {
   }
 
   void test_resolve_package_invalid_leadingSlash() {
-    UriResolver resolver = new PackageMapUriResolver(provider, EMPTY_MAP);
+    UriResolver resolver = PackageMapUriResolver(provider, EMPTY_MAP);
     Uri uri = Uri.parse('package:/foo');
     Source result = resolver.resolveAbsolute(uri);
     expect(result, isNull);
   }
 
   void test_resolve_package_invalid_noSlash() {
-    UriResolver resolver = new PackageMapUriResolver(provider, EMPTY_MAP);
+    UriResolver resolver = PackageMapUriResolver(provider, EMPTY_MAP);
     Uri uri = Uri.parse('package:foo');
     Source result = resolver.resolveAbsolute(uri);
     expect(result, isNull);
   }
 
   void test_resolve_package_invalid_onlySlash() {
-    UriResolver resolver = new PackageMapUriResolver(provider, EMPTY_MAP);
+    UriResolver resolver = PackageMapUriResolver(provider, EMPTY_MAP);
     Uri uri = Uri.parse('package:/');
     Source result = resolver.resolveAbsolute(uri);
     expect(result, isNull);
   }
 
   void test_resolve_package_notInMap() {
-    UriResolver resolver = new PackageMapUriResolver(provider, EMPTY_MAP);
+    UriResolver resolver = PackageMapUriResolver(provider, EMPTY_MAP);
     Uri uri = Uri.parse('package:analyzer/analyzer.dart');
     Source result = resolver.resolveAbsolute(uri);
     expect(result, isNull);
@@ -131,7 +130,7 @@ class _PackageMapUriResolverTest {
     provider.newFile(pkgFileA, 'library lib_a;');
     provider.newFile(pkgFileB, 'library lib_b;');
     PackageMapUriResolver resolver =
-        new PackageMapUriResolver(provider, <String, List<Folder>>{
+        PackageMapUriResolver(provider, <String, List<Folder>>{
       'pkgA': <Folder>[provider.getResource(provider.convertPath('/pkgA/lib'))],
       'pkgB': <Folder>[provider.getResource(provider.convertPath('/pkgB/lib'))]
     });
@@ -157,6 +156,6 @@ class _PackageMapUriResolverTest {
   }
 
   Source _createFileSource(String path) {
-    return new NonExistingSource(path, toUri(path), UriKind.FILE_URI);
+    return NonExistingSource(path, toUri(path), UriKind.FILE_URI);
   }
 }

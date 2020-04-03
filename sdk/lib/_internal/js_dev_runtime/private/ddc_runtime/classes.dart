@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 /// This library defines the operations that define and manipulate Dart
 /// classes.  Included in this are:
 ///   - Generics
@@ -116,9 +118,44 @@ List Function() getImplements(clazz) => JS(
 /// The Symbol for storing type arguments on a specialized generic type.
 final _typeArguments = JS('', 'Symbol("typeArguments")');
 
+final _variances = JS('', 'Symbol("variances")');
+
 final _originalDeclaration = JS('', 'Symbol("originalDeclaration")');
 
 final mixinNew = JS('', 'Symbol("dart.mixinNew")');
+
+/// Normalizes `FutureOr` types when they are constructed at runtime.
+///
+/// This normalization should mirror the normalization performed at compile time
+/// in the method named `_normalizeFutureOr()`.
+normalizeFutureOr(typeConstructor, setBaseClass) {
+  // The canonical version of the generic FutureOr type constructor.
+  var genericFutureOrType =
+      JS('!', '#', generic(typeConstructor, setBaseClass));
+
+  normalize(typeArg) {
+    // Normalize raw FutureOr --> dynamic
+    if (JS<bool>('!', '# == void 0', typeArg)) return _dynamic;
+
+    // FutureOr<dynamic|void|Object> --> dynamic|void|Object
+    if (_isTop(typeArg)) return typeArg;
+
+    // FutureOr<Null> --> Future<Null>
+    // NOTE: These are a legacy FutureOr and Future that can be null already.
+    if (typeArg == unwrapType(Null)) {
+      return JS('!', '#(#)', getGenericClass(Future), typeArg);
+    }
+    // Otherwise, create the FutureOr<T> type as a normal generic type.
+    var genericType = JS('!', '#(#)', genericFutureOrType, typeArg);
+    // Overwrite the original declaration so that it correctly points back to
+    // this method. This ensures that the we can test a type value returned here
+    // as a FutureOr because it is equal to 'async.FutureOr` (in the JS).
+    JS('!', '#[#] = #', genericType, _originalDeclaration, normalize);
+    return genericType;
+  }
+
+  return normalize;
+}
 
 /// Memoize a generic type constructor function.
 generic(typeConstructor, setBaseClass) => JS('', '''(() => {
@@ -176,6 +213,12 @@ getGenericClass(type) => safeGetOwnProperty(type, _originalDeclaration);
 
 List getGenericArgs(type) =>
     JS('List', '#', safeGetOwnProperty(type, _typeArguments));
+
+List getGenericArgVariances(type) =>
+    JS('List', '#', safeGetOwnProperty(type, _variances));
+
+void setGenericArgVariances(f, variances) =>
+    JS('', '#[#] = #', f, _variances, variances);
 
 List<TypeVariable> getGenericTypeFormals(genericClass) {
   return _typeFormalsFromFunction(getGenericTypeCtor(genericClass));
@@ -244,11 +287,6 @@ getSetterType(type, name) {
   if (setters != null) {
     var type = JS('', '#[#]', setters, name);
     if (type != null) {
-      if (JS('!', '# instanceof Array', type)) {
-        // The type has metadata attached.  Pull out just the type.
-        // TODO(jmesserly): remove when we remove mirrors
-        return JS('', '#[0]', type);
-      }
       return type;
     }
   }
@@ -497,21 +535,17 @@ addTypeTests(ctor, isClass) {
       '',
       '''#.as = function as_C(obj) {
     if (obj == null || obj[#]) return obj;
-    return #(obj, this, false);
-  }''',
-      ctor,
-      isClass,
-      cast);
-  JS(
-      '',
-      '''#._check = function check_C(obj) {
-    if (obj == null || obj[#]) return obj;
-    return #(obj, this, true);
+    return #(obj, this);
   }''',
       ctor,
       isClass,
       cast);
 }
+
+/// Pre-initializes types with empty type caches.
+///
+/// Required for the null-safe SDK. Stubbed here.
+addTypeCaches(type) => null;
 
 // TODO(jmesserly): should we do this for all interfaces?
 

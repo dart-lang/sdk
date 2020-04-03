@@ -1,4 +1,13 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/redirecting_factory.dart:7:28: Error: The constructor function type 'Foo<Tf> Function(int)' isn't a subtype of 'FooBase<Tf> Function(int)'.
+//  - 'Foo' is from 'pkg/front_end/testcases/general/redirecting_factory.dart'.
+//  - 'FooBase' is from 'pkg/front_end/testcases/general/redirecting_factory.dart'.
+//   factory FooBase(int x) = Foo<Tf>;
+//                            ^
+//
 import self as self;
 import "dart:core" as core;
 

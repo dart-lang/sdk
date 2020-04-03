@@ -25,7 +25,7 @@
 #endif
 
 // ARM version differences.
-// We support three major 32-bit ARM ISA versions: ARMv5TE, ARMv6 and variants,
+// We support two major 32-bit ARM ISA versions: ARMv6 and variants,
 // and ARMv7 and variants. For each of these we detect the presence of vfp,
 // neon, and integer division instructions. Considering ARMv5TE as the baseline,
 // later versions add the following features/instructions that we use:
@@ -42,7 +42,7 @@
 //
 // If an aarch64 CPU is detected, we generate ARMv7 code.
 //
-// If an instruction is missing on ARMv5TE or ARMv6, we emulate it, if possible.
+// If an instruction is missing on ARMv6, we emulate it, if possible.
 // Where we are missing vfp, we do not unbox doubles, or generate intrinsics for
 // floating point operations. Where we are missing neon, we do not unbox SIMD
 // values, or inline operations on SIMD values. Where we are missing integer
@@ -52,24 +52,13 @@
 //
 // Alignment:
 //
-// Before ARMv6, that is only for ARMv5TE, unaligned accesses will cause a
-// crash. This includes the ldrd and strd instructions, which must use addresses
-// that are 8-byte aligned. Since we don't always guarantee that for our uses
-// of ldrd and strd, these instructions are emulated with two load or store
-// instructions on ARMv5TE. On ARMv6 and on, we assume that the kernel is
-// set up to fixup unaligned accesses. This can be verified by checking
-// /proc/cpu/alignment on modern Linux systems.
+// On ARMv6 and on, we assume that the kernel is set up to fixup unaligned
+// accesses. This can be verified by checking /proc/cpu/alignment on modern
+// Linux systems.
 
 namespace dart {
 
-#if defined(TARGET_ARCH_ARM_5TE)
-DEFINE_FLAG(bool, use_vfp, false, "Use vfp instructions if supported");
-DEFINE_FLAG(bool, use_neon, false, "Use neon instructions if supported");
-DEFINE_FLAG(bool,
-            use_integer_division,
-            false,
-            "Use integer division instruction if supported");
-#elif defined(TARGET_ARCH_ARM_6)
+#if defined(TARGET_ARCH_ARM_6)
 DEFINE_FLAG(bool, use_vfp, true, "Use vfp instructions if supported");
 DEFINE_FLAG(bool, use_neon, false, "Use neon instructions if supported");
 DEFINE_FLAG(bool,
@@ -86,8 +75,7 @@ DEFINE_FLAG(bool,
 #endif
 
 #if defined(TARGET_HOST_MISMATCH)
-#if defined(TARGET_ARCH_ARM_5TE) || defined(TARGET_OS_ANDROID) \
-    || defined(TARGET_OS_IOS)
+#if defined(TARGET_OS_ANDROID) || defined(TARGET_OS_IOS)
 DEFINE_FLAG(bool, sim_use_hardfp, false, "Use the hardfp ABI.");
 #else
 DEFINE_FLAG(bool, sim_use_hardfp, true, "Use the hardfp ABI.");
@@ -170,7 +158,7 @@ void HostCPUFeatures::Init() {
   CpuInfo::Init();
   hardware_ = CpuInfo::GetCpuModel();
 
-  // Check for ARMv5TE, ARMv6, ARMv7, or aarch64.
+  // Check for ARMv6, ARMv7, or aarch64.
   // It can be in either the Processor or Model information fields.
   if (CpuInfo::FieldContains(kCpuInfoProcessor, "aarch64") ||
       CpuInfo::FieldContains(kCpuInfoModel, "aarch64") ||
@@ -179,34 +167,30 @@ void HostCPUFeatures::Init() {
     // pretend that this arm64 cpu is really an ARMv7
     arm_version_ = ARMv7;
     is_arm64 = true;
-  } else if (CpuInfo::FieldContains(kCpuInfoProcessor, "ARM926EJ-S") ||
-             CpuInfo::FieldContains(kCpuInfoModel, "ARM926EJ-S")) {
-    // Lego Mindstorm EV3.
-    arm_version_ = ARMv5TE;
-    // On ARMv5, the PC read offset in an STR or STM instruction is either 8 or
-    // 12 bytes depending on the implementation. On the Mindstorm EV3 it is 12
-    // bytes.
-    store_pc_read_offset_ = 12;
-  } else if (CpuInfo::FieldContains(kCpuInfoProcessor, "Feroceon 88FR131") ||
-             CpuInfo::FieldContains(kCpuInfoModel, "Feroceon 88FR131")) {
-    // This is for the DGBox. For the time-being, assume it is similar to the
-    // Lego Mindstorm.
-    arm_version_ = ARMv5TE;
-    store_pc_read_offset_ = 12;
   } else if (CpuInfo::FieldContains(kCpuInfoProcessor, "ARMv6") ||
              CpuInfo::FieldContains(kCpuInfoModel, "ARMv6")) {
     // Raspberry Pi, etc.
     arm_version_ = ARMv6;
-  } else {
-    ASSERT(CpuInfo::FieldContains(kCpuInfoProcessor, "ARMv7") ||
-           CpuInfo::FieldContains(kCpuInfoModel, "ARMv7"));
+  } else if (CpuInfo::FieldContains(kCpuInfoProcessor, "ARMv7") ||
+             CpuInfo::FieldContains(kCpuInfoModel, "ARMv7") ||
+             CpuInfo::FieldContains(kCpuInfoArchitecture, "7")) {
     arm_version_ = ARMv7;
+  } else {
+#if defined(DART_RUN_IN_QEMU_ARMv7)
+    arm_version_ = ARMv7;
+#else
+    FATAL("Unrecognized ARM CPU architecture.");
+#endif
   }
 
+#if defined(DART_RUN_IN_QEMU_ARMv7)
+  vfp_supported_ = true;
+#else
   // Has floating point unit.
   vfp_supported_ =
       (CpuInfo::FieldContains(kCpuInfoFeatures, "vfp") || is_arm64) &&
       FLAG_use_vfp;
+#endif
 
   // Has integer division.
   // Special cases:
@@ -216,6 +200,8 @@ void HostCPUFeatures::Init() {
   bool is_krait = CpuInfo::FieldContains(kCpuInfoHardware, "QCT APQ8064");
   bool is_armada_370xp =
       CpuInfo::FieldContains(kCpuInfoHardware, "Marvell Armada 370/XP");
+  bool is_virtual_machine =
+      CpuInfo::FieldContains(kCpuInfoHardware, "Dummy Virtual Machine");
 #if defined(HOST_OS_ANDROID)
   bool is_android = true;
 #else
@@ -233,6 +219,10 @@ void HostCPUFeatures::Init() {
     integer_division_supported_ = false;
   } else if (is_armada_370xp) {
     integer_division_supported_ = false;
+  } else if (is_android && !is_arm64 && is_virtual_machine) {
+    // Some Android ARM emulators claim support for integer division in
+    // /proc/cpuinfo but do not actually support it.
+    integer_division_supported_ = false;
   } else {
     integer_division_supported_ =
         (CpuInfo::FieldContains(kCpuInfoFeatures, "idiva") || is_arm64) &&
@@ -244,7 +234,7 @@ void HostCPUFeatures::Init() {
 
 // Use the cross-compiler's predefined macros to determine whether we should
 // use the hard or soft float ABI.
-#if defined(__ARM_PCS_VFP)
+#if defined(__ARM_PCS_VFP) || defined(DART_RUN_IN_QEMU_ARMv7)
   hardfp_supported_ = true;
 #else
   hardfp_supported_ = false;
@@ -273,9 +263,7 @@ void HostCPUFeatures::Init() {
   CpuInfo::Init();
   hardware_ = CpuInfo::GetCpuModel();
 
-#if defined(TARGET_ARCH_ARM_5TE)
-  arm_version_ = ARMv5TE;
-#elif defined(TARGET_ARCH_ARM_6)
+#if defined(TARGET_ARCH_ARM_6)
   arm_version_ = ARMv6;
 #else
   arm_version_ = ARMv7;

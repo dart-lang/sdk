@@ -15,9 +15,9 @@ class B extends core::Object {
   synthetic constructor •() → self::B*
     ;
 }
-static field dynamic v_prefix_pp;
-static field dynamic v_prefix_mm;
-static field dynamic v_postfix_pp;
-static field dynamic v_postfix_mm;
+static field core::int* v_prefix_pp;
+static field core::double* v_prefix_mm;
+static field self::A* v_postfix_pp;
+static field self::A* v_postfix_mm;
 static method main() → dynamic
   ;

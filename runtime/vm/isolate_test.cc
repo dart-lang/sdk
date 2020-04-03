@@ -94,8 +94,9 @@ class InterruptChecker : public ThreadPool::Task {
       // Busy wait for interrupts.
       uword limit = 0;
       do {
-        limit = AtomicOperations::LoadRelaxed(
-            reinterpret_cast<uword*>(thread_->stack_limit_address()));
+        limit = reinterpret_cast<RelaxedAtomic<uword>*>(
+                    thread_->stack_limit_address())
+                    ->load();
       } while (
           (limit == thread_->saved_stack_limit_) ||
           (((limit & Thread::kInterruptsMask) & Thread::kVMInterrupt) == 0));
@@ -160,6 +161,14 @@ class IsolateTestHelper {
 };
 
 TEST_CASE(NoOOBMessageScope) {
+  // Finish any GC in progress so that no kVMInterrupt is added for GC reasons.
+  {
+    TransitionNativeToVM transition(thread);
+    GCTestHelper::CollectAllGarbage();
+    const Error& error = Error::Handle(thread->HandleInterrupts());
+    RELEASE_ASSERT(error.IsNull());
+  }
+
   // EXPECT_EQ is picky about type agreement for its arguments.
   const uword kZero = 0;
   const uword kMessageInterrupt = Thread::kMessageInterrupt;

@@ -4,6 +4,9 @@
 
 import 'dart:async' show Future;
 
+import 'package:_fe_analyzer_shared/src/scanner/string_scanner.dart'
+    show StringScanner;
+
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
@@ -17,18 +20,23 @@ import '../fasta/compiler_context.dart' show CompilerContext;
 
 import '../fasta/incremental_compiler.dart' show IncrementalCompiler;
 
-import '../fasta/scanner/string_scanner.dart' show StringScanner;
+import '../fasta/incremental_serializer.dart' show IncrementalSerializer;
 
 import 'compiler_options.dart' show CompilerOptions;
 
+export '../fasta/incremental_serializer.dart' show IncrementalSerializer;
+
 abstract class IncrementalKernelGenerator {
   factory IncrementalKernelGenerator(CompilerOptions options, Uri entryPoint,
-      [Uri initializeFromDillUri, bool outlineOnly]) {
+      [Uri initializeFromDillUri,
+      bool outlineOnly,
+      IncrementalSerializer incrementalSerializer]) {
     return new IncrementalCompiler(
         new CompilerContext(
             new ProcessedOptions(options: options, inputs: [entryPoint])),
         initializeFromDillUri,
-        outlineOnly);
+        outlineOnly,
+        incrementalSerializer);
   }
 
   /// Initialize the incremental compiler from a component.
@@ -37,12 +45,31 @@ abstract class IncrementalKernelGenerator {
   /// platform will be loaded.
   factory IncrementalKernelGenerator.fromComponent(
       CompilerOptions options, Uri entryPoint, Component component,
-      [bool outlineOnly]) {
+      [bool outlineOnly, IncrementalSerializer incrementalSerializer]) {
     return new IncrementalCompiler.fromComponent(
         new CompilerContext(
             new ProcessedOptions(options: options, inputs: [entryPoint])),
         component,
-        outlineOnly);
+        outlineOnly,
+        incrementalSerializer);
+  }
+
+  /// Initialize the incremental compiler specifically for expression
+  /// compilation where the dill is external and we cannot expect to have access
+  /// to the sources.
+  ///
+  /// The resulting incremental compiler allows for expression compilation,
+  /// but not for general compilation. Note that computeDelta will have to be
+  /// called once to setup properly though.
+  ///
+  /// Notice that the component has to include the platform, and that no other
+  /// platform will be loaded.
+  factory IncrementalKernelGenerator.forExpressionCompilationOnly(
+      CompilerOptions options, Uri entryPoint, Component component) {
+    return new IncrementalCompiler.forExpressionCompilationOnly(
+        new CompilerContext(
+            new ProcessedOptions(options: options, inputs: [entryPoint])),
+        component);
   }
 
   /// Returns a component whose libraries are the recompiled libraries,

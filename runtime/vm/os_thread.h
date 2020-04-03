@@ -6,6 +6,7 @@
 #define RUNTIME_VM_OS_THREAD_H_
 
 #include "platform/address_sanitizer.h"
+#include "platform/atomic.h"
 #include "platform/globals.h"
 #include "platform/safe_stack.h"
 #include "vm/allocation.h"
@@ -137,14 +138,7 @@ class OSThread : public BaseThread {
     return GetCurrentStackPointer() > (stack_limit_ + headroom);
   }
 
-  void RefineStackBoundsFromSP(uword sp) {
-    if (sp > stack_base_) {
-      stack_base_ = sp;
-      stack_limit_ = sp - GetSpecifiedStackSize();
-    }
-  }
-
-  // May fail for the main thread on Linux and Android.
+  // May fail for the main thread on Linux if resources are low.
   static bool GetCurrentStackBounds(uword* lower, uword* upper);
 
   // Returns the current C++ stack pointer. Equivalent taking the address of a
@@ -295,7 +289,7 @@ class OSThread : public BaseThread {
   // All |Thread|s are registered in the thread list.
   OSThread* thread_list_next_;
 
-  uintptr_t thread_interrupt_disabled_;
+  RelaxedAtomic<uintptr_t> thread_interrupt_disabled_;
   Log* log_;
   uword stack_base_;
   uword stack_limit_;

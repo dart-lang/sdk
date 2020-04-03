@@ -13,7 +13,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_single_unit.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UtilTest);
   });
@@ -34,18 +34,17 @@ main() {
 }
 ''');
     IfStatement ifStatement = findNodeAtString('if (');
-    Expression condition = ifStatement.condition;
-    String result =
-        new CorrectionUtils(testAnalysisResult).invertCondition(condition);
+    var condition = ifStatement.condition;
+    var result = CorrectionUtils(testAnalysisResult).invertCondition(condition);
     expect(result, expected);
   }
 
-  test_addLibraryImports_dart_hasImports_between() async {
+  Future<void> test_addLibraryImports_dart_hasImports_between() async {
     await resolveTestUnit('''
 import 'dart:async';
 import 'dart:math';
 ''');
-    Source newLibrary = _getDartSource('dart:collection');
+    var newLibrary = _getDartSource('dart:collection');
     await _assertAddLibraryImport(<Source>[newLibrary], '''
 import 'dart:async';
 import 'dart:collection';
@@ -53,12 +52,12 @@ import 'dart:math';
 ''');
   }
 
-  test_addLibraryImports_dart_hasImports_first() async {
+  Future<void> test_addLibraryImports_dart_hasImports_first() async {
     await resolveTestUnit('''
 import 'dart:collection';
 import 'dart:math';
 ''');
-    Source newLibrary = _getDartSource('dart:async');
+    var newLibrary = _getDartSource('dart:async');
     await _assertAddLibraryImport(<Source>[newLibrary], '''
 import 'dart:async';
 import 'dart:collection';
@@ -66,12 +65,12 @@ import 'dart:math';
 ''');
   }
 
-  test_addLibraryImports_dart_hasImports_last() async {
+  Future<void> test_addLibraryImports_dart_hasImports_last() async {
     await resolveTestUnit('''
 import 'dart:async';
 import 'dart:collection';
 ''');
-    Source newLibrary = _getDartSource('dart:math');
+    var newLibrary = _getDartSource('dart:math');
     await _assertAddLibraryImport(<Source>[newLibrary], '''
 import 'dart:async';
 import 'dart:collection';
@@ -79,13 +78,13 @@ import 'dart:math';
 ''');
   }
 
-  test_addLibraryImports_dart_hasImports_multiple() async {
+  Future<void> test_addLibraryImports_dart_hasImports_multiple() async {
     await resolveTestUnit('''
 import 'dart:collection';
 import 'dart:math';
 ''');
-    Source newLibrary1 = _getDartSource('dart:async');
-    Source newLibrary2 = _getDartSource('dart:html');
+    var newLibrary1 = _getDartSource('dart:async');
+    var newLibrary2 = _getDartSource('dart:html');
     await _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
 import 'dart:async';
 import 'dart:collection';
@@ -94,13 +93,13 @@ import 'dart:math';
 ''');
   }
 
-  test_addLibraryImports_dart_hasImports_multiple_first() async {
+  Future<void> test_addLibraryImports_dart_hasImports_multiple_first() async {
     await resolveTestUnit('''
 import 'dart:html';
 import 'dart:math';
 ''');
-    Source newLibrary1 = _getDartSource('dart:async');
-    Source newLibrary2 = _getDartSource('dart:collection');
+    var newLibrary1 = _getDartSource('dart:async');
+    var newLibrary2 = _getDartSource('dart:collection');
     await _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
 import 'dart:async';
 import 'dart:collection';
@@ -109,13 +108,13 @@ import 'dart:math';
 ''');
   }
 
-  test_addLibraryImports_dart_hasImports_multiple_last() async {
+  Future<void> test_addLibraryImports_dart_hasImports_multiple_last() async {
     await resolveTestUnit('''
 import 'dart:async';
 import 'dart:collection';
 ''');
-    Source newLibrary1 = _getDartSource('dart:html');
-    Source newLibrary2 = _getDartSource('dart:math');
+    var newLibrary1 = _getDartSource('dart:html');
+    var newLibrary2 = _getDartSource('dart:math');
     await _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
 import 'dart:async';
 import 'dart:collection';
@@ -124,14 +123,14 @@ import 'dart:math';
 ''');
   }
 
-  test_addLibraryImports_dart_hasLibraryDirective() async {
+  Future<void> test_addLibraryImports_dart_hasLibraryDirective() async {
     await resolveTestUnit('''
 library test;
 
 class A {}
 ''');
-    Source newLibrary1 = _getDartSource('dart:math');
-    Source newLibrary2 = _getDartSource('dart:async');
+    var newLibrary1 = _getDartSource('dart:math');
+    var newLibrary2 = _getDartSource('dart:async');
     await _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
 library test;
 
@@ -142,14 +141,14 @@ class A {}
 ''');
   }
 
-  test_addLibraryImports_dart_noDirectives_hasComment() async {
+  Future<void> test_addLibraryImports_dart_noDirectives_hasComment() async {
     await resolveTestUnit('''
 /// Comment.
 
 class A {}
 ''');
-    Source newLibrary1 = _getDartSource('dart:math');
-    Source newLibrary2 = _getDartSource('dart:async');
+    var newLibrary1 = _getDartSource('dart:math');
+    var newLibrary2 = _getDartSource('dart:async');
     await _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
 /// Comment.
 
@@ -160,14 +159,14 @@ class A {}
 ''');
   }
 
-  test_addLibraryImports_dart_noDirectives_hasShebang() async {
+  Future<void> test_addLibraryImports_dart_noDirectives_hasShebang() async {
     await resolveTestUnit('''
 #!/bin/dart
 
 class A {}
 ''');
-    Source newLibrary1 = _getDartSource('dart:math');
-    Source newLibrary2 = _getDartSource('dart:async');
+    var newLibrary1 = _getDartSource('dart:math');
+    var newLibrary2 = _getDartSource('dart:async');
     await _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
 #!/bin/dart
 
@@ -178,12 +177,12 @@ class A {}
 ''');
   }
 
-  test_addLibraryImports_dart_noDirectives_noShebang() async {
+  Future<void> test_addLibraryImports_dart_noDirectives_noShebang() async {
     await resolveTestUnit('''
 class A {}
 ''');
-    Source newLibrary1 = _getDartSource('dart:math');
-    Source newLibrary2 = _getDartSource('dart:async');
+    var newLibrary1 = _getDartSource('dart:math');
+    var newLibrary2 = _getDartSource('dart:async');
     await _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
 import 'dart:async';
 import 'dart:math';
@@ -192,14 +191,15 @@ class A {}
 ''');
   }
 
-  test_addLibraryImports_package_hasDart_hasPackages_insertAfter() async {
+  Future<void>
+      test_addLibraryImports_package_hasDart_hasPackages_insertAfter() async {
     addPackageFile('aaa', 'aaa.dart', '');
     await resolveTestUnit('''
 import 'dart:async';
 
 import 'package:aaa/aaa.dart';
 ''');
-    Source newLibrary = _getSource('/lib/bbb.dart', 'package:bbb/bbb.dart');
+    var newLibrary = _getSource('/lib/bbb.dart', 'package:bbb/bbb.dart');
     await _assertAddLibraryImport(<Source>[newLibrary], '''
 import 'dart:async';
 
@@ -208,14 +208,15 @@ import 'package:bbb/bbb.dart';
 ''');
   }
 
-  test_addLibraryImports_package_hasDart_hasPackages_insertBefore() async {
+  Future<void>
+      test_addLibraryImports_package_hasDart_hasPackages_insertBefore() async {
     addPackageFile('bbb', 'bbb.dart', '');
     await resolveTestUnit('''
 import 'dart:async';
 
 import 'package:bbb/bbb.dart';
 ''');
-    Source newLibrary = _getSource('/lib/aaa.dart', 'package:aaa/aaa.dart');
+    var newLibrary = _getSource('/lib/aaa.dart', 'package:aaa/aaa.dart');
     await _assertAddLibraryImport(<Source>[newLibrary], '''
 import 'dart:async';
 
@@ -224,15 +225,15 @@ import 'package:bbb/bbb.dart';
 ''');
   }
 
-  test_addLibraryImports_package_hasImports_between() async {
+  Future<void> test_addLibraryImports_package_hasImports_between() async {
     addPackageFile('aaa', 'aaa.dart', '');
     addPackageFile('ddd', 'ddd.dart', '');
     await resolveTestUnit('''
 import 'package:aaa/aaa.dart';
 import 'package:ddd/ddd.dart';
 ''');
-    Source newLibrary1 = _getSource('/lib/bbb.dart', 'package:bbb/bbb.dart');
-    Source newLibrary2 = _getSource('/lib/ccc.dart', 'package:ccc/ccc.dart');
+    var newLibrary1 = _getSource('/lib/bbb.dart', 'package:bbb/bbb.dart');
+    var newLibrary2 = _getSource('/lib/ccc.dart', 'package:ccc/ccc.dart');
     await _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
 import 'package:aaa/aaa.dart';
 import 'package:bbb/bbb.dart';
@@ -241,7 +242,7 @@ import 'package:ddd/ddd.dart';
 ''');
   }
 
-  test_invertCondition_binary_compare() async {
+  Future<void> test_invertCondition_binary_compare() async {
     await assert_invertCondition('0 < 1', '0 >= 1');
     await assert_invertCondition('0 > 1', '0 <= 1');
     await assert_invertCondition('0 <= 1', '0 > 1');
@@ -250,36 +251,36 @@ import 'package:ddd/ddd.dart';
     await assert_invertCondition('0 != 1', '0 == 1');
   }
 
-  test_invertCondition_binary_compare_boolean() async {
+  Future<void> test_invertCondition_binary_compare_boolean() async {
     await assert_invertCondition('b1 == null', 'b1 != null');
     await assert_invertCondition('b1 != null', 'b1 == null');
   }
 
-  test_invertCondition_binary_logical() async {
+  Future<void> test_invertCondition_binary_logical() async {
     await assert_invertCondition('b1 && b2', '!b1 || !b2');
     await assert_invertCondition('!b1 && !b2', 'b1 || b2');
     await assert_invertCondition('b1 || b2', '!b1 && !b2');
     await assert_invertCondition('!b1 || !b2', 'b1 && b2');
   }
 
-  test_invertCondition_complex() async {
+  Future<void> test_invertCondition_complex() async {
     await assert_invertCondition('b1 && b2 || b3', '(!b1 || !b2) && !b3');
     await assert_invertCondition('b1 || b2 && b3', '!b1 && (!b2 || !b3)');
     await assert_invertCondition('(!b1 || !b2) && !b3', 'b1 && b2 || b3');
     await assert_invertCondition('!b1 && (!b2 || !b3)', 'b1 || b2 && b3');
   }
 
-  test_invertCondition_is() async {
+  Future<void> test_invertCondition_is() async {
     await assert_invertCondition('v1 is int', 'v1 is! int');
     await assert_invertCondition('v1 is! int', 'v1 is int');
   }
 
-  test_invertCondition_literal() async {
+  Future<void> test_invertCondition_literal() async {
     await assert_invertCondition('true', 'false');
     await assert_invertCondition('false', 'true');
   }
 
-  test_invertCondition_not() async {
+  Future<void> test_invertCondition_not() async {
     await assert_invertCondition('b1', '!b1');
     await assert_invertCondition('!b1', 'b1');
     await assert_invertCondition('!((b1))', 'b1');
@@ -288,22 +289,22 @@ import 'package:ddd/ddd.dart';
 
   Future<void> _assertAddLibraryImport(
       List<Source> newLibraries, String expectedCode) async {
-    SourceChange change = new SourceChange('');
+    var change = SourceChange('');
     await addLibraryImports(testAnalysisResult.session, change,
         testLibraryElement, newLibraries.toSet());
-    SourceFileEdit testEdit = change.getFileEdit(testFile);
+    var testEdit = change.getFileEdit(testFile);
     expect(testEdit, isNotNull);
-    String resultCode = SourceEdit.applySequence(testCode, testEdit.edits);
+    var resultCode = SourceEdit.applySequence(testCode, testEdit.edits);
     expect(resultCode, expectedCode);
   }
 
   Source _getDartSource(String uri) {
-    String path = removeStart(uri, 'dart:');
-    return new _SourceMock('/sdk/lib/$path.dart', Uri.parse(uri));
+    var path = removeStart(uri, 'dart:');
+    return _SourceMock('/sdk/lib/$path.dart', Uri.parse(uri));
   }
 
   Source _getSource(String path, String uri) {
-    return new _SourceMock(path, Uri.parse(uri));
+    return _SourceMock(path, Uri.parse(uri));
   }
 }
 
@@ -316,5 +317,6 @@ class _SourceMock implements Source {
 
   _SourceMock(this.fullName, this.uri);
 
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

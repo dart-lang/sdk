@@ -1,0 +1,87 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Check incremental serialization when loading from dill.
+# Try to make it different by forcing a Canonical Name from package2 to be used
+# in package1. Also try to force wrong order by having package1 depend on
+# package3 before depending on package2.
+
+type: newworld
+incrementalSerialization: true
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import "dart:core";
+        import "package:package1/lib1_a.dart";
+        main() {
+          lib1();
+        }
+      package1/lib1_a.dart:
+        import "package:package3/lib3.dart" as lib3;
+        export "lib1_b.dart";
+        lib1a() {
+          lib3.lib3();
+        }
+      package1/lib1_b.dart:
+        import "package:package2/lib2.dart" as lib2;
+        lib1() {
+          return la(null);
+        }
+        la(lib2.Foo f) {
+          return 42;
+        }
+      package2/lib2.dart:
+        int f = 42;
+        class Foo {
+          static int y = 42;
+        }
+      package3/lib3.dart:
+        lib3() {
+          print("lib3");
+        }
+      .packages: |
+        package1:package1
+        package2:package2
+        package3:package3
+    expectedLibraryCount: 5
+    incrementalSerializationDoesWork: true
+  - entry: main.dart
+    expectInitializeFromDill: true
+    sources:
+      main.dart: |
+        import "dart:core";
+        import "package:package1/lib1_a.dart";
+        main() {
+          lib1();
+        }
+      package1/lib1_a.dart:
+        import "package:package3/lib3.dart" as lib3;
+        export "lib1_b.dart";
+        lib1a() {
+          lib3.lib3();
+        }
+      package1/lib1_b.dart:
+        import "package:package2/lib2.dart" as lib2;
+        lib1() {
+          return la(null);
+        }
+        la(lib2.Foo f) {
+          return 42;
+        }
+      package2/lib2.dart:
+        int f = 42;
+        class Foo {
+          static int y = 42;
+        }
+      package3/lib3.dart:
+        lib3() {
+          print("lib3");
+        }
+      .packages: |
+        package1:package1
+        package2:package2
+        package3:package3
+    expectedLibraryCount: 5
+    incrementalSerializationDoesWork: true

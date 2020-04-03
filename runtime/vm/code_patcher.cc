@@ -18,7 +18,7 @@ DEFINE_FLAG(bool, dual_map_code, true, "Dual map jitted code, RW and RX");
 DEFINE_FLAG(bool, dual_map_code, false, "Dual map jitted code, RW and RX");
 #endif  // defined(DUAL_MAPPING_SUPPORTED)
 
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_DBC)
+#if defined(TARGET_ARCH_IA32)
 WritableInstructionsScope::WritableInstructionsScope(uword address,
                                                      intptr_t size)
     : address_(address), size_(size) {
@@ -34,7 +34,7 @@ WritableInstructionsScope::~WritableInstructionsScope() {
                            VirtualMemory::kReadExecute);
   }
 }
-#endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_DBC)
+#endif  // defined(TARGET_ARCH_IA32)
 
 bool MatchesPattern(uword end, const int16_t* pattern, intptr_t size) {
   // When breaking within generated code in GDB, it may overwrite individual

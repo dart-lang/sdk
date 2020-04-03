@@ -42,10 +42,6 @@ int32_t Assembler::jit_cookie() {
   return jit_cookie_;
 }
 
-void Assembler::InitializeMemoryWithBreakpoints(uword data, intptr_t length) {
-  memset(reinterpret_cast<void*>(data), Instr::kBreakPointInstruction, length);
-}
-
 void Assembler::call(Register reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xFF);
@@ -184,6 +180,9 @@ void Assembler::movsxb(Register dst, const Address& src) {
 }
 
 void Assembler::movb(Register dst, const Address& src) {
+  // This would leave 24 bits above the 1 byte value undefined.
+  // If we ever want to purposefully have those undefined, remove this.
+  // TODO(dartbug.com/40210): Allow this.
   FATAL("Use movzxb or movsxb instead.");
 }
 
@@ -230,6 +229,9 @@ void Assembler::movsxw(Register dst, const Address& src) {
 }
 
 void Assembler::movw(Register dst, const Address& src) {
+  // This would leave 16 bits above the 2 byte value undefined.
+  // If we ever want to purposefully have those undefined, remove this.
+  // TODO(dartbug.com/40210): Allow this.
   FATAL("Use movzxw or movsxw instead.");
 }
 
@@ -1499,8 +1501,33 @@ void Assembler::notl(Register reg) {
   EmitUint8(0xD0 | reg);
 }
 
+void Assembler::bsfl(Register dst, Register src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0xBC);
+  EmitRegisterOperand(dst, src);
+}
+
 void Assembler::bsrl(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0xBD);
+  EmitRegisterOperand(dst, src);
+}
+
+void Assembler::popcntl(Register dst, Register src) {
+  ASSERT(TargetCPUFeatures::popcnt_supported());
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0xF3);
+  EmitUint8(0x0F);
+  EmitUint8(0xB8);
+  EmitRegisterOperand(dst, src);
+}
+
+void Assembler::lzcntl(Register dst, Register src) {
+  ASSERT(TargetCPUFeatures::abm_supported());
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0xF3);
   EmitUint8(0x0F);
   EmitUint8(0xBD);
   EmitRegisterOperand(dst, src);
@@ -2092,7 +2119,7 @@ void Assembler::EmitEntryFrameVerification() {
 // EBX receiver, ECX ICData entries array
 // Preserve EDX (ARGS_DESC_REG), not required today, but maybe later.
 void Assembler::MonomorphicCheckedEntryJIT() {
-  has_single_entry_point_ = false;
+  has_monomorphic_entry_ = true;
   intptr_t start = CodeSize();
   Label have_cid, miss;
   Bind(&miss);
@@ -2131,7 +2158,7 @@ void Assembler::MonomorphicCheckedEntryAOT() {
 }
 
 void Assembler::BranchOnMonomorphicCheckedEntryJIT(Label* label) {
-  has_single_entry_point_ = false;
+  has_monomorphic_entry_ = true;
   while (CodeSize() < target::Instructions::kMonomorphicEntryOffsetJIT) {
     int3();
   }
@@ -2141,9 +2168,41 @@ void Assembler::BranchOnMonomorphicCheckedEntryJIT(Label* label) {
   }
 }
 
+void Assembler::EnterSafepoint(Register scratch) {
+  // We generate the same number of instructions whether or not the slow-path is
+  // forced. This simplifies GenerateJitCallbackTrampolines.
+
+  // Compare and swap the value at Thread::safepoint_state from unacquired to
+  // acquired. On success, jump to 'success'; otherwise, fallthrough.
+  Label done, slow_path;
+  if (FLAG_use_slow_path) {
+    jmp(&slow_path);
+  }
+
+  pushl(EAX);
+  movl(EAX, Immediate(target::Thread::safepoint_state_unacquired()));
+  movl(scratch, Immediate(target::Thread::safepoint_state_acquired()));
+  LockCmpxchgl(Address(THR, target::Thread::safepoint_state_offset()), scratch);
+  movl(scratch, EAX);
+  popl(EAX);
+  cmpl(scratch, Immediate(target::Thread::safepoint_state_unacquired()));
+
+  if (!FLAG_use_slow_path) {
+    j(EQUAL, &done);
+  }
+
+  Bind(&slow_path);
+  movl(scratch, Address(THR, target::Thread::enter_safepoint_stub_offset()));
+  movl(scratch, FieldAddress(scratch, target::Code::entry_point_offset()));
+  call(scratch);
+
+  Bind(&done);
+}
+
 void Assembler::TransitionGeneratedToNative(Register destination_address,
                                             Register new_exit_frame,
-                                            Register scratch) {
+                                            Register scratch,
+                                            bool enter_safepoint) {
   // Save exit frame information to enable stack walking.
   movl(Address(THR, target::Thread::top_exit_frame_info_offset()),
        new_exit_frame);
@@ -2153,49 +2212,57 @@ void Assembler::TransitionGeneratedToNative(Register destination_address,
   movl(Address(THR, target::Thread::execution_state_offset()),
        Immediate(target::Thread::native_execution_state()));
 
-  // Compare and swap the value at Thread::safepoint_state from unacquired to
-  // acquired. On success, jump to 'success'; otherwise, fallthrough.
-  Label done;
+  if (enter_safepoint) {
+    EnterSafepoint(scratch);
+  }
+}
+
+void Assembler::ExitSafepoint(Register scratch) {
+  // We generate the same number of instructions whether or not the slow-path is
+  // forced, for consistency with EnterSafepoint.
+
+  // Compare and swap the value at Thread::safepoint_state from acquired to
+  // unacquired. On success, jump to 'success'; otherwise, fallthrough.
+  Label done, slow_path;
+  if (FLAG_use_slow_path) {
+    jmp(&slow_path);
+  }
+
+  pushl(EAX);
+  movl(EAX, Immediate(target::Thread::safepoint_state_acquired()));
+  movl(scratch, Immediate(target::Thread::safepoint_state_unacquired()));
+  LockCmpxchgl(Address(THR, target::Thread::safepoint_state_offset()), scratch);
+  movl(scratch, EAX);
+  popl(EAX);
+  cmpl(scratch, Immediate(target::Thread::safepoint_state_acquired()));
+
   if (!FLAG_use_slow_path) {
-    pushl(EAX);
-    movl(EAX, Immediate(target::Thread::safepoint_state_unacquired()));
-    movl(scratch, Immediate(target::Thread::safepoint_state_acquired()));
-    LockCmpxchgl(Address(THR, target::Thread::safepoint_state_offset()),
-                 scratch);
-    movl(scratch, EAX);
-    popl(EAX);
-    cmpl(scratch, Immediate(target::Thread::safepoint_state_unacquired()));
     j(EQUAL, &done);
   }
 
-  movl(scratch, Address(THR, target::Thread::enter_safepoint_stub_offset()));
+  Bind(&slow_path);
+  movl(scratch, Address(THR, target::Thread::exit_safepoint_stub_offset()));
   movl(scratch, FieldAddress(scratch, target::Code::entry_point_offset()));
   call(scratch);
 
   Bind(&done);
 }
 
-void Assembler::TransitionNativeToGenerated(Register scratch) {
-  // Compare and swap the value at Thread::safepoint_state from acquired to
-  // unacquired. On success, jump to 'success'; otherwise, fallthrough.
-  Label done;
-  if (!FLAG_use_slow_path) {
-    pushl(EAX);
-    movl(EAX, Immediate(target::Thread::safepoint_state_acquired()));
-    movl(scratch, Immediate(target::Thread::safepoint_state_unacquired()));
-    LockCmpxchgl(Address(THR, target::Thread::safepoint_state_offset()),
-                 scratch);
-    movl(scratch, EAX);
-    popl(EAX);
-    cmpl(scratch, Immediate(target::Thread::safepoint_state_acquired()));
-    j(EQUAL, &done);
+void Assembler::TransitionNativeToGenerated(Register scratch,
+                                            bool exit_safepoint) {
+  if (exit_safepoint) {
+    ExitSafepoint(scratch);
+  } else {
+#if defined(DEBUG)
+    // Ensure we've already left the safepoint.
+    movl(scratch, Address(THR, target::Thread::safepoint_state_offset()));
+    andl(scratch, Immediate(1 << target::Thread::safepoint_state_inside_bit()));
+    Label ok;
+    j(ZERO, &ok);
+    Breakpoint();
+    Bind(&ok);
+#endif
   }
-
-  movl(scratch, Address(THR, target::Thread::exit_safepoint_stub_offset()));
-  movl(scratch, FieldAddress(scratch, target::Code::entry_point_offset()));
-  call(scratch);
-
-  Bind(&done);
 
   // Mark that the thread is executing Dart code.
   movl(Assembler::VMTagAddress(),
@@ -2271,9 +2338,11 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
   entry.Call(this, argument_count);
 }
 
-void Assembler::Call(const Code& target, bool movable_target) {
+void Assembler::Call(const Code& target,
+                     bool movable_target,
+                     CodeEntryKind entry_kind) {
   LoadObject(CODE_REG, ToObject(target), movable_target);
-  call(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
+  call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
 }
 
 void Assembler::CallToRuntime() {
@@ -2338,49 +2407,22 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
                                      bool near_jump) {
   ASSERT(cid > 0);
   Address state_address(kNoRegister, 0);
-  intptr_t state_offset = target::ClassTable::StateOffsetFor(cid);
+
+  const intptr_t shared_table_offset =
+      target::Isolate::class_table_offset() +
+      target::ClassTable::shared_class_table_offset();
+  const intptr_t table_offset =
+      target::SharedClassTable::class_heap_stats_table_offset();
+  const intptr_t class_offset = target::ClassTable::ClassOffsetFor(cid);
+
   ASSERT(temp_reg != kNoRegister);
   LoadIsolate(temp_reg);
-  intptr_t table_offset = target::Isolate::class_table_offset() +
-                          target::ClassTable::class_heap_stats_table_offset();
+  movl(temp_reg, Address(temp_reg, shared_table_offset));
   movl(temp_reg, Address(temp_reg, table_offset));
-  state_address = Address(temp_reg, state_offset);
-  testb(state_address,
-        Immediate(target::ClassHeapStats::TraceAllocationMask()));
+  cmpb(Address(temp_reg, class_offset), Immediate(0));
   // We are tracing for this class, jump to the trace label which will use
   // the allocation stub.
   j(NOT_ZERO, trace, near_jump);
-}
-
-void Assembler::UpdateAllocationStats(intptr_t cid, Register temp_reg) {
-  ASSERT(cid > 0);
-  intptr_t counter_offset = target::ClassTable::NewSpaceCounterOffsetFor(cid);
-  ASSERT(temp_reg != kNoRegister);
-  LoadIsolate(temp_reg);
-  intptr_t table_offset = target::Isolate::class_table_offset() +
-                          target::ClassTable::class_heap_stats_table_offset();
-  movl(temp_reg, Address(temp_reg, table_offset));
-  incl(Address(temp_reg, counter_offset));
-}
-
-void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
-                                              Register size_reg,
-                                              Register temp_reg) {
-  ASSERT(cid > 0);
-  ASSERT(cid < kNumPredefinedCids);
-  UpdateAllocationStats(cid, temp_reg);
-  intptr_t size_offset = target::ClassTable::NewSpaceSizeOffsetFor(cid);
-  addl(Address(temp_reg, size_offset), size_reg);
-}
-
-void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
-                                              intptr_t size_in_bytes,
-                                              Register temp_reg) {
-  ASSERT(cid > 0);
-  ASSERT(cid < kNumPredefinedCids);
-  UpdateAllocationStats(cid, temp_reg);
-  intptr_t size_offset = target::ClassTable::NewSpaceSizeOffsetFor(cid);
-  addl(Address(temp_reg, size_offset), Immediate(size_in_bytes));
 }
 #endif  // !PRODUCT
 
@@ -2407,7 +2449,6 @@ void Assembler::TryAllocate(const Class& cls,
     // Successfully allocated the object, now update top to point to
     // next object start and store the class in the class field of object.
     movl(Address(THR, target::Thread::top_offset()), instance_reg);
-    NOT_IN_PRODUCT(UpdateAllocationStats(cid, temp_reg));
     ASSERT(instance_size >= kHeapObjectTag);
     subl(instance_reg, Immediate(instance_size - kHeapObjectTag));
     const uint32_t tags =
@@ -2450,7 +2491,6 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // next object start and initialize the object.
     movl(Address(THR, target::Thread::top_offset()), end_address);
     addl(instance, Immediate(kHeapObjectTag));
-    NOT_IN_PRODUCT(UpdateAllocationStatsWithSize(cid, instance_size, temp_reg));
 
     // Initialize the tags.
     const uint32_t tags =
@@ -2497,6 +2537,10 @@ void Assembler::EnterOsrFrame(intptr_t extra_size) {
 
 void Assembler::EnterStubFrame() {
   EnterDartFrame(0);
+}
+
+void Assembler::LeaveStubFrame() {
+  LeaveFrame();
 }
 
 void Assembler::EmitOperand(int rm, const Operand& operand) {
@@ -2593,12 +2637,12 @@ void Assembler::LoadClassId(Register result, Register object) {
 
 void Assembler::LoadClassById(Register result, Register class_id) {
   ASSERT(result != class_id);
+
+  const intptr_t table_offset = target::Isolate::class_table_offset() +
+                                target::ClassTable::table_offset();
   LoadIsolate(result);
-  const intptr_t offset = target::Isolate::class_table_offset() +
-                          target::ClassTable::table_offset();
-  movl(result, Address(result, offset));
-  ASSERT(target::ClassTable::kSizeOfClassPairLog2 == 3);
-  movl(result, Address(result, class_id, TIMES_8, 0));
+  movl(result, Address(result, table_offset));
+  movl(result, Address(result, class_id, TIMES_4, 0));
 }
 
 void Assembler::CompareClassId(Register object,
@@ -2695,38 +2739,58 @@ Address Assembler::ElementAddressForIntIndex(bool is_external,
   }
 }
 
-static ScaleFactor ToScaleFactor(intptr_t index_scale) {
-  // Note that index is expected smi-tagged, (i.e, times 2) for all arrays with
-  // index scale factor > 1. E.g., for Uint8Array and OneByteString the index is
-  // expected to be untagged before accessing.
-  ASSERT(kSmiTagShift == 1);
-  switch (index_scale) {
-    case 1:
-      return TIMES_1;
-    case 2:
-      return TIMES_1;
-    case 4:
-      return TIMES_2;
-    case 8:
-      return TIMES_4;
-    case 16:
-      return TIMES_8;
-    default:
-      UNREACHABLE();
-      return TIMES_1;
+static ScaleFactor ToScaleFactor(intptr_t index_scale, bool index_unboxed) {
+  if (index_unboxed) {
+    switch (index_scale) {
+      case 1:
+        return TIMES_1;
+      case 2:
+        return TIMES_2;
+      case 4:
+        return TIMES_4;
+      case 8:
+        return TIMES_8;
+      case 16:
+        return TIMES_16;
+      default:
+        UNREACHABLE();
+        return TIMES_1;
+    }
+  } else {
+    // Note that index is expected smi-tagged, (i.e, times 2) for all arrays
+    // with index scale factor > 1. E.g., for Uint8Array and OneByteString the
+    // index is expected to be untagged before accessing.
+    ASSERT(kSmiTagShift == 1);
+    switch (index_scale) {
+      case 1:
+        return TIMES_1;
+      case 2:
+        return TIMES_1;
+      case 4:
+        return TIMES_2;
+      case 8:
+        return TIMES_4;
+      case 16:
+        return TIMES_8;
+      default:
+        UNREACHABLE();
+        return TIMES_1;
+    }
   }
 }
 
 Address Assembler::ElementAddressForRegIndex(bool is_external,
                                              intptr_t cid,
                                              intptr_t index_scale,
+                                             bool index_unboxed,
                                              Register array,
                                              Register index,
                                              intptr_t extra_disp) {
   if (is_external) {
-    return Address(array, index, ToScaleFactor(index_scale), extra_disp);
+    return Address(array, index, ToScaleFactor(index_scale, index_unboxed),
+                   extra_disp);
   } else {
-    return FieldAddress(array, index, ToScaleFactor(index_scale),
+    return FieldAddress(array, index, ToScaleFactor(index_scale, index_unboxed),
                         target::Instance::DataOffsetFor(cid) + extra_disp);
   }
 }

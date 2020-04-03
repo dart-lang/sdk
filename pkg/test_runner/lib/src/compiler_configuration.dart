@@ -18,6 +18,21 @@ List<String> _replaceDartFiles(List<String> list, String replacement) {
       .toList();
 }
 
+/// Generates a list with a single `--enable-experiment=` option that includes
+/// all experiments enabled by [configuration] and [testFile].
+///
+/// Returns an empty list if there are no experiments to enable. Returning a
+/// list allows the result of calling this to be spread into another list.
+List<String> _experimentsArgument(
+    TestConfiguration configuration, TestFile testFile) {
+  if (configuration.experiments.isEmpty && testFile.experiments.isEmpty) {
+    return const [];
+  }
+
+  var experiments = {...configuration.experiments, ...testFile.experiments};
+  return ["--enable-experiment=${experiments.join(',')}"];
+}
+
 /// Grouping of a command with its expected result.
 class CommandArtifact {
   final List<Command> commands;
@@ -40,9 +55,7 @@ abstract class CompilerConfiguration {
 
   bool get _useSdk => _configuration.useSdk;
 
-  bool get _useEnableAsserts => _configuration.useEnableAsserts;
-
-  bool get previewDart2 => !_configuration.noPreviewDart2;
+  bool get _enableAsserts => _configuration.enableAsserts;
 
   /// Whether to run the runtime on the compilation result of a test which
   /// expects a compile-time error and the compiler did not emit one.
@@ -70,8 +83,7 @@ abstract class CompilerConfiguration {
 
       case Compiler.dartk:
       case Compiler.dartkb:
-        if (configuration.architecture == Architecture.simdbc64 ||
-            configuration.architecture == Architecture.simarm ||
+        if (configuration.architecture == Architecture.simarm ||
             configuration.architecture == Architecture.simarm64 ||
             configuration.system == System.android) {
           return VMKernelCompilerConfiguration(configuration);
@@ -124,13 +136,13 @@ abstract class CompilerConfiguration {
   }
 
   List<String> computeCompilerArguments(
-      List<String> vmOptions,
-      List<String> sharedOptions,
-      List<String> dartOptions,
-      List<String> dart2jsOptions,
-      List<String> ddcOptions,
-      List<String> args) {
-    return [...sharedOptions, ..._configuration.sharedOptions, ...args];
+      TestFile testFile, List<String> vmOptions, List<String> args) {
+    return [
+      ...testFile.sharedOptions,
+      ..._configuration.sharedOptions,
+      ..._experimentsArgument(_configuration, testFile),
+      ...args
+    ];
   }
 
   List<String> computeRuntimeArguments(
@@ -157,11 +169,7 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
       List<String> originalArguments,
       CommandArtifact artifact) {
     return [
-      if (_isDebug)
-        // Temporarily disable background compilation to avoid flaky crashes
-        // (see http://dartbug.com/30016 for details).
-        '--no-background-compilation',
-      if (_useEnableAsserts) '--enable_asserts',
+      if (_enableAsserts) '--enable_asserts',
       if (_configuration.hotReload)
         '--hot-reload-test-mode'
       else if (_configuration.hotReloadRollback)
@@ -169,6 +177,7 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
       ...vmOptions,
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
+      ..._experimentsArgument(_configuration, testFile),
       ...originalArguments,
       ...testFile.dartOptions
     ];
@@ -206,15 +215,11 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
 
   @override
   List<String> computeCompilerArguments(
-      List<String> vmOptions,
-      List<String> sharedOptions,
-      List<String> dartOptions,
-      List<String> dart2jsOptions,
-      List<String> ddcOptions,
-      List<String> args) {
+      TestFile testFile, List<String> vmOptions, List<String> args) {
     return [
-      ...sharedOptions,
+      ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
+      ..._experimentsArgument(_configuration, testFile),
       ...vmOptions,
       ...args
     ];
@@ -234,7 +239,7 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
     }
 
     return [
-      if (_useEnableAsserts) '--enable_asserts',
+      if (_enableAsserts) '--enable_asserts',
       if (_configuration.hotReload)
         '--hot-reload-test-mode'
       else if (_configuration.hotReloadRollback)
@@ -242,6 +247,7 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
       ...vmOptions,
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
+      ..._experimentsArgument(_configuration, testFile),
       ..._replaceDartFiles(originalArguments, filename),
       ...testFile.dartOptions
     ];
@@ -306,7 +312,7 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
 
     // The first compilation command is as usual.
     var arguments = pipelineCommands[0].extractArguments(globalArguments, null);
-    CommandArtifact artifact = pipelineCommands[0]
+    var artifact = pipelineCommands[0]
         .compilerConfiguration
         .computeCompilationArtifact(tempDir, arguments, environmentOverrides);
     allCommands.addAll(artifact.commands);
@@ -314,7 +320,7 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
     // The following compilation commands are based on the output of the
     // previous one.
     for (var i = 1; i < pipelineCommands.length; i++) {
-      PipelineCommand command = pipelineCommands[i];
+      var command = pipelineCommands[i];
 
       arguments = command.extractArguments(globalArguments, artifact.filename);
       artifact = command.compilerConfiguration
@@ -327,18 +333,14 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
   }
 
   List<String> computeCompilerArguments(
-      List<String> vmOptions,
-      List<String> sharedOptions,
-      List<String> dartOptions,
-      List<String> dart2jsOptions,
-      List<String> ddcOptions,
-      List<String> args) {
+      TestFile testFile, List<String> vmOptions, List<String> args) {
     // The result will be passed as an input to [extractArguments]
     // (i.e. the arguments to the [PipelineCommand]).
     return [
       ...vmOptions,
-      ...sharedOptions,
+      ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
+      ..._experimentsArgument(_configuration, testFile),
       ...args
     ];
   }
@@ -349,8 +351,7 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
       List<String> vmOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
-    CompilerConfiguration lastCompilerConfiguration =
-        pipelineCommands.last.compilerConfiguration;
+    var lastCompilerConfiguration = pipelineCommands.last.compilerConfiguration;
     return lastCompilerConfiguration.computeRuntimeArguments(
         runtimeConfiguration, testFile, vmOptions, originalArguments, artifact);
   }
@@ -366,7 +367,9 @@ class Dart2xCompilerConfiguration extends CompilerConfiguration {
       : super._subclass(configuration);
 
   String computeCompilerPath() {
-    var prefix = 'sdk/bin';
+    var prefix =
+        // TODO(38701): Cleanup after merging the forked SDK into mainline.
+        _configuration.nnbdMode == NnbdMode.legacy ? 'sdk/bin' : 'sdk_nnbd/bin';
     var suffix = shellScriptExtension;
 
     if (_isHostChecked) {
@@ -394,7 +397,7 @@ class Dart2xCompilerConfiguration extends CompilerConfiguration {
     arguments = arguments.toList();
     arguments.add('--out=$outputFileName');
 
-    return Command.compilation(moniker, outputFileName, bootstrapDependencies(),
+    return CompilationCommand(moniker, outputFileName, bootstrapDependencies(),
         computeCompilerPath(), arguments, environmentOverrides,
         alwaysCompile: !_useSdk);
   }
@@ -417,16 +420,12 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
       : super('dart2js', configuration);
 
   List<String> computeCompilerArguments(
-      List<String> vmOptions,
-      List<String> sharedOptions,
-      List<String> dartOptions,
-      List<String> dart2jsOptions,
-      List<String> ddcOptions,
-      List<String> args) {
+      TestFile testFile, List<String> vmOptions, List<String> args) {
     return [
-      ...sharedOptions,
+      ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
-      ...dart2jsOptions,
+      ..._experimentsArgument(_configuration, testFile),
+      ...testFile.dart2jsOptions,
       ...args
     ];
   }
@@ -460,10 +459,12 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
       List<String> vmOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
-    Uri sdk = _useSdk
+    var sdk = _useSdk
         ? Uri.directory(_configuration.buildDirectory).resolve('dart-sdk/')
-        : Uri.directory(Repository.dir.toNativePath()).resolve('sdk/');
-    Uri preambleDir = sdk.resolve('lib/_internal/js_runtime/lib/preambles/');
+        : Uri.directory(Repository.dir.toNativePath()).resolve(
+            // TODO(38701): Cleanup after merging the forked SDK into mainline.
+            _configuration.nnbdMode == NnbdMode.legacy ? 'sdk/' : 'sdk_nnbd/');
+    var preambleDir = sdk.resolve('lib/_internal/js_runtime/lib/preambles/');
     return runtimeConfiguration.dart2jsPreambles(preambleDir)
       ..add(artifact.filename);
   }
@@ -474,7 +475,7 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
         uri.resolve('pkg/test_runner/lib/src/babel_transform.js').toFilePath();
     var babelStandalone =
         uri.resolve('third_party/babel/babel.min.js').toFilePath();
-    return Command.compilation(
+    return CompilationCommand(
         'babel',
         output,
         [],
@@ -493,21 +494,20 @@ class DevCompilerConfiguration extends CompilerConfiguration {
   bool get useKernel => _configuration.compiler == Compiler.dartdevk;
 
   String computeCompilerPath() {
-    var dir = _useSdk ? "${_configuration.buildDirectory}/dart-sdk" : "sdk";
+    var dir = _useSdk
+        ? "${_configuration.buildDirectory}/dart-sdk"
+        // TODO(38701): Cleanup after merging the forked SDK into mainline.
+        : _configuration.nnbdMode == NnbdMode.legacy ? "sdk" : "sdk_nnbd";
     return "$dir/bin/dartdevc$shellScriptExtension";
   }
 
   List<String> computeCompilerArguments(
-      List<String> vmOptions,
-      List<String> sharedOptions,
-      List<String> dartOptions,
-      List<String> dart2jsOptions,
-      List<String> ddcOptions,
-      List<String> args) {
+      TestFile testFile, List<String> vmOptions, List<String> args) {
     return [
-      ...sharedOptions,
+      ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
-      ...ddcOptions,
+      ..._experimentsArgument(_configuration, testFile),
+      ...testFile.ddcOptions,
       // The file being compiled is the last argument.
       args.last
     ];
@@ -515,37 +515,15 @@ class DevCompilerConfiguration extends CompilerConfiguration {
 
   Command _createCommand(String inputFile, String outputFile,
       List<String> sharedOptions, Map<String, String> environment) {
-    /// This can be disabled to test DDC's hybrid mode (automatically converting
-    /// Analyzer summaries to Kernel files).
-    ///
-    /// The current DDC configurations are:
-    ///
-    /// - using Analyzer ASTs and Analyzer summaries: the current default
-    ///   configuration; used in internal builds.
-    /// - using Kernel trees and Kernel IL files: the new default for external
-    ///   users (e.g. Flutter Web), and in the future, the only DDC mode.
-    /// - using Kernel trees, but Analyzer summaries (converted automatically):
-    ///   this was intended to help migrate internal users, but is currently
-    ///   unused.
-    ///
-    /// The first two are tested on the bots and are called "dartdevc" and
-    /// "dartdevk" respectively. This flag switches "dartdevk" to use either
-    /// Kernel IL files, or the Analyzer summaries.
-    final useDillFormat = useKernel;
-
     var args = <String>[];
-    if (useKernel) {
-      args.add('--kernel');
-    }
     if (!_useSdk) {
       // If we're testing a built SDK, DDC will find its own summary.
       //
       // For local development we don't have a built SDK yet, so point directly
       // at the built summary file location.
-      var sdkSummaryFile =
-          useDillFormat ? 'kernel/ddc_sdk.dill' : 'ddc_sdk.sum';
+      var sdkSummaryFile = 'ddc_sdk.dill';
       var sdkSummary = Path(_configuration.buildDirectory)
-          .append("/gen/utils/dartdevc/$sdkSummaryFile")
+          .append(sdkSummaryFile)
           .absolute
           .toNativePath();
       args.addAll(["--dart-sdk-summary", sdkSummary]);
@@ -556,7 +534,6 @@ class DevCompilerConfiguration extends CompilerConfiguration {
     args.addAll([
       "--ignore-unrecognized-flags",
       "--no-summarize",
-      "--no-source-map",
       "-o",
       outputFile,
       inputFile,
@@ -564,16 +541,17 @@ class DevCompilerConfiguration extends CompilerConfiguration {
 
     // Link to the summaries for the available packages, so that they don't
     // get recompiled into the test's own module.
-    var pkgDir = useDillFormat ? 'pkg_kernel' : 'pkg';
-    var pkgExtension = useDillFormat ? 'dill' : 'sum';
-    for (var package in testPackages) {
+    var packages = _configuration.nnbdMode == NnbdMode.legacy
+        ? testPackages
+        : testPackagesNnbd;
+    for (var package in packages) {
       args.add("-s");
 
       // Since the summaries for the packages are not near the tests, we give
       // dartdevc explicit module paths for each one. When the test is run, we
       // will tell require.js where to find each package's compiled JS.
       var summary = Path(_configuration.buildDirectory)
-          .append("/gen/utils/dartdevc/$pkgDir/$package.$pkgExtension")
+          .append("/gen/utils/dartdevc/pkg_kernel/$package.dill")
           .absolute
           .toNativePath();
       args.add("$summary=$package");
@@ -581,7 +559,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
 
     var inputDir = Path(inputFile).append("..").canonicalize().toNativePath();
     var displayName = useKernel ? 'dartdevk' : 'dartdevc';
-    return Command.compilation(displayName, outputFile, bootstrapDependencies(),
+    return CompilationCommand(displayName, outputFile, bootstrapDependencies(),
         computeCompilerPath(), args, environment,
         workingDirectory: inputDir);
   }
@@ -611,6 +589,12 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
 
   bool get _isArm => _configuration.architecture == Architecture.arm;
 
+  bool get _isSimArm => _configuration.architecture == Architecture.simarm;
+
+  bool get _isSimArm64 => _configuration.architecture == Architecture.simarm64;
+
+  bool get _isArmX64 => _configuration.architecture == Architecture.arm_x64;
+
   bool get _isArm64 => _configuration.architecture == Architecture.arm64;
 
   bool get _isX64 => _configuration.architecture == Architecture.x64;
@@ -625,7 +609,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   int get timeoutMultiplier {
     var multiplier = 2;
     if (_isDebug) multiplier *= 4;
-    if (_useEnableAsserts) multiplier *= 2;
+    if (_enableAsserts) multiplier *= 2;
     return multiplier;
   }
 
@@ -644,12 +628,21 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
           tempDir, arguments, environmentOverrides));
     }
 
-    if (!_configuration.useBlobs && !_configuration.useElf) {
+    if (!_configuration.useElf) {
       commands.add(
           computeAssembleCommand(tempDir, arguments, environmentOverrides));
       if (!_configuration.keepGeneratedFiles) {
         commands.add(computeRemoveAssemblyCommand(
             tempDir, arguments, environmentOverrides));
+      }
+    }
+
+    if (_configuration.useElf && _isAndroid) {
+      // On Android, run the NDK's "strip" tool with "--strip-unneeded" to copy
+      // Flutter's workflow. Skip this step on tests for DWARF (which may get
+      // stripped).
+      if (!arguments.last.contains("dwarf")) {
+        commands.add(computeStripCommand(tempDir, environmentOverrides));
       }
     }
 
@@ -675,7 +668,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       args = [tempKernelFile(tempDir)];
     }
 
-    return Command.compilation('remove_kernel_file', tempDir,
+    return CompilationCommand('remove_kernel_file', tempDir,
         bootstrapDependencies(), exec, args, environmentOverrides,
         alwaysCompile: !_useSdk);
   }
@@ -688,60 +681,72 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       if (_isAndroid) {
         if (_isArm || _isIA32) {
           exec = "$buildDir/clang_x86/gen_snapshot";
-        } else if (_isArm64 || _isX64) {
+        } else if (_isArm64 || _isX64 || _isArmX64) {
           exec = "$buildDir/clang_x64/gen_snapshot";
         } else {
           // Guaranteed by package:test_runner/src/configuration.dart's
           // TestConfiguration.validate().
           assert(false);
         }
+      } else if (_configuration.builderTag == "crossword") {
+        exec = "${buildDir}_X64/gen_snapshot";
+      } else if (_isArm && _configuration.useQemu) {
+        // DebugXARM --> DebugSIMARM_X64
+        final simBuildDir = buildDir.replaceAll("XARM", "SIMARM_X64");
+        exec = "$simBuildDir/gen_snapshot";
+      } else if (_isArm64 && _configuration.useQemu) {
+        exec = "$buildDir/clang_x64/gen_snapshot";
       } else {
         exec = "$buildDir/gen_snapshot";
       }
     }
 
     var args = [
-      if (_configuration.useBlobs) ...[
-        "--snapshot-kind=app-aot-blobs",
-        "--blobs_container_filename=$tempDir/out.aotsnapshot"
-      ] else if (_configuration.useElf) ...[
+      if (_configuration.useElf) ...[
         "--snapshot-kind=app-aot-elf",
         "--elf=$tempDir/out.aotsnapshot"
       ] else ...[
         "--snapshot-kind=app-aot-assembly",
         "--assembly=$tempDir/out.S"
       ],
-      if (_isAndroid && _isArm) '--no-sim-use-hardfp',
-      if (_configuration.isMinified) '--obfuscate',
-      ..._replaceDartFiles(arguments, tempKernelFile(tempDir))
+      if (_isAndroid && _isArm)
+        '--no-sim-use-hardfp',
+      if (_configuration.isMinified)
+        '--obfuscate',
+      // The SIMARM precompiler assumes support for integer division, but the
+      // Qemu arm cpus do not support integer division.
+      if (_configuration.useQemu)
+        '--no-use-integer-division',
+      ..._replaceDartFiles(arguments, tempKernelFile(tempDir)),
     ];
 
-    return Command.compilation('precompiler', tempDir, bootstrapDependencies(),
+    return CompilationCommand('precompiler', tempDir, bootstrapDependencies(),
         exec, args, environmentOverrides,
         alwaysCompile: !_useSdk);
   }
+
+  static const String ndkPath = "third_party/android_tools/ndk";
+  String get abiTriple => _isArm || _isArmX64
+      ? "arm-linux-androideabi"
+      : _isArm64 ? "aarch64-linux-android" : null;
+  String get host =>
+      Platform.isLinux ? "linux" : Platform.isMacOS ? "darwin" : null;
 
   Command computeAssembleCommand(String tempDir, List arguments,
       Map<String, String> environmentOverrides) {
     String cc, shared, ldFlags;
     if (_isAndroid) {
-      var ndk = "third_party/android_tools/ndk";
-      String triple;
-      if (_isArm) {
-        triple = "arm-linux-androideabi";
-      } else if (_isArm64) {
-        triple = "aarch64-linux-android";
-      }
-      String host;
-      if (Platform.isLinux) {
-        host = "linux";
-      } else if (Platform.isMacOS) {
-        host = "darwin";
-      }
-      cc = "$ndk/toolchains/$triple-4.9/prebuilt/$host-x86_64/bin/$triple-gcc";
+      cc = "$ndkPath/toolchains/$abiTriple-4.9/prebuilt/"
+          "$host-x86_64/bin/$abiTriple-gcc";
       shared = '-shared';
     } else if (Platform.isLinux) {
-      cc = 'gcc';
+      if (_isSimArm || (_isArm && _configuration.useQemu)) {
+        cc = 'arm-linux-gnueabihf-gcc';
+      } else if (_isSimArm64 || (_isArm64 && _configuration.useQemu)) {
+        cc = 'aarch64-linux-gnu-gcc';
+      } else {
+        cc = 'gcc';
+      }
       shared = '-shared';
     } else if (Platform.isMacOS) {
       cc = 'clang';
@@ -755,12 +760,13 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     String ccFlags;
     switch (_configuration.architecture) {
       case Architecture.x64:
-      case Architecture.simarm64:
         ccFlags = "-m64";
         break;
+      case Architecture.simarm64:
       case Architecture.ia32:
       case Architecture.simarm:
       case Architecture.arm:
+      case Architecture.arm_x64:
       case Architecture.arm64:
         ccFlags = null;
         break;
@@ -778,8 +784,18 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       '$tempDir/out.S'
     ];
 
-    return Command.compilation('assemble', tempDir, bootstrapDependencies(), cc,
+    return CompilationCommand('assemble', tempDir, bootstrapDependencies(), cc,
         args, environmentOverrides,
+        alwaysCompile: !_useSdk);
+  }
+
+  Command computeStripCommand(
+      String tempDir, Map<String, String> environmentOverrides) {
+    var stripTool = "$ndkPath/toolchains/$abiTriple-4.9/prebuilt/"
+        "$host-x86_64/bin/$abiTriple-strip";
+    var args = ['--strip-unneeded', "$tempDir/out.aotsnapshot"];
+    return CompilationCommand('strip', tempDir, bootstrapDependencies(),
+        stripTool, args, environmentOverrides,
         alwaysCompile: !_useSdk);
   }
 
@@ -792,7 +808,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   /// almost identical configurations are tested simultaneously.
   Command computeRemoveAssemblyCommand(String tempDir, List arguments,
       Map<String, String> environmentOverrides) {
-    return Command.compilation('remove_assembly', tempDir,
+    return CompilationCommand('remove_assembly', tempDir,
         bootstrapDependencies(), 'rm', ['$tempDir/out.S'], environmentOverrides,
         alwaysCompile: !_useSdk);
   }
@@ -807,18 +823,14 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   }
 
   List<String> computeCompilerArguments(
-      List<String> vmOptions,
-      List<String> sharedOptions,
-      List<String> dartOptions,
-      List<String> dart2jsOptions,
-      List<String> ddcOptions,
-      List<String> originalArguments) {
+      TestFile testFile, List<String> vmOptions, List<String> args) {
     return [
-      if (_useEnableAsserts) '--enable_asserts',
+      if (_enableAsserts) '--enable_asserts',
       ...filterVmOptions(vmOptions),
-      ...sharedOptions,
+      ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
-      ...originalArguments
+      ..._experimentsArgument(_configuration, testFile),
+      ...args
     ];
   }
 
@@ -838,10 +850,11 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
         _replaceDartFiles(originalArguments, "$dir/out.aotsnapshot");
 
     return [
-      if (_useEnableAsserts) '--enable_asserts',
+      if (_enableAsserts) '--enable_asserts',
       ...vmOptions,
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
+      ..._experimentsArgument(_configuration, testFile),
       ...originalArguments,
       ...testFile.dartOptions
     ];
@@ -855,7 +868,7 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
   int get timeoutMultiplier {
     var multiplier = 1;
     if (_isDebug) multiplier *= 2;
-    if (_useEnableAsserts) multiplier *= 2;
+    if (_enableAsserts) multiplier *= 2;
     return multiplier;
   }
 
@@ -871,7 +884,7 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
   Command computeCompilationCommand(String tempDir, List<String> arguments,
       Map<String, String> environmentOverrides) {
     var snapshot = "$tempDir/out.jitsnapshot";
-    return Command.compilation(
+    return CompilationCommand(
         'app_jit',
         tempDir,
         bootstrapDependencies(),
@@ -882,19 +895,15 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
   }
 
   List<String> computeCompilerArguments(
-      List<String> vmOptions,
-      List<String> sharedOptions,
-      List<String> dartOptions,
-      List<String> dart2jsOptions,
-      List<String> ddcOptions,
-      List<String> originalArguments) {
+      TestFile testFile, List<String> vmOptions, List<String> args) {
     return [
-      if (_useEnableAsserts) '--enable_asserts',
+      if (_enableAsserts) '--enable_asserts',
       ...vmOptions,
-      ...sharedOptions,
+      ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
-      ...originalArguments,
-      ...dartOptions
+      ..._experimentsArgument(_configuration, testFile),
+      ...args,
+      ...testFile.dartOptions
     ];
   }
 
@@ -905,10 +914,11 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
       List<String> originalArguments,
       CommandArtifact artifact) {
     return [
-      if (_useEnableAsserts) '--enable_asserts',
+      if (_enableAsserts) '--enable_asserts',
       ...vmOptions,
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
+      ..._experimentsArgument(_configuration, testFile),
       ..._replaceDartFiles(originalArguments, artifact.filename),
       ...testFile.dartOptions
     ];
@@ -923,7 +933,9 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
   int get timeoutMultiplier => 4;
 
   String computeCompilerPath() {
-    var prefix = 'sdk/bin';
+    var prefix =
+        // TODO(38701): Cleanup after merging the forked SDK into mainline.
+        _configuration.nnbdMode == NnbdMode.legacy ? 'sdk/bin' : 'sdk_nnbd/bin';
     if (_isHostChecked) {
       if (_useSdk) {
         throw "--host-checked and --use-sdk cannot be used together";
@@ -941,19 +953,32 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
 
   CommandArtifact computeCompilationArtifact(String tempDir,
       List<String> arguments, Map<String, String> environmentOverrides) {
-    if (!previewDart2) {
-      throw ArgumentError('--no-preview-dart-2 not supported');
-    }
+    const legacyTestDirectories = {
+      "co19_2",
+      "corelib_2",
+      "ffi_2",
+      "language_2",
+      "lib_2",
+      "service",
+      "standalone_2"
+    };
+
+    // If we are running a legacy test with NNBD enabled, tell analyzer to use
+    // a pre-NNBD language version for the test.
+    var testPath = arguments.last;
+    var segments = Path(testPath).relativeTo(Repository.dir).segments();
+    var setLegacyVersion = segments.any(legacyTestDirectories.contains);
 
     var args = [
       ...arguments,
       if (_configuration.useAnalyzerCfe) '--use-cfe',
       if (_configuration.useAnalyzerFastaParser) '--use-fasta-parser',
+      if (setLegacyVersion) '--default-language-version=2.7',
     ];
 
     // Since this is not a real compilation, no artifacts are produced.
     return CommandArtifact(
-        [Command.analysis(computeCompilerPath(), args, environmentOverrides)],
+        [AnalysisCommand(computeCompilerPath(), args, environmentOverrides)],
         null,
         null);
   }
@@ -985,13 +1010,9 @@ class CompareAnalyzerCfeCompilerConfiguration extends CompilerConfiguration {
 
   CommandArtifact computeCompilationArtifact(String tempDir,
       List<String> arguments, Map<String, String> environmentOverrides) {
-    if (!previewDart2) {
-      throw ArgumentError('--no-preview-dart-2 not supported');
-    }
-
     // Since this is not a real compilation, no artifacts are produced.
     return CommandArtifact([
-      Command.compareAnalyzerCfe(
+      CompareAnalyzerCfeCommand(
           computeCompilerPath(), arguments.toList(), environmentOverrides)
     ], null, null);
   }
@@ -1019,7 +1040,7 @@ class SpecParserCompilerConfiguration extends CompilerConfiguration {
 
     // Since this is not a real compilation, no artifacts are produced.
     return CommandArtifact([
-      Command.specParse(computeCompilerPath(), arguments, environmentOverrides)
+      SpecParseCommand(computeCompilerPath(), arguments, environmentOverrides)
     ], null, null);
   }
 
@@ -1043,7 +1064,7 @@ abstract class VMKernelCompilerMixin {
 
   bool get _isAot;
 
-  bool get _useEnableAsserts;
+  bool get _enableAsserts;
 
   List<Uri> bootstrapDependencies();
 
@@ -1052,10 +1073,10 @@ abstract class VMKernelCompilerMixin {
 
   Command computeCompileToKernelCommand(String tempDir, List<String> arguments,
       Map<String, String> environmentOverrides) {
-    final pkgVmDir = Platform.script.resolve('../../../pkg/vm').toFilePath();
-    final genKernel = '$pkgVmDir/tool/gen_kernel$shellScriptExtension';
+    var pkgVmDir = Platform.script.resolve('../../../pkg/vm').toFilePath();
+    var genKernel = '$pkgVmDir/tool/gen_kernel$shellScriptExtension';
 
-    final String useAbiVersion = arguments.firstWhere(
+    var useAbiVersion = arguments.firstWhere(
         (arg) => arg.startsWith('--use-abi-version='),
         orElse: () => null);
 
@@ -1084,21 +1105,18 @@ abstract class VMKernelCompilerMixin {
           name.startsWith('--packages=') ||
           name.startsWith('--enable-experiment=')),
       '-Ddart.developer.causal_async_stacks=$causalAsyncStacks',
-      if (_useEnableAsserts ||
+      if (_enableAsserts ||
           arguments.contains('--enable-asserts') ||
           arguments.contains('--enable_asserts'))
         '--enable-asserts',
-      if (_configuration.useKernelBytecode) ...[
-        '--gen-bytecode',
-        '--drop-ast',
-        '--bytecode-options=source-positions,local-var-info'
-      ]
+      ..._configuration.genKernelOptions,
     ];
 
     var batchArgs = [if (useAbiVersion != null) useAbiVersion];
 
-    return Command.vmKernelCompilation(dillFile, true, bootstrapDependencies(),
-        genKernel, args, environmentOverrides, batchArgs);
+    return VMKernelCompilationCommand(dillFile, bootstrapDependencies(),
+        genKernel, args, environmentOverrides, batchArgs,
+        alwaysCompile: true);
   }
 }
 
@@ -1110,8 +1128,6 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
 
   final Uri _vmExecutable;
 
-  bool get _isLegacy => _configuration.noPreviewDart2;
-
   factory FastaCompilerConfiguration(TestConfiguration configuration) {
     var buildDirectory =
         Uri.base.resolveUri(Uri.directory(configuration.buildDirectory));
@@ -1121,8 +1137,7 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
       dillDir = buildDirectory.resolve("dart-sdk/lib/_internal/");
     }
 
-    var suffix = !configuration.noPreviewDart2 ? "_strong" : "";
-    var platformDill = dillDir.resolve("vm_platform$suffix.dill");
+    var platformDill = dillDir.resolve("vm_platform_strong.dill");
 
     var vmExecutable = buildDirectory
         .resolve(configuration.useSdk ? "dart-sdk/bin/dart" : "dart");
@@ -1149,7 +1164,6 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
 
     var compilerArguments = [
       '--verify',
-      if (_isLegacy) "--legacy-mode",
       "-o",
       outputFileName,
       "--platform",
@@ -1158,26 +1172,28 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
     ];
 
     return CommandArtifact([
-      Command.fasta(
+      FastaCompilationCommand(
           _compilerLocation,
-          output,
+          output.toFilePath(),
           bootstrapDependencies(),
-          _vmExecutable,
+          _vmExecutable.toFilePath(),
           compilerArguments,
           environmentOverrides,
-          Repository.uri)
+          Repository.uri.toFilePath())
     ], outputFileName, "application/x.dill");
   }
 
   @override
   List<String> computeCompilerArguments(
-      List<String> vmOptions,
-      List<String> sharedOptions,
-      List<String> dartOptions,
-      List<String> dart2jsOptions,
-      List<String> ddcOptions,
-      List<String> args) {
-    var arguments = [...sharedOptions, ..._configuration.sharedOptions];
+      TestFile testFile, List<String> vmOptions, List<String> args) {
+    var arguments = [
+      ...testFile.sharedOptions,
+      ..._configuration.sharedOptions,
+      ..._experimentsArgument(_configuration, testFile),
+      if (_configuration.configuration.nnbdMode == NnbdMode.strong) ...[
+        "--nnbd-strong"
+      ]
+    ];
     for (var argument in args) {
       if (argument == "--ignore-unrecognized-flags") continue;
       arguments.add(argument);

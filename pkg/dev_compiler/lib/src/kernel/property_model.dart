@@ -113,7 +113,7 @@ class _LibraryVirtualFieldModel {
         }
 
         if (superclasses == null) {
-          superclasses = Set();
+          superclasses = <Class>{};
           void collectSupertypes(Class c) {
             if (!superclasses.add(c)) return;
             var s = c.superclass;
@@ -147,11 +147,6 @@ class _LibraryVirtualFieldModel {
       // Enums are not extensible.
       return false;
     }
-    var libraryUri = class_.enclosingLibrary.importUri;
-    if (libraryUri.scheme == 'dart' && libraryUri.path.startsWith('_')) {
-      // There should be no extensible fields in private SDK libraries.
-      return false;
-    }
 
     if (!field.name.isPrivate) {
       // Public fields in public classes (or extensible private classes)
@@ -159,6 +154,13 @@ class _LibraryVirtualFieldModel {
       // They could be overridden by someone using our library.
       if (!class_.name.startsWith('_')) return true;
       if (_extensiblePrivateClasses.contains(class_)) return true;
+    }
+
+    if (class_.constructors.any((c) => c.isConst)) {
+      // Always virtualize fields of a (might be) non-enum (see above) const
+      // class.  The way these are lowered by the CFE, they need to be
+      // writable from different modules even if overridden.
+      return true;
     }
 
     // Otherwise, the field is effectively private and we only need to make it
@@ -195,9 +197,9 @@ class ClassPropertyModel {
   /// super.
   final inheritedSetters = HashSet<String>();
 
-  final extensionMethods = Set<String>();
+  final extensionMethods = <String>{};
 
-  final extensionAccessors = Set<String>();
+  final extensionAccessors = <String>{};
 
   ClassPropertyModel.build(this.types, this.extensionTypes,
       VirtualFieldModel fieldModel, Class class_) {

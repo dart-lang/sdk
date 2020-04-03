@@ -5,14 +5,6 @@
 #ifndef RUNTIME_PLATFORM_ASSERT_H_
 #define RUNTIME_PLATFORM_ASSERT_H_
 
-// TODO(5411406): include sstream for now, once we have a Utils::toString()
-// implemented for all the primitive types we can replace the usage of
-// sstream by Utils::toString()
-#if defined(TESTING)
-#include <sstream>
-#include <string>
-#endif
-
 #include "platform/globals.h"
 #include "platform/memory_sanitizer.h"
 
@@ -20,6 +12,14 @@
 #error neither DEBUG nor NDEBUG defined
 #elif defined(DEBUG) && defined(NDEBUG)
 #error both DEBUG and NDEBUG defined
+#endif
+
+// TODO(5411406): include sstream for now, once we have a Utils::toString()
+// implemented for all the primitive types we can replace the usage of
+// sstream by Utils::toString()
+#if defined(DEBUG) || defined(TESTING)
+#include <sstream>
+#include <string>
 #endif
 
 namespace dart {
@@ -64,14 +64,11 @@ class Expect : public DynamicAssertionHelper {
   template <typename E, typename A, typename T>
   void FloatEquals(const E& expected, const A& actual, const T& tol);
 
-  template <typename E, typename A>
-  void StringEquals(const E& expected, const A& actual);
+  void StringEquals(const char* expected, const char* actual);
 
-  template <typename E, typename A>
-  void IsSubstring(const E& needle, const A& haystack);
+  void IsSubstring(const char* needle, const char* haystack);
 
-  template <typename E, typename A>
-  void IsNotSubstring(const E& needle, const A& haystack);
+  void IsNotSubstring(const char* needle, const char* haystack);
 
   template <typename E, typename A>
   void LessThan(const E& left, const A& right);
@@ -141,39 +138,19 @@ void Expect::FloatEquals(const E& expected, const A& actual, const T& tol) {
        tols.c_str());
 }
 
-template <typename E, typename A>
-NO_SANITIZE_MEMORY void Expect::StringEquals(const E& expected,
-                                             const A& actual) {
-  std::ostringstream ess, ass;
-  ess << expected;
-  ass << actual;
-  std::string es = ess.str(), as = ass.str();
-  if (as == es) return;
-  Fail("expected:\n<\"%s\">\nbut was:\n<\"%s\">", es.c_str(), as.c_str());
+inline void Expect::StringEquals(const char* expected, const char* actual) {
+  if (strcmp(expected, actual) == 0) return;
+  Fail("expected:\n<\"%s\">\nbut was:\n<\"%s\">", expected, actual);
 }
 
-template <typename E, typename A>
-NO_SANITIZE_MEMORY void Expect::IsSubstring(const E& needle,
-                                            const A& haystack) {
-  std::ostringstream ess, ass;
-  ess << needle;
-  ass << haystack;
-  std::string es = ess.str(), as = ass.str();
-  if (as.find(es) != std::string::npos) return;
-  Fail("expected <\"%s\"> to be a substring of <\"%s\">", es.c_str(),
-       as.c_str());
+inline void Expect::IsSubstring(const char* needle, const char* haystack) {
+  if (strstr(haystack, needle) != nullptr) return;
+  Fail("expected <\"%s\"> to be a substring of <\"%s\">", needle, haystack);
 }
 
-template <typename E, typename A>
-NO_SANITIZE_MEMORY void Expect::IsNotSubstring(const E& needle,
-                                               const A& haystack) {
-  std::ostringstream ess, ass;
-  ess << needle;
-  ass << haystack;
-  std::string es = ess.str(), as = ass.str();
-  if (as.find(es) == std::string::npos) return;
-  Fail("expected <\"%s\"> to not be a substring of <\"%s\">", es.c_str(),
-       as.c_str());
+inline void Expect::IsNotSubstring(const char* needle, const char* haystack) {
+  if (strstr(haystack, needle) == nullptr) return;
+  Fail("expected <\"%s\"> to not be a substring of <\"%s\">", needle, haystack);
 }
 
 template <typename E, typename A>
@@ -258,6 +235,17 @@ void Expect::Null(const T p) {
     if (!(cond)) dart::Assert(__FILE__, __LINE__).Fail("expected: %s", #cond); \
   } while (false)
 
+#define ASSERT_EQUAL(actual, expected)                                         \
+  do {                                                                         \
+    if ((expected) != (actual)) {                                              \
+      const std::string actual_str = std::to_string(actual);                   \
+      const std::string expected_str = std::to_string(expected);               \
+      dart::Assert(__FILE__, __LINE__)                                         \
+          .Fail("expected \"%s\" = %s, actual \"%s\" = %s", #expected,         \
+                expected_str.c_str(), #actual, actual_str.c_str());            \
+    }                                                                          \
+  } while (false)
+
 // DEBUG_ASSERT allows identifiers in condition to be undeclared in release
 // mode.
 #define DEBUG_ASSERT(cond) ASSERT(cond)
@@ -274,6 +262,10 @@ void Expect::Null(const T p) {
 #define ASSERT(condition)                                                      \
   do {                                                                         \
   } while (false && (condition))
+
+#define ASSERT_EQUAL(expected, actual)                                         \
+  do {                                                                         \
+  } while (false && (expected) != (actual))
 
 #define DEBUG_ASSERT(cond)
 

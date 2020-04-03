@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_PROFILER_H_
 #define RUNTIME_VM_PROFILER_H_
 
+#include "platform/atomic.h"
+
 #include "vm/allocation.h"
 #include "vm/bitfield.h"
 #include "vm/code_observers.h"
@@ -47,7 +49,7 @@ class ProfileTrieNode;
   V(failure_native_allocation_sample)
 
 struct ProfilerCounters {
-#define DECLARE_PROFILER_COUNTER(name) ALIGN8 int64_t name;
+#define DECLARE_PROFILER_COUNTER(name) RelaxedAtomic<int64_t> name;
   PROFILER_COUNTERS(DECLARE_PROFILER_COUNTER)
 #undef DECLARE_PROFILER_COUNTER
 };
@@ -63,6 +65,9 @@ class Profiler : public AllStatic {
   // Restarts sampling with a given profile period. This is called after the
   // profile period is changed via the service protocol.
   static void UpdateSamplePeriod();
+  // Starts or shuts down the profiler after --profiler is changed via the
+  // service protocol.
+  static void UpdateRunningState();
 
   static SampleBuffer* sample_buffer() { return sample_buffer_; }
   static AllocationSampleBuffer* allocation_sample_buffer() {
@@ -91,13 +96,21 @@ class Profiler : public AllStatic {
     // Copies the counter values.
     return counters_;
   }
+  inline static intptr_t Size();
 
  private:
   static void DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash);
 
+  // Calculates the sample buffer capacity. Returns
+  // SampleBuffer::kDefaultBufferCapacity if --sample-buffer-duration is not
+  // provided. Otherwise, the capacity is based on the sample rate, maximum
+  // sample stack depth, and the number of seconds of samples the sample buffer
+  // should be able to accomodate.
+  static intptr_t CalculateSampleBufferCapacity();
+
   // Does not walk the thread's stack.
   static void SampleThreadSingleFrame(Thread* thread, uintptr_t pc);
-  static bool initialized_;
+  static RelaxedAtomic<bool> initialized_;
 
   static SampleBuffer* sample_buffer_;
   static AllocationSampleBuffer* allocation_sample_buffer_;
@@ -477,24 +490,56 @@ class AbstractCode {
   const char* Name() const {
     if (code_.IsCode()) {
       return Code::Cast(code_).Name();
-    } else {
+    } else if (code_.IsBytecode()) {
       return Bytecode::Cast(code_).Name();
+    } else {
+      return "";
     }
   }
 
   const char* QualifiedName() const {
     if (code_.IsCode()) {
       return Code::Cast(code_).QualifiedName();
-    } else {
+    } else if (code_.IsBytecode()) {
       return Bytecode::Cast(code_).QualifiedName();
+    } else {
+      return "";
+    }
+  }
+
+  bool IsStubCode() const {
+    if (code_.IsCode()) {
+      return Code::Cast(code_).IsStubCode();
+    } else if (code_.IsBytecode()) {
+      return (Bytecode::Cast(code_).function() == Function::null());
+    } else {
+      return false;
+    }
+  }
+
+  bool IsAllocationStubCode() const {
+    if (code_.IsCode()) {
+      return Code::Cast(code_).IsAllocationStubCode();
+    } else {
+      return false;
+    }
+  }
+
+  bool IsTypeTestStubCode() const {
+    if (code_.IsCode()) {
+      return Code::Cast(code_).IsTypeTestStubCode();
+    } else {
+      return false;
     }
   }
 
   RawObject* owner() const {
     if (code_.IsCode()) {
       return Code::Cast(code_).owner();
-    } else {
+    } else if (code_.IsBytecode()) {
       return Bytecode::Cast(code_).function();
+    } else {
+      return Object::null();
     }
   }
 
@@ -630,6 +675,8 @@ class SampleBuffer {
 
   ProcessedSampleBuffer* BuildProcessedSampleBuffer(SampleFilter* filter);
 
+  intptr_t Size() { return memory_->size(); }
+
  protected:
   ProcessedSample* BuildProcessedSample(Sample* sample,
                                         const CodeLookupTable& clt);
@@ -638,7 +685,7 @@ class SampleBuffer {
   VirtualMemory* memory_;
   Sample* samples_;
   intptr_t capacity_;
-  uintptr_t cursor_;
+  RelaxedAtomic<uintptr_t> cursor_;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(SampleBuffer);
@@ -660,6 +707,17 @@ class AllocationSampleBuffer : public SampleBuffer {
 
   DISALLOW_COPY_AND_ASSIGN(AllocationSampleBuffer);
 };
+
+intptr_t Profiler::Size() {
+  intptr_t size = 0;
+  if (sample_buffer_ != nullptr) {
+    size += sample_buffer_->Size();
+  }
+  if (allocation_sample_buffer_ != nullptr) {
+    size += allocation_sample_buffer_->Size();
+  }
+  return size;
+}
 
 // A |ProcessedSample| is a combination of 1 (or more) |Sample|(s) that have
 // been merged into a logical sample. The raw data may have been processed to

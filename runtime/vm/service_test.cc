@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include <memory>
+
 #include "platform/globals.h"
 
 #include "include/dart_tools_api.h"
@@ -545,8 +547,7 @@ ISOLATE_UNIT_TEST_CASE(Service_PersistentHandles) {
   {
     TransitionVMToNative transition(thread);
     Dart_DeletePersistentHandle(persistent_handle);
-    Dart_DeleteWeakPersistentHandle(Dart_CurrentIsolate(),
-                                    weak_persistent_handle);
+    Dart_DeleteWeakPersistentHandle(weak_persistent_handle);
   }
 
   // Get persistent handles (again).
@@ -558,68 +559,6 @@ ISOLATE_UNIT_TEST_CASE(Service_PersistentHandles) {
   EXPECT_NOTSUBSTRING("\"peer\":\"0xdeadbeef\"", handler.msg());
   EXPECT_NOTSUBSTRING("\"name\":\"A\"", handler.msg());
   EXPECT_NOTSUBSTRING("\"externalSize\":\"128\"", handler.msg());
-}
-
-ISOLATE_UNIT_TEST_CASE(Service_Address) {
-  const char* kScript =
-      "var port;\n"  // Set to our mock port by C++.
-      "\n"
-      "main() {\n"
-      "}";
-
-  Isolate* isolate = thread->isolate();
-  isolate->set_is_runnable(true);
-  Dart_Handle lib;
-  {
-    TransitionVMToNative transition(thread);
-    lib = TestCase::LoadTestScript(kScript, NULL);
-    EXPECT_VALID(lib);
-  }
-
-  // Build a mock message handler and wrap it in a dart port.
-  ServiceTestMessageHandler handler;
-  Dart_Port port_id = PortMap::CreatePort(&handler);
-  Dart_Handle port = Api::NewHandle(thread, SendPort::New(port_id));
-  {
-    TransitionVMToNative transition(thread);
-    EXPECT_VALID(port);
-    EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
-  }
-
-  const String& str = String::Handle(String::New("foobar", Heap::kOld));
-  Array& service_msg = Array::Handle();
-  // Note: If we ever introduce old space compaction, this test might fail.
-  uword start_addr = RawObject::ToAddr(str.raw());
-  // Expect to find 'str', also from internal addresses.
-  for (int offset = 0; offset < kObjectAlignment; ++offset) {
-    uword addr = start_addr + offset;
-    char buf[1024];
-    bool ref = offset % 2 == 0;
-    Utils::SNPrint(buf, sizeof(buf),
-                   (ref ? "[0, port, '0', '_getObjectByAddress', "
-                          "['address', 'ref'], ['%" Px "', 'true']]"
-                        : "[0, port, '0', '_getObjectByAddress', "
-                          "['address'], ['%" Px "']]"),
-                   addr);
-    service_msg = Eval(lib, buf);
-    HandleIsolateMessage(isolate, service_msg);
-    EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
-    EXPECT_SUBSTRING(ref ? "\"type\":\"@Instance\"" : "\"type\":\"Instance\"",
-                     handler.msg());
-    EXPECT_SUBSTRING("\"kind\":\"String\"", handler.msg());
-    EXPECT_SUBSTRING("foobar", handler.msg());
-  }
-  // Expect null when no object is found.
-  service_msg = Eval(lib,
-                     "[0, port, '0', '_getObjectByAddress', "
-                     "['address'], ['7']]");
-  HandleIsolateMessage(isolate, service_msg);
-  EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
-  // TODO(turnidge): Should this be a ServiceException instead?
-  EXPECT_SUBSTRING(
-      "{\"type\":\"Sentinel\",\"kind\":\"Free\","
-      "\"valueAsString\":\"<free>\"",
-      handler.msg());
 }
 
 static bool alpha_callback(const char* name,
@@ -778,25 +717,11 @@ ISOLATE_UNIT_TEST_CASE(Service_Profile) {
   }
 
   Array& service_msg = Array::Handle();
-  service_msg = Eval(lib, "[0, port, '0', '_getCpuProfile', [], []]");
-  HandleIsolateMessage(isolate, service_msg);
-  EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
-  // Expect error (tags required).
-  EXPECT_SUBSTRING("\"error\"", handler.msg());
-
-  service_msg =
-      Eval(lib, "[0, port, '0', '_getCpuProfile', ['tags'], ['None']]");
+  service_msg = Eval(lib, "[0, port, '0', 'getCpuSamples', [], []]");
   HandleIsolateMessage(isolate, service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
   // Expect profile
-  EXPECT_SUBSTRING("\"type\":\"_CpuProfile\"", handler.msg());
-
-  service_msg =
-      Eval(lib, "[0, port, '0', '_getCpuProfile', ['tags'], ['Bogus']]");
-  HandleIsolateMessage(isolate, service_msg);
-  EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
-  // Expect error.
-  EXPECT_SUBSTRING("\"error\"", handler.msg());
+  EXPECT_SUBSTRING("\"type\":\"CpuSamples\"", handler.msg());
 }
 
 #endif  // !defined(TARGET_ARCH_ARM64)

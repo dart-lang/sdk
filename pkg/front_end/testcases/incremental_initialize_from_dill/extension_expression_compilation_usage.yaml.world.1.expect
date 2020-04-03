@@ -1,0 +1,13 @@
+main = <No Member>;
+library from "org-dartlang-test:///main.dart" as main {
+
+  extension NumberParsing on dart.core::String* {
+    method parseInt = main::NumberParsing|parseInt;
+    tearoff parseInt = main::NumberParsing|get#parseInt;
+  }
+  static method NumberParsing|parseInt(final dart.core::String* #this) → dart.core::int* {
+    return dart.core::int::parse(#this);
+  }
+  static method NumberParsing|get#parseInt(final dart.core::String* #this) → () →* dart.core::int*
+    return () → dart.core::int* => main::NumberParsing|parseInt(#this);
+}

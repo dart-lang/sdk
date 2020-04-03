@@ -9,7 +9,9 @@ import 'dart:math' show min;
 import 'package:kernel/ast.dart' hide MapEntry;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/type_algebra.dart' show Substitution;
-import 'package:kernel/type_environment.dart' show TypeEnvironment;
+import 'package:kernel/type_environment.dart' show StaticTypeContext;
+
+import 'options.dart' show BytecodeOptions;
 
 bool hasInstantiatorTypeArguments(Class c) {
   for (; c != null; c = c.superclass) {
@@ -26,7 +28,9 @@ List<DartType> getTypeParameterTypes(List<TypeParameter> typeParameters) {
   }
   final types = new List<DartType>(typeParameters.length);
   for (int i = 0; i < typeParameters.length; ++i) {
-    types[i] = new TypeParameterType(typeParameters[i]);
+    final tp = typeParameters[i];
+    types[i] = new TypeParameterType(
+        tp, TypeParameterType.computeNullabilityFromBound(tp));
   }
   return types;
 }
@@ -35,8 +39,11 @@ bool _canReuseSuperclassTypeArguments(List<DartType> superTypeArgs,
     List<TypeParameter> typeParameters, int overlap) {
   for (int i = 0; i < overlap; ++i) {
     final superTypeArg = superTypeArgs[superTypeArgs.length - overlap + i];
+    final typeParam = typeParameters[i];
     if (!(superTypeArg is TypeParameterType &&
-        superTypeArg.parameter == typeParameters[i])) {
+        superTypeArg.parameter == typeParameters[i] &&
+        superTypeArg.nullability ==
+            TypeParameterType.computeNullabilityFromBound(typeParam))) {
       return false;
     }
   }
@@ -151,6 +158,9 @@ class FindFreeTypeParametersVisitor extends DartTypeVisitor<bool> {
   bool visitBottomType(BottomType node) => false;
 
   @override
+  bool visitNeverType(NeverType node) => false;
+
+  @override
   bool visitTypeParameterType(TypeParameterType node) =>
       _declaredTypeParameters == null ||
       !_declaredTypeParameters.contains(node.parameter);
@@ -183,15 +193,8 @@ class FindFreeTypeParametersVisitor extends DartTypeVisitor<bool> {
 }
 
 /// Returns static type of [expr].
-DartType getStaticType(Expression expr, TypeEnvironment typeEnvironment) {
-  // TODO(dartbug.com/34496): Remove this try/catch once
-  // getStaticType() is reliable.
-  try {
-    return expr.getStaticType(typeEnvironment);
-  } catch (e) {
-    return const DynamicType();
-  }
-}
+DartType getStaticType(Expression expr, StaticTypeContext staticTypeContext) =>
+    expr.getStaticType(staticTypeContext);
 
 /// Returns `true` if [type] cannot be extended in user code.
 bool isSealedType(DartType type, CoreTypes coreTypes) {
@@ -210,7 +213,7 @@ bool isSealedType(DartType type, CoreTypes coreTypes) {
 /// [receiver] can omit argument type checks needed due to generic-covariant
 /// parameters.
 bool isUncheckedCall(Member interfaceTarget, Expression receiver,
-    TypeEnvironment typeEnvironment) {
+    StaticTypeContext staticTypeContext) {
   if (interfaceTarget == null) {
     // Dynamic call cannot be unchecked.
     return false;
@@ -226,16 +229,33 @@ bool isUncheckedCall(Member interfaceTarget, Expression receiver,
     return true;
   }
 
-  DartType receiverStaticType = getStaticType(receiver, typeEnvironment);
+  DartType receiverStaticType = getStaticType(receiver, staticTypeContext);
   if (receiverStaticType is InterfaceType) {
-    if (receiverStaticType.typeArguments.isEmpty) {
+    final typeArguments = receiverStaticType.typeArguments;
+    if (typeArguments.isEmpty) {
       return true;
     }
 
-    if (receiverStaticType.typeArguments
-        .every((t) => isSealedType(t, typeEnvironment.coreTypes))) {
-      return true;
+    final typeParameters = receiverStaticType.classNode.typeParameters;
+    assert(typeArguments.length == typeParameters.length);
+    for (int i = 0; i < typeArguments.length; ++i) {
+      switch (typeParameters[i].variance) {
+        case Variance.covariant:
+          if (!isSealedType(
+              typeArguments[i], staticTypeContext.typeEnvironment.coreTypes)) {
+            return false;
+          }
+          break;
+        case Variance.invariant:
+          break;
+        case Variance.contravariant:
+          return false;
+        default:
+          throw 'Unexpected variance ${typeParameters[i].variance} of '
+              '${typeParameters[i]} in ${receiverStaticType.classNode}';
+      }
     }
+    return true;
   }
   return false;
 }
@@ -279,7 +299,8 @@ bool _hasGenericCovariantParameters(Member target) {
 
 /// Returns true if invocation [node] is a closure call with statically known
 /// function type. Such invocations can omit argument type checks.
-bool isUncheckedClosureCall(
-        MethodInvocation node, TypeEnvironment typeEnvironment) =>
+bool isUncheckedClosureCall(MethodInvocation node,
+        StaticTypeContext staticTypeContext, BytecodeOptions options) =>
     node.name.name == 'call' &&
-    getStaticType(node.receiver, typeEnvironment) is FunctionType;
+    getStaticType(node.receiver, staticTypeContext) is FunctionType &&
+    !options.avoidClosureCallInstructions;

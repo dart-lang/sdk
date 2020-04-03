@@ -11,25 +11,22 @@ import 'package:test/test.dart';
 
 import 'abstract_refactoring.dart';
 
-/**
- * The base class for all [RenameRefactoring] tests.
- */
+/// The base class for all [RenameRefactoring] tests.
 class RenameRefactoringTest extends RefactoringTest {
+  @override
   RenameRefactoring refactoring;
 
-  /**
-   * Asserts that [refactoring] has potential edits in [testFile] at offset
-   * of the given [searches].
-   */
+  /// Asserts that [refactoring] has potential edits in [testFile] at offset
+  /// of the given [searches].
   void assertPotentialEdits(List<String> searches) {
-    Set<int> expectedOffsets = new Set<int>();
-    for (String search in searches) {
-      int offset = findOffset(search);
+    var expectedOffsets = <int>{};
+    for (var search in searches) {
+      var offset = findOffset(search);
       expectedOffsets.add(offset);
     }
     // remove offset marked as potential
-    for (String potentialId in refactoring.potentialEditIds) {
-      SourceEdit edit = findEditById(potentialId);
+    for (var potentialId in refactoring.potentialEditIds) {
+      var edit = findEditById(potentialId);
       expect(edit, isNotNull);
       expectedOffsets.remove(edit.offset);
     }
@@ -37,35 +34,29 @@ class RenameRefactoringTest extends RefactoringTest {
     expect(expectedOffsets, isEmpty);
   }
 
-  /**
-   * Creates a new [RenameRefactoring] in [refactoring] for the [Element] of
-   * the [SimpleIdentifier] at the given [search] pattern.
-   */
+  /// Creates a new [RenameRefactoring] in [refactoring] for the [Element] of
+  /// the [SimpleIdentifier] at the given [search] pattern.
   void createRenameRefactoringAtString(String search) {
-    SimpleIdentifier identifier = findIdentifier(search);
-    Element element = identifier.staticElement;
+    var identifier = findIdentifier(search);
+    var element = identifier.staticElement;
     if (element is PrefixElement) {
       element = getImportElement(identifier);
     }
     createRenameRefactoringForElement(element);
   }
 
-  /**
-   * Creates a new [RenameRefactoring] in [refactoring] for [element].
-   * Fails if no [RenameRefactoring] can be created.
-   */
+  /// Creates a new [RenameRefactoring] in [refactoring] for [element].
+  /// Fails if no [RenameRefactoring] can be created.
   void createRenameRefactoringForElement(Element element) {
-    var workspace = new RefactoringWorkspace([driver], searchEngine);
-    refactoring = new RenameRefactoring(workspace, testAnalysisResult, element);
+    var workspace = RefactoringWorkspace([driver], searchEngine);
+    refactoring = RenameRefactoring(workspace, testAnalysisResult, element);
     expect(refactoring, isNotNull, reason: "No refactoring for '$element'.");
   }
 
-  /**
-   * Returns the [Edit] with the given [id], maybe `null`.
-   */
+  /// Returns the [Edit] with the given [id], maybe `null`.
   SourceEdit findEditById(String id) {
-    for (SourceFileEdit fileEdit in refactoringChange.edits) {
-      for (SourceEdit edit in fileEdit.edits) {
+    for (var fileEdit in refactoringChange.edits) {
+      for (var edit in fileEdit.edits) {
         if (edit.id == id) {
           return edit;
         }

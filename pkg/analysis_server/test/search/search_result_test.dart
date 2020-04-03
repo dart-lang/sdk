@@ -7,7 +7,7 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SearchResultKindTest);
   });
@@ -32,19 +32,18 @@ class SearchResultKindTest {
   }
 
   void test_fromName() {
-    expect(new SearchResultKind(SearchResultKind.DECLARATION.name),
+    expect(SearchResultKind(SearchResultKind.DECLARATION.name),
         SearchResultKind.DECLARATION);
-    expect(new SearchResultKind(SearchResultKind.READ.name),
-        SearchResultKind.READ);
-    expect(new SearchResultKind(SearchResultKind.READ_WRITE.name),
+    expect(SearchResultKind(SearchResultKind.READ.name), SearchResultKind.READ);
+    expect(SearchResultKind(SearchResultKind.READ_WRITE.name),
         SearchResultKind.READ_WRITE);
-    expect(new SearchResultKind(SearchResultKind.WRITE.name),
-        SearchResultKind.WRITE);
-    expect(new SearchResultKind(SearchResultKind.REFERENCE.name),
+    expect(
+        SearchResultKind(SearchResultKind.WRITE.name), SearchResultKind.WRITE);
+    expect(SearchResultKind(SearchResultKind.REFERENCE.name),
         SearchResultKind.REFERENCE);
-    expect(new SearchResultKind(SearchResultKind.INVOCATION.name),
+    expect(SearchResultKind(SearchResultKind.INVOCATION.name),
         SearchResultKind.INVOCATION);
-    expect(new SearchResultKind(SearchResultKind.UNKNOWN.name),
+    expect(SearchResultKind(SearchResultKind.UNKNOWN.name),
         SearchResultKind.UNKNOWN);
   }
 

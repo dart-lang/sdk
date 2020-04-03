@@ -2,9 +2,10 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import("../../sdk_args.gni")
 import("../../utils/compile_platform.gni")
-import("../create_timestamp.gni")
 import("../application_snapshot.gni")
+import("../create_timestamp.gni")
 
 create_timestamp_file("dart2js_files_stamp") {
   path = rebase_path("../../pkg/compiler/lib")
@@ -21,39 +22,34 @@ create_timestamp_file("dartdoc_files_stamp") {
   output = "$target_gen_dir/dartdoc_files.stamp"
 }
 
-dart_action("dart2js_create_snapshot_entry") {
+prebuilt_dart_action("dart2js_create_snapshot_entry") {
   deps = [
     ":dart2js_files_stamp",
     ":dartdoc_files_stamp",
     ":runtime_lib_files_stamp",
   ]
 
-  # dart_action() needs kernel service snapshot to run in Dart 2 mode.
-  # This can't be added as a dependency to dart_action() itself as it will
-  # create a circular dependency.
-  deps += [ "../../utils/kernel-service:kernel-service" ]
-
   output_dir = rebase_path(target_gen_dir)
 
   script = "create_snapshot_entry.dart"
 
   inputs = [
-    "../../sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart",
     "$target_gen_dir/dart2js_files.stamp",
     "../../tools/make_version.py",
     "../../tools/VERSION",
   ]
 
-  outputs = [
-    "$target_gen_dir/dart2js.dart",
-  ]
+  outputs = [ "$target_gen_dir/dart2js.dart" ]
 
   packages = "../../.packages"
 
-  args = [
-    "--output_dir=$output_dir",
-    "--dart2js_main=pkg/compiler/lib/src/dart2js.dart",
-  ]
+  args = [ "--output_dir=$output_dir" ]
+}
+
+if (use_nnbd) {
+  libraries_specification_path = "sdk_nnbd/lib/libraries.json"
+} else {
+  libraries_specification_path = "sdk/lib/libraries.json"
 }
 
 application_snapshot("dart2js") {
@@ -69,15 +65,20 @@ application_snapshot("dart2js") {
   main_dart = "$target_gen_dir/dart2js.dart"
   training_args = [
     "--packages=" + rebase_path("../../.packages"),
-    "--libraries-spec=" + rebase_path("../../sdk/lib/libraries.json"),
-    rebase_path("$target_gen_dir/dart2js.dart"),
+    "--libraries-spec=" + rebase_path("../../$libraries_specification_path"),
   ]
+
+  if (use_nnbd) {
+    training_args += [ "--enable-experiment=non-nullable" ]
+  }
+  training_args += [ rebase_path("$target_gen_dir/dart2js.dart") ]
 }
 
 compile_platform("compile_dart2js_platform") {
   single_root_scheme = "org-dartlang-sdk"
   single_root_base = rebase_path("../../")
-  libraries_specification_uri = "org-dartlang-sdk:///sdk/lib/libraries.json"
+  libraries_specification_uri =
+      "org-dartlang-sdk:///$libraries_specification_path"
 
   outputs = [
     "$root_out_dir/dart2js_platform.dill",
@@ -86,13 +87,19 @@ compile_platform("compile_dart2js_platform") {
 
   args = [
     "--target=dart2js",
+    "--no-defines",
     "dart:core",
   ]
+
+  if (use_nnbd) {
+    args += [ "--enable-experiment=non-nullable" ]
+  }
 }
 compile_platform("compile_dart2js_server_platform") {
   single_root_scheme = "org-dartlang-sdk"
   single_root_base = rebase_path("../../")
-  libraries_specification_uri = "org-dartlang-sdk:///sdk/lib/libraries.json"
+  libraries_specification_uri =
+      "org-dartlang-sdk:///$libraries_specification_path"
 
   outputs = [
     "$root_out_dir/dart2js_server_platform.dill",
@@ -101,6 +108,11 @@ compile_platform("compile_dart2js_server_platform") {
 
   args = [
     "--target=dart2js_server",
+    "--no-defines",
     "dart:core",
   ]
+
+  if (use_nnbd) {
+    args += [ "--enable-experiment=non-nullable" ]
+  }
 }

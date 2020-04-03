@@ -15,14 +15,14 @@ import 'move_file_test.dart' as move_file_test;
 import 'naming_conventions_test.dart' as naming_conventions_test;
 import 'rename_class_member_test.dart' as rename_class_member_test;
 import 'rename_constructor_test.dart' as rename_constructor_test;
+import 'rename_extension_member_test.dart' as rename_extension_member_test;
 import 'rename_import_test.dart' as rename_import_test;
 import 'rename_label_test.dart' as rename_label_test;
 import 'rename_library_test.dart' as rename_library_test;
 import 'rename_local_test.dart' as rename_local_test;
 import 'rename_unit_member_test.dart' as rename_unit_member_test;
 
-/// Utility for manually running all tests.
-main() {
+void main() {
   defineReflectiveSuite(() {
     convert_getter_to_method_test.main();
     convert_method_to_getter_test.main();
@@ -35,6 +35,7 @@ main() {
     naming_conventions_test.main();
     rename_class_member_test.main();
     rename_constructor_test.main();
+    rename_extension_member_test.main();
     rename_import_test.main();
     rename_label_test.main();
     rename_library_test.main();

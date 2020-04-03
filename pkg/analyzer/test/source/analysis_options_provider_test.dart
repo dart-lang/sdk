@@ -20,12 +20,11 @@ import '../src/util/yaml_test.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AnalysisOptionsProviderOldTest);
-    defineReflectiveTests(AnalysisOptionsProviderNewTest);
+    defineReflectiveTests(AnalysisOptionsProviderTest);
   });
   group('AnalysisOptionsProvider', () {
     void expectMergesTo(String defaults, String overrides, String expected) {
-      var optionsProvider = new AnalysisOptionsProvider();
+      var optionsProvider = AnalysisOptionsProvider();
       var defaultOptions = optionsProvider.getOptionsFromString(defaults);
       var overrideOptions = optionsProvider.getOptionsFromString(overrides);
       var merged = optionsProvider.merge(defaultOptions, overrideOptions);
@@ -80,9 +79,9 @@ linter:
 strong-mode: true
 ''';
 
-      var optionsProvider = new AnalysisOptionsProvider();
+      var optionsProvider = AnalysisOptionsProvider();
       expect(() => optionsProvider.getOptionsFromString(src),
-          throwsA(new TypeMatcher<OptionsFormatException>()));
+          throwsA(TypeMatcher<OptionsFormatException>()));
     });
 
     test('test_bad_yaml (2)', () {
@@ -91,7 +90,7 @@ analyzer:
   strong-mode:true # missing space (sdk/issues/24885)
 ''';
 
-      var optionsProvider = new AnalysisOptionsProvider();
+      var optionsProvider = AnalysisOptionsProvider();
       // Should not throw an exception.
       var options = optionsProvider.getOptionsFromString(src);
       // Should return a non-null options list.
@@ -101,29 +100,20 @@ analyzer:
 }
 
 @reflectiveTest
-class AnalysisOptionsProviderNewTest extends AnalysisOptionsProviderTest {
-  String get optionsFileName => AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
-}
-
-@reflectiveTest
-class AnalysisOptionsProviderOldTest extends AnalysisOptionsProviderTest {
-  String get optionsFileName => AnalysisEngine.ANALYSIS_OPTIONS_FILE;
-}
-
-abstract class AnalysisOptionsProviderTest {
+class AnalysisOptionsProviderTest {
   TestPathTranslator pathTranslator;
   ResourceProvider resourceProvider;
 
   AnalysisOptionsProvider provider;
 
-  String get optionsFileName;
+  String get optionsFileName => AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
 
   void setUp() {
-    var rawProvider = new MemoryResourceProvider();
-    resourceProvider = new TestResourceProvider(rawProvider);
-    pathTranslator = new TestPathTranslator(rawProvider);
-    provider = new AnalysisOptionsProvider(new SourceFactory([
-      new ResourceUriResolver(rawProvider),
+    var rawProvider = MemoryResourceProvider();
+    resourceProvider = TestResourceProvider(rawProvider);
+    pathTranslator = TestPathTranslator(rawProvider);
+    provider = AnalysisOptionsProvider(SourceFactory([
+      ResourceUriResolver(rawProvider),
     ]));
   }
 
@@ -241,7 +231,7 @@ analyzer:
     }
   }
 
-  YamlMap _getOptions(String posixPath, {bool crawlUp: false}) {
+  YamlMap _getOptions(String posixPath, {bool crawlUp = false}) {
     Resource resource = pathTranslator.getResource(posixPath);
     return provider.getOptions(resource, crawlUp: crawlUp);
   }

@@ -19,12 +19,12 @@ import 'package:kernel/ast.dart'
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
-import 'kernel_builder.dart' show Builder;
+import '../builder/builder.dart';
 
 import 'forest.dart' show Forest;
 
 /// Builder to represent the `deferLibrary.loadLibrary` calls and tear-offs.
-class LoadLibraryBuilder extends Builder {
+class LoadLibraryBuilder extends BuilderImpl {
   final SourceLibraryBuilder parent;
 
   final LibraryDependency importDependency;
@@ -42,24 +42,28 @@ class LoadLibraryBuilder extends Builder {
 
   LoadLibrary createLoadLibrary(
       int charOffset, Forest forest, Arguments arguments) {
-    return forest.createLoadLibrary(importDependency, arguments)
-      ..fileOffset = charOffset;
+    return forest.createLoadLibrary(charOffset, importDependency, arguments);
   }
 
   Procedure createTearoffMethod(Forest forest) {
     if (tearoff != null) return tearoff;
     LoadLibrary expression = createLoadLibrary(charOffset, forest, null);
     String prefix = expression.import.name;
+    Name name = new Name('_#loadLibrary_$prefix', parent.library);
+    Procedure referencesFrom =
+        parent.lookupLibraryReferenceProcedure(name.name, false);
     tearoff = new Procedure(
-        new Name('__loadLibrary_$prefix', parent.target),
+        name,
         ProcedureKind.Method,
         new FunctionNode(new ReturnStatement(expression),
             returnType: new InterfaceType(parent.loader.coreTypes.futureClass,
-                <DartType>[const DynamicType()])),
-        fileUri: parent.target.fileUri,
-        isStatic: true)
+                parent.nonNullable, <DartType>[const DynamicType()])),
+        fileUri: parent.library.fileUri,
+        isStatic: true,
+        reference: referencesFrom?.reference)
       ..startFileOffset = charOffset
-      ..fileOffset = charOffset;
+      ..fileOffset = charOffset
+      ..isNonNullableByDefault = parent.isNonNullableByDefault;
     return tearoff;
   }
 

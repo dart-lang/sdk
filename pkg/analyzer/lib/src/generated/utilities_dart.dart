@@ -6,7 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart' show AnnotatedNode, Comment;
 import 'package:analyzer/dart/ast/token.dart' show Token;
 import 'package:analyzer/src/dart/element/element.dart' show ElementImpl;
 
-export 'package:front_end/src/base/resolve_relative_uri.dart'
+export 'package:_fe_analyzer_shared/src/util/resolve_relative_uri.dart'
     show resolveRelativeUri;
 
 /**
@@ -56,21 +56,20 @@ bool startsWith(Uri uri1, Uri uri2) {
 class ParameterKind implements Comparable<ParameterKind> {
   /// A positional required parameter.
   static const ParameterKind REQUIRED =
-      const ParameterKind('REQUIRED', 0, false, false);
+      ParameterKind('REQUIRED', 0, false, false);
 
   /// A positional optional parameter.
   static const ParameterKind POSITIONAL =
-      const ParameterKind('POSITIONAL', 1, false, true);
+      ParameterKind('POSITIONAL', 1, false, true);
 
   /// A named required parameter.
   static const ParameterKind NAMED_REQUIRED =
-      const ParameterKind('NAMED_REQUIRED', 2, true, false);
+      ParameterKind('NAMED_REQUIRED', 2, true, false);
 
   /// A named optional parameter.
-  static const ParameterKind NAMED =
-      const ParameterKind('NAMED', 2, true, true);
+  static const ParameterKind NAMED = ParameterKind('NAMED', 2, true, true);
 
-  static const List<ParameterKind> values = const [
+  static const List<ParameterKind> values = [
     REQUIRED,
     POSITIONAL,
     NAMED_REQUIRED,

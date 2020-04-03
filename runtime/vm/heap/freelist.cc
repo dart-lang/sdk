@@ -323,14 +323,24 @@ void FreeList::SplitElementAfterAndEnqueue(FreeListElement* element,
   intptr_t remainder_index = IndexForSize(remainder_size);
   EnqueueElement(element, remainder_index);
 
-  // Postcondition: when allocating in a protected page, the remainder
-  // element is no longer writable unless it is in the same page as the
-  // allocated element.  (The allocated element is still writable, and the
-  // remainder element will be protected when the allocated one is).
-  if (is_protected &&
-      !VirtualMemory::InSamePage(remainder_address - 1, remainder_address)) {
-    VirtualMemory::Protect(reinterpret_cast<void*>(remainder_address),
-                           remainder_size, VirtualMemory::kReadExecute);
+  // Postcondition: when allocating in a protected page, the fraction of the
+  // remainder element which does not share a page with the allocated element is
+  // no longer writable. This means that if the remainder's header is not fully
+  // contained in the last page of the allocation, we need to re-protect the
+  // page it ends on.
+  if (is_protected) {
+    const uword remainder_header_size =
+        FreeListElement::HeaderSizeFor(remainder_size);
+    if (!VirtualMemory::InSamePage(
+            remainder_address - 1,
+            remainder_address + remainder_header_size - 1)) {
+      VirtualMemory::Protect(
+          reinterpret_cast<void*>(
+              Utils::RoundUp(remainder_address, VirtualMemory::PageSize())),
+          remainder_address + remainder_header_size -
+              Utils::RoundUp(remainder_address, VirtualMemory::PageSize()),
+          VirtualMemory::kReadExecute);
+    }
   }
 }
 
@@ -366,6 +376,43 @@ FreeListElement* FreeList::TryAllocateLargeLocked(intptr_t minimum_size) {
     current = next;
   }
   return NULL;
+}
+
+void FreeList::MergeOtherFreelist(FreeList* other, bool is_protected) {
+  // The [other] free list is from a dying isolate. There are no other threads
+  // accessing it, so there is no need to lock here.
+  MutexLocker ml(&mutex_);
+  for (intptr_t i = 0; i < (kNumLists + 1); ++i) {
+    FreeListElement* other_head = other->free_lists_[i];
+    if (other_head != nullptr) {
+      // If we didn't have a freelist element before we have to set the bit now,
+      // since we will get 1+ elements from [other].
+      FreeListElement* old_head = free_lists_[i];
+      if (old_head == nullptr && i != kNumLists) {
+        free_map_.Set(i, true);
+      }
+
+      // Chain other's list in.
+      FreeListElement* last = other_head;
+      while (last->next() != nullptr) {
+        last = last->next();
+      }
+
+      if (is_protected) {
+        VirtualMemory::Protect(reinterpret_cast<void*>(last), sizeof(*last),
+                               VirtualMemory::kReadWrite);
+      }
+      last->set_next(old_head);
+      if (is_protected) {
+        VirtualMemory::Protect(reinterpret_cast<void*>(last), sizeof(*last),
+                               VirtualMemory::kReadExecute);
+      }
+      free_lists_[i] = other_head;
+    }
+  }
+
+  last_free_small_size_ =
+      Utils::Maximum(last_free_small_size_, other->last_free_small_size_);
 }
 
 }  // namespace dart

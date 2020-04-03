@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
-import 'package:analyzer/src/error/codes.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -49,27 +49,31 @@ f() {
 class AssignmentToFinalWithNnbdTest extends AssignmentToFinalTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
+    ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
 
-  @failingTest
   test_field_late() async {
     await assertNoErrorsInCode('''
 class A {
-  final a;
+  late final int a;
+  late final int b = 0;
   void m() {
     a = 1;
+    b = 1;
   }
 }
 ''');
   }
 
-  @failingTest
-  test_localVariable_late() async {
+  test_field_static_late() async {
     await assertNoErrorsInCode('''
-void f() {
-  final a;
-  a = 1;
+class A {
+  static late final int a;
+  static late final int b = 0;
+  void m() {
+    a = 1;
+    b = 1;
+  }
 }
 ''');
   }

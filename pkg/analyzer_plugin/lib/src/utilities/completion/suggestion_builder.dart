@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide Element, ElementKind;
@@ -12,59 +11,49 @@ import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
 import 'package:analyzer_plugin/utilities/completion/relevance.dart';
 import 'package:analyzer_plugin/utilities/completion/suggestion_builder.dart';
 
-/**
- * An object used to build code completion suggestions for Dart code.
- */
+/// An object used to build code completion suggestions for Dart code.
 class SuggestionBuilderImpl implements SuggestionBuilder {
-  /**
-   * The resource provider used to access the file system.
-   */
+  /// The resource provider used to access the file system.
   final ResourceProvider resourceProvider;
 
-  /**
-   * The converter used to convert analyzer objects to protocol objects.
-   */
-  final AnalyzerConverter converter = new AnalyzerConverter();
+  /// The converter used to convert analyzer objects to protocol objects.
+  final AnalyzerConverter converter = AnalyzerConverter();
 
-  /**
-   * Initialize a newly created suggestion builder.
-   */
+  /// Initialize a newly created suggestion builder.
   SuggestionBuilderImpl(this.resourceProvider);
 
-  /**
-   * Add default argument list text and ranges based on the given [requiredParams]
-   * and [namedParams].
-   */
+  /// Add default argument list text and ranges based on the given
+  /// [requiredParams] and [namedParams].
   void addDefaultArgDetails(
       CompletionSuggestion suggestion,
       Element element,
       Iterable<ParameterElement> requiredParams,
       Iterable<ParameterElement> namedParams) {
     // Copied from analysis_server/lib/src/services/completion/dart/suggestion_builder.dart
-    StringBuffer buffer = new StringBuffer();
-    List<int> ranges = <int>[];
+    var buffer = StringBuffer();
+    var ranges = <int>[];
 
     int offset;
 
-    for (ParameterElement param in requiredParams) {
+    for (var param in requiredParams) {
       if (buffer.isNotEmpty) {
         buffer.write(', ');
       }
       offset = buffer.length;
-      String name = param.name;
+      var name = param.name;
       buffer.write(name);
       ranges.addAll([offset, name.length]);
     }
 
-    for (ParameterElement param in namedParams) {
+    for (var param in namedParams) {
       if (param.hasRequired) {
         if (buffer.isNotEmpty) {
           buffer.write(', ');
         }
-        String name = param.name;
+        var name = param.name;
         buffer.write('$name: ');
         offset = buffer.length;
-        String defaultValue = 'null'; // originally _getDefaultValue(param)
+        var defaultValue = 'null'; // originally _getDefaultValue(param)
         buffer.write(defaultValue);
         ranges.addAll([offset, defaultValue.length]);
       }
@@ -79,8 +68,8 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
   @override
   CompletionSuggestion forElement(Element element,
       {String completion,
-      CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
-      int relevance: DART_RELEVANCE_DEFAULT}) {
+      CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
+      int relevance = DART_RELEVANCE_DEFAULT}) {
     // Copied from analysis_server/lib/src/services/completion/dart/suggestion_builder.dart
     if (element == null) {
       return null;
@@ -89,11 +78,9 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
       // Do not include operators in suggestions
       return null;
     }
-    if (completion == null) {
-      completion = element.displayName;
-    }
-    bool isDeprecated = element.hasDeprecated;
-    CompletionSuggestion suggestion = new CompletionSuggestion(
+    completion ??= element.displayName;
+    var isDeprecated = element.hasDeprecated;
+    var suggestion = CompletionSuggestion(
         kind,
         isDeprecated ? DART_RELEVANCE_LOW : relevance,
         completion,
@@ -103,12 +90,12 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
         false);
 
     // Attach docs.
-    String doc = removeDartDocDelimiters(element.documentationComment);
+    var doc = removeDartDocDelimiters(element.documentationComment);
     suggestion.docComplete = doc;
     suggestion.docSummary = getDartDocSummary(doc);
 
     suggestion.element = converter.convertElement(element);
-    Element enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement;
     if (enclosingElement is ClassElement) {
       suggestion.declaringType = enclosingElement.displayName;
     }
@@ -119,16 +106,18 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
           .toList();
       suggestion.parameterTypes =
           element.parameters.map((ParameterElement parameter) {
-        DartType paramType = parameter.type;
+        var paramType = parameter.type;
         // Gracefully degrade if type not resolved yet
-        return paramType != null ? paramType.displayName : 'var';
+        return paramType != null
+            ? paramType.getDisplayString(withNullability: false)
+            : 'var';
       }).toList();
 
-      Iterable<ParameterElement> requiredParameters = element.parameters
+      var requiredParameters = element.parameters
           .where((ParameterElement param) => param.isRequiredPositional);
       suggestion.requiredParameterCount = requiredParameters.length;
 
-      Iterable<ParameterElement> namedParameters =
+      var namedParameters =
           element.parameters.where((ParameterElement param) => param.isNamed);
       suggestion.hasNamedParameters = namedParameters.isNotEmpty;
 
@@ -144,13 +133,16 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
       if (element.kind == ElementKind.SETTER) {
         return null;
       } else {
-        return element.returnType?.toString();
+        return element.returnType?.getDisplayString(withNullability: false);
       }
     } else if (element is VariableElement) {
-      DartType type = element.type;
-      return type != null ? type.displayName : 'dynamic';
+      var type = element.type;
+      return type != null
+          ? type.getDisplayString(withNullability: false)
+          : 'dynamic';
     } else if (element is FunctionTypeAliasElement) {
-      return element.returnType.toString();
+      var returnType = element.function.returnType;
+      return returnType.getDisplayString(withNullability: false);
     } else {
       return null;
     }

@@ -10,14 +10,10 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 
-/**
- * A visitor that will produce an HTML representation of an element structure.
- */
+/// A visitor that will produce an HTML representation of an element structure.
 class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
-  /**
-   * Initialize a newly created element writer to write the HTML representation
-   * of visited elements on the given [buffer].
-   */
+  /// Initialize a newly created element writer to write the HTML representation
+  /// of visited elements on the given [buffer].
   ElementWriter(StringBuffer buffer) {
     this.buffer = buffer;
   }
@@ -34,11 +30,10 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
     }
   }
 
-  /**
-   * Write a representation of the properties of the given [node] to the buffer.
-   */
+  /// Write a representation of the properties of the given [node] to the
+  /// buffer.
   Map<String, Object> _computeProperties(Element element) {
-    Map<String, Object> properties = new HashMap<String, Object>();
+    Map<String, Object> properties = HashMap<String, Object>();
 
     properties['metadata'] = element.metadata;
     properties['nameOffset'] = element.nameOffset;
@@ -50,8 +45,6 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
       properties['isAbstract'] = element.isAbstract;
       properties['isEnum'] = element.isEnum;
       properties['isMixinApplication'] = element.isMixinApplication;
-      properties['isOrInheritsProxy'] = element.isOrInheritsProxy;
-      properties['isProxy'] = element.isProxy;
       properties['isValidMixin'] = element.isValidMixin;
       properties['mixins'] = element.mixins;
       properties['superclassConstraints'] = element.superclassConstraints;
@@ -123,9 +116,6 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
       properties['isDartCore'] = element.isDartCore;
       properties['isInSdk'] = element.isInSdk;
     }
-    if (element is LocalElement) {
-      properties['visibleRange'] = element.visibleRange;
-    }
     if (element is ParameterElement) {
       properties['defaultValueCode'] = element.defaultValueCode;
       properties['isInitializingFormal'] = element.isInitializingFormal;
@@ -148,9 +138,6 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
     if (element is PropertyInducingElement) {
       properties['isStatic'] = element.isStatic;
     }
-    if (element is TypeDefiningElement) {
-      properties['type'] = element.type;
-    }
     if (element is TypeParameterElement) {
       properties['bound'] = element.bound;
     }
@@ -169,9 +156,7 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
     return properties;
   }
 
-  /**
-   * Write a representation of the given [node] to the buffer.
-   */
+  /// Write a representation of the given [node] to the buffer.
   void _writeElement(Element element) {
     indent();
     if (element.isSynthetic) {

@@ -6,6 +6,7 @@
 #define RUNTIME_PLATFORM_UTILS_H_
 
 #include <limits>
+#include <memory>
 #include <type_traits>
 
 #include "platform/assert.h"
@@ -21,7 +22,7 @@ class Utils {
   }
 
   template <typename T>
-  static inline T Maximum(T x, T y) {
+  static constexpr inline T Maximum(T x, T y) {
     return x > y ? x : y;
   }
 
@@ -105,31 +106,8 @@ class Utils {
 
   static uintptr_t RoundUpToPowerOfTwo(uintptr_t x);
 
-  static int CountOneBits32(uint32_t x) {
-    // Apparently there are x64 chips without popcount.
-#if __GNUC__ && !defined(HOST_ARCH_IA32) && !defined(HOST_ARCH_X64)
-    return __builtin_popcount(x);
-#else
-    // Implementation is from "Hacker's Delight" by Henry S. Warren, Jr.,
-    // figure 5-2, page 66, where the function is called pop.
-    x = x - ((x >> 1) & 0x55555555);
-    x = (x & 0x33333333) + ((x >> 2) & 0x33333333);
-    x = (x + (x >> 4)) & 0x0F0F0F0F;
-    x = x + (x >> 8);
-    x = x + (x >> 16);
-    return static_cast<int>(x & 0x0000003F);
-#endif
-  }
-
-  static int CountOneBits64(uint64_t x) {
-    // Apparently there are x64 chips without popcount.
-#if __GNUC__ && !defined(HOST_ARCH_IA32) && !defined(HOST_ARCH_X64)
-    return __builtin_popcountll(x);
-#else
-    return CountOneBits32(static_cast<uint32_t>(x)) +
-           CountOneBits32(static_cast<uint32_t>(x >> 32));
-#endif
-  }
+  static int CountOneBits64(uint64_t x);
+  static int CountOneBits32(uint32_t x);
 
   static int CountOneBitsWord(uword x) {
 #ifdef ARCH_IS_64_BIT
@@ -147,8 +125,43 @@ class Utils {
     return (value == 0) ? 0 : (Utils::HighestBit(value) + 1);
   }
 
-  static int CountLeadingZeros(uword x);
-  static int CountTrailingZeros(uword x);
+  static int CountLeadingZeros64(uint64_t x);
+  static int CountLeadingZeros32(uint32_t x);
+
+  static int CountLeadingZerosWord(uword x) {
+#ifdef ARCH_IS_64_BIT
+    return CountLeadingZeros64(x);
+#else
+    return CountLeadingZeros32(x);
+#endif
+  }
+
+  static int CountTrailingZeros64(uint64_t x);
+  static int CountTrailingZeros32(uint32_t x);
+
+  static int CountTrailingZerosWord(uword x) {
+#ifdef ARCH_IS_64_BIT
+    return CountTrailingZeros64(x);
+#else
+    return CountTrailingZeros32(x);
+#endif
+  }
+
+  static uint64_t ReverseBits64(uint64_t x);
+  static uint32_t ReverseBits32(uint32_t x);
+
+  static uword ReverseBitsWord(uword x) {
+#ifdef ARCH_IS_64_BIT
+    return ReverseBits64(x);
+#else
+    return ReverseBits32(x);
+#endif
+  }
+
+  // Computes magic numbers to implement DIV or MOD operator.
+  static void CalculateMagicAndShiftForDivRem(int64_t divisor,
+                                              int64_t* magic,
+                                              int64_t* shift);
 
   // Computes a hash value for the given string.
   static uint32_t StringHash(const char* data, int length);
@@ -169,8 +182,10 @@ class Utils {
   static inline bool IsUint(int N, T value) {
     ASSERT((0 < N) &&
            (static_cast<unsigned int>(N) < (kBitsPerByte * sizeof(value))));
-    T limit = static_cast<T>(1) << N;
-    return (0 <= value) && (value < limit);
+    const auto limit =
+        (static_cast<typename std::make_unsigned<T>::type>(1) << N) - 1;
+    return (0 <= value) &&
+           (static_cast<typename std::make_unsigned<T>::type>(value) <= limit);
   }
 
   // Check whether the magnitude of value fits in N bits, i.e., whether an
@@ -294,10 +309,13 @@ class Utils {
   static uint32_t HostToLittleEndian32(uint32_t host_value);
   static uint64_t HostToLittleEndian64(uint64_t host_value);
 
-  static uint32_t BigEndianToHost32(uint32_t be_value) {
-    // Going between Host <-> BE is the same operation for all practical
-    // purposes.
+  // Going between Host <-> LE/BE is the same operation for all practical
+  // purposes.
+  static inline uint32_t BigEndianToHost32(uint32_t be_value) {
     return HostToBigEndian32(be_value);
+  }
+  static inline uint64_t LittleEndianToHost64(uint64_t le_value) {
+    return HostToLittleEndian64(le_value);
   }
 
   static bool DoublesBitEqual(const double a, const double b) {
@@ -325,11 +343,9 @@ class Utils {
   static uword NBitMask(uint32_t n) {
     ASSERT(n <= kBitsPerWord);
     if (n == kBitsPerWord) {
-#if defined(TARGET_ARCH_X64)
-      return 0xffffffffffffffffll;
-#else
-      return 0xffffffff;
-#endif
+      static_assert((sizeof(uword) * kBitsPerByte) == kBitsPerWord,
+                            "Unexpected uword size");
+      return std::numeric_limits<uword>::max();
     }
     return (1ll << n) - 1;
   }
@@ -339,10 +355,16 @@ class Utils {
     return bit_cast<word>(mask);
   }
 
-  static uword Bit(uint32_t n) {
-    ASSERT(n < kBitsPerWord);
-    uword bit = 1;
+  template <typename T = uword>
+  static T Bit(uint32_t n) {
+    ASSERT(n < sizeof(T) * kBitsPerByte);
+    T bit = 1;
     return bit << n;
+  }
+
+  template <typename T>
+  DART_FORCE_INLINE static bool TestBit(T mask, intptr_t position) {
+    return ((mask >> position) & 1) != 0;
   }
 
   // Decode integer in SLEB128 format from |data| and update |byte_index|.
@@ -397,6 +419,11 @@ class Utils {
   // Allocate a string and print formatted output into a malloc'd buffer.
   static char* SCreate(const char* format, ...) PRINTF_ATTRIBUTE(1, 2);
   static char* VSCreate(const char* format, va_list args);
+
+  typedef std::unique_ptr<char, decltype(std::free)*> CStringUniquePtr;
+
+  // Returns str in a unique_ptr with free used as its deleter.
+  static CStringUniquePtr CreateCStringUniquePtr(char* str);
 };
 
 }  // namespace dart

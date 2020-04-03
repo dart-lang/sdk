@@ -9,32 +9,25 @@ import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 
-/**
- * Instances of the class [ServerDomainHandler] implement a [RequestHandler]
- * that handles requests in the server domain.
- */
+/// Instances of the class [ServerDomainHandler] implement a [RequestHandler]
+/// that handles requests in the server domain.
 class ServerDomainHandler implements RequestHandler {
-  /**
-   * The analysis server that is using this handler to process requests.
-   */
+  /// The analysis server that is using this handler to process requests.
   final AnalysisServer server;
 
-  /**
-   * Initialize a newly created handler to handle requests for the given [server].
-   */
+  /// Initialize a newly created handler to handle requests for the given
+  /// [server].
   ServerDomainHandler(this.server);
 
-  /**
-   * Return the version number of the analysis server.
-   */
+  /// Return the version number of the analysis server.
   Response getVersion(Request request) {
-    return new ServerGetVersionResult(PROTOCOL_VERSION).toResponse(request.id);
+    return ServerGetVersionResult(PROTOCOL_VERSION).toResponse(request.id);
   }
 
   @override
   Response handleRequest(Request request) {
     try {
-      String requestName = request.method;
+      var requestName = request.method;
       if (requestName == SERVER_REQUEST_GET_VERSION) {
         return getVersion(request);
       } else if (requestName == SERVER_REQUEST_SET_SUBSCRIPTIONS) {
@@ -49,25 +42,23 @@ class ServerDomainHandler implements RequestHandler {
     return null;
   }
 
-  /**
-   * Subscribe for services.
-   *
-   * All previous subscriptions are replaced by the given set of subscriptions.
-   */
+  /// Subscribe for services.
+  ///
+  /// All previous subscriptions are replaced by the given set of subscriptions.
   Response setSubscriptions(Request request) {
     server.serverServices =
-        new ServerSetSubscriptionsParams.fromRequest(request)
-            .subscriptions
-            .toSet();
-    return new ServerSetSubscriptionsResult().toResponse(request.id);
+        ServerSetSubscriptionsParams.fromRequest(request).subscriptions.toSet();
+
+    server.requestStatistics?.isNotificationSubscribed =
+        server.serverServices.contains(ServerService.LOG);
+
+    return ServerSetSubscriptionsResult().toResponse(request.id);
   }
 
-  /**
-   * Cleanly shutdown the analysis server.
-   */
+  /// Cleanly shutdown the analysis server.
   Future<void> shutdown(Request request) async {
     await server.shutdown();
-    Response response = new ServerShutdownResult().toResponse(request.id);
+    var response = ServerShutdownResult().toResponse(request.id);
     server.sendResponse(response);
   }
 }

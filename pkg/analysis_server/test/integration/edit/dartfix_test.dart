@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DartfixTest);
   });
@@ -25,56 +24,30 @@ class C with B {}
     standardAnalysisSetup();
   }
 
-  test_dartfix() async {
+  Future<void> test_dartfix_exclude() async {
     setupTarget();
-    EditDartfixResult result = await sendEditDartfix([(sourceDirectory.path)]);
-    expect(result.hasErrors, isFalse);
-    expect(result.suggestions.length, greaterThanOrEqualTo(1));
-    expect(result.edits.length, greaterThanOrEqualTo(1));
-  }
-
-  test_dartfix_exclude() async {
-    setupTarget();
-    EditDartfixResult result = await sendEditDartfix([(sourceDirectory.path)],
-        excludedFixes: ['use-mixin']);
+    var result = await sendEditDartfix([(sourceDirectory.path)],
+        excludedFixes: ['convert_class_to_mixin']);
     expect(result.hasErrors, isFalse);
     expect(result.suggestions.length, 0);
     expect(result.edits.length, 0);
   }
 
-  test_dartfix_exclude_other() async {
+  Future<void> test_dartfix_include() async {
     setupTarget();
-    EditDartfixResult result = await sendEditDartfix([(sourceDirectory.path)],
-        excludedFixes: ['double-to-int']);
+    var result = await sendEditDartfix([(sourceDirectory.path)],
+        includedFixes: ['convert_class_to_mixin']);
     expect(result.hasErrors, isFalse);
     expect(result.suggestions.length, greaterThanOrEqualTo(1));
     expect(result.edits.length, greaterThanOrEqualTo(1));
   }
 
-  test_dartfix_include() async {
+  Future<void> test_dartfix_include_other() async {
     setupTarget();
-    EditDartfixResult result = await sendEditDartfix([(sourceDirectory.path)],
-        includedFixes: ['use-mixin']);
-    expect(result.hasErrors, isFalse);
-    expect(result.suggestions.length, greaterThanOrEqualTo(1));
-    expect(result.edits.length, greaterThanOrEqualTo(1));
-  }
-
-  test_dartfix_include_other() async {
-    setupTarget();
-    EditDartfixResult result = await sendEditDartfix([(sourceDirectory.path)],
-        includedFixes: ['double-to-int']);
+    var result = await sendEditDartfix([(sourceDirectory.path)],
+        includedFixes: ['prefer_int_literals']);
     expect(result.hasErrors, isFalse);
     expect(result.suggestions.length, 0);
     expect(result.edits.length, 0);
-  }
-
-  test_dartfix_required() async {
-    setupTarget();
-    EditDartfixResult result = await sendEditDartfix([(sourceDirectory.path)],
-        includeRequiredFixes: true);
-    expect(result.hasErrors, isFalse);
-    expect(result.suggestions.length, greaterThanOrEqualTo(1));
-    expect(result.edits.length, greaterThanOrEqualTo(1));
   }
 }

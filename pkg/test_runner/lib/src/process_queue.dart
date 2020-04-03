@@ -54,7 +54,7 @@ class ProcessQueue {
 
         print("\nGenerating all matching test cases ....\n");
 
-        for (TestCase testCase in testCases) {
+        for (var testCase in testCases) {
           eventFinishedTestCase(testCase);
           var outcomes = testCase.expectedOutcomes.map((o) => '$o').toList()
             ..sort();
@@ -85,7 +85,7 @@ class ProcessQueue {
         cancelDebugTimer();
         _debugTimer = Timer(debugTimerDuration, () {
           print("The debug timer of test.dart expired. Please report this issue"
-              " to whesse@ and provide the following information:");
+              " to dart-engprod@ and provide the following information:");
           print("");
           print("Graph is sealed: ${_graph.isSealed}");
           print("");
@@ -235,17 +235,12 @@ class TestCaseEnqueuer {
     // system, generate tests, and search test files for options.
     var testCache = <String, List<TestFile>>{};
 
-    var iterator = testSuites.iterator;
-    void enqueueNextSuite() {
-      if (!iterator.moveNext()) {
-        // We're finished with building the dependency graph.
-        graph.seal();
-      } else {
-        iterator.current.forEachTest(_newTest, testCache, enqueueNextSuite);
-      }
+    for (var suite in testSuites) {
+      suite.findTestCases(_add, testCache);
     }
 
-    enqueueNextSuite();
+    // We're finished with building the dependency graph.
+    graph.seal();
   }
 
   /// Adds a test case to the list of active test cases, and adds its commands
@@ -259,14 +254,14 @@ class TestCaseEnqueuer {
   /// command of the previous copy of the test case. This dependency is
   /// marked as a "timingDependency", so that it doesn't depend on the previous
   /// test completing successfully, just on it completing.
-  void _newTest(TestCase testCase) {
+  void _add(TestCase testCase) {
     Node<Command> lastNode;
     for (var i = 0; i < testCase.configuration.repeat; ++i) {
       if (i > 0) {
         testCase = testCase.indexedCopy(i);
       }
       remainingTestCases.add(testCase);
-      bool isFirstCommand = true;
+      var isFirstCommand = true;
       for (var command in testCase.commands) {
         // Make exactly *one* node in the dependency graph for every command.
         // This ensures that we never have two commands c1 and c2 in the graph
@@ -280,7 +275,7 @@ class TestCaseEnqueuer {
           command2node[command] = node;
           command2testCases[command] = <TestCase>[];
         }
-        // Keep mapping from command to all testCases that refer to it
+        // Keep mapping from command to all testCases that refer to it.
         command2testCases[command].add(testCase);
 
         lastNode = node;
@@ -327,11 +322,11 @@ class CommandEnqueuer {
   /// changed it's state.
   void _changeNodeStateIfNecessary(Node<Command> node) {
     if (_initStates.contains(node.state)) {
-      bool allDependenciesFinished =
+      var allDependenciesFinished =
           node.dependencies.every((dep) => _finishedStates.contains(dep.state));
-      bool anyDependenciesUnsuccessful = node.dependencies.any((dep) =>
+      var anyDependenciesUnsuccessful = node.dependencies.any((dep) =>
           [NodeState.failed, NodeState.unableToRun].contains(dep.state));
-      bool allDependenciesSuccessful =
+      var allDependenciesSuccessful =
           node.dependencies.every((dep) => dep.state == NodeState.successful);
 
       var newState = NodeState.waiting;
@@ -411,7 +406,7 @@ class CommandQueue {
     _checkDone();
 
     if (_numProcesses < _maxProcesses && !_runQueue.isEmpty) {
-      Command command = _runQueue.removeFirst();
+      var command = _runQueue.removeFirst();
       var isBrowserCommand = command is BrowserTestCommand;
 
       if (isBrowserCommand && _numBrowserProcesses == _maxBrowserProcesses) {
@@ -430,7 +425,7 @@ class CommandQueue {
       // If a command is part of many TestCases we set the timeout to be
       // the maximum over all [TestCase.timeout]s. At some point, we might
       // eliminate [TestCase.timeout] completely and move it to [Command].
-      int timeout =
+      var timeout =
           testCases.map((TestCase test) => test.timeout).fold(0, math.max);
 
       if (_verbose) {
@@ -500,7 +495,7 @@ abstract class CommandExecutor {
   Future cleanup();
   // TODO(kustermann): The [timeout] parameter should be a property of Command.
   Future<CommandOutput> runCommand(
-      Node<Command> node, covariant Command command, int timeout);
+      Node<Command> node, Command command, int timeout);
 }
 
 class CommandExecutorImpl implements CommandExecutor {
@@ -605,7 +600,7 @@ class CommandExecutorImpl implements CommandExecutor {
           adbDevicePool.releaseDevice(device);
         }
       });
-    } else if (command is VmBatchCommand) {
+    } else if (command is VMBatchCommand) {
       var name = command.displayName;
       return _getBatchRunner(command.displayName + command.dartFile)
           .runCommand(name, command, timeout, command.arguments);
@@ -626,7 +621,7 @@ class CommandExecutorImpl implements CommandExecutor {
 
   List<_StepFunction> _pushLibraries(AdbCommand command, AdbDevice device,
       String deviceDir, String deviceTestDir) {
-    final List<_StepFunction> steps = [];
+    var steps = <_StepFunction>[];
     for (var lib in command.extraLibraries) {
       var libName = "lib$lib.so";
       steps.add(() => device.runAdbCommand([
@@ -640,7 +635,7 @@ class CommandExecutorImpl implements CommandExecutor {
 
   Future<CommandOutput> _runAdbPrecompilationCommand(
       AdbDevice device, AdbPrecompilationCommand command, int timeout) async {
-    final String buildPath = command.buildPath;
+    var buildPath = command.buildPath;
     var processTest = command.processTestFilename;
     var testdir = command.precompiledTestDirectory;
     var arguments = command.arguments;
@@ -649,7 +644,7 @@ class CommandExecutorImpl implements CommandExecutor {
 
     // We copy all the files which the vm precompiler puts into the test
     // directory.
-    List<String> files = io.Directory(testdir)
+    var files = io.Directory(testdir)
         .listSync()
         .map((file) => file.path)
         .map((path) => path.substring(path.lastIndexOf('/') + 1))
@@ -713,21 +708,21 @@ class CommandExecutorImpl implements CommandExecutor {
       // immediately.
       if (result.exitCode != 0) break;
     }
-    return createCommandOutput(command, result.exitCode, result.timedOut,
+    return command.createOutput(result.exitCode, result.timedOut,
         utf8.encode('$writer'), [], stopwatch.elapsed, false);
   }
 
   Future<CommandOutput> _runAdbDartkCommand(
       AdbDevice device, AdbDartkCommand command, int timeout) async {
-    final String buildPath = command.buildPath;
-    final String hostKernelFile = command.kernelFile;
-    final List<String> arguments = command.arguments;
-    final String devicedir = DartkAdbRuntimeConfiguration.deviceDir;
-    final String deviceTestDir = DartkAdbRuntimeConfiguration.deviceTestDir;
+    var buildPath = command.buildPath;
+    var hostKernelFile = command.kernelFile;
+    var arguments = command.arguments;
+    var devicedir = DartkAdbRuntimeConfiguration.deviceDir;
+    var deviceTestDir = DartkAdbRuntimeConfiguration.deviceTestDir;
 
-    final timeoutDuration = Duration(seconds: timeout);
+    var timeoutDuration = Duration(seconds: timeout);
 
-    final steps = <_StepFunction>[];
+    var steps = <_StepFunction>[];
 
     steps.add(() => device.runAdbShellCommand(['rm', '-Rf', deviceTestDir]));
     steps.add(() => device.runAdbShellCommand(['mkdir', '-p', deviceTestDir]));
@@ -773,7 +768,7 @@ class CommandExecutorImpl implements CommandExecutor {
       // immediately.
       if (result.exitCode != 0) break;
     }
-    return createCommandOutput(command, result.exitCode, result.timedOut,
+    return command.createOutput(result.exitCode, result.timedOut,
         utf8.encode('$writer'), [], stopwatch.elapsed, false);
   }
 
@@ -782,7 +777,7 @@ class CommandExecutorImpl implements CommandExecutor {
     var runners = _batchProcesses[identifier];
     if (runners == null) {
       runners = List<BatchRunnerProcess>(maxProcesses);
-      for (int i = 0; i < maxProcesses; i++) {
+      for (var i = 0; i < maxProcesses; i++) {
         runners[i] = BatchRunnerProcess(useJson: identifier == "fasta");
       }
       _batchProcesses[identifier] = runners;
@@ -798,9 +793,9 @@ class CommandExecutorImpl implements CommandExecutor {
       BrowserTestCommand browserCommand, int timeout) {
     var completer = Completer<CommandOutput>();
 
-    var callback = (BrowserTestOutput output) {
+    callback(BrowserTestOutput output) {
       completer.complete(BrowserCommandOutput(browserCommand, output));
-    };
+    }
 
     var browserTest = BrowserTest(browserCommand.url, callback, timeout);
     _getBrowserTestRunner(browserCommand.configuration).then((testRunner) {
@@ -938,7 +933,7 @@ class TestCaseCompleter {
 
   void _completeTestCasesIfPossible(Iterable<TestCase> testCases) {
     // Update TestCases with command outputs.
-    for (TestCase test in testCases) {
+    for (var test in testCases) {
       for (var icommand in test.commands) {
         var output = _outputs[icommand];
         if (output != null) {
@@ -1001,7 +996,7 @@ class BatchRunnerProcess {
     assert(!_currentlyRunning);
 
     _completer = Completer();
-    bool sameRunnerType = _runnerType == runnerType &&
+    var sameRunnerType = _runnerType == runnerType &&
         _dictEquals(_processEnvironmentOverrides, command.environmentOverrides);
     _runnerType = runnerType;
     _currentlyRunning = true;
@@ -1009,7 +1004,7 @@ class BatchRunnerProcess {
     _arguments = arguments;
     _processEnvironmentOverrides = command.environmentOverrides;
 
-    // TOOD(jmesserly): this restarts `dartdevc --batch` to work around a
+    // TODO(jmesserly): this restarts `dartdevc --batch` to work around a
     // memory leak, see https://github.com/dart-lang/sdk/issues/30314.
     var clearMemoryLeak = command is CompilationCommand &&
         command.displayName == 'dartdevc' &&
@@ -1085,8 +1080,7 @@ class BatchRunnerProcess {
     if (outcome == "CRASH") exitCode = unhandledCompilerExceptionExitCode;
     if (outcome == "PARSE_FAIL") exitCode = parseFailExitCode;
     if (outcome == "FAIL" || outcome == "TIMEOUT") exitCode = 1;
-    var output = createCommandOutput(
-        _command,
+    var output = _command.createOutput(
         exitCode,
         outcome == "TIMEOUT",
         _testStdout.toList(),
@@ -1132,10 +1126,10 @@ class BatchRunnerProcess {
     }
     var processFuture =
         io.Process.start(executable, arguments, environment: environment);
-    processFuture.then((io.Process p) {
+    processFuture.then<dynamic>((io.Process p) {
       _process = p;
 
-      Stream<String> _stdoutStream = _process.stdout
+      var _stdoutStream = _process.stdout
           .transform(utf8.decoder)
           .transform(const LineSplitter());
       _stdoutSubscription = _stdoutStream.listen((String line) {
@@ -1157,7 +1151,7 @@ class BatchRunnerProcess {
       });
       _stdoutSubscription.pause();
 
-      Stream<String> _stderrStream = _process.stderr
+      var _stderrStream = _process.stderr
           .transform(utf8.decoder)
           .transform(const LineSplitter());
       _stderrSubscription = _stderrStream.listen((String line) {

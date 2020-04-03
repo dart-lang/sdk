@@ -2,22 +2,6 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/rasta/class_hierarchy.dart:5:17: Warning: Type 'Missing' not found.
-// class A extends Missing {}
-//                 ^^^^^^^
-//
-// pkg/front_end/testcases/rasta/class_hierarchy.dart:7:20: Warning: Type 'Missing' not found.
-// class B implements Missing {}
-//                    ^^^^^^^
-//
-// pkg/front_end/testcases/rasta/class_hierarchy.dart:9:23: Warning: Type 'Missing' not found.
-// class C = Object with Missing;
-//                       ^^^^^^^
-//
-// pkg/front_end/testcases/rasta/class_hierarchy.dart:9:7: Error: The type 'Missing' can't be mixed in.
-// class C = Object with Missing;
-//       ^
-//
 // pkg/front_end/testcases/rasta/class_hierarchy.dart:5:17: Error: Type 'Missing' not found.
 // class A extends Missing {}
 //                 ^^^^^^^
@@ -30,13 +14,17 @@ library;
 // class C = Object with Missing;
 //                       ^^^^^^^
 //
-// pkg/front_end/testcases/rasta/class_hierarchy.dart:12:17: Warning: Couldn't find constructor 'Missing'.
+// pkg/front_end/testcases/rasta/class_hierarchy.dart:9:7: Error: The type 'Missing' can't be mixed in.
+// class C = Object with Missing;
+//       ^
+//
+// pkg/front_end/testcases/rasta/class_hierarchy.dart:12:17: Error: Couldn't find constructor 'Missing'.
 //   factory D() = Missing;
 //                 ^
 //
-// pkg/front_end/testcases/rasta/class_hierarchy.dart:12:11: Warning: Redirection constructor target not found: 'Missing'
+// pkg/front_end/testcases/rasta/class_hierarchy.dart:12:17: Error: Redirection constructor target not found: 'Missing'
 //   factory D() = Missing;
-//           ^
+//                 ^
 //
 import self as self;
 import "dart:core" as core;
@@ -49,7 +37,7 @@ class B extends core::Object {
   synthetic constructor •() → self::B*
     ;
 }
-class C extends core::Object {
+class C extends core::Object /*hasConstConstructor*/  {
   const synthetic constructor •() → self::C*
     : super core::Object::•()
     ;

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_ranking_internal.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -9,14 +10,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
-
-class MockCompletionRequest extends Mock implements DartCompletionRequest {}
-
-class MockCompletionTarget extends Mock implements CompletionTarget {}
-
-class MockAstNode extends Mock implements AstNode {}
-
-class MockToken extends Mock implements Token {}
 
 void main() {
   group('getCursorToken', () {
@@ -86,7 +79,7 @@ void main() {
     when(token.offset).thenReturn(4);
     when(token.length).thenReturn(1);
     when(token.lexeme).thenReturn(')');
-    expect(isStopToken(token, 5), equals(false));
+    expect(isStopToken(token, 5), equals(true));
   });
 
   test('isStopToken alphabetic', () {
@@ -95,7 +88,7 @@ void main() {
     when(token.offset).thenReturn(2);
     when(token.length).thenReturn(3);
     when(token.lexeme).thenReturn('foo');
-    expect(isStopToken(token, 5), equals(true));
+    expect(isStopToken(token, 5), equals(false));
   });
 
   test('isStringLiteral null', () {
@@ -194,6 +187,34 @@ void main() {
     expect(constructQuery(request, 100), equals(['class', 'Animal']));
   });
 
+  test('constructQuery cursor over paren', () {
+    final start = MockToken();
+    when(start.isSynthetic).thenReturn(true);
+    when(start.isEof).thenReturn(true);
+    final one = MockToken();
+    when(one.lexeme).thenReturn('main');
+    when(one.offset).thenReturn(0);
+    when(one.length).thenReturn(4);
+    when(one.isSynthetic).thenReturn(false);
+    when(one.isEof).thenReturn(false);
+    when(one.type).thenReturn(TokenType.IDENTIFIER);
+    final two = MockToken();
+    when(two.lexeme).thenReturn('(');
+    when(two.offset).thenReturn(5);
+    when(two.length).thenReturn(1);
+    when(two.isSynthetic).thenReturn(false);
+    when(one.previous).thenReturn(start);
+    when(two.previous).thenReturn(one);
+    when(two.type).thenReturn(TokenType.OPEN_PAREN);
+    when(two.isEof).thenReturn(false);
+    final request = MockCompletionRequest();
+    final target = MockCompletionTarget();
+    when(request.offset).thenReturn(6);
+    when(request.target).thenReturn(target);
+    when(target.entity).thenReturn(two);
+    expect(constructQuery(request, 50), equals(['main', '(']));
+  });
+
   test('elementNameFromRelevanceTag', () {
     final tag =
         'package::flutter/src/widgets/preferred_size.dart::::PreferredSizeWidget';
@@ -212,4 +233,37 @@ void main() {
     expect(result[2].key, equals('qu\'ux'));
     expect(result, hasLength(3));
   });
+
+  test('testNamedArgument', () {
+    expect(testNamedArgument([]), equals(false));
+    expect(testNamedArgument(null), equals(false));
+    expect(
+        testNamedArgument([
+          CompletionSuggestion(CompletionSuggestionKind.NAMED_ARGUMENT, 1,
+              'title: ,', 8, 0, false, false)
+        ]),
+        equals(true));
+    expect(
+        testNamedArgument([
+          CompletionSuggestion(
+              CompletionSuggestionKind.IDENTIFIER, 1, 'foo', 3, 0, false, false)
+        ]),
+        equals(false));
+    expect(
+        testNamedArgument([
+          CompletionSuggestion(CompletionSuggestionKind.NAMED_ARGUMENT, 1,
+              'title: ,', 8, 0, false, false),
+          CompletionSuggestion(CompletionSuggestionKind.IDENTIFIER, 1, 'foo', 3,
+              0, false, false),
+        ]),
+        equals(true));
+  });
 }
+
+class MockAstNode extends Mock implements AstNode {}
+
+class MockCompletionRequest extends Mock implements DartCompletionRequest {}
+
+class MockCompletionTarget extends Mock implements CompletionTarget {}
+
+class MockToken extends Mock implements Token {}

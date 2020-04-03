@@ -121,14 +121,23 @@ testDatagramSocketMulticastIf() {
     asyncStart();
     final socket = await RawDatagramSocket.bind(address, 0);
     RawSocketOption option;
+    int idx;
     if (address.type == InternetAddressType.IPv4) {
       option = RawSocketOption(RawSocketOption.levelIPv4,
           RawSocketOption.IPv4MulticastInterface, address.rawAddress);
     } else {
-      // We'll need a Uint8List(4) for this option, since it will be an 4 byte
-      // word value sent into get/setsockopt.
-      option = RawSocketOption(RawSocketOption.levelIPv6,
-          RawSocketOption.IPv6MulticastInterface, Uint8List(4));
+      if (!NetworkInterface.listSupported) {
+        asyncEnd();
+        return;
+      }
+      var interface = await NetworkInterface.list();
+      if (interface.length == 0) {
+        asyncEnd();
+        return;
+      }
+      idx = interface[0].index;
+      option = RawSocketOption.fromInt(RawSocketOption.levelIPv6,
+          RawSocketOption.IPv6MulticastInterface, idx);
     }
 
     socket.setRawOption(option);
@@ -137,12 +146,18 @@ testDatagramSocketMulticastIf() {
     if (address.type == InternetAddressType.IPv4) {
       Expect.listEquals(getResult, address.rawAddress);
     } else {
-      Expect.listEquals(getResult, [0, 0, 0, 0]);
+      // RawSocketOption.fromInt() will create a Uint8List(4).
+      Expect.equals(
+          getResult.buffer.asByteData().getUint32(0, Endian.host), idx);
     }
 
     asyncSuccess(socket);
-    asyncEnd();
   }
+
+  test(InternetAddress.loopbackIPv4);
+  test(InternetAddress.anyIPv4);
+  test(InternetAddress.loopbackIPv6);
+  test(InternetAddress.anyIPv6);
 }
 
 testBroadcast() {

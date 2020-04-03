@@ -15,14 +15,16 @@ class IntializedMessageHandler extends MessageHandler<InitializedParams, void> {
     LspAnalysisServer server,
     this.openWorkspacePaths,
   ) : super(server);
+  @override
   Method get handlesMessage => Method.initialized;
 
   @override
   LspJsonHandler<InitializedParams> get jsonHandler =>
       InitializedParams.jsonHandler;
 
+  @override
   ErrorOr<void> handle(InitializedParams params, CancellationToken token) {
-    server.messageHandler = new InitializedStateMessageHandler(
+    server.messageHandler = InitializedStateMessageHandler(
       server,
     );
 
@@ -53,7 +55,7 @@ class IntializedMessageHandler extends MessageHandler<InitializedParams, void> {
     // requirements too. For example, the Angular plugin might wish to add HTML
     // `DocumentFilter('html', 'file', null)` to many of these requests.
 
-    int _lastRegistrationId = 1;
+    var _lastRegistrationId = 1;
     final registrations = <Registration>[];
 
     /// Helper for creating registrations with IDs.

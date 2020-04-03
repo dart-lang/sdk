@@ -4,23 +4,21 @@
 
 import 'package:charcode/ascii.dart';
 
-/**
- * Returns a list of the words from which the given camel case [string] is
- * composed.
- *
- * 'getCamelWords' => ['get', 'Camel', 'Words']
- * 'getHTMLText' => ['get', 'HTML', 'Text']
- */
+/// Returns a list of the words from which the given camel case [string] is
+/// composed.
+///
+/// 'getCamelWords' => ['get', 'Camel', 'Words']
+/// 'getHTMLText' => ['get', 'HTML', 'Text']
 List<String> getCamelWords(String string) {
   if (string == null || string.isEmpty) {
     return const <String>[];
   }
-  List<String> parts = <String>[];
-  bool wasLowerCase = false;
-  bool wasUpperCase = false;
-  int wordStart = 0;
-  for (int i = 0; i < string.length; i++) {
-    int c = string.codeUnitAt(i);
+  var parts = <String>[];
+  var wasLowerCase = false;
+  var wasUpperCase = false;
+  var wordStart = 0;
+  for (var i = 0; i < string.length; i++) {
+    var c = string.codeUnitAt(i);
     var newLowerCase = isLowerCase(c);
     var newUpperCase = isUpperCase(c);
     // myWord
@@ -45,26 +43,18 @@ List<String> getCamelWords(String string) {
   return parts;
 }
 
-/**
- * Return `true` if the given [string] is either `null` or empty.
- */
+/// Return `true` if the given [string] is either `null` or empty.
 bool isEmpty(String string) => string == null || string.isEmpty;
 
-/**
- * Return `true` if the given [character] is a lowercase ASCII character.
- */
+/// Return `true` if the given [character] is a lowercase ASCII character.
 bool isLowerCase(int character) => character >= $a && character <= $z;
 
-/**
- * Return `true` if the given [character] is an uppercase ASCII character.
- */
+/// Return `true` if the given [character] is an uppercase ASCII character.
 bool isUpperCase(int character) => character >= $A && character <= $Z;
 
-/**
- * If the given [string] starts with the text to [remove], then return the
- * portion of the string after the text to remove. Otherwise, return the
- * original string unmodified.
- */
+/// If the given [string] starts with the text to [remove], then return the
+/// portion of the string after the text to remove. Otherwise, return the
+/// original string unmodified.
 String removeStart(String string, String remove) {
   if (isEmpty(string) || isEmpty(remove)) {
     return string;

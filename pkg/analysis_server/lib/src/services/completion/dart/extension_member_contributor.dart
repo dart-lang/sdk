@@ -4,96 +4,159 @@
 
 import 'dart:async';
 
+import 'package:analysis_server/src/protocol_server.dart'
+    show CompletionSuggestion;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
-import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/type_system.dart';
+import 'package:analyzer/src/generated/resolver.dart'
+    show GenericInferrer, LibraryScope;
+import 'package:analyzer/src/generated/type_system.dart' show GenericInferrer;
 
-import '../../../protocol_server.dart' show CompletionSuggestion;
-
-/// A contributor for calculating suggestions based on the members of
-/// extensions.
+/// A contributor that produces suggestions based on the members of an
+/// extension.
 class ExtensionMemberContributor extends DartCompletionContributor {
   MemberSuggestionBuilder builder;
 
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
-    LibraryElement containingLibrary = request.libraryElement;
-    // Gracefully degrade if the library element is not resolved
-    // e.g. detached part file or source change
+    var containingLibrary = request.libraryElement;
+    // Gracefully degrade if the library could not be determined, such as with a
+    // detached part file or source change.
     if (containingLibrary == null) {
       return const <CompletionSuggestion>[];
     }
 
-    // Recompute the target since resolution may have changed it.
-    Expression expression = request.dotTarget;
-    if (expression == null || expression.isSynthetic) {
+    builder = MemberSuggestionBuilder(request);
+
+    // Recompute the target because resolution might have changed it.
+    var expression = request.dotTarget;
+
+    if (expression == null) {
+      var classOrMixin = request.target.containingNode
+          .thisOrAncestorOfType<ClassOrMixinDeclaration>();
+      if (classOrMixin != null) {
+        var type = classOrMixin.declaredElement.thisType;
+        _addExtensionMembers(containingLibrary, type);
+      } else {
+        var extension = request.target.containingNode
+            .thisOrAncestorOfType<ExtensionDeclaration>();
+        if (extension != null) {
+          var extendedType = extension.extendedType.type;
+          if (extendedType is InterfaceType) {
+            var types = <InterfaceType>[];
+            ClassElementImpl.collectAllSupertypes(types, extendedType, null);
+            for (var type in types) {
+              double inheritanceDistance;
+              if (request.useNewRelevance) {
+                inheritanceDistance = builder.request.featureComputer
+                    .inheritanceDistanceFeature(
+                        extendedType.element, type.element);
+              }
+              _addTypeMembers(type, inheritanceDistance);
+            }
+          }
+        }
+      }
+
+      return builder.suggestions.toList();
+    }
+
+    if (expression.isSynthetic) {
       return const <CompletionSuggestion>[];
     }
     if (expression is Identifier) {
-      Element elem = expression.staticElement;
+      var elem = expression.staticElement;
       if (elem is ClassElement) {
-        // Suggestions provided by StaticMemberContributor
+        // Suggestions provided by StaticMemberContributor.
         return const <CompletionSuggestion>[];
-      }
-      if (elem is PrefixElement) {
-        // Suggestions provided by LibraryMemberContributor
+      } else if (elem is ExtensionElement) {
+        // Suggestions provided by StaticMemberContributor.
+        return const <CompletionSuggestion>[];
+      } else if (elem is PrefixElement) {
+        // Suggestions provided by LibraryMemberContributor.
         return const <CompletionSuggestion>[];
       }
     }
-    builder = MemberSuggestionBuilder(containingLibrary);
     if (expression is ExtensionOverride) {
-      _addInstanceMembers(expression.staticElement);
+      _addInstanceMembers(expression.staticElement, -1.0);
     } else {
       var type = expression.staticType;
-      LibraryScope nameScope = new LibraryScope(containingLibrary);
-      for (var extension in nameScope.extensions) {
-        var typeSystem = containingLibrary.context.typeSystem;
-        var typeProvider = containingLibrary.context.typeProvider;
-        var extendedType =
-            _resolveExtendedType(typeSystem, typeProvider, extension, type);
-        if (extendedType != null &&
-            typeSystem.isSubtypeOf(type, extendedType)) {
-          // TODO(brianwilkerson) We might want to apply the substitution to the
-          //  members of the extension for display purposes.
-          _addInstanceMembers(extension);
-        }
+      if (type == null) {
+        // Without a type we can't find the extensions that apply. We shouldn't
+        // get to this point, but there's an NPE if we invoke
+        // `_resolveExtendedType` when `type` is `null`, so we guard against it
+        // to ensure that we can return the suggestions from other providers.
+        return const <CompletionSuggestion>[];
       }
+      _addExtensionMembers(containingLibrary, type);
       expression.staticType;
     }
     return builder.suggestions.toList();
   }
 
-  void _addInstanceMembers(ExtensionElement extension) {
-    for (MethodElement method in extension.methods) {
-      if (!method.isStatic) {
-        builder.addSuggestion(method);
-      }
-    }
-    for (PropertyAccessorElement accessor in extension.accessors) {
-      if (!accessor.isStatic) {
-        builder.addSuggestion(accessor);
+  void _addExtensionMembers(LibraryElement containingLibrary, DartType type) {
+    var typeSystem = containingLibrary.typeSystem;
+    var nameScope = LibraryScope(containingLibrary);
+    for (var extension in nameScope.extensions) {
+      var extendedType =
+          _resolveExtendedType(containingLibrary, extension, type);
+      if (extendedType != null && typeSystem.isSubtypeOf(type, extendedType)) {
+        double inheritanceDistance;
+        if (builder.request.useNewRelevance) {
+          inheritanceDistance = builder.request.featureComputer
+              .inheritanceDistanceFeature(type.element, extendedType.element);
+        }
+        // TODO(brianwilkerson) We might want to apply the substitution to the
+        //  members of the extension for display purposes.
+        _addInstanceMembers(extension, inheritanceDistance);
       }
     }
   }
 
-  /// Use the [typeProvider], [typeSystem] and the [type] of the object being
-  /// extended to compute the actual type extended by the [extension]. Return
-  /// the computed type, or `null` if the type cannot be computed.
-  DartType _resolveExtendedType(TypeSystem typeSystem,
-      TypeProvider typeProvider, ExtensionElement extension, DartType type) {
+  void _addInstanceMembers(
+      ExtensionElement extension, double inheritanceDistance) {
+    for (var method in extension.methods) {
+      if (!method.isStatic) {
+        builder.addSuggestionForMethod(
+            method: method, inheritanceDistance: inheritanceDistance);
+      }
+    }
+    for (var accessor in extension.accessors) {
+      if (!accessor.isStatic) {
+        builder.addSuggestionForAccessor(
+            accessor: accessor, inheritanceDistance: inheritanceDistance);
+      }
+    }
+  }
+
+  void _addTypeMembers(InterfaceType type, double inheritanceDistance) {
+    for (var method in type.methods) {
+      builder.addSuggestionForMethod(
+          method: method, inheritanceDistance: inheritanceDistance);
+    }
+    for (var accessor in type.accessors) {
+      builder.addSuggestionForAccessor(
+          accessor: accessor, inheritanceDistance: inheritanceDistance);
+    }
+  }
+
+  /// Use the [type] of the object being extended in the [library] to compute
+  /// the actual type extended by the [extension]. Return the computed type,
+  /// or `null` if the type cannot be computed.
+  DartType _resolveExtendedType(
+    LibraryElement library,
+    ExtensionElement extension,
+    DartType type,
+  ) {
     var typeParameters = extension.typeParameters;
-    var inferrer = GenericInferrer(
-      typeProvider,
-      typeSystem,
-      typeParameters,
-    );
+    var inferrer = GenericInferrer(library.typeSystem, typeParameters);
     inferrer.constrainArgument(
       type,
       extension.extendedType,

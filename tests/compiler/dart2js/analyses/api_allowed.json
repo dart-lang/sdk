@@ -9,13 +9,13 @@
   "org-dartlang-sdk:///sdk/lib/_internal/js_runtime/lib/js_helper.dart": {
     "Dynamic invocation of '[]'.": 3,
     "Dynamic access of 'isNaN'.": 3,
-    "Dynamic invocation of '<='.": 4,
-    "Dynamic invocation of '-'.": 4,
-    "Dynamic invocation of '>>'.": 2,
-    "Dynamic invocation of '&'.": 3,
-    "Dynamic invocation of '<'.": 3,
-    "Dynamic invocation of '>'.": 2,
+    "Dynamic invocation of '<='.": 2,
+    "Dynamic invocation of '-'.": 3,
+    "Dynamic invocation of '&'.": 1,
+    "Dynamic invocation of '>>'.": 1,
+    "Dynamic invocation of '<'.": 2,
     "Dynamic invocation of '+'.": 1,
+    "Dynamic invocation of '>'.": 1,
     "Dynamic access of 'length'.": 1
   },
   "org-dartlang-sdk:///sdk/lib/_internal/js_runtime/lib/string_helper.dart": {
@@ -23,7 +23,7 @@
     "Dynamic invocation of '+'.": 1,
     "Dynamic invocation of '>='.": 1,
     "Dynamic invocation of 'substring'.": 7,
-    "Dynamic invocation of 'allMatches'.": 4,
+    "Dynamic invocation of 'allMatches'.": 3,
     "Dynamic access of 'isNotEmpty'.": 1,
     "Dynamic invocation of '_js_helper::_execGlobal'.": 1,
     "Dynamic access of 'start'.": 1,
@@ -87,7 +87,7 @@
     "Dynamic access of 'firstChild'.": 2,
     "Dynamic invocation of 'append'.": 1,
     "Dynamic access of 'tagName'.": 2,
-    "Dynamic invocation of 'call'.": 1,
+    "Dynamic invocation of 'call'.": 2,
     "Dynamic invocation of 'dart.dom.html::_initKeyboardEvent'.": 1,
     "Dynamic access of 'attributes'.": 1,
     "Dynamic invocation of '[]'.": 1,
@@ -169,7 +169,7 @@
   "org-dartlang-sdk:///sdk/lib/io/common.dart": {
     "Dynamic invocation of '[]'.": 3
   },
-  "org-dartlang-sdk:///sdk/lib/js/dart2js/js_dart2js.dart": {
+  "org-dartlang-sdk:///sdk/lib/_internal/js_runtime/lib/js_patch.dart": {
     "Dynamic invocation of '[]'.": 1
   },
   "org-dartlang-sdk:///sdk/lib/svg/dart2js/svg_dart2js.dart": {
@@ -177,20 +177,6 @@
     "Dynamic access of 'nodes'.": 1,
     "Dynamic invocation of 'where'.": 1,
     "Dynamic access of 'single'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/_internal/js_runtime/lib/core_patch.dart": {
-    "Dynamic access of 'dart.core::_digits'.": 2,
-    "Dynamic invocation of '<'.": 2,
-    "Dynamic invocation of '[]'.": 17,
-    "Dynamic invocation of '+'.": 2,
-    "Dynamic invocation of 'dart.core::_absSubSetSign'.": 3,
-    "Dynamic invocation of 'dart.core::_absAndNotSetSign'.": 2,
-    "Dynamic invocation of 'dart.core::_absAddSetSign'.": 2,
-    "Dynamic invocation of 'dart.core::_absXorSetSign'.": 1,
-    "Dynamic invocation of '[]='.": 2,
-    "Dynamic invocation of '&'.": 6,
-    "Dynamic invocation of '-'.": 1,
-    "Dynamic invocation of '>='.": 1
   },
   "org-dartlang-sdk:///sdk/lib/core/errors.dart": {
     "Dynamic access of 'length'.": 2

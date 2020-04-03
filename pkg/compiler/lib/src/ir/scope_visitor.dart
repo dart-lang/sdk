@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/type_environment.dart' as ir;
 import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
 
 import 'closure.dart';
@@ -15,6 +16,7 @@ import 'scope.dart';
 class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
     with VariableCollectorMixin {
   final ir.ConstantEvaluator _constantEvaluator;
+  ir.StaticTypeContext _staticTypeContext;
 
   final ClosureScopeModel _model = new ClosureScopeModel();
 
@@ -85,6 +87,8 @@ class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
           initializerComplexity: const InitializerComplexity.lazy());
     }
 
+    _staticTypeContext =
+        new ir.StaticTypeContext(node, _constantEvaluator.typeEnvironment);
     if (node is ir.Constructor) {
       _hasThisLocal = true;
     } else if (node is ir.Procedure && node.kind == ir.ProcedureKind.Factory) {
@@ -309,21 +313,25 @@ class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
 
   @override
   InitializerComplexity visitTypeParameter(ir.TypeParameter typeParameter) {
+    TypeVariableTypeWithContext typeVariable(ir.Library library) =>
+        new TypeVariableTypeWithContext(
+            ir.TypeParameterType.withDefaultNullabilityForLibrary(
+                typeParameter, library),
+            // If this typeParameter is part of a typedef then its parent is
+            // null because it has no context. Just pass in null for the
+            // context in that case.
+            typeParameter.parent != null ? typeParameter.parent.parent : null);
+
     ir.TreeNode context = _executableContext;
-    TypeVariableTypeWithContext typeVariable = new TypeVariableTypeWithContext(
-        new ir.TypeParameterType(typeParameter),
-        // If this typeParameter is part of a typedef then its parent is
-        // null because it has no context. Just pass in null for the
-        // context in that case.
-        typeParameter.parent != null ? typeParameter.parent.parent : null);
     if (_isInsideClosure && context is ir.Procedure && context.isFactory) {
       // This is a closure in a factory constructor.  Since there is no
       // [:this:], we have to mark the type arguments as free variables to
       // capture them in the closure.
-      _useTypeVariableAsLocal(typeVariable, _currentTypeUsage);
+      _useTypeVariableAsLocal(
+          typeVariable(context.enclosingLibrary), _currentTypeUsage);
     }
 
-    if (_executableContext is ir.Member && _executableContext is! ir.Field) {
+    if (context is ir.Member && context is! ir.Field) {
       // In checked mode, using a type variable in a type annotation may lead
       // to a runtime type check that needs to access the type argument and
       // therefore the closure needs a this-element, if it is not in a field
@@ -333,7 +341,8 @@ class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
       if (_hasThisLocal) {
         _registerNeedsThis(_currentTypeUsage);
       } else {
-        _useTypeVariableAsLocal(typeVariable, _currentTypeUsage);
+        _useTypeVariableAsLocal(
+            typeVariable(context.enclosingLibrary), _currentTypeUsage);
       }
     }
     return const InitializerComplexity.constant();
@@ -609,6 +618,10 @@ class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
       const InitializerComplexity.lazy();
 
   @override
+  InitializerComplexity visitNeverType(ir.NeverType node) =>
+      const InitializerComplexity.lazy();
+
+  @override
   InitializerComplexity visitInvalidType(ir.InvalidType node) =>
       const InitializerComplexity.lazy();
 
@@ -674,6 +687,12 @@ class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
     visitNode(node.operand);
     visitInContext(node.type,
         node.isTypeError ? VariableUse.implicitCast : VariableUse.explicit);
+    return const InitializerComplexity.lazy();
+  }
+
+  @override
+  InitializerComplexity visitNullCheck(ir.NullCheck node) {
+    visitNode(node.operand);
     return const InitializerComplexity.lazy();
   }
 
@@ -1074,7 +1093,7 @@ class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
   @override
   InitializerComplexity visitConstantExpression(ir.ConstantExpression node) {
     if (node.constant is ir.UnevaluatedConstant) {
-      node.constant = _constantEvaluator.evaluate(node);
+      node.constant = _constantEvaluator.evaluate(_staticTypeContext, node);
     }
     return const InitializerComplexity.constant();
   }

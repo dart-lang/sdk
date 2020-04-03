@@ -17,8 +17,8 @@ import '../kernel_generator_impl.dart';
 /// Intended to be a part of a modular compilation process.
 ///
 /// Any dependency of [sources] that is not listed in
-/// [CompilerOptions.inputSummaries] and [CompilerOptions.sdkSummary] is treated
-/// as an additional source file for the build unit.
+/// [CompilerOptions.additionalDills] and [CompilerOptions.sdkSummary] is
+/// treated as an additional source file for the build unit.
 ///
 /// Any `part` declarations found in [sources] must refer to part files which
 /// are also listed in the build unit sources, otherwise an error results.  (It

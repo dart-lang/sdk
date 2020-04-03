@@ -8,7 +8,8 @@ import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:status_file/expectation.dart';
-import 'package:test_runner/src/test_file.dart';
+import 'package:test_runner/src/static_error.dart';
+import 'package:dart2js_tools/deobfuscate_stack_trace.dart';
 
 import 'browser_controller.dart';
 import 'command.dart';
@@ -23,7 +24,7 @@ import 'utils.dart';
 /// and the time the process took to run. It does not contain a pointer to the
 /// [TestCase] this is the output of, so some functions require the test case
 /// to be passed as an argument.
-class CommandOutput extends UniqueObject {
+class CommandOutput {
   final Command command;
 
   final bool hasTimedOut;
@@ -47,7 +48,7 @@ class CommandOutput extends UniqueObject {
   Expectation result(TestCase testCase) {
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
-    if (hasFailed(testCase)) return Expectation.fail;
+    if (_didFail(testCase)) return Expectation.fail;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
 
     return Expectation.pass;
@@ -88,7 +89,7 @@ class CommandOutput extends UniqueObject {
       // codes basically saying that codes starting with 0xC0, 0x80 or 0x40
       // are crashes, so look at the 4 most significant bits in 32-bit-space
       // make sure its either 0b1100, 0b1000 or 0b0100.
-      int masked = (exitCode & 0xF0000000) >> 28;
+      var masked = (exitCode & 0xF0000000) >> 28;
       return (exitCode < 0) && (masked >= 4) && ((masked & 3) == 0);
     }
     return exitCode < 0;
@@ -111,22 +112,7 @@ class CommandOutput extends UniqueObject {
     return !hasTimedOut && exitCode == 0;
   }
 
-  // Reverse result of a negative test.
-  bool hasFailed(TestCase testCase) {
-    return testCase.isNegative ? !_didFail(testCase) : _didFail(testCase);
-  }
-
   bool get hasNonUtf8 => exitCode == nonUtfFakeExitCode;
-
-  Expectation _negateOutcomeIfNegativeTest(
-      Expectation outcome, bool isNegative) {
-    if (!isNegative) return outcome;
-    if (outcome == Expectation.ignore) return outcome;
-    if (outcome.canBeOutcomeOf(Expectation.fail)) {
-      return Expectation.pass;
-    }
-    return Expectation.fail;
-  }
 
   /// Called when producing output for a test failure to describe this output.
   void describe(TestCase testCase, Progress progress, OutputWriter output) {
@@ -282,9 +268,14 @@ class BrowserCommandOutput extends CommandOutput
     with _UnittestSuiteMessagesMixin {
   final BrowserTestJsonResult _jsonResult;
   final BrowserTestOutput _result;
-  final Expectation _rawOutcome;
+  final Expectation _outcome;
 
-  factory BrowserCommandOutput(Command command, BrowserTestOutput result) {
+  /// Directory that is being served under `http:/.../root_build/` to browser
+  /// tests.
+  final String _buildDirectory;
+
+  factory BrowserCommandOutput(
+      BrowserTestCommand command, BrowserTestOutput result) {
     Expectation outcome;
 
     var parsedResult =
@@ -312,12 +303,24 @@ class BrowserCommandOutput extends CommandOutput
       }
     }
 
-    return BrowserCommandOutput._internal(command, result, outcome,
-        parsedResult, encodeUtf8(""), encodeUtf8(stderr));
+    return BrowserCommandOutput._internal(
+        command,
+        result,
+        outcome,
+        parsedResult,
+        command.configuration.buildDirectory,
+        encodeUtf8(""),
+        encodeUtf8(stderr));
   }
 
-  BrowserCommandOutput._internal(Command command, BrowserTestOutput result,
-      this._rawOutcome, this._jsonResult, List<int> stdout, List<int> stderr)
+  BrowserCommandOutput._internal(
+      Command command,
+      BrowserTestOutput result,
+      this._outcome,
+      this._jsonResult,
+      this._buildDirectory,
+      List<int> stdout,
+      List<int> stderr)
       : _result = result,
         super(command, 0, result.didTimeout, stdout, stderr, result.duration,
             false, 0);
@@ -332,11 +335,11 @@ class BrowserCommandOutput extends CommandOutput
 
     // Multitests are handled specially.
     if (testCase.hasRuntimeError) {
-      if (_rawOutcome == Expectation.runtimeError) return Expectation.pass;
+      if (_outcome == Expectation.runtimeError) return Expectation.pass;
       return Expectation.missingRuntimeError;
     }
 
-    return _negateOutcomeIfNegativeTest(_rawOutcome, testCase.isNegative);
+    return _outcome;
   }
 
   /// Cloned code from member result(), with changes.
@@ -348,7 +351,7 @@ class BrowserCommandOutput extends CommandOutput
     }
 
     if (hasNonUtf8) return Expectation.nonUtf8Error;
-    return _rawOutcome;
+    return _outcome;
   }
 
   void describe(TestCase testCase, Progress progress, OutputWriter output) {
@@ -379,13 +382,25 @@ class BrowserCommandOutput extends CommandOutput
 
     void _showError(String header, event) {
       output.subsection(header);
-      output.write((event["value"] as String).trim());
+      var value = event["value"] as String;
       if (event["stack_trace"] != null) {
-        var stack = (event["stack_trace"] as String).trim().split("\n");
-        output.writeAll(stack);
+        value = '$value\n${event["stack_trace"] as String}';
       }
-
       showedError = true;
+      output.write(value);
+
+      // Skip deobfuscation if there is no indication that there is a stack
+      // trace in the string value.
+      if (!value.contains(RegExp('\\.js:'))) return;
+      var stringStack = value
+          // Convert `http:` URIs to relative `file:` URIs.
+          .replaceAll(RegExp('http://[^/]*/root_build/'), '$_buildDirectory/')
+          .replaceAll(RegExp('http://[^/]*/root_dart/'), '')
+          // Remove query parameters (seen in .html URIs).
+          .replaceAll(RegExp('\\?[^:]*:'), ':');
+      // TODO(sigmund): change internal deobfuscation code to avoid spurious
+      // error messages when files do not have a corresponding source-map.
+      _deobfuscateAndWriteStack(stringStack, output);
     }
 
     for (var event in _jsonResult.events) {
@@ -494,17 +509,6 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
       : super(command, exitCode, timedOut, stdout, stderr, time,
             compilationSkipped, 0);
 
-  @override
-  void describe(TestCase testCase, Progress progress, OutputWriter output) {
-    if (testCase.testFile.isStaticErrorTest) {
-      _validateExpectedErrors(testCase, output);
-    }
-
-    if (!testCase.testFile.isStaticErrorTest || progress == Progress.verbose) {
-      super.describe(testCase, progress, output);
-    }
-  }
-
   Expectation result(TestCase testCase) {
     // TODO(kustermann): If we run the analyzer not in batch mode, make sure
     // that command.exitCodes matches 2 (errors), 1 (warnings), 0 (no warnings,
@@ -518,13 +522,6 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
     // If it's a static error test, validate the exact errors.
     if (testCase.testFile.isStaticErrorTest) {
       return _validateExpectedErrors(testCase);
-    }
-
-    // Handle negative.
-    if (testCase.isNegative) {
-      return errors.isNotEmpty
-          ? Expectation.pass
-          : Expectation.missingCompileTimeError;
     }
 
     // Handle errors / missing errors.
@@ -698,6 +695,7 @@ class VMCommandOutput extends CommandOutput with _UnittestSuiteMessagesMixin {
   static const _dfeErrorExitCode = 252;
   static const _compileErrorExitCode = 254;
   static const _uncaughtExceptionExitCode = 255;
+  static const _adbInfraFailureCodes = [10];
 
   VMCommandOutput(Command command, int exitCode, bool timedOut,
       List<int> stdout, List<int> stderr, Duration time, int pid)
@@ -738,8 +736,7 @@ class VMCommandOutput extends CommandOutput with _UnittestSuiteMessagesMixin {
       outcome = Expectation.fail;
     }
 
-    outcome = _negateOutcomeIfIncompleteAsyncTest(outcome, decodeUtf8(stdout));
-    return _negateOutcomeIfNegativeTest(outcome, testCase.isNegative);
+    return _negateOutcomeIfIncompleteAsyncTest(outcome, decodeUtf8(stdout));
   }
 
   /// Cloned code from member result(), with changes.
@@ -755,8 +752,20 @@ class VMCommandOutput extends CommandOutput with _UnittestSuiteMessagesMixin {
     if (exitCode == _compileErrorExitCode) return Expectation.compileTimeError;
     if (exitCode == _uncaughtExceptionExitCode) return Expectation.runtimeError;
     if (exitCode != 0) {
-      // This is a general fail, in case we get an unknown nonzero exitcode.
-      return Expectation.fail;
+      var ourExit = 5;
+      // Unknown nonzero exit code from vm command.
+      // Consider this a failure of testing, and exit the test script.
+      if (testCase.configuration.system == System.android &&
+          _adbInfraFailureCodes.contains(exitCode)) {
+        print('Android device failed to run test');
+        ourExit = 3;
+      } else {
+        print('Unexpected exit code $exitCode');
+      }
+      print(command);
+      print(decodeUtf8(stdout));
+      print(decodeUtf8(stderr));
+      io.exit(ourExit);
     }
     var testOutput = decodeUtf8(stdout);
     if (_isAsyncTest(testOutput) && !_isAsyncTestSuccessful(testOutput)) {
@@ -846,9 +855,7 @@ class CompilationCommandOutput extends CommandOutput {
       return Expectation.compileTimeError;
     }
 
-    var outcome =
-        exitCode == 0 ? Expectation.pass : Expectation.compileTimeError;
-    return _negateOutcomeIfNegativeTest(outcome, testCase.isNegative);
+    return exitCode == 0 ? Expectation.pass : Expectation.compileTimeError;
   }
 }
 
@@ -877,9 +884,7 @@ class DevCompilerCommandOutput extends CommandOutput {
           : Expectation.pass;
     }
 
-    var outcome =
-        exitCode == 0 ? Expectation.pass : Expectation.compileTimeError;
-    return _negateOutcomeIfNegativeTest(outcome, testCase.isNegative);
+    return exitCode == 0 ? Expectation.pass : Expectation.compileTimeError;
   }
 
   /// Cloned code from member result(), with changes.
@@ -918,7 +923,7 @@ class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
     // between different kinds of failures and will mark a failed
     // compilation to just an exit code of "1".  So we treat all `exitCode ==
     // 1`s as compile-time errors as well.
-    const int kBatchModeCompileTimeErrorExit = 1;
+    const batchModeCompileTimeErrorExit = 1;
 
     // Handle crashes and timeouts first.
     if (hasCrashed) return Expectation.dartkCrash;
@@ -934,23 +939,22 @@ class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
     // Multitests are handled specially.
     if (testCase.hasCompileError) {
       if (exitCode == VMCommandOutput._compileErrorExitCode ||
-          exitCode == kBatchModeCompileTimeErrorExit) {
+          exitCode == batchModeCompileTimeErrorExit) {
         return Expectation.pass;
       }
       return Expectation.missingCompileTimeError;
     }
 
     // The actual outcome depends on the exitCode.
-    var outcome = Expectation.pass;
     if (exitCode == VMCommandOutput._compileErrorExitCode ||
-        exitCode == kBatchModeCompileTimeErrorExit) {
-      outcome = Expectation.compileTimeError;
+        exitCode == batchModeCompileTimeErrorExit) {
+      return Expectation.compileTimeError;
     } else if (exitCode != 0) {
       // This is a general fail, in case we get an unknown nonzero exitcode.
-      outcome = Expectation.fail;
+      return Expectation.fail;
     }
 
-    return _negateOutcomeIfNegativeTest(outcome, testCase.isNegative);
+    return Expectation.pass;
   }
 
   /// Cloned code from member result(), with changes.
@@ -961,7 +965,7 @@ class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
     // between different kinds of failures and will mark a failed
     // compilation to just an exit code of "1".  So we treat all `exitCode ==
     // 1`s as compile-time errors as well.
-    const int kBatchModeCompileTimeErrorExit = 1;
+    const batchModeCompileTimeErrorExit = 1;
 
     // Handle crashes and timeouts first.
     if (hasCrashed) return Expectation.dartkCrash;
@@ -977,7 +981,7 @@ class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
     // Multitests are handled specially.
 
     if (exitCode == VMCommandOutput._compileErrorExitCode ||
-        exitCode == kBatchModeCompileTimeErrorExit) {
+        exitCode == batchModeCompileTimeErrorExit) {
       return Expectation.compileTimeError;
     }
     if (exitCode != 0) {
@@ -1014,8 +1018,7 @@ class JSCommandLineOutput extends CommandOutput
     }
 
     var outcome = exitCode == 0 ? Expectation.pass : Expectation.runtimeError;
-    outcome = _negateOutcomeIfIncompleteAsyncTest(outcome, decodeUtf8(stdout));
-    return _negateOutcomeIfNegativeTest(outcome, testCase.isNegative);
+    return _negateOutcomeIfIncompleteAsyncTest(outcome, decodeUtf8(stdout));
   }
 
   /// Cloned code from member result(), with changes.
@@ -1032,6 +1035,16 @@ class JSCommandLineOutput extends CommandOutput
       return Expectation.fail;
     }
     return Expectation.pass;
+  }
+
+  void describe(TestCase testCase, Progress progress, OutputWriter output) {
+    super.describe(testCase, progress, output);
+    var decodedOut = decodeUtf8(stdout)
+        .replaceAll('\r\n', '\n')
+        .replaceAll('\r', '\n')
+        .trim();
+
+    _deobfuscateAndWriteStack(decodedOut, output);
   }
 }
 
@@ -1097,50 +1110,6 @@ class FastaCommandOutput extends CompilationCommandOutput
   }
 }
 
-CommandOutput createCommandOutput(Command command, int exitCode, bool timedOut,
-    List<int> stdout, List<int> stderr, Duration time, bool compilationSkipped,
-    [int pid = 0]) {
-  if (command is AnalysisCommand) {
-    return AnalysisCommandOutput(
-        command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
-  } else if (command is CompareAnalyzerCfeCommand) {
-    return CompareAnalyzerCfeCommandOutput(
-        command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
-  } else if (command is SpecParseCommand) {
-    return SpecParseCommandOutput(
-        command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
-  } else if (command is VmCommand) {
-    return VMCommandOutput(
-        command, exitCode, timedOut, stdout, stderr, time, pid);
-  } else if (command is VMKernelCompilationCommand) {
-    return VMKernelCompilationCommandOutput(
-        command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
-  } else if (command is AdbPrecompilationCommand) {
-    return VMCommandOutput(
-        command, exitCode, timedOut, stdout, stderr, time, pid);
-  } else if (command is FastaCompilationCommand) {
-    return FastaCommandOutput(
-        command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
-  } else if (command is CompilationCommand) {
-    if (command.displayName == 'precompiler' ||
-        command.displayName == 'app_jit') {
-      return VMCommandOutput(
-          command, exitCode, timedOut, stdout, stderr, time, pid);
-    } else if (command.displayName == 'dartdevc') {
-      return DevCompilerCommandOutput(command, exitCode, timedOut, stdout,
-          stderr, time, compilationSkipped, pid);
-    }
-    return CompilationCommandOutput(
-        command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
-  } else if (command is JSCommandlineCommand) {
-    return JSCommandLineOutput(
-        command, exitCode, timedOut, stdout, stderr, time);
-  }
-
-  return CommandOutput(command, exitCode, timedOut, stdout, stderr, time,
-      compilationSkipped, pid);
-}
-
 /// Mixin for outputs from a command that implement a Dart front end which
 /// reports static errors.
 mixin _StaticErrorOutput on CommandOutput {
@@ -1174,11 +1143,18 @@ mixin _StaticErrorOutput on CommandOutput {
 
   @override
   void describe(TestCase testCase, Progress progress, OutputWriter output) {
-    if (testCase.testFile.isStaticErrorTest) {
+    // Handle static error test output specially. We don't want to show the raw
+    // stdout if we can give the user the parsed expectations instead.
+    if (testCase.testFile.isStaticErrorTest && !hasCrashed && !hasTimedOut) {
       _validateExpectedErrors(testCase, output);
     }
 
-    if (!testCase.testFile.isStaticErrorTest || progress == Progress.verbose) {
+    // Don't show the "raw" output unless something strange happened or the
+    // user explicitly requests all the output.
+    if (hasTimedOut ||
+        hasCrashed ||
+        !testCase.testFile.isStaticErrorTest ||
+        progress == Progress.verbose) {
       super.describe(testCase, progress, output);
     }
   }
@@ -1225,52 +1201,21 @@ mixin _StaticErrorOutput on CommandOutput {
   Expectation _validateExpectedErrors(TestCase testCase,
       [OutputWriter writer]) {
     // Filter out errors that aren't for this configuration.
-    var expected = testCase.testFile.expectedErrors
-        .where((error) =>
-            testCase.configuration.compiler == Compiler.dart2analyzer
-                ? error.isAnalyzer
-                : error.isCfe)
-        .toList();
-    var actual = errors.toList();
+    var expected = testCase.testFile.expectedErrors.where((error) =>
+        testCase.configuration.compiler == Compiler.dart2analyzer
+            ? error.isAnalyzer
+            : error.isCfe);
 
-    // Don't require the test or analyzer to output in any specific order.
-    expected.sort();
-    actual.sort();
+    var validation = StaticError.validateExpectations(
+      expected,
+      [...errors, ...warnings],
+    );
+    if (validation == null) return Expectation.pass;
 
-    writer?.subsection("incorrect static errors");
+    writer?.subsection("static error failures");
+    writer?.write(validation);
 
-    var success = expected.length == actual.length;
-    for (var i = 0; i < expected.length && i < actual.length; i++) {
-      var differences = expected[i].describeDifferences(actual[i]);
-      if (differences == null) continue;
-
-      if (writer != null) {
-        writer.write(actual[i].location);
-        for (var difference in differences) {
-          writer.write("- $difference");
-        }
-        writer.separator();
-      }
-
-      success = false;
-    }
-
-    if (writer != null) {
-      writer.subsection("missing expected static errors");
-      for (var i = actual.length; i < expected.length; i++) {
-        writer.write(expected[i].toString());
-        writer.separator();
-      }
-
-      writer.subsection("reported unexpected static errors");
-      for (var i = expected.length; i < actual.length; i++) {
-        writer.write(actual[i].toString());
-        writer.separator();
-      }
-    }
-
-    // TODO(rnystrom): Is there a better expectation we can use?
-    return success ? Expectation.pass : Expectation.missingCompileTimeError;
+    return Expectation.missingCompileTimeError;
   }
 }
 
@@ -1294,5 +1239,18 @@ mixin _UnittestSuiteMessagesMixin {
       }
     }
     return outcome;
+  }
+}
+
+void _deobfuscateAndWriteStack(String stack, OutputWriter output) {
+  try {
+    var deobfuscatedStack = deobfuscateStackTrace(stack);
+    if (deobfuscatedStack == stack) return;
+    output.subsection('Deobfuscated error and stack');
+    output.write(deobfuscatedStack);
+  } catch (e, st) {
+    output.subsection('Warning: not able to deobfuscate stack');
+    output.writeAll(['input: $stack', 'error: $e', 'stack trace: $st']);
+    return;
   }
 }

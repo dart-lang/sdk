@@ -20,12 +20,12 @@ class DiagnosticFactory {
   /// set) is a duplicate of the [originalElement].
   AnalysisError equalElementsInConstSet(
       Source source, Expression duplicateElement, Expression originalElement) {
-    return new AnalysisError(
+    return AnalysisError(
         source,
         duplicateElement.offset,
         duplicateElement.length,
         CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, [], [
-      new DiagnosticMessageImpl(
+      DiagnosticMessageImpl(
           filePath: source.fullName,
           message: "The first element with this value.",
           offset: originalElement.offset,
@@ -37,9 +37,9 @@ class DiagnosticFactory {
   /// is a duplicate of the [originalKey].
   AnalysisError equalKeysInConstMap(
       Source source, Expression duplicateKey, Expression originalKey) {
-    return new AnalysisError(source, duplicateKey.offset, duplicateKey.length,
+    return AnalysisError(source, duplicateKey.offset, duplicateKey.length,
         CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP, [], [
-      new DiagnosticMessageImpl(
+      DiagnosticMessageImpl(
           filePath: source.fullName,
           message: "The first key with this value.",
           offset: originalKey.offset,
@@ -57,11 +57,10 @@ class DiagnosticFactory {
     List<DiagnosticMessage> contextMessages;
     int declarationOffset = staticElement.nameOffset;
     if (declarationOffset >= 0 && staticElement != null) {
-      CompilationUnitElement unit = staticElement
-          .getAncestor((element) => element is CompilationUnitElement);
+      CompilationUnitElement unit = staticElement.thisOrAncestorOfType();
       CharacterLocation location = unit.lineInfo.getLocation(declarationOffset);
       contextMessages = [
-        new DiagnosticMessageImpl(
+        DiagnosticMessageImpl(
             filePath: source.fullName,
             message:
                 "The declaration of '$name' is on line ${location.lineNumber}.",
@@ -69,7 +68,7 @@ class DiagnosticFactory {
             length: staticElement.nameLength)
       ];
     }
-    return new AnalysisError(
+    return AnalysisError(
         source,
         identifier.offset,
         identifier.length,

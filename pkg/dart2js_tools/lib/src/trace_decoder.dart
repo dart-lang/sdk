@@ -42,7 +42,7 @@ StackDeobfuscationResult deobfuscateStack(
     }
 
     // If there's no column, try using the first column of the line.
-    var column = frame.column ?? 0;
+    var column = frame.column ?? 1;
 
     Dart2jsMapping mapping = provider.mappingFor(frame.uri);
     if (mapping == null) continue;

@@ -47,6 +47,7 @@ extension MyExt on A {
   set setterInGlobalScope(bool x) {
     checkExtensionValue(x);
   }
+
   bool methodInGlobalScope() => extensionValue;
 
   bool get fieldInInstanceScope => extensionValue;
@@ -54,6 +55,7 @@ extension MyExt on A {
   set setterInInstanceScope(bool x) {
     checkExtensionValue(x);
   }
+
   bool methodInInstanceScope() => extensionValue;
 
   bool get fieldInExtensionScope => extensionValue;
@@ -61,6 +63,7 @@ extension MyExt on A {
   set setterInExtensionScope(bool x) {
     checkExtensionValue(x);
   }
+
   bool methodInExtensionScope() => extensionValue;
 
   void testNakedIdentifiers() {
@@ -109,7 +112,6 @@ extension MyExt on A {
       double t2 = methodInOtherExtensionScope();
       checkOtherExtensionValue(t2);
     }
-
   }
 
   void testIdentifiersOnThis() {
@@ -204,7 +206,6 @@ extension MyExt on A {
     MyExt(this).testIdentifiersOnInstance();
   }
 }
-
 
 class B extends A {
   void testNakedIdentifiers() {
@@ -305,5 +306,4 @@ void main() {
     double t2 = a.methodInOtherExtensionScope();
     checkOtherExtensionValue(t2);
   }
-
 }

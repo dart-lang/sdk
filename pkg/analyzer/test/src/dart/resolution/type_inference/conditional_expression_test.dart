@@ -18,13 +18,12 @@ main() {
 @reflectiveTest
 class ConditionalExpressionTest extends DriverResolutionTest {
   test_upward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f(bool a, int b, int c) {
   var d = a ? b : c;
   print(d);
 }
 ''');
-    await resolveTestFile();
     assertType(findNode.simple('d)'), 'int');
   }
 }
@@ -33,7 +32,7 @@ void f(bool a, int b, int c) {
 class ConditionalExpressionWithNnbdTest extends ConditionalExpressionTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
+    ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
 
   @override
@@ -41,14 +40,22 @@ class ConditionalExpressionWithNnbdTest extends ConditionalExpressionTest {
 
   @failingTest
   test_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f(int b, int c) {
   var d = a() ? b : c;
   print(d);
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(findNode.methodInvocation('d)'), 'bool Function()');
+  }
+
+  test_type() async {
+    await assertNoErrorsInCode('''
+main(bool b) {
+  return b ? 42 : null;
+}
+''');
+    assertType(findNode.conditionalExpression('b ?'), 'int?');
   }
 }

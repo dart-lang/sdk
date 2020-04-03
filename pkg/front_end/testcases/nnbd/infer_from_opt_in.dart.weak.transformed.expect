@@ -1,0 +1,31 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "infer_from_opt_in_lib.dart" as inf;
+
+import "org-dartlang-testcase:///infer_from_opt_in_lib.dart";
+
+static method reify<T extends core::Object? = dynamic>(self::reify::T% arg) → dynamic
+  return self::reify::T%;
+static method main() → dynamic {
+  inf::Foo x = new inf::Foo::•();
+  inf::Foo y = new inf::Foo::•();
+  () → inf::Foo z = () → inf::Foo => inf::createFoo();
+  inf::callback((inf::Foo? x) → inf::Foo? => x);
+  core::print(self::reify<inf::Foo>(x));
+  core::print(self::reify<inf::Foo>(y));
+  core::print(self::reify<() → inf::Foo>(z));
+}
+
+library /*isNonNullableByDefault*/;
+import self as inf;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  synthetic constructor •() → inf::Foo
+    : super core::Object::•()
+    ;
+}
+static method createFoo() → inf::Foo
+  return new inf::Foo::•();
+static method callback((inf::Foo?) → inf::Foo? f) → void {}

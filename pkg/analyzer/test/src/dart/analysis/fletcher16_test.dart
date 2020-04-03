@@ -27,7 +27,7 @@ class Fletcher16Test {
   }
 
   test_long() {
-    List<int> data = new List.generate(6000, (i) => i);
+    List<int> data = List.generate(6000, (i) => i);
     expect(fletcher16(data), 0x0178);
   }
 }

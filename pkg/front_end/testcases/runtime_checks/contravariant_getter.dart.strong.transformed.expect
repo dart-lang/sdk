@@ -2,17 +2,17 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-typedef F<T extends core::Object* = dynamic> = (T*) →* void;
+typedef F<contravariant T extends core::Object* = dynamic> = (T*) →* void;
 class C<T extends core::Object* = dynamic> extends core::Object {
   field (self::C::T*) →* void y = null;
   synthetic constructor •() → self::C<self::C::T*>*
     : super core::Object::•()
     ;
   method f(generic-covariant-impl self::C::T* value) → void {
-    this.{self::C::y}(value);
+    let final self::C::T* #t1 = value in this.{self::C::y}.call(#t1);
   }
 }
 static method g(self::C<core::num*>* c) → void {
-  (c.{self::C::y} as{TypeError} (core::num*) →* void).call(1.5);
+  let final self::C<core::num*>* #t2 = c in let final core::double* #t3 = 1.5 in (#t2.{self::C::y} as{TypeError,CovarianceCheck} (core::num*) →* void).call(#t3);
 }
 static method main() → void {}

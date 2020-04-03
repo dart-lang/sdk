@@ -19,6 +19,9 @@ class LazyAst {
   static const _hasOverrideInferenceKey = 'lazyAst_hasOverrideInference';
   static const _inheritsCovariantKey = 'lazyAst_isCovariant';
   static const _isSimplyBoundedKey = 'lazyAst_simplyBounded';
+  static const _isOperatorEqualParameterTypeFromObjectKey =
+      'lazyAst_isOperatorEqualParameterTypeFromObject';
+  static const _rawFunctionTypeKey = 'lazyAst_rawFunctionType';
   static const _returnTypeKey = 'lazyAst_returnType';
   static const _typeInferenceErrorKey = 'lazyAst_typeInferenceError';
   static const _typeKey = 'lazyAst_type';
@@ -39,6 +42,10 @@ class LazyAst {
     return node.getProperty(_inheritsCovariantKey) ?? false;
   }
 
+  static DartType getRawFunctionType(AstNode node) {
+    return node.getProperty(_rawFunctionTypeKey);
+  }
+
   static DartType getReturnType(AstNode node) {
     return node.getProperty(_returnTypeKey);
   }
@@ -49,6 +56,11 @@ class LazyAst {
 
   static TopLevelInferenceError getTypeInferenceError(AstNode node) {
     return node.getProperty(_typeInferenceErrorKey);
+  }
+
+  static bool hasOperatorEqualParameterTypeFromObject(AstNode node) {
+    return node.getProperty(_isOperatorEqualParameterTypeFromObjectKey) ??
+        false;
   }
 
   static bool hasOverrideInferenceDone(AstNode node) {
@@ -71,8 +83,16 @@ class LazyAst {
     node.setProperty(_inheritsCovariantKey, value);
   }
 
+  static void setOperatorEqualParameterTypeFromObject(AstNode node, bool b) {
+    node.setProperty(_isOperatorEqualParameterTypeFromObjectKey, b);
+  }
+
   static void setOverrideInferenceDone(AstNode node) {
     node.setProperty(_hasOverrideInferenceKey, true);
+  }
+
+  static void setRawFunctionType(AstNode node, DartType type) {
+    node.setProperty(_rawFunctionTypeKey, type);
   }
 
   static void setReturnType(AstNode node, DartType type) {
@@ -360,36 +380,28 @@ class LazyCompilationUnit {
 
   final LinkedNode data;
 
-  LazyCompilationUnit(this.data);
+  LazyCompilationUnit(CompilationUnit node, this.data) {
+    node.setProperty(_key, this);
+  }
 
   static LazyCompilationUnit get(CompilationUnit node) {
     return node.getProperty(_key);
   }
 
-  static int getCodeLength(
-    LinkedUnitContext context,
-    CompilationUnit node,
-  ) {
+  static int getLanguageVersionMajor(CompilationUnit node) {
     var lazy = get(node);
     if (lazy != null) {
-      return context.getInformativeData(lazy.data)?.codeLength ?? 0;
+      return lazy.data.compilationUnit_languageVersionMajor;
     }
-    return node.length;
+    return node.languageVersionToken.major;
   }
 
-  static int getCodeOffset(
-    LinkedUnitContext context,
-    CompilationUnit node,
-  ) {
+  static int getLanguageVersionMinor(CompilationUnit node) {
     var lazy = get(node);
     if (lazy != null) {
-      return context.getInformativeData(lazy.data)?.codeOffset ?? 0;
+      return lazy.data.compilationUnit_languageVersionMinor;
     }
-    return node.offset;
-  }
-
-  static void setData(CompilationUnit node, LinkedNode data) {
-    node.setProperty(_key, LazyCompilationUnit(data));
+    return node.languageVersionToken.minor;
   }
 }
 
@@ -572,6 +584,28 @@ class LazyEnumConstantDeclaration {
 
   static LazyEnumConstantDeclaration get(EnumConstantDeclaration node) {
     return node.getProperty(_key);
+  }
+
+  static int getCodeLength(
+    LinkedUnitContext context,
+    EnumConstantDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null) {
+      return context.getInformativeData(lazy.data)?.codeLength ?? 0;
+    }
+    return node.length;
+  }
+
+  static int getCodeOffset(
+    LinkedUnitContext context,
+    EnumConstantDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null) {
+      return context.getInformativeData(lazy.data)?.codeOffset ?? 0;
+    }
+    return node.offset;
   }
 
   static void readDocumentationComment(

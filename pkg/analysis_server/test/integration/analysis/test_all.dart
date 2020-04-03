@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'analysis_options_test.dart' as analysis_options_test;
 import 'error_test.dart' as error_test;
-import 'get_errors_nonStandard_sdk_test.dart' as get_errors_nonStandard_sdk;
+import 'get_errors_non_standard_sdk_test.dart' as get_errors_non_standard_sdk;
 import 'get_errors_test.dart' as get_errors_test;
 import 'get_hover_test.dart' as get_hover_test;
 import 'get_imported_elements_test.dart' as get_imported_elements_test;
@@ -33,15 +33,12 @@ import 'update_content_list_test.dart' as update_content_list_test;
 import 'update_content_test.dart' as update_content_test;
 import 'update_options_test.dart' as update_options_test;
 
-/**
- * Utility for manually running all integration tests.
- */
-main() {
+void main() {
   defineReflectiveSuite(() {
     analysis_options_test.main();
     error_test.main();
     get_errors_test.main();
-    get_errors_nonStandard_sdk.main();
+    get_errors_non_standard_sdk.main();
     get_library_dependencies_test.main();
     get_hover_test.main();
     get_imported_elements_test.main();

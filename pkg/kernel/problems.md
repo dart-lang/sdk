@@ -15,7 +15,7 @@ colors) problem-texts as reported by the compiler.
 problem-texts as reported by the compiler.
 
 `severity`: An integer representing severity. This should match the index in
-`package:front_end/src/fasta/severity.dart`.
+`package:_fe_analyzer_shared/src/messages/severity.dart`.
 
 `uri: A uri that this problems relates to.
 

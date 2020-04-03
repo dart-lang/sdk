@@ -274,7 +274,7 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
     // TODO(efortuna, johnniwinther): We're not registering the type variables
     // like we are for the variable declarations. Is that okay or do we need to
     // make TypeVariableLocal a JLocal?
-    return new TypeVariableLocal(elementMap.getTypeVariableType(node));
+    return new TypeVariableLocal(elementMap.getTypeVariableType(node).element);
   }
 
   @override

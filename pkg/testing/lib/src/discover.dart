@@ -64,9 +64,15 @@ Uri computePackageConfig() {
   return Uri.base.resolve(".packages");
 }
 
+// TODO(eernst): Use `bool.hasEnvironment` below when possible;
+// for now we use a dual `defaultValue` rewrite.
+const _dartSdk = (String.fromEnvironment("DART_SDK", defaultValue: "1") ==
+        String.fromEnvironment("DART_SDK", defaultValue: "2"))
+    ? String.fromEnvironment("DART_SDK")
+    : null;
+
 Uri computeDartSdk() {
-  String dartSdkPath = Platform.environment["DART_SDK"] ??
-      const String.fromEnvironment("DART_SDK");
+  String dartSdkPath = Platform.environment["DART_SDK"] ?? _dartSdk;
   if (dartSdkPath != null) {
     return Uri.base.resolveUri(new Uri.file(dartSdkPath));
   } else {

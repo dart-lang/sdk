@@ -7,13 +7,13 @@ class A extends core::Object {
   synthetic constructor •() → self::A*
     ;
 }
-static field dynamic v_assign;
-static field dynamic v_plus;
-static field dynamic v_minus;
-static field dynamic v_multiply;
-static field dynamic v_prefix_pp;
-static field dynamic v_prefix_mm;
-static field dynamic v_postfix_pp;
-static field dynamic v_postfix_mm;
+static field core::int* v_assign;
+static field core::int* v_plus;
+static field core::int* v_minus;
+static field core::int* v_multiply;
+static field core::int* v_prefix_pp;
+static field core::int* v_prefix_mm;
+static field core::int* v_postfix_pp;
+static field core::int* v_postfix_mm;
 static method main() → dynamic
   ;

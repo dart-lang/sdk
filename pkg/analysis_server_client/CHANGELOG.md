@@ -1,5 +1,6 @@
-# 1.1.3
- * update dartfix protocol to include --pedantic
+# 1.1.2
+ * Update the dartfix protocol to include `--pedantic`
+ * Supports changes made to Analysis Server protocol through Dart 2.6.0
 
 # 1.1.1
  * Update ConnectionHandler to call checkServerProtocolVersion

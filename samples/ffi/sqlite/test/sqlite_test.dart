@@ -4,14 +4,18 @@
 
 // VMOptions=--optimization-counter-threshold=5
 
+import "dart:ffi";
+import "dart:io";
+
+import "package:ffi/ffi.dart";
 import "package:test/test.dart";
 
 import '../lib/sqlite.dart';
-import '../lib/src/ffi/utf8.dart';
 
 void main() {
+  final dbPath = Platform.script.resolve("test.db").path;
   test("sqlite integration test", () {
-    Database d = Database("test.db");
+    Database d = Database(dbPath);
     d.execute("drop table if exists Cookies;");
     d.execute("""
       create table Cookies (
@@ -104,8 +108,8 @@ void main() {
   });
 
   test("concurrent db open and queries", () {
-    Database d = Database("test.db");
-    Database d2 = Database("test.db");
+    Database d = Database(dbPath);
+    Database d2 = Database(dbPath);
     d.execute("drop table if exists Cookies;");
     d.execute("""
       create table Cookies (
@@ -138,7 +142,7 @@ void main() {
   });
 
   test("stress test", () {
-    Database d = Database("test.db");
+    Database d = Database(dbPath);
     d.execute("drop table if exists Cookies;");
     d.execute("""
       create table Cookies (
@@ -164,8 +168,8 @@ void main() {
   });
   test("Utf8 unit test", () {
     final String test = 'Hasta Mañana';
-    final medium = Utf8.allocate(test);
-    expect(test, medium.load<Utf8>().toString());
-    medium.free();
+    final medium = Utf8.toUtf8(test);
+    expect(test, medium.ref.toString());
+    free(medium);
   });
 }

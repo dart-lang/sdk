@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 /**
  * File, socket, HTTP, and other I/O support for non-web applications.
  *
@@ -65,7 +67,7 @@
  * The [HttpServer] class provides the basic functionality for
  * implementing an HTTP server.
  * For some higher-level building-blocks, we recommend that you try
- * the [shelf](https://pub.dartlang.org/packages/shelf)
+ * the [shelf](https://pub.dev/packages/shelf)
  * pub package, which contains
  * a set of high-level classes that, together with the [HttpServer] class
  * in this library, make it easier to implement HTTP servers.
@@ -191,6 +193,7 @@ import 'dart:collection'
     show HashMap, HashSet, Queue, ListQueue, MapBase, UnmodifiableMapView;
 import 'dart:convert';
 import 'dart:developer' hide log;
+import 'dart:_http' show HttpClient;
 import 'dart:isolate';
 import 'dart:math';
 import 'dart:typed_data';
@@ -213,6 +216,7 @@ part 'io_sink.dart';
 part 'io_service.dart';
 part 'link.dart';
 part 'namespace_impl.dart';
+part 'network_profiling.dart';
 part 'overrides.dart';
 part 'platform.dart';
 part 'platform_impl.dart';

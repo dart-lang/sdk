@@ -1,0 +1,21 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  late covariant final [setter] field core::int x;
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+}
+class D extends self::C {
+  synthetic constructor •() → self::D
+    : super self::C::•()
+    ;
+  set x(covariant core::num value) → void {
+    super.{self::C::x} = value.{core::num::toInt}();
+  }
+}
+static method main() → dynamic {
+  new self::D::•().{self::D::x} = 3.14;
+}

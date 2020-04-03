@@ -44,7 +44,7 @@ class TypeGraphDump {
   /// during the analysis.
   void beforeAnalysis() {
     for (TypeInformation node in inferrer.types.allTypes) {
-      Set<TypeInformation> copy = node.assignments.toSet();
+      Set<TypeInformation> copy = node.inputs.toSet();
       if (!copy.isEmpty) {
         assignmentsBeforeAnalysis[node] = copy;
       }
@@ -54,7 +54,7 @@ class TypeGraphDump {
   /// Like [beforeAnalysis], takes a copy of the assignment sets.
   void beforeTracing() {
     for (TypeInformation node in inferrer.types.allTypes) {
-      Set<TypeInformation> copy = node.assignments.toSet();
+      Set<TypeInformation> copy = node.inputs.toSet();
       if (!copy.isEmpty) {
         assignmentsBeforeTracing[node] = copy;
       }
@@ -266,7 +266,7 @@ class _GraphGenerator extends TypeInformationVisitor {
   /// Creates a node for [node] displaying the given [text] in its box.
   ///
   /// [inputs] specify named inputs to the node. If omitted, edges will be
-  /// based on [node.assignments].
+  /// based on [node.inputs].
   void addNode(TypeInformation node, String text,
       {String color: defaultNodeColor, Map<String, TypeInformation> inputs}) {
     seen.add(node);
@@ -290,7 +290,7 @@ class _GraphGenerator extends TypeInformationVisitor {
       // added, removed, temporary, or unchanged.
       dynamic originalSet = global.assignmentsBeforeAnalysis[node] ?? const [];
       var tracerSet = global.assignmentsBeforeTracing[node] ?? const [];
-      var currentSet = node.assignments.toSet();
+      var currentSet = node.inputs.toSet();
       for (TypeInformation assignment in currentSet) {
         String color =
             originalSet.contains(assignment) ? unchangedEdge : addedEdge;
@@ -411,6 +411,12 @@ class _GraphGenerator extends TypeInformationVisitor {
   }
 
   @override
+  void visitIndirectDynamicCallSiteTypeInformation(
+      IndirectDynamicCallSiteTypeInformation info) {
+    handleCall(info, 'IndirectDynamicCallSite', {});
+  }
+
+  @override
   void visitDynamicCallSiteTypeInformation(
       DynamicCallSiteTypeInformation info) {
     handleCall(info, 'DynamicCallSite', {'obj': info.receiver});
@@ -424,6 +430,12 @@ class _GraphGenerator extends TypeInformationVisitor {
   @override
   void visitParameterTypeInformation(ParameterTypeInformation info) {
     addNode(info, 'Parameter ${info.debugName}');
+  }
+
+  @override
+  void visitIndirectParameterTypeInformation(
+      IndirectParameterTypeInformation info) {
+    addNode(info, 'IndirectParameter ${info.debugName}');
   }
 
   @override

@@ -227,11 +227,8 @@ Try #0 start:
   PushNull
   StoreFieldTOS        CP#10
   Push                 r5
-  PushConstant         CP#12
-  StoreFieldTOS        CP#13
-  Push                 r5
   PushConstant         CP#0
-  StoreFieldTOS        CP#15
+  StoreFieldTOS        CP#12
   Push                 r5
   Push                 r0
   StoreFieldTOS        CP#1
@@ -239,7 +236,7 @@ Try #0 start:
   Push                 r4
   StoreLocal           r5
   Push                 r5
-  UncheckedClosureCall CP#17, 1
+  UncheckedClosureCall CP#14, 1
   Drop1
   Push                 r0
   LoadContextVar       0, 1
@@ -264,7 +261,7 @@ Try #0 handler:
   StoreLocal           r5
   Push                 r5
   PushInt              0
-  PushConstant         CP#18
+  PushConstant         CP#15
   StoreIndexedTOS
   Push                 r5
   PushInt              1
@@ -272,17 +269,17 @@ Try #0 handler:
   StoreIndexedTOS
   Push                 r5
   PushInt              2
-  PushConstant         CP#19
+  PushConstant         CP#16
   StoreIndexedTOS
   Push                 r5
   PushInt              3
   Push                 r0
   LoadContextVar       0, 2
   StoreIndexedTOS
-  DirectCall           CP#20, 1
+  DirectCall           CP#17, 1
   DirectCall           CP#4, 1
   Drop1
-  AllocateClosure      CP#22
+  AllocateClosure      CP#19
   StoreLocal           r5
   Push                 r5
   PushNull
@@ -291,11 +288,8 @@ Try #0 handler:
   PushNull
   StoreFieldTOS        CP#10
   Push                 r5
-  PushConstant         CP#12
-  StoreFieldTOS        CP#13
-  Push                 r5
-  PushConstant         CP#22
-  StoreFieldTOS        CP#15
+  PushConstant         CP#19
+  StoreFieldTOS        CP#12
   Push                 r5
   Push                 r0
   StoreFieldTOS        CP#1
@@ -310,7 +304,7 @@ L1:
   ReturnTOS
 }
 ExceptionsTable {
-  try-index 0, outer -1, start 20, end 84, handler 84, needs-stack-trace, types [CP#6]
+  try-index 0, outer -1, start 20, end 78, handler 78, needs-stack-trace, types [CP#6]
 }
 ConstantPool {
   [0] = ClosureFunction 0
@@ -325,32 +319,30 @@ ConstantPool {
   [9] = Reserved
   [10] = InstanceField dart:core::_Closure::_function_type_arguments (field)
   [11] = Reserved
-  [12] = EmptyTypeArguments
-  [13] = InstanceField dart:core::_Closure::_delayed_type_arguments (field)
-  [14] = Reserved
-  [15] = InstanceField dart:core::_Closure::_function (field)
-  [16] = Reserved
-  [17] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
-  [18] = ObjectRef 'caught '
-  [19] = ObjectRef ' '
-  [20] = DirectCall 'dart:core::_StringBase::_interpolate', ArgDesc num-args 1, num-type-args 0, names []
-  [21] = Reserved
-  [22] = ClosureFunction 1
-  [23] = ObjectRef 'danger bar'
-  [24] = Type dart:core::Error
-  [25] = InterfaceCall 'dart:core::Object::_simpleInstanceOf', ArgDesc num-args 2, num-type-args 0, names []
-  [26] = Reserved
-  [27] = ObjectRef 'error '
-  [28] = ObjectRef ', captured stack trace: '
-  [29] = EndClosureFunctionScope
+  [12] = InstanceField dart:core::_Closure::_function (field)
+  [13] = Reserved
+  [14] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
+  [15] = ObjectRef 'caught '
+  [16] = ObjectRef ' '
+  [17] = DirectCall 'dart:core::_StringBase::_interpolate', ArgDesc num-args 1, num-type-args 0, names []
+  [18] = Reserved
+  [19] = ClosureFunction 1
+  [20] = ObjectRef 'danger bar'
+  [21] = Type dart:core::Error
+  [22] = InterfaceCall 'dart:core::Object::_simpleInstanceOf', ArgDesc num-args 2, num-type-args 0, names []
+  [23] = Reserved
+  [24] = ObjectRef 'error '
+  [25] = ObjectRef ', captured stack trace: '
+  [26] = EndClosureFunctionScope
 }
 Closure #lib::testTryCatch3::'foo' () -> void
 ClosureCode {
   EntryFixed           1, 6
-  CheckStack           0
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r0
+  CheckFunctionTypeArgs 0, r1
+  CheckStack           0
   Push                 r0
   PopLocal             r2
 Try #0 start:
@@ -383,14 +375,15 @@ L1:
 Closure #lib::testTryCatch3::'bar' () -> void
 ClosureCode {
   EntryFixed           1, 6
-  CheckStack           0
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r0
+  CheckFunctionTypeArgs 0, r1
+  CheckStack           0
   Push                 r0
   PopLocal             r2
 Try #0 start:
-  PushConstant         CP#23
+  PushConstant         CP#20
   DirectCall           CP#4, 1
   Drop1
   Jump                 L1
@@ -402,8 +395,8 @@ Try #0 handler:
   MoveSpecial          exception, r2
   MoveSpecial          stackTrace, r3
   Push                 r2
-  PushConstant         CP#24
-  InterfaceCall        CP#25, 2
+  PushConstant         CP#21
+  InterfaceCall        CP#22, 2
   JumpIfFalse          L2
   Push                 r2
   PopLocal             r4
@@ -413,7 +406,7 @@ Try #0 handler:
   StoreLocal           r5
   Push                 r5
   PushInt              0
-  PushConstant         CP#27
+  PushConstant         CP#24
   StoreIndexedTOS
   Push                 r5
   PushInt              1
@@ -421,14 +414,14 @@ Try #0 handler:
   StoreIndexedTOS
   Push                 r5
   PushInt              2
-  PushConstant         CP#28
+  PushConstant         CP#25
   StoreIndexedTOS
   Push                 r5
   PushInt              3
   Push                 r0
   LoadContextVar       0, 2
   StoreIndexedTOS
-  DirectCall           CP#20, 1
+  DirectCall           CP#17, 1
   DirectCall           CP#4, 1
   Drop1
   Jump                 L1
@@ -579,7 +572,7 @@ L1:
   ReturnTOS
 }
 ExceptionsTable {
-  try-index 0, outer -1, start 19, end 36, handler 36, needs-stack-trace, types [CP#0]
+  try-index 0, outer -1, start 19, end 36, handler 36, needs-stack-trace, synthetic, types [CP#0]
 }
 ConstantPool {
   [0] = Type dynamic
@@ -603,12 +596,12 @@ Bytecode {
   Push                 r0
   LoadContextVar       0, 0
   PopLocal             r2
-  Push                 r2
   PushInt              1
+  Push                 r2
   InterfaceCall        CP#0, 2
   JumpIfTrue           L1
-  Push                 r2
   PushInt              2
+  Push                 r2
   InterfaceCall        CP#0, 2
   JumpIfTrue           L2
   Jump                 L3
@@ -637,11 +630,8 @@ Try #1 start:
   PushNull
   StoreFieldTOS        CP#12
   Push                 r8
-  PushConstant         CP#14
-  StoreFieldTOS        CP#15
-  Push                 r8
   PushConstant         CP#6
-  StoreFieldTOS        CP#17
+  StoreFieldTOS        CP#14
   Push                 r8
   Push                 r0
   StoreFieldTOS        CP#7
@@ -649,7 +639,7 @@ Try #1 start:
   Push                 r7
   StoreLocal           r8
   Push                 r8
-  UncheckedClosureCall CP#19, 1
+  UncheckedClosureCall CP#16, 1
   Drop1
   Jump                 L4
 Try #1 end:
@@ -659,7 +649,7 @@ Try #1 handler:
   PopLocal             r0
   MoveSpecial          exception, r5
   MoveSpecial          stackTrace, r6
-  PushConstant         CP#21
+  PushConstant         CP#18
   DirectCall           CP#3, 1
   Drop1
   Push                 r5
@@ -668,7 +658,7 @@ Try #1 handler:
 L4:
   Push                 r5
   PopLocal             r0
-  PushConstant         CP#21
+  PushConstant         CP#18
   DirectCall           CP#3, 1
   Drop1
   Jump                 L5
@@ -679,7 +669,7 @@ Try #0 handler:
   PopLocal             r0
   MoveSpecial          exception, r3
   MoveSpecial          stackTrace, r4
-  PushConstant         CP#23
+  PushConstant         CP#20
   DirectCall           CP#3, 1
   Drop1
   Push                 r3
@@ -688,12 +678,12 @@ Try #0 handler:
 L5:
   Push                 r3
   PopLocal             r0
-  PushConstant         CP#23
+  PushConstant         CP#20
   DirectCall           CP#3, 1
   Drop1
   Jump                 L2
 L2:
-  PushConstant         CP#24
+  PushConstant         CP#21
   DirectCall           CP#3, 1
   Drop1
   Jump                 L3
@@ -702,8 +692,8 @@ L3:
   ReturnTOS
 }
 ExceptionsTable {
-  try-index 0, outer -1, start 53, end 162, handler 162, needs-stack-trace, types [CP#20]
-  try-index 1, outer 0, start 70, end 124, handler 124, needs-stack-trace, types [CP#20]
+  try-index 0, outer -1, start 53, end 156, handler 156, needs-stack-trace, synthetic, types [CP#17]
+  try-index 1, outer 0, start 70, end 118, handler 118, needs-stack-trace, synthetic, types [CP#17]
 }
 ConstantPool {
   [0] = InterfaceCall 'dart:core::Object::==', ArgDesc num-args 2, num-type-args 0, names []
@@ -720,25 +710,23 @@ ConstantPool {
   [11] = Reserved
   [12] = InstanceField dart:core::_Closure::_function_type_arguments (field)
   [13] = Reserved
-  [14] = EmptyTypeArguments
-  [15] = InstanceField dart:core::_Closure::_delayed_type_arguments (field)
-  [16] = Reserved
-  [17] = InstanceField dart:core::_Closure::_function (field)
-  [18] = Reserved
-  [19] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
-  [20] = Type dynamic
-  [21] = ObjectRef 'finally 1'
-  [22] = ObjectRef 'after try 1'
-  [23] = ObjectRef 'finally 2'
-  [24] = ObjectRef 'case 2'
+  [14] = InstanceField dart:core::_Closure::_function (field)
+  [15] = Reserved
+  [16] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
+  [17] = Type dynamic
+  [18] = ObjectRef 'finally 1'
+  [19] = ObjectRef 'after try 1'
+  [20] = ObjectRef 'finally 2'
+  [21] = ObjectRef 'case 2'
 }
 Closure #lib::testTryFinally2::'foo' () -> void
 ClosureCode {
   EntryFixed           1, 2
-  CheckStack           0
   Push                 FP[-5]
   LoadFieldTOS         CP#7
   PopLocal             r0
+  CheckFunctionTypeArgs 0, r1
+  CheckStack           0
   Push                 r0
   LoadContextVar       0, 0
   DirectCall           CP#3, 1
@@ -778,11 +766,8 @@ Try #0 start:
   PushNull
   StoreFieldTOS        CP#11
   Push                 r5
-  PushConstant         CP#13
-  StoreFieldTOS        CP#14
-  Push                 r5
   PushConstant         CP#0
-  StoreFieldTOS        CP#16
+  StoreFieldTOS        CP#13
   Push                 r5
   Push                 r0
   StoreFieldTOS        CP#1
@@ -800,7 +785,7 @@ Try #0 handler:
   DirectCall           CP#3, 1
   Drop1
   Push                 r2
-  DynamicCall          CP#19, 1
+  DynamicCall          CP#15, 1
   Drop1
   Push                 r3
   Push                 r4
@@ -813,7 +798,7 @@ L1:
   DirectCall           CP#3, 1
   Drop1
   Push                 r2
-  DynamicCall          CP#20, 1
+  DynamicCall          CP#15, 1
   Drop1
   Push                 r0
   LoadContextParent
@@ -822,7 +807,7 @@ L1:
   ReturnTOS
 }
 ExceptionsTable {
-  try-index 0, outer -1, start 23, end 61, handler 61, needs-stack-trace, types [CP#6]
+  try-index 0, outer -1, start 23, end 55, handler 55, needs-stack-trace, synthetic, types [CP#6]
 }
 ConstantPool {
   [0] = ClosureFunction 0
@@ -838,22 +823,19 @@ ConstantPool {
   [10] = Reserved
   [11] = InstanceField dart:core::_Closure::_function_type_arguments (field)
   [12] = Reserved
-  [13] = EmptyTypeArguments
-  [14] = InstanceField dart:core::_Closure::_delayed_type_arguments (field)
-  [15] = Reserved
-  [16] = InstanceField dart:core::_Closure::_function (field)
-  [17] = Reserved
-  [18] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
-  [19] = ICData dynamic target-name 'call', arg-desc CP#18
-  [20] = ICData dynamic target-name 'call', arg-desc CP#18
+  [13] = InstanceField dart:core::_Closure::_function (field)
+  [14] = Reserved
+  [15] = DynamicCall 'call', ArgDesc num-args 1, num-type-args 0, names []
+  [16] = Reserved
 }
 Closure #lib::testTryFinally3::'<anonymous closure>' () -> dart:core::int
 ClosureCode {
   EntryFixed           1, 6
-  CheckStack           0
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r0
+  CheckFunctionTypeArgs 0, r1
+  CheckStack           0
   Push                 r0
   LoadContextVar       0, 0
   DirectCall           CP#3, 1
@@ -983,7 +965,7 @@ L2:
   ReturnTOS
 }
 ExceptionsTable {
-  try-index 0, outer -1, start 4, end 40, handler 40, needs-stack-trace, types [CP#3]
+  try-index 0, outer -1, start 4, end 40, handler 40, needs-stack-trace, synthetic, types [CP#3]
   try-index 1, outer 0, start 4, end 14, handler 14, types [CP#3]
 }
 ConstantPool {
@@ -1051,7 +1033,7 @@ ConstantPool {
           y = 3;
         }
       }
-      [@vm.call-site-attributes.metadata=receiverType:() →* void] foo.call();
+      [@vm.call-site-attributes.metadata=receiverType:FunctionType(void Function()*)] foo.call();
       dart.core::print(y);
     }
     on dynamic catch(final dynamic e, final dart.core::StackTrace* st) {
@@ -1117,7 +1099,7 @@ ConstantPool {
                 dart.core::print(x);
                 dart.core::print(y);
               }
-              [@vm.call-site-attributes.metadata=receiverType:() →* void] foo.call();
+              [@vm.call-site-attributes.metadata=receiverType:FunctionType(void Function()*)] foo.call();
               continue #L4;
             }
             finally {
@@ -1161,7 +1143,7 @@ ConstantPool {
     }
     finally {
       dart.core::print(x);
-      [@vm.call-site-attributes.metadata=receiverType:dynamic] y.call();
+      [@vm.call-site-attributes.metadata=receiverType:DynamicType(dynamic)] y.call();
     }
   }
   static method testTryCatchFinally() → dynamic {

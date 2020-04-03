@@ -175,6 +175,7 @@ class AddressKeyValueTrait : public AllStatic {
     Pair() : key(NULL), value(NULL) {}
     Pair(const Key key, const Value& value) : key(key), value(value) {}
     Pair(const Pair& other) : key(other.key), value(other.value) {}
+    Pair& operator=(const Pair&) = default;
   };
 
   static Key KeyOf(Pair kv) { return kv.key; }

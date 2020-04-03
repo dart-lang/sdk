@@ -1,0 +1,121 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+class Class extends core::Object {
+  field core::int? _#Class#field1 = null;
+  field core::int? _#Class#field2 = null;
+  field core::int? _#Class#field3 = null;
+  field core::int? _#Class#field4 = null;
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  get field1() → core::int
+    return let final core::int? #t1 = this.{self::Class::_#Class#field1} in #t1.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'field1' has not been initialized.") : #t1{core::int};
+  set field1(core::int #t2) → void
+    this.{self::Class::_#Class#field1} = #t2;
+  get field2() → core::int
+    return let final core::int? #t3 = this.{self::Class::_#Class#field2} in #t3.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'field2' has not been initialized.") : #t3{core::int};
+  set field2(core::int #t4) → void
+    this.{self::Class::_#Class#field2} = #t4;
+  get field3() → core::int
+    return let final core::int? #t5 = this.{self::Class::_#Class#field3} in #t5.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'field3' has not been initialized.") : #t5{core::int};
+  set field3(core::int #t6) → void
+    if(this.{self::Class::_#Class#field3}.==(null))
+      this.{self::Class::_#Class#field3} = #t6;
+    else
+      throw new _in::LateInitializationErrorImpl::•("Field 'field3' has already been initialized.");
+  get field4() → core::int
+    return let final core::int? #t7 = this.{self::Class::_#Class#field4} in #t7.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'field4' has not been initialized.") : #t7{core::int};
+  set field4(core::int #t8) → void
+    if(this.{self::Class::_#Class#field4}.==(null))
+      this.{self::Class::_#Class#field4} = #t8;
+    else
+      throw new _in::LateInitializationErrorImpl::•("Field 'field4' has already been initialized.");
+}
+class SubClass extends self::Class {
+  field core::int? _#SubClass#field1 = null;
+  field core::int? _#SubClass#field2 = null;
+  field core::int? _#SubClass#field3 = null;
+  field core::int? _#SubClass#field4 = null;
+  synthetic constructor •() → self::SubClass
+    : super self::Class::•()
+    ;
+  get field1() → core::int
+    return let final core::int? #t9 = this.{self::SubClass::_#SubClass#field1} in #t9.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'field1' has not been initialized.") : #t9{core::int};
+  set field1(core::int #t10) → void
+    this.{self::SubClass::_#SubClass#field1} = #t10;
+  get field2() → core::int
+    return let final core::int? #t11 = this.{self::SubClass::_#SubClass#field2} in #t11.==(null) ?{core::int} this.{self::SubClass::_#SubClass#field2} = 0 : #t11{core::int};
+  set field2(core::int #t12) → void
+    this.{self::SubClass::_#SubClass#field2} = #t12;
+  get field3() → core::int
+    return let final core::int? #t13 = this.{self::SubClass::_#SubClass#field3} in #t13.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'field3' has not been initialized.") : #t13{core::int};
+  set field3(core::int #t14) → void
+    if(this.{self::SubClass::_#SubClass#field3}.==(null))
+      this.{self::SubClass::_#SubClass#field3} = #t14;
+    else
+      throw new _in::LateInitializationErrorImpl::•("Field 'field3' has already been initialized.");
+  get field4() → core::int
+    return let final core::int? #t15 = this.{self::SubClass::_#SubClass#field4} in #t15.==(null) ?{core::int} let final core::int #t16 = 0 in this.{self::SubClass::_#SubClass#field4}.==(null) ?{core::int} this.{self::SubClass::_#SubClass#field4} = #t16 : throw new _in::LateInitializationErrorImpl::•("Field 'field4' has been assigned during initialization.") : #t15{core::int};
+  get directField1() → core::int
+    return super.{self::Class::field1};
+  set directField1(core::int value) → void {
+    super.{self::Class::field1} = value;
+  }
+  get directField2() → core::int
+    return super.{self::Class::field2};
+  set directField2(core::int value) → void {
+    super.{self::Class::field2} = value;
+  }
+  get directField3() → core::int
+    return super.{self::Class::field3};
+  get directField4() → core::int
+    return super.{self::Class::field4};
+}
+static method main() → dynamic {
+  self::SubClass sc = new self::SubClass::•();
+  self::Class c = sc;
+  self::throws(() → core::int => c.{self::Class::field1}, "Read value from uninitialized SubClass.field1");
+  self::throws(() → core::int => sc.{self::SubClass::directField1}, "Read value from uninitialized Class.field1");
+  self::expect(42, c.{self::Class::field1} = 42);
+  self::expect(42, c.{self::Class::field1});
+  self::throws(() → core::int => sc.{self::SubClass::directField1}, "Read value from uninitialized Class.field1");
+  self::expect(87, sc.{self::SubClass::directField1} = 87);
+  self::expect(87, sc.{self::SubClass::directField1});
+  self::expect(0, c.{self::Class::field2});
+  self::throws(() → core::int => sc.{self::SubClass::directField2}, "Read value from uninitialized Class.field2");
+  self::expect(42, c.{self::Class::field2} = 42);
+  self::expect(42, c.{self::Class::field2});
+  self::throws(() → core::int => sc.{self::SubClass::directField2}, "Read value from uninitialized Class.field2");
+  self::expect(87, sc.{self::SubClass::directField2} = 87);
+  self::expect(87, sc.{self::SubClass::directField2});
+  self::throws(() → core::int => c.{self::Class::field3}, "Read value from uninitialized SubClass.field3");
+  self::throws(() → core::int => sc.{self::SubClass::directField3}, "Read value from uninitialized Class.field3");
+  self::expect(42, c.{self::Class::field3} = 42);
+  self::expect(42, c.{self::Class::field3});
+  self::throws(() → core::int => sc.{self::SubClass::directField3}, "Read value from uninitialized Class.field3");
+  self::throws(() → core::int => c.{self::Class::field3} = 87, "Write value to initialized SubClass.field3");
+  self::expect(0, c.{self::Class::field4});
+  self::throws(() → core::int => sc.{self::SubClass::directField4}, "Read value from uninitialized Class.field4");
+  self::expect(42, c.{self::Class::field4} = 42);
+  self::expect(0, c.{self::Class::field4});
+  self::expect(42, sc.{self::SubClass::directField4});
+  self::throws(() → core::int => c.{self::Class::field4} = 87, "Write value to initialized SubClass.field4");
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!expected.{core::Object::==}(actual))
+    throw "Expected ${expected}, actual ${actual}.";
+}
+static method throws(() → dynamic f, core::String message) → dynamic {
+  dynamic value;
+  try {
+    value = f.call();
+  }
+  on core::LateInitializationError catch(final core::LateInitializationError e) {
+    core::print(e);
+    return;
+  }
+  throw "${message}: ${value}";
+}

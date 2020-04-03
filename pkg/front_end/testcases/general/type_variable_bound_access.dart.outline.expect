@@ -1,0 +1,24 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class DynamicClass<T extends dynamic = dynamic, S extends self::DynamicClass::T* = dynamic> extends core::Object {
+  generic-covariant-impl field self::DynamicClass::T* field1;
+  generic-covariant-impl field self::DynamicClass::T* field2;
+  constructor •(self::DynamicClass::T* field1, self::DynamicClass::T* field2) → self::DynamicClass<self::DynamicClass::T*, self::DynamicClass::S*>*
+    ;
+  method method() → dynamic
+    ;
+}
+class NumClass<T extends core::num* = core::num*, S extends self::NumClass::T* = core::num*> extends core::Object {
+  generic-covariant-impl field self::NumClass::T* field1;
+  generic-covariant-impl field self::NumClass::S* field2;
+  constructor •(self::NumClass::T* field1, self::NumClass::S* field2) → self::NumClass<self::NumClass::T*, self::NumClass::S*>*
+    ;
+  method method1() → core::num*
+    ;
+  method method2() → core::num*
+    ;
+}
+static method main() → dynamic
+  ;

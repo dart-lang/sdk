@@ -1,17 +1,18 @@
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--verbose_debug
+// VMOptions=--no-causal-async-stacks --lazy-async-stacks --verbose_debug
+// VMOptions=--causal-async-stacks --no-lazy-async-stacks --verbose_debug
 
 import 'dart:developer';
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-const LINE_C = 18;
-const LINE_A = 23;
-const LINE_B = 29;
+const LINE_C = 19;
+const LINE_A = 24;
+const LINE_B = 30;
 
 foobar() {
   debugger();
@@ -55,5 +56,5 @@ var tests = <IsolateTest>[
   },
 ];
 
-main(args) =>
-    runIsolateTestsSynchronous(args, tests, testeeConcurrent: testMain);
+main(args) => runIsolateTestsSynchronous(args, tests,
+    testeeConcurrent: testMain, extraArgs: extraDebuggingArgs);

@@ -1,0 +1,19 @@
+library;
+import self as self;
+import "dart:ffi" as ffi;
+import "dart:core" as core;
+
+import "dart:ffi";
+import "package:ffi/ffi.dart";
+
+class Coordinate extends ffi::Struct {
+  @ffi::Double::•()
+  field core::double* x;
+  @ffi::Double::•()
+  field core::double* y;
+  field ffi::Pointer<self::Coordinate*>* next;
+  static factory allocate(core::double* x, core::double* y, ffi::Pointer<self::Coordinate*>* next) → self::Coordinate*
+    ;
+}
+static method main() → dynamic
+  ;

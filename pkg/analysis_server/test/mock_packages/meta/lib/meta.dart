@@ -12,7 +12,7 @@
 /// function's name differently.
 ///
 /// For information on installing and importing this library, see the
-/// [meta package on pub.dartlang.org] (https://pub.dartlang.org/packages/meta).
+/// [meta package on pub.dev] (https://pub.dev/packages/meta).
 /// For examples of using annotations, see
 /// [Metadata](https://www.dartlang.org/docs/dart-up-and-running/ch02.html#metadata)
 /// in the language tour.

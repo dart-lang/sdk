@@ -72,7 +72,6 @@ ${argParser.usage}""";
       parse(jsonDecode(new File.fromUri(editsUri).readAsStringSync()));
   bool verbose = options["verbose"];
   bool verboseCompilation = options["verbose-compilation"];
-  bool legacyMode = options["mode"] == "legacy";
   bool isFlutter = options["target"] == "flutter";
   bool useMinimalGenerator = options["implementation"] == "minimal";
   TimingsCollector collector = new TimingsCollector(verbose);
@@ -81,7 +80,6 @@ ${argParser.usage}""";
     await benchmark(
         collector,
         entryUri,
-        legacyMode,
         isFlutter,
         useMinimalGenerator,
         verbose,
@@ -98,7 +96,6 @@ ${argParser.usage}""";
 Future benchmark(
     TimingsCollector collector,
     Uri entryUri,
-    bool legacyMode,
     bool isFlutter,
     bool useMinimalGenerator,
     bool verbose,
@@ -111,9 +108,8 @@ Future benchmark(
   var compilerOptions = new CompilerOptions()
     ..verbose = verboseCompilation
     ..fileSystem = overlayFs
-    ..legacyMode = legacyMode
-    ..onDiagnostic = onDiagnosticMessageHandler(legacyMode: legacyMode)
-    ..target = createTarget(isFlutter: isFlutter, legacyMode: legacyMode)
+    ..onDiagnostic = onDiagnosticMessageHandler()
+    ..target = createTarget(isFlutter: isFlutter)
     ..environmentDefines = const {};
   if (sdkSummary != null) {
     compilerOptions.sdkSummary = _resolveOverlayUri(sdkSummary);
@@ -301,6 +297,8 @@ ArgParser argParser = new ArgParser()
       help: 'caching policy used by the compiler',
       defaultsTo: 'protected',
       allowed: ['evicting', 'memory', 'protected'])
+  // TODO(johnniwinther): Remove mode option. Legacy mode is no longer
+  // supported.
   ..addOption('mode',
       help: 'whether to run in strong or legacy mode',
       defaultsTo: 'strong',

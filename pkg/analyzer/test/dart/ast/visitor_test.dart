@@ -39,9 +39,9 @@ A f(var p) {
   }
 }''';
     CompilationUnit unit = parseCompilationUnit(source);
-    List<AstNode> nodes = new List<AstNode>();
+    List<AstNode> nodes = <AstNode>[];
     _BreadthFirstVisitorTestHelper visitor =
-        new _BreadthFirstVisitorTestHelper(nodes);
+        _BreadthFirstVisitorTestHelper(nodes);
     visitor.visitAllNodes(unit);
     expect(nodes, hasLength(59));
     expect(nodes[0], isCompilationUnit);

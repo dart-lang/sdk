@@ -242,7 +242,7 @@ static void native_echo(Dart_NativeArguments args) {
   EXPECT_VALID(toString);
   const char* c_str = NULL;
   EXPECT_VALID(Dart_StringToCString(toString, &c_str));
-  if (saved_echo) {
+  if (saved_echo != nullptr) {
     free(saved_echo);
   }
   saved_echo = strdup(c_str);
@@ -333,7 +333,7 @@ VM_UNIT_TEST_CASE(CustomIsolates) {
 
   OS::PrintErr("-- Starting event loop --\n");
   Event* event = event_queue->Get();
-  while (event) {
+  while (event != nullptr) {
     event->Process();
     delete event;
     event = event_queue->Get();

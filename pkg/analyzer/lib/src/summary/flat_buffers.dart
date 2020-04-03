@@ -20,7 +20,7 @@ class BoolListReader extends Reader<List<bool>> {
 
   @override
   List<bool> read(BufferContext bc, int offset) =>
-      new _FbBoolList(bc, bc.derefObject(offset));
+      _FbBoolList(bc, bc.derefObject(offset));
 }
 
 /**
@@ -44,8 +44,8 @@ class BufferContext {
 
   factory BufferContext.fromBytes(List<int> byteList) {
     Uint8List uint8List = _asUint8List(byteList);
-    ByteData buf = new ByteData.view(uint8List.buffer, uint8List.offsetInBytes);
-    return new BufferContext._(buf);
+    ByteData buf = ByteData.view(uint8List.buffer, uint8List.offsetInBytes);
+    return BufferContext._(buf);
   }
 
   BufferContext._(this._buffer);
@@ -77,7 +77,7 @@ class BufferContext {
     if (byteList is Uint8List) {
       return byteList;
     } else {
-      return new Uint8List.fromList(byteList);
+      return Uint8List.fromList(byteList);
     }
   }
 }
@@ -126,13 +126,11 @@ class Builder {
 
   _VTable _currentVTable;
 
-  /**
-   * Map containing all strings that have been written so far.  This allows us
-   * to avoid duplicating strings.
-   */
-  Map<String, Offset<String>> _strings = <String, Offset<String>>{};
+  /// Map containing all strings that have been written so far.  This allows us
+  /// to avoid duplicating strings.
+  final Map<String, Offset<String>> _strings = <String, Offset<String>>{};
 
-  Builder({this.initialSize: 1024}) {
+  Builder({this.initialSize = 1024}) {
     reset();
   }
 
@@ -237,7 +235,7 @@ class Builder {
    */
   Offset endTable() {
     if (_currentVTable == null) {
-      throw new StateError('Start a table before ending it.');
+      throw StateError('Start a table before ending it.');
     }
     // Prepare for writing the VTable.
     _prepare(4, 1);
@@ -270,7 +268,7 @@ class Builder {
     _setInt32AtTail(_buf, tableTail, vTableTail - tableTail);
     // Done with this table.
     _currentVTable = null;
-    return new Offset(tableTail);
+    return Offset(tableTail);
   }
 
   /**
@@ -305,7 +303,7 @@ class Builder {
    * This is a low-level method, it should not be invoked by clients.
    */
   void lowReset() {
-    _buf = new ByteData(initialSize);
+    _buf = ByteData(initialSize);
     _maxAlign = 1;
     _tail = 0;
   }
@@ -330,7 +328,7 @@ class Builder {
    * Reset the builder and make it ready for filling a new buffer.
    */
   void reset() {
-    _buf = new ByteData(initialSize);
+    _buf = ByteData(initialSize);
     _maxAlign = 1;
     _tail = 0;
     _currentVTable = null;
@@ -341,9 +339,9 @@ class Builder {
    */
   void startTable() {
     if (_currentVTable != null) {
-      throw new StateError('Inline tables are not supported.');
+      throw StateError('Inline tables are not supported.');
     }
-    _currentVTable = new _VTable(_reusedFieldTails, _reusedFieldOffsets);
+    _currentVTable = _VTable(_reusedFieldTails, _reusedFieldOffsets);
     _currentTableEndTail = _tail;
   }
 
@@ -353,7 +351,7 @@ class Builder {
   Offset writeList(List<Offset> values) {
     _ensureNoVTable();
     _prepare(4, 1 + values.length);
-    Offset result = new Offset(_tail);
+    Offset result = Offset(_tail);
     int tail = _tail;
     _setUint32AtTail(_buf, tail, values.length);
     tail -= 4;
@@ -372,7 +370,7 @@ class Builder {
     int padding = (-bitLength) % 8;
     int byteLength = (bitLength + padding) ~/ 8;
     // Prepare the backing Uint8List.
-    Uint8List bytes = new Uint8List(byteLength + 1);
+    Uint8List bytes = Uint8List(byteLength + 1);
     // Record every bit.
     int byteIndex = 0;
     int byte = 0;
@@ -402,7 +400,7 @@ class Builder {
   Offset writeListFloat64(List<double> values) {
     _ensureNoVTable();
     _prepare(8, 1 + values.length);
-    Offset result = new Offset(_tail);
+    Offset result = Offset(_tail);
     int tail = _tail;
     _setUint32AtTail(_buf, tail, values.length);
     tail -= 8;
@@ -419,7 +417,7 @@ class Builder {
   Offset writeListInt32(List<int> values) {
     _ensureNoVTable();
     _prepare(4, 1 + values.length);
-    Offset result = new Offset(_tail);
+    Offset result = Offset(_tail);
     int tail = _tail;
     _setUint32AtTail(_buf, tail, values.length);
     tail -= 4;
@@ -436,7 +434,7 @@ class Builder {
   Offset writeListUint32(List<int> values) {
     _ensureNoVTable();
     _prepare(4, 1 + values.length);
-    Offset result = new Offset(_tail);
+    Offset result = Offset(_tail);
     int tail = _tail;
     _setUint32AtTail(_buf, tail, values.length);
     tail -= 4;
@@ -453,7 +451,7 @@ class Builder {
   Offset writeListUint8(List<int> values) {
     _ensureNoVTable();
     _prepare(4, 1, additionalBytes: values.length);
-    Offset result = new Offset(_tail);
+    Offset result = Offset(_tail);
     int tail = _tail;
     _setUint32AtTail(_buf, tail, values.length);
     tail -= 4;
@@ -476,7 +474,7 @@ class Builder {
         List<int> bytes = utf8.encode(value);
         int length = bytes.length;
         _prepare(4, 1, additionalBytes: length);
-        Offset<String> result = new Offset(_tail);
+        Offset<String> result = Offset(_tail);
         _setUint32AtTail(_buf, _tail, length);
         int offset = _buf.lengthInBytes - _tail + 4;
         for (int i = 0; i < length; i++) {
@@ -493,7 +491,7 @@ class Builder {
    */
   void _ensureCurrentVTable() {
     if (_currentVTable == null) {
-      throw new StateError('Start a table before adding values.');
+      throw StateError('Start a table before adding values.');
     }
   }
 
@@ -502,7 +500,7 @@ class Builder {
    */
   void _ensureNoVTable() {
     if (_currentVTable != null) {
-      throw new StateError(
+      throw StateError(
           'Cannot write a non-scalar value while writing a table.');
     }
   }
@@ -512,7 +510,7 @@ class Builder {
    * Additionally allocate the specified [additionalBytes]. Update the current
    * tail pointer to point at the allocated space.
    */
-  void _prepare(int size, int count, {int additionalBytes: 0}) {
+  void _prepare(int size, int count, {int additionalBytes = 0}) {
     // Update the alignment.
     if (_maxAlign < size) {
       _maxAlign = size;
@@ -529,7 +527,7 @@ class Builder {
         int deltaCapacity = desiredNewCapacity - oldCapacity;
         deltaCapacity += (-deltaCapacity) % _maxAlign;
         int newCapacity = oldCapacity + deltaCapacity;
-        ByteData newBuf = new ByteData(newCapacity);
+        ByteData newBuf = ByteData(newCapacity);
         newBuf.buffer
             .asUint8List()
             .setAll(deltaCapacity, _buf.buffer.asUint8List());
@@ -577,7 +575,7 @@ class Float64ListReader extends Reader<List<double>> {
 
   @override
   List<double> read(BufferContext bc, int offset) =>
-      new _FbFloat64List(bc, bc.derefObject(offset));
+      _FbFloat64List(bc, bc.derefObject(offset));
 }
 
 /**
@@ -634,7 +632,7 @@ class ListReader<E> extends Reader<List<E>> {
 
   @override
   List<E> read(BufferContext bc, int offset) =>
-      new _FbGenericList<E>(_elementReader, bc, bc.derefObject(offset));
+      _FbGenericList<E>(_elementReader, bc, bc.derefObject(offset));
 }
 
 /**
@@ -696,7 +694,7 @@ class StringReader extends Reader<String> {
     int length = bc._getUint32(strOffset);
     Uint8List bytes = bc._asUint8LIst(strOffset + 4, length);
     if (_isLatin(bytes)) {
-      return new String.fromCharCodes(bytes);
+      return String.fromCharCodes(bytes);
     }
     return utf8.decode(bytes);
   }
@@ -746,7 +744,7 @@ class Uint32ListReader extends Reader<List<int>> {
 
   @override
   List<int> read(BufferContext bc, int offset) =>
-      new _FbUint32List(bc, bc.derefObject(offset));
+      _FbUint32List(bc, bc.derefObject(offset));
 }
 
 /**
@@ -775,7 +773,7 @@ class Uint8ListReader extends Reader<List<int>> {
 
   @override
   List<int> read(BufferContext bc, int offset) =>
-      new _FbUint8List(bc, bc.derefObject(offset));
+      _FbUint8List(bc, bc.derefObject(offset));
 }
 
 /**
@@ -811,8 +809,7 @@ class _FbBoolList with ListMixin<bool> implements List<bool> {
   }
 
   @override
-  void set length(int i) =>
-      throw new StateError('Attempt to modify immutable list');
+  set length(int i) => throw StateError('Attempt to modify immutable list');
 
   @override
   bool operator [](int i) {
@@ -823,7 +820,7 @@ class _FbBoolList with ListMixin<bool> implements List<bool> {
 
   @override
   void operator []=(int i, bool e) =>
-      throw new StateError('Attempt to modify immutable list');
+      throw StateError('Attempt to modify immutable list');
 
   int _getByte(int index) => bc._getUint8(offset + 4 + index);
 }
@@ -853,7 +850,7 @@ class _FbGenericList<E> extends _FbList<E> {
 
   @override
   E operator [](int i) {
-    _items ??= new List<E>(length);
+    _items ??= List<E>(length);
     E item = _items[i];
     if (item == null) {
       item = elementReader.read(bc, offset + 4 + elementReader.size * i);
@@ -880,12 +877,11 @@ abstract class _FbList<E> with ListMixin<E> implements List<E> {
   }
 
   @override
-  void set length(int i) =>
-      throw new StateError('Attempt to modify immutable list');
+  set length(int i) => throw StateError('Attempt to modify immutable list');
 
   @override
   void operator []=(int i, E e) =>
-      throw new StateError('Attempt to modify immutable list');
+      throw StateError('Attempt to modify immutable list');
 }
 
 /**

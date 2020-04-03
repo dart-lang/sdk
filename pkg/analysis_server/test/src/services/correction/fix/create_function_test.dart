@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CreateFunctionTest);
   });
@@ -20,7 +20,7 @@ class CreateFunctionTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CREATE_FUNCTION;
 
-  assert_returnType_bool(String lineWithTest) async {
+  Future<void> assert_returnType_bool(String lineWithTest) async {
     await resolveTestUnit('''
 main() {
   bool b = true;
@@ -40,7 +40,7 @@ bool test() {
 ''');
   }
 
-  test_bottomArgument() async {
+  Future<void> test_bottomArgument() async {
     await resolveTestUnit('''
 main() {
   test(throw 42);
@@ -56,7 +56,7 @@ void test(param0) {
 ''');
   }
 
-  test_duplicateArgumentNames() async {
+  Future<void> test_duplicateArgumentNames() async {
     await resolveTestUnit('''
 class C {
   int x;
@@ -80,7 +80,7 @@ void bar(int x, int x2) {
 ''');
   }
 
-  test_dynamicArgument() async {
+  Future<void> test_dynamicArgument() async {
     await resolveTestUnit('''
 main() {
   dynamic v;
@@ -98,7 +98,7 @@ void test(v) {
 ''');
   }
 
-  test_dynamicReturnType() async {
+  Future<void> test_dynamicReturnType() async {
     await resolveTestUnit('''
 main() {
   dynamic v = test();
@@ -116,7 +116,7 @@ test() {
 ''');
   }
 
-  test_fromFunction() async {
+  Future<void> test_fromFunction() async {
     await resolveTestUnit('''
 main() {
   int v = myUndefinedFunction(1, 2.0, '3');
@@ -134,7 +134,7 @@ int myUndefinedFunction(int i, double d, String s) {
 ''');
   }
 
-  test_fromMethod() async {
+  Future<void> test_fromMethod() async {
     await resolveTestUnit('''
 class A {
   main() {
@@ -156,7 +156,7 @@ int myUndefinedFunction(int i, double d, String s) {
 ''');
   }
 
-  test_functionType_cascadeSecond() async {
+  Future<void> test_functionType_cascadeSecond() async {
     await resolveTestUnit('''
 class A {
   B ma() => null;
@@ -188,7 +188,7 @@ int test(double a, String b) {
 ''');
   }
 
-  test_functionType_coreFunction() async {
+  Future<void> test_functionType_coreFunction() async {
     await resolveTestUnit('''
 main() {
   useFunction(g: test);
@@ -206,7 +206,7 @@ test() {
 ''');
   }
 
-  test_functionType_dynamicArgument() async {
+  Future<void> test_functionType_dynamicArgument() async {
     await resolveTestUnit('''
 main() {
   useFunction(test);
@@ -224,7 +224,7 @@ int test(a, b) {
 ''');
   }
 
-  test_functionType_function() async {
+  Future<void> test_functionType_function() async {
     await resolveTestUnit('''
 main() {
   useFunction(test);
@@ -242,7 +242,7 @@ int test(double a, String b) {
 ''');
   }
 
-  test_functionType_function_namedArgument() async {
+  Future<void> test_functionType_function_namedArgument() async {
     await resolveTestUnit('''
 main() {
   useFunction(g: test);
@@ -260,7 +260,7 @@ int test(double a, String b) {
 ''');
   }
 
-  test_functionType_importType() async {
+  Future<void> test_functionType_importType() async {
     addSource('/home/test/lib/a.dart', r'''
 class A {}
 ''');
@@ -289,7 +289,7 @@ int test(A a) {
 ''');
   }
 
-  test_functionType_notFunctionType() async {
+  Future<void> test_functionType_notFunctionType() async {
     await resolveTestUnit('''
 main(A a) {
   useFunction(a.test);
@@ -300,7 +300,7 @@ useFunction(g) {}
     await assertNoFix();
   }
 
-  test_generic_type() async {
+  Future<void> test_generic_type() async {
     await resolveTestUnit('''
 class A {
   List<int> items;
@@ -327,7 +327,7 @@ void process(List<int> items) {
             ['List<int>', 'Iterable<int>', 'Object']));
   }
 
-  test_generic_typeParameter() async {
+  Future<void> test_generic_typeParameter() async {
     await resolveTestUnit('''
 class A<T> {
   Map<int, T> items;
@@ -349,7 +349,7 @@ void process(Map items) {
 ''');
   }
 
-  test_importType() async {
+  Future<void> test_importType() async {
     addSource('/home/test/lib/lib.dart', r'''
 library lib;
 import 'dart:async';
@@ -372,7 +372,7 @@ void test(Future future) {
 ''');
   }
 
-  test_nullArgument() async {
+  Future<void> test_nullArgument() async {
     await resolveTestUnit('''
 main() {
   test(null);
@@ -388,43 +388,43 @@ void test(param0) {
 ''');
   }
 
-  test_returnType_bool_and_left() async {
-    await assert_returnType_bool("test() && b;");
+  Future<void> test_returnType_bool_and_left() async {
+    await assert_returnType_bool('test() && b;');
   }
 
-  test_returnType_bool_and_right() async {
-    await assert_returnType_bool("b && test();");
+  Future<void> test_returnType_bool_and_right() async {
+    await assert_returnType_bool('b && test();');
   }
 
-  test_returnType_bool_assert() async {
-    await assert_returnType_bool("assert ( test() );");
+  Future<void> test_returnType_bool_assert() async {
+    await assert_returnType_bool('assert ( test() );');
   }
 
-  test_returnType_bool_do() async {
-    await assert_returnType_bool("do {} while ( test() );");
+  Future<void> test_returnType_bool_do() async {
+    await assert_returnType_bool('do {} while ( test() );');
   }
 
-  test_returnType_bool_if() async {
-    await assert_returnType_bool("if ( test() ) {}");
+  Future<void> test_returnType_bool_if() async {
+    await assert_returnType_bool('if ( test() ) {}');
   }
 
-  test_returnType_bool_or_left() async {
-    await assert_returnType_bool("test() || b;");
+  Future<void> test_returnType_bool_or_left() async {
+    await assert_returnType_bool('test() || b;');
   }
 
-  test_returnType_bool_or_right() async {
-    await assert_returnType_bool("b || test();");
+  Future<void> test_returnType_bool_or_right() async {
+    await assert_returnType_bool('b || test();');
   }
 
-  test_returnType_bool_unaryNegation() async {
-    await assert_returnType_bool("!test();");
+  Future<void> test_returnType_bool_unaryNegation() async {
+    await assert_returnType_bool('!test();');
   }
 
-  test_returnType_bool_while() async {
-    await assert_returnType_bool("while ( test() ) {}");
+  Future<void> test_returnType_bool_while() async {
+    await assert_returnType_bool('while ( test() ) {}');
   }
 
-  test_returnType_fromAssignment_eq() async {
+  Future<void> test_returnType_fromAssignment_eq() async {
     await resolveTestUnit('''
 main() {
   int v;
@@ -444,7 +444,7 @@ int myUndefinedFunction() {
 ''');
   }
 
-  test_returnType_fromAssignment_plusEq() async {
+  Future<void> test_returnType_fromAssignment_plusEq() async {
     await resolveTestUnit('''
 main() {
   int v;
@@ -464,7 +464,7 @@ num myUndefinedFunction() {
 ''');
   }
 
-  test_returnType_fromBinary_right() async {
+  Future<void> test_returnType_fromBinary_right() async {
     await resolveTestUnit('''
 main() {
   0 + myUndefinedFunction();
@@ -480,7 +480,7 @@ num myUndefinedFunction() {
 ''');
   }
 
-  test_returnType_fromInitializer() async {
+  Future<void> test_returnType_fromInitializer() async {
     await resolveTestUnit('''
 main() {
   int v = myUndefinedFunction();
@@ -498,7 +498,7 @@ int myUndefinedFunction() {
 ''');
   }
 
-  test_returnType_fromInvocationArgument() async {
+  Future<void> test_returnType_fromInvocationArgument() async {
     await resolveTestUnit('''
 foo(int p) {}
 main() {
@@ -516,7 +516,7 @@ int myUndefinedFunction() {
 ''');
   }
 
-  test_returnType_fromReturn() async {
+  Future<void> test_returnType_fromReturn() async {
     await resolveTestUnit('''
 int main() {
   return myUndefinedFunction();
@@ -532,7 +532,7 @@ int myUndefinedFunction() {
 ''');
   }
 
-  test_returnType_void() async {
+  Future<void> test_returnType_void() async {
     await resolveTestUnit('''
 main() {
   myUndefinedFunction();

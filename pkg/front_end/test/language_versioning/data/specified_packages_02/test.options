@@ -1,0 +1,2 @@
+# Point to .packagesX => non-standard layout; use it directly
+--packages=.packagesX

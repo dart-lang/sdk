@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 // Conversions for IDBKey.
 //
 // Per http://www.w3.org/TR/IndexedDB/#key-construct
@@ -76,6 +78,9 @@ abstract class _StructuredClone {
 
   cleanupSlots() {} // Will be needed if we mark objects with a property.
   bool cloneNotRequired(object);
+  JSObject newJsObject();
+  void forEachObjectKey(object, action(key, value));
+  void putIntoObject(object, key, value);
   newJsMap();
   List newJsList(length);
   void putIntoMap(map, key, value);
@@ -131,6 +136,19 @@ abstract class _StructuredClone {
       var copy = JS('returns:List|Null;creates:;', '#', readSlot(slot));
       if (copy != null) return copy;
       copy = copyList(e, slot);
+      return copy;
+    }
+
+    if (e is JSObject) {
+      var slot = findSlot(e);
+      var copy = readSlot(slot);
+      if (copy != null) return copy;
+      copy = newJsObject();
+      writeSlot(slot, copy);
+      // TODO: Consider inlining this so we don't allocate a closure.
+      forEachObjectKey(e, (key, value) {
+        putIntoObject(copy, key, walk(value));
+      });
       return copy;
     }
 
@@ -220,7 +238,7 @@ abstract class _AcceptStructuredClone {
     }
 
     if (isJavaScriptPromise(e)) {
-      return convertNativePromiseToDartFuture(e);
+      return promiseToFuture(e);
     }
 
     if (isJavaScriptSimpleObject(e)) {
@@ -255,7 +273,7 @@ abstract class _AcceptStructuredClone {
     }
 
     // Assume anything else is already a valid Dart object, either by having
-    // already been processed, or e.g. a clonable native class.
+    // already been processed, or e.g. a cloneable native class.
     return e;
   }
 

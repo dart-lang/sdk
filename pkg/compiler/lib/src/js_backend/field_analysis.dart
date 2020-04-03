@@ -3,11 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/type_environment.dart' as ir;
 
 import '../common.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart';
+import '../elements/types.dart';
 import '../ir/scope_visitor.dart';
 import '../js_model/elements.dart' show JField;
 import '../js_model/js_world_builder.dart';
@@ -56,7 +58,8 @@ class KFieldAnalysis {
 
       FieldEntity fieldElement = _elementMap.getField(field);
       ir.Expression expression = field.initializer;
-      ConstantValue value = _elementMap.getConstantValue(expression,
+      ConstantValue value = _elementMap.getConstantValue(
+          _elementMap.getStaticTypeContext(fieldElement), expression,
           requireConstant: false, implicitNull: true);
       if (value != null && value.isConstant) {
         fieldData[fieldElement] = new AllocatorData(value);
@@ -65,6 +68,8 @@ class KFieldAnalysis {
 
     for (ir.Constructor constructor in classNode.constructors) {
       KConstructor constructorElement = _elementMap.getConstructor(constructor);
+      ir.StaticTypeContext staticTypeContext =
+          _elementMap.getStaticTypeContext(constructorElement);
       constructors.add(constructorElement);
       for (ir.Initializer initializer in constructor.initializers) {
         if (initializer is ir.FieldInitializer) {
@@ -79,7 +84,8 @@ class KFieldAnalysis {
 
           Initializer initializerValue = const Initializer.complex();
           ir.Expression value = initializer.value;
-          ConstantValue constantValue = _elementMap.getConstantValue(value,
+          ConstantValue constantValue = _elementMap.getConstantValue(
+              staticTypeContext, value,
               requireConstant: false, implicitNull: true);
           if (constantValue != null && constantValue.isConstant) {
             initializerValue = new Initializer.direct(constantValue);
@@ -90,9 +96,8 @@ class KFieldAnalysis {
             if (position != -1) {
               if (position >= constructor.function.requiredParameterCount) {
                 constantValue = _elementMap.getConstantValue(
-                    parameter.initializer,
-                    requireConstant: false,
-                    implicitNull: true);
+                    staticTypeContext, parameter.initializer,
+                    requireConstant: false, implicitNull: true);
                 if (constantValue != null && constantValue.isConstant) {
                   initializerValue =
                       new Initializer.positional(position, constantValue);
@@ -103,9 +108,8 @@ class KFieldAnalysis {
                   constructor.function.namedParameters.indexOf(parameter);
               if (position != -1) {
                 constantValue = _elementMap.getConstantValue(
-                    parameter.initializer,
-                    requireConstant: false,
-                    implicitNull: true);
+                    staticTypeContext, parameter.initializer,
+                    requireConstant: false, implicitNull: true);
                 if (constantValue != null && constantValue.isConstant) {
                   initializerValue =
                       new Initializer.named(parameter.name, constantValue);
@@ -123,7 +127,8 @@ class KFieldAnalysis {
   void registerStaticField(KField field, InitializerComplexity complexity) {
     ir.Field node = _elementMap.getMemberNode(field);
     ir.Expression expression = node.initializer;
-    ConstantValue value = _elementMap.getConstantValue(expression,
+    ConstantValue value = _elementMap.getConstantValue(
+        _elementMap.getStaticTypeContext(field), expression,
         requireConstant: node.isConst, implicitNull: true);
     if (value != null && !value.isConstant) {
       value = null;
@@ -166,7 +171,7 @@ class AllocatorData {
 
   @override
   String toString() =>
-      'AllocatorData(initialValue=${initialValue?.toStructuredText()},'
+      'AllocatorData(initialValue=${initialValue?.toStructuredText(null)},'
       'initializers=$initializers)';
 }
 
@@ -202,14 +207,14 @@ class Initializer {
         name = null,
         value = null;
 
-  String get shortText {
+  String shortText(DartTypes dartTypes) {
     switch (kind) {
       case InitializerKind.direct:
-        return value.toStructuredText();
+        return value.toStructuredText(dartTypes);
       case InitializerKind.positional:
-        return '$index:${value.toStructuredText()}';
+        return '$index:${value.toStructuredText(dartTypes)}';
       case InitializerKind.named:
-        return '$name:${value.toStructuredText()}';
+        return '$name:${value.toStructuredText(dartTypes)}';
       case InitializerKind.complex:
         return '?';
     }
@@ -217,7 +222,7 @@ class Initializer {
   }
 
   @override
-  String toString() => shortText;
+  String toString() => shortText(null);
 }
 
 class JFieldAnalysis {
@@ -627,7 +632,7 @@ class FieldAnalysisData {
 
   @override
   String toString() =>
-      'FieldAnalysisData(initialValue=${initialValue?.toStructuredText()},'
+      'FieldAnalysisData(initialValue=${initialValue?.toStructuredText(null)},'
       'isInitializedInAllocator=$isInitializedInAllocator,'
       'isEffectivelyFinal=$isEffectivelyFinal,isElided=$isElided,'
       'isEager=$isEager,eagerCreationIndex=$eagerCreationIndex,'

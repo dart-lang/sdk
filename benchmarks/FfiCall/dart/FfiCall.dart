@@ -10,6 +10,7 @@
 import 'dart:ffi';
 import 'dart:io';
 
+import 'package:ffi/ffi.dart';
 import 'package:benchmark_harness/benchmark_harness.dart';
 
 import 'dlopen_helper.dart';
@@ -604,8 +605,6 @@ Pointer<Uint8> doCall20PointerUint8(
 //  * CPU: Intel(R) Xeon(R) Gold 6154
 //    * Architecture: x64
 //      * 200 - 1100 us
-//    * Architecture: SimDBC64
-//      * 2800 - 110000 us
 const N = 1000;
 
 class Uint8x01 extends BenchmarkBase {
@@ -919,8 +918,8 @@ class PointerUint8x01 extends BenchmarkBase {
   PointerUint8x01() : super("FfiCall.PointerUint8x01");
 
   Pointer<Uint8> pointer;
-  void setup() => pointer = Pointer.allocate(count: N + 1);
-  void teardown() => pointer.free();
+  void setup() => pointer = allocate(count: N + 1);
+  void teardown() => free(pointer);
 
   void run() {
     final Pointer<Uint8> x = doCall1PointerUint8(N, pointer);
@@ -936,12 +935,12 @@ class PointerUint8x02 extends BenchmarkBase {
   Pointer<Uint8> pointer, pointer2;
 
   void setup() {
-    pointer = Pointer.allocate(count: N + 1);
+    pointer = allocate(count: N + 1);
     pointer2 = pointer.elementAt(1);
   }
 
   void teardown() {
-    pointer.free();
+    free(pointer);
   }
 
   void run() {
@@ -958,14 +957,14 @@ class PointerUint8x04 extends BenchmarkBase {
   Pointer<Uint8> pointer, pointer2, pointer3, pointer4;
 
   void setup() {
-    pointer = Pointer.allocate(count: N + 1);
+    pointer = allocate(count: N + 1);
     pointer2 = pointer.elementAt(1);
     pointer3 = pointer.elementAt(2);
     pointer4 = pointer.elementAt(3);
   }
 
   void teardown() {
-    pointer.free();
+    free(pointer);
   }
 
   void run() {
@@ -992,7 +991,7 @@ class PointerUint8x10 extends BenchmarkBase {
       pointer10;
 
   void setup() {
-    pointer = Pointer.allocate(count: N + 1);
+    pointer = allocate(count: N + 1);
     pointer2 = pointer.elementAt(1);
     pointer3 = pointer.elementAt(2);
     pointer4 = pointer.elementAt(3);
@@ -1005,7 +1004,7 @@ class PointerUint8x10 extends BenchmarkBase {
   }
 
   void teardown() {
-    pointer.free();
+    free(pointer);
   }
 
   void run() {
@@ -1052,7 +1051,7 @@ class PointerUint8x20 extends BenchmarkBase {
       pointer20;
 
   void setup() {
-    pointer = Pointer.allocate(count: N + 1);
+    pointer = allocate(count: N + 1);
     pointer2 = pointer.elementAt(1);
     pointer3 = pointer.elementAt(2);
     pointer4 = pointer.elementAt(3);
@@ -1075,7 +1074,7 @@ class PointerUint8x20 extends BenchmarkBase {
   }
 
   void teardown() {
-    pointer.free();
+    free(pointer);
   }
 
   void run() {

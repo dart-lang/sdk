@@ -2,15 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
+import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/ir/util.dart';
 import 'package:compiler/src/js_model/locals.dart';
 import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart' as ir;
-import 'package:front_end/src/testing/id.dart';
 import 'package:front_end/src/testing/id_extractor.dart';
 
-export 'package:front_end/src/testing/id.dart';
+export 'package:_fe_analyzer_shared/src/testing/id.dart';
 export 'package:front_end/src/testing/id_extractor.dart';
 
 SourceSpan computeSourceSpanFromUriOffset(Uri uri, int offset) {

@@ -126,7 +126,7 @@ def main(args):
             return -1
 
         return 0
-    except Exception, inst:
+    except Exception as inst:
         sys.stderr.write('gen_library_src_paths.py exception\n')
         sys.stderr.write(str(inst))
         sys.stderr.write('\n')

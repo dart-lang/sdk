@@ -51,10 +51,15 @@ class ScriptRefElement extends CustomElement implements Renderable {
   }
 
   void render() {
+    var displayUri = script.uri.split('/').last;
+    if (displayUri.isEmpty) {
+      displayUri = 'N/A';
+    }
+
     children = <Element>[
       new AnchorElement(href: Uris.inspect(isolate, object: script))
         ..title = script.uri
-        ..text = script.uri.split('/').last
+        ..text = displayUri
     ];
   }
 }

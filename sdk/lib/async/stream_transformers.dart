@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.async;
 
 /**
@@ -16,7 +18,7 @@ class _EventSinkWrapper<T> implements EventSink<T> {
   }
 
   void addError(error, [StackTrace stackTrace]) {
-    _sink._addError(error, stackTrace);
+    _sink._addError(error, stackTrace ?? AsyncError.defaultStackTrace(error));
   }
 
   void close() {
@@ -232,10 +234,12 @@ class _HandlerEventSink<S, T> implements EventSink<S> {
   }
 
   void addError(Object error, [StackTrace stackTrace]) {
+    ArgumentError.checkNotNull(error, "error");
     if (_isClosed) {
       throw StateError("Sink is closed");
     }
     if (_handleError != null) {
+      stackTrace ??= AsyncError.defaultStackTrace(error);
       _handleError(error, stackTrace, _sink);
     } else {
       _sink.addError(error, stackTrace);

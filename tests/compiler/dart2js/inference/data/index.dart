@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 ////////////////////////////////////////////////////////////////////////////////
 // Lookup into a singleton list.
 ////////////////////////////////////////////////////////////////////////////////
@@ -102,11 +104,11 @@ mapLookupMixedKeys() {
 // Lookup into a map with mixed value types.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: mapLookupMixedValues:Union([exact=JSUInt31], [null|exact=JSString])*/
+/*member: mapLookupMixedValues:Union(null, [exact=JSString], [exact=JSUInt31])*/
 mapLookupMixedValues() {
   var map = {0: 1, 2: ''};
   return map
-      /*Map([subclass=JsLinkedHashMap], key: [exact=JSUInt31], value: Union([exact=JSUInt31], [null|exact=JSString]))*/
+      /*Map([subclass=JsLinkedHashMap], key: [exact=JSUInt31], value: Union(null, [exact=JSString], [exact=JSUInt31]))*/
       [2];
 }
 

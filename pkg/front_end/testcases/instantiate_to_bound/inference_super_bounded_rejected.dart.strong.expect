@@ -14,7 +14,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class B<T extends core::Comparable<self::B::T>* = core::Comparable<dynamic>*> extends core::Object {
+class B<T extends core::Comparable<self::B::T*>* = core::Comparable<dynamic>*> extends core::Object {
   synthetic constructor •() → self::B<self::B::T*>*
     : super core::Object::•()
     ;

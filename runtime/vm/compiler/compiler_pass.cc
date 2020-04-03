@@ -10,6 +10,7 @@
 #include "vm/compiler/backend/branch_optimizer.h"
 #include "vm/compiler/backend/constant_propagator.h"
 #include "vm/compiler/backend/flow_graph_checker.h"
+#include "vm/compiler/backend/il_deserializer.h"
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/il_serializer.h"
 #include "vm/compiler/backend/inliner.h"
@@ -18,6 +19,7 @@
 #include "vm/compiler/backend/redundancy_elimination.h"
 #include "vm/compiler/backend/type_propagator.h"
 #include "vm/compiler/call_specializer.h"
+#include "vm/compiler/write_barrier_elimination.h"
 #if defined(DART_PRECOMPILER)
 #include "vm/compiler/aot/aot_call_specializer.h"
 #include "vm/compiler/aot/precompiler.h"
@@ -33,7 +35,7 @@
                                                                                \
    protected:                                                                  \
     virtual bool DoBody(CompilerPassState* state) const {                      \
-      FlowGraph* flow_graph = state->flow_graph;                               \
+      FlowGraph* flow_graph = state->flow_graph();                             \
       USE(flow_graph);                                                         \
       Body;                                                                    \
     }                                                                          \
@@ -55,8 +57,23 @@ DEFINE_OPTION_HANDLER(CompilerPass::ParseFilters,
                       "List of comma separated compilation passes flags. "
                       "Use -Name to disable a pass, Name to print IL after it. "
                       "Do --compiler-passes=help for more information.");
+DEFINE_FLAG(bool,
+            early_round_trip_serialization,
+            false,
+            "Perform early round trip serialization compiler pass.");
+DEFINE_FLAG(bool,
+            late_round_trip_serialization,
+            false,
+            "Perform late round trip serialization compiler pass.");
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
+
+void CompilerPassState::set_flow_graph(FlowGraph* flow_graph) {
+  flow_graph_ = flow_graph;
+  if (call_specializer != nullptr) {
+    call_specializer->set_flow_graph(flow_graph);
+  }
+}
 
 static const char* kCompilerPassesUsage =
     "=== How to use --compiler-passes flag\n"
@@ -179,11 +196,11 @@ void CompilerPass::Run(CompilerPassState* state) const {
       TIMELINE_DURATION(thread, CompilerVerbose, name());
       repeat = DoBody(state);
       thread->CheckForSafepoint();
-#if defined(DEBUG)
-      FlowGraphChecker(state->flow_graph).Check(name());
-#endif
     }
     PrintGraph(state, kTraceAfter, round);
+#if defined(DEBUG)
+    FlowGraphChecker(state->flow_graph()).Check(name());
+#endif
   }
 }
 
@@ -191,7 +208,7 @@ void CompilerPass::PrintGraph(CompilerPassState* state,
                               Flag mask,
                               intptr_t round) const {
   const intptr_t current_flags = flags() | state->sticky_flags;
-  FlowGraph* flow_graph = state->flow_graph;
+  FlowGraph* flow_graph = state->flow_graph();
 
   if ((FLAG_print_flow_graph || FLAG_print_flow_graph_optimized) &&
       flow_graph->should_print() && ((current_flags & mask) != 0)) {
@@ -227,9 +244,50 @@ void CompilerPass::RunInliningPipeline(PipelineMode mode,
   INVOKE_PASS(TryOptimizePatterns);
 }
 
-void CompilerPass::RunPipeline(PipelineMode mode,
-                               CompilerPassState* pass_state) {
+FlowGraph* CompilerPass::RunForceOptimizedPipeline(
+    PipelineMode mode,
+    CompilerPassState* pass_state) {
   INVOKE_PASS(ComputeSSA);
+  if (FLAG_early_round_trip_serialization) {
+    INVOKE_PASS(RoundTripSerialization);
+  }
+  INVOKE_PASS(TypePropagation);
+  INVOKE_PASS(Canonicalize);
+  INVOKE_PASS(BranchSimplify);
+  INVOKE_PASS(IfConvert);
+  INVOKE_PASS(ConstantPropagation);
+  INVOKE_PASS(TypePropagation);
+  INVOKE_PASS(WidenSmiToInt32);
+  INVOKE_PASS(SelectRepresentations);
+  INVOKE_PASS(TypePropagation);
+  INVOKE_PASS(TryCatchOptimization);
+  INVOKE_PASS(EliminateEnvironments);
+  INVOKE_PASS(EliminateDeadPhis);
+  // Currently DCE assumes that EliminateEnvironments has already been run,
+  // so it should not be lifted earlier than that pass.
+  INVOKE_PASS(DCE);
+  INVOKE_PASS(Canonicalize);
+  INVOKE_PASS(EliminateWriteBarriers);
+  INVOKE_PASS(FinalizeGraph);
+#if defined(DART_PRECOMPILER)
+  if (mode == kAOT) {
+    INVOKE_PASS(SerializeGraph);
+  }
+#endif
+  if (FLAG_late_round_trip_serialization) {
+    INVOKE_PASS(RoundTripSerialization);
+  }
+  INVOKE_PASS(AllocateRegisters);
+  INVOKE_PASS(ReorderBlocks);
+  return pass_state->flow_graph();
+}
+
+FlowGraph* CompilerPass::RunPipeline(PipelineMode mode,
+                                     CompilerPassState* pass_state) {
+  INVOKE_PASS(ComputeSSA);
+  if (FLAG_early_round_trip_serialization) {
+    INVOKE_PASS(RoundTripSerialization);
+  }
 #if defined(DART_PRECOMPILER)
   if (mode == kAOT) {
     INVOKE_PASS(ApplyClassIds);
@@ -278,16 +336,24 @@ void CompilerPass::RunPipeline(PipelineMode mode,
   INVOKE_PASS(TryCatchOptimization);
   INVOKE_PASS(EliminateEnvironments);
   INVOKE_PASS(EliminateDeadPhis);
+  // Currently DCE assumes that EliminateEnvironments has already been run,
+  // so it should not be lifted earlier than that pass.
+  INVOKE_PASS(DCE);
   INVOKE_PASS(Canonicalize);
+  // Repeat branches optimization after DCE, as it could make more
+  // empty blocks.
+  INVOKE_PASS(OptimizeBranches);
   INVOKE_PASS(AllocationSinking_Sink);
   INVOKE_PASS(EliminateDeadPhis);
+  INVOKE_PASS(DCE);
   INVOKE_PASS(TypePropagation);
   INVOKE_PASS(SelectRepresentations);
   INVOKE_PASS(Canonicalize);
+  INVOKE_PASS(UseTableDispatch);
   INVOKE_PASS(EliminateStackOverflowChecks);
   INVOKE_PASS(Canonicalize);
   INVOKE_PASS(AllocationSinking_DetachMaterializations);
-  INVOKE_PASS(WriteBarrierElimination);
+  INVOKE_PASS(EliminateWriteBarriers);
   INVOKE_PASS(FinalizeGraph);
 #if defined(DART_PRECOMPILER)
   if (mode == kAOT) {
@@ -296,16 +362,21 @@ void CompilerPass::RunPipeline(PipelineMode mode,
     INVOKE_PASS(SerializeGraph);
   }
 #endif
+  if (FLAG_late_round_trip_serialization) {
+    INVOKE_PASS(RoundTripSerialization);
+  }
   INVOKE_PASS(AllocateRegisters);
   INVOKE_PASS(ReorderBlocks);
+  return pass_state->flow_graph();
 }
 
-void CompilerPass::RunPipelineWithPasses(
+FlowGraph* CompilerPass::RunPipelineWithPasses(
     CompilerPassState* state,
     std::initializer_list<CompilerPass::Id> passes) {
   for (auto pass_id : passes) {
     passes_[pass_id]->Run(state);
   }
+  return state->flow_graph();
 }
 
 COMPILER_PASS(ComputeSSA, {
@@ -374,6 +445,12 @@ COMPILER_PASS(SelectRepresentations, {
   flow_graph->SelectRepresentations();
 });
 
+COMPILER_PASS(UseTableDispatch, {
+  if (FLAG_use_bare_instructions && FLAG_use_table_dispatch) {
+    state->call_specializer->ReplaceInstanceCallsWithDispatchTableCalls();
+  }
+});
+
 COMPILER_PASS_REPEAT(CSE, { return DominatorBasedCSE::Optimize(flow_graph); });
 
 COMPILER_PASS(LICM, {
@@ -405,13 +482,16 @@ COMPILER_PASS(OptimizeTypedDataAccesses,
               { TypedDataSpecializer::Optimize(flow_graph); });
 
 COMPILER_PASS(TryCatchOptimization, {
-  OptimizeCatchEntryStates(flow_graph, /*is_aot=*/FLAG_precompiled_mode);
+  OptimizeCatchEntryStates(flow_graph,
+                           /*is_aot=*/CompilerState::Current().is_aot());
 });
 
 COMPILER_PASS(EliminateEnvironments, { flow_graph->EliminateEnvironments(); });
 
 COMPILER_PASS(EliminateDeadPhis,
               { DeadCodeElimination::EliminateDeadPhis(flow_graph); });
+
+COMPILER_PASS(DCE, { DeadCodeElimination::EliminateDeadCode(flow_graph); });
 
 COMPILER_PASS(AllocationSinking_Sink, {
   // TODO(vegorov): Support allocation sinking with try-catch.
@@ -432,6 +512,7 @@ COMPILER_PASS(AllocationSinking_DetachMaterializations, {
 });
 
 COMPILER_PASS(AllocateRegisters, {
+  flow_graph->InsertPushArguments();
   // Ensure loop hierarchy has been computed.
   flow_graph->GetLoopHierarchy();
   // Perform register allocation on the SSA graph.
@@ -453,38 +534,7 @@ COMPILER_PASS(ReorderBlocks, {
   }
 });
 
-static void WriteBarrierElimination(FlowGraph* flow_graph) {
-  for (BlockIterator block_it = flow_graph->reverse_postorder_iterator();
-       !block_it.Done(); block_it.Advance()) {
-    BlockEntryInstr* block = block_it.Current();
-    Definition* last_allocated = nullptr;
-    for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
-      Instruction* current = it.Current();
-      if (!current->CanTriggerGC()) {
-        if (StoreInstanceFieldInstr* instr = current->AsStoreInstanceField()) {
-          if (instr->instance()->definition() == last_allocated) {
-            instr->set_emit_store_barrier(kNoStoreBarrier);
-          }
-          continue;
-        }
-      }
-
-      if (AllocationInstr* alloc = current->AsAllocation()) {
-        if (alloc->WillAllocateNewOrRemembered()) {
-          last_allocated = alloc;
-          continue;
-        }
-      }
-
-      if (current->CanTriggerGC()) {
-        last_allocated = nullptr;
-      }
-    }
-  }
-}
-
-COMPILER_PASS(WriteBarrierElimination,
-              { WriteBarrierElimination(flow_graph); });
+COMPILER_PASS(EliminateWriteBarriers, { EliminateWriteBarriers(flow_graph); });
 
 COMPILER_PASS(FinalizeGraph, {
   // At the end of the pipeline, force recomputing and caching graph
@@ -518,6 +568,11 @@ COMPILER_PASS(SerializeGraph, {
   }
 });
 #endif
+
+COMPILER_PASS(RoundTripSerialization, {
+  FlowGraphDeserializer::RoundTripSerialization(state);
+  ASSERT(state->flow_graph() != nullptr);
+})
 
 }  // namespace dart
 

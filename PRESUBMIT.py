@@ -13,6 +13,74 @@ import os.path
 import scm
 import subprocess
 import tempfile
+import platform
+
+def is_cpp_file(path):
+    return path.endswith('.cc') or path.endswith('.h')
+
+
+def _CheckNnbdSdkSync(input_api, output_api):
+    files = [git_file.LocalPath() for git_file in input_api.AffectedTextFiles()]
+    unsynchronized_files = []
+    for file in files:
+        if file.startswith('sdk/'):
+            nnbd_file = 'sdk_nnbd/' + file[4:]
+            if not nnbd_file in files:
+                unsynchronized_files.append(nnbd_file)
+    if unsynchronized_files:
+        return [
+            output_api.PresubmitPromptWarning(
+                'Changes were made to sdk/ that were not made to sdk_nnbd/\n'
+                'Please update these files as well:\n'
+                '\n'
+                '%s' % ('\n'.join(unsynchronized_files)))
+        ]
+    return []
+
+
+def _CheckNnbdTestSync(input_api, output_api):
+    """Make sure that any forked SDK tests are kept in sync. If a CL touches
+    a test, the test's counterpart (if it exists at all) should be in the CL
+    too.
+    """
+    DIRS = ["co19", "corelib", "language", "lib", "standalone"]
+
+    files = [git_file.LocalPath() for git_file in input_api.AffectedTextFiles()]
+    unsynchronized = []
+    for file in files:
+        for dir in DIRS:
+            legacy_dir = "tests/{}_2/".format(dir)
+            nnbd_dir = "tests/{}/".format(dir)
+
+            counterpart = None
+            if file.startswith(legacy_dir):
+                counterpart = file.replace(legacy_dir, nnbd_dir)
+            elif file.startswith(nnbd_dir):
+                counterpart = file.replace(nnbd_dir, legacy_dir)
+
+            if counterpart:
+                # Changed one file with a potential counterpart. If it exists
+                # on disc, make sure it is also in the CL.
+                if counterpart not in files and os.path.exists(counterpart):
+                    unsynchronized.append("- {} -> {}".format(
+                        file, counterpart))
+                break
+
+    # TODO(rnystrom): Currently, we only warn if a test does exist in both
+    # places on disc but only one is touched by a CL. We don't warn for files
+    # that only exist on one side because the migration isn't complete and the
+    # CL may be migrating. Once the migration is complete, consider making
+    # these checks more rigorous.
+
+    if unsynchronized:
+        return [
+            output_api.PresubmitPromptWarning(
+                'Make sure to keep the forked legacy and NNBD tests in sync.\n'
+                'You may need to synchronize these files:\n' +
+                '\n'.join(unsynchronized))
+        ]
+
+    return []
 
 
 def _CheckFormat(input_api,
@@ -52,16 +120,6 @@ def _CheckFormat(input_api,
                 unformatted_files.append(filename)
 
     return unformatted_files
-
-
-def _CheckBuildStatus(input_api, output_api):
-    results = []
-    status_check = input_api.canned_checks.CheckTreeIsOpen(
-        input_api,
-        output_api,
-        json_url='http://dart-status.appspot.com/current?format=json')
-    results.extend(status_check)
-    return results
 
 
 def _CheckDartFormat(input_api, output_api):
@@ -199,35 +257,79 @@ def _CheckLayering(input_api, output_api):
   """
 
     # Run only if .cc or .h file was modified.
-    def is_cpp_file(path):
-        return path.endswith('.cc') or path.endswith('.h')
-
     if all(not is_cpp_file(f.LocalPath()) for f in input_api.AffectedFiles()):
         return []
 
     local_root = input_api.change.RepositoryRoot()
-    layering_check = imp.load_source(
-        'layering_check',
-        os.path.join(local_root, 'runtime', 'tools', 'layering_check.py'))
-    errors = layering_check.DoCheck(local_root)
+    compiler_layering_check = imp.load_source(
+        'compiler_layering_check',
+        os.path.join(local_root, 'runtime', 'tools',
+                     'compiler_layering_check.py'))
+    errors = compiler_layering_check.DoCheck(local_root)
+    embedder_layering_check = imp.load_source(
+        'embedder_layering_check',
+        os.path.join(local_root, 'runtime', 'tools',
+                     'embedder_layering_check.py'))
+    errors += embedder_layering_check.DoCheck(local_root)
     if errors:
         return [
             output_api.PresubmitError(
                 'Layering check violation for C++ sources.',
                 long_text='\n'.join(errors))
         ]
-    else:
+
+    return []
+
+
+def _CheckClangTidy(input_api, output_api):
+    """Run clang-tidy on VM changes."""
+
+    # Only run clang-tidy on linux x64.
+    if platform.system() != 'Linux' or platform.machine() != 'x86_64':
         return []
+
+    # Run only for modified .cc or .h files.
+    files = []
+    for f in input_api.AffectedFiles():
+        path = f.LocalPath()
+        if is_cpp_file(path) and os.path.isfile(path): files.append(path)
+
+    if not files:
+        return []
+
+    args = [
+        'tools/sdks/dart-sdk/bin/dart',
+        'runtime/tools/run_clang_tidy.dart',
+    ]
+    args.extend(files)
+    stdout = input_api.subprocess.check_output(args).strip()
+    if not stdout:
+        return []
+
+    return [
+        output_api.PresubmitError(
+            'The `clang-tidy` linter revealed issues:',
+            long_text=stdout)
+    ]
+
+
+def _CommonChecks(input_api, output_api):
+    results = []
+    results.extend(_CheckNnbdSdkSync(input_api, output_api))
+    results.extend(_CheckNnbdTestSync(input_api, output_api))
+    results.extend(_CheckValidHostsInDEPS(input_api, output_api))
+    results.extend(_CheckDartFormat(input_api, output_api))
+    results.extend(_CheckStatusFiles(input_api, output_api))
+    results.extend(_CheckLayering(input_api, output_api))
+    results.extend(_CheckClangTidy(input_api, output_api))
+    results.extend(
+        input_api.canned_checks.CheckPatchFormatted(input_api, output_api))
+    return results
 
 
 def CheckChangeOnCommit(input_api, output_api):
-    return (_CheckValidHostsInDEPS(input_api, output_api) + _CheckBuildStatus(
-        input_api, output_api) + _CheckDartFormat(input_api, output_api) +
-            _CheckStatusFiles(input_api, output_api) + _CheckLayering(
-                input_api, output_api))
+    return _CommonChecks(input_api, output_api)
 
 
 def CheckChangeOnUpload(input_api, output_api):
-    return (_CheckValidHostsInDEPS(input_api, output_api) + _CheckDartFormat(
-        input_api, output_api) + _CheckStatusFiles(input_api, output_api) +
-            _CheckLayering(input_api, output_api))
+    return _CommonChecks(input_api, output_api)

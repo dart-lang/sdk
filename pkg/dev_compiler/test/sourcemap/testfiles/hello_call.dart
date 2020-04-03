@@ -7,6 +7,6 @@ void main() {
   /*s:1*/ foo();
 }
 
-foo() {
-  /*s:2*/ print("hello from foo");
+void foo() {
+  /*s:2*/ print('hello from foo');
 }

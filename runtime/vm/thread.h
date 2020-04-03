@@ -14,6 +14,7 @@
 #include "platform/atomic.h"
 #include "platform/safe_stack.h"
 #include "vm/bitfield.h"
+#include "vm/compiler/runtime_api.h"
 #include "vm/constants.h"
 #include "vm/globals.h"
 #include "vm/handles.h"
@@ -23,7 +24,6 @@
 #include "vm/runtime_entry_list.h"
 #include "vm/thread_stack_resource.h"
 #include "vm/thread_state.h"
-
 namespace dart {
 
 class AbstractType;
@@ -36,6 +36,7 @@ class Bytecode;
 class Error;
 class ExceptionHandlers;
 class Field;
+class FieldTable;
 class Function;
 class GrowableObjectArray;
 class HandleScope;
@@ -69,6 +70,12 @@ class TypeParameter;
 class TypeUsageInfo;
 class Zone;
 
+namespace compiler {
+namespace target {
+class Thread;
+}  // namespace target
+}  // namespace compiler
+
 #define REUSABLE_HANDLE_LIST(V)                                                \
   V(AbstractType)                                                              \
   V(Array)                                                                     \
@@ -89,9 +96,6 @@ class Zone;
   V(TypeArguments)                                                             \
   V(TypeParameter)
 
-#if defined(TARGET_ARCH_DBC)
-#define CACHED_VM_STUBS_LIST(V)
-#else
 #define CACHED_VM_STUBS_LIST(V)                                                \
   V(RawCode*, write_barrier_code_, StubCode::WriteBarrier().raw(), NULL)       \
   V(RawCode*, array_write_barrier_code_, StubCode::ArrayWriteBarrier().raw(),  \
@@ -108,6 +112,14 @@ class Zone;
     StubCode::NullErrorSharedWithoutFPURegs().raw(), NULL)                     \
   V(RawCode*, null_error_shared_with_fpu_regs_stub_,                           \
     StubCode::NullErrorSharedWithFPURegs().raw(), NULL)                        \
+  V(RawCode*, null_arg_error_shared_without_fpu_regs_stub_,                    \
+    StubCode::NullArgErrorSharedWithoutFPURegs().raw(), nullptr)               \
+  V(RawCode*, null_arg_error_shared_with_fpu_regs_stub_,                       \
+    StubCode::NullArgErrorSharedWithFPURegs().raw(), nullptr)                  \
+  V(RawCode*, allocate_mint_with_fpu_regs_stub_,                               \
+    StubCode::AllocateMintWithFPURegs().raw(), NULL)                           \
+  V(RawCode*, allocate_mint_without_fpu_regs_stub_,                            \
+    StubCode::AllocateMintWithoutFPURegs().raw(), NULL)                        \
   V(RawCode*, stack_overflow_shared_without_fpu_regs_stub_,                    \
     StubCode::StackOverflowSharedWithoutFPURegs().raw(), NULL)                 \
   V(RawCode*, stack_overflow_shared_with_fpu_regs_stub_,                       \
@@ -127,8 +139,6 @@ class Zone;
   V(RawCode*, call_native_through_safepoint_stub_,                             \
     StubCode::CallNativeThroughSafepoint().raw(), NULL)
 
-#endif
-
 #define CACHED_NON_VM_STUB_LIST(V)                                             \
   V(RawObject*, object_null_, Object::null(), NULL)                            \
   V(RawBool*, bool_true_, Object::bool_true().raw(), NULL)                     \
@@ -146,9 +156,6 @@ class Zone;
   ASSERT((Thread::bool_true_offset() + kWordSize) ==                           \
          Thread::bool_false_offset());
 
-#if defined(TARGET_ARCH_DBC)
-#define CACHED_VM_STUBS_ADDRESSES_LIST(V)
-#else
 #define CACHED_VM_STUBS_ADDRESSES_LIST(V)                                      \
   V(uword, write_barrier_entry_point_, StubCode::WriteBarrier().EntryPoint(),  \
     0)                                                                         \
@@ -160,6 +167,14 @@ class Zone;
     StubCode::NullErrorSharedWithoutFPURegs().EntryPoint(), 0)                 \
   V(uword, null_error_shared_with_fpu_regs_entry_point_,                       \
     StubCode::NullErrorSharedWithFPURegs().EntryPoint(), 0)                    \
+  V(uword, null_arg_error_shared_without_fpu_regs_entry_point_,                \
+    StubCode::NullArgErrorSharedWithoutFPURegs().EntryPoint(), 0)              \
+  V(uword, null_arg_error_shared_with_fpu_regs_entry_point_,                   \
+    StubCode::NullArgErrorSharedWithFPURegs().EntryPoint(), 0)                 \
+  V(uword, allocate_mint_with_fpu_regs_entry_point_,                           \
+    StubCode::AllocateMintWithFPURegs().EntryPoint(), 0)                       \
+  V(uword, allocate_mint_without_fpu_regs_entry_point_,                        \
+    StubCode::AllocateMintWithoutFPURegs().EntryPoint(), 0)                    \
   V(uword, stack_overflow_shared_without_fpu_regs_entry_point_,                \
     StubCode::StackOverflowSharedWithoutFPURegs().EntryPoint(), 0)             \
   V(uword, stack_overflow_shared_with_fpu_regs_entry_point_,                   \
@@ -170,13 +185,13 @@ class Zone;
     0)                                                                         \
   V(uword, optimize_entry_, StubCode::OptimizeFunction().EntryPoint(), 0)      \
   V(uword, deoptimize_entry_, StubCode::Deoptimize().EntryPoint(), 0)          \
-  V(uword, verify_callback_entry_, StubCode::VerifyCallback().EntryPoint(), 0) \
   V(uword, call_native_through_safepoint_entry_point_,                         \
     StubCode::CallNativeThroughSafepoint().EntryPoint(), 0)
-#endif
 
 #define CACHED_ADDRESSES_LIST(V)                                               \
   CACHED_VM_STUBS_ADDRESSES_LIST(V)                                            \
+  V(uword, bootstrap_native_wrapper_entry_point_,                              \
+    NativeEntry::BootstrapNativeCallWrapperEntry(), 0)                         \
   V(uword, no_scope_native_wrapper_entry_point_,                               \
     NativeEntry::NoScopeNativeCallWrapperEntry(), 0)                           \
   V(uword, auto_scope_native_wrapper_entry_point_,                             \
@@ -256,6 +271,11 @@ class Thread : public ThreadState {
                                    bool bypass_safepoint = false);
   static void ExitIsolateAsHelper(bool bypass_safepoint = false);
 
+  static bool EnterIsolateGroupAsHelper(IsolateGroup* isolate_group,
+                                        TaskKind kind,
+                                        bool bypass_safepoint);
+  static void ExitIsolateGroupAsHelper(bool bypass_safepoint);
+
   // Empties the store buffer block into the isolate.
   void ReleaseStoreBuffer();
   void AcquireMarkingStack();
@@ -264,8 +284,9 @@ class Thread : public ThreadState {
   void SetStackLimit(uword value);
   void ClearStackLimit();
 
-  // Access to the current stack limit for generated code.  This may be
-  // overwritten with a special value to trigger interrupts.
+  // Access to the current stack limit for generated code. Either the true OS
+  // thread's stack limit minus some headroom, or a special value to trigger
+  // interrupts.
   uword stack_limit_address() const {
     return reinterpret_cast<uword>(&stack_limit_);
   }
@@ -273,7 +294,10 @@ class Thread : public ThreadState {
     return OFFSET_OF(Thread, stack_limit_);
   }
 
-  // The true stack limit for this isolate.
+  // The true stack limit for this OS thread.
+  static intptr_t saved_stack_limit_offset() {
+    return OFFSET_OF(Thread, saved_stack_limit_);
+  }
   uword saved_stack_limit() const { return saved_stack_limit_; }
 
 #if defined(USING_SAFE_STACK)
@@ -282,11 +306,9 @@ class Thread : public ThreadState {
     saved_safestack_limit_ = limit;
   }
 #endif
-
-#if defined(TARGET_ARCH_DBC)
-  // Access to the current stack limit for DBC interpreter.
-  uword stack_limit() const { return stack_limit_; }
-#endif
+  static uword saved_shadow_call_stack_offset() {
+    return OFFSET_OF(Thread, saved_shadow_call_stack_);
+  }
 
   // Stack overflow flags
   enum {
@@ -306,13 +328,11 @@ class Thread : public ThreadState {
     return ++stack_overflow_count_;
   }
 
-#if !defined(TARGET_ARCH_DBC)
   static uword stack_overflow_shared_stub_entry_point_offset(bool fpu_regs) {
     return fpu_regs
                ? stack_overflow_shared_with_fpu_regs_entry_point_offset()
                : stack_overflow_shared_without_fpu_regs_entry_point_offset();
   }
-#endif
 
   static intptr_t safepoint_state_offset() {
     return OFFSET_OF(Thread, safepoint_state_);
@@ -369,6 +389,10 @@ class Thread : public ThreadState {
 
   // The isolate group that this thread is operating on, or nullptr if none.
   IsolateGroup* isolate_group() const { return isolate_group_; }
+
+  static intptr_t field_table_values_offset() {
+    return OFFSET_OF(Thread, field_table_values_);
+  }
 
   bool IsMutatorThread() const;
   bool CanCollectGarbage() const;
@@ -474,9 +498,6 @@ class Thread : public ThreadState {
   static intptr_t top_offset() { return OFFSET_OF(Thread, top_); }
   static intptr_t end_offset() { return OFFSET_OF(Thread, end_); }
 
-  bool bump_allocate() const { return bump_allocate_; }
-  void set_bump_allocate(bool b) { bump_allocate_ = b; }
-
   int32_t no_safepoint_scope_depth() const {
 #if defined(DEBUG)
     return no_safepoint_scope_depth_;
@@ -553,6 +574,11 @@ class Thread : public ThreadState {
     global_object_pool_ = raw_value;
   }
 
+  const uword* dispatch_table_array() const { return dispatch_table_array_; }
+  void set_dispatch_table_array(const uword* array) {
+    dispatch_table_array_ = array;
+  }
+
   static bool CanLoadFromThread(const Object& object);
   static intptr_t OffsetFromThread(const Object& object);
   static bool ObjectAtOffset(intptr_t offset, Object* object);
@@ -584,6 +610,10 @@ class Thread : public ThreadState {
 
   static intptr_t global_object_pool_offset() {
     return OFFSET_OF(Thread, global_object_pool_);
+  }
+
+  static intptr_t dispatch_table_array_offset() {
+    return OFFSET_OF(Thread, dispatch_table_array_);
   }
 
   RawObject* active_exception() const { return active_exception_; }
@@ -662,13 +692,13 @@ class Thread : public ThreadState {
    *   kThreadInNative - The thread is running native code.
    *   kThreadInBlockedState - The thread is blocked waiting for a resource.
    */
-  static bool IsAtSafepoint(uint32_t state) {
+  static bool IsAtSafepoint(uword state) {
     return AtSafepointField::decode(state);
   }
   bool IsAtSafepoint() const {
     return AtSafepointField::decode(safepoint_state_);
   }
-  static uint32_t SetAtSafepoint(bool value, uint32_t state) {
+  static uword SetAtSafepoint(bool value, uword state) {
     return AtSafepointField::update(value, state);
   }
   void SetAtSafepoint(bool value) {
@@ -678,21 +708,22 @@ class Thread : public ThreadState {
   bool IsSafepointRequested() const {
     return SafepointRequestedField::decode(safepoint_state_);
   }
-  static uint32_t SetSafepointRequested(bool value, uint32_t state) {
+  static uword SetSafepointRequested(bool value, uword state) {
     return SafepointRequestedField::update(value, state);
   }
-  uint32_t SetSafepointRequested(bool value) {
+  uword SetSafepointRequested(bool value) {
     ASSERT(thread_lock()->IsOwnedByCurrentThread());
-    uint32_t old_state;
-    uint32_t new_state;
-    do {
-      old_state = safepoint_state_;
-      new_state = SafepointRequestedField::update(value, old_state);
-    } while (AtomicOperations::CompareAndSwapWord(&safepoint_state_, old_state,
-                                                  new_state) != old_state);
-    return old_state;
+    if (value) {
+      // acquire pulls from the release in TryEnterSafepoint.
+      return safepoint_state_.fetch_or(SafepointRequestedField::encode(true),
+                                       std::memory_order_acquire);
+    } else {
+      // release pushes to the acquire in TryExitSafepoint.
+      return safepoint_state_.fetch_and(~SafepointRequestedField::encode(true),
+                                        std::memory_order_release);
+    }
   }
-  static bool IsBlockedForSafepoint(uint32_t state) {
+  static bool IsBlockedForSafepoint(uword state) {
     return BlockedForSafepointField::decode(state);
   }
   bool IsBlockedForSafepoint() const {
@@ -706,7 +737,7 @@ class Thread : public ThreadState {
   bool BypassSafepoints() const {
     return BypassSafepointsField::decode(safepoint_state_);
   }
-  static uint32_t SetBypassSafepoints(bool value, uint32_t state) {
+  static uword SetBypassSafepoints(bool value, uword state) {
     return BypassSafepointsField::update(value, state);
   }
 
@@ -718,6 +749,11 @@ class Thread : public ThreadState {
   };
 
   ExecutionState execution_state() const {
+    return static_cast<ExecutionState>(execution_state_);
+  }
+  // Normally execution state is only accessed for the current thread.
+  NO_SANITIZE_THREAD
+  ExecutionState execution_state_cross_thread_for_testing() const {
     return static_cast<ExecutionState>(execution_state_);
   }
   void set_execution_state(ExecutionState state) {
@@ -736,12 +772,10 @@ class Thread : public ThreadState {
   static uword safepoint_state_acquired() { return SetAtSafepoint(true, 0); }
 
   bool TryEnterSafepoint() {
-    uint32_t new_state = SetAtSafepoint(true, 0);
-    if (AtomicOperations::CompareAndSwapWord(&safepoint_state_, 0, new_state) !=
-        0) {
-      return false;
-    }
-    return true;
+    uword old_state = 0;
+    uword new_state = SetAtSafepoint(true, 0);
+    return safepoint_state_.compare_exchange_strong(old_state, new_state,
+                                                    std::memory_order_release);
   }
 
   void EnterSafepoint() {
@@ -756,12 +790,10 @@ class Thread : public ThreadState {
   }
 
   bool TryExitSafepoint() {
-    uint32_t old_state = SetAtSafepoint(true, 0);
-    if (AtomicOperations::CompareAndSwapWord(&safepoint_state_, old_state, 0) !=
-        old_state) {
-      return false;
-    }
-    return true;
+    uword old_state = SetAtSafepoint(true, 0);
+    uword new_state = 0;
+    return safepoint_state_.compare_exchange_strong(old_state, new_state,
+                                                    std::memory_order_acquire);
   }
 
   void ExitSafepoint() {
@@ -782,10 +814,18 @@ class Thread : public ThreadState {
   }
 
   int32_t AllocateFfiCallbackId();
+
+  // Store 'code' for the native callback identified by 'callback_id'.
+  //
+  // Expands the callback code array as necessary to accomodate the callback ID.
   void SetFfiCallbackCode(int32_t callback_id, const Code& code);
 
-  // Ensure that 'entry' points within the code of the callback identified by
-  // 'callback_id'. Aborts otherwise.
+  // Ensure that 'callback_id' refers to a valid callback in this isolate.
+  //
+  // If "entry != 0", additionally checks that entry is inside the instructions
+  // of this callback.
+  //
+  // Aborts if any of these conditions fails.
   void VerifyCallbackIsolate(int32_t callback_id, uword entry);
 
   Thread* next() const { return next_; }
@@ -793,6 +833,8 @@ class Thread : public ThreadState {
   // Visit all object pointers.
   void VisitObjectPointers(ObjectPointerVisitor* visitor,
                            ValidationPolicy validate_frames);
+  void RememberLiveTemporaries();
+  void DeferredMarkLiveTemporaries();
 
   bool IsValidHandle(Dart_Handle object) const;
   bool IsValidLocalHandle(Dart_Handle object) const;
@@ -823,6 +865,13 @@ class Thread : public ThreadState {
   template <class T>
   T* AllocateReusableHandle();
 
+  enum class RestoreWriteBarrierInvariantOp {
+    kAddToRememberedSet,
+    kAddToDeferredMarkingStack
+  };
+  friend class RestoreWriteBarrierInvariantVisitor;
+  void RestoreWriteBarrierInvariant(RestoreWriteBarrierInvariantOp op);
+
   // Set the current compiler state and return the previous compiler state.
   CompilerState* SetCompilerState(CompilerState* state) {
     CompilerState* previous = compiler_state_;
@@ -836,13 +885,19 @@ class Thread : public ThreadState {
   // in SIMARM(IA32) and ARM, and the same offsets in SIMARM64(X64) and ARM64.
   // We use only word-sized fields to avoid differences in struct packing on the
   // different architectures. See also CheckOffsets in dart.cc.
-  uword stack_limit_;
-  uword stack_overflow_flags_;
+  RelaxedAtomic<uword> stack_limit_;
   uword write_barrier_mask_;
   Isolate* isolate_;
-  Heap* heap_;
+  const uword* dispatch_table_array_;
   uword top_;
   uword end_;
+  // Offsets up to this point can all fit in a byte on X64. All of the above
+  // fields are very abundantly accessed from code. Thus, keeping them first
+  // is important for code size (although code size on X64 is not a priority).
+  uword saved_stack_limit_;
+  uword stack_overflow_flags_;
+  RawInstance** field_table_values_;
+  Heap* heap_;
   uword volatile top_exit_frame_info_;
   StoreBufferBlock* store_buffer_block_;
   MarkingStackBlock* marking_stack_block_;
@@ -879,8 +934,9 @@ class Thread : public ThreadState {
   RawObject* active_stacktrace_;
   RawObjectPool* global_object_pool_;
   uword resume_pc_;
+  uword saved_shadow_call_stack_ = 0;
   uword execution_state_;
-  uword safepoint_state_;
+  std::atomic<uword> safepoint_state_;
   RawGrowableObjectArray* ffi_callback_code_;
 
   // ---- End accessed from generated code. ----
@@ -901,12 +957,10 @@ class Thread : public ThreadState {
   int32_t no_safepoint_scope_depth_;
 #endif
   VMHandles reusable_handles_;
-  uword saved_stack_limit_;
   intptr_t defer_oob_messages_count_;
   uint16_t deferred_interrupts_mask_;
   uint16_t deferred_interrupts_;
   int32_t stack_overflow_count_;
-  bool bump_allocate_;
 
   // Compiler state:
   CompilerState* compiler_state_ = nullptr;
@@ -921,6 +975,8 @@ class Thread : public ThreadState {
   intptr_t ffi_marshalled_arguments_size_ = 0;
   uint64_t* ffi_marshalled_arguments_;
 
+  RawInstance** field_table_values() const { return field_table_values_; }
+
 // Reusable handles support.
 #define REUSABLE_HANDLE_FIELDS(object) object* object##_handle_;
   REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_FIELDS)
@@ -933,10 +989,11 @@ class Thread : public ThreadState {
 #undef REUSABLE_HANDLE_SCOPE_VARIABLE
 #endif  // defined(DEBUG)
 
-  class AtSafepointField : public BitField<uint32_t, bool, 0, 1> {};
-  class SafepointRequestedField : public BitField<uint32_t, bool, 1, 1> {};
-  class BlockedForSafepointField : public BitField<uint32_t, bool, 2, 1> {};
-  class BypassSafepointsField : public BitField<uint32_t, bool, 3, 1> {};
+  // Generated code assumes that AtSafepointField is the LSB.
+  class AtSafepointField : public BitField<uword, bool, 0, 1> {};
+  class SafepointRequestedField : public BitField<uword, bool, 1, 1> {};
+  class BlockedForSafepointField : public BitField<uword, bool, 2, 1> {};
+  class BypassSafepointsField : public BitField<uword, bool, 3, 1> {};
 
 #if defined(USING_SAFE_STACK)
   uword saved_safestack_limit_;
@@ -947,6 +1004,7 @@ class Thread : public ThreadState {
 #endif
 
   Thread* next_;  // Used to chain the thread structures in an isolate.
+  bool is_mutator_thread_ = false;
 
   explicit Thread(bool is_vm_isolate);
 
@@ -963,6 +1021,9 @@ class Thread : public ThreadState {
   void EnterSafepointUsingLock();
   void ExitSafepointUsingLock();
   void BlockForSafepoint();
+
+  void FinishEntering(TaskKind kind);
+  void PrepareLeaving();
 
   static void SetCurrent(Thread* current) { OSThread::SetCurrentTLS(current); }
 
@@ -984,7 +1045,13 @@ class Thread : public ThreadState {
   friend class Simulator;
   friend class StackZone;
   friend class ThreadRegistry;
+  friend class NoActiveIsolateScope;
   friend class CompilerState;
+  friend class compiler::target::Thread;
+  friend class FieldTable;
+  friend Isolate* CreateWithinExistingIsolateGroup(IsolateGroup*,
+                                                   const char*,
+                                                   char**);
   DISALLOW_COPY_AND_ASSIGN(Thread);
 };
 

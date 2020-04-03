@@ -382,13 +382,14 @@ f(prefix.A a) {
     @required String expectedExtendedType,
   }) {
     expect(override.staticElement, expectedElement);
+
+    assertTypeNull(override);
+    assertTypeNull(override.extensionName);
+
     assertElementTypeStrings(
       override.typeArgumentTypes,
       expectedTypeArguments,
     );
-    assertElementTypeString(
-      override.extendedType,
-      expectedExtendedType,
-    );
+    assertType(override.extendedType, expectedExtendedType);
   }
 }

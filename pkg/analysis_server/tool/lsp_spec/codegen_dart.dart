@@ -7,11 +7,11 @@ import 'package:dart_style/dart_style.dart';
 import 'typescript.dart';
 import 'typescript_parser.dart';
 
-final formatter = new DartFormatter();
+final formatter = DartFormatter();
 Map<String, Interface> _interfaces = {};
-Map<String, List<String>> _subtypes = {};
-// TODO(dantup): Rename namespaces -> enums since they're always that now.
 Map<String, Namespace> _namespaces = {};
+// TODO(dantup): Rename namespaces -> enums since they're always that now.
+Map<String, List<String>> _subtypes = {};
 Map<String, TypeAlias> _typeAliases = {};
 
 /// Whether our enum class allows any value (eg. should always return true
@@ -34,6 +34,13 @@ bool enumClassAllowsAnyValue(String name) {
       name != 'ResourceOperationKind';
 }
 
+String generateDartForTypes(List<AstNode> types) {
+  final buffer = IndentableStringBuffer();
+  _getSorted(types).forEach((t) => _writeType(buffer, t));
+  final formattedCode = _formatCode(buffer.toString());
+  return formattedCode.trim() + '\n'; // Ensure a single trailing newline.
+}
+
 void recordTypes(List<AstNode> types) {
   types
       .whereType<TypeAlias>()
@@ -43,20 +50,13 @@ void recordTypes(List<AstNode> types) {
     // Keep track of our base classes so they can look up their super classes
     // later in their fromJson() to deserialise into the most specific type.
     interface.baseTypes.forEach((base) {
-      final subTypes = _subtypes[base.dartType] ??= new List<String>();
+      final subTypes = _subtypes[base.dartType] ??= <String>[];
       subTypes.add(interface.name);
     });
   });
   types
       .whereType<Namespace>()
       .forEach((namespace) => _namespaces[namespace.name] = namespace);
-}
-
-String generateDartForTypes(List<AstNode> types) {
-  final buffer = new IndentableStringBuffer();
-  _getSorted(types).forEach((t) => _writeType(buffer, t));
-  final formattedCode = _formatCode(buffer.toString());
-  return formattedCode.trim() + '\n'; // Ensure a single trailing newline.
 }
 
 TypeBase resolveTypeAlias(TypeBase type, {resolveEnumClasses = false}) {
@@ -125,7 +125,7 @@ String _makeValidIdentifier(String identifier) {
 }
 
 String _rewriteCommentReference(String comment) {
-  final commentReferencePattern = new RegExp(r'\[([\w ]+)\]\(#(\w+)\)');
+  final commentReferencePattern = RegExp(r'\[([\w ]+)\]\(#(\w+)\)');
   return comment.replaceAllMapped(commentReferencePattern, (m) {
     final description = m.group(1);
     final reference = m.group(2);
@@ -145,7 +145,7 @@ Iterable<String> _wrapLines(List<String> lines, int maxLength) sync* {
         yield line;
         break;
       } else {
-        int lastSpace = line.lastIndexOf(' ', maxLength);
+        var lastSpace = line.lastIndexOf(' ', maxLength);
         // If there was no valid place to wrap, yield the whole string.
         if (lastSpace == -1) {
           yield line;
@@ -179,7 +179,7 @@ void _writeCanParseMethod(IndentableStringBuffer buffer, Interface interface) {
       buffer
         ..writeIndentedln("if (!obj.containsKey('${field.name}')) {")
         ..indent()
-        ..writeIndentedln('reporter.reportError("must not be undefined");')
+        ..writeIndentedln("reporter.reportError('must not be undefined');")
         ..writeIndentedln('return false;')
         ..outdent()
         ..writeIndentedln('}');
@@ -188,7 +188,7 @@ void _writeCanParseMethod(IndentableStringBuffer buffer, Interface interface) {
       buffer
         ..writeIndentedln("if (obj['${field.name}'] == null) {")
         ..indent()
-        ..writeIndentedln('reporter.reportError("must not be null");')
+        ..writeIndentedln("reporter.reportError('must not be null');")
         ..writeIndentedln('return false;')
         ..outdent()
         ..writeIndentedln('}');
@@ -204,7 +204,7 @@ void _writeCanParseMethod(IndentableStringBuffer buffer, Interface interface) {
       ..write(')) {')
       ..indent()
       ..writeIndentedln(
-          'reporter.reportError("must be of type ${field.type.dartTypeWithTypeArgs}");')
+          "reporter.reportError('must be of type ${field.type.dartTypeWithTypeArgs}');")
       ..writeIndentedln('return false;')
       ..outdent()
       ..writeIndentedln('}')
@@ -221,7 +221,7 @@ void _writeCanParseMethod(IndentableStringBuffer buffer, Interface interface) {
     ..writeIndentedln('} else {')
     ..indent()
     ..writeIndentedln(
-        'reporter.reportError("must be of type ${interface.nameWithTypeArgs}");')
+        "reporter.reportError('must be of type ${interface.nameWithTypeArgs}');")
     ..writeIndentedln('return false;')
     ..outdent()
     ..writeIndentedln('}')
@@ -264,15 +264,6 @@ void _writeConstructor(IndentableStringBuffer buffer, Interface interface) {
   } else {
     buffer.writeln(';');
   }
-}
-
-void _writeJsonHandler(IndentableStringBuffer buffer, Interface interface) {
-  buffer
-    ..writeIndented('static const jsonHandler = ')
-    ..write('const LspJsonHandler(')
-    ..write('${interface.name}.canParse, ${interface.name}.fromJson')
-    ..writeln(');')
-    ..writeln();
 }
 
 void _writeDocCommentsAndAnnotations(
@@ -335,7 +326,7 @@ void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
     _writeDocCommentsAndAnnotations(buffer, cons);
     buffer
       ..writeIndentedln(
-          'static const ${_makeValidIdentifier(cons.name)} = const ${namespace.name}$constructorName(${cons.valueAsLiteral});');
+          'static const ${_makeValidIdentifier(cons.name)} = ${namespace.name}$constructorName(${cons.valueAsLiteral});');
   });
   buffer
     ..writeln()
@@ -343,10 +334,10 @@ void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
     ..writeln()
     ..writeIndentedln('@override String toString() => _value.toString();')
     ..writeln()
-    ..writeIndentedln('@override get hashCode => _value.hashCode;')
+    ..writeIndentedln('@override int get hashCode => _value.hashCode;')
     ..writeln()
     ..writeIndentedln(
-        'bool operator ==(o) => o is ${namespace.name} && o._value == _value;')
+        'bool operator ==(Object o) => o is ${namespace.name} && o._value == _value;')
     ..outdent()
     ..writeln('}')
     ..writeln();
@@ -355,7 +346,7 @@ void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
 void _writeEquals(IndentableStringBuffer buffer, Interface interface) {
   buffer
     ..writeIndentedln('@override')
-    ..writeIndentedln('bool operator ==(other) {')
+    ..writeIndentedln('bool operator ==(Object other) {')
     ..indent()
     ..writeIndentedln('if (other is ${interface.name}) {')
     ..indent()
@@ -399,15 +390,15 @@ void _writeFromJsonCode(
   type = resolveTypeAlias(type);
 
   if (_isSimpleType(type)) {
-    buffer.write("$valueCode");
+    buffer.write('$valueCode');
   } else if (_isSpecType(type)) {
     // Our own types have fromJson() constructors we can call.
     buffer.write(
-        "$valueCode != null ? ${type.dartType}.fromJson${type.typeArgsString}($valueCode) : null");
+        '$valueCode != null ? ${type.dartType}.fromJson${type.typeArgsString}($valueCode) : null');
   } else if (type is ArrayType) {
     // Lists need to be map()'d so we can recursively call writeFromJsonCode
     // as they may need fromJson on each element.
-    buffer.write("$valueCode?.map((item) => ");
+    buffer.write('$valueCode?.map((item) => ');
     _writeFromJsonCode(buffer, type.elementType, 'item',
         allowsNull: allowsNull);
     buffer
@@ -415,7 +406,7 @@ void _writeFromJsonCode(
   } else if (type is MapType) {
     // Maps need to be map()'d so we can recursively call writeFromJsonCode as
     // they may need fromJson on each key or value.
-    buffer.write('$valueCode?.map((key, value) => new MapEntry(');
+    buffer.write('$valueCode?.map((key, value) => MapEntry(');
     _writeFromJsonCode(buffer, type.indexType, 'key', allowsNull: allowsNull);
     buffer.write(', ');
     _writeFromJsonCode(buffer, type.valueType, 'value', allowsNull: allowsNull);
@@ -424,7 +415,7 @@ void _writeFromJsonCode(
   } else if (type is UnionType) {
     _writeFromJsonCodeForUnion(buffer, type, valueCode, allowsNull: allowsNull);
   } else {
-    buffer.write("$valueCode");
+    buffer.write('$valueCode');
   }
 }
 
@@ -446,7 +437,7 @@ void _writeFromJsonCodeForUnion(
     }
 
     // The code to construct a value with this "side" of the union.
-    buffer.write('new ${union.dartTypeWithTypeArgs}.t${i + 1}(');
+    buffer.write('${union.dartTypeWithTypeArgs}.t${i + 1}(');
     _writeFromJsonCode(buffer, type, valueCode,
         allowsNull: allowsNull); // Call recursively!
     buffer.write(')');
@@ -498,7 +489,7 @@ void _writeFromJsonConstructor(
     buffer.writeln(';');
   }
   buffer
-    ..writeIndented('return new ${interface.nameWithTypeArgs}(')
+    ..writeIndented('return ${interface.nameWithTypeArgs}(')
     ..write(allFields.map((field) => '${field.name}').join(', '))
     ..writeln(');')
     ..outdent()
@@ -510,7 +501,7 @@ void _writeHashCode(IndentableStringBuffer buffer, Interface interface) {
     ..writeIndentedln('@override')
     ..writeIndentedln('int get hashCode {')
     ..indent()
-    ..writeIndentedln('int hash = 0;');
+    ..writeIndentedln('var hash = 0;');
   for (var field in _getAllFields(interface)) {
     buffer.writeIndentedln(
         'hash = JenkinsSmiHash.combine(hash, ${field.name}.hashCode);');
@@ -558,6 +549,15 @@ void _writeInterface(IndentableStringBuffer buffer, Interface interface) {
     ..writeln();
 }
 
+void _writeJsonHandler(IndentableStringBuffer buffer, Interface interface) {
+  buffer
+    ..writeIndented('static const jsonHandler = ')
+    ..write('LspJsonHandler(')
+    ..write('${interface.name}.canParse, ${interface.name}.fromJson')
+    ..writeln(');')
+    ..writeln();
+}
+
 void _writeJsonMapAssignment(
     IndentableStringBuffer buffer, Field field, String mapName) {
   // If we are allowed to be undefined, we'll only add the value if set.
@@ -593,29 +593,6 @@ void _writeMembers(IndentableStringBuffer buffer, List<Member> members) {
   _getSorted(members).forEach((m) => _writeMember(buffer, m));
 }
 
-void _writeToJsonMethod(IndentableStringBuffer buffer, Interface interface) {
-  // It's important the name we use for the map here isn't in use in the object
-  // already. 'result' was, so we prefix it with some underscores.
-  buffer
-    ..writeIndentedln('Map<String, dynamic> toJson() {')
-    ..indent()
-    ..writeIndentedln('Map<String, dynamic> __result = {};');
-  // ResponseMessage must confirm to JSON-RPC which says only one of
-  // result/error can be included. Since this isn't encoded in the types we
-  // need to special-case it's toJson generation.
-  if (interface.name == "ResponseMessage") {
-    _writeToJsonFieldsForResponseMessage(buffer, interface);
-  } else {
-    for (var field in _getAllFields(interface)) {
-      _writeJsonMapAssignment(buffer, field, '__result');
-    }
-  }
-  buffer
-    ..writeIndentedln('return __result;')
-    ..outdent()
-    ..writeIndentedln('}');
-}
-
 void _writeToJsonFieldsForResponseMessage(
     IndentableStringBuffer buffer, Interface interface) {
   const mapName = '__result';
@@ -641,6 +618,29 @@ void _writeToJsonFieldsForResponseMessage(
     ..writeIndentedln('} else {')
     ..indent()
     ..writeIndentedln('''$mapName['result'] = result;''')
+    ..outdent()
+    ..writeIndentedln('}');
+}
+
+void _writeToJsonMethod(IndentableStringBuffer buffer, Interface interface) {
+  // It's important the name we use for the map here isn't in use in the object
+  // already. 'result' was, so we prefix it with some underscores.
+  buffer
+    ..writeIndentedln('Map<String, dynamic> toJson() {')
+    ..indent()
+    ..writeIndentedln('var __result = <String, dynamic>{};');
+  // ResponseMessage must confirm to JSON-RPC which says only one of
+  // result/error can be included. Since this isn't encoded in the types we
+  // need to special-case it's toJson generation.
+  if (interface.name == 'ResponseMessage') {
+    _writeToJsonFieldsForResponseMessage(buffer, interface);
+  } else {
+    for (var field in _getAllFields(interface)) {
+      _writeJsonMapAssignment(buffer, field, '__result');
+    }
+  }
+  buffer
+    ..writeIndentedln('return __result;')
     ..outdent()
     ..writeIndentedln('}');
 }
@@ -715,7 +715,7 @@ void _writeTypeCheckCondition(IndentableStringBuffer buffer, String valueCode,
 
 class IndentableStringBuffer extends StringBuffer {
   int _indentLevel = 0;
-  int _indentSpaces = 2;
+  final int _indentSpaces = 2;
 
   int get totalIndent => _indentLevel * _indentSpaces;
   String get _indentString => ' ' * totalIndent;

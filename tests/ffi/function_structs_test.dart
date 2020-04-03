@@ -7,14 +7,12 @@
 //
 // SharedObjects=ffi_test_functions
 
-library FfiTest;
-
-import 'dart:ffi' as ffi;
-import 'dart:ffi' show Pointer;
+import 'dart:ffi';
 
 import 'dylib_utils.dart';
 
 import "package:expect/expect.dart";
+import "package:ffi/ffi.dart";
 
 import 'coordinate.dart';
 import 'very_large_struct.dart';
@@ -27,41 +25,39 @@ void main() {
   testFunctionWithVeryLargeStruct();
 }
 
-ffi.DynamicLibrary ffiTestFunctions =
-    dlopenPlatformSpecific("ffi_test_functions");
+DynamicLibrary ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 
 /// pass a struct to a c function and get a struct as return value
 void testFunctionWithStruct() {
-  ffi.Pointer<ffi.NativeFunction<NativeCoordinateOp>> p1 =
+  Pointer<NativeFunction<NativeCoordinateOp>> p1 =
       ffiTestFunctions.lookup("TransposeCoordinate");
   NativeCoordinateOp f1 = p1.asFunction();
 
-  Pointer<Coordinate> c1 =
-      Coordinate.allocate(10.0, 20.0, ffi.nullptr.cast<Coordinate>()).addressOf;
+  Pointer<Coordinate> c1 = Coordinate.allocate(10.0, 20.0, nullptr).addressOf;
   Pointer<Coordinate> c2 = Coordinate.allocate(42.0, 84.0, c1).addressOf;
-  c1.load<Coordinate>().next = c2;
+  c1.ref.next = c2;
 
-  Coordinate result = f1(c1).load();
+  Coordinate result = f1(c1).ref;
 
-  Expect.approxEquals(20.0, c1.load<Coordinate>().x);
-  Expect.approxEquals(30.0, c1.load<Coordinate>().y);
+  Expect.approxEquals(20.0, c1.ref.x);
+  Expect.approxEquals(30.0, c1.ref.y);
 
   Expect.approxEquals(42.0, result.x);
   Expect.approxEquals(84.0, result.y);
 
-  c1.free();
-  c2.free();
+  free(c1);
+  free(c2);
 }
 
 /// pass an array of structs to a c funtion
 void testFunctionWithStructArray() {
-  ffi.Pointer<ffi.NativeFunction<NativeCoordinateOp>> p1 =
+  Pointer<NativeFunction<NativeCoordinateOp>> p1 =
       ffiTestFunctions.lookup("CoordinateElemAt1");
   NativeCoordinateOp f1 = p1.asFunction();
 
-  Coordinate c1 = Pointer<Coordinate>.allocate(count: 3).load();
-  Coordinate c2 = c1.addressOf.elementAt(1).load();
-  Coordinate c3 = c1.addressOf.elementAt(2).load();
+  Coordinate c1 = allocate<Coordinate>(count: 3).ref;
+  Coordinate c2 = c1.addressOf[1];
+  Coordinate c3 = c1.addressOf[2];
   c1.x = 10.0;
   c1.y = 10.0;
   c1.next = c3.addressOf;
@@ -72,23 +68,23 @@ void testFunctionWithStructArray() {
   c3.y = 30.0;
   c3.next = c2.addressOf;
 
-  Coordinate result = f1(c1.addressOf).load();
+  Coordinate result = f1(c1.addressOf).ref;
   Expect.approxEquals(20.0, result.x);
   Expect.approxEquals(20.0, result.y);
 
-  c1.addressOf.free();
+  free(c1.addressOf);
 }
 
 typedef VeryLargeStructSum = int Function(Pointer<VeryLargeStruct>);
-typedef NativeVeryLargeStructSum = ffi.Int64 Function(Pointer<VeryLargeStruct>);
+typedef NativeVeryLargeStructSum = Int64 Function(Pointer<VeryLargeStruct>);
 
 void testFunctionWithVeryLargeStruct() {
-  ffi.Pointer<ffi.NativeFunction<NativeVeryLargeStructSum>> p1 =
+  Pointer<NativeFunction<NativeVeryLargeStructSum>> p1 =
       ffiTestFunctions.lookup("SumVeryLargeStruct");
   VeryLargeStructSum f = p1.asFunction();
 
-  VeryLargeStruct vls1 = Pointer<VeryLargeStruct>.allocate(count: 2).load();
-  VeryLargeStruct vls2 = vls1.addressOf.elementAt(1).load();
+  VeryLargeStruct vls1 = allocate<VeryLargeStruct>(count: 2).ref;
+  VeryLargeStruct vls2 = vls1.addressOf[1];
   List<VeryLargeStruct> structs = [vls1, vls2];
   for (VeryLargeStruct struct in structs) {
     struct.a = 1;
@@ -108,9 +104,9 @@ void testFunctionWithVeryLargeStruct() {
   vls1.numChildren = 2;
   vls1.children = vls1.addressOf;
   vls2.parent = vls2.addressOf;
-  vls2.parent = ffi.nullptr.cast();
+  vls2.parent = nullptr;
   vls2.numChildren = 0;
-  vls2.children = ffi.nullptr.cast();
+  vls2.children = nullptr;
 
   int result = f(vls1.addressOf);
   Expect.equals(2051, result);
@@ -118,5 +114,5 @@ void testFunctionWithVeryLargeStruct() {
   result = f(vls2.addressOf);
   Expect.equals(2048, result);
 
-  vls1.addressOf.free();
+  free(vls1.addressOf);
 }

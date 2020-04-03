@@ -58,7 +58,7 @@ class TypeVariableCheckedModeHelper extends CheckedModeHelper {
   @override
   void generateAdditionalArguments(SsaCodeGenerator codegen, ModularNamer namer,
       HTypeConversion node, List<jsAst.Expression> arguments) {
-    assert(node.typeExpression.isTypeVariable);
+    assert(node.typeExpression is TypeVariableType);
     codegen.use(node.typeRepresentation);
     arguments.add(codegen.pop());
   }
@@ -73,7 +73,7 @@ class FunctionTypeRepresentationCheckedModeHelper extends CheckedModeHelper {
   @override
   void generateAdditionalArguments(SsaCodeGenerator codegen, ModularNamer namer,
       HTypeConversion node, List<jsAst.Expression> arguments) {
-    assert(node.typeExpression.isFunctionType);
+    assert(node.typeExpression is FunctionType);
     codegen.use(node.typeRepresentation);
     arguments.add(codegen.pop());
   }
@@ -88,7 +88,7 @@ class FutureOrRepresentationCheckedModeHelper extends CheckedModeHelper {
   @override
   void generateAdditionalArguments(SsaCodeGenerator codegen, ModularNamer namer,
       HTypeConversion node, List<jsAst.Expression> arguments) {
-    assert(node.typeExpression.isFutureOr);
+    assert(node.typeExpression is FutureOrType);
     codegen.use(node.typeRepresentation);
     arguments.add(codegen.pop());
   }
@@ -203,23 +203,23 @@ class CheckedModeHelpers {
   String getCheckedModeHelperNameInternal(
       DartType type, CommonElements commonElements,
       {bool typeCast, bool nativeCheckOnly}) {
-    assert(!type.isTypedef);
+    DartTypes dartTypes = commonElements.dartTypes;
 
-    if (type.isTypeVariable) {
+    if (type is TypeVariableType) {
       return typeCast
           ? 'subtypeOfRuntimeTypeCast'
           : 'assertSubtypeOfRuntimeType';
     }
 
-    if (type.isFunctionType) {
+    if (type is FunctionType) {
       return typeCast ? 'functionTypeCast' : 'functionTypeCheck';
     }
 
-    if (type.isFutureOr) {
+    if (type is FutureOrType) {
       return typeCast ? 'futureOrCast' : 'futureOrCheck';
     }
 
-    assert(type.isInterfaceType,
+    assert(type is InterfaceType,
         failedAt(NO_LOCATION_SPANNABLE, "Unexpected type: $type"));
     InterfaceType interfaceType = type;
     ClassEntity element = interfaceType.element;
@@ -275,16 +275,17 @@ class CheckedModeHelpers {
 
     if ((element == commonElements.listClass ||
             element == commonElements.jsArrayClass) &&
-        type.treatAsRaw) {
+        dartTypes.treatAsRawType(type)) {
       if (nativeCheckOnly) return null;
       return 'list$suffix';
     }
 
-    if (commonElements.isListSupertype(element) && type.treatAsRaw) {
+    if (commonElements.isListSupertype(element) &&
+        dartTypes.treatAsRawType(type)) {
       return nativeCheck ? 'listSuperNative$suffix' : 'listSuper$suffix';
     }
 
-    if (type.isInterfaceType && !type.treatAsRaw) {
+    if (type is InterfaceType && !dartTypes.treatAsRawType(type)) {
       return typeCast ? 'subtypeCast' : 'assertSubtype';
     }
 

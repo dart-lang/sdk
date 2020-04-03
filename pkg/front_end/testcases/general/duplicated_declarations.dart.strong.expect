@@ -306,10 +306,6 @@ library;
 // class Sub extends C {
 //                   ^
 //
-// pkg/front_end/testcases/general/duplicated_declarations.dart:65:19: Error: 'C' isn't a type.
-// class Sub extends C {
-//                   ^
-//
 // pkg/front_end/testcases/general/duplicated_declarations.dart:34:3: Error: Can't use 'main' because it is declared more than once.
 //   main();
 //   ^
@@ -425,7 +421,7 @@ Try removing the extra positional arguments.
   method m() → dynamic
     return super.m();
 }
-class Enum#4 extends core::Object { // from org-dartlang-testcase:///duplicated_declarations_part.dart
+class Enum#4 extends core::Object /*isEnum*/  { // from org-dartlang-testcase:///duplicated_declarations_part.dart
   final field core::int* index;
   final field core::String* _name;
   static const field core::List<self::Enum#4*>* values = #C4;
@@ -436,7 +432,7 @@ class Enum#4 extends core::Object { // from org-dartlang-testcase:///duplicated_
   method toString() → core::String*
     return this.{=self::Enum#4::_name};
 }
-class Enum#3 extends core::Object { // from org-dartlang-testcase:///duplicated_declarations_part.dart
+class Enum#3 extends core::Object /*isEnum*/  { // from org-dartlang-testcase:///duplicated_declarations_part.dart
   final field core::int* index;
   final field core::String* _name;
   static const field core::List<self::Enum#3*>* values = #C12;
@@ -449,7 +445,7 @@ class Enum#3 extends core::Object { // from org-dartlang-testcase:///duplicated_
   method toString() → core::String*
     return this.{=self::Enum#3::_name};
 }
-class Enum#2 extends core::Object { // from org-dartlang-testcase:///duplicated_declarations_part.dart
+class Enum#2 extends core::Object /*isEnum*/  { // from org-dartlang-testcase:///duplicated_declarations_part.dart
   final field core::int* index;
   final field core::String* _name;
   static const field core::List<self::Enum#2*>* values = #C17;
@@ -462,7 +458,7 @@ class Enum#2 extends core::Object { // from org-dartlang-testcase:///duplicated_
   method toString() → core::String*
     return this.{=self::Enum#2::_name};
 }
-class Enum#1 extends core::Object {
+class Enum#1 extends core::Object /*isEnum*/  {
   final field core::int* index;
   final field core::String* _name;
   static const field core::List<self::Enum#1*>* values = #C21;
@@ -475,7 +471,7 @@ class Enum#1 extends core::Object {
   method toString() → core::String*
     return this.{=self::Enum#1::_name};
 }
-class Enum extends core::Object {
+class Enum extends core::Object /*isEnum*/  {
   final field core::int* index;
   final field core::String* _name;
   static const field core::List<self::Enum*>* values = #C25;
@@ -488,7 +484,7 @@ class Enum extends core::Object {
   method toString() → core::String*
     return this.{=self::Enum::_name};
 }
-class AnotherEnum extends core::Object {
+class AnotherEnum extends core::Object /*isEnum*/  {
   final field core::int* index;
   final field core::String* _name;
   static const field core::List<self::AnotherEnum*>* values = #C32;

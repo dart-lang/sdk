@@ -82,11 +82,3 @@ Constructing `CatchEntryMoves` dynamically from deoptimization instructions
 allows to avoid unnecessary duplication of the metadata and save memory: as
 deoptimization environments contain all information necessary for constructing
 correct stack state.
-
-IMPORTANT: There is a subtle difference between DBC and other architectures with
-respect to catch block entry state. On normal architectures `Parameter(i)` at
-catch entry would be associated with the same stack space that would be used to
-store variable with index `i`. On DBC however at catch entry `Parameter(i)`
-would be allocated to a separate scratch space at the very top of the register
-space. See `FlowGraphAllocator::ProcessInitialDefinition` and
-`FlowGraphCompiler::CatchEntryRegForVariable`.

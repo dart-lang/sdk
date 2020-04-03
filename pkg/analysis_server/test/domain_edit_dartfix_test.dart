@@ -12,7 +12,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'analysis_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(EditDartfixDomainHandlerTest);
   });
@@ -21,7 +21,6 @@ main() {
 @reflectiveTest
 class EditDartfixDomainHandlerTest extends AbstractAnalysisTest {
   int requestId = 30;
-  String libPath;
 
   String get nextRequestId => (++requestId).toString();
 
@@ -33,7 +32,7 @@ class EditDartfixDomainHandlerTest extends AbstractAnalysisTest {
 
   void expectFileEdits(
       String originalSource, SourceFileEdit fileEdit, String expectedSource) {
-    String source = SourceEdit.applySequence(originalSource, fileEdit.edits);
+    var source = SourceEdit.applySequence(originalSource, fileEdit.edits);
     expect(source, expectedSource);
   }
 
@@ -61,13 +60,15 @@ class EditDartfixDomainHandlerTest extends AbstractAnalysisTest {
       List<String> excludedFixes,
       bool pedantic}) async {
     final id = nextRequestId;
-    final params = new EditDartfixParams([projectPath]);
+    final params = EditDartfixParams([projectPath]);
     params.includedFixes = includedFixes;
     params.excludedFixes = excludedFixes;
     params.includePedanticFixes = pedantic;
-    final request = new Request(id, 'edit.dartfix', params.toJson());
+    final request = Request(id, 'edit.dartfix', params.toJson());
 
-    final response = await new EditDartFix(server, request).compute();
+    var fix = EditDartFix(server, request);
+    final response = await fix.compute();
+    fix.nonNullableFixTask?.server?.close();
     expect(response.id, id);
     return response;
   }
@@ -76,26 +77,18 @@ class EditDartfixDomainHandlerTest extends AbstractAnalysisTest {
   void setUp() {
     super.setUp();
     registerLintRules();
-    libPath = resourceProvider.convertPath('/project/lib');
     testFile = resourceProvider.convertPath('/project/lib/fileToBeFixed.dart');
   }
 
-  test_dartfix_collection_if_elements() async {
-    // Add analysis options to enable ui as code
-    newFile('/project/analysis_options.yaml', content: '''
-analyzer:
-  enable-experiment:
-    - control-flow-collections
-    - spread-collections
-''');
+  Future<void> test_collection_if_elements() async {
     addTestFile('''
 f(bool b) {
   return ['a', b ? 'c' : 'd', 'e'];
 }
 ''');
     createProject();
-    EditDartfixResult result =
-        await performFix(includedFixes: ['collection-if-elements']);
+    var result = await performFix(
+        includedFixes: ['prefer_if_elements_to_conditional_expressions']);
     expect(result.suggestions.length, greaterThanOrEqualTo(1));
     expect(result.hasErrors, isFalse);
     expectEdits(result.edits, '''
@@ -105,17 +98,17 @@ f(bool b) {
 ''');
   }
 
-  test_dartfix_excludedFix_invalid() async {
+  Future<void> test_excludedFix_invalid() async {
     addTestFile('''
 const double myDouble = 42.0;
     ''');
     createProject();
 
-    final result = await performFixRaw(excludedFixes: ['not-a-fix']);
+    final result = await performFixRaw(excludedFixes: ['not_a_fix']);
     expect(result.error, isNotNull);
   }
 
-  test_dartfix_excludedSource() async {
+  Future<void> test_excludedSource() async {
     // Add analysis options to exclude the lib directory then reanalyze
     newFile('/project/analysis_options.yaml', content: '''
 analyzer:
@@ -129,74 +122,47 @@ const double myDouble = 42.0;
     createProject();
 
     // Assert no suggestions now that source has been excluded
-    final result = await performFix(includedFixes: ['double-to-int']);
+    final result = await performFix(includedFixes: ['prefer_int_literals']);
     expect(result.suggestions, hasLength(0));
     expect(result.edits, hasLength(0));
   }
 
-  test_dartfix_fixNamedConstructorTypeArgs() async {
+  Future<void> test_fixNamedConstructorTypeArgs() async {
     addTestFile('''
-class A<T> { A.from(Object obj) { } }
+class A<T> {
+  A.from(Object obj);
+}
 main() {
-  print(new A.from<String>([]));
+  print(A.from<String>([]));
 }
     ''');
     createProject();
-    EditDartfixResult result = await performFix();
+    var result = await performFix(
+        includedFixes: ['wrong_number_of_type_arguments_constructor']);
     expect(result.suggestions, hasLength(1));
-    expectSuggestion(result.suggestions[0], 'type arguments', 65, 8);
+    expectSuggestion(result.suggestions[0], 'type arguments', 60, 8);
     expectEdits(result.edits, '''
-class A<T> { A.from(Object obj) { } }
+class A<T> {
+  A.from(Object obj);
+}
 main() {
-  print(new A<String>.from([]));
+  print(A<String>.from([]));
 }
     ''');
   }
 
-  test_dartfix_includedFix_invalid() async {
+  Future<void> test_includedFix_invalid() async {
     addTestFile('''
 const double myDouble = 42.0;
     ''');
     createProject();
 
-    final result = await performFixRaw(includedFixes: ['not-a-fix']);
+    final result = await performFixRaw(includedFixes: ['not_a_fix']);
     expect(result.error, isNotNull);
   }
 
-  test_dartfix_map_for_elements() async {
-    // Add analysis options to enable ui as code
-    newFile('/project/analysis_options.yaml', content: '''
-analyzer:
-  enable-experiment:
-    - control-flow-collections
-    - spread-collections
-''');
-    addTestFile('''
-f(Iterable<int> i) {
-  var k = 3;
-  return Map.fromIterable(i, key: (k) => k * 2, value: (v) => k);
-}
-''');
-    createProject();
-    EditDartfixResult result =
-        await performFix(includedFixes: ['map-for-elements']);
-    expect(result.suggestions.length, greaterThanOrEqualTo(1));
-    expect(result.hasErrors, isFalse);
-    expectEdits(result.edits, '''
-f(Iterable<int> i) {
-  var k = 3;
-  return { for (var e in i) e * 2 : k };
-}
-''');
-  }
-
-  test_dartfix_non_nullable() async {
-    // Add analysis options to enable non-nullable analysis
-    newFile('/project/analysis_options.yaml', content: '''
-analyzer:
-  enable-experiment:
-    - non-nullable
-''');
+  Future<void> test_nonNullable() async {
+    createAnalysisOptionsFile(experiments: ['non-nullable']);
     addTestFile('''
 int f(int i) => 0;
 int g(int i) => f(i);
@@ -205,27 +171,17 @@ void test() {
 }
 ''');
     createProject();
-    EditDartfixResult result =
-        await performFix(includedFixes: ['non-nullable']);
-    expect(result.suggestions.length, greaterThanOrEqualTo(1));
-    expect(result.hasErrors, isFalse);
-    expectEdits(result.edits, '''
-int f(int? i) => 0;
-int g(int? i) => f(i);
-void test() {
-  g(null);
-}
-''');
+    expectLater(() async => await performFix(includedFixes: ['non-nullable']),
+        throwsA(TypeMatcher<StateError>()));
   }
 
-  test_dartfix_non_nullable_analysis_options_created() async {
+  Future<void> test_nonNullable_analysisOptions_created() async {
     // Add pubspec for nnbd migration to detect
     newFile('/project/pubspec.yaml', content: '''
 name: testnnbd
 ''');
     createProject();
-    EditDartfixResult result =
-        await performFix(includedFixes: ['non-nullable']);
+    var result = await performFix(includedFixes: ['non-nullable']);
     expect(result.suggestions.length, greaterThanOrEqualTo(1));
     expect(result.hasErrors, isFalse);
     expect(result.edits, hasLength(1));
@@ -237,8 +193,8 @@ analyzer:
 ''');
   }
 
-  test_dartfix_non_nullable_analysis_options_experiments_added() async {
-    String originalOptions = '''
+  Future<void> test_nonNullable_analysisOptions_experimentsAdded() async {
+    var originalOptions = '''
 analyzer:
   something:
     - other
@@ -248,8 +204,7 @@ linter:
 ''';
     newFile('/project/analysis_options.yaml', content: originalOptions);
     createProject();
-    EditDartfixResult result =
-        await performFix(includedFixes: ['non-nullable']);
+    var result = await performFix(includedFixes: ['non-nullable']);
     expect(result.suggestions.length, greaterThanOrEqualTo(1));
     expect(result.hasErrors, isFalse);
     expect(result.edits, hasLength(1));
@@ -265,8 +220,8 @@ linter:
 ''');
   }
 
-  test_dartfix_non_nullable_analysis_options_nnbd_added() async {
-    String originalOptions = '''
+  Future<void> test_nonNullable_analysisOptions_nnbdAdded() async {
+    var originalOptions = '''
 analyzer:
   enable-experiment:
     - other
@@ -275,8 +230,7 @@ linter:
 ''';
     newFile('/project/analysis_options.yaml', content: originalOptions);
     createProject();
-    EditDartfixResult result =
-        await performFix(includedFixes: ['non-nullable']);
+    var result = await performFix(includedFixes: ['non-nullable']);
     expect(result.suggestions.length, greaterThanOrEqualTo(1));
     expect(result.hasErrors, isFalse);
     expect(result.edits, hasLength(1));
@@ -290,7 +244,7 @@ linter:
 ''');
   }
 
-  test_dartfix_partFile() async {
+  Future<void> test_partFile() async {
     newFile('/project/lib/lib.dart', content: '''
 library lib2;
 part 'fileToBeFixed.dart';
@@ -302,8 +256,7 @@ const double myDouble = 42.0;
     createProject();
 
     // Assert dartfix suggestions
-    EditDartfixResult result =
-        await performFix(includedFixes: ['double-to-int']);
+    var result = await performFix(includedFixes: ['prefer_int_literals']);
     expect(result.suggestions, hasLength(1));
     expectSuggestion(result.suggestions[0], 'int literal', 38, 4);
     expectEdits(result.edits, '''
@@ -312,7 +265,7 @@ const double myDouble = 42;
     ''');
   }
 
-  test_dartfix_partFile_loose() async {
+  Future<void> test_partFile_loose() async {
     addTestFile('''
 part of lib2;
 const double myDouble = 42.0;
@@ -320,8 +273,7 @@ const double myDouble = 42.0;
     createProject();
 
     // Assert dartfix suggestions
-    EditDartfixResult result =
-        await performFix(includedFixes: ['double-to-int']);
+    var result = await performFix(includedFixes: ['prefer_int_literals']);
     expect(result.suggestions, hasLength(1));
     expectSuggestion(result.suggestions[0], 'int literal', 38, 4);
     expectEdits(result.edits, '''
@@ -330,66 +282,66 @@ const double myDouble = 42;
     ''');
   }
 
-  test_dartfix_pedantic() async {
+  Future<void> test_pedantic() async {
     addTestFile('main(List args) { if (args.length == 0) { } }');
     createProject();
-    EditDartfixResult result = await performFix(pedantic: true);
+    var result = await performFix(pedantic: true);
     expect(result.suggestions, hasLength(1));
     expectSuggestion(result.suggestions[0], "Replace with 'isEmpty'", 22, 16);
     expect(result.hasErrors, isFalse);
     expectEdits(result.edits, 'main(List args) { if (args.isEmpty) { } }');
   }
 
-  test_dartfix_preferEqualForDefaultValues() async {
+  Future<void> test_preferEqualForDefaultValues() async {
     // Add analysis options to enable ui as code
     addTestFile('f({a: 1}) { }');
     createProject();
-    EditDartfixResult result = await performFix();
+    var result =
+        await performFix(includedFixes: ['prefer_equal_for_default_values']);
     expect(result.suggestions, hasLength(1));
     expectSuggestion(result.suggestions[0], "Replace ':' with '='", 4, 1);
     expect(result.hasErrors, isFalse);
     expectEdits(result.edits, 'f({a = 1}) { }');
   }
 
-  test_dartfix_preferForElementsToMapFromIterable() async {
+  Future<void> test_preferForElementsToMapFromIterable() async {
     addTestFile('''
 var m =
   Map<int, int>.fromIterable([1, 2, 3], key: (i) => i, value: (i) => i * 2);
     ''');
     createProject();
-    EditDartfixResult result =
-        await performFix(includedFixes: ['map-for-elements']);
+    var result = await performFix(
+        includedFixes: ['prefer_for_elements_to_map_fromIterable']);
     expect(result.suggestions, hasLength(1));
     expectSuggestion(
-        result.suggestions[0], "Convert to a 'for' element", 10, 3);
+        result.suggestions[0], "Convert to a 'for' element", 10, 73);
     expectEdits(result.edits, '''
 var m =
   { for (var i in [1, 2, 3]) i : i * 2 };
     ''');
   }
 
-  test_dartfix_preferIfElementsToConditionalExpressions() async {
+  Future<void> test_preferIfElementsToConditionalExpressions() async {
     addTestFile('''
 f(bool b) => ['a', b ? 'c' : 'd', 'e'];
     ''');
     createProject();
-    EditDartfixResult result =
-        await performFix(includedFixes: ['collection-if-elements']);
+    var result = await performFix(
+        includedFixes: ['prefer_if_elements_to_conditional_expressions']);
     expect(result.suggestions, hasLength(1));
     expectSuggestion(
-        result.suggestions[0], "Convert to an 'if' element", 19, 1);
+        result.suggestions[0], "Convert to an 'if' element", 19, 13);
     expectEdits(result.edits, '''
 f(bool b) => ['a', if (b) 'c' else 'd', 'e'];
     ''');
   }
 
-  test_dartfix_preferIntLiterals() async {
+  Future<void> test_preferIntLiterals() async {
     addTestFile('''
 const double myDouble = 42.0;
     ''');
     createProject();
-    EditDartfixResult result =
-        await performFix(includedFixes: ['double-to-int']);
+    var result = await performFix(includedFixes: ['prefer_int_literals']);
     expect(result.suggestions, hasLength(1));
     expectSuggestion(result.suggestions[0], 'int literal', 24, 4);
     expectEdits(result.edits, '''
@@ -397,11 +349,10 @@ const double myDouble = 42;
     ''');
   }
 
-  test_dartfix_preferIsEmpty() async {
+  Future<void> test_preferIsEmpty() async {
     addTestFile('main(List<String> args) { if (args.length == 0) { } }');
     createProject();
-    EditDartfixResult result =
-        await performFix(includedFixes: ['prefer-is-empty']);
+    var result = await performFix(includedFixes: ['prefer_is_empty']);
     expect(result.suggestions, hasLength(1));
     expectSuggestion(result.suggestions[0], "Replace with 'isEmpty'", 30, 16);
     expect(result.hasErrors, isFalse);
@@ -409,14 +360,14 @@ const double myDouble = 42;
         result.edits, 'main(List<String> args) { if (args.isEmpty) { } }');
   }
 
-  test_dartfix_preferMixin() async {
+  Future<void> test_preferMixin() async {
     addTestFile('''
 class A {}
 class B extends A {}
 class C with B {}
     ''');
     createProject();
-    EditDartfixResult result = await performFix();
+    var result = await performFix(includedFixes: ['convert_class_to_mixin']);
     expect(result.suggestions, hasLength(1));
     expectSuggestion(result.suggestions[0], 'mixin', 17, 1);
     expectEdits(result.edits, '''
@@ -426,21 +377,42 @@ class C with B {}
     ''');
   }
 
-  test_dartfix_preferSpreadCollections() async {
-    // Add analysis options to enable ui as code
-    newFile('/project/analysis_options.yaml', content: '''
-analyzer:
-  enable-experiment:
-    - control-flow-collections
-    - spread-collections
+  Future<void> test_preferSingleQuotes() async {
+    addTestFile('''
+var l = [
+  "abc",
+  'def',
+  "'g'",
+  """hij""",
+  \'''klm\''',
+];
 ''');
+    createProject();
+    var result = await performFix(includedFixes: ['prefer_single_quotes']);
+    expect(result.suggestions, hasLength(2));
+    expectSuggestion(
+        result.suggestions[0], 'Convert to single quoted string', 12, 5);
+    expectSuggestion(
+        result.suggestions[1], 'Convert to single quoted string', 39, 9);
+    expect(result.hasErrors, isFalse);
+    expectEdits(result.edits, '''
+var l = [
+  'abc',
+  'def',
+  "'g'",
+  \'''hij\''',
+  \'''klm\''',
+];
+''');
+  }
+
+  Future<void> test_preferSpreadCollections() async {
     addTestFile('''
 var l1 = ['b'];
 var l2 = ['a']..addAll(l1);
 ''');
     createProject();
-    EditDartfixResult result =
-        await performFix(includedFixes: ['use-spread-collections']);
+    var result = await performFix(includedFixes: ['prefer_spread_collections']);
     expect(result.suggestions.length, greaterThanOrEqualTo(1));
     expect(result.hasErrors, isFalse);
     expectEdits(result.edits, '''

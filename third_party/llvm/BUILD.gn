@@ -23,27 +23,19 @@ llvm_library("LLVMDemangle") {
 }
 
 llvm_library("LLVMSupport") {
-  deps = [
-    ":LLVMDemangle",
-  ]
+  deps = [ ":LLVMDemangle" ]
 }
 
 llvm_library("LLVMAArch64Utils") {
-  deps = [
-    ":LLVMSupport",
-  ]
+  deps = [ ":LLVMSupport" ]
 }
 
 llvm_library("LLVMBinaryFormat") {
-  deps = [
-    ":LLVMSupport",
-  ]
+  deps = [ ":LLVMSupport" ]
 }
 
 llvm_library("LLVMDebugInfoMSF") {
-  deps = [
-    ":LLVMSupport",
-  ]
+  deps = [ ":LLVMSupport" ]
 }
 
 llvm_library("LLVMDebugInfoCodeView") {
@@ -70,9 +62,7 @@ llvm_library("LLVMAArch64AsmPrinter") {
 }
 
 llvm_library("LLVMAArch64Info") {
-  deps = [
-    ":LLVMSupport",
-  ]
+  deps = [ ":LLVMSupport" ]
 }
 
 llvm_library("LLVMAArch64Desc") {
@@ -308,9 +298,7 @@ llvm_library("LLVMAMDGPUAsmPrinter") {
 }
 
 llvm_library("LLVMAMDGPUInfo") {
-  deps = [
-    ":LLVMSupport",
-  ]
+  deps = [ ":LLVMSupport" ]
 }
 
 llvm_library("LLVMAMDGPUDesc") {
@@ -441,9 +429,7 @@ llvm_library("LLVMARCAsmPrinter") {
 }
 
 llvm_library("LLVMARCInfo") {
-  deps = [
-    ":LLVMSupport",
-  ]
+  deps = [ ":LLVMSupport" ]
 }
 
 llvm_library("LLVMARCDesc") {
@@ -481,9 +467,7 @@ llvm_library("LLVMARCDisassembler") {
 }
 
 llvm_library("LLVMARMUtils") {
-  deps = [
-    ":LLVMSupport",
-  ]
+  deps = [ ":LLVMSupport" ]
 }
 
 llvm_library("LLVMARMAsmPrinter") {
@@ -495,9 +479,7 @@ llvm_library("LLVMARMAsmPrinter") {
 }
 
 llvm_library("LLVMARMInfo") {
-  deps = [
-    ":LLVMSupport",
-  ]
+  deps = [ ":LLVMSupport" ]
 }
 
 llvm_library("LLVMARMDesc") {
@@ -615,9 +597,7 @@ llvm_library("LLVMBPFAsmPrinter") {
 }
 
 llvm_library("LLVMBPFInfo") {
-  deps = [
-    ":LLVMSupport",
-  ]
+  deps = [ ":LLVMSupport" ]
 }
 
 llvm_library("LLVMBPFDesc") {
@@ -701,9 +681,7 @@ llvm_library("LLVMDebugInfoPDB") {
 }
 
 llvm_library("LLVMOption") {
-  deps = [
-    ":LLVMSupport",
-  ]
+  deps = [ ":LLVMSupport" ]
 }
 
 llvm_library("LLVMDlltoolDriver") {
@@ -757,9 +735,7 @@ llvm_library("LLVMFuzzMutate") {
 }
 
 llvm_library("LLVMHexagonInfo") {
-  deps = [
-    ":LLVMSupport",
-  ]
+  deps = [ ":LLVMSupport" ]
 }
 
 llvm_library("LLVMHexagonDesc") {
@@ -867,9 +843,7 @@ llvm_library("LLVMLTO") {
 }
 
 llvm_library("LLVMLanaiInfo") {
-  deps = [
-    ":LLVMSupport",
-  ]
+  deps = [ ":LLVMSupport" ]
 }
 
 llvm_library("LLVMLanaiAsmPrinter") {
@@ -937,9 +911,7 @@ llvm_library("LLVMLibDriver") {
 }
 
 llvm_library("LLVMLineEditor") {
-  deps = [
-    ":LLVMSupport",
-  ]
+  deps = [ ":LLVMSupport" ]
 }
 
 llvm_library("LLVMMIRParser") {
@@ -962,9 +934,7 @@ llvm_library("LLVMMSP430AsmPrinter") {
 }
 
 llvm_library("LLVMMSP430Info") {
-  deps = [
-    ":LLVMSupport",
-  ]
+  deps = [ ":LLVMSupport" ]
 }
 
 llvm_library("LLVMMSP430Desc") {
@@ -999,9 +969,7 @@ llvm_library("LLVMMipsAsmPrinter") {
 }
 
 llvm_library("LLVMMipsInfo") {
-  deps = [
-    ":LLVMSupport",
-  ]
+  deps = [ ":LLVMSupport" ]
 }
 
 llvm_library("LLVMMipsDesc") {
@@ -1056,9 +1024,7 @@ llvm_library("LLVMNVPTXAsmPrinter") {
 }
 
 llvm_library("LLVMNVPTXInfo") {
-  deps = [
-    ":LLVMSupport",
-  ]
+  deps = [ ":LLVMSupport" ]
 }
 
 llvm_library("LLVMNVPTXDesc") {
@@ -1106,9 +1072,7 @@ llvm_library("LLVMX86AsmPrinter") {
 }
 
 llvm_library("LLVMX86Info") {
-  deps = [
-    ":LLVMSupport",
-  ]
+  deps = [ ":LLVMSupport" ]
 }
 
 llvm_library("LLVMX86Desc") {
@@ -1148,9 +1112,7 @@ llvm_library("LLVMNios2AsmPrinter") {
 }
 
 llvm_library("LLVMNios2Info") {
-  deps = [
-    ":LLVMSupport",
-  ]
+  deps = [ ":LLVMSupport" ]
 }
 
 llvm_library("LLVMNios2Desc") {
@@ -1205,9 +1167,7 @@ llvm_library("LLVMPowerPCAsmPrinter") {
 }
 
 llvm_library("LLVMPowerPCInfo") {
-  deps = [
-    ":LLVMSupport",
-  ]
+  deps = [ ":LLVMSupport" ]
 }
 
 llvm_library("LLVMPowerPCDesc") {
@@ -1263,9 +1223,7 @@ llvm_library("LLVMRISCVAsmPrinter") {
 }
 
 llvm_library("LLVMRISCVInfo") {
-  deps = [
-    ":LLVMSupport",
-  ]
+  deps = [ ":LLVMSupport" ]
 }
 
 llvm_library("LLVMRISCVDesc") {
@@ -1318,9 +1276,7 @@ llvm_library("LLVMSparcAsmPrinter") {
 }
 
 llvm_library("LLVMSparcInfo") {
-  deps = [
-    ":LLVMSupport",
-  ]
+  deps = [ ":LLVMSupport" ]
 }
 
 llvm_library("LLVMSparcDesc") {
@@ -1383,9 +1339,7 @@ llvm_library("LLVMSystemZAsmPrinter") {
 }
 
 llvm_library("LLVMSystemZInfo") {
-  deps = [
-    ":LLVMSupport",
-  ]
+  deps = [ ":LLVMSupport" ]
 }
 
 llvm_library("LLVMSystemZDesc") {
@@ -1435,21 +1389,15 @@ llvm_library("LLVMSystemZDisassembler") {
 }
 
 llvm_library("LLVMTableGen") {
-  deps = [
-    ":LLVMSupport",
-  ]
+  deps = [ ":LLVMSupport" ]
 }
 
 llvm_library("LLVMTestingSupport") {
-  deps = [
-    ":LLVMSupport",
-  ]
+  deps = [ ":LLVMSupport" ]
 }
 
 llvm_library("LLVMWebAssemblyInfo") {
-  deps = [
-    ":LLVMSupport",
-  ]
+  deps = [ ":LLVMSupport" ]
 }
 
 llvm_library("LLVMWebAssemblyAsmParser") {
@@ -1504,9 +1452,7 @@ llvm_library("LLVMWebAssemblyDisassembler") {
 }
 
 llvm_library("LLVMWindowsManifest") {
-  deps = [
-    ":LLVMSupport",
-  ]
+  deps = [ ":LLVMSupport" ]
 }
 
 llvm_library("LLVMX86AsmParser") {
@@ -1536,9 +1482,7 @@ llvm_library("LLVMXCoreAsmPrinter") {
 }
 
 llvm_library("LLVMXCoreInfo") {
-  deps = [
-    ":LLVMSupport",
-  ]
+  deps = [ ":LLVMSupport" ]
 }
 
 llvm_library("LLVMXCoreDesc") {

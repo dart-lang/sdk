@@ -6,6 +6,7 @@
 #define RUNTIME_VM_STATIC_TYPE_EXACTNESS_STATE_H_
 
 #include "platform/allocation.h"
+#include "platform/utils.h"
 
 // This header defines the list of VM implementation classes and their ids.
 //

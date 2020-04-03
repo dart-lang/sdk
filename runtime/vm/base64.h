@@ -5,11 +5,11 @@
 #ifndef RUNTIME_VM_BASE64_H_
 #define RUNTIME_VM_BASE64_H_
 
-#include "vm/zone.h"
+#include "vm/globals.h"
 
 namespace dart {
 
-uint8_t* DecodeBase64(Zone* zone, const char* str, intptr_t* out_decoded_len);
+uint8_t* DecodeBase64(const char* str, intptr_t* out_decoded_len);
 
 }  // namespace dart
 

@@ -17,8 +17,8 @@ static method main() → dynamic {
   self::C<dynamic>* c_named_toplevel = new self::C::named<dynamic>(#C4);
   self::C<dynamic>* c_optional_local = new self::C::optional<dynamic>(optional_local);
   self::C<dynamic>* c_named_local = new self::C::named<dynamic>(named_local);
-  self::C<dynamic>* c_optional_closure = new self::C::optional<dynamic>(([dynamic x = #C2]) → core::Null* {});
-  self::C<dynamic>* c_named_closure = new self::C::named<dynamic>(({dynamic x = #C2}) → core::Null* {});
+  self::C<dynamic>* c_optional_closure = new self::C::optional<dynamic>(([dynamic x = #C2]) → core::Null? {});
+  self::C<dynamic>* c_named_closure = new self::C::named<dynamic>(({dynamic x = #C2}) → core::Null? {});
 }
 
 constants  {

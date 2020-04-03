@@ -9,19 +9,24 @@ import 'package:cli_util/cli_logging.dart';
 import 'package:dartfix/src/context.dart';
 import 'package:path/path.dart' as path;
 
+// TODO(brianwilkerson) Deprecate 'excludeFix' and replace it with 'exclude-fix'
+const excludeFixOption = 'excludeFix';
 const forceOption = 'force';
 const includeFixOption = 'fix';
-const excludeFixOption = 'excludeFix';
 const overwriteOption = 'overwrite';
 const pedanticOption = 'pedantic';
-const requiredOption = 'required';
+const previewDirOption = 'preview-dir';
+const previewPortOption = 'preview-port';
+const sdkOption = 'sdk';
 
 const _binaryName = 'dartfix';
 const _colorOption = 'color';
-const _serverSnapshot = 'server';
 
 // options only supported by server 1.22.2 and greater
 const _helpOption = 'help';
+const _serverSnapshot = 'server';
+
+// options not supported yet by any server
 const _verboseOption = 'verbose';
 
 /// Command line options for `dartfix`.
@@ -34,13 +39,12 @@ class Options {
   final String serverSnapshot;
 
   final bool pedanticFixes;
-  final bool requiredFixes;
   final List<String> includeFixes;
   final List<String> excludeFixes;
 
   final bool force;
   final bool showHelp;
-  final bool overwrite;
+  bool overwrite;
   final bool useColor;
   final bool verbose;
 
@@ -50,8 +54,7 @@ class Options {
         excludeFixes = (results[excludeFixOption] as List ?? []).cast<String>(),
         overwrite = results[overwriteOption] as bool,
         pedanticFixes = results[pedanticOption] as bool,
-        requiredFixes = results[requiredOption] as bool,
-        sdkPath = _getSdkPath(),
+        sdkPath = results[sdkOption] as String ?? _getSdkPath(),
         serverSnapshot = results[_serverSnapshot] as String,
         showHelp = results[_helpOption] as bool || results.arguments.isEmpty,
         targets = results.rest,
@@ -76,8 +79,6 @@ class Options {
           help: 'Exclude a specific fix.', valueHelp: 'name-of-fix')
       ..addFlag(pedanticOption,
           help: 'Apply pedantic fixes.', defaultsTo: false, negatable: false)
-      ..addFlag(requiredOption,
-          help: 'Apply required fixes.', defaultsTo: false, negatable: false)
       ..addSeparator('Modifying files:')
       ..addFlag(overwriteOption,
           abbr: 'w',
@@ -95,12 +96,18 @@ class Options {
           help: 'Display this help message.',
           defaultsTo: false,
           negatable: false)
+      ..addOption(sdkOption,
+          help: 'Path to the SDK to analyze against.',
+          valueHelp: 'path',
+          hide: true)
       ..addOption(_serverSnapshot,
-          help: 'Path to the analysis server snapshot file.', valueHelp: 'path')
+          help: 'Path to the analysis server snapshot file.',
+          valueHelp: 'path',
+          hide: true)
       ..addFlag(_verboseOption,
           abbr: 'v',
-          defaultsTo: false,
           help: 'Verbose output.',
+          defaultsTo: false,
           negatable: false)
       ..addFlag(_colorOption,
           help: 'Use ansi colors when printing messages.',
@@ -126,9 +133,7 @@ class Options {
       } else {
         logger = Logger.standard(
             ansi: Ansi(
-          options.useColor != null
-              ? options.useColor
-              : Ansi.terminalSupportsAnsi,
+          options.useColor ?? Ansi.terminalSupportsAnsi,
         ));
       }
     }
@@ -183,12 +188,11 @@ class Options {
   }
 
   static String _getSdkPath() {
-    return Platform.environment['DART_SDK'] != null
-        ? Platform.environment['DART_SDK']
-        : path.dirname(path.dirname(Platform.resolvedExecutable));
+    return Platform.environment['DART_SDK'] ??
+        path.dirname(path.dirname(Platform.resolvedExecutable));
   }
 
-  static _showUsage(ArgParser parser, Logger logger,
+  static void _showUsage(ArgParser parser, Logger logger,
       {bool showHelpHint = true}) {
     Function(String message) out = showHelpHint ? logger.stderr : logger.stdout;
     // show help on stdout when showHelp is true and showHelpHint is false

@@ -4,11 +4,11 @@
 
 library fasta.qualified_name;
 
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
+
 import 'package:kernel/ast.dart' show Expression;
 
 import 'problems.dart' show unhandled, unsupported;
-
-import 'scanner.dart' show Token;
 
 class Identifier {
   final String name;

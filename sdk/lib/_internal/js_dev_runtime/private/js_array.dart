@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart._interceptors;
 
 /**
@@ -156,7 +158,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     for (int i = 0; i < end; i++) {
       // TODO(22407): Improve bounds check elimination to allow this JS code to
       // be replaced by indexing.
-      E element = JS('-dynamic', '#[#]', this, i);
+      var element = JS<E>('', '#[#]', this, i);
       // !test() ensures bool conversion in checked mode.
       if (!test(element) == removeMatching) {
         retained.add(element);
@@ -199,7 +201,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     for (int i = 0; i < end; i++) {
       // TODO(22407): Improve bounds check elimination to allow this JS code to
       // be replaced by indexing.
-      var/*=E*/ element = JS('', '#[#]', this, i);
+      var element = JS<E>('', '#[#]', this, i);
       f(element);
       if (this.length != end) throw ConcurrentModificationError(this);
     }
@@ -241,7 +243,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     for (int i = 1; i < length; i++) {
       // TODO(22407): Improve bounds check elimination to allow this JS code to
       // be replaced by indexing.
-      var/*=E*/ element = JS('', '#[#]', this, i);
+      var element = JS<E>('', '#[#]', this, i);
       value = combine(value, element);
       if (length != this.length) throw ConcurrentModificationError(this);
     }
@@ -254,7 +256,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     for (int i = 0; i < length; i++) {
       // TODO(22407): Improve bounds check elimination to allow this JS code to
       // be replaced by indexing.
-      var/*=E*/ element = JS('', '#[#]', this, i);
+      var element = JS<E>('', '#[#]', this, i);
       value = combine(value, element);
       if (this.length != length) throw ConcurrentModificationError(this);
     }
@@ -266,7 +268,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     for (int i = 0; i < end; ++i) {
       // TODO(22407): Improve bounds check elimination to allow this JS code to
       // be replaced by indexing.
-      var/*=E*/ element = JS('', '#[#]', this, i);
+      var element = JS<E>('', '#[#]', this, i);
       if (test(element)) return element;
       if (this.length != end) throw ConcurrentModificationError(this);
     }
@@ -279,7 +281,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     for (int i = length - 1; i >= 0; i--) {
       // TODO(22407): Improve bounds check elimination to allow this JS code to
       // be replaced by indexing.
-      var/*=E*/ element = JS('', '#[#]', this, i);
+      var element = JS<E>('', '#[#]', this, i);
       if (test(element)) return element;
       if (length != this.length) {
         throw ConcurrentModificationError(this);
@@ -296,7 +298,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     for (int i = 0; i < length; i++) {
       // TODO(22407): Improve bounds check elimination to allow this JS code to
       // be replaced by indexing.
-      E element = JS('-dynamic', '#[#]', this, i);
+      var element = JS<E>('', '#[#]', this, i);
       if (test(element)) {
         if (matchFound) {
           throw IterableElementError.tooMany();
@@ -392,12 +394,12 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
         // Use JS to avoid bounds check (the bounds check elimination
         // optimzation is too weak). The 'E' type annotation is a store type
         // check - we can't rely on iterable, it could be List<dynamic>.
-        E element = otherList[otherStart + i];
+        var element = otherList[otherStart + i];
         JS('', '#[#] = #', this, start + i, element);
       }
     } else {
       for (int i = 0; i < length; i++) {
-        E element = otherList[otherStart + i];
+        var element = otherList[otherStart + i];
         JS('', '#[#] = #', this, start + i, element);
       }
     }
@@ -446,7 +448,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     for (int i = 0; i < end; i++) {
       // TODO(22407): Improve bounds check elimination to allow this JS code to
       // be replaced by indexing.
-      var/*=E*/ element = JS('', '#[#]', this, i);
+      var element = JS<E>('', '#[#]', this, i);
       if (test(element)) return true;
       if (this.length != end) throw ConcurrentModificationError(this);
     }
@@ -458,7 +460,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     for (int i = 0; i < end; i++) {
       // TODO(22407): Improve bounds check elimination to allow this JS code to
       // be replaced by indexing.
-      E element = JS('-dynamic', '#[#]', this, i);
+      var element = JS<E>('', '#[#]', this, i);
       if (!test(element)) return false;
       if (this.length != end) throw ConcurrentModificationError(this);
     }
@@ -524,7 +526,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
   bool contains(Object other) {
     var length = this.length;
     for (int i = 0; i < length; i++) {
-      E element = JS('Null', '#[#]', this, i);
+      var element = JS<E>('', '#[#]', this, i);
       if (element == other) return true;
     }
     return false;
@@ -574,7 +576,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
         JS<int>('!', '#', index) < 0) {
       throw diagnoseIndexError(this, index);
     }
-    return JS('var', '#[#]', this, index);
+    return JS<E>('', '#[#]', this, index);
   }
 
   void operator []=(int index, E value) {

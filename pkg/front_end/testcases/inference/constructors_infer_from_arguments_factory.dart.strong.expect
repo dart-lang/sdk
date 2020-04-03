@@ -3,7 +3,6 @@ library test;
 // Problems in library:
 //
 // pkg/front_end/testcases/inference/constructors_infer_from_arguments_factory.dart:22:56: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-// Try changing the type of the left hand side, or casting the right hand side to 'int'.
 //   x. /*@target=C::t*/ t = /*error:INVALID_ASSIGNMENT*/ 'hello';
 //                                                        ^
 //
@@ -24,7 +23,6 @@ class C<T extends core::Object* = dynamic> extends core::Object {
 static method test() → dynamic {
   self::C<core::int*>* x = self::C::•<core::int*>(42);
   x.{self::C::t} = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/constructors_infer_from_arguments_factory.dart:22:56: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-Try changing the type of the left hand side, or casting the right hand side to 'int'.
   x. /*@target=C::t*/ t = /*error:INVALID_ASSIGNMENT*/ 'hello';
                                                        ^" in "hello" as{TypeError} core::int*;
 }

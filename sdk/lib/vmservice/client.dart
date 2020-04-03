@@ -2,12 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart._vmservice;
 
 typedef void ClientServiceHandle(Message response);
 
 // A service client.
 abstract class Client {
+  static int _idCounter = 0;
+  final int _id = ++_idCounter;
+
+  String get defaultClientName => 'client$_id';
+
+  String get name => _name;
+  set name(n) => _name = n ?? defaultClientName;
+  String _name;
+
   final VMService service;
   final bool sendEvents;
 
@@ -26,6 +37,7 @@ abstract class Client {
       new Map<String, ClientServiceHandle>();
 
   Client(this.service, {bool sendEvents: true}) : this.sendEvents = sendEvents {
+    name = defaultClientName;
     service._addClient(this);
   }
 

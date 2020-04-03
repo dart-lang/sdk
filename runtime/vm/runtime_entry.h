@@ -99,7 +99,8 @@ class RuntimeEntry : public BaseRuntimeEntry {
                                NativeArguments arguments);                     \
   void DRT_##name(NativeArguments arguments) {                                 \
     CHECK_STACK_ALIGNMENT;                                                     \
-    VERIFY_ON_TRANSITION;                                                      \
+    /* Tell MemorySanitizer 'arguments' is initialized by generated code. */   \
+    MSAN_UNPOISON(&arguments, sizeof(arguments));                              \
     ASSERT(arguments.ArgCount() == argument_count);                            \
     TRACE_RUNTIME_CALL("%s", "" #name);                                        \
     {                                                                          \
@@ -111,7 +112,6 @@ class RuntimeEntry : public BaseRuntimeEntry {
       HANDLESCOPE(thread);                                                     \
       DRT_Helper##name(isolate, thread, zone.GetZone(), arguments);            \
     }                                                                          \
-    VERIFY_ON_TRANSITION;                                                      \
   }                                                                            \
   static void DRT_Helper##name(Isolate* isolate, Thread* thread, Zone* zone,   \
                                NativeArguments arguments)
@@ -146,7 +146,8 @@ RUNTIME_ENTRY_LIST(DECLARE_RUNTIME_ENTRY)
 LEAF_RUNTIME_ENTRY_LIST(DECLARE_LEAF_RUNTIME_ENTRY)
 
 // Expected to be called inside a safepoint.
-extern "C" Thread* DLRT_GetThreadForNativeCallback();
+extern "C" Thread* DLRT_GetThreadForNativeCallback(uword callback_id);
+extern "C" Thread* DLRT_GetThreadForNativeCallbackTrampoline(uword callback_id);
 
 const char* DeoptReasonToCString(ICData::DeoptReasonId deopt_reason);
 

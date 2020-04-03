@@ -7,7 +7,7 @@ part of $LIBRARYNAME;
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$MIXINS$IMPLEMENTS {
 $!MEMBERS
 
-  Map _getItem($KEYTYPE key) =>
+  Map$NULLABLE _getItem($KEYTYPE key) =>
       convertNativeToDart_Dictionary(JS('', '#.get(#)', this, key));
 
   void addAll(Map<$KEYTYPE, $VALUETYPE> other) {
@@ -18,7 +18,7 @@ $!MEMBERS
 
   bool containsKey($VALUETYPE key) => _getItem(key) != null;
 
-  Map operator []($VALUETYPE key) => _getItem(key);
+  Map$NULLABLE operator []($VALUETYPE key) => _getItem(key);
 
   void forEach(void f($KEYTYPE key, $VALUETYPE value)) {
     var entries = JS('', '#.entries()', this);

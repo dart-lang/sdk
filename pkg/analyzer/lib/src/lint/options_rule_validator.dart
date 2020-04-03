@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/analysis_options/error/option_codes.dart';
@@ -19,9 +17,9 @@ import 'package:yaml/yaml.dart';
  * Parameters:
  * 0: the rule name
  */
-const AnalysisOptionsHintCode DEPRECATED_LINT_HINT =
-    const AnalysisOptionsHintCode('DEPRECATED_LINT_HINT',
-        "'{0}' is a deprecated lint rule and should not be used");
+const AnalysisOptionsHintCode DEPRECATED_LINT_HINT = AnalysisOptionsHintCode(
+    'DEPRECATED_LINT_HINT',
+    "'{0}' is a deprecated lint rule and should not be used");
 
 /**
  * Duplicate rules.
@@ -29,10 +27,22 @@ const AnalysisOptionsHintCode DEPRECATED_LINT_HINT =
  * Parameters:
  * 0: the rule name
  */
-const AnalysisOptionsHintCode DUPLICATE_RULE_HINT = const AnalysisOptionsHintCode(
+const AnalysisOptionsHintCode DUPLICATE_RULE_HINT = AnalysisOptionsHintCode(
     'DUPLICATE_RULE',
     "The rule {0} is already specified and doesn't need to be specified again.",
     correction: "Try removing all but one specification of the rule.");
+
+/**
+ * An error code indicating an incompatible rule.
+ *
+ * Parameters:
+ * 0: the rule name
+ * 1: the incompatible rule
+ */
+const AnalysisOptionsWarningCode INCOMPATIBLE_LINT_WARNING =
+    AnalysisOptionsWarningCode('INCOMPATIBLE_LINT_WARNING',
+        "The rule '{0}' is incompatible with the rule '{1}'",
+        correction: "Try removing one of the incompatible rules.");
 
 /**
  * An error code indicating an undefined lint rule.
@@ -41,7 +51,7 @@ const AnalysisOptionsHintCode DUPLICATE_RULE_HINT = const AnalysisOptionsHintCod
  * 0: the rule name
  */
 const AnalysisOptionsWarningCode UNDEFINED_LINT_WARNING =
-    const AnalysisOptionsWarningCode(
+    AnalysisOptionsWarningCode(
         'UNDEFINED_LINT_WARNING', "'{0}' is not a recognized lint rule");
 
 /**
@@ -77,14 +87,31 @@ class LinterRuleOptionsValidator extends OptionsValidator {
 
   validateRules(YamlNode rules, ErrorReporter reporter) {
     if (rules is YamlList) {
-      Set<String> seenRules = new HashSet<String>();
-      rules.nodes.forEach((YamlNode ruleNode) {
-        Object value = ruleNode.value;
+      final seenRules = <String>{};
+
+      String findIncompatibleRule(LintRule rule) {
+        for (var incompatibleRule in rule.incompatibleRules) {
+          if (seenRules.contains(incompatibleRule)) {
+            return incompatibleRule;
+          }
+        }
+        return null;
+      }
+
+      for (var ruleNode in rules.nodes) {
+        final value = ruleNode.value;
         if (value != null) {
-          LintRule rule = getRegisteredLint(value);
+          final rule = getRegisteredLint(value);
           if (rule == null) {
             reporter.reportErrorForSpan(
                 UNDEFINED_LINT_WARNING, ruleNode.span, [value]);
+            continue;
+          }
+
+          final incompatibleRule = findIncompatibleRule(rule);
+          if (incompatibleRule != null) {
+            reporter.reportErrorForSpan(INCOMPATIBLE_LINT_WARNING,
+                ruleNode.span, [value, incompatibleRule]);
           } else if (!seenRules.add(rule.name)) {
             reporter.reportErrorForSpan(
                 DUPLICATE_RULE_HINT, ruleNode.span, [value]);
@@ -93,7 +120,7 @@ class LinterRuleOptionsValidator extends OptionsValidator {
                 DEPRECATED_LINT_HINT, ruleNode.span, [value]);
           }
         }
-      });
+      }
     }
   }
 }

@@ -1,28 +1,28 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
 import 'dart:io' show Directory, Platform, ProcessSignal, exit;
 
-import 'package:analysis_server_client/handler/notification_handler.dart';
 import 'package:analysis_server_client/handler/connection_handler.dart';
+import 'package:analysis_server_client/handler/notification_handler.dart';
 import 'package:analysis_server_client/protocol.dart';
 import 'package:analysis_server_client/server.dart';
 import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 
 /// A simple application that uses the analysis server to analyze a package.
-main(List<String> args) async {
-  String target = await parseArgs(args);
+void main(List<String> args) async {
+  var target = await parseArgs(args);
   print('Analyzing $target');
 
   // Launch the server
-  Server server = new Server();
+  var server = Server();
   await server.start();
 
   // Connect to the server
-  _Handler handler = new _Handler(server);
+  var handler = _Handler(server);
   server.listenToOutput(notificationProcessor: handler.handleEvent);
   if (!await handler.serverConnected(timeLimit: const Duration(seconds: 15))) {
     exit(1);
@@ -30,20 +30,42 @@ main(List<String> args) async {
 
   // Request analysis
   await server.send(SERVER_REQUEST_SET_SUBSCRIPTIONS,
-      new ServerSetSubscriptionsParams([ServerService.STATUS]).toJson());
+      ServerSetSubscriptionsParams([ServerService.STATUS]).toJson());
   await server.send(ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS,
-      new AnalysisSetAnalysisRootsParams([target], const []).toJson());
+      AnalysisSetAnalysisRootsParams([target], const []).toJson());
 
   // Continue to watch for analysis until the user presses Ctrl-C
   StreamSubscription<ProcessSignal> subscription;
   subscription = ProcessSignal.sigint.watch().listen((_) async {
     print('Exiting...');
+    // ignore: unawaited_futures
     subscription.cancel();
     await server.stop();
   });
 }
 
+Future<String> parseArgs(List<String> args) async {
+  if (args.length != 1) {
+    printUsageAndExit('Expected exactly one directory');
+  }
+  final dir = Directory(path.normalize(path.absolute(args[0])));
+  if (!(await dir.exists())) {
+    printUsageAndExit('Could not find directory ${dir.path}');
+  }
+  return dir.path;
+}
+
+void printUsageAndExit(String errorMessage) {
+  print(errorMessage);
+  print('');
+  var appName = path.basename(Platform.script.toFilePath());
+  print('Usage: $appName <directory path>');
+  print('  Analyze the *.dart source files in <directory path>');
+  exit(1);
+}
+
 class _Handler with NotificationHandler, ConnectionHandler {
+  @override
   final Server server;
   int errorCount = 0;
 
@@ -51,9 +73,9 @@ class _Handler with NotificationHandler, ConnectionHandler {
 
   @override
   void onAnalysisErrors(AnalysisErrorsParams params) {
-    List<AnalysisError> errors = params.errors;
-    bool first = true;
-    for (AnalysisError error in errors) {
+    var errors = params.errors;
+    var first = true;
+    for (var error in errors) {
       if (error.type.name == 'TODO') {
         // Ignore these types of "errors"
         continue;
@@ -62,7 +84,7 @@ class _Handler with NotificationHandler, ConnectionHandler {
         first = false;
         print('${params.file}:');
       }
-      Location loc = error.location;
+      var loc = error.location;
       print('  ${error.message} • ${loc.startLine}:${loc.startColumn}');
       ++errorCount;
     }
@@ -105,24 +127,4 @@ class _Handler with NotificationHandler, ConnectionHandler {
       print('--------- ctrl-c to exit ---------');
     }
   }
-}
-
-Future<String> parseArgs(List<String> args) async {
-  if (args.length != 1) {
-    printUsageAndExit('Expected exactly one directory');
-  }
-  final dir = new Directory(path.normalize(path.absolute(args[0])));
-  if (!(await dir.exists())) {
-    printUsageAndExit('Could not find directory ${dir.path}');
-  }
-  return dir.path;
-}
-
-void printUsageAndExit(String errorMessage) {
-  print(errorMessage);
-  print('');
-  var appName = path.basename(Platform.script.toFilePath());
-  print('Usage: $appName <directory path>');
-  print('  Analyze the *.dart source files in <directory path>');
-  exit(1);
 }

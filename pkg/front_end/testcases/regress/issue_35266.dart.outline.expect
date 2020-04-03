@@ -9,9 +9,9 @@ library;
 //   factory B.foo() = B<T>;
 //           ^^^^^
 //
-// pkg/front_end/testcases/regress/issue_35266.dart:13:11: Error: Can't use 'B.foo' because it is declared more than once.
+// pkg/front_end/testcases/regress/issue_35266.dart:13:21: Error: Can't use 'B.foo' because it is declared more than once.
 //   factory C.bar() = B<K>.foo;
-//           ^
+//                     ^
 //
 import self as self;
 import "dart:core" as core;

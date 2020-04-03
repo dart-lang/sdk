@@ -20,8 +20,8 @@
 /// type parameters. But if we declare a variable as `Pair<String, int> pair;`
 /// the references to `String` and `int` are type arguments.
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/src/dart/element/type.dart' show InterfaceTypeImpl;
-import 'package:analyzer/src/generated/type_system.dart' show TypeSystem;
 
 /// The type associated with elements in the element model.
 ///
@@ -32,6 +32,7 @@ abstract class DartType {
   ///
   /// Clients should not depend on the content of the returned value as it will
   /// be changed if doing so would improve the UX.
+  @Deprecated('Use getDisplayString instead')
   String get displayName;
 
   /// Return the element representing the declaration of this type, or `null` if
@@ -110,49 +111,25 @@ abstract class DartType {
 
   /// Return the name of this type, or `null` if the type does not have a name,
   /// such as when the type represents the type of an unnamed function.
+  @Deprecated('Check element, or use getDisplayString()')
   String get name;
 
-  /// Implements the function "flatten" defined in the spec, where T is this
-  /// type:
-  ///
-  ///     If T = Future<S> then flatten(T) = flatten(S).
-  ///
-  ///     Otherwise if T <: Future then let S be a type such that T << Future<S>
-  ///     and for all R, if T << Future<R> then S << R.  Then flatten(T) = S.
-  ///
-  ///     In any other circumstance, flatten(T) = T.
-  @Deprecated('Use TypeSystem.flatten() instead.')
-  DartType flattenFutures(TypeSystem typeSystem);
+  /// Return the nullability suffix of this type.
+  NullabilitySuffix get nullabilitySuffix;
 
-  /// Return `true` if this type is assignable to the given [type]. A type
-  /// <i>T</i> may be assigned to a type <i>S</i>, written <i>T</i> &hArr;
-  /// <i>S</i>, iff either <i>T</i> <: <i>S</i> or <i>S</i> <: <i>T</i>.
-  @Deprecated('Use TypeSystem.isAssignableTo() instead.')
-  bool isAssignableTo(DartType type);
-
-  /// Indicates whether `this` represents a type that is equivalent to `dest`.
+  /// Return the presentation of this type as it should appear when presented
+  /// to users in contexts such as error messages.
   ///
-  /// This is different from `operator==`.  Consider for example:
+  /// If [withNullability] is `true`, then [NullabilitySuffix.question] and
+  /// [NullabilitySuffix.star] will be be represented as `?` and `*`.
+  /// [NullabilitySuffix.none] does not have any explicit presentation.
   ///
-  ///     typedef void F<T>(); // T not used!
+  /// If [withNullability] is `false`, nullability suffixes will not be
+  /// included into the presentation.
   ///
-  /// `operator==` would consider F<int> and F<bool> to be different types;
-  /// `isEquivalentTo` considers them to be equivalent.
-  @Deprecated('operator== was fixed. Use it instead.')
-  bool isEquivalentTo(DartType dest);
-
-  /// Return `true` if this type is more specific than the given [type].
-  @Deprecated('Use TypeSystem.isSubtypeOf() instead.')
-  bool isMoreSpecificThan(DartType type);
-
-  /// Return `true` if this type is a subtype of the given [type].
-  bool isSubtypeOf(DartType type);
-
-  /// Return `true` if this type is a supertype of the given [type]. A type
-  /// <i>S</i> is a supertype of <i>T</i>, written <i>S</i> :> <i>T</i>, iff
-  /// <i>T</i> is a subtype of <i>S</i>.
-  @Deprecated('Use TypeSystem.isSubtypeOf() instead.')
-  bool isSupertypeOf(DartType type);
+  /// Clients should not depend on the content of the returned value as it will
+  /// be changed if doing so would improve the UX.
+  String getDisplayString({bool withNullability = false});
 
   /// If this type is a [TypeParameterType], returns its bound if it has one, or
   /// [objectType] otherwise.
@@ -176,6 +153,9 @@ abstract class DartType {
   ///
   /// Note too that the current implementation of this method is only guaranteed
   /// to work when the parameter types are type variables.
+  @Deprecated("""
+Use ClassElement.instantiate() or FunctionTypeAliasElement.instantiate()
+""")
   DartType substitute2(
       List<DartType> argumentTypes, List<DartType> parameterTypes);
 }
@@ -236,7 +216,8 @@ abstract class FunctionType implements ParameterizedType {
   /// The formal type parameters of this generic function.
   /// For example `<T> T -> T`.
   ///
-  /// These are distinct from the [typeParameters] list, which contains type
+  /// TODO(scheglov) Remove the mention for "typeParameters".
+  /// These are distinct from the `typeParameters` list, which contains type
   /// parameters from surrounding contexts, and thus are free type variables
   /// from the perspective of this function type.
   List<TypeParameterElement> get typeFormals;
@@ -244,67 +225,7 @@ abstract class FunctionType implements ParameterizedType {
   @override
   FunctionType instantiate(List<DartType> argumentTypes);
 
-  /// Return `true` if this type is a subtype of the given [type].
-  ///
-  /// A function type <i>(T<sub>1</sub>, &hellip;, T<sub>n</sub>) &rarr; T</i>
-  /// is a subtype of the function type <i>(S<sub>1</sub>, &hellip;,
-  /// S<sub>n</sub>) &rarr; S</i>, if all of the following conditions are met:
-  ///
-  /// * Either
-  ///   * <i>S</i> is void, or
-  ///   * <i>T &hArr; S</i>.
-  ///
-  /// * For all <i>i</i>, 1 <= <i>i</i> <= <i>n</i>, <i>T<sub>i</sub> &hArr;
-  ///   S<sub>i</sub></i>.
-  ///
-  /// A function type <i>(T<sub>1</sub>, &hellip;, T<sub>n</sub>,
-  /// [T<sub>n+1</sub>, &hellip;, T<sub>n+k</sub>]) &rarr; T</i> is a subtype of
-  /// the function type <i>(S<sub>1</sub>, &hellip;, S<sub>n</sub>,
-  /// [S<sub>n+1</sub>, &hellip;, S<sub>n+m</sub>]) &rarr; S</i>, if all of the
-  /// following conditions are met:
-  ///
-  /// * Either
-  ///   * <i>S</i> is void, or
-  ///   * <i>T &hArr; S</i>.
-  ///
-  /// * <i>k</i> >= <i>m</i> and for all <i>i</i>, 1 <= <i>i</i> <= <i>n+m</i>,
-  ///   <i>T<sub>i</sub> &hArr; S<sub>i</sub></i>.
-  ///
-  /// A function type <i>(T<sub>1</sub>, &hellip;, T<sub>n</sub>,
-  /// {T<sub>x1</sub> x1, &hellip;, T<sub>xk</sub> xk}) &rarr; T</i> is a
-  /// subtype of the function type <i>(S<sub>1</sub>, &hellip;, S<sub>n</sub>,
-  /// {S<sub>y1</sub> y1, &hellip;, S<sub>ym</sub> ym}) &rarr; S</i>, if all of
-  /// the following conditions are met:
-  /// * Either
-  ///   * <i>S</i> is void,
-  ///   * or <i>T &hArr; S</i>.
-  ///
-  /// * For all <i>i</i>, 1 <= <i>i</i> <= <i>n</i>, <i>T<sub>i</sub> &hArr;
-  ///   S<sub>i</sub></i>.
-  /// * <i>k</i> >= <i>m</i> and <i>y<sub>i</sub></i> in <i>{x<sub>1</sub>,
-  ///   &hellip;, x<sub>k</sub>}</i>, 1 <= <i>i</i> <= <i>m</i>.
-  /// * For all <i>y<sub>i</sub></i> in <i>{y<sub>1</sub>, &hellip;,
-  ///   y<sub>m</sub>}</i>, <i>y<sub>i</sub> = x<sub>j</sub> => Tj &hArr;
-  ///   Si</i>.
-  ///
-  /// In addition, the following subtype rules apply:
-  ///
-  /// <i>(T<sub>1</sub>, &hellip;, T<sub>n</sub>, []) &rarr; T <:
-  /// (T<sub>1</sub>, &hellip;, T<sub>n</sub>) &rarr; T.</i><br>
-  /// <i>(T<sub>1</sub>, &hellip;, T<sub>n</sub>) &rarr; T <: (T<sub>1</sub>,
-  /// &hellip;, T<sub>n</sub>, {}) &rarr; T.</i><br>
-  /// <i>(T<sub>1</sub>, &hellip;, T<sub>n</sub>, {}) &rarr; T <:
-  /// (T<sub>1</sub>, &hellip;, T<sub>n</sub>) &rarr; T.</i><br>
-  /// <i>(T<sub>1</sub>, &hellip;, T<sub>n</sub>) &rarr; T <: (T<sub>1</sub>,
-  /// &hellip;, T<sub>n</sub>, []) &rarr; T.</i>
-  ///
-  /// All functions implement the class `Function`. However not all function
-  /// types are a subtype of `Function`. If an interface type <i>I</i> includes
-  /// a method named `call()`, and the type of `call()` is the function type
-  /// <i>F</i>, then <i>I</i> is considered to be a subtype of <i>F</i>.
-  @override
-  bool isSubtypeOf(DartType type);
-
+  @Deprecated("Use FunctionTypeAliasElement.instantiate()")
   @override
   FunctionType substitute2(
       List<DartType> argumentTypes, List<DartType> parameterTypes);
@@ -374,29 +295,9 @@ abstract class InterfaceType implements ParameterizedType {
   /// with the given name.
   PropertyAccessorElement getSetter(String name);
 
+  @Deprecated("Use ClassElement.instantiate()")
   @override
   InterfaceType instantiate(List<DartType> argumentTypes);
-
-  /// Return `true` if this type is a direct supertype of the given [type]. The
-  /// implicit interface of class <i>I</i> is a direct supertype of the implicit
-  /// interface of class <i>J</i> iff:
-  ///
-  /// * <i>I</i> is Object, and <i>J</i> has no extends clause.
-  /// * <i>I</i> is listed in the extends clause of <i>J</i>.
-  /// * <i>I</i> is listed in the implements clause of <i>J</i>.
-  /// * <i>I</i> is listed in the with clause of <i>J</i>.
-  /// * <i>J</i> is a mixin application of the mixin of <i>I</i>.
-  @Deprecated('This method was used internally, and is not used anymore.')
-  bool isDirectSupertypeOf(InterfaceType type);
-
-  /// Return `true` if this type is a subtype of the given [type]. An interface
-  /// type <i>T</i> is a subtype of an interface type <i>S</i>, written <i>T</i>
-  /// <: <i>S</i>, iff <i>[bottom/dynamic]T</i> &laquo; <i>S</i> (<i>T</i> is
-  /// more specific than <i>S</i>). If an interface type <i>I</i> includes a
-  /// method named <i>call()</i>, and the type of <i>call()</i> is the function
-  /// type <i>F</i>, then <i>I</i> is considered to be a subtype of <i>F</i>.
-  @override
-  bool isSubtypeOf(DartType type);
 
   /// Return the element representing the constructor that results from looking
   /// up the constructor with the given [name] in this class with respect to the
@@ -424,7 +325,26 @@ abstract class InterfaceType implements ParameterizedType {
   ///   looking up getter (respectively setter) <i>m</i> in <i>S</i> with
   ///   respect to <i>L</i>. Otherwise, we say that the lookup has failed.
   /// </blockquote>
+  @Deprecated('Use lookupGetter2 instead')
   PropertyAccessorElement lookUpGetter(String name, LibraryElement library);
+
+  /// Return the getter with the given [name].
+  ///
+  /// If [concrete] is `true`, then the concrete implementation is returned,
+  /// from this type, or its superclass.
+  ///
+  /// If [inherited] is `true`, then only getters from the superclass are
+  /// considered.
+  ///
+  /// If [recoveryStatic] is `true`, then static getters of the class,
+  /// and its superclasses are considered. Clients should not use it.
+  PropertyAccessorElement lookUpGetter2(
+    String name,
+    LibraryElement library, {
+    bool concrete = false,
+    bool inherited = false,
+    bool recoveryStatic = false,
+  });
 
   /// Return the element representing the getter that results from looking up
   /// the getter with the given [name] in the superclass of this class with
@@ -441,6 +361,7 @@ abstract class InterfaceType implements ParameterizedType {
   ///   looking up getter (respectively setter) <i>m</i> in <i>S</i> with
   ///   respect to <i>L</i>. Otherwise, we say that the lookup has failed.
   /// </blockquote>
+  @Deprecated('Use lookupGetter2 instead')
   PropertyAccessorElement lookUpGetterInSuperclass(
       String name, LibraryElement library);
 
@@ -453,8 +374,9 @@ abstract class InterfaceType implements ParameterizedType {
   ///
   /// The [library] determines if a private member name is visible, and does not
   /// need to be supplied for public names.
+  @Deprecated('Use lookupGetter2 instead')
   PropertyAccessorElement lookUpInheritedGetter(String name,
-      {LibraryElement library, bool thisType: true});
+      {LibraryElement library, bool thisType = true});
 
   /// Look up the member with the given [name] in this type and all extended
   /// and mixed in classes, starting from this type. If the search fails,
@@ -465,6 +387,7 @@ abstract class InterfaceType implements ParameterizedType {
   ///
   /// The [library] determines if a private member name is visible, and does not
   /// need to be supplied for public names.
+  @Deprecated('Use lookupGetter2 and/or lookupMethod2 instead')
   ExecutableElement lookUpInheritedGetterOrMethod(String name,
       {LibraryElement library});
 
@@ -477,8 +400,9 @@ abstract class InterfaceType implements ParameterizedType {
   ///
   /// The [library] determines if a private member name is visible, and does not
   /// need to be supplied for public names.
+  @Deprecated('Use lookupMethod2 instead')
   MethodElement lookUpInheritedMethod(String name,
-      {LibraryElement library, bool thisType: true});
+      {LibraryElement library, bool thisType = true});
 
   /// Look up the member with the given [name] in this type and all extended
   /// and mixed in classes, and by default including [thisType]. If the search
@@ -489,8 +413,9 @@ abstract class InterfaceType implements ParameterizedType {
   ///
   /// The [library] determines if a private member name is visible, and does not
   /// need to be supplied for public names.
+  @Deprecated('Use lookupSetter2 instead')
   PropertyAccessorElement lookUpInheritedSetter(String name,
-      {LibraryElement library, bool thisType: true});
+      {LibraryElement library, bool thisType = true});
 
   /// Return the element representing the method that results from looking up
   /// the method with the given [name] in this class with respect to the given
@@ -505,7 +430,26 @@ abstract class InterfaceType implements ParameterizedType {
   ///   lookup is the result of looking up method <i>m</i> in <i>S</i> with
   ///   respect to <i>L</i> Otherwise, we say that the lookup has failed.
   /// </blockquote>
+  @Deprecated('Use lookupMethod2 instead')
   MethodElement lookUpMethod(String name, LibraryElement library);
+
+  /// Return the method with the given [name].
+  ///
+  /// If [concrete] is `true`, then the concrete implementation is returned,
+  /// from this type, or its superclass.
+  ///
+  /// If [inherited] is `true`, then only methods from the superclass are
+  /// considered.
+  ///
+  /// If [recoveryStatic] is `true`, then static methods of the class,
+  /// and its superclasses are considered. Clients should not use it.
+  MethodElement lookUpMethod2(
+    String name,
+    LibraryElement library, {
+    bool concrete = false,
+    bool inherited = false,
+    bool recoveryStatic = false,
+  });
 
   /// Return the element representing the method that results from looking up
   /// the method with the given [name] in the superclass of this class with
@@ -522,6 +466,7 @@ abstract class InterfaceType implements ParameterizedType {
   ///   respect to <i>L</i>.
   /// * Otherwise, we say that the lookup has failed.
   /// </blockquote>
+  @Deprecated('Use lookupMethod2 instead')
   MethodElement lookUpMethodInSuperclass(String name, LibraryElement library);
 
   /// Return the element representing the setter that results from looking up
@@ -538,7 +483,26 @@ abstract class InterfaceType implements ParameterizedType {
   ///   looking up getter (respectively setter) <i>m</i> in <i>S</i> with
   ///   respect to <i>L</i>. Otherwise, we say that the lookup has failed.
   /// </blockquote>
+  @Deprecated('Use lookupSetter2 instead')
   PropertyAccessorElement lookUpSetter(String name, LibraryElement library);
+
+  /// Return the setter with the given [name].
+  ///
+  /// If [concrete] is `true`, then the concrete implementation is returned,
+  /// from this type, or its superclass.
+  ///
+  /// If [inherited] is `true`, then only setters from the superclass are
+  /// considered.
+  ///
+  /// If [recoveryStatic] is `true`, then static setters of the class,
+  /// and its superclasses are considered. Clients should not use it.
+  PropertyAccessorElement lookUpSetter2(
+    String name,
+    LibraryElement library, {
+    bool concrete = false,
+    bool inherited = false,
+    bool recoveryStatic = false,
+  });
 
   /// Return the element representing the setter that results from looking up
   /// the setter with the given [name] in the superclass of this class with
@@ -555,9 +519,11 @@ abstract class InterfaceType implements ParameterizedType {
   ///   looking up getter (respectively setter) <i>m</i> in <i>S</i> with
   ///   respect to <i>L</i>. Otherwise, we say that the lookup has failed.
   /// </blockquote>
+  @Deprecated('Use lookupSetter2 instead')
   PropertyAccessorElement lookUpSetterInSuperclass(
       String name, LibraryElement library);
 
+  @Deprecated("Use ClassElement.instantiate()")
   @override
   InterfaceType substitute2(
       List<DartType> argumentTypes, List<DartType> parameterTypes);
@@ -593,20 +559,22 @@ abstract class InterfaceType implements ParameterizedType {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ParameterizedType implements DartType {
-  /// Return a list containing the actual types of the type arguments. If this
-  /// type's element does not have type parameters, then the array should be
-  /// empty (although it is possible for type arguments to be erroneously
-  /// declared). If the element has type parameters and the actual type does not
-  /// explicitly include argument values, then the type "dynamic" will be
-  /// automatically provided.
+  /// Return the type arguments used to instantiate this type.
+  ///
+  /// An [InterfaceType] always has type arguments.
+  ///
+  /// A [FunctionType] has type arguments only if it is a result of a typedef
+  /// instantiation, otherwise the result is `null`.
   List<DartType> get typeArguments;
 
   /// Return a list containing all of the type parameters declared for this
   /// type.
+  @Deprecated("Use ClassElement.typeParameters or FunctionType.typeFormals")
   List<TypeParameterElement> get typeParameters;
 
   /// Return the type resulting from instantiating (replacing) the given
   /// [argumentTypes] for this type's bound type parameters.
+  @Deprecated("Use ClassElement.instantiate()")
   ParameterizedType instantiate(List<DartType> argumentTypes);
 }
 

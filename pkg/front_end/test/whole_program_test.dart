@@ -52,7 +52,7 @@ Future main() async {
 
 Future runCompiler(Uri input, Uri output) async {
   final Uri platformDill = computePlatformBinariesLocation(forceBuildDir: true)
-      .resolve("vm_platform.dill");
+      .resolve("vm_platform_strong.dill");
 
   final List<String> arguments = <String>[
     '--packages=${packagesFile.toFilePath()}',

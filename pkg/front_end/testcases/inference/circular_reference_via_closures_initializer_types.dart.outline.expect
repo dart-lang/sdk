@@ -1,0 +1,15 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/circular_reference_via_closures_initializer_types.dart:8:5: Error: Can't infer the type of 'x': circularity found during type inference.
+// Specify the type explicitly.
+// var x = /*@ returnType=() ->* invalid-type */ () => y;
+//     ^
+//
+import self as self;
+
+static field invalid-type x;
+static field () →* invalid-type y;
+static method main() → dynamic
+  ;

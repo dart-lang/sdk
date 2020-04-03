@@ -15,6 +15,7 @@
 namespace dart {
 namespace kernel {
 
+class ConstantReader;
 class KernelReaderHelper;
 class TypeTranslator;
 
@@ -205,6 +206,15 @@ class TranslationHelper {
     }
     return *expression_evaluation_function_;
   }
+  void SetExpressionEvaluationRealClass(const Class& real_class) {
+    ASSERT(expression_evaluation_real_class_ == nullptr);
+    ASSERT(!real_class.IsNull());
+    expression_evaluation_real_class_ = &Class::Handle(zone_, real_class.raw());
+  }
+  RawClass* GetExpressionEvaluationRealClass() {
+    ASSERT(expression_evaluation_real_class_ != nullptr);
+    return expression_evaluation_real_class_->raw();
+  }
 
  private:
   // This will mangle [name_to_modify] if necessary and make the result a symbol
@@ -236,6 +246,7 @@ class TranslationHelper {
   Smi& name_index_handle_;
   GrowableObjectArray* potential_extension_libraries_ = nullptr;
   Function* expression_evaluation_function_ = nullptr;
+  Class* expression_evaluation_real_class_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(TranslationHelper);
 };
@@ -307,6 +318,7 @@ class TypeParameterHelper {
     kStart,  // tag.
     kFlags,
     kAnnotations,
+    kVariance,
     kName,
     kBound,
     kDefaultType,
@@ -378,6 +390,8 @@ class VariableDeclarationHelper {
     kConst = 1 << 1,
     kCovariant = 1 << 3,
     kIsGenericCovariantImpl = 1 << 5,
+    kLate = 1 << 6,
+    kRequired = 1 << 7,
   };
 
   explicit VariableDeclarationHelper(KernelReaderHelper* helper)
@@ -392,11 +406,13 @@ class VariableDeclarationHelper {
   void SetNext(Field field) { next_read_ = field; }
   void SetJustRead(Field field) { next_read_ = field + 1; }
 
-  bool IsConst() { return (flags_ & kConst) != 0; }
-  bool IsFinal() { return (flags_ & kFinal) != 0; }
-  bool IsCovariant() { return (flags_ & kCovariant) != 0; }
+  bool IsConst() const { return (flags_ & kConst) != 0; }
+  bool IsFinal() const { return (flags_ & kFinal) != 0; }
+  bool IsCovariant() const { return (flags_ & kCovariant) != 0; }
+  bool IsLate() const { return (flags_ & kLate) != 0; }
+  bool IsRequired() const { return (flags_ & kRequired) != 0; }
 
-  bool IsGenericCovariantImpl() {
+  bool IsGenericCovariantImpl() const {
     return (flags_ & kIsGenericCovariantImpl) != 0;
   }
 
@@ -442,6 +458,8 @@ class FieldHelper {
     kStatic = 1 << 2,
     kIsCovariant = 1 << 5,
     kIsGenericCovariantImpl = 1 << 6,
+    kIsLate = 1 << 7,
+    kExtensionMember = 1 << 8,
   };
 
   explicit FieldHelper(KernelReaderHelper* helper)
@@ -465,6 +483,8 @@ class FieldHelper {
   bool IsGenericCovariantImpl() {
     return (flags_ & kIsGenericCovariantImpl) != 0;
   }
+  bool IsLate() const { return (flags_ & kIsLate) != 0; }
+  bool IsExtensionMember() const { return (flags_ & kExtensionMember) != 0; }
 
   NameIndex canonical_name_;
   TokenPosition position_;
@@ -524,6 +544,8 @@ class ProcedureHelper {
     // TODO(29841): Remove this line after the issue is resolved.
     kRedirectingFactoryConstructor = 1 << 6,
     kNoSuchMethodForwarder = 1 << 7,
+    kExtensionMember = 1 << 8,
+    kMemberSignature = 1 << 9,
   };
 
   explicit ProcedureHelper(KernelReaderHelper* helper)
@@ -549,6 +571,8 @@ class ProcedureHelper {
   bool IsNoSuchMethodForwarder() const {
     return (flags_ & kNoSuchMethodForwarder) != 0;
   }
+  bool IsExtensionMember() const { return (flags_ & kExtensionMember) != 0; }
+  bool IsMemberSignature() const { return (flags_ & kMemberSignature) != 0; }
 
   NameIndex canonical_name_;
   TokenPosition start_position_;
@@ -665,6 +689,8 @@ class ClassHelper {
     kIsEnumClass = 1 << 3,
     kIsAnonymousMixin = 1 << 4,
     kIsEliminatedMixin = 1 << 5,
+    kFlagMixinDeclaration = 1 << 6,
+    kHasConstConstructor = 1 << 7,
   };
 
   explicit ClassHelper(KernelReaderHelper* helper)
@@ -679,12 +705,16 @@ class ClassHelper {
   void SetNext(Field field) { next_read_ = field; }
   void SetJustRead(Field field) { next_read_ = field + 1; }
 
-  bool is_abstract() const { return flags_ & Flag::kIsAbstract; }
+  bool is_abstract() const { return (flags_ & Flag::kIsAbstract) != 0; }
 
-  bool is_enum_class() const { return flags_ & Flag::kIsEnumClass; }
+  bool is_enum_class() const { return (flags_ & Flag::kIsEnumClass) != 0; }
 
   bool is_transformed_mixin_application() const {
-    return flags_ & Flag::kIsEliminatedMixin;
+    return (flags_ & Flag::kIsEliminatedMixin) != 0;
+  }
+
+  bool has_const_constructor() const {
+    return (flags_ & Flag::kHasConstConstructor) != 0;
   }
 
   NameIndex canonical_name_;
@@ -738,6 +768,9 @@ class LibraryHelper {
   enum Flag {
     kExternal = 1 << 0,
     kSynthetic = 1 << 1,
+    kIsNonNullableByDefault = 1 << 2,
+    kNonNullableByDefaultCompiledModeBit1Weak = 1 << 3,
+    kNonNullableByDefaultCompiledModeBit2Strong = 1 << 4,
   };
 
   explicit LibraryHelper(KernelReaderHelper* helper, uint32_t binary_version)
@@ -754,6 +787,17 @@ class LibraryHelper {
 
   bool IsExternal() const { return (flags_ & kExternal) != 0; }
   bool IsSynthetic() const { return (flags_ & kSynthetic) != 0; }
+  bool IsNonNullableByDefault() const {
+    return (flags_ & kIsNonNullableByDefault) != 0;
+  }
+  NNBDCompiledMode GetNonNullableByDefaultCompiledMode() const {
+    bool weak = (flags_ & kNonNullableByDefaultCompiledModeBit1Weak) != 0;
+    bool strong = (flags_ & kNonNullableByDefaultCompiledModeBit2Strong) != 0;
+    if (weak && strong) return NNBDCompiledMode::kAgnostic;
+    if (strong) return NNBDCompiledMode::kStrong;
+    if (weak) return NNBDCompiledMode::kWeak;
+    return NNBDCompiledMode::kDisabled;
+  }
 
   uint8_t flags_ = 0;
   NameIndex canonical_name_;
@@ -839,6 +883,8 @@ class MetadataHelper {
   TranslationHelper& translation_helper_;
 
  private:
+  MetadataHelper();
+
   void SetMetadataMappings(intptr_t mappings_offset, intptr_t mappings_num);
   void ScanMetadataMappings();
 
@@ -885,23 +931,32 @@ struct InferredTypeMetadata {
     kFlagNullable = 1 << 0,
     kFlagInt = 1 << 1,
     kFlagSkipCheck = 1 << 2,
+    kFlagConstant = 1 << 3,
+    kFlagReceiverNotInt = 1 << 4,
   };
 
-  InferredTypeMetadata(intptr_t cid_, uint8_t flags_)
-      : cid(cid_), flags(flags_) {}
+  InferredTypeMetadata(intptr_t cid_,
+                       uint8_t flags_,
+                       const Object& constant_value_ = Object::null_object())
+      : cid(cid_), flags(flags_), constant_value(constant_value_) {}
 
   const intptr_t cid;
   const uint8_t flags;
+  const Object& constant_value;
 
   bool IsTrivial() const {
     return (cid == kDynamicCid) && (flags == kFlagNullable);
   }
   bool IsNullable() const { return (flags & kFlagNullable) != 0; }
-  bool IsInt() const { return (flags & kFlagInt) != 0; }
+  bool IsInt() const {
+    return (flags & kFlagInt) != 0 || cid == kMintCid || cid == kSmiCid;
+  }
   bool IsSkipCheck() const { return (flags & kFlagSkipCheck) != 0; }
+  bool IsConstant() const { return (flags & kFlagConstant) != 0; }
+  bool ReceiverNotInt() const { return (flags & kFlagReceiverNotInt) != 0; }
 
   CompileType ToCompileType(Zone* zone) const {
-    if (IsInt()) {
+    if (IsInt() && cid == kDynamicCid) {
       return CompileType::FromAbstractType(
           Type::ZoneHandle(zone, Type::IntType()), IsNullable());
     } else {
@@ -915,19 +970,30 @@ class InferredTypeMetadataHelper : public MetadataHelper {
  public:
   static const char* tag() { return "vm.inferred-type.metadata"; }
 
-  explicit InferredTypeMetadataHelper(KernelReaderHelper* helper);
+  explicit InferredTypeMetadataHelper(KernelReaderHelper* helper,
+                                      ConstantReader* constant_reader);
 
-  InferredTypeMetadata GetInferredType(intptr_t node_offset);
+  InferredTypeMetadata GetInferredType(intptr_t node_offset,
+                                       bool read_constant = true);
 
  private:
+  ConstantReader* constant_reader_;
+
   DISALLOW_COPY_AND_ASSIGN(InferredTypeMetadataHelper);
 };
 
 struct ProcedureAttributesMetadata {
-  bool has_dynamic_invocations = true;
+  static const int32_t kInvalidSelectorId = 0;
+
+  bool method_or_setter_called_dynamically = true;
+  bool getter_called_dynamically = true;
   bool has_this_uses = true;
   bool has_non_this_uses = true;
   bool has_tearoff_uses = true;
+  int32_t method_or_setter_selector_id = kInvalidSelectorId;
+  int32_t getter_selector_id = kInvalidSelectorId;
+
+  void InitializeFromFlags(uint8_t flags);
 };
 
 // Helper class which provides access to direct call metadata.
@@ -982,6 +1048,79 @@ class CallSiteAttributesMetadataHelper : public MetadataHelper {
   DISALLOW_COPY_AND_ASSIGN(CallSiteAttributesMetadataHelper);
 };
 
+// Information about a table selector computed by the TFA.
+struct TableSelectorInfo {
+  int call_count = 0;
+  bool called_on_null = true;
+};
+
+// Collection of table selector information for all selectors in the program.
+class TableSelectorMetadata : public ZoneAllocated {
+ public:
+  explicit TableSelectorMetadata(intptr_t num_selectors)
+      : selectors(num_selectors) {
+    selectors.FillWith(TableSelectorInfo(), 0, num_selectors);
+  }
+
+  GrowableArray<TableSelectorInfo> selectors;
+
+  DISALLOW_COPY_AND_ASSIGN(TableSelectorMetadata);
+};
+
+// Helper class which provides access to table selector metadata.
+class TableSelectorMetadataHelper : public MetadataHelper {
+ public:
+  static const char* tag() { return "vm.table-selector.metadata"; }
+
+  explicit TableSelectorMetadataHelper(KernelReaderHelper* helper);
+
+  TableSelectorMetadata* GetTableSelectorMetadata(Zone* zone);
+
+ private:
+  static const int32_t kCalledOnNullBit = 1 << 0;
+  static const int32_t kCallCountShift = 1;
+
+  void ReadTableSelectorInfo(TableSelectorInfo* info);
+
+  DISALLOW_COPY_AND_ASSIGN(TableSelectorMetadataHelper);
+};
+
+// Information about a function regarding unboxed parameters and return value.
+class UnboxingInfoMetadata : public ZoneAllocated {
+ public:
+  enum UnboxingInfoTag {
+    kBoxed = 0,
+    kUnboxedIntCandidate = 1 << 0,
+    kUnboxedDoubleCandidate = 1 << 1,
+    kUnboxingCandidate = kUnboxedIntCandidate | kUnboxedDoubleCandidate,
+  };
+
+  UnboxingInfoMetadata() : unboxed_args_info(0) { return_info = kBoxed; }
+
+  void SetArgsCount(intptr_t num_args) {
+    ASSERT(unboxed_args_info.is_empty());
+    unboxed_args_info.SetLength(num_args);
+    unboxed_args_info.FillWith(kBoxed, 0, num_args);
+  }
+
+  GrowableArray<UnboxingInfoTag> unboxed_args_info;
+  UnboxingInfoTag return_info;
+
+  DISALLOW_COPY_AND_ASSIGN(UnboxingInfoMetadata);
+};
+
+// Helper class which provides access to unboxing information metadata.
+class UnboxingInfoMetadataHelper : public MetadataHelper {
+ public:
+  static const char* tag() { return "vm.unboxing-info.metadata"; }
+
+  explicit UnboxingInfoMetadataHelper(KernelReaderHelper* helper);
+
+  UnboxingInfoMetadata* GetUnboxingInfoMetadata(intptr_t node_offset);
+
+  DISALLOW_COPY_AND_ASSIGN(UnboxingInfoMetadataHelper);
+};
+
 class KernelReaderHelper {
  public:
   KernelReaderHelper(Zone* zone,
@@ -1024,12 +1163,6 @@ class KernelReaderHelper {
     // Do nothing by default.
     // This is overridden in KernelTokenPositionCollector.
     USE(id);
-  }
-
-  virtual void RecordYieldPosition(TokenPosition position) {
-    // Do nothing by default.
-    // This is overridden in KernelTokenPositionCollector.
-    USE(position);
   }
 
   virtual void RecordTokenPosition(TokenPosition position) {
@@ -1083,6 +1216,7 @@ class KernelReaderHelper {
   Tag ReadTag(uint8_t* payload = NULL);
   uint8_t ReadFlags() { return reader_.ReadFlags(); }
   Nullability ReadNullability();
+  Variance ReadVariance();
 
   intptr_t SourceTableSize();
   intptr_t GetOffsetForSourceInfo(intptr_t index);
@@ -1107,7 +1241,7 @@ class KernelReaderHelper {
   friend class BytecodeReaderHelper;
   friend class ClassHelper;
   friend class CallSiteAttributesMetadataHelper;
-  friend class ConstantEvaluator;
+  friend class ConstantReader;
   friend class ConstantHelper;
   friend class ConstructorHelper;
   friend class DirectCallMetadataHelper;
@@ -1122,8 +1256,10 @@ class KernelReaderHelper {
   friend class ProcedureHelper;
   friend class SimpleExpressionConverter;
   friend class ScopeBuilder;
+  friend class TableSelectorMetadataHelper;
   friend class TypeParameterHelper;
   friend class TypeTranslator;
+  friend class UnboxingInfoMetadataHelper;
   friend class VariableDeclarationHelper;
   friend class ObfuscationProhibitionsMetadataHelper;
   friend bool NeedsDynamicInvocationForwarder(const Function& function);
@@ -1158,11 +1294,30 @@ class ActiveClass {
     return member->IsFactory();
   }
 
+  bool RequireLegacyErasure(bool null_safety) const {
+    return klass != nullptr && !null_safety &&
+           Library::Handle(klass->library()).nnbd_compiled_mode() ==
+               NNBDCompiledMode::kAgnostic;
+  }
+
   intptr_t MemberTypeParameterCount(Zone* zone);
 
   intptr_t ClassNumTypeArguments() {
     ASSERT(klass != NULL);
     return klass->NumTypeArguments();
+  }
+
+  void RecordDerivedTypeParameter(Zone* zone,
+                                  const TypeParameter& original,
+                                  const TypeParameter& derived) {
+    if (original.raw() != derived.raw() &&
+        original.bound() == AbstractType::null()) {
+      if (derived_type_parameters == nullptr) {
+        derived_type_parameters = &GrowableObjectArray::Handle(
+            zone, GrowableObjectArray::New(Heap::kOld));
+      }
+      derived_type_parameters->Add(derived);
+    }
   }
 
   const char* ToCString() {
@@ -1179,6 +1334,8 @@ class ActiveClass {
   const Function* enclosing;
 
   const TypeArguments* local_type_parameters;
+
+  GrowableObjectArray* derived_type_parameters = nullptr;
 };
 
 class ActiveClassScope {
@@ -1262,8 +1419,10 @@ class ActiveTypeParametersScope {
 class TypeTranslator {
  public:
   TypeTranslator(KernelReaderHelper* helper,
+                 ConstantReader* constant_reader,
                  ActiveClass* active_class,
-                 bool finalize = false);
+                 bool finalize = false,
+                 bool apply_legacy_erasure = false);
 
   AbstractType& BuildType();
   AbstractType& BuildTypeWithoutFinalization();
@@ -1288,6 +1447,9 @@ class TypeTranslator {
                                FunctionNodeHelper* function_node_helper);
 
  private:
+  void SetupUnboxingInfoMetadata(const Function& function,
+                                 intptr_t library_kernel_offset);
+
   void BuildTypeInternal();
   void BuildInterfaceType(bool simple);
   void BuildFunctionType(bool simple);
@@ -1320,12 +1482,16 @@ class TypeTranslator {
   };
 
   KernelReaderHelper* helper_;
+  ConstantReader* constant_reader_;
   TranslationHelper& translation_helper_;
   ActiveClass* const active_class_;
   TypeParameterScope* type_parameter_scope_;
+  InferredTypeMetadataHelper inferred_type_metadata_helper_;
+  UnboxingInfoMetadataHelper unboxing_info_metadata_helper_;
   Zone* zone_;
   AbstractType& result_;
   bool finalize_;
+  const bool apply_legacy_erasure_;
 
   friend class ScopeBuilder;
   friend class KernelLoader;

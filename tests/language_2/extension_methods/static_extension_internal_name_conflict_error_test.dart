@@ -10,7 +10,7 @@
 extension E1<T, T> on int {
 //              ^
 // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-// [cfe] unspecified
+// [cfe] A type variable can't have the same name as another.
 }
 
 extension E2 on int {}
@@ -19,28 +19,27 @@ extension E2 on int {}
 extension E2 on int {}
 //        ^^
 // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-// [cfe] unspecified
-
+// [cfe] 'E2' is already declared in this scope.
 
 class E2 {}
 //    ^^
 // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-// [cfe] unspecified
+// [cfe] 'E2' is already declared in this scope.
 
 typedef E2 = int Function(int);
 //      ^^
 // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-// [cfe] unspecified
+// [cfe] 'E2' is already declared in this scope.
 
 void E2(int x) {}
 //   ^^
 // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-// [cfe] unspecified
+// [cfe] 'E2' is already declared in this scope.
 
 int E2 = 3;
 //  ^^
 // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-// [cfe] unspecified
+// [cfe] 'E2' is already declared in this scope.
 
 ////////////////////////////////////////////////////////////////////
 // It is an error to have two static members with the same base name
@@ -65,27 +64,26 @@ extension E3 on int {
   static int method() => 0;
   //         ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-  // [cfe] unspecified
+  // [cfe] 'method' is already declared in this scope.
   static int get property => 1;
   //             ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-  // [cfe] unspecified
+  // [cfe] 'property' is already declared in this scope.
   static void set property(int value) {}
   //              ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-  // [cfe] unspecified
+  // [cfe] 'property' is already declared in this scope.
   static int field = 3;
   //         ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-  // [cfe] unspecified
+  // [cfe] 'field' is already declared in this scope.
   static int get field2 => 1;
   //             ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-  // [cfe] unspecified
+  // [cfe] 'field2' is already declared in this scope.
   static void set field2(int value) {}
   //              ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-  // [cfe] unspecified
 }
 
 // Check instance members colliding with instance members (of the same kind).
@@ -97,56 +95,65 @@ extension E4 on int {
   int method() => 0;
   //  ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-  // [cfe] unspecified
+  // [cfe] 'method' is already declared in this scope.
   int get property => 1;
   //      ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-  // [cfe] unspecified
+  // [cfe] 'property' is already declared in this scope.
   void set property(int value) {}
   //       ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-  // [cfe] unspecified
+  // [cfe] 'property' is already declared in this scope.
 }
-
 
 // Check static members colliding with static members (of the same kind).
 extension E5 on int {
   static int method() => 0;
   //         ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE
-  // [cfe] unspecified
   static int get property => 1;
   //             ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE
-  // [cfe] unspecified
   static void set property(int value) {}
   //              ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE
-  // [cfe] unspecified
   static int get property2 => 1;
   //             ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE
-  // [cfe] unspecified
+  // [cfe] Conflicts with setter 'property2'.
   static void set property3(int x) {}
   //              ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE
-  // [cfe] unspecified
+  // [cfe] Conflicts with member 'property3'.
   static int field = 3;
   //         ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE
-  // [cfe] unspecified
+  // [cfe] Conflicts with setter 'field'.
   static int field2 = 3;
   //         ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE
-  // [cfe] unspecified
 
   int method() => 0;
+  //  ^
+  // [cfe] 'method' is already declared in this scope.
   int get property => 1;
+  //      ^
+  // [cfe] 'property' is already declared in this scope.
   void set property(int value) {}
+  //       ^
+  // [cfe] 'property' is already declared in this scope.
   void set property2(int value) {}
+  //       ^
+  // [cfe] Conflicts with member 'property2'.
   int get property3 => 1;
+  //      ^
+  // [cfe] Conflicts with setter 'property3'.
   void set field(int value) {}
+  //       ^
+  // [cfe] Conflicts with member 'field'.
   int get field2 => 1;
+  //      ^
+  // [cfe] 'field2' is already declared in this scope.
 }
 
 // Check a static method colliding with a static getter.
@@ -155,16 +162,18 @@ extension E6 on int {
   static int get method => 1;
   //             ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-  // [cfe] unspecified
+  // [cfe] 'method' is already declared in this scope.
 }
 
 // Check a static method colliding with a static setter.
 extension E7 on int {
   static int method() => 0;
+  //         ^
+  // [cfe] Conflicts with setter 'method'.
   static void set method(int value) {}
   //              ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-  // [cfe] unspecified
+  // [cfe] Conflicts with member 'method'.
 }
 
 // Check a static method colliding with a static field.
@@ -173,7 +182,7 @@ extension E8 on int {
   static int method = 3;
   //         ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-  // [cfe] unspecified
+  // [cfe] 'method' is already declared in this scope.
 }
 
 // Check an instance method colliding with an instance getter.
@@ -182,16 +191,18 @@ extension E9 on int {
   int get method => 1;
   //      ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-  // [cfe] unspecified
+  // [cfe] 'method' is already declared in this scope.
 }
 
 // Check an instance method colliding with an instance setter.
 extension E10 on int {
   int method() => 0;
+  //  ^
+  // [cfe] Conflicts with setter 'method'.
   void set method(int value) {}
   //       ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-  // [cfe] unspecified
+  // [cfe] Conflicts with member 'method'.
 }
 
 // Check a static method colliding with an instance getter.
@@ -199,8 +210,9 @@ extension E11 on int {
   static int method() => 0;
   //         ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE
-  // [cfe] unspecified
   int get method => 1;
+  //      ^
+  // [cfe] 'method' is already declared in this scope.
 }
 
 // Check a static method colliding with an instance setter.
@@ -208,8 +220,10 @@ extension E12 on int {
   static int method() => 0;
   //         ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE
-  // [cfe] unspecified
+  // [cfe] Conflicts with setter 'method'.
   void set method(int value) {}
+  //       ^
+  // [cfe] Conflicts with member 'method'.
 }
 
 // Check an instance method colliding with a static getter.
@@ -218,16 +232,18 @@ extension E13 on int {
   static int get method => 1;
   //             ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE
-  // [cfe] unspecified
+  // [cfe] 'method' is already declared in this scope.
 }
 
 // Check an instance method colliding with a static setter.
 extension E14 on int {
   int method() => 0;
+  //  ^
+  // [cfe] Conflicts with setter 'method'.
   static void set method(int value) {}
   //              ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE
-  // [cfe] unspecified
+  // [cfe] Conflicts with member 'method'.
 }
 
 // Check an instance method colliding with a static field.
@@ -236,7 +252,7 @@ extension E15 on int {
   static int method = 3;
   //         ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE
-  // [cfe] unspecified
+  // [cfe] 'method' is already declared in this scope.
 }
 
 void main() {}

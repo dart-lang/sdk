@@ -5,11 +5,14 @@
 library allocations_test;
 
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 
 class Foo {}
 
+// Prevent TFA from removing this static field to ensure the objects are kept
+// alive, so the allocation stats will report them via the service api.
+@pragma('vm:entry-point')
 List<Foo> foos;
 
 void script() {
@@ -18,15 +21,12 @@ void script() {
 
 var tests = <IsolateTest>[
   (Isolate isolate) async {
-    Library lib = await isolate.rootLibrary.load();
-    expect(lib.uri.endsWith('allocations_test.dart'), isTrue);
-    expect(lib.classes.length, equals(1));
-    Class fooClass = await lib.classes.first.load();
-    expect(fooClass.name, equals('Foo'));
-    expect(
-        fooClass.newSpace.current.instances +
-            fooClass.oldSpace.current.instances,
-        equals(3));
+    var profile = await isolate.invokeRpcNoUpgrade('_getAllocationProfile', {});
+    var classHeapStats = profile['members'].singleWhere((stats) {
+      return stats['class']['name'] == 'Foo';
+    });
+    expect(classHeapStats['instancesCurrent'], equals(3));
+    expect(classHeapStats['instancesAccumulated'], equals(3));
   },
 ];
 

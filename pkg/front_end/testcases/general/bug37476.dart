@@ -23,7 +23,7 @@ B<num> b = new B<int>();
 
 main() {
   try {
-    a.foo /*@ checkReturn=<S extends num* = dynamic>(S) ->* void */ ();
+    a.foo /*@ checkReturn=<S extends num* = dynamic>(S*) ->* void */ ();
     throw 'Expected TypeError';
   } on TypeError catch (e) {
     print(e);

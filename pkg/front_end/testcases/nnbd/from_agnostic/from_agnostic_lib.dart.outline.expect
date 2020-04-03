@@ -1,0 +1,21 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "from_agnostic_lib.dart" as fro;
+
+import "org-dartlang-testcase:///from_agnostic_lib.dart";
+
+static const field core::bool c1 = core::identical(fro::a, fro::b);
+static const field core::Map<core::List<core::int?>, core::int> c2 = const <core::List<core::int?>, core::int>{fro::a: 0, fro::b: 1};
+static const field core::Set<core::List<core::int?>> c3 = const <core::List<core::int?>>{fro::a, fro::b};
+static const field core::List<core::int> c4 = fro::a;
+static const field core::List<core::int?> c5 = fro::b;
+static method main() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as fro;
+import "dart:core" as core;
+
+static const field core::List<core::int> a = const <core::int>[];
+static const field core::List<core::int?> b = const <core::int?>[];

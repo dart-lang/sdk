@@ -1,0 +1,16 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method bar(core::int* a, core::List<core::int*>* b) → dynamic {
+  self::expect(1.{core::int::unary-}(), a);
+  self::expect(1.{core::int::unary-}(), b.{core::List::[]}(0).{core::num::-}(2));
+}
+static method foo(core::int* x) → dynamic async 
+  return self::bar(x.{core::num::-}(1), !x.{core::num::==}(null) ?{core::List<core::int*>*} <core::int*>[x.{core::num::+}(1), x.{core::num::+}(2), await null] : null);
+static method main() → void async 
+  return await self::foo(0);
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!expected.{core::Object::==}(actual))
+    throw "Expected ${expected}, actual ${actual}";
+}

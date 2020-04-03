@@ -12,7 +12,9 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 
-namespace arch_x64 {
+#include "vm/constants_base.h"
+
+namespace dart {
 
 enum Register {
   RAX = 0,
@@ -127,6 +129,49 @@ const Register kWriteBarrierObjectReg = RDX;
 const Register kWriteBarrierValueReg = RAX;
 const Register kWriteBarrierSlotReg = R13;
 
+// ABI for allocation stubs.
+const Register kAllocationStubTypeArgumentsReg = RDX;
+
+// ABI for instantiation stubs.
+struct InstantiationABI {
+  static const Register kUninstantiatedTypeArgumentsReg = RBX;
+  static const Register kInstantiatorTypeArgumentsReg = RDX;
+  static const Register kFunctionTypeArgumentsReg = RCX;
+  static const Register kResultTypeArgumentsReg = RAX;
+  static const Register kResultTypeReg = RAX;
+};
+
+// Calling convention when calling TypeTestingStub and SubtypeTestCacheStub.
+struct TypeTestABI {
+  static const Register kInstanceReg = RAX;
+  static const Register kDstTypeReg = RBX;
+  static const Register kInstantiatorTypeArgumentsReg = RDX;
+  static const Register kFunctionTypeArgumentsReg = RCX;
+  static const Register kSubtypeTestCacheReg = R9;
+
+  static const intptr_t kAbiRegisters =
+      (1 << kInstanceReg) | (1 << kDstTypeReg) |
+      (1 << kInstantiatorTypeArgumentsReg) | (1 << kFunctionTypeArgumentsReg) |
+      (1 << kSubtypeTestCacheReg);
+};
+
+// ABI for InitStaticFieldStub.
+struct InitStaticFieldABI {
+  static const Register kFieldReg = RAX;
+};
+
+// Registers used inside the implementation of type testing stubs.
+struct TTSInternalRegs {
+  static const Register kInstanceTypeArgumentsReg = RSI;
+  static const Register kScratchReg = R8;
+
+  static const intptr_t kInternalRegisters =
+      (1 << kInstanceTypeArgumentsReg) | (1 << kScratchReg);
+};
+
+// TODO(regis): Add ABIs for type testing stubs and is-type test stubs instead
+// of reusing the constants of the instantiation stubs ABI.
+
 typedef uint32_t RegList;
 const RegList kAllCpuRegistersList = 0xFFFF;
 const RegList kAllFpuRegistersList = 0xFFFF;
@@ -146,8 +191,13 @@ enum ScaleFactor {
   TIMES_2 = 1,
   TIMES_4 = 2,
   TIMES_8 = 3,
+  // Note that Intel addressing does not support this addressing.
+  // > Scale factor — A value of 2, 4, or 8 that is multiplied by the index
+  // > value.
+  // https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4
+  // 3.7.5 Specifying an Offset
   TIMES_16 = 4,
-  TIMES_HALF_WORD_SIZE = ::dart::kWordSizeLog2 - 1
+  TIMES_HALF_WORD_SIZE = kWordSizeLog2 - 1
 };
 
 #define R(reg) (1 << (reg))
@@ -173,7 +223,7 @@ class CallingConventions {
   // same time? (Windows no, rest yes)
   static const bool kArgumentIntRegXorFpuReg = true;
 
-  static const intptr_t kShadowSpaceBytes = 4 * ::dart::kWordSize;
+  static const intptr_t kShadowSpaceBytes = 4 * kWordSize;
 
   static const intptr_t kVolatileCpuRegisters =
       R(RAX) | R(RCX) | R(RDX) | R(R8) | R(R9) | R(R10) | R(R11);
@@ -198,13 +248,23 @@ class CallingConventions {
   static constexpr Register kSecondReturnReg = kNoRegister;
   static constexpr FpuRegister kReturnFpuReg = XMM0;
 
-  // Whether floating-point values should be passed as integers ("softfp" vs
-  // "hardfp").
-  static constexpr bool kAbiSoftFP = false;
+  // Whether larger than wordsize arguments are aligned to even registers.
+  static constexpr AlignmentStrategy kArgumentRegisterAlignment =
+      kAlignedToWordSize;
 
-  // Whether 64-bit arguments must be aligned to an even register or 8-byte
-  // stack address. Not relevant on X64 since the word size is 64-bits already.
-  static constexpr bool kAlignArguments = false;
+  // How stack arguments are aligned.
+  static constexpr AlignmentStrategy kArgumentStackAlignment =
+      kAlignedToWordSize;
+
+  // How fields in composites are aligned.
+  static constexpr AlignmentStrategy kFieldAlignment = kAlignedToValueSize;
+
+  // Whether 1 or 2 byte-sized arguments or return values are passed extended
+  // to 4 bytes.
+  static constexpr ExtensionStrategy kReturnRegisterExtension = kNotExtended;
+  static constexpr ExtensionStrategy kArgumentRegisterExtension = kNotExtended;
+  static constexpr ExtensionStrategy kArgumentStackExtension = kNotExtended;
+
 #else
   static const Register kArg1Reg = RDI;
   static const Register kArg2Reg = RSI;
@@ -250,13 +310,26 @@ class CallingConventions {
   static constexpr Register kSecondReturnReg = kNoRegister;
   static constexpr FpuRegister kReturnFpuReg = XMM0;
 
-  // Whether floating-point values should be passed as integers ("softfp" vs
-  // "hardfp").
-  static constexpr bool kAbiSoftFP = false;
+  // Whether larger than wordsize arguments are aligned to even registers.
+  static constexpr AlignmentStrategy kArgumentRegisterAlignment =
+      kAlignedToWordSize;
 
-  // Whether 64-bit arguments must be aligned to an even register or 8-byte
-  // stack address. Not relevant on X64 since the word size is 64-bits already.
-  static constexpr bool kAlignArguments = false;
+  // How stack arguments are aligned.
+  static constexpr AlignmentStrategy kArgumentStackAlignment =
+      kAlignedToWordSize;
+
+  // How fields in composites are aligned.
+  static constexpr AlignmentStrategy kFieldAlignment = kAlignedToValueSize;
+
+  // Whether 1 or 2 byte-sized arguments or return values are passed extended
+  // to 4 bytes.
+  // Note that `kReturnRegisterExtension != kArgumentRegisterExtension`, which
+  // effectively means that the caller is responsable for truncating and
+  // extending both arguments and return value.
+  static constexpr ExtensionStrategy kReturnRegisterExtension = kNotExtended;
+  static constexpr ExtensionStrategy kArgumentRegisterExtension = kExtendedTo4;
+  static constexpr ExtensionStrategy kArgumentStackExtension = kExtendedTo4;
+
 #endif
 
   COMPILE_ASSERT((kArgumentRegisters & kReservedCpuRegisters) == 0);
@@ -292,7 +365,7 @@ class Instr {
   // reference to an instruction is to convert a pointer. There is no way
   // to allocate or create instances of class Instr.
   // Use the At(pc) function to create references to Instr.
-  static Instr* At(::dart::uword pc) { return reinterpret_cast<Instr*>(pc); }
+  static Instr* At(uword pc) { return reinterpret_cast<Instr*>(pc); }
 
  private:
   DISALLOW_ALLOCATION();
@@ -304,6 +377,6 @@ class Instr {
 // becomes important to us.
 const int MAX_NOP_SIZE = 8;
 
-}  // namespace arch_x64
+}  // namespace dart
 
 #endif  // RUNTIME_VM_CONSTANTS_X64_H_

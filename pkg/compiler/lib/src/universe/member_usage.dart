@@ -356,7 +356,7 @@ class PropertyUsage extends MemberUsage {
       'potentialWrites=${potentialWrites.iterable(Access.values)},'
       'potentialInvokes=${potentialInvokes.iterable(Access.values)},'
       'pendingUse=${_pendingUse.iterable(MemberUse.values)},'
-      'initialConstants=${initialConstants?.map((c) => c.toStructuredText())})';
+      'initialConstants=${initialConstants?.map((c) => c.toStructuredText(null))})';
 }
 
 /// Member usage tracking for a field.
@@ -492,7 +492,7 @@ class FieldUsage extends MemberUsage {
       'potentialWrites=${potentialWrites.iterable(Access.values)},'
       'potentialInvokes=${potentialInvokes.iterable(Access.values)},'
       'pendingUse=${_pendingUse.iterable(MemberUse.values)},'
-      'initialConstants=${initialConstants.map((c) => c.toStructuredText())})';
+      'initialConstants=${initialConstants.map((c) => c.toStructuredText(null))})';
 }
 
 /// Member usage tracking for a constructor or method.

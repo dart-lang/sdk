@@ -21,7 +21,8 @@ class B {
   int A;
   factory B() = A;
 }''', [
-      error(StaticWarningCode.REDIRECT_TO_NON_CLASS, 35, 1),
+      error(CompileTimeErrorCode.REDIRECT_TO_NON_CLASS, 35, 1),
+      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY, 35, 1),
     ]);
   }
 
@@ -30,7 +31,7 @@ class B {
 class B {
   factory B() = A;
 }''', [
-      error(StaticWarningCode.REDIRECT_TO_NON_CLASS, 26, 1),
+      error(CompileTimeErrorCode.REDIRECT_TO_NON_CLASS, 26, 1),
     ]);
   }
 }

@@ -5,7 +5,6 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
-import 'resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -13,7 +12,8 @@ main() {
   });
 }
 
-mixin ClassAliasResolutionMixin implements ResolutionTest {
+@reflectiveTest
+class CommentDriverResolutionTest extends DriverResolutionTest {
   test_error_unqualifiedReferenceToNonLocalStaticMember() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -223,7 +223,3 @@ main() {}
     );
   }
 }
-
-@reflectiveTest
-class CommentDriverResolutionTest extends DriverResolutionTest
-    with ClassAliasResolutionMixin {}

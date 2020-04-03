@@ -1,0 +1,36 @@
+main = <No Member>;
+library from "org-dartlang-test:///lib.dart" as lib {
+
+  static method lib() → dynamic {
+    return "hello";
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///lib.dart";
+
+  static method main() → dynamic {
+    dart.core::print(lib::lib().+("!!"));
+  }
+}
+
+And 19 platform libraries:
+ - dart:_http
+ - dart:_builtin
+ - dart:vmservice_io
+ - dart:async
+ - dart:cli
+ - dart:collection
+ - dart:convert
+ - dart:core
+ - dart:developer
+ - dart:ffi
+ - dart:nativewrappers
+ - dart:_internal
+ - dart:io
+ - dart:isolate
+ - dart:math
+ - dart:mirrors
+ - dart:typed_data
+ - dart:_vmservice
+ - dart:wasm

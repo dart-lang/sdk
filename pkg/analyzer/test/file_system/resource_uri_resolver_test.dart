@@ -19,7 +19,7 @@ class ResourceUriResolverTest with ResourceProviderMixin {
   ResourceUriResolver resolver;
 
   void setUp() {
-    resolver = new ResourceUriResolver(resourceProvider);
+    resolver = ResourceUriResolver(resourceProvider);
     newFile('/test.dart');
     newFolder('/folder');
   }
@@ -48,14 +48,14 @@ class ResourceUriResolverTest with ResourceProviderMixin {
   }
 
   void test_resolveAbsolute_notFile_dartUri() {
-    var uri = new Uri(scheme: 'dart', path: 'core');
+    var uri = Uri(scheme: 'dart', path: 'core');
 
     Source source = resolver.resolveAbsolute(uri);
     expect(source, isNull);
   }
 
   void test_resolveAbsolute_notFile_httpsUri() {
-    var uri = new Uri(scheme: 'https', path: '127.0.0.1/test.dart');
+    var uri = Uri(scheme: 'https', path: '127.0.0.1/test.dart');
 
     Source source = resolver.resolveAbsolute(uri);
     expect(source, isNull);
@@ -68,8 +68,8 @@ class ResourceUriResolverTest with ResourceProviderMixin {
     expect(source, isNotNull);
     expect(resolver.restoreAbsolute(source), uri);
     expect(
-        resolver.restoreAbsolute(
-            new NonExistingSource(source.fullName, null, null)),
+        resolver
+            .restoreAbsolute(NonExistingSource(source.fullName, null, null)),
         uri);
   }
 }

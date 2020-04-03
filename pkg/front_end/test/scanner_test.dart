@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/base/errors.dart';
-import 'package:front_end/src/fasta/scanner/abstract_scanner.dart'
+import 'package:_fe_analyzer_shared/src/base/errors.dart';
+import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show AbstractScanner, ScannerConfiguration;
-import 'package:front_end/src/scanner/errors.dart';
-import 'package:front_end/src/scanner/reader.dart';
-import 'package:front_end/src/scanner/token.dart';
+import 'package:_fe_analyzer_shared/src/scanner/errors.dart';
+import 'package:_fe_analyzer_shared/src/scanner/reader.dart';
+import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -544,6 +544,10 @@ abstract class ScannerTestBase {
     _assertKeywordToken("in");
   }
 
+  void test_keyword_inout() {
+    _assertKeywordToken("inout");
+  }
+
   void test_keyword_is() {
     _assertKeywordToken("is");
   }
@@ -588,6 +592,10 @@ abstract class ScannerTestBase {
 
   void test_keyword_operator() {
     _assertKeywordToken("operator");
+  }
+
+  void test_keyword_out() {
+    _assertKeywordToken("out");
   }
 
   void test_keyword_part() {

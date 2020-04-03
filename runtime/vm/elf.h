@@ -23,10 +23,18 @@ class Elf : public ZoneAllocated {
  public:
   Elf(Zone* zone, StreamingWriteStream* stream);
 
-  intptr_t NextMemoryOffset();
+  static const intptr_t kPageSize = 4096;
+
+  intptr_t NextMemoryOffset() const;
+  intptr_t NextSectionIndex() const;
   intptr_t AddText(const char* name, const uint8_t* bytes, intptr_t size);
   intptr_t AddROData(const char* name, const uint8_t* bytes, intptr_t size);
+  intptr_t AddBSSData(const char* name, intptr_t size);
   void AddDebug(const char* name, const uint8_t* bytes, intptr_t size);
+  void AddStaticSymbol(intptr_t section,
+                       const char* name,
+                       intptr_t address,
+                       intptr_t size);
 
   void Finalize();
 
@@ -56,8 +64,10 @@ class Elf : public ZoneAllocated {
 #endif
 
  private:
-  void AddSection(Section* section);
-  void AddSegment(Section* section);
+  void AddSection(Section* section, const char* name);
+  intptr_t AddSectionSymbol(const Section* section,
+                            const char* name,
+                            intptr_t size);
 
   void ComputeFileOffsets();
   void WriteHeader();
@@ -66,19 +76,28 @@ class Elf : public ZoneAllocated {
   void WriteSections();
 
   Zone* const zone_;
-  StreamingWriteStream* stream_;
+  StreamingWriteStream* const stream_;
+
+  // All our strings would fit in a single page. However, we use separate
+  // .shstrtab and .dynstr to work around a bug in Android's strip utility.
+  StringTable* const shstrtab_;
+  StringTable* const dynstrtab_;
+  SymbolTable* const dynsym_;
+
+  // Can only be created once the dynamic symbol table is complete.
+  DynamicTable* dynamic_ = nullptr;
+
+  // The static tables are lazily created when static symbols are added.
+  StringTable* strtab_ = nullptr;
+  SymbolTable* symtab_ = nullptr;
+
   GrowableArray<Section*> sections_;
   GrowableArray<Section*> segments_;
-
   intptr_t memory_offset_;
-  intptr_t section_table_file_offset_;
-  intptr_t section_table_file_size_;
-  intptr_t program_table_file_offset_;
-  intptr_t program_table_file_size_;
-  StringTable* shstrtab_;
-  StringTable* symstrtab_;
-  SymbolTable* symtab_;
-  DynamicTable* dynamic_;
+  intptr_t section_table_file_offset_ = -1;
+  intptr_t section_table_file_size_ = -1;
+  intptr_t program_table_file_offset_ = -1;
+  intptr_t program_table_file_size_ = -1;
 };
 
 }  // namespace dart

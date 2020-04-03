@@ -95,8 +95,7 @@ class HeapMapElement extends CustomElement implements Renderable {
       _canvas = new CanvasElement()
         ..width = 1
         ..height = 1
-        ..onMouseMove.listen(_handleMouseMove)
-        ..onMouseDown.listen(_handleClick);
+        ..onMouseMove.listen(_handleMouseMove);
     }
 
     // Set hover text to describe the object under the cursor.
@@ -220,16 +219,6 @@ class HeapMapElement extends CustomElement implements Renderable {
     var className = _classNameAt(event.offset);
     _status = (className == '') ? '-' : '$className $addressString';
     _r.dirty();
-  }
-
-  void _handleClick(MouseEvent event) {
-    final isolate = _isolate as S.Isolate;
-    final address = _objectAt(event.offset).address.toRadixString(16);
-    isolate.getObjectByAddress(address).then((result) {
-      if (result.type != 'Sentinel') {
-        new AnchorElement(href: Uris.inspect(_isolate, object: result)).click();
-      }
-    });
   }
 
   void _updateFragmentationData() {

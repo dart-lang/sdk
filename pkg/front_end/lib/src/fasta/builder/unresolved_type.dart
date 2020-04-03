@@ -4,7 +4,10 @@
 
 library fasta.unresolved_type;
 
-import 'builder.dart' show LibraryBuilder, Scope, TypeBuilder;
+import '../scope.dart';
+
+import 'library_builder.dart';
+import 'type_builder.dart';
 
 /// A wrapper around a type that is yet to be resolved.
 class UnresolvedType {
@@ -21,9 +24,6 @@ class UnresolvedType {
   void checkType(LibraryBuilder library) {
     return builder.check(library, charOffset, fileUri);
   }
-
-  /// Normalizes the type arguments in accordance with Dart 1 semantics.
-  void normalizeType() => builder.normalize(charOffset, fileUri);
 
   String toString() => "UnresolvedType(@$charOffset, $builder)";
 }

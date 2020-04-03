@@ -4,17 +4,16 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/testing/element_search.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
-    show RefactoringProblemSeverity, SourceChange;
+    show RefactoringProblemSeverity;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'abstract_refactoring.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertMethodToGetterTest);
   });
@@ -22,9 +21,10 @@ main() {
 
 @reflectiveTest
 class ConvertMethodToGetterTest extends RefactoringTest {
+  @override
   ConvertMethodToGetterRefactoring refactoring;
 
-  test_change_function() async {
+  Future<void> test_change_function() async {
     await indexTestUnit('''
 int test() => 42;
 main() {
@@ -43,7 +43,7 @@ main() {
 ''');
   }
 
-  test_change_method() async {
+  Future<void> test_change_method() async {
     await indexTestUnit('''
 class A {
   int test() => 1;
@@ -88,7 +88,7 @@ main(A a, B b, C c, D d) {
 ''');
   }
 
-  test_change_multipleFiles() async {
+  Future<void> test_change_multipleFiles() async {
     await indexUnit('/home/test/lib/other.dart', r'''
 class A {
   int test() => 1;
@@ -118,7 +118,7 @@ main(A a, B b) {
 ''');
   }
 
-  test_checkInitialConditions_alreadyGetter() async {
+  Future<void> test_checkInitialConditions_alreadyGetter() async {
     await indexTestUnit('''
 int get test => 42;
 main() {
@@ -129,11 +129,11 @@ main() {
     ExecutableElement element = findElement('test', ElementKind.GETTER);
     _createRefactoringForElement(element);
     // check conditions
-    _assertInitialConditions_fatal(
+    await _assertInitialConditions_fatal(
         'Only class methods or top-level functions can be converted to getters.');
   }
 
-  test_checkInitialConditions_hasParameters() async {
+  Future<void> test_checkInitialConditions_hasParameters() async {
     await indexTestUnit('''
 int test(x) => x * 2;
 main() {
@@ -142,11 +142,11 @@ main() {
 ''');
     _createRefactoring('test');
     // check conditions
-    _assertInitialConditions_fatal(
+    await _assertInitialConditions_fatal(
         'Only methods without parameters can be converted to getters.');
   }
 
-  test_checkInitialConditions_localFunction() async {
+  Future<void> test_checkInitialConditions_localFunction() async {
     await indexTestUnit('''
 main() {
   test() {}
@@ -156,11 +156,11 @@ main() {
     ExecutableElement element = findElementsByName(testUnit, 'test').single;
     _createRefactoringForElement(element);
     // check conditions
-    _assertInitialConditions_fatal(
+    await _assertInitialConditions_fatal(
         'Only top-level functions can be converted to getters.');
   }
 
-  test_checkInitialConditions_notFunctionOrMethod() async {
+  Future<void> test_checkInitialConditions_notFunctionOrMethod() async {
     await indexTestUnit('''
 class A {
   A.test();
@@ -168,32 +168,31 @@ class A {
 ''');
     _createRefactoring('test');
     // check conditions
-    _assertInitialConditions_fatal(
+    await _assertInitialConditions_fatal(
         'Only class methods or top-level functions can be converted to getters.');
   }
 
-  test_checkInitialConditions_returnTypeVoid() async {
+  Future<void> test_checkInitialConditions_returnTypeVoid() async {
     await indexTestUnit('''
 void test() {}
 ''');
     _createRefactoring('test');
     // check conditions
-    _assertInitialConditions_fatal('Cannot convert function returning void.');
+    await _assertInitialConditions_fatal(
+        'Cannot convert function returning void.');
   }
 
   Future _assertInitialConditions_fatal(String message) async {
-    RefactoringStatus status = await refactoring.checkInitialConditions();
+    var status = await refactoring.checkInitialConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
         expectedMessage: message);
   }
 
-  /**
-   * Checks that all conditions are OK and the result of applying the [Change]
-   * to [testUnit] is [expectedCode].
-   */
+  /// Checks that all conditions are OK and the result of applying the [Change]
+  /// to [testUnit] is [expectedCode].
   Future _assertSuccessfulRefactoring(String expectedCode) async {
     await assertRefactoringConditionsOK();
-    SourceChange refactoringChange = await refactoring.createChange();
+    var refactoringChange = await refactoring.createChange();
     this.refactoringChange = refactoringChange;
     assertTestChangeResult(expectedCode);
   }
@@ -204,7 +203,7 @@ void test() {}
   }
 
   void _createRefactoringForElement(ExecutableElement element) {
-    refactoring = new ConvertMethodToGetterRefactoring(
+    refactoring = ConvertMethodToGetterRefactoring(
         searchEngine, testAnalysisResult.session, element);
   }
 

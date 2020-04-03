@@ -1,0 +1,7 @@
+main = <No Member>;
+library mainLibrary from "org-dartlang-test:///main.dart" as mai {
+
+  static method main() → dynamic {
+    dart.core::print("hello");
+  }
+}

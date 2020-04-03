@@ -10,18 +10,9 @@
 
 namespace dart {
 
-MethodRecognizer::Kind MethodRecognizer::RecognizeKind(
-    const Function& function) {
-  return function.recognized_kind();
-}
-
-bool MethodRecognizer::PolymorphicTarget(const Function& function) {
-  return function.is_polymorphic_target();
-}
-
 intptr_t MethodRecognizer::NumArgsCheckedForStaticCall(
     const Function& function) {
-  switch (RecognizeKind(function)) {
+  switch (function.recognized_kind()) {
     case MethodRecognizer::kDoubleFromInteger:
     case MethodRecognizer::kMathMin:
     case MethodRecognizer::kMathMax:
@@ -68,6 +59,14 @@ intptr_t MethodRecognizer::ResultCidFromPragma(
           if (!klass.IsNull()) {
             return klass.id();
           }
+        }
+      }
+    } else if (option.IsArray()) {
+      const Array& array = Array::Cast(option);
+      if (array.Length() > 0) {
+        const Object& type = Object::Handle(Array::Cast(option).At(0));
+        if (type.IsType()) {
+          return Type::Cast(type).type_class_id();
         }
       }
     }
@@ -176,14 +175,22 @@ intptr_t MethodRecognizer::MethodKindToReceiverCid(Kind kind) {
   return kIllegalCid;
 }
 
-#define KIND_TO_STRING(class_name, function_name, enum_name, fp) #enum_name,
-static const char* recognized_list_method_name[] = {
-    "Unknown", RECOGNIZED_LIST(KIND_TO_STRING)};
-#undef KIND_TO_STRING
+static const struct {
+  const char* const class_name;
+  const char* const function_name;
+  const char* const enum_name;
+  const uint32_t fp;
+} recognized_methods[MethodRecognizer::kNumRecognizedMethods] = {
+    {"", "", "Unknown", 0},
+#define RECOGNIZE_METHOD(class_name, function_name, enum_name, fp)             \
+  {"" #class_name, "" #function_name, #enum_name, fp},
+    RECOGNIZED_LIST(RECOGNIZE_METHOD)
+#undef RECOGNIZE_METHOD
+};
 
 const char* MethodRecognizer::KindToCString(Kind kind) {
-  if (kind > kUnknown && kind < kNumRecognizedMethods)
-    return recognized_list_method_name[kind];
+  if (kind >= kUnknown && kind < kNumRecognizedMethods)
+    return recognized_methods[kind].enum_name;
   return "?";
 }
 
@@ -193,17 +200,31 @@ void MethodRecognizer::InitializeState() {
   Libraries(&libs);
   Function& func = Function::Handle();
 
-#define SET_RECOGNIZED_KIND(class_name, function_name, enum_name, fp)          \
-  func = Library::GetFunction(libs, #class_name, #function_name);              \
-  if (!func.IsNull()) {                                                        \
-    CHECK_FINGERPRINT3(func, class_name, function_name, enum_name, fp);        \
-    func.set_recognized_kind(k##enum_name);                                    \
-  } else if (!FLAG_precompiled_mode) {                                         \
-    OS::PrintErr("Missing %s::%s\n", #class_name, #function_name);             \
-    UNREACHABLE();                                                             \
+  for (intptr_t i = 1; i < MethodRecognizer::kNumRecognizedMethods; i++) {
+    const MethodRecognizer::Kind kind = static_cast<MethodRecognizer::Kind>(i);
+    func = Library::GetFunction(libs, recognized_methods[i].class_name,
+                                recognized_methods[i].function_name);
+    if (!func.IsNull()) {
+      CHECK_FINGERPRINT3(func, recognized_methods[i].class_name,
+                         recognized_methods[i].function_name,
+                         recognized_methods[i].enum_name,
+                         recognized_methods[i].fp);
+      func.set_recognized_kind(kind);
+      switch (kind) {
+#define RECOGNIZE_METHOD(class_name, function_name, enum_name, fp)             \
+  case MethodRecognizer::k##enum_name:                                         \
+    func.reset_unboxed_parameters_and_return();                                \
+    break;
+        ALL_INTRINSICS_LIST(RECOGNIZE_METHOD)
+#undef RECOGNIZE_METHOD
+        default:
+          break;
+      }
+    } else if (!FLAG_precompiled_mode) {
+      FATAL2("Missing %s::%s\n", recognized_methods[i].class_name,
+             recognized_methods[i].function_name);
+    }
   }
-
-  RECOGNIZED_LIST(SET_RECOGNIZED_KIND);
 
 #define SET_FUNCTION_BIT(class_name, function_name, dest, fp, setter, value)   \
   func = Library::GetFunction(libs, #class_name, #function_name);              \
@@ -235,24 +256,6 @@ void MethodRecognizer::Libraries(GrowableArray<Library*>* libs) {
   libs->Add(&Library::ZoneHandle(Library::DeveloperLibrary()));
   libs->Add(&Library::ZoneHandle(Library::AsyncLibrary()));
   libs->Add(&Library::ZoneHandle(Library::FfiLibrary()));
-}
-
-RawGrowableObjectArray* MethodRecognizer::QueryRecognizedMethods(Zone* zone) {
-  const GrowableObjectArray& methods =
-      GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
-  Function& func = Function::Handle(zone);
-
-  GrowableArray<Library*> libs(3);
-  Libraries(&libs);
-
-#define ADD_RECOGNIZED_METHOD(class_name, function_name, enum_name, fp)        \
-  func = Library::GetFunction(libs, #class_name, #function_name);              \
-  methods.Add(func);
-
-  RECOGNIZED_LIST(ADD_RECOGNIZED_METHOD);
-#undef ADD_RECOGNIZED_METHOD
-
-  return methods.raw();
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -315,12 +318,12 @@ Token::Kind MethodTokenRecognizer::RecognizeTokenKind(const String& name_) {
   {Symbols::k##symbol##Id, cid, fp, #symbol ", " #cid},  // NOLINT
 
 static struct {
-  intptr_t symbol_id;
-  intptr_t cid;
-  intptr_t finger_print;
-  const char* name;
+  const intptr_t symbol_id;
+  const intptr_t cid;
+  const uint32_t finger_print;
+  const char* const name;
 } factory_recognizer_list[] = {RECOGNIZED_LIST_FACTORY_LIST(RECOGNIZE_FACTORY){
-    Symbols::kIllegal, -1, -1, NULL}};
+    Symbols::kIllegal, -1, 0, NULL}};
 
 #undef RECOGNIZE_FACTORY
 

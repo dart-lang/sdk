@@ -3,12 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
-import 'package:analyzer/src/generated/testing/element_search.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/testing/element_search.dart';
 import 'package:test/test.dart';
 
 /**
@@ -17,8 +16,7 @@ import 'package:test/test.dart';
  */
 FunctionElement findLocalFunction(CompilationUnit unit, String name) {
   List<Element> elements = findElementsByName(unit, name);
-  List<Element> functions =
-      elements.where((e) => e is FunctionElement).toList();
+  List<Element> functions = elements.whereType<FunctionElement>().toList();
   expect(functions, hasLength(1));
   return functions[0];
 }
@@ -30,33 +28,25 @@ FunctionElement findLocalFunction(CompilationUnit unit, String name) {
 LocalVariableElement findLocalVariable(CompilationUnit unit, String name) {
   List<Element> elements = findElementsByName(unit, name);
   List<Element> localVariables =
-      elements.where((e) => e is LocalVariableElement).toList();
+      elements.whereType<LocalVariableElement>().toList();
   expect(localVariables, hasLength(1));
   return localVariables[0];
 }
 
-/**
- * The type of an assertion which asserts properties of [T]s.
- */
-typedef void Asserter<T>(T type);
+/// The type of an assertion which asserts properties of [T]s.
+typedef Asserter<T> = void Function(T type);
 
-/**
- * The type of a function which given an [S], builds an assertion over [T]s.
- */
-typedef Asserter<T> AsserterBuilder<S, T>(S arg);
+/// The type of a function which given an [S], builds an assertion over [T]s.
+typedef AsserterBuilder<S, T> = Asserter<T> Function(S arg);
 
-/**
- * The type of a function which given an [S0] and an S1, builds an assertion
- * over [T]s.
- */
-typedef Asserter<T> AsserterBuilder2<S0, S1, T>(S0 arg0, S1 arg1);
+/// The type of a function which given an [S0] and an S1, builds an assertion
+/// over [T]s.
+typedef AsserterBuilder2<S0, S1, T> = Asserter<T> Function(S0 arg0, S1 arg1);
 
-/**
- * The type of a function which given an [R] returns an [AsserterBuilder] over
- * [S]s and [T]s.  That is, it returns a function which given an [S], returns
- * a function over [T]s.
- */
-typedef AsserterBuilder<S, T> AsserterBuilderBuilder<R, S, T>(R arg);
+/// The type of a function which given an [R] returns an [AsserterBuilder] over
+/// [S]s and [T]s.  That is, it returns a function which given an [S], returns
+/// a function over [T]s.
+typedef AsserterBuilderBuilder<R, S, T> = AsserterBuilder<S, T> Function(R arg);
 
 class AstFinder {
   /**
@@ -70,7 +60,7 @@ class AstFinder {
         return unitMember;
       }
     }
-    Source source = resolutionMap.elementDeclaredByCompilationUnit(unit).source;
+    Source source = unit.declaredElement.source;
     fail('No class named $className in $source');
   }
 
@@ -238,12 +228,12 @@ class TypeAssertions {
   /**
    * Primitive assertion for the list type
    */
-  Asserter<DartType> get isList => hasElementOf(_typeProvider.listType);
+  Asserter<DartType> get isList => hasElement(_typeProvider.listElement);
 
   /**
    * Primitive assertion for the map type
    */
-  Asserter<DartType> get isMap => hasElementOf(_typeProvider.mapType);
+  Asserter<DartType> get isMap => hasElement(_typeProvider.mapElement);
 
   /**
    * Primitive assertion for the Null type
@@ -270,12 +260,6 @@ class TypeAssertions {
    */
   Asserter<DartType> hasElement(Element expected) =>
       (DartType type) => expect(expected, type.element);
-
-  /**
-   * Assert that a type has the element that is equal to the element of the
-   * given [type].
-   */
-  Asserter<DartType> hasElementOf(DartType type) => hasElement(type.element);
 
   /**
    * Given assertions for the argument and return types, produce an

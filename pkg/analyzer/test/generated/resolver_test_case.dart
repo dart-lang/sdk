@@ -7,12 +7,13 @@ import 'dart:async';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -21,19 +22,19 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
-import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/resolver.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 
-import 'analysis_context_factory.dart';
+import '../src/dart/resolution/driver_resolution.dart';
+import 'test_analysis_context.dart';
 import 'test_support.dart';
 
 const String _defaultSourceName = "/test.dart";
@@ -49,16 +50,12 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
    */
   final Set<AstNode> _knownExceptions;
 
-  /**
-   * A list containing all of the AST nodes that were not resolved.
-   */
-  List<AstNode> _unresolvedNodes = new List<AstNode>();
+  /// A list containing all of the AST nodes that were not resolved.
+  final List<AstNode> _unresolvedNodes = <AstNode>[];
 
-  /**
-   * A list containing all of the AST nodes that were resolved to an element of
-   * the wrong type.
-   */
-  List<AstNode> _wrongTypedNodes = new List<AstNode>();
+  /// A list containing all of the AST nodes that were resolved to an element of
+  /// the wrong type.
+  final List<AstNode> _wrongTypedNodes = <AstNode>[];
 
   /**
    * Initialize a newly created verifier to verify that all of the identifiers
@@ -74,7 +71,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
    */
   void assertResolved() {
     if (_unresolvedNodes.isNotEmpty || _wrongTypedNodes.isNotEmpty) {
-      StringBuffer buffer = new StringBuffer();
+      StringBuffer buffer = StringBuffer();
       if (_unresolvedNodes.isNotEmpty) {
         buffer.write("Failed to resolve ");
         buffer.write(_unresolvedNodes.length);
@@ -245,8 +242,8 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
     if (node.name == "void") {
       return;
     }
-    if (resolutionMap.staticTypeForExpression(node) != null &&
-        resolutionMap.staticTypeForExpression(node).isDynamic &&
+    if (node.staticType != null &&
+        node.staticType.isDynamic &&
         node.staticElement == null) {
       return;
     }
@@ -285,10 +282,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
       if (root is CompilationUnit) {
         CompilationUnit rootCU = root;
         if (rootCU.declaredElement != null) {
-          return resolutionMap
-              .elementDeclaredByCompilationUnit(rootCU)
-              .source
-              .fullName;
+          return rootCU.declaredElement.source.fullName;
         } else {
           return "<unknown file- CompilationUnit.getElement() returned null>";
         }
@@ -312,22 +306,21 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
   }
 }
 
-class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
+class ResolverTestCase with ResourceProviderMixin {
   /**
    * Specifies if [assertErrors] should check for [HintCode.UNUSED_ELEMENT] and
    * [HintCode.UNUSED_FIELD].
    */
   bool enableUnusedElement = false;
 
-  /**
-   * Specifies if [assertErrors] should check for [HintCode.UNUSED_LOCAL_VARIABLE].
-   */
+  /// Specifies if [assertErrors] should check for
+  /// [HintCode.UNUSED_LOCAL_VARIABLE].
   bool enableUnusedLocalVariable = false;
 
   final Map<Source, TestAnalysisResult> analysisResults = {};
 
-  StringBuffer _logBuffer = new StringBuffer();
-  FileContentOverlay fileContentOverlay = new FileContentOverlay();
+  final StringBuffer _logBuffer = StringBuffer();
+  FileContentOverlay fileContentOverlay = FileContentOverlay();
   AnalysisDriver driver;
 
   AnalysisOptions get analysisOptions => driver?.analysisOptions;
@@ -335,7 +328,7 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
   /**
    * The default [AnalysisOptions] that should be used by [reset].
    */
-  AnalysisOptions get defaultAnalysisOptions => new AnalysisOptionsImpl();
+  AnalysisOptions get defaultAnalysisOptions => AnalysisOptionsImpl();
 
   /**
    * Return the list of experiments that are to be enabled for tests in this
@@ -352,14 +345,13 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
     if (analysisResults.isEmpty) {
       fail('typeProvider called before computing an analysis result.');
     }
-    return analysisResults
-        .values.first.unit.declaredElement.context.typeProvider;
+    return analysisResults.values.first.typeProvider;
   }
 
   /**
    * Return a type system that can be used to test the results of resolution.
    */
-  TypeSystem get typeSystem {
+  TypeSystemImpl get typeSystem {
     if (analysisResults.isEmpty) {
       fail('typeSystem called before computing an analysis result.');
     }
@@ -388,16 +380,6 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
       addNamedSource(_defaultSourceName, contents);
 
   /**
-   * The [code] that assigns the value to the variable "v", no matter how. We
-   * check that "v" has expected static type.
-   */
-  void assertAssignedType(
-      String code, CompilationUnit unit, DartType expectedStaticType) {
-    SimpleIdentifier identifier = findMarkedIdentifier(code, unit, "v = ");
-    expect(identifier.staticType, expectedStaticType);
-  }
-
-  /**
    * Assert that the number of errors reported against the given
    * [source] matches the number of errors that are given and that they have
    * the expected error codes. The order in which the errors were gathered is
@@ -408,7 +390,7 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
     TestAnalysisResult result = analysisResults[source];
     expect(result, isNotNull);
 
-    GatheringErrorListener errorListener = new GatheringErrorListener();
+    GatheringErrorListener errorListener = GatheringErrorListener();
     for (AnalysisError error in result.errors) {
       expect(error.source, source);
       ErrorCode errorCode = error.errorCode;
@@ -435,7 +417,7 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
    */
   // TODO(rnystrom): Use this in more tests that have the same structure.
   Future<void> assertErrorsInCode(String code, List<ErrorCode> errors,
-      {bool verify: true, String sourceName: _defaultSourceName}) async {
+      {bool verify = true, String sourceName = _defaultSourceName}) async {
     Source source = addNamedSource(sourceName, code);
     await computeAnalysisResult(source);
     assertErrors(source, errors);
@@ -478,31 +460,10 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
     verify([source]);
   }
 
-  /**
-   * The [code] that iterates using variable "v". We check that "v" has expected
-   * static type.
-   */
-  void assertPropagatedIterationType(
-      String code, CompilationUnit unit, DartType expectedStaticType) {
-    SimpleIdentifier identifier = findMarkedIdentifier(code, unit, "v in ");
-    expect(identifier.staticType, expectedStaticType);
-  }
-
-  /**
-   * Check the static type of the expression marked with "; // marker" comment.
-   */
-  void assertTypeOfMarkedExpression(
-      String code, CompilationUnit unit, DartType expectedStaticType) {
-    SimpleIdentifier identifier =
-        findMarkedIdentifier(code, unit, "; // marker");
-    expect(identifier.staticType, expectedStaticType);
-  }
-
   Future<TestAnalysisResult> computeAnalysisResult(Source source) async {
     TestAnalysisResult analysisResult;
     ResolvedUnitResult result = await driver.getResult(source.fullName);
-    analysisResult = new TestAnalysisResult(
-        source, result.unit, result.errors, result.typeSystem);
+    analysisResult = TestAnalysisResult(source, result.unit, result.errors);
     analysisResults[source] = analysisResult;
     return analysisResult;
   }
@@ -521,10 +482,8 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
    *
    * @return the library element that was created
    */
-  LibraryElementImpl createDefaultTestLibrary() => createTestLibrary(
-      AnalysisContextFactory.contextWithCore(
-          resourceProvider: resourceProvider),
-      "test");
+  LibraryElementImpl createDefaultTestLibrary() =>
+      createTestLibrary(TestAnalysisContext(), "test");
 
   /**
    * Return a source object representing a file with the given [fileName].
@@ -550,43 +509,33 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
       sourcedCompilationUnits = const <CompilationUnitElement>[];
     } else {
       int count = typeNames.length;
-      sourcedCompilationUnits = new List<CompilationUnitElement>(count);
+      sourcedCompilationUnits = List<CompilationUnitElement>(count);
       for (int i = 0; i < count; i++) {
         String typeName = typeNames[i];
-        ClassElementImpl type =
-            new ClassElementImpl.forNode(AstTestFactory.identifier3(typeName));
+        ClassElementImpl type = ClassElementImpl(typeName, -1);
         String fileName = "$typeName.dart";
         CompilationUnitElementImpl compilationUnit =
-            new CompilationUnitElementImpl();
+            CompilationUnitElementImpl();
         compilationUnit.source = createNamedSource(fileName);
         compilationUnit.librarySource = definingCompilationUnitSource;
         compilationUnit.types = <ClassElement>[type];
         sourcedCompilationUnits[i] = compilationUnit;
       }
     }
-    CompilationUnitElementImpl compilationUnit =
-        new CompilationUnitElementImpl();
+    CompilationUnitElementImpl compilationUnit = CompilationUnitElementImpl();
     compilationUnit.librarySource =
         compilationUnit.source = definingCompilationUnitSource;
     var featureSet = context.analysisOptions.contextFeatures;
-    LibraryElementImpl library = new LibraryElementImpl.forNode(
+    LibraryElementImpl library = LibraryElementImpl(
         context,
         driver?.currentSession,
-        AstTestFactory.libraryIdentifier2([libraryName]),
+        libraryName,
+        -1,
+        0,
         featureSet.isEnabled(Feature.non_nullable));
     library.definingCompilationUnit = compilationUnit;
     library.parts = sourcedCompilationUnits;
     return library;
-  }
-
-  /**
-   * Return the [SimpleIdentifier] from [unit] marked by [marker] in [code].
-   * The source code must have no errors and be verifiable.
-   */
-  SimpleIdentifier findMarkedIdentifier(
-      String code, CompilationUnit unit, String marker) {
-    return EngineTestCase.findNode(
-        unit, code, marker, (node) => node is SimpleIdentifier);
   }
 
   Expression findTopLevelConstantExpression(
@@ -626,14 +575,17 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
     options ??= defaultAnalysisOptions;
     List<String> experiments = enabledExperiments;
     if (experiments != null) {
-      (options as AnalysisOptionsImpl).enabledExperiments = experiments;
+      (options as AnalysisOptionsImpl).contextFeatures =
+          FeatureSet.fromEnableFlags(experiments);
     }
-    DartSdk sdk = new MockSdk(resourceProvider: resourceProvider)
-      ..context.analysisOptions = options;
+    DartSdk sdk = MockSdk(
+      resourceProvider: resourceProvider,
+      analysisOptions: options,
+    );
 
     List<UriResolver> resolvers = <UriResolver>[
-      new DartUriResolver(sdk),
-      new ResourceUriResolver(resourceProvider)
+      DartUriResolver(sdk),
+      ResourceUriResolver(resourceProvider)
     ];
     if (packages != null) {
       var packageMap = <String, List<Folder>>{};
@@ -643,21 +595,15 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
         File file = newFile('/packages/$name/$name.dart', content: content);
         packageMap[name] = <Folder>[file.parent];
       });
-      resolvers.add(new PackageMapUriResolver(resourceProvider, packageMap));
+      resolvers.add(PackageMapUriResolver(resourceProvider, packageMap));
     }
-    SourceFactory sourceFactory = new SourceFactory(resolvers);
+    SourceFactory sourceFactory = SourceFactory(resolvers);
 
-    PerformanceLog log = new PerformanceLog(_logBuffer);
-    AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(log);
-    driver = new AnalysisDriver(
-        scheduler,
-        log,
-        resourceProvider,
-        new MemoryByteStore(),
-        fileContentOverlay,
-        null,
-        sourceFactory,
-        options);
+    PerformanceLog log = PerformanceLog(_logBuffer);
+    AnalysisDriverScheduler scheduler = AnalysisDriverScheduler(log);
+    driver = AnalysisDriver(scheduler, log, resourceProvider, MemoryByteStore(),
+        fileContentOverlay, null, sourceFactory, options,
+        packages: Packages.empty);
     scheduler.start();
   }
 
@@ -688,7 +634,7 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
       List<ErrorCode> codesWithoutExperimental,
       List<ErrorCode> codesWithExperimental) async {
     // Setup analysis context as non-experimental
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    AnalysisOptionsImpl options = AnalysisOptionsImpl();
 //    options.enableDeferredLoading = false;
     resetWith(options: options);
     // Analysis and assertions
@@ -712,17 +658,13 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
     verify([source]);
   }
 
-  @override
   void setUp() {
     ElementFactory.flushStaticState();
-    super.setUp();
     reset();
   }
 
-  @override
   void tearDown() {
     AnalysisEngine.instance.clearCaches();
-    super.tearDown();
   }
 
   /**
@@ -730,7 +672,7 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
    * the given [sources] have been resolved.
    */
   void verify(List<Source> sources) {
-    ResolutionVerifier verifier = new ResolutionVerifier();
+    ResolutionVerifier verifier = ResolutionVerifier();
     for (Source source in sources) {
       TestAnalysisResult result = analysisResults[source];
       expect(result, isNotNull);
@@ -744,11 +686,7 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
  * Shared infrastructure for [StaticTypeAnalyzer2Test] and
  * [StrongModeStaticTypeAnalyzer2Test].
  */
-class StaticTypeAnalyzer2TestShared extends ResolverTestCase {
-  String testCode;
-  Source testSource;
-  CompilationUnit testUnit;
-
+class StaticTypeAnalyzer2TestShared extends DriverResolutionTest {
   /**
    * Find the expression that starts at the offset of [search] and validate its
    * that its static type matches the given [type].
@@ -758,7 +696,7 @@ class StaticTypeAnalyzer2TestShared extends ResolverTestCase {
    * to match the type.
    */
   void expectExpressionType(String search, type) {
-    Expression expression = findExpression(search);
+    Expression expression = findNode.expression(search);
     _expectType(expression.staticType, type);
   }
 
@@ -768,44 +706,37 @@ class StaticTypeAnalyzer2TestShared extends ResolverTestCase {
    * output.
    */
   FunctionTypeImpl expectFunctionType(String name, String type,
-      {String elementTypeParams: '[]',
-      String typeParams: '[]',
-      String typeArgs: '[]',
-      String typeFormals: '[]',
+      {String typeParams = '[]',
+      String typeArgs = '[]',
+      String typeFormals = '[]',
       String identifierType}) {
     identifierType ??= type;
 
-    typeParameters(Element element) {
-      if (element is ExecutableElement) {
-        return element.typeParameters;
-      } else if (element is ParameterElement) {
-        return element.typeParameters;
-      }
-      fail('Wrong element type: ${element.runtimeType}');
+    String typeParametersStr(List<TypeParameterElement> elements) {
+      var elementsStr = elements.map((e) {
+        return e.getDisplayString(withNullability: false);
+      }).join(', ');
+      return '[$elementsStr]';
     }
 
-    SimpleIdentifier identifier = findIdentifier(name);
-    // Element is either ExecutableElement or ParameterElement.
-    var element = identifier.staticElement;
-    FunctionTypeImpl functionType = (element as dynamic).type;
-    expect(functionType.toString(), type);
-    expect(identifier.staticType.toString(), identifierType);
-    expect(typeParameters(element).toString(), elementTypeParams);
-    expect(functionType.typeParameters.toString(), typeParams);
+    SimpleIdentifier identifier = findNode.simple(name);
+    var functionType = _getFunctionTypedElementType(identifier);
+    assertType(functionType, type);
+    expect(identifier.staticType, isNull);
     expect(functionType.typeArguments.toString(), typeArgs);
-    expect(functionType.typeFormals.toString(), typeFormals);
+    expect(typeParametersStr(functionType.typeFormals), typeFormals);
     return functionType;
   }
 
   /**
-   * Looks up the identifier with [name] and validates that its type type
+   * Looks up the identifier with [name] and validates that its element type
    * stringifies to [type] and that its generics match the given stringified
    * output.
    */
   FunctionTypeImpl expectFunctionType2(String name, String type) {
-    SimpleIdentifier identifier = findIdentifier(name);
-    FunctionTypeImpl functionType = identifier.staticType;
-    expect('$functionType', type);
+    var identifier = findNode.simple(name);
+    var functionType = _getFunctionTypedElementType(identifier);
+    assertType(functionType, type);
     return functionType;
   }
 
@@ -817,7 +748,7 @@ class StaticTypeAnalyzer2TestShared extends ResolverTestCase {
    * to match the type.
    */
   void expectIdentifierType(String name, type) {
-    SimpleIdentifier identifier = findIdentifier(name);
+    SimpleIdentifier identifier = findNode.simple(name);
     _expectType(identifier.staticType, type);
   }
 
@@ -830,32 +761,11 @@ class StaticTypeAnalyzer2TestShared extends ResolverTestCase {
    * to match the type.
    */
   void expectInitializerType(String name, type) {
-    SimpleIdentifier identifier = findIdentifier(name);
+    SimpleIdentifier identifier = findNode.simple(name);
     VariableDeclaration declaration =
         identifier.thisOrAncestorOfType<VariableDeclaration>();
     Expression initializer = declaration.initializer;
     _expectType(initializer.staticType, type);
-  }
-
-  Expression findExpression(String search) {
-    return EngineTestCase.findNode(
-        testUnit, testCode, search, (node) => node is Expression);
-  }
-
-  SimpleIdentifier findIdentifier(String search) {
-    return EngineTestCase.findNode(
-        testUnit, testCode, search, (node) => node is SimpleIdentifier);
-  }
-
-  Future<void> resolveTestUnit(String code, {bool noErrors: true}) async {
-    testCode = code;
-    testSource = addSource(testCode);
-    TestAnalysisResult analysisResult = await computeAnalysisResult(testSource);
-    if (noErrors) {
-      assertNoErrors(testSource);
-    }
-    verify([testSource]);
-    testUnit = analysisResult.unit;
   }
 
   /**
@@ -866,9 +776,20 @@ class StaticTypeAnalyzer2TestShared extends ResolverTestCase {
    */
   _expectType(DartType type, expected) {
     if (expected is String) {
-      expect(type.toString(), expected);
+      assertType(type, expected);
     } else {
       expect(type, expected);
+    }
+  }
+
+  FunctionTypeImpl _getFunctionTypedElementType(SimpleIdentifier identifier) {
+    var element = identifier.staticElement;
+    if (element is ExecutableElement) {
+      return element.type;
+    } else if (element is VariableElement) {
+      return element.type;
+    } else {
+      fail('Unexpected element: (${element.runtimeType}) $element');
     }
   }
 }
@@ -877,7 +798,12 @@ class TestAnalysisResult {
   final Source source;
   final CompilationUnit unit;
   final List<AnalysisError> errors;
-  final TypeSystem typeSystem;
 
-  TestAnalysisResult(this.source, this.unit, this.errors, this.typeSystem);
+  TestAnalysisResult(this.source, this.unit, this.errors);
+
+  LibraryElement get libraryElement => unit.declaredElement.library;
+
+  TypeProvider get typeProvider => libraryElement.typeProvider;
+
+  TypeSystemImpl get typeSystem => libraryElement.typeSystem;
 }

@@ -88,7 +88,9 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
 
   // Set all non object fields.
   type.set_token_pos(TokenPosition::SnapshotDecode(reader->Read<int32_t>()));
-  type.set_type_state(reader->Read<int8_t>());
+  const uint8_t combined = reader->Read<uint8_t>();
+  type.set_type_state(combined >> 4);
+  type.set_nullability(static_cast<Nullability>(combined & 0xf));
 
   // Read the code object for the type testing stub and set its entrypoint.
   reader->EnqueueTypePostprocessing(type);
@@ -101,14 +103,14 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
       Class::RawCast(reader->ReadObjectImpl(as_reference));
   type.set_type_class(*reader->ClassHandle());
 
-  if (is_canonical) {
-    type ^= type.Canonicalize();
-  }
-
   // Fill in the type testing stub.
   Code& code = *reader->CodeHandle();
   code = TypeTestingStubGenerator::DefaultCodeForType(type);
   type.SetTypeTestingStub(code);
+
+  if (is_canonical) {
+    type ^= type.Canonicalize();
+  }
 
   return type.raw();
 }
@@ -118,6 +120,13 @@ void RawType::WriteTo(SnapshotWriter* writer,
                       Snapshot::Kind kind,
                       bool as_reference) {
   ASSERT(writer != NULL);
+
+  if (ptr()->signature_ != Function::null()) {
+    writer->SetWriteException(Exceptions::kArgument,
+                              "Illegal argument in isolate message"
+                              " : (function types are not supported yet)");
+    UNREACHABLE();
+  }
 
   // Only resolved and finalized types should be written to a snapshot.
   ASSERT((ptr()->type_state_ == RawType::kFinalizedInstantiated) ||
@@ -151,7 +160,10 @@ void RawType::WriteTo(SnapshotWriter* writer,
 
   // Write out all the non object pointer fields.
   writer->Write<int32_t>(ptr()->token_pos_.SnapshotEncode());
-  writer->Write<int8_t>(ptr()->type_state_);
+  const uint8_t combined = (ptr()->type_state_ << 4) | ptr()->nullability_;
+  ASSERT(ptr()->type_state_ == (combined >> 4));
+  ASSERT(ptr()->nullability_ == (combined & 0xf));
+  writer->Write<uint8_t>(combined);
 
   // Write out all the object pointer fields.
   ASSERT(ptr()->type_class_id_ != Object::null());
@@ -222,7 +234,9 @@ RawTypeParameter* TypeParameter::ReadFrom(SnapshotReader* reader,
   type_parameter.set_token_pos(
       TokenPosition::SnapshotDecode(reader->Read<int32_t>()));
   type_parameter.set_index(reader->Read<int16_t>());
-  type_parameter.set_flags(reader->Read<uint8_t>());
+  const uint8_t combined = reader->Read<uint8_t>();
+  type_parameter.set_flags(combined >> 4);
+  type_parameter.set_nullability(static_cast<Nullability>(combined & 0xf));
 
   // Read the code object for the type testing stub and set its entrypoint.
   reader->EnqueueTypePostprocessing(type_parameter);
@@ -263,7 +277,10 @@ void RawTypeParameter::WriteTo(SnapshotWriter* writer,
   // Write out all the non object pointer fields.
   writer->Write<int32_t>(ptr()->token_pos_.SnapshotEncode());
   writer->Write<int16_t>(ptr()->index_);
-  writer->Write<uint8_t>(ptr()->flags_);
+  const uint8_t combined = (ptr()->flags_ << 4) | ptr()->nullability_;
+  ASSERT(ptr()->flags_ == (combined >> 4));
+  ASSERT(ptr()->nullability_ == (combined & 0xf));
+  writer->Write<uint8_t>(combined);
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer, kAsReference);
@@ -516,6 +533,7 @@ MESSAGE_SNAPSHOT_UNREACHABLE(Bytecode);
 MESSAGE_SNAPSHOT_UNREACHABLE(ClosureData);
 MESSAGE_SNAPSHOT_UNREACHABLE(Code);
 MESSAGE_SNAPSHOT_UNREACHABLE(CodeSourceMap);
+MESSAGE_SNAPSHOT_UNREACHABLE(CompressedStackMaps);
 MESSAGE_SNAPSHOT_UNREACHABLE(Error);
 MESSAGE_SNAPSHOT_UNREACHABLE(ExceptionHandlers);
 MESSAGE_SNAPSHOT_UNREACHABLE(FfiTrampolineData);
@@ -523,6 +541,7 @@ MESSAGE_SNAPSHOT_UNREACHABLE(Field);
 MESSAGE_SNAPSHOT_UNREACHABLE(Function);
 MESSAGE_SNAPSHOT_UNREACHABLE(ICData);
 MESSAGE_SNAPSHOT_UNREACHABLE(Instructions);
+MESSAGE_SNAPSHOT_UNREACHABLE(InstructionsSection);
 MESSAGE_SNAPSHOT_UNREACHABLE(KernelProgramInfo);
 MESSAGE_SNAPSHOT_UNREACHABLE(Library);
 MESSAGE_SNAPSHOT_UNREACHABLE(LibraryPrefix);
@@ -537,12 +556,14 @@ MESSAGE_SNAPSHOT_UNREACHABLE(RedirectionData);
 MESSAGE_SNAPSHOT_UNREACHABLE(Script);
 MESSAGE_SNAPSHOT_UNREACHABLE(SignatureData);
 MESSAGE_SNAPSHOT_UNREACHABLE(SingleTargetCache);
-MESSAGE_SNAPSHOT_UNREACHABLE(StackMap);
 MESSAGE_SNAPSHOT_UNREACHABLE(String);
 MESSAGE_SNAPSHOT_UNREACHABLE(SubtypeTestCache);
 MESSAGE_SNAPSHOT_UNREACHABLE(TypedDataBase);
 MESSAGE_SNAPSHOT_UNREACHABLE(UnlinkedCall);
+MESSAGE_SNAPSHOT_UNREACHABLE(MonomorphicSmiableCall);
 MESSAGE_SNAPSHOT_UNREACHABLE(UnwindError);
+MESSAGE_SNAPSHOT_UNREACHABLE(FutureOr);
+MESSAGE_SNAPSHOT_UNREACHABLE(WeakSerializationReference);
 
 MESSAGE_SNAPSHOT_ILLEGAL(DynamicLibrary);
 MESSAGE_SNAPSHOT_ILLEGAL(MirrorReference);
@@ -1311,6 +1332,7 @@ RawTypedData* TypedData::ReadFrom(SnapshotReader* reader,
   intptr_t length_in_bytes = len * element_size;
   NoSafepointScope no_safepoint;
   uint8_t* data = reinterpret_cast<uint8_t*>(result.DataAddr(0));
+  reader->Align(Zone::kAlignment);
   reader->ReadBytes(data, length_in_bytes);
 
   // If it is a canonical constant make it one.
@@ -1456,6 +1478,7 @@ void RawTypedData::WriteTo(SnapshotWriter* writer,
     writer->WriteTags(writer->GetObjectTags(this));
     writer->Write<RawObject*>(ptr()->length_);
     uint8_t* data = reinterpret_cast<uint8_t*>(ptr()->data());
+    writer->Align(Zone::kAlignment);
     writer->WriteBytes(data, bytes);
   }
 }
@@ -1691,7 +1714,7 @@ void RawTransferableTypedData::WriteTo(SnapshotWriter* writer,
       [](void* data, Dart_WeakPersistentHandle handle, void* peer) {
         TransferableTypedDataPeer* tpeer =
             reinterpret_cast<TransferableTypedDataPeer*>(peer);
-        tpeer->handle()->EnsureFreeExternal(Isolate::Current());
+        tpeer->handle()->EnsureFreeExternal(IsolateGroup::Current());
         tpeer->ClearData();
       });
 }

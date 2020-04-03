@@ -83,7 +83,6 @@ class Exceptions : AllStatic {
                                             const Integer& argument_value,
                                             intptr_t expected_from,
                                             intptr_t expected_to);
-  DART_NORETURN static void ThrowRangeErrorMsg(const char* msg);
   DART_NORETURN static void ThrowUnsupportedError(const char* msg);
   DART_NORETURN static void ThrowCompileTimeError(const LanguageError& error);
 
@@ -158,12 +157,12 @@ class CatchEntryMove {
 
   intptr_t src_lo_slot() const {
     ASSERT(source_kind() == SourceKind::kInt64PairSlot);
-    return LoSourceSlot::decode(src_);
+    return index_to_pair_slot(LoSourceSlot::decode(src_));
   }
 
   intptr_t src_hi_slot() const {
     ASSERT(source_kind() == SourceKind::kInt64PairSlot);
-    return HiSourceSlot::decode(src_);
+    return index_to_pair_slot(HiSourceSlot::decode(src_));
   }
 
   intptr_t dest_slot() const {
@@ -183,8 +182,8 @@ class CatchEntryMove {
   }
 
   static intptr_t EncodePairSource(intptr_t src_lo_slot, intptr_t src_hi_slot) {
-    return LoSourceSlot::encode(src_lo_slot) |
-           HiSourceSlot::encode(src_hi_slot);
+    return LoSourceSlot::encode(pair_slot_to_index(src_lo_slot)) |
+           HiSourceSlot::encode(pair_slot_to_index(src_hi_slot));
   }
 
   bool IsRedundant() const {
@@ -202,7 +201,20 @@ class CatchEntryMove {
   void WriteTo(WriteStream* stream);
 #endif
 
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+  const char* ToCString() const;
+#endif
+
  private:
+  static intptr_t pair_slot_to_index(intptr_t slot) {
+    return (slot < 0) ? -2 * slot : 2 * slot + 1;
+  }
+
+  static intptr_t index_to_pair_slot(intptr_t index) {
+    ASSERT(index >= 0);
+    return ((index & 1) != 0) ? (index >> 1) : -(index >> 1);
+  }
+
   CatchEntryMove(int32_t src, int32_t dest_and_kind)
       : src_(src), dest_and_kind_(dest_and_kind) {}
 
@@ -262,6 +274,10 @@ class CatchEntryMovesMapReader : public ValueObject {
 
   // The returned [CatchEntryMoves] must be freed by the caller via [free].
   CatchEntryMoves* ReadMovesForPcOffset(intptr_t pc_offset);
+
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+  void PrintEntries();
+#endif
 
  private:
   // Given the [pc_offset] this function will find the [position] at which to

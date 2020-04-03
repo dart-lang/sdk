@@ -4,7 +4,9 @@
 
 import 'dart:io';
 
-final String repoDir = _computeRepoDir();
+import '../test/utils/io_utils.dart' show computeRepoDir;
+
+final String repoDir = computeRepoDir();
 
 final String toolDir = '$repoDir/pkg/front_end/tool/_fasta';
 
@@ -58,9 +60,6 @@ main(List<String> args) async {
     case 'scanner':
       script = '${toolDir}/scanner.dart';
       break;
-    case 'dump-partial':
-      script = '${toolDir}/dump_partial.dart';
-      break;
     case 'dump-ir':
       script = '${kernelBin}/dump.dart';
       if (remainingArguments.isEmpty || remainingArguments.length > 2) {
@@ -92,14 +91,6 @@ main(List<String> args) async {
   Process process = await Process.start(dartVm, arguments,
       mode: ProcessStartMode.inheritStdio);
   exitCode = await process.exitCode;
-}
-
-String _computeRepoDir() {
-  ProcessResult result = Process.runSync(
-      'git', ['rev-parse', '--show-toplevel'],
-      runInShell: true,
-      workingDirectory: new File.fromUri(Platform.script).parent.path);
-  return (result.stdout as String).trim();
 }
 
 void stop(String message) {

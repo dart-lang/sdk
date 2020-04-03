@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -36,7 +37,7 @@ f() {
     // mismatch. Furthermore, the error message should mention both _A and the
     // filenames so the user can figure out what's going on.
     String message = result.errors[0].message;
-    expect(message.indexOf("_A") >= 0, isTrue);
+    expect(message.contains("_A"), isTrue);
   }
 
   test_annotation_namedConstructor() async {
@@ -132,6 +133,28 @@ class B extends A {
 }''', [
       error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 73, 2),
     ]);
+  }
+
+  test_for_element_type_inferred_from_rewritten_node() async {
+    // See https://github.com/dart-lang/sdk/issues/39171
+    await assertNoErrorsInCode('''
+void f<T>(Iterable<T> Function() g, int Function(T) h) {
+  [for (var x in g()) if (x is String) h(x)];
+}
+''');
+  }
+
+  test_for_statement_type_inferred_from_rewritten_node() async {
+    // See https://github.com/dart-lang/sdk/issues/39171
+    await assertNoErrorsInCode('''
+void f<T>(Iterable<T> Function() g, void Function(T) h) {
+  for (var x in g()) {
+    if (x is String) {
+      h(x);
+    }
+  }
+}
+''');
   }
 
   test_functionExpressionInvocation_required() async {
@@ -366,8 +389,10 @@ g(C c) {
 @reflectiveTest
 class ArgumentTypeNotAssignableTest_NNBD extends ArgumentTypeNotAssignableTest {
   @override
-  AnalysisOptionsImpl get analysisOptions =>
-      AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.fromEnableFlags(
+      [EnableString.non_nullable],
+    );
 
   test_downcast() async {
     await assertErrorsInCode(r'''
@@ -405,6 +430,7 @@ n(int i) {}
   }
 
   @failingTest
+  @override
   test_invocation_functionTypes_optional() async {
     // The test is currently generating an error where none is expected.
     await super.test_invocation_functionTypes_optional();

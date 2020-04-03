@@ -79,7 +79,7 @@ static void ForwardObjectTo(RawObject* before_obj, RawObject* after_obj) {
 class ForwardPointersVisitor : public ObjectPointerVisitor {
  public:
   explicit ForwardPointersVisitor(Thread* thread)
-      : ObjectPointerVisitor(thread->isolate()),
+      : ObjectPointerVisitor(thread->isolate_group()),
         thread_(thread),
         visiting_object_(NULL) {}
 
@@ -191,15 +191,15 @@ void Become::CrashDump(RawObject* before_obj, RawObject* after_obj) {
   OS::PrintErr("DETECTED FATAL ISSUE IN BECOME MAPPINGS\n");
 
   OS::PrintErr("BEFORE ADDRESS: %p\n", before_obj);
-  OS::PrintErr("BEFORE IS HEAP OBJECT: %s",
+  OS::PrintErr("BEFORE IS HEAP OBJECT: %s\n",
                before_obj->IsHeapObject() ? "YES" : "NO");
-  OS::PrintErr("BEFORE IN VMISOLATE HEAP OBJECT: %s",
+  OS::PrintErr("BEFORE IN VMISOLATE HEAP OBJECT: %s\n",
                before_obj->InVMIsolateHeap() ? "YES" : "NO");
 
   OS::PrintErr("AFTER ADDRESS: %p\n", after_obj);
-  OS::PrintErr("AFTER IS HEAP OBJECT: %s",
+  OS::PrintErr("AFTER IS HEAP OBJECT: %s\n",
                after_obj->IsHeapObject() ? "YES" : "NO");
-  OS::PrintErr("AFTER IN VMISOLATE HEAP OBJECT: %s",
+  OS::PrintErr("AFTER IN VMISOLATE HEAP OBJECT: %s\n",
                after_obj->InVMIsolateHeap() ? "YES" : "NO");
 
   if (before_obj->IsHeapObject()) {
@@ -217,8 +217,7 @@ void Become::CrashDump(RawObject* before_obj, RawObject* after_obj) {
 
 void Become::ElementsForwardIdentity(const Array& before, const Array& after) {
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  Heap* heap = isolate->heap();
+  auto heap = thread->isolate_group()->heap();
 
   TIMELINE_FUNCTION_GC_DURATION(thread, "Become::ElementsForwardIdentity");
   HeapIterationScope his(thread);
@@ -273,12 +272,12 @@ void Become::ElementsForwardIdentity(const Array& before, const Array& after) {
 void Become::FollowForwardingPointers(Thread* thread) {
   // N.B.: We forward the heap before forwarding the stack. This limits the
   // amount of following of forwarding pointers needed to get at stack maps.
-  Isolate* isolate = thread->isolate();
-  Heap* heap = isolate->heap();
+  auto isolate_group = thread->isolate_group();
+  Heap* heap = isolate_group->heap();
 
   // Clear the store buffer; will be rebuilt as we forward the heap.
-  isolate->ReleaseStoreBuffers();
-  isolate->store_buffer()->Reset();
+  isolate_group->ReleaseStoreBuffers();
+  isolate_group->store_buffer()->Reset();
 
   ForwardPointersVisitor pointer_visitor(thread);
 
@@ -291,19 +290,21 @@ void Become::FollowForwardingPointers(Thread* thread) {
   }
 
   // C++ pointers.
-  isolate->VisitObjectPointers(&pointer_visitor,
-                               ValidationPolicy::kValidateFrames);
+  isolate_group->VisitObjectPointers(&pointer_visitor,
+                                     ValidationPolicy::kValidateFrames);
 #ifndef PRODUCT
-  if (FLAG_support_service) {
-    ObjectIdRing* ring = isolate->object_id_ring();
-    ASSERT(ring != NULL);
-    ring->VisitPointers(&pointer_visitor);
-  }
+  isolate_group->ForEachIsolate(
+      [&](Isolate* isolate) {
+        ObjectIdRing* ring = isolate->object_id_ring();
+        ASSERT(ring != NULL);
+        ring->VisitPointers(&pointer_visitor);
+      },
+      /*at_safepoint=*/true);
 #endif  // !PRODUCT
 
   // Weak persistent handles.
   ForwardHeapPointersHandleVisitor handle_visitor(thread);
-  isolate->VisitWeakPersistentHandles(&handle_visitor);
+  isolate_group->VisitWeakPersistentHandles(&handle_visitor);
 }
 
 }  // namespace dart

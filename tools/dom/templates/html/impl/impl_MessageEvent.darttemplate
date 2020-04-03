@@ -8,9 +8,10 @@ part of $LIBRARYNAME;
 
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   factory $CLASSNAME(String type,
-      {bool canBubble: false, bool cancelable: false, Object data,
-      String origin, String lastEventId,
-      Window source, List<MessagePort> messagePorts: const []}) {
+      {bool canBubble: false, bool cancelable: false, Object$NULLABLE data,
+      String$NULLABLE origin, String$NULLABLE lastEventId,
+      Window$NULLABLE source,
+      List<MessagePort> messagePorts: const []}) {
     if (source == null) {
       source = window;
     }
@@ -20,7 +21,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
           type, canBubble, cancelable, data, origin, lastEventId, source,
           messagePorts);
     }
-    MessageEvent event = document._createEvent("MessageEvent");
+    MessageEvent event = document._createEvent("MessageEvent") $#NULLSAFECAST(as MessageEvent);
     event._initMessageEvent(type, canBubble, cancelable, data, origin,
         lastEventId, source, messagePorts);
     return event;
@@ -34,7 +35,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
   @JSName('data')
   @annotation_Creates_SerializedScriptValue
   @annotation_Returns_SerializedScriptValue
-  final dynamic _get_data;
+  dynamic get _get_data native;
 
 $!MEMBERS
 }

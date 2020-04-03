@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -18,23 +19,25 @@ main() {
 @reflectiveTest
 class SdkVersionGtGtGtOperatorTest extends SdkConstraintVerifierTest {
   @override
-  AnalysisOptionsImpl get analysisOptions =>
-      AnalysisOptionsImpl()..enabledExperiments = [EnableString.triple_shift];
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.fromEnableFlags(
+      [EnableString.triple_shift],
+    );
 
-  test_const_equals() {
+  test_const_equals() async {
     // TODO(brianwilkerson) Add '>>>' to MockSdk and remove the code
     //  UNDEFINED_OPERATOR when triple_shift is enabled by default.
-    verifyVersion('2.5.0', '''
+    await verifyVersion('2.5.0', '''
 const a = 42 >>> 3;
 ''', expectedErrors: [
       error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 13, 3),
     ]);
   }
 
-  test_const_lessThan() {
+  test_const_lessThan() async {
     // TODO(brianwilkerson) Add '>>>' to MockSdk and remove the code
     //  UNDEFINED_OPERATOR when triple_shift is enabled by default.
-    verifyVersion('2.2.0', '''
+    await verifyVersion('2.2.0', '''
 const a = 42 >>> 3;
 ''', expectedErrors: [
       error(HintCode.SDK_VERSION_GT_GT_GT_OPERATOR, 13, 3),
@@ -42,16 +45,16 @@ const a = 42 >>> 3;
     ]);
   }
 
-  test_declaration_equals() {
-    verifyVersion('2.5.0', '''
+  test_declaration_equals() async {
+    await verifyVersion('2.5.0', '''
 class A {
   A operator >>>(A a) => this;
 }
 ''');
   }
 
-  test_declaration_lessThan() {
-    verifyVersion('2.2.0', '''
+  test_declaration_lessThan() async {
+    await verifyVersion('2.2.0', '''
 class A {
   A operator >>>(A a) => this;
 }
@@ -60,20 +63,20 @@ class A {
     ]);
   }
 
-  test_nonConst_equals() {
+  test_nonConst_equals() async {
     // TODO(brianwilkerson) Add '>>>' to MockSdk and remove the code
     //  UNDEFINED_OPERATOR when constant update is enabled by default.
-    verifyVersion('2.5.0', '''
+    await verifyVersion('2.5.0', '''
 var a = 42 >>> 3;
 ''', expectedErrors: [
       error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 11, 3),
     ]);
   }
 
-  test_nonConst_lessThan() {
+  test_nonConst_lessThan() async {
     // TODO(brianwilkerson) Add '>>>' to MockSdk and remove the code
     //  UNDEFINED_OPERATOR when constant update is enabled by default.
-    verifyVersion('2.2.0', '''
+    await verifyVersion('2.2.0', '''
 var a = 42 >>> 3;
 ''', expectedErrors: [
       error(HintCode.SDK_VERSION_GT_GT_GT_OPERATOR, 11, 3),

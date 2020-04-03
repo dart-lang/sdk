@@ -17,12 +17,14 @@ import 'package:analysis_server/src/search/workspace_symbols.dart' as search;
 class WorkspaceSymbolHandler
     extends MessageHandler<WorkspaceSymbolParams, List<SymbolInformation>> {
   WorkspaceSymbolHandler(LspAnalysisServer server) : super(server);
+  @override
   Method get handlesMessage => Method.workspace_symbol;
 
   @override
   LspJsonHandler<WorkspaceSymbolParams> get jsonHandler =>
       WorkspaceSymbolParams.jsonHandler;
 
+  @override
   Future<ErrorOr<List<SymbolInformation>>> handle(
       WorkspaceSymbolParams params, CancellationToken token) async {
     // Respond to empty queries with an empty list. The spec says this should
@@ -37,20 +39,20 @@ class WorkspaceSymbolHandler
 
     final clientSupportedSymbolKinds =
         symbolCapabilities?.symbolKind?.valueSet != null
-            ? new HashSet<SymbolKind>.of(symbolCapabilities.symbolKind.valueSet)
+            ? HashSet<SymbolKind>.of(symbolCapabilities.symbolKind.valueSet)
             : defaultSupportedSymbolKinds;
 
     // Convert the string input into a case-insensitive regex that has wildcards
     // between every character and at start/end to allow for fuzzy matching.
     final fuzzyQuery = query.split('').map(RegExp.escape).join('.*');
     final partialFuzzyQuery = '.*$fuzzyQuery.*';
-    final regex = new RegExp(partialFuzzyQuery, caseSensitive: false);
+    final regex = RegExp(partialFuzzyQuery, caseSensitive: false);
 
     // Cap the number of results we'll return because short queries may match
     // huge numbers on large projects.
     var remainingResults = 500;
 
-    final filePathsHashSet = LinkedHashSet<String>();
+    final filePathsHashSet = <String>{};
     final tracker = server.declarationsTracker;
     final declarations = search.WorkspaceSymbols(tracker).declarations(
       regex,
@@ -90,13 +92,18 @@ class WorkspaceSymbolHandler
       declaration.codeOffset,
       declaration.codeLength,
     );
-    final location = new Location(
+    final location = Location(
       Uri.file(filePath).toString(),
       range,
     );
 
-    return new SymbolInformation(
-        declaration.name,
+    final hasParameters =
+        declaration.parameters != null && declaration.parameters.isNotEmpty;
+    final nameSuffix =
+        hasParameters ? (declaration.parameters == '()' ? '()' : '(…)') : '';
+
+    return SymbolInformation(
+        '${declaration.name}$nameSuffix',
         kind,
         null, // We don't have easy access to isDeprecated here.
         location,

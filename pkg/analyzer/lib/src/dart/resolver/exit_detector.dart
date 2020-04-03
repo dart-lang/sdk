@@ -21,7 +21,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   bool _enclosingBlockContainsContinue = false;
 
   /// Add node when a labelled `break` is encountered.
-  Set<AstNode> _enclosingBlockBreaksLabel = new Set<AstNode>();
+  final Set<AstNode> _enclosingBlockBreaksLabel = <AstNode>{};
 
   @override
   bool visitArgumentList(ArgumentList node) =>
@@ -48,8 +48,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
         operatorType == TokenType.QUESTION_QUESTION_EQ) {
       return false;
     }
-    if (leftHandSide is PropertyAccess &&
-        leftHandSide.operator.type == TokenType.QUESTION_PERIOD) {
+    if (leftHandSide is PropertyAccess && leftHandSide.isNullAware) {
       return false;
     }
     return _nodeExits(node.rightHandSide);
@@ -419,7 +418,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       if (target.accept(this)) {
         return true;
       }
-      if (node.operator.type == TokenType.QUESTION_PERIOD) {
+      if (node.isNullAware) {
         return false;
       }
     }
@@ -436,7 +435,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
 
   @override
   bool visitNode(AstNode node) {
-    throw new StateError(
+    throw StateError(
         'Missing a visit method for a node of type ${node.runtimeType}');
   }
 
@@ -659,6 +658,6 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
 
   /// Return `true` if the given [node] exits.
   static bool exits(AstNode node) {
-    return new ExitDetector()._nodeExits(node);
+    return ExitDetector()._nodeExits(node);
   }
 }

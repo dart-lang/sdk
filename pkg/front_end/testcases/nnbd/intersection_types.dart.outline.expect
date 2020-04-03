@@ -1,0 +1,26 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    ;
+}
+class C extends self::B {
+  synthetic constructor •() → self::C
+    ;
+}
+class Foo<T extends self::A? = self::A?> extends core::Object {
+  synthetic constructor •() → self::Foo<self::Foo::T%>
+    ;
+  method doPromotionsToNullable(generic-covariant-impl self::Foo::T% t) → dynamic
+    ;
+  method doPromotionsToNonNullable(generic-covariant-impl self::Foo::T% t) → dynamic
+    ;
+}
+static method main() → dynamic
+  ;

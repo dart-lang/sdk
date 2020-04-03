@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_CPU_ARM_H_
 #define RUNTIME_VM_CPU_ARM_H_
 
+#if !defined(RUNTIME_VM_CPU_H_)
+#error Do not include cpu_arm.h directly; use cpu.h instead.
+#endif
+
 #include "vm/allocation.h"
 #include "vm/simulator.h"
 
@@ -19,7 +23,6 @@ namespace dart {
 // they may be altered for testing.
 
 enum ARMVersion {
-  ARMv5TE,
   ARMv6,
   ARMv7,
   ARMvUnknown,

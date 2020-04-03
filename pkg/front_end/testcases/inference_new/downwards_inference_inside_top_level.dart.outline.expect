@@ -11,6 +11,6 @@ class B<T extends core::Object* = dynamic> extends core::Object {
   constructor •(self::B::T* x) → self::B<self::B::T*>*
     ;
 }
-static field dynamic t3;
+static field core::List<self::B<core::int*>*>* t3;
 static method main() → dynamic
   ;

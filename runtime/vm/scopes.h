@@ -60,7 +60,7 @@ class VariableIndex {
 
   explicit VariableIndex(int value = kInvalidIndex) : value_(value) {}
 
-  int operator==(const VariableIndex& other) { return value_ == other.value_; }
+  bool operator==(const VariableIndex& other) { return value_ == other.value_; }
 
   bool IsValid() const { return value_ != kInvalidIndex; }
 
@@ -76,13 +76,15 @@ class LocalVariable : public ZoneAllocated {
                 TokenPosition token_pos,
                 const String& name,
                 const AbstractType& type,
-                CompileType* parameter_type = NULL)
+                CompileType* parameter_type = nullptr,
+                const Object* parameter_value = nullptr)
       : declaration_pos_(declaration_pos),
         token_pos_(token_pos),
         name_(name),
         owner_(NULL),
         type_(type),
         parameter_type_(parameter_type),
+        parameter_value_(parameter_value),
         const_value_(NULL),
         is_final_(false),
         is_captured_(false),
@@ -90,6 +92,8 @@ class LocalVariable : public ZoneAllocated {
         is_captured_parameter_(false),
         is_forced_stack_(false),
         is_explicit_covariant_parameter_(false),
+        is_late_(false),
+        late_init_offset_(0),
         type_check_mode_(kDoTypeCheck),
         index_() {
     ASSERT(type.IsZoneHandle() || type.IsReadOnlyHandle());
@@ -109,6 +113,7 @@ class LocalVariable : public ZoneAllocated {
   const AbstractType& type() const { return type_; }
 
   CompileType* parameter_type() const { return parameter_type_; }
+  const Object* parameter_value() const { return parameter_value_; }
 
   bool is_final() const { return is_final_; }
   void set_is_final() { is_final_ = true; }
@@ -122,6 +127,14 @@ class LocalVariable : public ZoneAllocated {
   // TODO(27590) remove the hardcoded blacklist from CaptureLocalVariables
   bool is_forced_stack() const { return is_forced_stack_; }
   void set_is_forced_stack() { is_forced_stack_ = true; }
+
+  bool is_late() const { return is_late_; }
+  void set_is_late() { is_late_ = true; }
+
+  intptr_t late_init_offset() const { return late_init_offset_; }
+  void set_late_init_offset(intptr_t late_init_offset) {
+    late_init_offset_ = late_init_offset;
+  }
 
   bool is_explicit_covariant_parameter() const {
     return is_explicit_covariant_parameter_;
@@ -198,6 +211,7 @@ class LocalVariable : public ZoneAllocated {
   const AbstractType& type_;  // Declaration type of local variable.
 
   CompileType* const parameter_type_;  // NULL or incoming parameter type.
+  const Object* parameter_value_;      // NULL or incoming parameter value.
 
   const Instance* const_value_;  // NULL or compile-time const value.
 
@@ -208,6 +222,8 @@ class LocalVariable : public ZoneAllocated {
   bool is_captured_parameter_;
   bool is_forced_stack_;
   bool is_explicit_covariant_parameter_;
+  bool is_late_;
+  intptr_t late_init_offset_;
   TypeCheckMode type_check_mode_;
   VariableIndex index_;
 

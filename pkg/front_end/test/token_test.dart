@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/fasta/scanner.dart'
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show ScannerConfiguration, scanString;
-import 'package:front_end/src/scanner/token.dart';
+import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -95,6 +95,7 @@ class Foo {
       Keyword.IMPLEMENTS,
       Keyword.IMPORT,
       Keyword.INTERFACE,
+      Keyword.LATE,
       Keyword.LIBRARY,
       Keyword.MIXIN,
       Keyword.OPERATOR,
@@ -171,9 +172,11 @@ class Foo {
       Keyword.AWAIT,
       Keyword.FUNCTION,
       Keyword.HIDE,
+      Keyword.INOUT,
       Keyword.NATIVE,
       Keyword.OF,
       Keyword.ON,
+      Keyword.OUT,
       Keyword.PATCH,
       Keyword.SHOW,
       Keyword.SOURCE,

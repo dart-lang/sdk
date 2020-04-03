@@ -32,9 +32,9 @@ extension GenericExtension<T> on T {
     T y = self;
     //    ^^^^
     // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
-    //     ^^^
-    // [cfe] unspecified
+    // [cfe] A value of type '#T' can't be assigned to a variable of type 'T'.
   }
+
   void castToShadowedTypeParam<T>() {
     dynamic s = self;
     (s as T);
@@ -45,7 +45,6 @@ extension GenericExtension<T> on T {
     (mkList() as List<T>);
   }
 }
-
 
 const bool extensionValue = true;
 
@@ -62,10 +61,11 @@ extension StaticExt on AGlobal {
   //              ^^^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE
   static set setterInInstanceScope(bool x) {
-  //         ^^^^^^^^^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE
+    //       ^^^^^^^^^^^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE
     checkExtensionValue(x);
   }
+
   static bool methodInInstanceScope() => extensionValue;
   //          ^^^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE
@@ -76,24 +76,25 @@ extension StaticExt on AGlobal {
   static set setterInGlobalScope(bool x) {
     checkExtensionValue(x);
   }
+
   static bool methodInGlobalScope() => extensionValue;
 
   // Invalid to overlap the static and extension scopes
   bool get fieldInInstanceScope => extensionValue;
-  //       ^^^
-  // [cfe] unspecified
+  //       ^
+  // [cfe] 'fieldInInstanceScope' is already declared in this scope.
   bool get getterInInstanceScope => extensionValue;
-  //       ^^^
-  // [cfe] unspecified
+  //       ^
+  // [cfe] 'getterInInstanceScope' is already declared in this scope.
   set setterInInstanceScope(bool x) {
-  //  ^^^
-  // [cfe] unspecified
+    //^
+    // [cfe] 'setterInInstanceScope' is already declared in this scope.
     checkExtensionValue(x);
   }
-  bool methodInInstanceScope() => extensionValue;
-  //   ^^^
-  // [cfe] unspecified
 
+  bool methodInInstanceScope() => extensionValue;
+  //   ^
+  // [cfe] 'methodInInstanceScope' is already declared in this scope.
 
   void testNakedIdentifiers() {
     // Symbols in the global scope and the local static scope resolve to
@@ -108,6 +109,7 @@ extension StaticExt on AGlobal {
       // No errors: see static_extension_internal_resolution_6_test.dart
     }
   }
+
   void instanceTest() {
     StaticExt(this).testNakedIdentifiers();
   }
@@ -117,6 +119,6 @@ void main() {
   var a = new AGlobal();
   a.instanceTest();
 
-  Expect.throwsCastError(() => 3.castToShadowedTypeParam<String>());
-  Expect.throwsCastError(() => 3.castToShadowedTypeList<String>());
+  Expect.throwsTypeError(() => 3.castToShadowedTypeParam<String>());
+  Expect.throwsTypeError(() => 3.castToShadowedTypeList<String>());
 }

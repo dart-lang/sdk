@@ -7,8 +7,9 @@ library front_end.kernel_generator_impl;
 
 import 'dart:async' show Future;
 
-import 'package:front_end/src/fasta/kernel/kernel_api.dart';
-import 'package:kernel/kernel.dart' show Component, CanonicalName;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+
+import 'package:kernel/kernel.dart' show CanonicalName, Component;
 
 import 'base/processed_options.dart' show ProcessedOptions;
 
@@ -20,6 +21,8 @@ import 'fasta/dill/dill_target.dart' show DillTarget;
 
 import 'fasta/fasta_codes.dart' show LocatedMessage;
 
+import 'fasta/kernel/kernel_api.dart';
+
 import 'fasta/kernel/kernel_target.dart' show KernelTarget;
 
 import 'fasta/kernel/utils.dart' show printComponentText, serializeComponent;
@@ -27,8 +30,6 @@ import 'fasta/kernel/utils.dart' show printComponentText, serializeComponent;
 import 'fasta/kernel/verifier.dart' show verifyComponent;
 
 import 'fasta/loader.dart' show Loader;
-
-import 'fasta/severity.dart' show Severity;
 
 import 'fasta/uri_translator.dart' show UriTranslator;
 
@@ -72,44 +73,20 @@ Future<CompilerResult> generateKernelInternal(
     DillTarget dillTarget =
         new DillTarget(options.ticker, uriTranslator, options.target);
 
-    Set<Uri> externalLibs(Component component) {
-      return component.libraries
-          .where((lib) => lib.isExternal)
-          .map((lib) => lib.importUri)
-          .toSet();
-    }
+    List<Component> loadedComponents = new List<Component>();
 
     Component sdkSummary = await options.loadSdkSummary(null);
     // By using the nameRoot of the the summary, we enable sharing the
     // sdkSummary between multiple invocations.
     CanonicalName nameRoot = sdkSummary?.root ?? new CanonicalName.root();
     if (sdkSummary != null) {
-      Set<Uri> excluded = externalLibs(sdkSummary);
-      dillTarget.loader.appendLibraries(sdkSummary,
-          filter: (uri) => !excluded.contains(uri));
+      dillTarget.loader.appendLibraries(sdkSummary);
     }
 
-    // TODO(sigmund): provide better error reporting if input summaries or
-    // linked dependencies were listed out of order (or provide mechanism to
-    // sort them).
-    for (Component inputSummary in await options.loadInputSummaries(nameRoot)) {
-      Set<Uri> excluded = externalLibs(inputSummary);
-      dillTarget.loader.appendLibraries(inputSummary,
-          filter: (uri) => !excluded.contains(uri));
-    }
-
-    // All summaries are considered external and shouldn't include source-info.
-    dillTarget.loader.libraries.forEach((lib) {
-      // TODO(ahe): Don't do this, and remove [external_state_snapshot.dart].
-      lib.isExternal = true;
-    });
-
-    // Linked dependencies are meant to be part of the component so they are not
-    // marked external.
-    for (Component dependency in await options.loadLinkDependencies(nameRoot)) {
-      Set<Uri> excluded = externalLibs(dependency);
-      dillTarget.loader.appendLibraries(dependency,
-          filter: (uri) => !excluded.contains(uri));
+    for (Component additionalDill
+        in await options.loadAdditionalDills(nameRoot)) {
+      loadedComponents.add(additionalDill);
+      dillTarget.loader.appendLibraries(additionalDill);
     }
 
     await dillTarget.buildOutlines();
@@ -171,6 +148,8 @@ Future<CompilerResult> generateKernelInternal(
     return new InternalCompilerResult(
         summary: summary,
         component: component,
+        sdkComponent: sdkSummary,
+        loadedComponents: loadedComponents,
         classHierarchy:
             includeHierarchyAndCoreTypes ? kernelTarget.loader.hierarchy : null,
         coreTypes:
@@ -187,6 +166,10 @@ class InternalCompilerResult implements CompilerResult {
 
   /// The generated component, if it was requested.
   final Component component;
+
+  final Component sdkComponent;
+
+  final List<Component> loadedComponents;
 
   /// Dependencies traversed by the compiler. Used only for generating
   /// dependency .GN files in the dart-sdk build system.
@@ -206,6 +189,8 @@ class InternalCompilerResult implements CompilerResult {
   InternalCompilerResult(
       {this.summary,
       this.component,
+      this.sdkComponent,
+      this.loadedComponents,
       this.deps,
       this.classHierarchy,
       this.coreTypes,

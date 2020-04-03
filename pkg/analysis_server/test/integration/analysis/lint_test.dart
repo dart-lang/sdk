@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LintIntegrationTest);
   });
@@ -17,8 +17,8 @@ main() {
 
 @reflectiveTest
 class LintIntegrationTest extends AbstractAnalysisServerIntegrationTest {
-  test_no_lints_when_not_specified() async {
-    String source = sourcePath('test.dart');
+  Future<void> test_no_lints_when_not_specified() async {
+    var source = sourcePath('test.dart');
     writeFile(source, '''
 class abc { // lint: not CamelCase (should get ignored though)
 }''');
@@ -27,18 +27,18 @@ class abc { // lint: not CamelCase (should get ignored though)
     await analysisFinished;
     expect(currentAnalysisErrors[source], isList);
     // Should be empty without an analysis options file.
-    List<AnalysisError> errors = currentAnalysisErrors[source];
+    var errors = currentAnalysisErrors[source];
     expect(errors, hasLength(0));
   }
 
-  test_simple_lint_newOptionsFile() async {
+  Future<void> test_simple_lint_optionsFile() async {
     writeFile(sourcePath(AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE), '''
 linter:
   rules:
     - camel_case_types
 ''');
 
-    String source = sourcePath('test.dart');
+    var source = sourcePath('test.dart');
     writeFile(source, '''
 class a { // lint: not CamelCase
 }''');
@@ -48,34 +48,9 @@ class a { // lint: not CamelCase
     await analysisFinished;
 
     expect(currentAnalysisErrors[source], isList);
-    List<AnalysisError> errors = currentAnalysisErrors[source];
+    var errors = currentAnalysisErrors[source];
     expect(errors, hasLength(1));
-    AnalysisError error = errors[0];
-    expect(error.location.file, source);
-    expect(error.severity, AnalysisErrorSeverity.INFO);
-    expect(error.type, AnalysisErrorType.LINT);
-  }
-
-  test_simple_lint_oldOptionsFile() async {
-    writeFile(sourcePath(AnalysisEngine.ANALYSIS_OPTIONS_FILE), '''
-linter:
-  rules:
-    - camel_case_types
-''');
-
-    String source = sourcePath('test.dart');
-    writeFile(source, '''
-class a { // lint: not CamelCase
-}''');
-
-    standardAnalysisSetup();
-
-    await analysisFinished;
-
-    expect(currentAnalysisErrors[source], isList);
-    List<AnalysisError> errors = currentAnalysisErrors[source];
-    expect(errors, hasLength(1));
-    AnalysisError error = errors[0];
+    var error = errors[0];
     expect(error.location.file, source);
     expect(error.severity, AnalysisErrorSeverity.INFO);
     expect(error.type, AnalysisErrorType.LINT);

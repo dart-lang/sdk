@@ -2,23 +2,23 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/regress/issue_34498.dart:8:3: Warning: 'lib.MyClass' can't be used as a type because 'lib' doesn't refer to an import prefix.
+// pkg/front_end/testcases/regress/issue_34498.dart:8:3: Error: 'lib.MyClass' can't be used as a type because 'lib' doesn't refer to an import prefix.
 //   lib.MyClass get lib => null; // (1)
 //   ^^^^^^^^^^^
 //
-// pkg/front_end/testcases/regress/issue_34498.dart:10:3: Warning: 'foo' isn't a type.
+// pkg/front_end/testcases/regress/issue_34498.dart:10:3: Error: 'foo' isn't a type.
 //   foo foo() {}
 //   ^^^
 // pkg/front_end/testcases/regress/issue_34498.dart:10:7: Context: This isn't a type.
 //   foo foo() {}
 //       ^^^
 //
-// pkg/front_end/testcases/regress/issue_34498.dart:20:3: Warning: Can't use type arguments with type variable 'T'.
+// pkg/front_end/testcases/regress/issue_34498.dart:20:3: Error: Can't use type arguments with type variable 'T'.
 // Try removing the type arguments.
 //   T<String> foo() {}
 //   ^
 //
-// pkg/front_end/testcases/regress/issue_34498.dart:12:3: Warning: Type 'Missing' not found.
+// pkg/front_end/testcases/regress/issue_34498.dart:12:3: Error: Type 'Missing' not found.
 //   Missing bar() {}
 //   ^^^^^^^
 //

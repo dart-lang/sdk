@@ -37,12 +37,12 @@ $!MEMBERS
   bool get supportsRegister => supportsRegisterElement;
 
   void registerElement(String tag, Type customElementClass,
-      {String extendsTag}) {
+      {String$NULLABLE extendsTag}) {
         registerElement2(tag, {'prototype': customElementClass, 'extends': extendsTag});
   }
 
   @pragma('dart2js:tryInline') // Almost all call sites have one argument.
-  Element createElement(String tagName, [String typeExtension]) {
+  Element createElement(String tagName, [String$NULLABLE typeExtension]) {
     return (typeExtension == null)
         ? _createElement_2(tagName)
         : _createElement(tagName, typeExtension);
@@ -58,19 +58,20 @@ $!MEMBERS
   _createElementNS_2(String namespaceURI, String qualifiedName) =>
       JS('Element', '#.createElementNS(#, #)', this, namespaceURI, qualifiedName);
 
-  Element createElementNS(String namespaceURI, String qualifiedName, [String typeExtension]) {
+  Element createElementNS(String namespaceURI, String qualifiedName,
+      [String$NULLABLE typeExtension]) {
     return (typeExtension == null)
         ? _createElementNS_2(namespaceURI, qualifiedName)
         : _createElementNS(namespaceURI, qualifiedName, typeExtension);
   }
 
   NodeIterator _createNodeIterator(Node root,
-      [int whatToShow, NodeFilter filter])
+      [int$NULLABLE whatToShow, NodeFilter$NULLABLE filter])
       => JS('NodeIterator', '#.createNodeIterator(#, #, #, false)',
           this, root, whatToShow, filter);
 
   TreeWalker _createTreeWalker(Node root,
-      [int whatToShow, NodeFilter filter])
+      [int$NULLABLE whatToShow, NodeFilter$NULLABLE filter])
       => JS('TreeWalker', '#.createTreeWalker(#, #, #, false)',
           this, root, whatToShow, filter);
 

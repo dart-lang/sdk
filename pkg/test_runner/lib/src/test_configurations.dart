@@ -18,10 +18,11 @@ import 'utils.dart';
 
 /// The directories that contain test suites which follow the conventions
 /// required by [StandardTestSuite]'s forDirectory constructor.
+///
 /// New test suites should follow this convention because it makes it much
-/// simpler to add them to test.dart.  Existing test suites should be
-/// moved to here, if possible.
-final TEST_SUITE_DIRECTORIES = [
+/// simpler to add them to test.dart. Existing test suites should be moved to
+/// here, if possible.
+final testSuiteDirectories = [
   Path('third_party/pkg/dartdoc'),
   Path('pkg'),
   Path('third_party/pkg_tested'),
@@ -34,19 +35,22 @@ final TEST_SUITE_DIRECTORIES = [
   Path('tests/compiler/dart2js_extra'),
   Path('tests/compiler/dart2js_native'),
   Path('tests/compiler/dartdevc_native'),
+  Path('tests/corelib'),
   Path('tests/corelib_2'),
   Path('tests/kernel'),
+  Path('tests/language'),
   Path('tests/language_2'),
+  Path('tests/lib'),
   Path('tests/lib_2'),
   Path('tests/standalone'),
   Path('tests/standalone_2'),
   Path('tests/ffi'),
+  Path('tests/ffi_2'),
   Path('utils/tests/peg'),
 ];
 
 Future testConfigurations(List<TestConfiguration> configurations) async {
   var startTime = DateTime.now();
-  var startStopwatch = Stopwatch()..start();
 
   // Extract global options from first configuration.
   var firstConf = configurations[0];
@@ -116,9 +120,9 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
     // If we specifically pass in a suite only run that.
     if (configuration.suiteDirectory != null) {
       var suitePath = Path(configuration.suiteDirectory);
-      testSuites.add(PKGTestSuite(configuration, suitePath));
+      testSuites.add(PackageTestSuite(configuration, suitePath));
     } else {
-      for (var testSuiteDir in TEST_SUITE_DIRECTORIES) {
+      for (var testSuiteDir in testSuiteDirectories) {
         var name = testSuiteDir.filename;
         if (configuration.selectors.containsKey(name)) {
           testSuites
@@ -127,7 +131,7 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
       }
 
       for (var key in configuration.selectors.keys) {
-        if (key == 'co19_2') {
+        if (key == 'co19_2' || key == 'co19') {
           testSuites.add(Co19TestSuite(configuration, key));
         } else if ((configuration.compiler == Compiler.none ||
                 configuration.compiler == Compiler.dartk ||
@@ -210,7 +214,7 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
   }
 
   if (firstConf.writeResults) {
-    eventListener.add(ResultWriter(firstConf, startTime, startStopwatch));
+    eventListener.add(ResultWriter(firstConf.outputDirectory));
   }
 
   if (firstConf.copyCoreDumps) {

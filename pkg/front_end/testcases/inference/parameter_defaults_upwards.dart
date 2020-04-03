@@ -26,9 +26,9 @@ main() {
   var /*@ type=C<dynamic>* */ c_named_local =
       new /*@ typeArgs=dynamic */ C.named(named_local);
   var /*@ type=C<dynamic>* */ c_optional_closure =
-      new /*@ typeArgs=dynamic */ C.optional(/*@ returnType=Null* */ (
+      new /*@ typeArgs=dynamic */ C.optional(/*@ returnType=Null? */ (
           [/*@ type=dynamic */ x = /*@ typeArgs=int* */ const [0]]) {});
   var /*@ type=C<dynamic>* */ c_named_closure = new /*@ typeArgs=dynamic */ C.named(
-      /*@ returnType=Null* */ (
+      /*@ returnType=Null? */ (
           {/*@ type=dynamic */ x: /*@ typeArgs=int* */ const [0]}) {});
 }

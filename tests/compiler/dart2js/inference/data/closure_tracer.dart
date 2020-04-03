@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /*member: testFunctionStatement:[null|exact=JSUInt31]*/
 testFunctionStatement() {
   var res;
@@ -45,7 +47,7 @@ testStoredInInstance() {
   var res;
   /*[exact=JSUInt31]*/ closure(/*[exact=JSUInt31]*/ a) => res = a;
   var a = new A(closure);
-  a. /*invoke: [exact=A]*/ field(42);
+  a.field /*invoke: [exact=A]*/ (42);
   return res;
 }
 
@@ -57,11 +59,11 @@ testStoredInMapOfList() {
   dynamic b = <dynamic, dynamic>{'foo': 1};
 
   b
-      /*update: Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: Union([exact=JSUInt31], [null|exact=JSExtendableArray]), map: {foo: [exact=JSUInt31], bar: Container([null|exact=JSExtendableArray], element: [null|subclass=Object], length: null)})*/
+      /*update: Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: Union(null, [exact=JSExtendableArray], [exact=JSUInt31]), map: {foo: [exact=JSUInt31], bar: Container([null|exact=JSExtendableArray], element: [null|subclass=Object], length: null)})*/
       ['bar'] = a;
 
   b
-          /*Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: Union([exact=JSUInt31], [null|exact=JSExtendableArray]), map: {foo: [exact=JSUInt31], bar: Container([null|exact=JSExtendableArray], element: [null|subclass=Object], length: null)})*/
+          /*Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: Union(null, [exact=JSExtendableArray], [exact=JSUInt31]), map: {foo: [exact=JSUInt31], bar: Container([null|exact=JSExtendableArray], element: [null|subclass=Object], length: null)})*/
           ['bar']
 
       /*Container([null|exact=JSExtendableArray], element: [null|subclass=Object], length: null)*/
@@ -152,13 +154,13 @@ testStaticClosure1() {
   return topLevel1;
 }
 
-/*member: topLevel2:Union([exact=JSUInt31], [null|exact=JSDouble])*/
+/*member: topLevel2:Union(null, [exact=JSDouble], [exact=JSUInt31])*/
 var topLevel2;
 
 /*member: bar:Union([exact=JSDouble], [exact=JSUInt31])*/
 bar(/*Union([exact=JSDouble], [exact=JSUInt31])*/ a) => topLevel2 = a;
 
-/*member: testStaticClosure2:Union([exact=JSUInt31], [null|exact=JSDouble])*/
+/*member: testStaticClosure2:Union(null, [exact=JSDouble], [exact=JSUInt31])*/
 testStaticClosure2() {
   var a = bar;
   a(42);
@@ -176,14 +178,14 @@ var topLevel3;
   return topLevel3;
 }
 
-/*member: topLevel4:Union([exact=JSUInt31], [null|exact=JSDouble])*/
+/*member: topLevel4:Union(null, [exact=JSDouble], [exact=JSUInt31])*/
 var topLevel4;
 
 /*member: testStaticClosure4Helper:Union([exact=JSDouble], [exact=JSUInt31])*/
 testStaticClosure4Helper(/*Union([exact=JSDouble], [exact=JSUInt31])*/ a) =>
     topLevel4 = a;
 
-/*member: testStaticClosure4:Union([exact=JSUInt31], [null|exact=JSDouble])*/
+/*member: testStaticClosure4:Union(null, [exact=JSDouble], [exact=JSUInt31])*/
 testStaticClosure4() {
   var a = testStaticClosure4Helper;
   // Test calling the static after tearing it off.

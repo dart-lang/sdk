@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/element/element.dart';
 
-/// The result of attempting to resolve an identifier to a element.
+/// The result of attempting to resolve an identifier to elements.
 class ResolutionResult {
   /// An instance that can be used anywhere that no element was found.
   static const ResolutionResult none =
@@ -17,18 +17,22 @@ class ResolutionResult {
   /// The state of the result.
   final _ResolutionResultState state;
 
-  /// The element that was found, or `null` if the [state] is not
-  /// [_ResolutionResultState.single].
-  final ExecutableElement element;
+  /// Return the element that is invoked for reading.
+  final ExecutableElement getter;
 
-  /// Initialize a newly created result to represent resolving to a single
-  /// [element].
-  ResolutionResult(this.element)
-      : assert(element != null),
+  /// Return the element that is invoked for writing.
+  final ExecutableElement setter;
+
+  /// Initialize a newly created result to represent resolving a single
+  /// reading and / or writing result.
+  ResolutionResult({this.getter, this.setter})
+      : assert(getter != null || setter != null),
         state = _ResolutionResultState.single;
 
-  /// Initialize a newly created result with no element and the given [state].
-  const ResolutionResult._(this.state) : element = null;
+  /// Initialize a newly created result with no elements and the given [state].
+  const ResolutionResult._(this.state)
+      : getter = null,
+        setter = null;
 
   /// Return `true` if this result represents the case where multiple ambiguous
   /// elements were found.
@@ -41,6 +45,13 @@ class ResolutionResult {
   /// Return `true` if this result represents the case where a single element
   /// was found.
   bool get isSingle => state == _ResolutionResultState.single;
+
+  /// If this is a property, return `true` is the property is static.
+  /// If this is a function, return `true` is the function is static.
+  /// Otherwise return `false`.
+  bool get isStatic {
+    return getter?.isStatic ?? setter?.isStatic ?? false;
+  }
 }
 
 /// The state of a [ResolutionResult].

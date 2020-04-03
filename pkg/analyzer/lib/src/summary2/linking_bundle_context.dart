@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
@@ -50,6 +51,7 @@ class LinkingBundleContext {
 
   int indexOfElement(Element element) {
     if (element == null) return 0;
+    if (element is MultiplyDefinedElement) return 0;
     assert(element is! Member);
 
     if (identical(element, DynamicElementImpl.instance)) {
@@ -207,7 +209,7 @@ class LinkingBundleContext {
   }
 
   static EntityRefNullabilitySuffix _nullabilitySuffix(DartType type) {
-    var nullabilitySuffix = (type as TypeImpl).nullabilitySuffix;
+    var nullabilitySuffix = type.nullabilitySuffix;
     switch (nullabilitySuffix) {
       case NullabilitySuffix.question:
         return EntityRefNullabilitySuffix.question;

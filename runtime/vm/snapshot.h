@@ -50,6 +50,7 @@ class RawClass;
 class RawClosure;
 class RawClosureData;
 class RawCodeSourceMap;
+class RawCompressedStackMaps;
 class RawContext;
 class RawContextScope;
 class RawDouble;
@@ -85,7 +86,6 @@ class RawScript;
 class RawSignatureData;
 class RawSendPort;
 class RawSmi;
-class RawStackMap;
 class RawStackTrace;
 class RawSubtypeTestCache;
 class RawTwoByteString;
@@ -199,7 +199,7 @@ class Snapshot {
     if (!IncludesCode(kind())) {
       return NULL;
     }
-    uword offset = Utils::RoundUp(length(), OS::kMaxPreferredCodeAlignment);
+    uword offset = Utils::RoundUp(length(), kMaxObjectAlignment);
     return Addr() + offset;
   }
 
@@ -255,6 +255,7 @@ class BaseReader {
     return stream_.AddressOfCurrentPosition();
   }
 
+  void Align(intptr_t value) { stream_.Align(value); }
   void Advance(intptr_t value) { stream_.Advance(value); }
 
   intptr_t PendingBytes() const { return stream_.PendingBytes(); }
@@ -270,6 +271,8 @@ class BaseReader {
     ASSERT(SerializedHeaderTag::decode(value) == kObjectId);
     return SerializedHeaderData::decode(value);
   }
+
+  uword ReadWordWith32BitReads() { return stream_.ReadWordWith32BitReads(); }
 
  private:
   ReadStream stream_;  // input stream.
@@ -453,6 +456,7 @@ class SnapshotReader : public BaseReader {
   friend class TypeRef;
   friend class UnhandledException;
   friend class WeakProperty;
+  friend class WeakSerializationReference;
   DISALLOW_COPY_AND_ASSIGN(SnapshotReader);
 };
 
@@ -517,6 +521,8 @@ class BaseWriter : public StackResource {
     Write<int8_t>(static_cast<int8_t>(flags));
   }
 
+  void Align(intptr_t value) { stream_.Align(value); }
+
   // Write out a buffer of bytes.
   void WriteBytes(const uint8_t* addr, intptr_t len) {
     stream_.WriteBytes(addr, len);
@@ -524,6 +530,10 @@ class BaseWriter : public StackResource {
 
   void WriteDouble(double value) {
     stream_.WriteBytes(reinterpret_cast<const uint8_t*>(&value), sizeof(value));
+  }
+
+  void WriteWordWith32BitWrites(uword value) {
+    stream_.WriteWordWith32BitWrites(value);
   }
 
  protected:
@@ -605,12 +615,15 @@ class ForwardList {
  private:
   intptr_t first_object_id() const { return first_object_id_; }
   intptr_t next_object_id() const { return nodes_.length() + first_object_id_; }
-  Heap* heap() const { return thread_->isolate()->heap(); }
+  Isolate* isolate() const { return thread_->isolate(); }
 
   Thread* thread_;
   const intptr_t first_object_id_;
   GrowableArray<Node*> nodes_;
   intptr_t first_unprocessed_object_id_;
+
+  void SetObjectId(RawObject* object, intptr_t id);
+  intptr_t GetObjectId(RawObject* object);
 
   DISALLOW_COPY_AND_ASSIGN(ForwardList);
 };
@@ -728,6 +741,7 @@ class SnapshotWriter : public BaseWriter {
   friend class RawTypeRef;
   friend class RawTypedDataView;
   friend class RawUserTag;
+  friend class RawWeakSerializationReference;
   friend class SnapshotWriterVisitor;
   friend class WriteInlinedObjectVisitor;
   DISALLOW_COPY_AND_ASSIGN(SnapshotWriter);
@@ -768,11 +782,11 @@ class MessageWriter : public SnapshotWriter {
 };
 
 // An object pointer visitor implementation which writes out
-// objects to a snap shot.
+// objects to a snapshot.
 class SnapshotWriterVisitor : public ObjectPointerVisitor {
  public:
   SnapshotWriterVisitor(SnapshotWriter* writer, bool as_references)
-      : ObjectPointerVisitor(Isolate::Current()),
+      : ObjectPointerVisitor(Isolate::Current()->group()),
         writer_(writer),
         as_references_(as_references) {}
 

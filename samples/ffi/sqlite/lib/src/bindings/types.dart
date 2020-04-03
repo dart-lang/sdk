@@ -4,8 +4,6 @@
 
 import "dart:ffi";
 
-import "../ffi/utf8.dart";
-
 /// Database Connection Handle
 ///
 /// Each open SQLite database is represented by a pointer to an instance of
@@ -15,7 +13,7 @@ import "../ffi/utf8.dart";
 /// is its destructor.  There are many other interfaces (such as
 /// [sqlite3_prepare_v2()], [sqlite3_create_function()], and
 /// [sqlite3_busy_timeout()] to name but three) that are methods on an
-class Database extends Struct<Database> {}
+class Database extends Struct {}
 
 /// SQL Statement Object
 ///
@@ -38,7 +36,7 @@ class Database extends Struct<Database> {}
 ///
 /// Refer to documentation on individual methods above for additional
 /// information.
-class Statement extends Struct<Statement> {}
+class Statement extends Struct {}
 
 /// Dynamically Typed Value Object
 ///
@@ -74,4 +72,4 @@ class Statement extends Struct<Statement> {}
 /// [sqlite3_result_value()] and [sqlite3_bind_value()].
 /// The [sqlite3_value_blob | sqlite3_value_type()] family of
 /// interfaces require protected sqlite3_value objects.
-class Value extends Struct<Value> {}
+class Value extends Struct {}

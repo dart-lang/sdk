@@ -33,19 +33,19 @@ class AssistsMixinTest with ResourceProviderMixin {
     packagePath1 = convertPath('/package1');
     filePath1 = join(packagePath1, 'lib', 'test.dart');
     newFile(filePath1);
-    contextRoot1 = new ContextRoot(packagePath1, <String>[]);
+    contextRoot1 = ContextRoot(packagePath1, <String>[]);
 
-    channel = new MockChannel();
-    plugin = new _TestServerPlugin(resourceProvider);
+    channel = MockChannel();
+    plugin = _TestServerPlugin(resourceProvider);
     plugin.start(channel);
   }
 
-  test_handleEditGetAssists() async {
+  Future<void> test_handleEditGetAssists() async {
     await plugin.handleAnalysisSetContextRoots(
-        new AnalysisSetContextRootsParams([contextRoot1]));
+        AnalysisSetContextRootsParams([contextRoot1]));
 
-    EditGetAssistsResult result = await plugin
-        .handleEditGetAssists(new EditGetAssistsParams(filePath1, 10, 0));
+    var result = await plugin
+        .handleEditGetAssists(EditGetAssistsParams(filePath1, 10, 0));
     expect(result, isNotNull);
     expect(result.assists, hasLength(3));
   }
@@ -58,7 +58,7 @@ class _TestAssistContributor implements AssistContributor {
 
   @override
   void computeAssists(AssistRequest request, AssistCollector collector) {
-    for (PrioritizedSourceChange change in changes) {
+    for (var change in changes) {
       collector.addAssist(change);
     }
   }
@@ -69,14 +69,14 @@ class _TestServerPlugin extends MockServerPlugin with AssistsMixin {
       : super(resourceProvider);
 
   PrioritizedSourceChange createChange() {
-    return new PrioritizedSourceChange(0, new SourceChange(''));
+    return PrioritizedSourceChange(0, SourceChange(''));
   }
 
   @override
   List<AssistContributor> getAssistContributors(String path) {
     return <AssistContributor>[
-      new _TestAssistContributor(<PrioritizedSourceChange>[createChange()]),
-      new _TestAssistContributor(
+      _TestAssistContributor(<PrioritizedSourceChange>[createChange()]),
+      _TestAssistContributor(
           <PrioritizedSourceChange>[createChange(), createChange()])
     ];
   }
@@ -84,8 +84,8 @@ class _TestServerPlugin extends MockServerPlugin with AssistsMixin {
   @override
   Future<AssistRequest> getAssistRequest(
       EditGetAssistsParams parameters) async {
-    var result = new MockResolvedUnitResult();
-    return new DartAssistRequestImpl(
+    var result = MockResolvedUnitResult();
+    return DartAssistRequestImpl(
         resourceProvider, parameters.offset, parameters.length, result);
   }
 }

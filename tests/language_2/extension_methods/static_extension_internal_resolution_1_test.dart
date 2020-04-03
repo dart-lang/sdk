@@ -72,7 +72,6 @@ extension MyExt on A {
       double t2 = methodInOtherExtensionScope();
       checkOtherExtensionValue(t2);
     }
-
   }
 
   void testIdentifiersOnThis() {
@@ -149,7 +148,6 @@ extension MyExt on A {
       self.setterInOtherExtensionScope = otherExtensionValue;
       double t2 = self.methodInOtherExtensionScope();
       checkOtherExtensionValue(t2);
-
     }
   }
 
@@ -243,5 +241,4 @@ void main() {
     double t2 = a.methodInOtherExtensionScope();
     checkOtherExtensionValue(t2);
   }
-
 }

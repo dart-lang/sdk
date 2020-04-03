@@ -293,7 +293,7 @@ class StaticUse {
     }
     if (constant != null) {
       sb.write('=');
-      sb.write(constant.toStructuredText());
+      sb.write(constant.toStructuredText(null));
     }
     return sb.toString();
   }
@@ -703,6 +703,7 @@ enum TypeUseKind {
   RTI_VALUE,
   TYPE_ARGUMENT,
   NAMED_TYPE_VARIABLE_NEW_RTI,
+  TYPE_VARIABLE_BOUND_CHECK,
 }
 
 /// Use of a [DartType].
@@ -776,6 +777,9 @@ class TypeUse {
         break;
       case TypeUseKind.NAMED_TYPE_VARIABLE_NEW_RTI:
         sb.write('named:');
+        break;
+      case TypeUseKind.TYPE_VARIABLE_BOUND_CHECK:
+        sb.write('bound:');
         break;
     }
     sb.write(type);
@@ -866,6 +870,10 @@ class TypeUse {
   factory TypeUse.namedTypeVariableNewRti(TypeVariableType type) =>
       TypeUse.internal(type, TypeUseKind.NAMED_TYPE_VARIABLE_NEW_RTI);
 
+  /// [type] used as a bound on a type variable.
+  factory TypeUse.typeVariableBoundCheck(DartType type) =>
+      TypeUse.internal(type, TypeUseKind.TYPE_VARIABLE_BOUND_CHECK);
+
   @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
@@ -900,7 +908,7 @@ class ConstantUse {
 
   /// Short textual representation use for testing.
   String get shortText {
-    return value.toDartText();
+    return value.toDartText(null);
   }
 
   /// Constant used as the initial value of a field.
@@ -926,5 +934,5 @@ class ConstantUse {
   int get hashCode => value.hashCode;
 
   @override
-  String toString() => 'ConstantUse(${value.toStructuredText()})';
+  String toString() => 'ConstantUse(${value.toStructuredText(null)})';
 }

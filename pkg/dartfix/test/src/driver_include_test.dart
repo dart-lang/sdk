@@ -9,9 +9,7 @@ import 'package:test/test.dart';
 
 import 'test_context.dart';
 
-const _debug = true;
-
-main() {
+void main() {
   File exampleFile;
   Directory exampleDir;
 
@@ -28,7 +26,7 @@ main() {
       await driver.start([
         if (_debug) '-v',
         '--fix',
-        'double-to-int',
+        'prefer_int_literals',
         exampleDir.path,
       ], testContext: testContext, testLogger: testLogger);
     } finally {
@@ -45,3 +43,5 @@ main() {
     expectHasSuggestion(suggestions, 'Convert to an int literal');
   }, timeout: const Timeout(Duration(minutes: 3)));
 }
+
+const _debug = true;

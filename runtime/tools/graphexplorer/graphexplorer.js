@@ -914,7 +914,7 @@ function showDominatorTree(v) {
     "Right click a box to view successor and predecessor tables.";
   header.className = "headerRow";
   header.style["flex-grow"] = 0;
-  header.style["padding"] = 5;
+  header.style["padding"] = "5px";
   header.style["border-bottom"] = "solid 1px";
 
   let content = document.createElement("div");
@@ -1419,10 +1419,12 @@ function showTables(nodes) {
   predecessorsTable.style["flex-basis"] = "0px";
   predecessorsTable.style["flex-grow"] = 1;
 
-  let help = document.createElement("span");
-  help.textContent =
-      "Create a snapshot profile by passing " +
-      "--write_v8_snapshot_profile_to=example.json to gen_snapshot.";
+  let help1 = document.createElement("p");
+  help1.textContent =
+      "Create a snapshot profile by passing --write_v8_snapshot_profile_to=example.json to gen_snapshot."
+  let help2 = document.createElement("p");
+  help2.textContent =
+      "In Flutter, run flutter build aot --release --extra-gen-snapshot-options=--write-v8-snapshot-profile-to=example.json";
 
   let column = document.createElement("div");
   column.style["height"] = "100%";
@@ -1437,7 +1439,8 @@ function showTables(nodes) {
     column.appendChild(document.createElement("br"));
     column.appendChild(predecessorsTable);
   } else {
-    column.appendChild(help);
+    column.appendChild(help1);
+    column.appendChild(help2);
   }
 
   setBody(column);

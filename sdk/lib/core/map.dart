@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.core;
 
 /**
@@ -83,7 +85,7 @@ abstract class Map<K, V> {
    * Creates an identity map with the default implementation, [LinkedHashMap].
    *
    * An identity map uses [identical] for equality and [identityHashCode]
-   * for hash codes of keys instead of the intrinsic [Object.operator==] and
+   * for hash codes of keys instead of the intrinsic [Object.==] and
    * [Object.hashCode] of the keys.
    *
    * The returned map allows `null` as a key.

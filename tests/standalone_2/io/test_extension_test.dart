@@ -46,8 +46,6 @@ String getExtensionPath(String buildDirectory, String filename) {
 String getArchFromBuildDir(String buildDirectory) {
   if (buildDirectory.endsWith('SIMARM')) return '';
   if (buildDirectory.endsWith('SIMARM64')) return '';
-  if (buildDirectory.endsWith('SIMDBC')) return '';
-  if (buildDirectory.endsWith('SIMDBC64')) return '';
   if (buildDirectory.endsWith('ARM')) return '-arm';
   if (buildDirectory.endsWith('ARM64')) return '-arm64';
   if (buildDirectory.endsWith('IA32')) return '-ia32';

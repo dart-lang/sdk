@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.core;
 
 /**
@@ -152,7 +154,7 @@ abstract class RegExp implements Pattern {
    * character is a line terminator. When true, then the "." character will
    * match any single character including line terminators.
    *
-   * This feature is distinct from [isMultiline], as they affect the behavior
+   * This feature is distinct from [isMultiLine], as they affect the behavior
    * of different pattern characters, and so they can be used together or
    * separately.
    */

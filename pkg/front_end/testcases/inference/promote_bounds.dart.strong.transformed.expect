@@ -19,7 +19,7 @@ static method f<T extends self::B* = self::B*>(self::f::T* a) → void {
     a.{self::B::foo}();
   }
   if(a is self::C*) {
-    a{self::f::T* extends self::C*}.{self::C::bar}();
+    a{self::f::T* & self::C* /* '*' & '*' = '*' */}.{self::C::bar}();
   }
 }
 static method main() → dynamic {}

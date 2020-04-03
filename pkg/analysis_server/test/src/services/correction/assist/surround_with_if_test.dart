@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SurroundWithIfTest);
   });
@@ -19,7 +19,7 @@ class SurroundWithIfTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.SURROUND_WITH_IF;
 
-  test_twoStatements() async {
+  Future<void> test_twoStatements() async {
     await resolveTestUnit('''
 main() {
 // start

@@ -1,0 +1,15 @@
+main = <No Member>;
+library from "org-dartlang-test:///main.dart" as main {
+//
+// Problems in library:
+//
+// org-dartlang-test:///main.dart:1:6: Error: Can't use 'org-dartlang-untranslatable-uri:dart%3Afoo%2Fnonexisting.dart' as a part, because it has no 'part of' declaration.
+// part "dart:foo/nonexisting.dart";
+//      ^
+//
+
+  part dart:foo/nonexisting.dart;
+}
+
+And 1 platform libraries:
+ - dart:foo/nonexisting.dart

@@ -5,12 +5,18 @@
 // TODO(paulberry,johnniwinther): Use the code for extraction of test data from
 // annotated code from CFE.
 
+import 'package:_fe_analyzer_shared/src/testing/annotated_code_helper.dart';
+import 'package:_fe_analyzer_shared/src/testing/id.dart';
+import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart' hide Annotation;
 import 'package:analyzer/diagnostic/diagnostic.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -20,10 +26,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
-import 'package:front_end/src/testing/annotated_code_helper.dart';
-import 'package:front_end/src/testing/id.dart'
-    show ActualData, Id, IdValue, MemberId, NodeId;
-import 'package:front_end/src/testing/id_testing.dart';
 
 /// Test configuration used for testing the analyzer with constant evaluation.
 final TestConfig analyzerConstantUpdate2018Config = TestConfig(
@@ -42,16 +44,16 @@ final TestConfig analyzerNnbdConfig = TestConfig(
 /// tests.
 Uri _defaultDir = Uri.parse('file:///a/b/c/');
 
-Future<bool> checkTests<T>(
+Future<TestResult<T>> checkTests<T>(
     String rawCode, DataComputer<T> dataComputer, FeatureSet featureSet) async {
   AnnotatedCode code =
-      new AnnotatedCode.fromText(rawCode, commentStart, commentEnd);
+      AnnotatedCode.fromText(rawCode, commentStart, commentEnd);
   String testFileName = 'test.dart';
   var testFileUri = _toTestUri(testFileName);
   var memorySourceFiles = {testFileName: code.sourceCode};
   var marker = 'analyzer';
   Map<String, MemberAnnotations<IdValue>> expectedMaps = {
-    marker: new MemberAnnotations<IdValue>(),
+    marker: MemberAnnotations<IdValue>(),
   };
   computeExpectedMap(testFileUri, testFileName, code, expectedMaps,
       onFailure: onFailure);
@@ -73,77 +75,93 @@ void onFailure(String message) {
 /// Runs [dataComputer] on [testData] for all [testedConfigs].
 ///
 /// Returns `true` if an error was encountered.
-Future<bool> runTest<T>(TestData testData, DataComputer<T> dataComputer,
-    List<TestConfig> testedConfigs,
+Future<Map<String, TestResult<T>>> runTest<T>(TestData testData,
+    DataComputer<T> dataComputer, List<TestConfig> testedConfigs,
     {bool testAfterFailures,
-    bool forUserLibrariesOnly: true,
-    Iterable<Id> globalIds: const <Id>[],
-    void onFailure(String message)}) async {
-  bool hasFailures = false;
+    bool forUserLibrariesOnly = true,
+    Iterable<Id> globalIds = const <Id>[],
+    void Function(String message) onFailure,
+    Map<String, List<String>> skipMap}) async {
   for (TestConfig config in testedConfigs) {
-    if (await runTestForConfig(testData, dataComputer, config,
-        fatalErrors: !testAfterFailures, onFailure: onFailure)) {
-      hasFailures = true;
+    if (!testData.expectedMaps.containsKey(config.marker)) {
+      throw ArgumentError("Unexpected test marker '${config.marker}'. "
+          "Supported markers: ${testData.expectedMaps.keys}.");
     }
   }
-  return hasFailures;
+
+  Map<String, TestResult<T>> results = {};
+  for (TestConfig config in testedConfigs) {
+    if (skipForConfig(testData.name, config.marker, skipMap)) {
+      continue;
+    }
+    results[config.marker] = await runTestForConfig(
+        testData, dataComputer, config,
+        fatalErrors: !testAfterFailures, onFailure: onFailure);
+  }
+  return results;
 }
 
 /// Creates a test runner for [dataComputer] on [testedConfigs].
-RunTestFunction runTestFor<T>(
+RunTestFunction<T> runTestFor<T>(
     DataComputer<T> dataComputer, List<TestConfig> testedConfigs) {
   return (TestData testData,
-      {bool testAfterFailures, bool verbose, bool succinct, bool printCode}) {
+      {bool testAfterFailures,
+      bool verbose,
+      bool succinct,
+      bool printCode,
+      Map<String, List<String>> skipMap,
+      Uri nullUri}) {
     return runTest(testData, dataComputer, testedConfigs,
-        testAfterFailures: testAfterFailures, onFailure: onFailure);
+        testAfterFailures: testAfterFailures,
+        onFailure: onFailure,
+        skipMap: skipMap);
   };
 }
 
 /// Runs [dataComputer] on [testData] for [config].
 ///
 /// Returns `true` if an error was encountered.
-Future<bool> runTestForConfig<T>(
+Future<TestResult<T>> runTestForConfig<T>(
     TestData testData, DataComputer<T> dataComputer, TestConfig config,
-    {bool fatalErrors, void onFailure(String message)}) async {
+    {bool fatalErrors,
+    void Function(String message) onFailure,
+    Map<String, List<String>> skipMap}) async {
   MemberAnnotations<IdValue> memberAnnotations =
       testData.expectedMaps[config.marker];
-  var resourceProvider = new MemoryResourceProvider();
+  var resourceProvider = MemoryResourceProvider();
+  var testUris = [];
   for (var entry in testData.memorySourceFiles.entries) {
+    var testUri = _toTestUri(entry.key);
+    testUris.add(testUri);
     resourceProvider.newFile(
-        resourceProvider.convertPath(_toTestUri(entry.key).path), entry.value);
+        resourceProvider.convertPath(testUri.path), entry.value);
   }
-  var sdk = new MockSdk(resourceProvider: resourceProvider);
-  var logBuffer = new StringBuffer();
-  var logger = new PerformanceLog(logBuffer);
-  var scheduler = new AnalysisDriverScheduler(logger);
+  var sdk = MockSdk(resourceProvider: resourceProvider);
+  var logBuffer = StringBuffer();
+  var logger = PerformanceLog(logBuffer);
+  var scheduler = AnalysisDriverScheduler(logger);
   // TODO(paulberry): Do we need a non-empty package map for any of these tests?
   var packageMap = <String, List<Folder>>{};
-  var byteStore = new MemoryByteStore();
+  var byteStore = MemoryByteStore();
   var analysisOptions = AnalysisOptionsImpl()
     ..contextFeatures = config.featureSet;
-  var driver = new AnalysisDriver(
+  var driver = AnalysisDriver(
       scheduler,
       logger,
       resourceProvider,
       byteStore,
-      new FileContentOverlay(),
+      FileContentOverlay(),
       null,
-      new SourceFactory([
-        new DartUriResolver(sdk),
-        new PackageMapUriResolver(resourceProvider, packageMap),
-        new ResourceUriResolver(resourceProvider)
-      ], null, resourceProvider),
+      SourceFactory([
+        DartUriResolver(sdk),
+        PackageMapUriResolver(resourceProvider, packageMap),
+        ResourceUriResolver(resourceProvider)
+      ]),
       analysisOptions,
+      packages: Packages.empty,
       retainDataForTesting: true);
   scheduler.start();
-  var result = await driver
-      .getResult(resourceProvider.convertPath(testData.entryPoint.path));
-  var errors =
-      result.errors.where((e) => e.severity == Severity.error).toList();
-  if (errors.isNotEmpty) {
-    onFailure('Errors found:\n  ${errors.join('\n  ')}');
-    return true;
-  }
+
   Map<Uri, Map<Id, ActualData<T>>> actualMaps = <Uri, Map<Id, ActualData<T>>>{};
   Map<Id, ActualData<T>> globalData = <Id, ActualData<T>>{};
 
@@ -151,8 +169,49 @@ Future<bool> runTestForConfig<T>(
     return actualMaps.putIfAbsent(uri, () => <Id, ActualData<T>>{});
   }
 
-  dataComputer.computeUnitData(
-      driver.testingData, result.unit, actualMapFor(testData.entryPoint));
+  var results = <Uri, ResolvedUnitResult>{};
+  for (var testUri in testUris) {
+    var result =
+        await driver.getResult(resourceProvider.convertPath(testUri.path));
+    var errors =
+        result.errors.where((e) => e.severity == Severity.error).toList();
+    if (errors.isNotEmpty) {
+      if (dataComputer.supportsErrors) {
+        var errorMap = <int, List<AnalysisError>>{};
+        for (var error in errors) {
+          var offset = error.offset;
+          if (offset == 0 || offset < 0) {
+            // Position errors without offset in the begin of the file.
+            offset = 0;
+          }
+          (errorMap[offset] ??= <AnalysisError>[]).add(error);
+        }
+        errorMap.forEach((offset, errors) {
+          var id = NodeId(offset, IdKind.error);
+          var data = dataComputer.computeErrorData(
+              config, driver.testingData, id, errors);
+          if (data != null) {
+            Map<Id, ActualData<T>> actualMap = actualMapFor(testUri);
+            actualMap[id] = ActualData<T>(id, data, testUri, offset, errors);
+          }
+        });
+      } else {
+        String _formatError(AnalysisError e) {
+          var locationInfo = result.unit.lineInfo.getLocation(e.offset);
+          return '$locationInfo: ${e.errorCode}: ${e.message}';
+        }
+
+        onFailure('Errors found:\n  ${errors.map(_formatError).join('\n  ')}');
+        return TestResult<T>.erroneous();
+      }
+    }
+    results[testUri] = result;
+  }
+
+  results.forEach((testUri, result) {
+    dataComputer.computeUnitData(
+        driver.testingData, result.unit, actualMapFor(testUri));
+  });
   var compiledData = AnalyzerCompiledData<T>(
       testData.code, testData.entryPoint, actualMaps, globalData);
   return checkCode(config.name, testData.testFileUri, testData.code,
@@ -181,21 +240,70 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
     if (id is NodeId) {
       return id.value;
     } else if (id is MemberId) {
-      if (id.className != null) {
-        throw UnimplementedError('TODO(paulberry): handle class members');
-      }
+      var className = id.className;
       var name = id.memberName;
       var unit =
           parseString(content: code[uri].sourceCode, throwIfDiagnostics: false)
               .unit;
+      if (className != null) {
+        for (var declaration in unit.declarations) {
+          if (declaration is ClassDeclaration &&
+              declaration.name.name == className) {
+            for (var member in declaration.members) {
+              if (member is ConstructorDeclaration) {
+                if (member.name.name == name) {
+                  return member.offset;
+                }
+              } else if (member is FieldDeclaration) {
+                for (var variable in member.fields.variables) {
+                  if (variable.name.name == name) {
+                    return variable.offset;
+                  }
+                }
+              } else if (member is MethodDeclaration) {
+                if (member.name.name == name) {
+                  return member.offset;
+                }
+              }
+            }
+            // Use class offset for members not declared in the class.
+            return declaration.offset;
+          }
+        }
+        return 0;
+      }
       for (var declaration in unit.declarations) {
         if (declaration is FunctionDeclaration) {
           if (declaration.name.name == name) {
             return declaration.offset;
           }
+        } else if (declaration is TopLevelVariableDeclaration) {
+          for (var variable in declaration.variables.variables) {
+            if (variable.name.name == name) {
+              return variable.offset;
+            }
+          }
         }
       }
-      throw StateError('Member not found: $name');
+      return 0;
+    } else if (id is ClassId) {
+      var className = id.className;
+      var unit =
+          parseString(content: code[uri].sourceCode, throwIfDiagnostics: false)
+              .unit;
+      for (var declaration in unit.declarations) {
+        if (declaration is ClassDeclaration &&
+            declaration.name.name == className) {
+          return declaration.offset;
+        }
+      }
+      return 0;
+    } else if (id is LibraryId) {
+      var unit =
+          parseString(content: code[uri].sourceCode, throwIfDiagnostics: false)
+              .unit;
+      var offset = unit?.declaredElement?.library?.nameOffset ?? -1;
+      return offset >= 0 ? offset : 0;
     } else {
       throw StateError('Unexpected id ${id.runtimeType}');
     }
@@ -203,7 +311,7 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
 
   @override
   void reportError(Uri uri, int offset, String message,
-      {bool succinct: false}) {
+      {bool succinct = false}) {
     print('$offset: $message');
   }
 }
@@ -219,6 +327,18 @@ abstract class DataComputer<T> {
   /// for the data origin.
   void computeUnitData(TestingData testingData, CompilationUnit unit,
       Map<Id, ActualData<T>> actualMap);
+
+  /// Returns `true` if this data computer supports tests with compile-time
+  /// errors.
+  ///
+  /// Unsuccessful compilation might leave the compiler in an inconsistent
+  /// state, so this testing feature is opt-in.
+  bool get supportsErrors => false;
+
+  /// Returns data corresponding to [error].
+  T computeErrorData(TestConfig config, TestingData testingData, Id id,
+          List<AnalysisError> errors) =>
+      null;
 }
 
 class TestConfig {

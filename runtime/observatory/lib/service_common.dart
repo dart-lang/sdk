@@ -199,18 +199,15 @@ abstract class CommonWebSocketVM extends VM {
 
   void _onBinaryMessage(dynamic data) {
     _webSocket.nonStringToByteData(data).then((ByteData bytes) {
-      // See format spec. in VMs Service::SendEvent.
-      int offset = 0;
-      // Dart2JS workaround (no getUint64). Limit to 4 GB metadata.
-      assert(bytes.getUint32(offset, Endian.big) == 0);
-      int metaSize = bytes.getUint32(offset + 4, Endian.big);
-      offset += 8;
-      var meta = _utf8Decoder.convert(new Uint8List.view(
-          bytes.buffer, bytes.offsetInBytes + offset, metaSize));
-      offset += metaSize;
-      var data = new ByteData.view(bytes.buffer, bytes.offsetInBytes + offset,
-          bytes.lengthInBytes - offset);
-      var map = _parseJSON(meta);
+      var metadataOffset = 4;
+      var dataOffset = bytes.getUint32(0, Endian.little);
+      var metadataLength = dataOffset - metadataOffset;
+      var dataLength = bytes.lengthInBytes - dataOffset;
+      var metadata = _utf8Decoder.convert(new Uint8List.view(
+          bytes.buffer, bytes.offsetInBytes + metadataOffset, metadataLength));
+      var data = new Uint8List.view(
+          bytes.buffer, bytes.offsetInBytes + dataOffset, dataLength);
+      var map = _parseJSON(metadata);
       if (map == null || map['method'] != 'streamNotify') {
         return;
       }

@@ -249,6 +249,8 @@ bool PortMap::PostMessage(std::unique_ptr<Message> message,
   MutexLocker ml(mutex_);
   intptr_t index = FindPort(message->dest_port());
   if (index < 0) {
+    // Ownership of external data remains with the poster.
+    message->DropFinalizers();
     return false;
   }
   ASSERT(index >= 0);
@@ -324,9 +326,6 @@ void PortMap::Cleanup() {
 void PortMap::PrintPortsForMessageHandler(MessageHandler* handler,
                                           JSONStream* stream) {
 #ifndef PRODUCT
-  if (!FLAG_support_service) {
-    return;
-  }
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", "_Ports");
   Object& msg_handler = Object::Handle();

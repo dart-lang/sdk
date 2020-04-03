@@ -27,6 +27,6 @@ void main() async {
     Expect.equals(p.extension(url), '.dart');
     Expect.isFalse(p.isAbsolute(url));
     var fullPath = p.canonicalize(p.join(sdkJsMapDir, url));
-    Expect.isTrue(await File(fullPath).exists());
+    Expect.isTrue(await File(fullPath).exists(), 'Missing file: $fullPath');
   }
 }

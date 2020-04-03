@@ -139,6 +139,23 @@ class Serializer : public ThreadStackResource {
              V8SnapshotProfileWriter* profile_writer = nullptr);
   ~Serializer();
 
+  // Reference value for objects that either are not reachable from the roots or
+  // should never have a reference in the snapshot (because they are dropped,
+  // for example). Should be the default value for Heap::GetObjectId.
+  static const intptr_t kUnreachableReference = 0;
+
+  static constexpr bool IsReachableReference(intptr_t ref) {
+    return ref != kUnreachableReference;
+  }
+
+  // Reference value for traced objects that have not been allocated their final
+  // reference ID.
+  static const intptr_t kUnallocatedReference = -1;
+
+  static constexpr bool IsAllocatedReference(intptr_t ref) {
+    return IsReachableReference(ref) && ref != kUnallocatedReference;
+  }
+
   intptr_t WriteVMSnapshot(const Array& symbols);
   void WriteIsolateSnapshot(intptr_t num_base_objects,
                             ObjectStore* object_store);
@@ -165,7 +182,7 @@ class Serializer : public ThreadStackResource {
   }
 
   intptr_t AssignRef(RawObject* object) {
-    ASSERT(next_ref_index_ != 0);
+    ASSERT(IsAllocatedReference(next_ref_index_));
     if (object->IsHeapObject()) {
       // The object id weak table holds image offsets for Instructions instead
       // of ref indices.
@@ -176,7 +193,7 @@ class Serializer : public ThreadStackResource {
       RawSmi* smi = Smi::RawCast(object);
       SmiObjectIdPair* existing_pair = smi_ids_.Lookup(smi);
       if (existing_pair != NULL) {
-        ASSERT(existing_pair->id_ == 1);
+        ASSERT(existing_pair->id_ == kUnallocatedReference);
         existing_pair->id_ = next_ref_index_;
       } else {
         SmiObjectIdPair new_pair;
@@ -216,6 +233,10 @@ class Serializer : public ThreadStackResource {
   void WriteVersionAndFeatures(bool is_vm_snapshot);
 
   void Serialize();
+  void PrintSnapshotSizes();
+
+  FieldTable* field_table() { return field_table_; }
+
   WriteStream* stream() { return &stream_; }
   intptr_t bytes_written() { return stream_.bytes_written(); }
 
@@ -231,57 +252,45 @@ class Serializer : public ThreadStackResource {
     WriteStream::Raw<sizeof(T), T>::Write(&stream_, value);
   }
   void WriteUnsigned(intptr_t value) { stream_.WriteUnsigned(value); }
+  void WriteUnsigned64(uint64_t value) { stream_.WriteUnsigned(value); }
+
+  void WriteWordWith32BitWrites(uword value) {
+    stream_.WriteWordWith32BitWrites(value);
+  }
+
   void WriteBytes(const uint8_t* addr, intptr_t len) {
     stream_.WriteBytes(addr, len);
   }
   void Align(intptr_t alignment) { stream_.Align(alignment); }
 
- private:
-  intptr_t WriteRefId(RawObject* object) {
-    intptr_t id = 0;
-    if (!object->IsHeapObject()) {
-      RawSmi* smi = Smi::RawCast(object);
-      id = smi_ids_.Lookup(smi)->id_;
-      if (id == 0) {
-        FATAL("Missing ref");
-      }
-    } else {
-      // The object id weak table holds image offsets for Instructions instead
-      // of ref indices.
-      ASSERT(!object->IsInstructions());
-      id = heap_->GetObjectId(object);
-      if (id == 0) {
-        if (object->IsCode() && !Snapshot::IncludesCode(kind_)) {
-          return WriteRefId(Object::null());
-        }
-#if !defined(DART_PRECOMPILED_RUNTIME)
-        if (object->IsBytecode() && !Snapshot::IncludesBytecode(kind_)) {
-          return WriteRefId(Object::null());
-        }
-#endif  // !DART_PRECOMPILED_RUNTIME
-        if (object->IsSendPort()) {
-          // TODO(rmacnak): Do a better job of resetting fields in
-          // precompilation and assert this is unreachable.
-          return WriteRefId(Object::null());
-        }
-        FATAL("Missing ref");
-      }
-    }
-    return id;
-  }
-
- public:
-  void WriteRootRef(RawObject* object) {
+  void WriteRootRef(RawObject* object, const char* name = nullptr) {
     intptr_t id = WriteRefId(object);
     WriteUnsigned(id);
     if (profile_writer_ != nullptr) {
-      profile_writer_->AddRoot({V8SnapshotProfileWriter::kSnapshot, id});
+      profile_writer_->AddRoot({V8SnapshotProfileWriter::kSnapshot, id}, name);
     }
   }
 
   void WriteElementRef(RawObject* object, intptr_t index) {
     intptr_t id = WriteRefId(object);
     WriteUnsigned(id);
+    if (profile_writer_ != nullptr) {
+      profile_writer_->AttributeReferenceTo(
+          {V8SnapshotProfileWriter::kSnapshot, object_currently_writing_.id_},
+          {{V8SnapshotProfileWriter::kSnapshot, id},
+           V8SnapshotProfileWriter::Reference::kElement,
+           index});
+    }
+  }
+
+  // Record a reference from the currently written object to the given object
+  // without actually writing the reference into the snapshot.
+  // Used to create artificial connection between objects which are not
+  // explicitly connected in the heap, for example an object referenced
+  // by the global object pool is in reality referenced by the code which
+  // caused this reference to be added to the global object pool.
+  void AttributeElementRef(RawObject* object, intptr_t index) {
+    intptr_t id = WriteRefId(object);
     if (profile_writer_ != nullptr) {
       profile_writer_->AttributeReferenceTo(
           {V8SnapshotProfileWriter::kSnapshot, object_currently_writing_.id_},
@@ -353,12 +362,15 @@ class Serializer : public ThreadStackResource {
     Write<int32_t>(cid);
   }
 
-  void WriteInstructions(RawInstructions* instr, RawCode* code);
-  bool GetSharedDataOffset(RawObject* object, uint32_t* offset) const;
+  void WriteInstructions(RawInstructions* instr,
+                         uint32_t unchecked_offset,
+                         RawCode* code,
+                         intptr_t index);
   uint32_t GetDataOffset(RawObject* object) const;
   void TraceDataOffset(uint32_t offset);
   intptr_t GetDataSize() const;
-  intptr_t GetTextSize() const;
+
+  void WriteDispatchTable(const Array& entries);
 
   Snapshot::Kind kind() const { return kind_; }
   intptr_t next_ref_index() const { return next_ref_index_; }
@@ -366,6 +378,45 @@ class Serializer : public ThreadStackResource {
   void DumpCombinedCodeStatistics();
 
  private:
+  static const char* ReadOnlyObjectType(intptr_t cid);
+
+  // Returns the reference ID for the object. Fails for objects that have not
+  // been allocated a reference ID yet, so should be used only after all
+  // WriteAlloc calls.
+  intptr_t WriteRefId(RawObject* object) {
+    if (!object->IsHeapObject()) {
+      RawSmi* smi = Smi::RawCast(object);
+      auto const id = smi_ids_.Lookup(smi)->id_;
+      if (IsAllocatedReference(id)) return id;
+      FATAL("Missing ref");
+    }
+    // The object id weak table holds image offsets for Instructions instead
+    // of ref indices.
+    ASSERT(!object->IsInstructions());
+    auto const id = heap_->GetObjectId(object);
+    if (IsAllocatedReference(id)) return id;
+    if (object->IsWeakSerializationReference()) {
+      // If a reachable WSR has an object ID of 0, then its target was marked
+      // for serialization due to reachable strong references and the WSR will
+      // be dropped instead. Thus, we change the reference to the WSR to a
+      // direct reference to the serialized target.
+      auto const ref = WeakSerializationReference::RawCast(object);
+      auto const target = WeakSerializationReference::TargetOf(ref);
+      auto const target_id = heap_->GetObjectId(target);
+      ASSERT(IsAllocatedReference(target_id));
+      return target_id;
+    }
+    if (object->IsCode() && !Snapshot::IncludesCode(kind_)) {
+      return WriteRefId(Object::null());
+    }
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    if (object->IsBytecode() && !Snapshot::IncludesBytecode(kind_)) {
+      return WriteRefId(Object::null());
+    }
+#endif  // !DART_PRECOMPILED_RUNTIME
+    FATAL("Missing ref");
+  }
+
   Heap* heap_;
   Zone* zone_;
   Snapshot::Kind kind_;
@@ -378,6 +429,9 @@ class Serializer : public ThreadStackResource {
   intptr_t num_written_objects_;
   intptr_t next_ref_index_;
   SmiObjectIdMap smi_ids_;
+  FieldTable* field_table_;
+
+  intptr_t dispatch_table_size_ = 0;
 
   // True if writing VM snapshot, false for Isolate snapshot.
   bool vm_;
@@ -394,6 +448,10 @@ class Serializer : public ThreadStackResource {
 #if defined(SNAPSHOT_BACKTRACE)
   RawObject* current_parent_;
   GrowableArray<Object*> parent_pairs_;
+#endif
+
+#if defined(DART_PRECOMPILER)
+  IntMap<intptr_t> deduped_instructions_sources_;
 #endif
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(Serializer);
@@ -472,8 +530,6 @@ class Deserializer : public ThreadStackResource {
                intptr_t size,
                const uint8_t* data_buffer,
                const uint8_t* instructions_buffer,
-               const uint8_t* shared_data_buffer,
-               const uint8_t* shared_instructions_buffer,
                intptr_t offset = 0);
   ~Deserializer();
 
@@ -500,7 +556,10 @@ class Deserializer : public ThreadStackResource {
     return ReadStream::Raw<sizeof(T), T>::Read(&stream_);
   }
   intptr_t ReadUnsigned() { return stream_.ReadUnsigned(); }
+  uint64_t ReadUnsigned64() { return stream_.ReadUnsigned<uint64_t>(); }
   void ReadBytes(uint8_t* addr, intptr_t len) { stream_.ReadBytes(addr, len); }
+
+  uword ReadWordWith32BitReads() { return stream_.ReadWordWith32BitReads(); }
 
   const uint8_t* CurrentBufferAddress() const {
     return stream_.AddressOfCurrentPosition();
@@ -533,7 +592,10 @@ class Deserializer : public ThreadStackResource {
     for (RawObject** p = from; p <= to_snapshot; p++) {
       *p = ReadRef();
     }
-    // TODO(sjindel/rmacnak): Is this really necessary?
+    // This is necessary because, unlike Object::Allocate, the clustered
+    // deserializer allocates object without null-initializing them. Instead,
+    // each deserialization cluster is responsible for initializing every field,
+    // ensuring that every field is written to exactly once.
     for (RawObject** p = to_snapshot + 1; p <= to; p++) {
       *p = Object::null();
     }
@@ -548,9 +610,8 @@ class Deserializer : public ThreadStackResource {
     return Read<int32_t>();
   }
 
-  RawInstructions* ReadInstructions();
+  void ReadInstructions(RawCode* code, intptr_t index, intptr_t start_index);
   RawObject* GetObjectAt(uint32_t offset) const;
-  RawObject* GetSharedObjectAt(uint32_t offset) const;
 
   void SkipHeader() { stream_.SetPosition(Snapshot::kHeaderSize); }
 
@@ -559,9 +620,12 @@ class Deserializer : public ThreadStackResource {
 
   DeserializationCluster* ReadCluster();
 
+  void ReadDispatchTable();
+
   intptr_t next_index() const { return next_ref_index_; }
   Heap* heap() const { return heap_; }
   Snapshot::Kind kind() const { return kind_; }
+  FieldTable* field_table() const { return field_table_; }
 
   // The number of code objects which were relocated during AOT snapshot
   // writing.
@@ -591,6 +655,7 @@ class Deserializer : public ThreadStackResource {
   RawArray* refs_;
   intptr_t next_ref_index_;
   DeserializationCluster** clusters_;
+  FieldTable* field_table_;
 };
 
 #define ReadFromTo(obj, ...) d->ReadFromTo(obj, ##__VA_ARGS__);
@@ -637,7 +702,6 @@ class FullSnapshotWriter {
   ReAlloc alloc_;
   intptr_t vm_isolate_snapshot_size_;
   intptr_t isolate_snapshot_size_;
-  ForwardList* forward_list_;
   ImageWriter* vm_image_writer_;
   ImageWriter* isolate_image_writer_;
 
@@ -656,8 +720,6 @@ class FullSnapshotReader {
  public:
   FullSnapshotReader(const Snapshot* snapshot,
                      const uint8_t* instructions_buffer,
-                     const uint8_t* shared_data,
-                     const uint8_t* shared_instructions,
                      Thread* thread);
   ~FullSnapshotReader() {}
 
@@ -673,8 +735,6 @@ class FullSnapshotReader {
   intptr_t size_;
   const uint8_t* data_image_;
   const uint8_t* instructions_image_;
-  const uint8_t* shared_data_image_;
-  const uint8_t* shared_instructions_image_;
 
   DISALLOW_COPY_AND_ASSIGN(FullSnapshotReader);
 };

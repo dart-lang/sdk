@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 ////////////////////////////////////////////////////////////////////////////////
 // Update to a singleton list.
 ////////////////////////////////////////////////////////////////////////////////
@@ -118,7 +120,7 @@ mapUpdateMixedKeys() {
 mapUpdateMixedValues() {
   dynamic map = {2: ''};
   return map
-      /*update: Map([subclass=JsLinkedHashMap], key: [exact=JSUInt31], value: Union([exact=JSUInt31], [null|exact=JSString]))*/
+      /*update: Map([subclass=JsLinkedHashMap], key: [exact=JSUInt31], value: Union(null, [exact=JSString], [exact=JSUInt31]))*/
       [2] = 42;
 }
 

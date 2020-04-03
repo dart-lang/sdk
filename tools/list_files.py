@@ -35,7 +35,7 @@ def main(argv):
                     fullname = os.path.relpath(os.path.join(root, filename))
                 fullname = fullname.replace(os.sep, '/')
                 if re.search(pattern, fullname):
-                    print fullname
+                    print (fullname)
 
 
 if __name__ == '__main__':

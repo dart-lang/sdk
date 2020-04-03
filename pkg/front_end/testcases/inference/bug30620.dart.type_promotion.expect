@@ -1,3 +1,0 @@
-pkg/front_end/testcases/inference/bug30620.dart:14:13: Context: Possible promotion of other@335
-      other is A && /*@ promotedType=A* */ other
-            ^^

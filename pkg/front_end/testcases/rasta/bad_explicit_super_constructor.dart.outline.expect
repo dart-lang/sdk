@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/rasta/bad_explicit_super_constructor.dart:10:20: Warning: Too few positional arguments: 1 required, 0 given.
+// pkg/front_end/testcases/rasta/bad_explicit_super_constructor.dart:10:20: Error: Too few positional arguments: 1 required, 0 given.
 //   const B() : super();
 //                    ^
 //
@@ -13,7 +13,7 @@ class A extends core::Object {
   constructor •(dynamic x) → self::A*
     ;
 }
-class B extends self::A {
+class B extends self::A /*hasConstConstructor*/  {
   const constructor •() → self::B*
     : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/rasta/bad_explicit_super_constructor.dart:10:20: Error: Too few positional arguments: 1 required, 0 given.
   const B() : super();

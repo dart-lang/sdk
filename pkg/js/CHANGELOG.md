@@ -1,3 +1,7 @@
+## 0.6.3
+
+* Added promiseToFuture function.
+
 ## 0.6.2
 
 * Improved documentation.

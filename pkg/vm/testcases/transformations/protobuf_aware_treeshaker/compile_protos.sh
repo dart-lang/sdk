@@ -5,11 +5,12 @@
 
 # Running this script requires having protoc_plugin installed in your path.
 
-rm -rf lib/generated
-mkdir lib/generated
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+rm -rf $DIR/lib/generated
+mkdir $DIR/lib/generated
 
 # Directory of the script
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 GENERATED_DIR=$DIR/lib/generated
 
 protoc --dart_out=$GENERATED_DIR -I$DIR/protos $DIR/protos/*.proto

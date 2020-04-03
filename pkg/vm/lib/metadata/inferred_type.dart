@@ -9,6 +9,7 @@ import 'package:kernel/ast.dart';
 /// Metadata for annotating nodes with an inferred type information.
 class InferredType {
   final Reference _concreteClassReference;
+  final Constant _constantValue;
   final int _flags;
 
   static const int flagNullable = 1 << 0;
@@ -16,6 +17,10 @@ class InferredType {
 
   // For invocations: whether to use the unchecked entry-point.
   static const int flagSkipCheck = 1 << 2;
+
+  static const int flagConstant = 1 << 3;
+
+  static const int flagReceiverNotInt = 1 << 4;
 
   // Entire list may be null if no type arguments were inferred.
   // Will always be null if `concreteClass` is null.
@@ -27,46 +32,76 @@ class InferredType {
   // argument (in the runtime type) is always exactly a particular `DartType`.
   final List<DartType> exactTypeArguments;
 
-  InferredType(Class concreteClass, bool nullable, bool isInt,
-      {List<DartType> exactTypeArguments, bool skipCheck: false})
+  InferredType(
+      Class concreteClass, bool nullable, bool isInt, Constant constantValue,
+      {List<DartType> exactTypeArguments,
+      bool skipCheck: false,
+      bool receiverNotInt: false})
       : this._byReference(
             getClassReference(concreteClass),
+            constantValue,
             (nullable ? flagNullable : 0) |
                 (isInt ? flagInt : 0) |
-                (skipCheck ? flagSkipCheck : 0),
+                (skipCheck ? flagSkipCheck : 0) |
+                (constantValue != null ? flagConstant : 0) |
+                (receiverNotInt ? flagReceiverNotInt : 0),
             exactTypeArguments);
 
-  InferredType._byReference(
-      this._concreteClassReference, this._flags, this.exactTypeArguments) {
+  InferredType._byReference(this._concreteClassReference, this._constantValue,
+      this._flags, this.exactTypeArguments) {
     assert(exactTypeArguments == null || _concreteClassReference != null);
+    assert(_constantValue == null || _concreteClassReference != null);
   }
 
   Class get concreteClass => _concreteClassReference?.asClass;
 
+  Constant get constantValue => _constantValue;
+
   bool get nullable => (_flags & flagNullable) != 0;
   bool get isInt => (_flags & flagInt) != 0;
   bool get skipCheck => (_flags & flagSkipCheck) != 0;
+  bool get receiverNotInt => (_flags & flagReceiverNotInt) != 0;
+
+  int get flags => _flags;
 
   @override
   String toString() {
-    final base =
-        "${concreteClass != null ? concreteClass : (isInt ? 'int' : '!')}";
-    final suffix = "${nullable ? '?' : ''}";
-    String typeArgs = "";
-    if (exactTypeArguments != null) {
-      typeArgs =
-          exactTypeArguments.map((t) => t != null ? "$t" : "?").join(", ");
-      typeArgs = "<" + typeArgs + ">";
+    final StringBuffer buf = new StringBuffer();
+    if (concreteClass != null) {
+      buf.write(concreteClass);
+    } else if (isInt) {
+      buf.write('int');
+    } else {
+      buf.write('!');
     }
-    final skip = skipCheck ? " (skip check)" : "";
-    return base + suffix + typeArgs + skip;
+    if (nullable) {
+      buf.write('?');
+    }
+    if (exactTypeArguments != null) {
+      buf.write('<');
+      buf.write(
+          exactTypeArguments.map((t) => t != null ? "$t" : "?").join(", "));
+      buf.write('>');
+    }
+    if (skipCheck) {
+      buf.write(' (skip check)');
+    }
+    if (_constantValue != null) {
+      buf.write(' (value: $_constantValue)');
+    }
+    if (receiverNotInt) {
+      buf.write(' (receiver not int)');
+    }
+    return buf.toString();
   }
 }
 
 /// Repository for [InferredType].
 class InferredTypeMetadataRepository extends MetadataRepository<InferredType> {
+  static const String repositoryTag = 'vm.inferred-type.metadata';
+
   @override
-  final String tag = 'vm.inferred-type.metadata';
+  String get tag => repositoryTag;
 
   @override
   final Map<TreeNode, InferredType> mapping = <TreeNode, InferredType>{};
@@ -78,6 +113,9 @@ class InferredTypeMetadataRepository extends MetadataRepository<InferredType> {
     sink.writeNullAllowedCanonicalNameReference(
         getCanonicalNameOfClass(metadata.concreteClass));
     sink.writeByte(metadata._flags);
+    if (metadata.constantValue != null) {
+      sink.writeConstantReference(metadata.constantValue);
+    }
   }
 
   @override
@@ -87,6 +125,10 @@ class InferredTypeMetadataRepository extends MetadataRepository<InferredType> {
     final concreteClassReference =
         source.readCanonicalNameReference()?.getReference();
     final flags = source.readByte();
-    return new InferredType._byReference(concreteClassReference, flags, null);
+    final constantValue = (flags & InferredType.flagConstant) != 0
+        ? source.readConstantReference()
+        : null;
+    return new InferredType._byReference(
+        concreteClassReference, constantValue, flags, null);
   }
 }

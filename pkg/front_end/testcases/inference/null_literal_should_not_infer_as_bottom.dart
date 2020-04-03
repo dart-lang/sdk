@@ -9,10 +9,10 @@ var h = null;
 void foo(int f(Object _)) {}
 
 test() {
-  var /*@ type=(Object*) ->* Null* */ f = /*@ returnType=Null* */ (Object x) => null;
+  var /*@ type=(Object*) ->* Null? */ f = /*@ returnType=Null? */ (Object x) => null;
   String y = /*info:DYNAMIC_CAST*/ f(42);
 
-  f = /*@ returnType=Null* */ (/*@ type=Object* */ x) => 'hello';
+  f = /*@ returnType=Null? */ (/*@ type=Object* */ x) => 'hello';
 
   var /*@ type=dynamic */ g = null;
   g = 'hello';
@@ -21,7 +21,7 @@ test() {
   h = 'hello';
   (/*info:DYNAMIC_INVOKE*/ h.foo());
 
-  foo(/*@ returnType=Null* */ (/*@ type=Object* */ x) => null);
+  foo(/*@ returnType=Null? */ (/*@ type=Object* */ x) => null);
   foo(/*@ returnType=<BottomType> */ (/*@ type=Object* */ x) =>
       throw "not implemented");
 }

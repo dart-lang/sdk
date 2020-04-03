@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.io;
 
 // Constants used when working with native ports.
@@ -104,9 +106,7 @@ _BufferAndStart _ensureFastAndSerializableByteData(
   var newBuffer = new Uint8List(length);
   int j = start;
   for (int i = 0; i < length; i++) {
-    int value = buffer[j];
-    if (value == null) throw ArgumentError("List element is null at index $j");
-    newBuffer[i] = value;
+    newBuffer[i] = buffer[j];
     j++;
   }
   return new _BufferAndStart(newBuffer, 0);

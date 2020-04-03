@@ -2,14 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
+// @dart = 2.6
 
-_expectInErrorMessage(String expected, String actual) {
-  Expect.isTrue(
-      actual.contains(expected),
-      'Error message should contain "$expected", '
-      'but was ${actual.toString()}.');
-}
+import "utils.dart";
 
 class A {
   int x = 42;
@@ -33,8 +28,8 @@ void main() {
     instanceOfA();
   } on NoSuchMethodError catch (error) {
     var message = error.toString();
-    _expectInErrorMessage("NoSuchMethodError: 'call'", message);
-    _expectInErrorMessage("Receiver: Instance of 'A'", message);
+    expectStringContains("NoSuchMethodError: 'call'", message);
+    expectStringContains("Receiver: Instance of 'A'", message);
   }
 
   dynamic tearOff = instanceOfA.arity1;
@@ -43,8 +38,8 @@ void main() {
     tearOff(1, 2);
   } on NoSuchMethodError catch (error) {
     var message = error.toString();
-    _expectInErrorMessage("NoSuchMethodError: 'bound arity1'", message);
-    _expectInErrorMessage("too many arguments", message);
+    expectStringContains("NoSuchMethodError: 'bound arity1'", message);
+    expectStringContains("too many arguments", message);
   }
 
   // Dynamic call of a class method with too few arguments.
@@ -52,8 +47,8 @@ void main() {
     tearOff();
   } on NoSuchMethodError catch (error) {
     var message = error.toString();
-    _expectInErrorMessage("NoSuchMethodError: 'bound arity1'", message);
-    _expectInErrorMessage("too few arguments", message);
+    expectStringContains("NoSuchMethodError: 'bound arity1'", message);
+    expectStringContains("too few arguments", message);
   }
 
   // Dynamic call of a top level funciton with too many arguments.
@@ -61,8 +56,8 @@ void main() {
     dynamicFunction(1, 2);
   } on NoSuchMethodError catch (error) {
     var message = error.toString();
-    _expectInErrorMessage("NoSuchMethodError: 'arity1'", message);
-    _expectInErrorMessage("too many arguments", message);
+    expectStringContains("NoSuchMethodError: 'arity1'", message);
+    expectStringContains("too many arguments", message);
   }
 
   // Dynamic call of a top level funciton with too few arguments.
@@ -70,8 +65,8 @@ void main() {
     dynamicFunction();
   } on NoSuchMethodError catch (error) {
     var message = error.toString();
-    _expectInErrorMessage("NoSuchMethodError: 'arity1'", message);
-    _expectInErrorMessage("too few arguments", message);
+    expectStringContains("NoSuchMethodError: 'arity1'", message);
+    expectStringContains("too few arguments", message);
   }
 
   // Function.apply() with too many arguments.
@@ -79,8 +74,8 @@ void main() {
     Function.apply(dynamicFunction, [1, 2]);
   } on NoSuchMethodError catch (error) {
     var message = error.toString();
-    _expectInErrorMessage("NoSuchMethodError: 'arity1'", message);
-    _expectInErrorMessage("too many arguments", message);
+    expectStringContains("NoSuchMethodError: 'arity1'", message);
+    expectStringContains("too many arguments", message);
   }
 
   // Function.apply() with too few arguments.
@@ -88,7 +83,7 @@ void main() {
     Function.apply(dynamicFunction, []);
   } on NoSuchMethodError catch (error) {
     var message = error.toString();
-    _expectInErrorMessage("NoSuchMethodError: 'arity1'", message);
-    _expectInErrorMessage("too few arguments", message);
+    expectStringContains("NoSuchMethodError: 'arity1'", message);
+    expectStringContains("too few arguments", message);
   }
 }

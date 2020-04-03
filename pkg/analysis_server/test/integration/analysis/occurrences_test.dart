@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OccurrencesTest);
   });
@@ -17,9 +17,9 @@ main() {
 
 @reflectiveTest
 class OccurrencesTest extends AbstractAnalysisServerIntegrationTest {
-  test_occurrences() {
-    String pathname = sourcePath('test.dart');
-    String text = r'''
+  Future<void> test_occurrences() {
+    var pathname = sourcePath('test.dart');
+    var text = r'''
 main() {
   int sum = 0;
   for (int i = 0; i < 10; i++) {
@@ -43,7 +43,7 @@ main() {
     return analysisFinished.then((_) {
       expect(currentAnalysisErrors[pathname], isEmpty);
       Set<int> findOffsets(String elementName) {
-        for (Occurrences occurrence in occurrences) {
+        for (var occurrence in occurrences) {
           if (occurrence.element.name == elementName) {
             return occurrence.offsets.toSet();
           }
@@ -52,10 +52,10 @@ main() {
       }
 
       void check(String elementName, Iterable<String> expectedOccurrences) {
-        Set<int> expectedOffsets = expectedOccurrences
+        var expectedOffsets = expectedOccurrences
             .map((String substring) => text.indexOf(substring))
             .toSet();
-        Set<int> foundOffsets = findOffsets(elementName);
+        var foundOffsets = findOffsets(elementName);
         expect(foundOffsets, equals(expectedOffsets));
       }
 

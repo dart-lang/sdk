@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import "package:expect/expect.dart";
 
 /*class: I:checkedInstance*/
@@ -23,7 +25,7 @@ class M<T> {
 /*class: A:checkedInstance*/
 class A<U, V> = Object with M<Map<U, V>> implements I<V>;
 
-/*class: C:checks=[$asA,$asI,$asJ,$asM,$asS,$isA,$isI,$isJ],instance*/
+/*class: C:checks=[$isA,$isI,$isJ],instance*/
 class C<T, K> = S<T> with A<T, List<K>> implements J<K>;
 
 @pragma('dart2js:noInline')

@@ -1,0 +1,70 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application with a part, change a file,
+# but don't change the outline.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    useExperimentalInvalidation: true
+    sources:
+      main.dart: |
+        part 'myPart.dart';
+
+        class Foo {
+          const Foo();
+          @override
+          toString() => 'Foo!';
+        }
+
+        main() async {
+          await whatever();
+          print(const Foo());
+        }
+      myPart.dart: |
+        part of 'main.dart';
+        whatever() async {
+          await null;
+          return "hello";
+        }
+    expectedLibraryCount: 1
+  - entry: main.dart
+    useExperimentalInvalidation: true
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - myPart.dart
+    sources:
+      myPart.dart: |
+        part of 'main.dart';
+        whatever() async {
+          await null;
+          return "hello!!!";
+        }
+    expectedLibraryCount: 1
+    expectsRebuildBodiesOnly: true
+  - entry: main.dart
+    useExperimentalInvalidation: true
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        part 'myPart.dart';
+
+        class Foo {
+          const Foo();
+          @override
+          toString() => 'Foo!';
+        }
+
+        main() async {
+          await whatever();
+          print(const Foo());
+          print("Done!");
+        }
+    expectedLibraryCount: 1
+    expectsRebuildBodiesOnly: true

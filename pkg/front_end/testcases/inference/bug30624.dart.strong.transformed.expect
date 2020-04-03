@@ -7,17 +7,17 @@ class C<E extends core::Object* = dynamic> extends core::Object {
     : super core::Object::•()
     ;
   method barA([(self::C::E*, self::C::E*) →* core::int* cmp = #C1]) → void {
-    self::foo<self::C::E*>(this, let final (self::C::E*, self::C::E*) →* core::int* #t1 = cmp in #t1.==(null) ?{(self::C::E*, self::C::E*) →* core::int*} #C2 : #t1);
+    self::foo<self::C::E*>(this, let final (self::C::E*, self::C::E*) →* core::int* #t1 = cmp in #t1.{core::Object::==}(null) ?{(self::C::E*, self::C::E*) →* core::int*} #C2 : #t1);
   }
   method barB([(self::C::E*, self::C::E*) →* core::int* cmp = #C1]) → void {
-    self::foo<self::C::E*>(this, let final (self::C::E*, self::C::E*) →* core::int* #t2 = cmp in #t2.==(null) ?{(self::C::E*, self::C::E*) →* core::int*} (#C2) as (self::C::E*, self::C::E*) →* core::int* : #t2);
+    self::foo<self::C::E*>(this, let final (self::C::E*, self::C::E*) →* core::int* #t2 = cmp in #t2.{core::Object::==}(null) ?{(self::C::E*, self::C::E*) →* core::int*} (#C2) as (self::C::E*, self::C::E*) →* core::int* : #t2);
   }
   method barC([(self::C::E*, self::C::E*) →* core::int* cmp = #C1]) → void {
     (self::C::E*, self::C::E*) →* core::int* v = #C2;
-    self::foo<self::C::E*>(this, let final (self::C::E*, self::C::E*) →* core::int* #t3 = cmp in #t3.==(null) ?{(self::C::E*, self::C::E*) →* core::int*} v : #t3);
+    self::foo<self::C::E*>(this, let final (self::C::E*, self::C::E*) →* core::int* #t3 = cmp in #t3.{core::Object::==}(null) ?{(self::C::E*, self::C::E*) →* core::int*} v : #t3);
   }
   method barD([(self::C::E*, self::C::E*) →* core::int* cmp = #C1]) → void {
-    self::foo<self::C::E*>(this, let final (self::C::E*, self::C::E*) →* core::int* #t4 = cmp in #t4.==(null) ?{(self::C::E*, self::C::E*) →* core::int*} #C2 : #t4);
+    self::foo<self::C::E*>(this, let final (self::C::E*, self::C::E*) →* core::int* #t4 = cmp in #t4.{core::Object::==}(null) ?{(self::C::E*, self::C::E*) →* core::int*} #C2 : #t4);
   }
   method barE([(self::C::E*, self::C::E*) →* core::int* cmp = #C1]) → void {
     self::foo<self::C::E*>(this, cmp.{core::Object::==}(null) ?{(self::C::E*, self::C::E*) →* core::int*} #C2 : cmp);

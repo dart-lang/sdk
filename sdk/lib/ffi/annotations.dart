@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.ffi;
 
 class DartRepresentationOf {
@@ -21,7 +23,7 @@ class DartRepresentationOf {
   /// [Pointer]<T>                         -> [Pointer]<T>
   /// [NativeFunction]<T1 Function(T2, T3) -> S1 Function(S2, S3)
   ///    where DartRepresentationOf(Tn) -> Sn
-  /// T extends Struct<T>                  -> T
+  /// T extends Struct                  -> T
   const DartRepresentationOf(String nativeType);
 }
 

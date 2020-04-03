@@ -1,0 +1,48 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application with errors in it, then - without fixing the errors -
+# recompile. Make sure we still get errors. As long as we don't fix the error,
+# we keep getting errors. Once we fix it, we no longer get errors.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import 'lib.dart';
+        class Foo<X extends Bar> {}
+      lib.dart: |
+        // The error is here: Foo is unknown
+        // (although it might give some other error instead)
+        class Bar<X extends Foo<Null>> {}
+    expectedLibraryCount: 2
+    errors: true
+  - entry: main.dart
+    errors: true
+    worldType: updated
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        import 'lib.dart';
+        class Foo {}
+    expectInitializeFromDill: false
+    expectedLibraryCount: 2
+  - entry: main.dart
+    errors: false
+    worldType: updated
+    invalidate:
+      - main.dart
+      - lib.dart
+    sources:
+      main.dart: |
+        import 'lib.dart';
+        class Foo<X extends Bar> {}
+      lib.dart: |
+        import 'main.dart';
+        class Bar<X extends Foo<Null>> {}
+    expectInitializeFromDill: false
+    expectedLibraryCount: 2
+ 

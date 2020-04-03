@@ -2,40 +2,33 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:55:65: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
-// Try changing the type of the left hand side, or casting the right hand side to 'double'.
-//     var /*@ type=int* */ v7 = super /*@target=Base::[]=*/ ['x'] += getInt();
-//                                                                 ^
+// pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:108:34: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
+//             /*@ target=num::+ */ += getInt();
+//                                  ^
 //
-// pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:58:32: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
-// Try changing the type of the left hand side, or casting the right hand side to 'double'.
-//     var /*@ type=int* */ v10 = ++super /*@target=Base::[]=*/ ['x'];
-//                                ^
+// pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:118:53: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
+//     var /*@ type=int* */ v10 = /*@ target=num::+ */ ++super
+//                                                     ^
 //
-// pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:59:65: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
-// Try changing the type of the left hand side, or casting the right hand side to 'double'.
-//     var /*@ type=int* */ v11 = super /*@target=Base::[]=*/ ['x']++;
-//                                                                 ^
+// pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:122:36: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
+//         ['x'] /*@ target=num::+ */ ++;
+//                                    ^
 //
-// pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:112:68: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
-// Try changing the type of the left hand side, or casting the right hand side to 'int'.
-//     var /*@ type=double* */ v7 = super /*@target=Base::[]=*/ ['x'] += getInt();
-//                                                                    ^
+// pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:248:37: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+//             /*@ target=double::+ */ += getInt();
+//                                     ^
 //
-// pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:113:68: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
-// Try changing the type of the left hand side, or casting the right hand side to 'int'.
-//     var /*@ type=double* */ v8 = super /*@target=Base::[]=*/ ['x'] += getNum();
-//                                                                    ^
+// pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:252:37: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+//             /*@ target=double::+ */ += getNum();
+//                                     ^
 //
-// pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:114:35: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
-// Try changing the type of the left hand side, or casting the right hand side to 'int'.
-//     var /*@ type=double* */ v10 = ++super /*@target=Base::[]=*/ ['x'];
-//                                   ^
+// pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:254:59: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+//     var /*@ type=double* */ v10 = /*@ target=double::+ */ ++super
+//                                                           ^
 //
-// pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:115:68: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
-// Try changing the type of the left hand side, or casting the right hand side to 'int'.
-//     var /*@ type=double* */ v11 = super /*@target=Base::[]=*/ ['x']++;
-//                                                                    ^
+// pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:259:43: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+//             ['x'] /*@ target=double::+ */ ++;
+//                                           ^
 //
 import self as self;
 import "dart:core" as core;
@@ -93,20 +86,17 @@ abstract class Test3 extends self::Base<core::int*, core::double*> {
     core::double* v3 = let final core::String* #t66 = "x" in let final core::double* #t67 = self::getDouble() in let final void #t68 = super.{self::Base::[]=}(#t66, #t67) in #t67;
     core::num* v5 = let final core::String* #t69 = "x" in let final core::int* #t70 = super.{self::Base::[]}(#t69) in #t70.{core::num::==}(null) ?{core::num*} let final core::num* #t71 = self::getNum() as{TypeError} core::double* in let final void #t72 = super.{self::Base::[]=}(#t69, #t71) in #t71 : #t70;
     core::num* v6 = let final core::String* #t73 = "x" in let final core::int* #t74 = super.{self::Base::[]}(#t73) in #t74.{core::num::==}(null) ?{core::num*} let final core::double* #t75 = self::getDouble() in let final void #t76 = super.{self::Base::[]=}(#t73, #t75) in #t75 : #t74;
-    core::int* v7 = let final core::String* #t77 = "x" in let final core::int* #t78 = let final<BottomType> #t79 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:55:65: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
-Try changing the type of the left hand side, or casting the right hand side to 'double'.
-    var /*@ type=int* */ v7 = super /*@target=Base::[]=*/ ['x'] += getInt();
-                                                                ^" in super.{self::Base::[]}(#t77).{core::num::+}(self::getInt()) as{TypeError} core::double* in let final void #t80 = super.{self::Base::[]=}(#t77, #t78) in #t78;
+    core::int* v7 = let final core::String* #t77 = "x" in let final core::int* #t78 = let final<BottomType> #t79 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:108:34: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
+            /*@ target=num::+ */ += getInt();
+                                 ^" in super.{self::Base::[]}(#t77).{core::num::+}(self::getInt()) as{TypeError} core::double* in let final void #t80 = super.{self::Base::[]=}(#t77, #t78) in #t78;
     core::num* v8 = let final core::String* #t81 = "x" in let final core::num* #t82 = super.{self::Base::[]}(#t81).{core::num::+}(self::getNum()) as{TypeError} core::double* in let final void #t83 = super.{self::Base::[]=}(#t81, #t82) in #t82;
     core::double* v9 = let final core::String* #t84 = "x" in let final core::double* #t85 = super.{self::Base::[]}(#t84).{core::num::+}(self::getDouble()) in let final void #t86 = super.{self::Base::[]=}(#t84, #t85) in #t85;
-    core::int* v10 = let final core::String* #t87 = "x" in let final core::int* #t88 = let final<BottomType> #t89 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:58:32: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
-Try changing the type of the left hand side, or casting the right hand side to 'double'.
-    var /*@ type=int* */ v10 = ++super /*@target=Base::[]=*/ ['x'];
-                               ^" in super.{self::Base::[]}(#t87).{core::num::+}(1) as{TypeError} core::double* in let final void #t90 = super.{self::Base::[]=}(#t87, #t88) in #t88;
-    core::int* v11 = let final core::String* #t91 = "x" in let final core::int* #t92 = super.{self::Base::[]}(#t91) in let final void #t93 = super.{self::Base::[]=}(#t91, let final<BottomType> #t94 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:59:65: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
-Try changing the type of the left hand side, or casting the right hand side to 'double'.
-    var /*@ type=int* */ v11 = super /*@target=Base::[]=*/ ['x']++;
-                                                                ^" in #t92.{core::num::+}(1) as{TypeError} core::double*) in #t92;
+    core::int* v10 = let final core::String* #t87 = "x" in let final core::int* #t88 = let final<BottomType> #t89 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:118:53: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
+    var /*@ type=int* */ v10 = /*@ target=num::+ */ ++super
+                                                    ^" in super.{self::Base::[]}(#t87).{core::num::+}(1) as{TypeError} core::double* in let final void #t90 = super.{self::Base::[]=}(#t87, #t88) in #t88;
+    core::int* v11 = let final core::String* #t91 = "x" in let final core::int* #t92 = super.{self::Base::[]}(#t91) in let final void #t93 = super.{self::Base::[]=}(#t91, let final<BottomType> #t94 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:122:36: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
+        ['x'] /*@ target=num::+ */ ++;
+                                   ^" in #t92.{core::num::+}(1) as{TypeError} core::double*) in #t92;
   }
 }
 abstract class Test4 extends self::Base<core::num*, core::int*> {
@@ -167,22 +157,18 @@ abstract class Test7 extends self::Base<core::double*, core::int*> {
     core::num* v2 = let final core::String* #t189 = "x" in let final core::num* #t190 = self::getNum() as{TypeError} core::int* in let final void #t191 = super.{self::Base::[]=}(#t189, #t190) in #t190;
     core::num* v4 = let final core::String* #t192 = "x" in let final core::double* #t193 = super.{self::Base::[]}(#t192) in #t193.{core::num::==}(null) ?{core::num*} let final core::int* #t194 = self::getInt() in let final void #t195 = super.{self::Base::[]=}(#t192, #t194) in #t194 : #t193;
     core::num* v5 = let final core::String* #t196 = "x" in let final core::double* #t197 = super.{self::Base::[]}(#t196) in #t197.{core::num::==}(null) ?{core::num*} let final core::num* #t198 = self::getNum() as{TypeError} core::int* in let final void #t199 = super.{self::Base::[]=}(#t196, #t198) in #t198 : #t197;
-    core::double* v7 = let final core::String* #t200 = "x" in let final core::double* #t201 = let final<BottomType> #t202 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:112:68: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
-Try changing the type of the left hand side, or casting the right hand side to 'int'.
-    var /*@ type=double* */ v7 = super /*@target=Base::[]=*/ ['x'] += getInt();
-                                                                   ^" in super.{self::Base::[]}(#t200).{core::double::+}(self::getInt()) as{TypeError} core::int* in let final void #t203 = super.{self::Base::[]=}(#t200, #t201) in #t201;
-    core::double* v8 = let final core::String* #t204 = "x" in let final core::double* #t205 = let final<BottomType> #t206 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:113:68: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
-Try changing the type of the left hand side, or casting the right hand side to 'int'.
-    var /*@ type=double* */ v8 = super /*@target=Base::[]=*/ ['x'] += getNum();
-                                                                   ^" in super.{self::Base::[]}(#t204).{core::double::+}(self::getNum()) as{TypeError} core::int* in let final void #t207 = super.{self::Base::[]=}(#t204, #t205) in #t205;
-    core::double* v10 = let final core::String* #t208 = "x" in let final core::double* #t209 = let final<BottomType> #t210 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:114:35: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
-Try changing the type of the left hand side, or casting the right hand side to 'int'.
-    var /*@ type=double* */ v10 = ++super /*@target=Base::[]=*/ ['x'];
-                                  ^" in super.{self::Base::[]}(#t208).{core::double::+}(1) as{TypeError} core::int* in let final void #t211 = super.{self::Base::[]=}(#t208, #t209) in #t209;
-    core::double* v11 = let final core::String* #t212 = "x" in let final core::double* #t213 = super.{self::Base::[]}(#t212) in let final void #t214 = super.{self::Base::[]=}(#t212, let final<BottomType> #t215 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:115:68: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
-Try changing the type of the left hand side, or casting the right hand side to 'int'.
-    var /*@ type=double* */ v11 = super /*@target=Base::[]=*/ ['x']++;
-                                                                   ^" in #t213.{core::double::+}(1) as{TypeError} core::int*) in #t213;
+    core::double* v7 = let final core::String* #t200 = "x" in let final core::double* #t201 = let final<BottomType> #t202 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:248:37: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+            /*@ target=double::+ */ += getInt();
+                                    ^" in super.{self::Base::[]}(#t200).{core::double::+}(self::getInt()) as{TypeError} core::int* in let final void #t203 = super.{self::Base::[]=}(#t200, #t201) in #t201;
+    core::double* v8 = let final core::String* #t204 = "x" in let final core::double* #t205 = let final<BottomType> #t206 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:252:37: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+            /*@ target=double::+ */ += getNum();
+                                    ^" in super.{self::Base::[]}(#t204).{core::double::+}(self::getNum()) as{TypeError} core::int* in let final void #t207 = super.{self::Base::[]=}(#t204, #t205) in #t205;
+    core::double* v10 = let final core::String* #t208 = "x" in let final core::double* #t209 = let final<BottomType> #t210 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:254:59: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+    var /*@ type=double* */ v10 = /*@ target=double::+ */ ++super
+                                                          ^" in super.{self::Base::[]}(#t208).{core::double::+}(1) as{TypeError} core::int* in let final void #t211 = super.{self::Base::[]=}(#t208, #t209) in #t209;
+    core::double* v11 = let final core::String* #t212 = "x" in let final core::double* #t213 = super.{self::Base::[]}(#t212) in let final void #t214 = super.{self::Base::[]=}(#t212, let final<BottomType> #t215 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:259:43: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+            ['x'] /*@ target=double::+ */ ++;
+                                          ^" in #t213.{core::double::+}(1) as{TypeError} core::int*) in #t213;
   }
 }
 abstract class Test8 extends self::Base<core::double*, core::num*> {

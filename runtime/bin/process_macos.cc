@@ -34,7 +34,7 @@ namespace dart {
 namespace bin {
 
 int Process::global_exit_code_ = 0;
-Mutex* Process::global_exit_code_mutex_ = new Mutex();
+Mutex* Process::global_exit_code_mutex_ = nullptr;
 Process::ExitHook Process::exit_hook_ = NULL;
 
 // ProcessInfo is used to map a process id to the file descriptor for
@@ -67,6 +67,9 @@ class ProcessInfo {
 // started from Dart.
 class ProcessInfoList {
  public:
+  static void Init();
+  static void Cleanup();
+
   static void AddProcess(pid_t pid, intptr_t fd) {
     MutexLocker locker(mutex_);
     ProcessInfo* info = new ProcessInfo(pid, fd);
@@ -118,7 +121,7 @@ class ProcessInfoList {
 };
 
 ProcessInfo* ProcessInfoList::active_processes_ = NULL;
-Mutex* ProcessInfoList::mutex_ = new Mutex();
+Mutex* ProcessInfoList::mutex_ = nullptr;
 
 // The exit code handler sets up a separate thread which waits for child
 // processes to terminate. That separate thread can then get the exit code from
@@ -126,6 +129,9 @@ Mutex* ProcessInfoList::mutex_ = new Mutex();
 // event loop.
 class ExitCodeHandler {
  public:
+  static void Init();
+  static void Cleanup();
+
   // Notify the ExitCodeHandler that another process exists.
   static void ProcessStarted() {
     // Multiple isolates could be starting processes at the same
@@ -237,7 +243,7 @@ class ExitCodeHandler {
 bool ExitCodeHandler::running_ = false;
 int ExitCodeHandler::process_count_ = 0;
 bool ExitCodeHandler::terminate_done_ = false;
-Monitor* ExitCodeHandler::monitor_ = new Monitor();
+Monitor* ExitCodeHandler::monitor_ = nullptr;
 
 class ProcessStarter {
  public:
@@ -469,9 +475,7 @@ class ProcessStarter {
     }
 #endif
 
-    VOID_TEMP_FAILURE_RETRY(
-        execvp(path_, const_cast<char* const*>(program_arguments_)));
-
+    execvp(path_, const_cast<char* const*>(program_arguments_));
     ReportChildError();
   }
 
@@ -526,8 +530,7 @@ class ProcessStarter {
 
           // Report the final PID and do the exec.
           ReportPid(getpid());  // getpid cannot fail.
-          VOID_TEMP_FAILURE_RETRY(
-              execvp(path_, const_cast<char* const*>(program_arguments_)));
+          execvp(path_, const_cast<char* const*>(program_arguments_));
           ReportChildError();
         } else {
           // Exit the intermeiate process.
@@ -773,11 +776,11 @@ int Process::Start(Namespace* namespc,
   return starter.Start();
 }
 
-static bool CloseProcessBuffers(struct pollfd fds[3]) {
+static bool CloseProcessBuffers(struct pollfd* fds, int alive) {
   int e = errno;
-  close(fds[0].fd);
-  close(fds[1].fd);
-  close(fds[2].fd);
+  for (int i = 0; i < alive; i++) {
+    close(fds[i].fd);
+  }
   errno = e;
   return false;
 }
@@ -814,13 +817,15 @@ bool Process::Wait(intptr_t pid,
   while (alive > 0) {
     // Blocking call waiting for events from the child process.
     if (TEMP_FAILURE_RETRY(poll(fds, alive, -1)) <= 0) {
-      return CloseProcessBuffers(fds);
+      return CloseProcessBuffers(fds, alive);
     }
 
     // Process incoming data.
-    int current_alive = alive;
-    for (int i = 0; i < current_alive; i++) {
+    for (int i = 0; i < alive; i++) {
       intptr_t avail;
+      if ((fds[i].revents & (POLLNVAL | POLLERR)) != 0) {
+        return CloseProcessBuffers(fds, alive);
+      }
       if ((fds[i].revents & POLLIN) != 0) {
         avail = FDUtils::AvailableBytes(fds[i].fd);
         // On Mac OS POLLIN can be set with zero available
@@ -828,18 +833,18 @@ bool Process::Wait(intptr_t pid,
         if (avail > 0) {
           if (fds[i].fd == out) {
             if (!out_data.Read(out, avail)) {
-              return CloseProcessBuffers(fds);
+              return CloseProcessBuffers(fds, alive);
             }
           } else if (fds[i].fd == err) {
             if (!err_data.Read(err, avail)) {
-              return CloseProcessBuffers(fds);
+              return CloseProcessBuffers(fds, alive);
             }
           } else if (fds[i].fd == exit_event) {
             if (avail == 8) {
               intptr_t b =
-                  TEMP_FAILURE_RETRY(read(fds[i].fd, exit_code_data.bytes, 8));
+                  TEMP_FAILURE_RETRY(read(exit_event, exit_code_data.bytes, 8));
               if (b != 8) {
-                return CloseProcessBuffers(fds);
+                return CloseProcessBuffers(fds, alive);
               }
             }
           } else {
@@ -849,11 +854,15 @@ bool Process::Wait(intptr_t pid,
       }
       if (((fds[i].revents & POLLHUP) != 0) ||
           (((fds[i].revents & POLLIN) != 0) && (avail == 0))) {
+        // Remove the pollfd from the list of pollfds.
         close(fds[i].fd);
         alive--;
         if (i < alive) {
           fds[i] = fds[alive];
         }
+        // Process the same index again.
+        i--;
+        continue;
       }
     }
   }
@@ -973,7 +982,7 @@ int64_t Process::MaxRSS() {
   return usage.ru_maxrss;
 }
 
-static Mutex* signal_mutex = new Mutex();
+static Mutex* signal_mutex = nullptr;
 static SignalInfo* signal_handlers = NULL;
 static const int kSignalsCount = 7;
 static const int kSignals[kSignalsCount] = {
@@ -1052,9 +1061,6 @@ intptr_t Process::SetSignalHandler(intptr_t signal) {
 }
 
 void Process::ClearSignalHandler(intptr_t signal, Dart_Port port) {
-  // Either the port is illegal or there is no current isolate, but not both.
-  ASSERT((port != ILLEGAL_PORT) || (Dart_CurrentIsolate() == NULL));
-  ASSERT((port == ILLEGAL_PORT) || (Dart_CurrentIsolate() != NULL));
   signal = SignalMap(signal);
   if (signal == -1) {
     return;
@@ -1087,6 +1093,54 @@ void Process::ClearSignalHandler(intptr_t signal, Dart_Port port) {
     act.sa_handler = SIG_DFL;
     VOID_NO_RETRY_EXPECTED(sigaction(signal, &act, NULL));
   }
+}
+
+void ProcessInfoList::Init() {
+  ASSERT(ProcessInfoList::mutex_ == nullptr);
+  ProcessInfoList::mutex_ = new Mutex();
+}
+
+void ProcessInfoList::Cleanup() {
+  ASSERT(ProcessInfoList::mutex_ != nullptr);
+  delete ProcessInfoList::mutex_;
+  ProcessInfoList::mutex_ = nullptr;
+}
+
+void ExitCodeHandler::Init() {
+  ASSERT(ExitCodeHandler::monitor_ == nullptr);
+  ExitCodeHandler::monitor_ = new Monitor();
+}
+
+void ExitCodeHandler::Cleanup() {
+  ASSERT(ExitCodeHandler::monitor_ != nullptr);
+  delete ExitCodeHandler::monitor_;
+  ExitCodeHandler::monitor_ = nullptr;
+}
+
+void Process::Init() {
+  ExitCodeHandler::Init();
+  ProcessInfoList::Init();
+
+  ASSERT(signal_mutex == nullptr);
+  signal_mutex = new Mutex();
+
+  ASSERT(Process::global_exit_code_mutex_ == nullptr);
+  Process::global_exit_code_mutex_ = new Mutex();
+}
+
+void Process::Cleanup() {
+  ClearAllSignalHandlers();
+
+  ASSERT(signal_mutex != nullptr);
+  delete signal_mutex;
+  signal_mutex = nullptr;
+
+  ASSERT(Process::global_exit_code_mutex_ != nullptr);
+  delete Process::global_exit_code_mutex_;
+  Process::global_exit_code_mutex_ = nullptr;
+
+  ProcessInfoList::Cleanup();
+  ExitCodeHandler::Cleanup();
 }
 
 }  // namespace bin

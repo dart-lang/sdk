@@ -4,6 +4,7 @@
 
 library invalid_uri_test;
 
-import 'package://lib1.dart'; // Should not contain "//".
+ // Should not contain "//".
+import 'package://lib1.dart'; //# 01: compile-time error
 
 void main() {}

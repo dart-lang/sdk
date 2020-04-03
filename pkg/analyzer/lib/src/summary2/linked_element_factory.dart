@@ -5,9 +5,10 @@
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/core_types.dart';
 import 'package:analyzer/src/summary2/lazy_ast.dart';
@@ -16,7 +17,7 @@ import 'package:analyzer/src/summary2/linked_unit_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 
 class LinkedElementFactory {
-  final AnalysisContext analysisContext;
+  final AnalysisContextImpl analysisContext;
   final AnalysisSession analysisSession;
   final Reference rootReference;
   final Map<String, LinkedLibraryContext> libraryMap = {};
@@ -28,6 +29,8 @@ class LinkedElementFactory {
     this.analysisSession,
     this.rootReference,
   ) {
+    ArgumentError.checkNotNull(analysisContext, 'analysisContext');
+    ArgumentError.checkNotNull(analysisSession, 'analysisSession');
     var dartCoreRef = rootReference.getChild('dart:core');
     dartCoreRef.getChild('dynamic').element = DynamicElementImpl.instance;
     dartCoreRef.getChild('Never').element = NeverElementImpl.instance;
@@ -55,10 +58,50 @@ class LinkedElementFactory {
     var exportedReferences = exportsOfLibrary('$uri');
     for (var exportedReference in exportedReferences) {
       var element = elementOfReference(exportedReference);
+      // TODO(scheglov) Remove after https://github.com/dart-lang/sdk/issues/41212
+      if (element == null) {
+        throw StateError(
+          '[No element]'
+          '[uri: $uri]'
+          '[exportedReferences: $exportedReferences]'
+          '[exportedReference: $exportedReference]',
+        );
+      }
       exportedNames[element.name] = element;
     }
 
     return Namespace(exportedNames);
+  }
+
+  void createTypeProviders(
+    LibraryElementImpl dartCore,
+    LibraryElementImpl dartAsync,
+  ) {
+    if (analysisContext.typeProviderNonNullableByDefault != null) {
+      return;
+    }
+
+    analysisContext.setTypeProviders(
+      legacy: TypeProviderImpl(
+        coreLibrary: dartCore,
+        asyncLibrary: dartAsync,
+        isNonNullableByDefault: false,
+      ),
+      nonNullableByDefault: TypeProviderImpl(
+        coreLibrary: dartCore,
+        asyncLibrary: dartAsync,
+        isNonNullableByDefault: true,
+      ),
+    );
+
+    // During linking we create libraries when typeProvider is not ready.
+    // Update these libraries now, when typeProvider is ready.
+    for (var reference in rootReference.children) {
+      var libraryElement = reference.element as LibraryElementImpl;
+      if (libraryElement != null && libraryElement.typeProvider == null) {
+        _setLibraryTypeSystem(libraryElement);
+      }
+    }
   }
 
   Element elementOfReference(Reference reference) {
@@ -75,6 +118,14 @@ class LinkedElementFactory {
   List<Reference> exportsOfLibrary(String uriStr) {
     var library = libraryMap[uriStr];
     if (library == null) return const [];
+
+    // Ask for source to trigger dependency tracking.
+    //
+    // Usually we record a dependency because we request an element from a
+    // library, so we build its library element, so request its source.
+    // However if a library is just exported, and the exporting library is not
+    // imported itself, we just copy references, without computing elements.
+    analysisContext.sourceFactory.forUri(uriStr);
 
     var exportIndexList = library.node.exports;
     var exportReferences = List<Reference>(exportIndexList.length);
@@ -120,6 +171,25 @@ class LinkedElementFactory {
         }
       }
     }
+  }
+
+  void _setLibraryTypeSystem(LibraryElementImpl libraryElement) {
+    // During linking we create libraries when typeProvider is not ready.
+    // And if we link dart:core and dart:async, we cannot create it.
+    // We will set typeProvider later, during [createTypeProviders].
+    if (analysisContext.typeProviderNonNullableByDefault == null) {
+      return;
+    }
+
+    var isNonNullable = libraryElement.isNonNullableByDefault;
+    libraryElement.typeProvider = isNonNullable
+        ? analysisContext.typeProviderNonNullableByDefault
+        : analysisContext.typeProviderLegacy;
+    libraryElement.typeSystem = isNonNullable
+        ? analysisContext.typeSystemNonNullableByDefault
+        : analysisContext.typeSystemLegacy;
+
+    libraryElement.createLoadLibraryFunction();
   }
 }
 
@@ -232,24 +302,18 @@ class _ElementRequest {
       ElementImpl enclosing, Reference reference) {
     if (enclosing is ClassElementImpl) {
       enclosing.accessors;
-      // Requesting accessors sets elements for accessors and fields.
-      assert(reference.element != null);
-      return reference.element;
-    }
-    if (enclosing is CompilationUnitElementImpl) {
+    } else if (enclosing is CompilationUnitElementImpl) {
       enclosing.accessors;
-      // Requesting accessors sets elements for accessors and variables.
-      assert(reference.element != null);
-      return reference.element;
-    }
-    if (enclosing is EnumElementImpl) {
+    } else if (enclosing is EnumElementImpl) {
       enclosing.accessors;
-      // Requesting accessors sets elements for accessors and variables.
-      assert(reference.element != null);
-      return reference.element;
+    } else if (enclosing is ExtensionElementImpl) {
+      enclosing.accessors;
+    } else {
+      throw StateError('${enclosing.runtimeType}');
     }
-    // Only classes and units have accessors.
-    throw StateError('${enclosing.runtimeType}');
+    // Requesting accessors sets elements for accessors and variables.
+    assert(reference.element != null);
+    return reference.element;
   }
 
   ClassElementImpl _class(
@@ -281,7 +345,10 @@ class _ElementRequest {
 
     var libraryContext = elementFactory.libraryMap[uriStr];
     if (libraryContext == null) {
-      throw ArgumentError('Missing library: $uriStr');
+      throw ArgumentError(
+        'Missing library: $uriStr\n'
+        'Available libraries: ${elementFactory.libraryMap.keys.toList()}',
+      );
     }
     var libraryNode = libraryContext.node;
     var hasName = libraryNode.name.isNotEmpty;
@@ -298,6 +365,7 @@ class _ElementRequest {
       reference,
       definingUnitContext.unit_withDeclarations,
     );
+    elementFactory._setLibraryTypeSystem(libraryElement);
 
     var units = <CompilationUnitElementImpl>[];
     var unitContainerRef = reference.getChild('@unit');
@@ -322,11 +390,6 @@ class _ElementRequest {
     libraryElement.definingCompilationUnit = units[0];
     libraryElement.parts = units.skip(1).toList();
     reference.element = libraryElement;
-
-    var typeProvider = elementFactory.analysisContext.typeProvider;
-    if (typeProvider != null) {
-      libraryElement.createLoadLibraryFunction(typeProvider);
-    }
 
     return libraryElement;
   }
@@ -370,8 +433,14 @@ class _ElementRequest {
     _indexUnitDeclarations(unitContext, unitRef, unitNode);
   }
 
-  MethodElementImpl _method(ClassElementImpl enclosing, Reference reference) {
-    enclosing.methods;
+  MethodElementImpl _method(ElementImpl enclosing, Reference reference) {
+    if (enclosing is ClassElementImpl) {
+      enclosing.methods;
+    } else if (enclosing is ExtensionElementImpl) {
+      enclosing.methods;
+    } else {
+      throw StateError('${enclosing.runtimeType}');
+    }
     // Requesting methods sets elements for all of them.
     assert(reference.element != null);
     return reference.element;

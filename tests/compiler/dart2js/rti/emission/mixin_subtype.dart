@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // Derived from language_2/mixin_declaration/mixin_declaration_subtype_test.
 
 import "package:expect/expect.dart";
@@ -71,13 +73,13 @@ class GI<T> {}
 /*class: GJ:checkedInstance,checks=[],typeArgument*/
 class GJ<T> {}
 
-/*class: GM:checkedInstance,checks=[$asGB,$asGI,$asGJ,$isGA,$isGB,$isGI,$isGJ],typeArgument*/
+/*class: GM:checkedInstance,checks=[$isGA,$isGB,$isGI,$isGJ],typeArgument*/
 mixin GM<T> on GA<T>, GB<List<T>> implements GI<Iterable<T>>, GJ<Set<T>> {}
 
-/*class: GC:checkedInstance,checks=[$asGB,$isGA,$isGB],typeArgument*/
+/*class: GC:checkedInstance,checks=[$isGA,$isGB],typeArgument*/
 class GC<T> implements GA<T>, GB<List<T>> {}
 
-/*class: GD:checkedInstance,checks=[$asGI,$asGJ,$isGI,$isGJ,$isGM],typeArgument*/
+/*class: GD:checkedInstance,checks=[$isGI,$isGJ,$isGM],typeArgument*/
 class GD<T> = GC<T> with GM<T>;
 
 @pragma('dart2js:noInline')

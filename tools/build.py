@@ -4,6 +4,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import io
+import json
 import multiprocessing
 import optparse
 import os
@@ -16,11 +18,7 @@ HOST_OS = utils.GuessOS()
 HOST_CPUS = utils.GuessCpus()
 SCRIPT_DIR = os.path.dirname(sys.argv[0])
 DART_ROOT = os.path.realpath(os.path.join(SCRIPT_DIR, '..'))
-AVAILABLE_ARCHS = [
-    'ia32', 'x64', 'simarm', 'arm', 'simarmv6', 'armv6', 'simarmv5te',
-    'armv5te', 'simarm64', 'arm64', 'simdbc', 'simdbc64', 'armsimdbc',
-    'armsimdbc64', 'simarm_x64'
-]
+AVAILABLE_ARCHS = utils.ARCH_FAMILY.keys()
 
 usage = """\
 usage: %%prog [options] [targets]
@@ -64,6 +62,19 @@ def BuildOptions():
         metavar='[all,host,android]',
         default='host')
     result.add_option(
+        "--sanitizer",
+        type=str,
+        help='Build variants (comma-separated).',
+        metavar='[all,none,asan,lsan,msan,tsan,ubsan]',
+        default='none')
+    # TODO(38701): Remove this and everything that references it once the
+    # forked NNBD SDK is merged back in.
+    result.add_option(
+        "--nnbd",
+        help='Use the NNBD fork of the SDK.',
+        default=False,
+        action='store_true')
+    result.add_option(
         "-v",
         "--verbose",
         help='Verbose output.',
@@ -80,20 +91,28 @@ def ProcessOsOption(os_name):
 
 def ProcessOptions(options, args):
     if options.arch == 'all':
-        options.arch = 'ia32,x64,simarm,simarm64,simdbc64'
+        options.arch = 'ia32,x64,simarm,simarm64'
     if options.mode == 'all':
         options.mode = 'debug,release,product'
     if options.os == 'all':
         options.os = 'host,android'
+    if options.sanitizer == 'all':
+        options.sanitizer = 'none,asan,lsan,msan,tsan,ubsan'
     options.mode = options.mode.split(',')
     options.arch = options.arch.split(',')
     options.os = options.os.split(',')
+    options.sanitizer = options.sanitizer.split(',')
     for mode in options.mode:
         if not mode in ['debug', 'release', 'product']:
             print("Unknown mode %s" % mode)
             return False
-    for arch in options.arch:
+    for i, arch in enumerate(options.arch):
         if not arch in AVAILABLE_ARCHS:
+            # Normalise to lower case form to make it less case-picky.
+            arch_lower = arch.lower()
+            if arch_lower in AVAILABLE_ARCHS:
+                options.arch[i] = arch_lower
+                continue
             print("Unknown arch %s" % arch)
             return False
     options.os = [ProcessOsOption(os_name) for os_name in options.os]
@@ -110,8 +129,7 @@ def ProcessOptions(options, args):
                       % (os_name, HOST_OS))
                 return False
             if not arch in [
-                    'ia32', 'x64', 'arm', 'armv6', 'armv5te', 'arm64', 'simdbc',
-                    'simdbc64'
+                    'ia32', 'x64', 'arm', 'arm_x64', 'armv6', 'arm64'
             ]:
                 print(
                     "Cross-compilation to %s is not supported for architecture %s."
@@ -200,13 +218,15 @@ def GenerateBuildfilesIfNeeded():
     return True
 
 
-def RunGNIfNeeded(out_dir, target_os, mode, arch):
+def RunGNIfNeeded(out_dir, target_os, mode, arch, use_nnbd, sanitizer):
     if os.path.isfile(os.path.join(out_dir, 'args.gn')):
         return
     gn_os = 'host' if target_os == HOST_OS else target_os
     gn_command = [
         'python',
         os.path.join(DART_ROOT, 'tools', 'gn.py'),
+        '--sanitizer',
+        sanitizer,
         '-m',
         mode,
         '-a',
@@ -215,6 +235,9 @@ def RunGNIfNeeded(out_dir, target_os, mode, arch):
         gn_os,
         '-v',
     ]
+    if use_nnbd:
+        gn_command.append('--nnbd')
+
     process = subprocess.Popen(gn_command)
     process.wait()
     if process.returncode != 0:
@@ -265,15 +288,16 @@ def EnsureGomaStarted(out_dir):
     goma_started = True
     return True
 
-
 # Returns a tuple (build_config, command to run, whether goma is used)
-def BuildOneConfig(options, targets, target_os, mode, arch):
-    build_config = utils.GetBuildConf(mode, arch, target_os)
-    out_dir = utils.GetBuildRoot(HOST_OS, mode, arch, target_os)
+def BuildOneConfig(options, targets, target_os, mode, arch, sanitizer):
+    build_config = utils.GetBuildConf(mode, arch, target_os, sanitizer,
+                                      options.nnbd)
+    out_dir = utils.GetBuildRoot(HOST_OS, mode, arch, target_os, sanitizer,
+                                 options.nnbd)
     using_goma = False
     # TODO(zra): Remove auto-run of gn, replace with prompt for user to run
     # gn.py manually.
-    RunGNIfNeeded(out_dir, target_os, mode, arch)
+    RunGNIfNeeded(out_dir, target_os, mode, arch, options.nnbd, sanitizer)
     command = ['ninja', '-C', out_dir]
     if options.verbose:
         command += ['-v']
@@ -290,10 +314,10 @@ def BuildOneConfig(options, targets, target_os, mode, arch):
     return (build_config, command, using_goma)
 
 
-def RunOneBuildCommand(build_config, args):
+def RunOneBuildCommand(build_config, args, env):
     start_time = time.time()
     print(' '.join(args))
-    process = subprocess.Popen(args, stdin=None)
+    process = subprocess.Popen(args, env=env, stdin=None)
     process.wait()
     if process.returncode != 0:
         NotifyBuildDone(build_config, success=False, start=start_time)
@@ -304,15 +328,31 @@ def RunOneBuildCommand(build_config, args):
     return 0
 
 
-def RunOneGomaBuildCommand(args):
+def RunOneGomaBuildCommand(options):
+    (env, args) = options
     try:
         print(' '.join(args))
-        process = subprocess.Popen(args, stdin=None)
+        process = subprocess.Popen(args, env=env, stdin=None)
         process.wait()
         print(' '.join(args) + " done.")
         return process.returncode
     except KeyboardInterrupt:
         return 1
+
+
+def SanitizerEnvironmentVariables():
+    with io.open('tools/bots/test_matrix.json', encoding='utf-8') as fd:
+        config = json.loads(fd.read())
+        env = dict()
+        for k, v in config['sanitizer_options'].items():
+            env[str(k)] = str(v)
+        symbolizer_path = config['sanitizer_symbolizer'].get(HOST_OS, None)
+        if symbolizer_path:
+            symbolizer_path = str(os.path.join(DART_ROOT, symbolizer_path))
+            env['ASAN_SYMBOLIZER_PATH'] = symbolizer_path
+            env['MSAN_SYMBOLIZER_PATH'] = symbolizer_path
+            env['TSAN_SYMBOLIZER_PATH'] = symbolizer_path
+        return env
 
 
 def Main():
@@ -332,13 +372,21 @@ def Main():
     if not GenerateBuildfilesIfNeeded():
         return 1
 
+    # If binaries are built with sanitizers we should use those flags.
+    # If the binaries are not built with sanitizers the flag should have no
+    # effect.
+    env = dict(os.environ)
+    env.update(SanitizerEnvironmentVariables())
+
     # Build all targets for each requested configuration.
     configs = []
     for target_os in options.os:
         for mode in options.mode:
             for arch in options.arch:
-                configs.append(
-                    BuildOneConfig(options, targets, target_os, mode, arch))
+                for sanitizer in options.sanitizer:
+                    configs.append(
+                        BuildOneConfig(options, targets, target_os, mode, arch,
+                                       sanitizer))
 
     # Build regular configs.
     goma_builds = []
@@ -346,8 +394,8 @@ def Main():
         if args is None:
             return 1
         if goma:
-            goma_builds.append(args)
-        elif RunOneBuildCommand(build_config, args) != 0:
+            goma_builds.append([env, args])
+        elif RunOneBuildCommand(build_config, args, env=env) != 0:
             return 1
 
     # Run goma builds in parallel.

@@ -34,8 +34,8 @@ class LocalsHandler {
   Map<Local, FieldEntity> redirectionMapping = new Map<Local, FieldEntity>();
   final KernelSsaGraphBuilder builder;
   ScopeInfo scopeInfo;
-  Map<TypeVariableType, TypeVariableLocal> typeVariableLocals =
-      new Map<TypeVariableType, TypeVariableLocal>();
+  Map<TypeVariableEntity, TypeVariableLocal> typeVariableLocals =
+      new Map<TypeVariableEntity, TypeVariableLocal>();
   final Entity executableContext;
   final MemberEntity memberContext;
 
@@ -408,9 +408,8 @@ class LocalsHandler {
   }
 
   Local getTypeVariableAsLocal(TypeVariableType type) {
-    return typeVariableLocals.putIfAbsent(type, () {
-      return new TypeVariableLocal(type);
-    });
+    return typeVariableLocals[type.element] ??=
+        new TypeVariableLocal(type.element);
   }
 
   /// Sets the [element] to [value]. If the element is boxed or stored in a

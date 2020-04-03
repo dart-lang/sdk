@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
@@ -26,7 +27,7 @@ class ExtensionOverrideTest extends DriverResolutionTest {
 
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
+    ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
 
   void findDeclarationAndOverride(
@@ -133,7 +134,7 @@ void f(A a) {
     validatePropertyAccess();
   }
 
-  test_getter_noPrefix_noTypeArguments_methodInvocation() async {
+  test_getter_noPrefix_noTypeArguments_functionExpressionInvocation() async {
     await assertNoErrorsInCode('''
 class A {}
 
@@ -148,13 +149,14 @@ void f(A a) {
     findDeclarationAndOverride(declarationName: 'E ', overrideSearch: 'E(a)');
     validateOverride();
 
-    var invocation = findNode.methodInvocation('g(0);');
-    assertMethodInvocation(
-      invocation,
-      findElement.getter('g'),
-      'double Function(int)',
-      expectedMethodNameType: 'double Function(int) Function()',
-    );
+    var invocation = findNode.functionExpressionInvocation('g(0)');
+    assertElementNull(invocation);
+    assertInvokeType(invocation, 'double Function(int)');
+    assertType(invocation, 'double');
+
+    var function = invocation.function as PropertyAccess;
+    assertElement(function.propertyName, findElement.getter('g', of: 'E'));
+    assertType(function.propertyName, 'double Function(int)');
   }
 
   test_getter_noPrefix_typeArguments() async {
@@ -314,6 +316,23 @@ void f(A a) {
     findDeclarationAndOverride(declarationName: 'E', overrideSearch: 'E<int>');
     validateOverride(typeArguments: [intType]);
     validateBinaryExpression();
+  }
+
+  test_operator_onTearoff() async {
+    // https://github.com/dart-lang/sdk/issues/38653
+    await assertErrorsInCode('''
+f(){
+  E(null).v++;
+}
+extension E on Object{
+  v() {}
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER, 15, 1),
+    ]);
+    findDeclarationAndOverride(
+        declarationName: 'E ', overrideSearch: 'E(null)');
+    validateOverride();
   }
 
   test_operator_prefix_noTypeArguments() async {
@@ -556,6 +575,10 @@ f(C c) => E(c).a;
 
   void validateOverride({List<DartType> typeArguments}) {
     expect(extensionOverride.extensionName.staticElement, extension);
+
+    expect(extensionOverride.staticType, isNull);
+    expect(extensionOverride.extensionName.staticType, isNull);
+
     if (typeArguments == null) {
       expect(extensionOverride.typeArguments, isNull);
     } else {

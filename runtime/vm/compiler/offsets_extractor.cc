@@ -24,10 +24,6 @@
 #define ARCH_DEF "defined(TARGET_ARCH_IA32)"
 #elif defined(TARGET_ARCH_ARM64)
 #define ARCH_DEF "defined(TARGET_ARCH_ARM64)"
-#elif defined(TARGET_ARCH_DBC) && defined(TARGET_ARCH_IS_32_BIT)
-#define ARCH_DEF "defined(TARGET_ARCH_DBC) && defined(TARGET_ARCH_IS_32_BIT)"
-#elif defined(TARGET_ARCH_DBC) && defined(TARGET_ARCH_IS_64_BIT)
-#define ARCH_DEF "defined(TARGET_ARCH_DBC) && defined(TARGET_ARCH_IS_64_BIT)"
 #else
 #error Unknown architecture
 #endif
@@ -41,6 +37,53 @@ void Assert::Fail(const char* format, ...) {
 class OffsetsExtractor : public AllStatic {
  public:
   static void DumpOffsets() {
+#if defined(DART_PRECOMPILED_RUNTIME)
+
+#define PRINT_FIELD_OFFSET(Class, Name)                                        \
+  std::cout << "static constexpr dart::compiler::target::word AOT_" #Class     \
+               "_" #Name " = "                                                 \
+            << Class::Name() << ";\n";
+
+#define PRINT_ARRAY_LAYOUT(Class, Name)                                        \
+  std::cout << "static constexpr dart::compiler::target::word AOT_" #Class     \
+               "_elements_start_offset = "                                     \
+            << Class::ArrayLayout::elements_start_offset() << ";\n";           \
+  std::cout << "static constexpr dart::compiler::target::word AOT_" #Class     \
+               "_element_size = "                                              \
+            << Class::ArrayLayout::kElementSize << ";\n";
+
+#define PRINT_ARRAY_STRUCTFIELD_OFFSET(Class, Name, ElementOffsetName,         \
+                                       FieldOffset)
+
+#define PRINT_SIZEOF(Class, Name, What)                                        \
+  std::cout << "static constexpr dart::compiler::target::word AOT_" #Class     \
+               "_" #Name " = "                                                 \
+            << sizeof(What) << ";\n";
+
+#define PRINT_RANGE(Class, Name, Type, First, Last, Filter)                    \
+  {                                                                            \
+    auto filter = Filter;                                                      \
+    bool comma = false;                                                        \
+    std::cout << "static constexpr dart::compiler::target::word AOT_" #Class   \
+                 "_" #Name "[] = {";                                           \
+    for (intptr_t i = static_cast<intptr_t>(First);                            \
+         i <= static_cast<intptr_t>(Last); i++) {                              \
+      auto v = static_cast<Type>(i);                                           \
+      std::cout << (comma ? ", " : "") << (filter(v) ? Class::Name(v) : -1);   \
+      comma = true;                                                            \
+    }                                                                          \
+    std::cout << "};\n";                                                       \
+  }
+
+#define PRINT_CONSTANT(Class, Name)                                            \
+  std::cout << "static constexpr dart::compiler::target::word AOT_" #Class     \
+               "_" #Name " = "                                                 \
+            << Class::Name << ";\n";
+
+#define PRECOMP_NO_CHECK(Code)
+
+#else  // defined(DART_PRECOMPILED_RUNTIME)
+
 #define PRINT_FIELD_OFFSET(Class, Name)                                        \
   std::cout << "static constexpr dart::compiler::target::word " #Class         \
                "_" #Name " = "                                                 \
@@ -84,6 +127,8 @@ class OffsetsExtractor : public AllStatic {
 
 #define PRECOMP_NO_CHECK(Code) Code
 
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
     OFFSETS_LIST(PRINT_FIELD_OFFSET, PRINT_ARRAY_LAYOUT,
                  PRINT_ARRAY_STRUCTFIELD_OFFSET, PRINT_SIZEOF, PRINT_RANGE,
                  PRINT_CONSTANT, PRECOMP_NO_CHECK)
@@ -102,7 +147,9 @@ class OffsetsExtractor : public AllStatic {
 
 int main(int argc, char* argv[]) {
   std::cout << "#if " << ARCH_DEF << std::endl;
+#if !defined(TARGET_ARCH_IA32) || !defined(DART_PRECOMPILED_RUNTIME)
   dart::OffsetsExtractor::DumpOffsets();
+#endif
   std::cout << "#endif  // " << ARCH_DEF << std::endl;
   return 0;
 }

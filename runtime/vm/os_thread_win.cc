@@ -366,7 +366,7 @@ void ThreadLocalData::AddThreadLocal(ThreadLocalKey key,
     // We only care about thread locals with destructors.
     return;
   }
-  MutexLocker ml(mutex_, false);
+  MutexLocker ml(mutex_);
 #if defined(DEBUG)
   // Verify that we aren't added twice.
   for (intptr_t i = 0; i < thread_locals_->length(); i++) {
@@ -380,7 +380,7 @@ void ThreadLocalData::AddThreadLocal(ThreadLocalKey key,
 
 void ThreadLocalData::RemoveThreadLocal(ThreadLocalKey key) {
   ASSERT(thread_locals_ != NULL);
-  MutexLocker ml(mutex_, false);
+  MutexLocker ml(mutex_);
   intptr_t i = 0;
   for (; i < thread_locals_->length(); i++) {
     const ThreadLocalEntry& entry = thread_locals_->At(i);
@@ -405,7 +405,7 @@ void ThreadLocalData::RunDestructors() {
     return;
   }
   ASSERT(mutex_ != NULL);
-  MutexLocker ml(mutex_, false);
+  MutexLocker ml(mutex_);
   for (intptr_t i = 0; i < thread_locals_->length(); i++) {
     const ThreadLocalEntry& entry = thread_locals_->At(i);
     // We access the exiting thread's TLS variable here.

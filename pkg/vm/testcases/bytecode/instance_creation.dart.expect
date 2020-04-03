@@ -80,8 +80,8 @@ Function 'foo3', static, reflectable, debuggable
 
 Bytecode {
   Entry                2
-  CheckStack           0
   CheckFunctionTypeArgs 1, r0
+  CheckStack           0
   PushNull
   Push                 r0
   InstantiateTypeArgumentsTOS 0, CP#1
@@ -217,10 +217,10 @@ Class 'Base', script = '#lib'
     type-params <dart:core::Object T1, dart:core::Object T2> (args: 2)
     extends dart:core::Object
 
-Field 't1', type = #lib::Base::TypeParam/0, getter = 'get:t1', setter = 'set:t1', reflectable
+Field 't1', type = #lib::Base::TypeParam/0, getter = 'get:t1', setter = 'set:t1', reflectable, has-initializer
     value = null
 
-Field 't2', type = #lib::Base::TypeParam/1, getter = 'get:t2', setter = 'set:t2', reflectable
+Field 't2', type = #lib::Base::TypeParam/1, getter = 'get:t2', setter = 'set:t2', reflectable, has-initializer
     value = null
 
 Function '', constructor, reflectable, debuggable

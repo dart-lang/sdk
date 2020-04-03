@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_HASH_H_
 #define RUNTIME_VM_HASH_H_
 
+#include "platform/globals.h"
+
 namespace dart {
 
 inline uint32_t CombineHashes(uint32_t hash, uint32_t other_hash) {

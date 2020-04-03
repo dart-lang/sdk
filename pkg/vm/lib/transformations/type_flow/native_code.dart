@@ -55,15 +55,16 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
 
   @override
   visitClass(Class klass) {
-    if (!klass.isAbstract) {
-      var type = _annotationsDefineRoot(klass.annotations);
-      if (type != null) {
-        if (type != PragmaEntryPointType.Default) {
-          throw "Error: pragma entry-point definition on a class must evaluate "
-              "to null, true or false. See entry_points_pragma.md.";
-        }
+    final type = _annotationsDefineRoot(klass.annotations);
+    if (type != null) {
+      if (type != PragmaEntryPointType.Default) {
+        throw "Error: pragma entry-point definition on a class must evaluate "
+            "to null, true or false. See entry_points_pragma.md.";
+      }
+      if (!klass.isAbstract) {
         entryPoints.addAllocatedClass(klass);
       }
+      nativeCodeOracle.addClassReferencedFromNativeCode(klass);
     }
     currentClass = klass;
     klass.visitChildren(this);
@@ -72,42 +73,42 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
   @override
   visitProcedure(Procedure proc) {
     var type = _annotationsDefineRoot(proc.annotations);
-    if (type != null) {
-      void addSelector(CallKind ck) {
-        entryPoints.addRawCall(proc.isInstanceMember
-            ? new InterfaceSelector(proc, callKind: ck)
-            : new DirectSelector(proc, callKind: ck));
-      }
+    if (type == null) return;
 
-      final defaultCallKind = proc.isGetter
-          ? CallKind.PropertyGet
-          : (proc.isSetter ? CallKind.PropertySet : CallKind.Method);
-
-      switch (type) {
-        case PragmaEntryPointType.CallOnly:
-          addSelector(defaultCallKind);
-          break;
-        case PragmaEntryPointType.SetterOnly:
-          if (!proc.isSetter) {
-            throw "Error: cannot generate a setter for a method or getter ($proc).";
-          }
-          addSelector(CallKind.PropertySet);
-          break;
-        case PragmaEntryPointType.GetterOnly:
-          if (proc.isSetter) {
-            throw "Error: cannot closurize a setter ($proc).";
-          }
-          addSelector(CallKind.PropertyGet);
-          break;
-        case PragmaEntryPointType.Default:
-          addSelector(defaultCallKind);
-          if (!proc.isSetter && !proc.isGetter) {
-            addSelector(CallKind.PropertyGet);
-          }
-      }
-
-      nativeCodeOracle.setMemberReferencedFromNativeCode(proc);
+    void addSelector(CallKind ck) {
+      entryPoints.addRawCall(proc.isInstanceMember
+          ? new InterfaceSelector(proc, callKind: ck)
+          : new DirectSelector(proc, callKind: ck));
     }
+
+    final defaultCallKind = proc.isGetter
+        ? CallKind.PropertyGet
+        : (proc.isSetter ? CallKind.PropertySet : CallKind.Method);
+
+    switch (type) {
+      case PragmaEntryPointType.CallOnly:
+        addSelector(defaultCallKind);
+        break;
+      case PragmaEntryPointType.SetterOnly:
+        if (!proc.isSetter) {
+          throw "Error: cannot generate a setter for a method or getter ($proc).";
+        }
+        addSelector(CallKind.PropertySet);
+        break;
+      case PragmaEntryPointType.GetterOnly:
+        if (proc.isSetter) {
+          throw "Error: cannot closurize a setter ($proc).";
+        }
+        addSelector(CallKind.PropertyGet);
+        break;
+      case PragmaEntryPointType.Default:
+        addSelector(defaultCallKind);
+        if (!proc.isSetter && !proc.isGetter) {
+          addSelector(CallKind.PropertyGet);
+        }
+    }
+
+    nativeCodeOracle.setMemberReferencedFromNativeCode(proc);
   }
 
   @override
@@ -167,11 +168,19 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
 class NativeCodeOracle {
   final LibraryIndex _libraryIndex;
   final Set<Member> _membersReferencedFromNativeCode = new Set<Member>();
+  final Set<Class> _classesReferencedFromNativeCode = new Set<Class>();
   final PragmaAnnotationParser _matcher;
 
   NativeCodeOracle(this._libraryIndex, this._matcher) {
     assertx(_matcher != null);
   }
+
+  void addClassReferencedFromNativeCode(Class klass) {
+    _classesReferencedFromNativeCode.add(klass);
+  }
+
+  bool isClassReferencedFromNativeCode(Class klass) =>
+      _classesReferencedFromNativeCode.contains(klass);
 
   void setMemberReferencedFromNativeCode(Member member) {
     _membersReferencedFromNativeCode.add(member);
@@ -182,9 +191,12 @@ class NativeCodeOracle {
 
   /// Simulate the execution of a native method by adding its entry points
   /// using [entryPointsListener]. Returns result type of the native method.
-  Type handleNativeProcedure(
-      Member member, EntryPointsListener entryPointsListener) {
-    Type returnType = null;
+  TypeExpr handleNativeProcedure(
+      Member member,
+      EntryPointsListener entryPointsListener,
+      TypesBuilder typesBuilder,
+      RuntimeTypeTranslator translator) {
+    TypeExpr returnType = null;
     bool nullable = null;
 
     for (var annotation in member.annotations) {
@@ -205,6 +217,14 @@ class NativeCodeOracle {
         var type = pragma.type;
         if (type is InterfaceType) {
           returnType = entryPointsListener.addAllocatedClass(type.classNode);
+          if (pragma.resultTypeUsesPassedTypeArguments) {
+            returnType = translator.instantiateConcreteType(
+                returnType,
+                member.function.typeParameters
+                    .map((t) => TypeParameterType(
+                        t, TypeParameterType.computeNullabilityFromBound(t)))
+                    .toList());
+          }
           continue;
         }
         throw "ERROR: Invalid return type for native method: ${pragma.type}";
@@ -234,8 +254,8 @@ class NativeCodeOracle {
     if (returnType != null) {
       return returnType;
     } else {
-      final coneType = new Type.cone(member.function.returnType);
-      return nullable == false ? coneType : new Type.nullable(coneType);
+      return typesBuilder.fromStaticType(
+          member.function.returnType, nullable ?? true);
     }
   }
 }

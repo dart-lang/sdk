@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
+// @dart = 2.7
 
-// SharedOptions=--enable-experiment=constant-update-2018
+import "package:expect/expect.dart";
 
 void main() {
   const BitNot(42, 4294967253).check();
@@ -389,6 +389,7 @@ void main() {
   const TruncatingDivide(-9007199254740991, 0.5, -18014398509481982).check();
   const TruncatingDivide(-9007199254740991, -0.5, 18014398509481982).check();
   const TruncatingDivide(0x8000000000000000, -1, -0x8000000000000000).check();
+  const TruncatingDivide(0x6000000000000000, 0.5, 0xC000000000000000).check();
   const TruncatingDivide(2.71828, 3.14159, 0).check();
   const TruncatingDivide(2.71828, 1, 2).check();
   const TruncatingDivide(2.71828, -1, -2).check();

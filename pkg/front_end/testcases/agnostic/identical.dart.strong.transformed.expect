@@ -1,0 +1,26 @@
+//
+// Problems in component:
+//
+// pkg/front_end/testcases/agnostic/identical.dart:7:11: Error: Constant evaluation error:
+// const c = identical(a, b);
+//           ^
+// pkg/front_end/testcases/agnostic/identical.dart:7:11: Context: Constant value is not strong/weak mode agnostic.
+// const c = identical(a, b);
+//           ^
+// pkg/front_end/testcases/agnostic/identical.dart:7:7: Context: While analyzing:
+// const c = identical(a, b);
+//       ^
+//
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static const field core::List<core::int> a = #C1;
+static const field core::List<core::int?> b = #C2;
+static const field core::bool c = invalid-expression "Constant value is not strong/weak mode agnostic.";
+static method main() → dynamic {}
+
+constants  {
+  #C1 = <core::int>[]
+  #C2 = <core::int?>[]
+}

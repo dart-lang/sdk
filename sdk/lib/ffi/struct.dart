@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.ffi;
 
 /// This class is extended to define structs.
@@ -15,12 +17,22 @@ part of dart.ffi;
 /// "@Int32()" for "int").
 ///
 /// Instances of a subclass of [Struct] have reference semantics and are backed
-/// by native memory. The may allocated via [Pointer.allocate] or loaded from a
+/// by native memory. The may allocated via allocation or loaded from a
 /// [Pointer], but not by a generative constructor.
-abstract class Struct<S extends NativeType> extends NativeType {
-  /// Returns the address backing the reference.
-  final Pointer<S> addressOf;
+abstract class Struct extends NativeType {
+  final Pointer<Struct> _addressOf;
 
-  Struct() : addressOf = null;
-  Struct.fromPointer(this.addressOf);
+  /// Construct a reference to the [nullptr].
+  ///
+  /// Use [StructPointer]'s `.ref` to gain references to native memory backed
+  /// structs.
+  Struct() : _addressOf = nullptr;
+
+  Struct._fromPointer(this._addressOf);
+}
+
+/// Extension on [Struct] specialized for it's subtypes.
+extension StructAddressOf<T extends Struct> on T {
+  /// Returns the address backing the reference.
+  Pointer<T> get addressOf => _addressOf as Pointer<T>;
 }

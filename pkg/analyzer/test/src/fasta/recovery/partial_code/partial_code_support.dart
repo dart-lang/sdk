@@ -11,7 +11,8 @@ import 'package:test/test.dart';
 import '../../../../generated/test_support.dart';
 import '../recovery_test_support.dart';
 
-typedef CompilationUnit AdjustValidUnitBeforeComparison(CompilationUnit unit);
+typedef AdjustValidUnitBeforeComparison = CompilationUnit Function(
+    CompilationUnit unit);
 
 /**
  * A base class that adds support for tests that test how well the parser
@@ -31,14 +32,14 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
    * A list of suffixes that can be used by tests of class members.
    */
   static final List<TestSuffix> classMemberSuffixes = <TestSuffix>[
-    new TestSuffix('annotation', '@annotation var f;'),
-    new TestSuffix('field', 'var f;'),
-    new TestSuffix('fieldConst', 'const f = 0;'),
-    new TestSuffix('fieldFinal', 'final f = 0;'),
-    new TestSuffix('methodNonVoid', 'int a(b) => 0;'),
-    new TestSuffix('methodVoid', 'void a(b) {}'),
-    new TestSuffix('getter', 'int get a => 0;'),
-    new TestSuffix('setter', 'set a(b) {}')
+    TestSuffix('annotation', '@annotation var f;'),
+    TestSuffix('field', 'var f;'),
+    TestSuffix('fieldConst', 'const f = 0;'),
+    TestSuffix('fieldFinal', 'final f = 0;'),
+    TestSuffix('methodNonVoid', 'int a(b) => 0;'),
+    TestSuffix('methodVoid', 'void a(b) {}'),
+    TestSuffix('getter', 'int get a => 0;'),
+    TestSuffix('setter', 'set a(b) {}')
   ];
 
   /**
@@ -46,18 +47,18 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
    * can validly be followed by any declaration.
    */
   static final List<TestSuffix> declarationSuffixes = <TestSuffix>[
-    new TestSuffix('class', 'class A {}'),
-    new TestSuffix('enum', 'enum E { v }'),
+    TestSuffix('class', 'class A {}'),
+    TestSuffix('enum', 'enum E { v }'),
 //    new TestSuffix('extension', 'extension E on A {}'),
-    new TestSuffix('mixin', 'mixin M {}'),
-    new TestSuffix('typedef', 'typedef A = B Function(C, D);'),
-    new TestSuffix('functionVoid', 'void f() {}'),
-    new TestSuffix('functionNonVoid', 'int f() {}'),
-    new TestSuffix('var', 'var a;'),
-    new TestSuffix('const', 'const a = 0;'),
-    new TestSuffix('final', 'final a = 0;'),
-    new TestSuffix('getter', 'int get a => 0;'),
-    new TestSuffix('setter', 'set a(b) {}')
+    TestSuffix('mixin', 'mixin M {}'),
+    TestSuffix('typedef', 'typedef A = B Function(C, D);'),
+    TestSuffix('functionVoid', 'void f() {}'),
+    TestSuffix('functionNonVoid', 'int f() {}'),
+    TestSuffix('var', 'var a;'),
+    TestSuffix('const', 'const a = 0;'),
+    TestSuffix('final', 'final a = 0;'),
+    TestSuffix('getter', 'int get a => 0;'),
+    TestSuffix('setter', 'set a(b) {}')
   ];
 
   /**
@@ -65,8 +66,9 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
    * can validly be followed by anything that is valid after a part directive.
    */
   static final List<TestSuffix> postPartSuffixes = <TestSuffix>[
-    new TestSuffix('part', "part 'a.dart';")
-  ]..addAll(declarationSuffixes);
+    TestSuffix('part', "part 'a.dart';"),
+    ...declarationSuffixes
+  ];
 
   /**
    * A list of suffixes that can be used by tests of top-level constructs that
@@ -74,29 +76,30 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
    * library directive.
    */
   static final List<TestSuffix> prePartSuffixes = <TestSuffix>[
-    new TestSuffix('import', "import 'a.dart';"),
-    new TestSuffix('export', "export 'a.dart';")
-  ]..addAll(postPartSuffixes);
+    TestSuffix('import', "import 'a.dart';"),
+    TestSuffix('export', "export 'a.dart';"),
+    ...postPartSuffixes
+  ];
 
   /**
    * A list of suffixes that can be used by tests of statements.
    */
   static final List<TestSuffix> statementSuffixes = <TestSuffix>[
-    new TestSuffix('assert', "assert (true);"),
-    new TestSuffix('block', "{}"),
-    new TestSuffix('break', "break;"),
-    new TestSuffix('continue', "continue;"),
-    new TestSuffix('do', "do {} while (true);"),
-    new TestSuffix('if', "if (true) {}"),
-    new TestSuffix('for', "for (var x in y) {}"),
-    new TestSuffix('labeled', "l: {}"),
-    new TestSuffix('localFunctionNonVoid', "int f() {}"),
-    new TestSuffix('localFunctionVoid', "void f() {}"),
-    new TestSuffix('localVariable', "var x;"),
-    new TestSuffix('switch', "switch (x) {}"),
-    new TestSuffix('try', "try {} finally {}"),
-    new TestSuffix('return', "return;"),
-    new TestSuffix('while', "while (true) {}"),
+    TestSuffix('assert', "assert (true);"),
+    TestSuffix('block', "{}"),
+    TestSuffix('break', "break;"),
+    TestSuffix('continue', "continue;"),
+    TestSuffix('do', "do {} while (true);"),
+    TestSuffix('if', "if (true) {}"),
+    TestSuffix('for', "for (var x in y) {}"),
+    TestSuffix('labeled', "l: {}"),
+    TestSuffix('localFunctionNonVoid', "int f() {}"),
+    TestSuffix('localFunctionVoid', "void f() {}"),
+    TestSuffix('localVariable', "var x;"),
+    TestSuffix('switch', "switch (x) {}"),
+    TestSuffix('try', "try {} finally {}"),
+    TestSuffix('return', "return;"),
+    TestSuffix('while', "while (true) {}"),
   ];
 
   /**
@@ -111,7 +114,7 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
       List<TestSuffix> suffixes,
       {FeatureSet featureSet,
       String head,
-      bool includeEof: true,
+      bool includeEof = true,
       String tail}) {
     group(groupName, () {
       for (TestDescriptor descriptor in descriptors) {
@@ -127,7 +130,7 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
         }
         if (descriptor.failing != null) {
           test('${descriptor.name}_failingList', () {
-            Set<String> failing = new Set.from(descriptor.failing);
+            Set<String> failing = Set.from(descriptor.failing);
             if (includeEof) {
               failing.remove('eof');
             }
@@ -151,9 +154,9 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
       //
       // Compose the invalid and valid pieces of code.
       //
-      StringBuffer invalid = new StringBuffer();
-      StringBuffer valid = new StringBuffer();
-      StringBuffer base = new StringBuffer();
+      StringBuffer invalid = StringBuffer();
+      StringBuffer valid = StringBuffer();
+      StringBuffer base = StringBuffer();
       if (head != null) {
         invalid.write(head);
         valid.write(head);
@@ -179,7 +182,7 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
       // invalid code.
       //
       GatheringErrorListener listener =
-          new GatheringErrorListener(checkRanges: true);
+          GatheringErrorListener(checkRanges: true);
       parseCompilationUnit2(base.toString(), listener, featureSet: featureSet);
       var baseErrorCodes = <ErrorCode>[];
       listener.errors.forEach((AnalysisError error) {
@@ -284,7 +287,7 @@ class TestDescriptor {
    * Initialize a newly created test descriptor.
    */
   TestDescriptor(this.name, this.invalid, this.errorCodes, this.valid,
-      {this.allFailing: false,
+      {this.allFailing = false,
       this.failing,
       this.expectedErrorsInValidCode,
       this.adjustValidUnitBeforeComparison});
@@ -294,7 +297,7 @@ class TestDescriptor {
  * A description of a set of suffixes that are to be used to construct tests.
  */
 class TestSuffix {
-  static final TestSuffix eof = new TestSuffix('eof', '');
+  static final TestSuffix eof = TestSuffix('eof', '');
 
   /**
    * The name of the suffix.

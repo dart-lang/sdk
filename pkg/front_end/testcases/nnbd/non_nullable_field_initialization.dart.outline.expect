@@ -1,0 +1,98 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/non_nullable_field_initialization.dart:7:5: Error: Field 'topLevelField' should be initialized because its type 'int' doesn't allow null.
+// int topLevelField; // Error.
+//     ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/non_nullable_field_initialization.dart:10:14: Error: Field 'staticFieldOfA' should be initialized because its type 'int' doesn't allow null.
+//   static int staticFieldOfA; // Error.
+//              ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/non_nullable_field_initialization.dart:24:14: Error: Field 'staticFieldOfM' should be initialized because its type 'int' doesn't allow null.
+//   static int staticFieldOfM; // Error.
+//              ^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  synthetic constructor •() → self::Foo
+    ;
+}
+class A extends core::Object {
+  static field core::int staticFieldOfA;
+  field core::int fieldOfA;
+  constructor foo() → self::A
+    ;
+  constructor bar(core::int fieldOfA) → self::A
+    ;
+}
+class B<X extends core::Object? = core::Object?, Y extends core::Object = core::Object> extends core::Object {
+  generic-covariant-impl field self::B::X% fieldOfB;
+  generic-covariant-impl field self::B::Y fieldOfB2;
+  constructor foo() → self::B<self::B::X%, self::B::Y>
+    ;
+  constructor bar(self::B::X% fieldOfB, self::B::Y fieldOfB2) → self::B<self::B::X%, self::B::Y>
+    ;
+}
+abstract class M extends core::Object /*isMixinDeclaration*/  {
+  static field core::int staticFieldOfM;
+  field core::int fieldOfM;
+}
+abstract class N<X extends core::Object? = core::Object?, Y extends core::Object = core::Object> extends core::Object /*isMixinDeclaration*/  {
+  generic-covariant-impl field self::N::X% fieldOfN;
+  generic-covariant-impl field self::N::Y fieldOfN2;
+}
+class C<X extends core::Object? = core::Object?, Y extends core::Object = core::Object> extends core::Object {
+  static field core::int? staticFieldOfX;
+  static field core::int staticFieldOfXInitialized;
+  generic-covariant-impl field self::C::X? fieldOfX;
+  field core::int? fieldOfX2;
+  field dynamic fieldOfX3;
+  field core::Null? fieldOfX4;
+  field () →? core::int fieldOfX5;
+  generic-covariant-impl field self::C::Y? fieldOfX6;
+  late static field core::int lateStaticFieldOfC;
+  late field core::int fieldOfC7;
+  late generic-covariant-impl field self::C::X% fieldOfC8;
+  late generic-covariant-impl field self::C::Y fieldOfC9;
+  field core::int fieldOfC10;
+  constructor foo(core::int fieldOfC10) → self::C<self::C::X%, self::C::Y>
+    ;
+  constructor bar(core::int fieldOfC10) → self::C<self::C::X%, self::C::Y>
+    ;
+}
+abstract class L<X extends core::Object? = core::Object?, Y extends core::Object = core::Object> extends core::Object /*isMixinDeclaration*/  {
+  static field core::int? staticFieldOfL;
+  static field core::int staticFieldOfLInitialized;
+  generic-covariant-impl field self::L::X? fieldOfL;
+  field core::int? fieldOfL2;
+  field dynamic fieldOfL3;
+  field core::Null? fieldOfL4;
+  field () →? core::int fieldOfL5;
+  generic-covariant-impl field self::L::Y? fieldOfL6;
+  late static field core::int lateStaticFieldOfM;
+  late field core::int fieldOfM7;
+  late generic-covariant-impl field self::L::X% fieldOfM8;
+  late generic-covariant-impl field self::L::Y fieldOfM9;
+}
+extension P on self::Foo {
+  static field staticFieldOfE = self::P|staticFieldOfE;
+}
+extension Q on self::Foo {
+  static field staticFieldOfQ = self::Q|staticFieldOfQ;
+  static field lateStaticFieldOfQ = self::Q|lateStaticFieldOfQ;
+  static field staticFieldOfQInitialized = self::Q|staticFieldOfQInitialized;
+}
+static field core::int topLevelField;
+static field core::int P|staticFieldOfE;
+static field core::int? nullableTopLevelField;
+late static field core::int lateTopLevelField;
+static field core::int topLevelFieldWithInitializer;
+static field core::int? Q|staticFieldOfQ;
+late static field core::int Q|lateStaticFieldOfQ;
+static field core::int Q|staticFieldOfQInitialized;
+static method main() → dynamic
+  ;

@@ -8,7 +8,7 @@ import "package:analyzer/src/generated/java_io.dart";
 
 class FileUtilities2 {
   static JavaFile createFile(String path) {
-    return new JavaFile(path).getAbsoluteFile();
+    return JavaFile(path).getAbsoluteFile();
   }
 }
 

@@ -5,7 +5,6 @@
 field_script_test: Pass, RuntimeError
 get_allocation_samples_test: Pass, RuntimeError # Inconsistent stack trace
 get_isolate_rpc_test: Pass, RuntimeError # Issue 29324
-get_retained_size_rpc_test: Pass, RuntimeError # Issue 28193
 isolate_lifecycle_test: Pass, RuntimeError # Issue 24174
 pause_on_exceptions_test: Pass, RuntimeError # Issue 33049
 pause_on_start_and_exit_with_child_test: Pass, RuntimeError # Issue 33049
@@ -15,15 +14,15 @@ valid_source_locations_test: Pass, Slow # Generally slow, even in release-x64.
 [ $arch == arm ]
 process_service_test: Pass, Fail # Issue 24344
 
+# Test uses service API and relies on correct class names
+[ $builder_tag == obfuscated ]
+dominator_tree_vm_test: SkipByDesign
+dominator_tree_vm_with_double_field_test: SkipByDesign
+
 # Tests with known analyzer issues
 [ $compiler == dart2analyzer ]
 developer_extension_test: SkipByDesign
 get_isolate_after_language_error_test: SkipByDesign
-
-# Kernel version of tests
-[ $compiler != dartk ]
-add_breakpoint_rpc_kernel_test: SkipByDesign # kernel specific version of add_breakpoint_rpc_test
-evaluate_function_type_parameters_test: SkipByDesign # only supported in kernel
 
 # Service protocol is not supported in product mode.
 [ $mode == product ]
@@ -34,12 +33,12 @@ async_generator_breakpoint_test: Skip # Issue 29145
 dev_fs_http_put_weird_char_test: Skip # Windows disallows carriage returns in paths
 dev_fs_weird_char_test: Skip # Windows disallows question mark in paths
 
-[ $compiler == none && $runtime == vm && $system == fuchsia ]
-*: Skip # Not yet triaged.
-
-[ $compiler == none && ($runtime == dart_precompiled || $runtime == vm) ]
+[ $compiler == none && $runtime == vm ]
 evaluate_activation_test/instance: RuntimeError # http://dartbug.com/20047
 evaluate_activation_test/scope: RuntimeError # http://dartbug.com/20047
+
+[ $compiler == none && $runtime == vm && $system == fuchsia ]
+*: Skip # Not yet triaged.
 
 [ $mode == debug && $system == windows && $checked ]
 async_scope_test: Pass, Slow
@@ -47,30 +46,9 @@ async_scope_test: Pass, Slow
 [ $mode == debug && ($arch == simarm || $arch == simarm64) ]
 *: SkipSlow
 
-[ !$preview_dart_2 && ($runtime == dart_precompiled || $runtime == vm) ]
-*: SkipByDesign # Deprecating all Dart1 modes of execution
-
-[ !$strong && ($compiler == dartk || $compiler == dartkp) ]
-*: Skip
-
 # These tests are slow on simulators.
 [ $arch == simarm || $arch == simarm64 ]
 *: Pass, Slow
-
-[ $arch == simdbc || $arch == simdbc64 ]
-async_single_step_exception_test: RuntimeError # Issue 29218
-get_cpu_profile_timeline_rpc_test: SkipByDesign
-implicit_getter_setter_test: RuntimeError # Field guards unimplemented.
-next_through_catch_test: RuntimeError # Debugging StringConcatenation doesn't work the same on simdbc as on other platforms (bug #28975).
-next_through_simple_async_test: RuntimeError # Debugging StringConcatenation doesn't work the same on simdbc as on other platforms (bug #28975).
-next_through_simple_linear_2_test: RuntimeError # Debugging StringConcatenation doesn't work the same on simdbc as on other platforms (bug #28975).
-step_through_function_test: RuntimeError # Debugging StringConcatenation doesn't work the same on simdbc as on other platforms (bug #28975).
-step_through_getter_test: RuntimeError # Debugging StringConcatenation doesn't work the same on simdbc as on other platforms (bug #28975).
-
-[ $arch == simdbc || $arch == simdbc64 || $mode == debug ]
-break_on_default_constructor_test: Pass, Slow
-debugger_location_second_test: Pass, Slow
-debugger_location_test: Pass, Slow
 
 # All tests use dart:io
 [ $compiler == dart2js || $browser ]

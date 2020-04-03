@@ -6,6 +6,6 @@ void main() {
   foo();
 }
 
-/*bl*/ /*nb*/ foo() {
-  /*s:1*/ print("hello");
+/*bl*/ /*nb*/ void foo() {
+  /*s:1*/ print('hello');
 }

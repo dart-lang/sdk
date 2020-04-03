@@ -128,7 +128,7 @@ class ContextVariable extends LocalVariableEntry {
 }
 
 /// Keeps information about declared local variables.
-class LocalVariableTable {
+class LocalVariableTable extends BytecodeDeclaration {
   final scopes = <Scope>[];
   final activeScopes = <Scope>[];
   ContextVariable contextVariable;
@@ -156,6 +156,12 @@ class LocalVariableTable {
         activeScopes.isNotEmpty &&
         scope.contextLevel == activeScopes.last.contextLevel) {
       scopes.remove(scope);
+    }
+  }
+
+  void leaveAllScopes(int pc, int endPosition) {
+    while (activeScopes.isNotEmpty) {
+      leaveScope(pc, endPosition);
     }
   }
 

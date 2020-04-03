@@ -5,9 +5,7 @@
 import 'package:analysis_server/plugin/analysis/occurrences/occurrences_core.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 
-/**
- * A concrete implementation of [OccurrencesCollector].
- */
+/// A concrete implementation of [OccurrencesCollector].
 class OccurrencesCollectorImpl implements OccurrencesCollector {
   final Map<protocol.Element, protocol.Occurrences> elementOccurrences =
       <protocol.Element, protocol.Occurrences>{};
@@ -18,16 +16,16 @@ class OccurrencesCollectorImpl implements OccurrencesCollector {
 
   @override
   void addOccurrences(protocol.Occurrences current) {
-    protocol.Element element = current.element;
-    protocol.Occurrences existing = elementOccurrences[element];
+    var element = current.element;
+    var existing = elementOccurrences[element];
     if (existing != null) {
-      List<int> offsets = _merge(existing.offsets, current.offsets);
-      current = new protocol.Occurrences(element, offsets, existing.length);
+      var offsets = _merge(existing.offsets, current.offsets);
+      current = protocol.Occurrences(element, offsets, existing.length);
     }
     elementOccurrences[element] = current;
   }
 
   static List<int> _merge(List<int> a, List<int> b) {
-    return <int>[]..addAll(a)..addAll(b);
+    return <int>[...a, ...b];
   }
 }

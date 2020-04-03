@@ -30,6 +30,7 @@ import '../../js_backend/runtime_types.dart'
     show RuntimeTypesChecks, RuntimeTypesEncoder;
 import '../../js_backend/runtime_types_new.dart'
     show RecipeEncoder, RecipeEncoding;
+import '../../js_backend/runtime_types_new.dart' as newRti;
 import '../../js_backend/runtime_types_resolution.dart' show RuntimeTypesNeed;
 import '../../js_model/elements.dart' show JGeneratorBody, JSignatureMethod;
 import '../../js_model/type_recipe.dart'
@@ -107,6 +108,7 @@ class ProgramBuilder {
   final Set<TypeVariableType> _lateNamedTypeVariablesNewRti = {};
 
   ClassHierarchy get _classHierarchy => _closedWorld.classHierarchy;
+  DartTypes get _dartTypes => _closedWorld.dartTypes;
 
   ProgramBuilder(
       this._options,
@@ -136,12 +138,10 @@ class ProgramBuilder {
       this._rtiNeededClasses,
       this._mainFunction)
       : this.collector = new Collector(
-            _options,
             _commonElements,
             _elementEnvironment,
             _outputUnitData,
             _codegenWorld,
-            _namer,
             _task.emitter,
             _nativeData,
             _interceptorData,
@@ -247,14 +247,15 @@ class ProgramBuilder {
 
     _markEagerClasses();
 
-    if (_options.experimentNewRti) {
+    if (_options.useNewRti) {
       associateNamedTypeVariablesNewRti();
     }
 
     List<Holder> holders = _registry.holders.toList(growable: false);
 
     bool needsNativeSupport =
-        _nativeCodegenEnqueuer.hasInstantiatedNativeClasses;
+        _nativeCodegenEnqueuer.hasInstantiatedNativeClasses ||
+            _nativeData.isAllowInteropUsed;
 
     assert(!needsNativeSupport || nativeClasses.isNotEmpty);
 
@@ -851,8 +852,12 @@ class ProgramBuilder {
   void associateNamedTypeVariablesNewRti() {
     for (TypeVariableType typeVariable in _codegenWorld.namedTypeVariablesNewRti
         .union(_lateNamedTypeVariablesNewRti)) {
-      for (ClassEntity entity
-          in _classHierarchy.subtypesOf(typeVariable.element.typeDeclaration)) {
+      ClassEntity declaration = typeVariable.element.typeDeclaration;
+      Iterable<ClassEntity> subtypes =
+          newRti.mustCheckAllSubtypes(_closedWorld, declaration)
+              ? _classHierarchy.subtypesOf(declaration)
+              : _classHierarchy.subclassesOf(declaration);
+      for (ClassEntity entity in subtypes) {
         Class cls = _classes[entity];
         if (cls == null) continue;
         cls.namedTypeVariablesNewRti.add(typeVariable);
@@ -981,21 +986,45 @@ class ProgramBuilder {
   }
 
   js.Expression _generateFunctionType(ClassEntity /*?*/ enclosingClass,
+          FunctionType type, OutputUnit outputUnit) =>
+      _options.useNewRti
+          ? _generateFunctionTypeNewRti(enclosingClass, type, outputUnit)
+          : _generateFunctionTypeLegacy(enclosingClass, type, outputUnit);
+
+  js.Expression _generateFunctionTypeLegacy(ClassEntity /*?*/ enclosingClass,
       FunctionType type, OutputUnit outputUnit) {
     if (type.containsTypeVariables) {
-      if (_options.experimentNewRti) {
-        RecipeEncoding encoding = _rtiRecipeEncoder.encodeRecipe(
-            _task.emitter,
-            FullTypeEnvironmentStructure(
-                classType: _elementEnvironment.getThisType(enclosingClass)),
-            TypeExpressionRecipe(type));
-        _lateNamedTypeVariablesNewRti.addAll(encoding.typeVariables);
-        return encoding.recipe;
-      } else {
-        js.Expression thisAccess = js.js(r'this.$receiver');
-        return _rtiEncoder.getSignatureEncoding(
-            _namer, _task.emitter, type, thisAccess);
+      js.Expression thisAccess = js.js(r'this.$receiver');
+      return _rtiEncoder.getSignatureEncoding(
+          _namer, _task.emitter, type, thisAccess);
+    } else {
+      return _task.metadataCollector.reifyType(type, outputUnit);
+    }
+  }
+
+  js.Expression _generateFunctionTypeNewRti(ClassEntity /*?*/ enclosingClass,
+      FunctionType type, OutputUnit outputUnit) {
+    InterfaceType enclosingType;
+    if (enclosingClass != null && type.containsTypeVariables) {
+      enclosingType = _elementEnvironment.getThisType(enclosingClass);
+      if (!_rtiNeed.classNeedsTypeArguments(enclosingClass)) {
+        // Erase type arguments.
+        List<DartType> typeArguments = enclosingType.typeArguments;
+        type = _dartTypes.subst(
+            List<DartType>.filled(
+                typeArguments.length, _dartTypes.erasedType()),
+            typeArguments,
+            type);
       }
+    }
+
+    if (type.containsTypeVariables) {
+      RecipeEncoding encoding = _rtiRecipeEncoder.encodeRecipe(
+          _task.emitter,
+          FullTypeEnvironmentStructure(classType: enclosingType),
+          TypeExpressionRecipe(type));
+      _lateNamedTypeVariablesNewRti.addAll(encoding.typeVariables);
+      return encoding.recipe;
     } else {
       return _task.metadataCollector.reifyType(type, outputUnit);
     }
@@ -1010,7 +1039,7 @@ class ProgramBuilder {
         _task.nativeEmitter,
         _namer,
         _rtiEncoder,
-        _options.experimentNewRti ? _rtiRecipeEncoder : null,
+        _options.useNewRti ? _rtiRecipeEncoder : null,
         _nativeData,
         _interceptorData,
         _codegenWorld,
@@ -1145,8 +1174,8 @@ class ProgramBuilder {
           fieldData.isElided));
     }
 
-    FieldVisitor visitor = new FieldVisitor(_options, _elementEnvironment,
-        _commonElements, _codegenWorld, _nativeData, _namer, _closedWorld);
+    FieldVisitor visitor = new FieldVisitor(
+        _elementEnvironment, _codegenWorld, _nativeData, _namer, _closedWorld);
     visitor.visitFields(visitField,
         visitStatics: visitStatics, library: library, cls: cls);
 

@@ -1,11 +1,11 @@
 import 'dart:html';
 
-import 'package:unittest/unittest.dart';
+import 'package:async_helper/async_minitest.dart';
 
 import 'utils.dart';
 
-main() {
-  setUp(() => customElementsReady);
+main() async {
+  await customElementsReady;
 
   test('can register custom template with webcomponents-lite polyfill', () {
     document.registerElement2(

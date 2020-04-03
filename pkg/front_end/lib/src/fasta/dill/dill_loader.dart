@@ -8,17 +8,20 @@ import 'dart:async' show Future;
 
 import 'package:kernel/ast.dart' show Class, Component, DartType, Library;
 
+import '../builder/class_builder.dart';
+import '../builder/library_builder.dart';
+import '../builder/type_builder.dart';
+
 import '../fasta_codes.dart'
     show SummaryTemplate, Template, templateDillOutlineSummary;
-
-import '../kernel/kernel_builder.dart'
-    show ClassBuilder, TypeBuilder, LibraryBuilder;
 
 import '../kernel/type_builder_computer.dart' show TypeBuilderComputer;
 
 import '../loader.dart' show Loader;
 
 import '../problems.dart' show unhandled;
+
+import '../source/source_loader.dart' show SourceLoader;
 
 import '../target_implementation.dart' show TargetImplementation;
 
@@ -27,6 +30,8 @@ import 'dill_library_builder.dart' show DillLibraryBuilder;
 import 'dill_target.dart' show DillTarget;
 
 class DillLoader extends Loader {
+  SourceLoader currentSourceLoader;
+
   DillLoader(TargetImplementation target) : super(target);
 
   Template<SummaryTemplate> get outlineSummaryTemplate =>
@@ -38,6 +43,7 @@ class DillLoader extends Loader {
       {bool filter(Uri uri), int byteCount: 0}) {
     List<Library> componentLibraries = component.libraries;
     List<Uri> requestedLibraries = <Uri>[];
+    List<Uri> requestedLibrariesFileUri = <Uri>[];
     DillTarget target = this.target;
     for (int i = 0; i < componentLibraries.length; i++) {
       Library library = componentLibraries[i];
@@ -46,15 +52,35 @@ class DillLoader extends Loader {
         libraries.add(library);
         target.addLibrary(library);
         requestedLibraries.add(uri);
+        requestedLibrariesFileUri.add(library.fileUri);
       }
     }
     List<DillLibraryBuilder> result = <DillLibraryBuilder>[];
     for (int i = 0; i < requestedLibraries.length; i++) {
-      result.add(read(requestedLibraries[i], -1));
+      result.add(read(requestedLibraries[i], -1,
+          fileUri: requestedLibrariesFileUri[i]));
     }
     target.uriToSource.addAll(component.uriToSource);
     this.byteCount += byteCount;
     return result;
+  }
+
+  /// Append single compiled library.
+  ///
+  /// Note that as this only takes a library, no new sources is added to the
+  /// uriToSource map.
+  DillLibraryBuilder appendLibrary(Library library) {
+    // Add to list of libraries in the loader, used for e.g. linking.
+    libraries.add(library);
+
+    // Weird interaction begins.
+    DillTarget target = this.target;
+    // Create dill library builder (adds it to a map where it's fetched
+    // again momentarily).
+    target.addLibrary(library);
+    // Set up the dill library builder (fetch it from the map again, add it to
+    // another map and setup some auxiliary things).
+    return read(library.importUri, -1, fileUri: library.fileUri);
   }
 
   Future<Null> buildOutline(DillLibraryBuilder builder) async {
@@ -68,10 +94,11 @@ class DillLoader extends Loader {
     return buildOutline(builder);
   }
 
-  void finalizeExports() {
+  void finalizeExports({bool suppressFinalizationErrors: false}) {
     builders.forEach((Uri uri, LibraryBuilder builder) {
       DillLibraryBuilder library = builder;
-      library.markAsReadyToFinalizeExports();
+      library.markAsReadyToFinalizeExports(
+          suppressFinalizationErrors: suppressFinalizationErrors);
     });
   }
 
@@ -79,6 +106,9 @@ class DillLoader extends Loader {
   ClassBuilder computeClassBuilderFromTargetClass(Class cls) {
     Library kernelLibrary = cls.enclosingLibrary;
     LibraryBuilder library = builders[kernelLibrary.importUri];
+    if (library == null) {
+      library = currentSourceLoader?.builders[kernelLibrary.importUri];
+    }
     return library.lookupLocalMember(cls.name, required: true);
   }
 

@@ -12,7 +12,7 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ByteStreamClientChannelTest);
     defineReflectiveTests(ByteStreamServerChannelTest);
@@ -23,36 +23,30 @@ main() {
 class ByteStreamClientChannelTest {
   ByteStreamClientChannel channel;
 
-  /**
-   * Sink that may be used to deliver data to the channel, as though it's
-   * coming from the server.
-   */
+  /// Sink that may be used to deliver data to the channel, as though it's
+  /// coming from the server.
   IOSink inputSink;
 
-  /**
-   * Sink through which the channel delivers data to the server.
-   */
+  /// Sink through which the channel delivers data to the server.
   IOSink outputSink;
 
-  /**
-   * Stream of lines sent back to the client by the channel.
-   */
+  /// Stream of lines sent back to the client by the channel.
   Stream<String> outputLineStream;
 
   void setUp() {
-    var inputStream = new StreamController<List<int>>();
-    inputSink = new IOSink(inputStream);
-    var outputStream = new StreamController<List<int>>();
+    var inputStream = StreamController<List<int>>();
+    inputSink = IOSink(inputStream);
+    var outputStream = StreamController<List<int>>();
     outputLineStream = outputStream.stream
-        .transform((new Utf8Codec()).decoder)
-        .transform(new LineSplitter());
-    outputSink = new IOSink(outputStream);
-    channel = new ByteStreamClientChannel(inputStream.stream, outputSink);
+        .transform((Utf8Codec()).decoder)
+        .transform(LineSplitter());
+    outputSink = IOSink(outputStream);
+    channel = ByteStreamClientChannel(inputStream.stream, outputSink);
   }
 
-  test_close() {
-    bool doneCalled = false;
-    bool closeCalled = false;
+  Future<void> test_close() {
+    var doneCalled = false;
+    var closeCalled = false;
     // add listener so that outputSink will trigger done/close futures
     outputLineStream.listen((_) {/* no-op */});
     outputSink.done.then((_) {
@@ -67,8 +61,8 @@ class ByteStreamClientChannelTest {
     });
   }
 
-  test_listen_notification() {
-    List<Notification> notifications = [];
+  Future<void> test_listen_notification() {
+    var notifications = <Notification>[];
     channel.notificationStream.forEach((n) => notifications.add(n));
     inputSink.writeln('{"event":"server.connected"}');
     return pumpEventQueue().then((_) {
@@ -77,8 +71,8 @@ class ByteStreamClientChannelTest {
     });
   }
 
-  test_listen_response() {
-    List<Response> responses = [];
+  Future<void> test_listen_response() {
+    var responses = <Response>[];
     channel.responseStream.forEach((n) => responses.add(n));
     inputSink.writeln('{"id":"72"}');
     return pumpEventQueue().then((_) {
@@ -87,9 +81,9 @@ class ByteStreamClientChannelTest {
     });
   }
 
-  test_sendRequest() {
-    int assertCount = 0;
-    Request request = new Request('72', 'foo.bar');
+  Future<void> test_sendRequest() {
+    var assertCount = 0;
+    var request = Request('72', 'foo.bar');
     outputLineStream.first.then((line) => json.decode(line)).then((json) {
       expect(json[Request.ID], equals('72'));
       expect(json[Request.METHOD], equals('foo.bar'));
@@ -109,49 +103,37 @@ class ByteStreamClientChannelTest {
 class ByteStreamServerChannelTest {
   ByteStreamServerChannel channel;
 
-  /**
-   * Sink that may be used to deliver data to the channel, as though it's
-   * coming from the client.
-   */
+  /// Sink that may be used to deliver data to the channel, as though it's
+  /// coming from the client.
   IOSink inputSink;
 
-  /**
-   * Stream of lines sent back to the client by the channel.
-   */
+  /// Stream of lines sent back to the client by the channel.
   Stream<String> outputLineStream;
 
-  /**
-   * Stream of requests received from the channel via [listen()].
-   */
+  /// Stream of requests received from the channel via [listen()].
   Stream<Request> requestStream;
 
-  /**
-   * Stream of errors received from the channel via [listen()].
-   */
+  /// Stream of errors received from the channel via [listen()].
   Stream errorStream;
 
-  /**
-   * Future which is completed when then [listen()] reports [onDone].
-   */
+  /// Future which is completed when then [listen()] reports [onDone].
   Future doneFuture;
 
   void setUp() {
-    StreamController<List<int>> inputStream = new StreamController<List<int>>();
-    inputSink = new IOSink(inputStream);
-    StreamController<List<int>> outputStream =
-        new StreamController<List<int>>();
+    var inputStream = StreamController<List<int>>();
+    inputSink = IOSink(inputStream);
+    var outputStream = StreamController<List<int>>();
     outputLineStream = outputStream.stream
-        .transform((new Utf8Codec()).decoder)
-        .transform(new LineSplitter());
-    IOSink outputSink = new IOSink(outputStream);
-    channel = new ByteStreamServerChannel(
+        .transform((Utf8Codec()).decoder)
+        .transform(LineSplitter());
+    var outputSink = IOSink(outputStream);
+    channel = ByteStreamServerChannel(
         inputStream.stream, outputSink, InstrumentationService.NULL_SERVICE);
-    StreamController<Request> requestStreamController =
-        new StreamController<Request>();
+    var requestStreamController = StreamController<Request>();
     requestStream = requestStreamController.stream;
-    StreamController errorStreamController = new StreamController();
+    var errorStreamController = StreamController();
     errorStream = errorStreamController.stream;
-    Completer doneCompleter = new Completer();
+    var doneCompleter = Completer();
     doneFuture = doneCompleter.future;
     channel.listen((Request request) {
       requestStreamController.add(request);
@@ -162,98 +144,98 @@ class ByteStreamServerChannelTest {
     });
   }
 
-  test_closed() {
+  Future<void> test_closed() {
     return inputSink
         .close()
-        .then((_) => channel.closed.timeout(new Duration(seconds: 1)));
+        .then((_) => channel.closed.timeout(Duration(seconds: 1)));
   }
 
-  test_listen_invalidJson() {
+  Future<void> test_listen_invalidJson() {
     inputSink.writeln('{"id":');
     return inputSink
         .flush()
-        .then((_) => outputLineStream.first.timeout(new Duration(seconds: 1)))
+        .then((_) => outputLineStream.first.timeout(Duration(seconds: 1)))
         .then((String response) {
-      var jsonResponse = new JsonCodec().decode(response);
+      var jsonResponse = JsonCodec().decode(response);
       expect(jsonResponse, isMap);
       expect(jsonResponse, contains('error'));
       expect(jsonResponse['error'], isNotNull);
     });
   }
 
-  test_listen_invalidRequest() {
+  Future<void> test_listen_invalidRequest() {
     inputSink.writeln('{"id":"0"}');
     return inputSink
         .flush()
-        .then((_) => outputLineStream.first.timeout(new Duration(seconds: 1)))
+        .then((_) => outputLineStream.first.timeout(Duration(seconds: 1)))
         .then((String response) {
-      var jsonResponse = new JsonCodec().decode(response);
+      var jsonResponse = JsonCodec().decode(response);
       expect(jsonResponse, isMap);
       expect(jsonResponse, contains('error'));
       expect(jsonResponse['error'], isNotNull);
     });
   }
 
-  test_listen_streamDone() {
+  Future<void> test_listen_streamDone() {
     return inputSink
         .close()
-        .then((_) => doneFuture.timeout(new Duration(seconds: 1)));
+        .then((_) => doneFuture.timeout(Duration(seconds: 1)));
   }
 
-  test_listen_streamError() {
-    var error = new Error();
+  Future<void> test_listen_streamError() {
+    var error = Error();
     inputSink.addError(error);
     return inputSink
         .flush()
-        .then((_) => errorStream.first.timeout(new Duration(seconds: 1)))
+        .then((_) => errorStream.first.timeout(Duration(seconds: 1)))
         .then((var receivedError) {
       expect(receivedError, same(error));
     });
   }
 
-  test_listen_wellFormedRequest() {
+  Future<void> test_listen_wellFormedRequest() {
     inputSink.writeln('{"id":"0","method":"server.version"}');
     return inputSink
         .flush()
-        .then((_) => requestStream.first.timeout(new Duration(seconds: 1)))
+        .then((_) => requestStream.first.timeout(Duration(seconds: 1)))
         .then((Request request) {
-      expect(request.id, equals("0"));
-      expect(request.method, equals("server.version"));
+      expect(request.id, equals('0'));
+      expect(request.method, equals('server.version'));
     });
   }
 
-  test_sendNotification() {
-    channel.sendNotification(new Notification('foo'));
+  Future<void> test_sendNotification() {
+    channel.sendNotification(Notification('foo'));
     return outputLineStream.first
-        .timeout(new Duration(seconds: 1))
+        .timeout(Duration(seconds: 1))
         .then((String notification) {
-      var jsonNotification = new JsonCodec().decode(notification);
+      var jsonNotification = JsonCodec().decode(notification);
       expect(jsonNotification, isMap);
       expect(jsonNotification, contains('event'));
       expect(jsonNotification['event'], equals('foo'));
     });
   }
 
-  test_sendNotification_exceptionInSink() async {
+  Future<void> test_sendNotification_exceptionInSink() async {
     // This IOSink asynchronously throws an exception on any writeln().
-    var outputSink = new _IOSinkMock();
+    var outputSink = _IOSinkMock();
 
-    var channel = new ByteStreamServerChannel(
+    var channel = ByteStreamServerChannel(
         null, outputSink, InstrumentationService.NULL_SERVICE);
 
     // Attempt to send a notification.
-    channel.sendNotification(new Notification('foo'));
+    channel.sendNotification(Notification('foo'));
 
     // An exception was thrown, it did not leak, but the channel was closed.
     await channel.closed;
   }
 
-  test_sendResponse() {
-    channel.sendResponse(new Response('foo'));
+  Future<void> test_sendResponse() {
+    channel.sendResponse(Response('foo'));
     return outputLineStream.first
-        .timeout(new Duration(seconds: 1))
+        .timeout(Duration(seconds: 1))
         .then((String response) {
-      var jsonResponse = new JsonCodec().decode(response);
+      var jsonResponse = JsonCodec().decode(response);
       expect(jsonResponse, isMap);
       expect(jsonResponse, contains('id'));
       expect(jsonResponse['id'], equals('foo'));
@@ -266,7 +248,7 @@ class _IOSinkMock implements IOSink {
   Encoding encoding;
 
   @override
-  Future done = null;
+  Future done;
 
   @override
   void add(List<int> data) {}
@@ -287,14 +269,14 @@ class _IOSinkMock implements IOSink {
   void write(Object obj) {}
 
   @override
-  void writeAll(Iterable objects, [String separator = ""]) {}
+  void writeAll(Iterable objects, [String separator = '']) {}
 
   @override
   void writeCharCode(int charCode) {}
 
   @override
-  void writeln([Object obj = ""]) {
-    new Timer(new Duration(milliseconds: 10), () {
+  void writeln([Object obj = '']) {
+    Timer(Duration(milliseconds: 10), () {
       throw '42';
     });
   }

@@ -7,10 +7,8 @@ import 'package:analyzer/src/generated/java_core.dart';
 
 export 'package:analyzer/exception/exception.dart';
 
-/**
- * A predicate is a one-argument function that returns a boolean value.
- */
-typedef bool Predicate<E>(E argument);
+/// A predicate is a one-argument function that returns a boolean value.
+typedef Predicate<E> = bool Function(E argument);
 
 class FileNameUtilities {
   static String getExtension(String fileName) {
@@ -27,9 +25,9 @@ class FileNameUtilities {
 
 class StringUtilities {
   static const String EMPTY = '';
-  static const List<String> EMPTY_ARRAY = const <String>[];
+  static const List<String> EMPTY_ARRAY = <String>[];
 
-  static Interner INTERNER = new NullInterner();
+  static Interner INTERNER = NullInterner();
 
   /**
    * Compute line starts for the given [content].
@@ -179,13 +177,13 @@ class StringUtilities {
    */
   static String printListOfQuotedNames(List<String> names) {
     if (names == null) {
-      throw new ArgumentError("The list must not be null");
+      throw ArgumentError("The list must not be null");
     }
     int count = names.length;
     if (count < 2) {
-      throw new ArgumentError("The list must contain at least two names");
+      throw ArgumentError("The list must contain at least two names");
     }
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     buffer.write("'");
     buffer.write(names[0]);
     buffer.write("'");
@@ -242,10 +240,6 @@ class StringUtilities {
         str.codeUnitAt(start + 5) == c6;
   }
 
-  static startsWithChar(String str, int c) {
-    return str.isNotEmpty && str.codeUnitAt(0) == c;
-  }
-
   static String substringBefore(String str, String separator) {
     if (str == null || str.isEmpty) {
       return str;
@@ -273,9 +267,14 @@ class StringUtilities {
 }
 
 class UUID {
-  static int __nextId = 0;
+  static const int __nextId = 0;
+
   final String id;
+
   UUID(this.id);
+
+  @override
   String toString() => id;
-  static UUID randomUUID() => new UUID((__nextId).toString());
+
+  static UUID randomUUID() => UUID((__nextId).toString());
 }

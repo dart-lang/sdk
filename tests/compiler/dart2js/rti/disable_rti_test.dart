@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common_elements.dart';
@@ -58,9 +60,12 @@ const Map<String, List<String>> expectedIsChecksMap =
   'A': const <String>[],
   'B': const <String>[],
   'C': const <String>[r'$isB'],
-  'D': const <String>[r'$isB', r'$asB'],
+  // TODO(sigmund): change these tests to check that the new rti medatada
+  // includes the information we need to check the equivalent of D.$asB and
+  // F.$asB
+  'D': const <String>[r'$isB'],
   'E': const <String>[],
-  'F': const <String>[r'$asB'],
+  'F': const <String>[],
   'G': const <String>[],
   'H': const <String>[r'$isG'],
   'I': const <String>[],
@@ -97,7 +102,8 @@ main() {
     }
 
     void processClass(ClassEntity element) {
-      Expect.isTrue(closedWorld.rtiNeed.classNeedsTypeArguments(element));
+      Expect.equals(elementEnvironment.isGenericClass(element),
+          closedWorld.rtiNeed.classNeedsTypeArguments(element));
       elementEnvironment.forEachConstructor(element, processMember);
       elementEnvironment.forEachLocalClassMember(element, processMember);
 

@@ -1,3 +1,5 @@
+// @dart = 2.6
+
 /// Debugger custom formatter tests.
 /// If the tests fail, paste the expected output into the [expectedGolden]
 /// string literal in this file and audit the diff to ensure changes are
@@ -84,7 +86,7 @@ replacer(String key, value) {
 String format(value) {
   // Avoid double-escaping strings.
   if (value is String) return value;
-  return stringify(value, replacer, 4);
+  return stringify(value, allowInterop(replacer), 4);
 }
 
 class FormattedObject {

@@ -6,6 +6,8 @@ import 'dart:async';
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/context/context_root.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -21,15 +23,17 @@ import 'resolution.dart';
 
 /// [AnalysisDriver] based implementation of [ResolutionTest].
 class DriverResolutionTest with ResourceProviderMixin, ResolutionTest {
-  final ByteStore byteStore = new MemoryByteStore();
+  final ByteStore byteStore = MemoryByteStore();
 
-  final StringBuffer logBuffer = new StringBuffer();
+  final StringBuffer logBuffer = StringBuffer();
   PerformanceLog logger;
 
   DartSdk sdk;
   Map<String, List<Folder>> packageMap;
   AnalysisDriverScheduler scheduler;
   AnalysisDriver driver;
+
+  List<MockSdkLibrary> get additionalMockSdkLibraries => [];
 
   /// Override this to change the analysis options for a given set of tests.
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl();
@@ -40,9 +44,12 @@ class DriverResolutionTest with ResourceProviderMixin, ResolutionTest {
   }
 
   void setUp() {
-    sdk = new MockSdk(resourceProvider: resourceProvider);
-    logger = new PerformanceLog(logBuffer);
-    scheduler = new AnalysisDriverScheduler(logger);
+    sdk = MockSdk(
+      resourceProvider: resourceProvider,
+      additionalLibraries: additionalMockSdkLibraries,
+    );
+    logger = PerformanceLog(logBuffer);
+    scheduler = AnalysisDriverScheduler(logger);
 
     // TODO(brianwilkerson) Create an empty package map by default and only add
     //  packages in the tests that need them.
@@ -53,19 +60,24 @@ class DriverResolutionTest with ResourceProviderMixin, ResolutionTest {
       'meta': [getFolder('/.pub-cache/meta/lib')],
     };
 
-    driver = new AnalysisDriver(
+    driver = AnalysisDriver(
         scheduler,
         logger,
         resourceProvider,
         byteStore,
-        new FileContentOverlay(),
-        null,
-        new SourceFactory([
-          new DartUriResolver(sdk),
-          new PackageMapUriResolver(resourceProvider, packageMap),
-          new ResourceUriResolver(resourceProvider)
-        ], null, resourceProvider),
-        analysisOptions);
+        FileContentOverlay(),
+        ContextRoot(
+          convertPath('/test'),
+          [],
+          pathContext: resourceProvider.pathContext,
+        ),
+        SourceFactory([
+          DartUriResolver(sdk),
+          PackageMapUriResolver(resourceProvider, packageMap),
+          ResourceUriResolver(resourceProvider)
+        ]),
+        analysisOptions,
+        packages: Packages.empty);
 
     scheduler.start();
   }

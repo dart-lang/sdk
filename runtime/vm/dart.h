@@ -57,8 +57,6 @@ class Dart : public AllStatic {
   // from_kernel.  Otherwise, initialize from sources.
   static RawError* InitializeIsolate(const uint8_t* snapshot_data,
                                      const uint8_t* snapshot_instructions,
-                                     const uint8_t* shared_data,
-                                     const uint8_t* shared_instructions,
                                      const uint8_t* kernel_buffer,
                                      intptr_t kernel_buffer_size,
                                      void* data);
@@ -68,6 +66,7 @@ class Dart : public AllStatic {
 
   static Isolate* vm_isolate() { return vm_isolate_; }
   static ThreadPool* thread_pool() { return thread_pool_; }
+  static bool VmIsolateNameEquals(const char* name);
 
   static int64_t UptimeMicros();
   static int64_t UptimeMillis() {
@@ -126,10 +125,15 @@ class Dart : public AllStatic {
     return entropy_source_callback_;
   }
 
+  // TODO(dartbug.com/40342): Delete these functions.
+  static void set_non_nullable_flag(bool value) { non_nullable_flag_ = value; }
+  static bool non_nullable_flag() { return true; }
+
  private:
+  static constexpr const char* kVmIsolateName = "vm-isolate";
+
   static void WaitForIsolateShutdown();
   static void WaitForApplicationIsolateShutdown();
-  static bool HasApplicationIsolateLocked();
 
   static Isolate* vm_isolate_;
   static int64_t start_time_micros_;
@@ -143,6 +147,7 @@ class Dart : public AllStatic {
   static Dart_FileWriteCallback file_write_callback_;
   static Dart_FileCloseCallback file_close_callback_;
   static Dart_EntropySource entropy_source_callback_;
+  static bool non_nullable_flag_;
 };
 
 }  // namespace dart

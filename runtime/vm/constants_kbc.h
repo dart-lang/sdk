@@ -32,7 +32,7 @@ namespace dart {
 //   PP - object pool for the currently execution function
 //
 // Frame info stored below FP additionally contains pointers to the currently
-// executing function and code (see stack_frame_dbc.h for more information).
+// executing function and code.
 //
 // In the unoptimized code most of bytecodes take operands implicitly from
 // stack and store results again on the stack. Constant operands are usually
@@ -553,9 +553,9 @@ namespace dart {
   V(UnusedOpcode079,                       0, RESV, ___, ___, ___)             \
   V(UnusedOpcode080,                       0, RESV, ___, ___, ___)             \
   V(UnusedOpcode081,                       0, RESV, ___, ___, ___)             \
-  V(UnusedOpcode082,                       0, RESV, ___, ___, ___)             \
-  V(UnusedOpcode083,                       0, RESV, ___, ___, ___)             \
-  V(UnusedOpcode084,                       0, RESV, ___, ___, ___)             \
+  V(JumpIfInitialized,                     T, ORDN, tgt, ___, ___)             \
+  V(JumpIfInitialized_Wide,                T, WIDE, tgt, ___, ___)             \
+  V(PushUninitializedSentinel,             0, ORDN, ___, ___, ___)             \
   V(Trap,                                  0, ORDN, ___, ___, ___)             \
   V(Entry,                                 D, ORDN, num, ___, ___)             \
   V(Entry_Wide,                            D, WIDE, num, ___, ___)             \
@@ -625,8 +625,8 @@ namespace dart {
   V(StoreFieldTOS_Wide,                    D, WIDE, lit, ___, ___)             \
   V(StoreIndexedTOS,                       0, ORDN, ___, ___, ___)             \
   V(Unused20,                              0, RESV, ___, ___, ___)             \
-  V(PushStatic,                            D, ORDN, lit, ___, ___)             \
-  V(PushStatic_Wide,                       D, WIDE, lit, ___, ___)             \
+  V(InitLateField,                         D, ORDN, lit, ___, ___)             \
+  V(InitLateField_Wide,                    D, WIDE, lit, ___, ___)             \
   V(StoreStaticTOS,                        D, ORDN, lit, ___, ___)             \
   V(StoreStaticTOS_Wide,                   D, WIDE, lit, ___, ___)             \
   V(Jump,                                  T, ORDN, tgt, ___, ___)             \
@@ -649,8 +649,8 @@ namespace dart {
   V(JumpIfNotNull_Wide,                    T, WIDE, tgt, ___, ___)             \
   V(DirectCall,                          D_F, ORDN, num, num, ___)             \
   V(DirectCall_Wide,                     D_F, WIDE, num, num, ___)             \
-  V(Unused21,                              0, RESV, ___, ___, ___)             \
-  V(Unused22,                              0, RESV, ___, ___, ___)             \
+  V(UncheckedDirectCall,                 D_F, ORDN, num, num, ___)             \
+  V(UncheckedDirectCall_Wide,            D_F, WIDE, num, num, ___)             \
   V(InterfaceCall,                       D_F, ORDN, num, num, ___)             \
   V(InterfaceCall_Wide,                  D_F, WIDE, num, num, ___)             \
   V(Unused23,                              0, RESV, ___, ___, ___)             \
@@ -689,8 +689,8 @@ namespace dart {
   V(MoveSpecial_Wide,                    A_Y, WIDE, num, xeg, ___)             \
   V(BooleanNegateTOS,                      0, ORDN, ___, ___, ___)             \
   V(EqualsNull,                            0, ORDN, ___, ___, ___)             \
-  V(Unused36,                              0, RESV, ___, ___, ___)             \
-  V(Unused37,                              0, RESV, ___, ___, ___)             \
+  V(NullCheck,                             D, ORDN, lit, ___, ___)             \
+  V(NullCheck_Wide,                        D, WIDE, lit, ___, ___)             \
   V(NegateInt,                             0, ORDN, ___, ___, ___)             \
   V(AddInt,                                0, ORDN, ___, ___, ___)             \
   V(SubInt,                                0, ORDN, ___, ___, ___)             \
@@ -745,11 +745,11 @@ class KernelBytecode {
   // Magic value of bytecode files.
   static const intptr_t kMagicValue = 0x44424332;  // 'DBC2'
   // Minimum bytecode format version supported by VM.
-  static const intptr_t kMinSupportedBytecodeFormatVersion = 7;
+  static const intptr_t kMinSupportedBytecodeFormatVersion = 28;
   // Maximum bytecode format version supported by VM.
   // The range of supported versions should include version produced by bytecode
   // generator (currentBytecodeFormatVersion in pkg/vm/lib/bytecode/dbc.dart).
-  static const intptr_t kMaxSupportedBytecodeFormatVersion = 19;
+  static const intptr_t kMaxSupportedBytecodeFormatVersion = 28;
 
   enum Opcode {
 #define DECLARE_BYTECODE(name, encoding, kind, op1, op2, op3) k##name,
@@ -887,6 +887,8 @@ class KernelBytecode {
       case KernelBytecode::kJumpIfNotNull_Wide:
       case KernelBytecode::kJumpIfUnchecked:
       case KernelBytecode::kJumpIfUnchecked_Wide:
+      case KernelBytecode::kJumpIfInitialized:
+      case KernelBytecode::kJumpIfInitialized_Wide:
         return true;
 
       default:
@@ -916,6 +918,16 @@ class KernelBytecode {
 
   DART_FORCE_INLINE static bool IsCheckStackOpcode(const KBCInstr* instr) {
     return DecodeOpcode(instr) == KernelBytecode::kCheckStack;
+  }
+
+  DART_FORCE_INLINE static bool IsCheckFunctionTypeArgs(const KBCInstr* instr) {
+    switch (DecodeOpcode(instr)) {
+      case KernelBytecode::kCheckFunctionTypeArgs:
+      case KernelBytecode::kCheckFunctionTypeArgs_Wide:
+        return true;
+      default:
+        return false;
+    }
   }
 
   DART_FORCE_INLINE static bool IsEntryOpcode(const KBCInstr* instr) {
@@ -978,11 +990,11 @@ class KernelBytecode {
   // - The bytecode compiler may emit a DebugStepCheck call.
   DART_FORCE_INLINE static bool IsDebugCheckedOpcode(const KBCInstr* instr) {
     switch (DecodeOpcode(instr)) {
-      case KernelBytecode::kStoreStaticTOS:
-      case KernelBytecode::kStoreStaticTOS_Wide:
       case KernelBytecode::kDebugCheck:
       case KernelBytecode::kDirectCall:
       case KernelBytecode::kDirectCall_Wide:
+      case KernelBytecode::kUncheckedDirectCall:
+      case KernelBytecode::kUncheckedDirectCall_Wide:
       case KernelBytecode::kInterfaceCall:
       case KernelBytecode::kInterfaceCall_Wide:
       case KernelBytecode::kInstantiatedInterfaceCall:
@@ -994,7 +1006,6 @@ class KernelBytecode {
       case KernelBytecode::kDynamicCall:
       case KernelBytecode::kDynamicCall_Wide:
       case KernelBytecode::kReturnTOS:
-      case KernelBytecode::kThrow:
       case KernelBytecode::kEqualsNull:
       case KernelBytecode::kNegateInt:
       case KernelBytecode::kNegateDouble:

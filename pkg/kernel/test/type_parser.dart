@@ -30,6 +30,8 @@ class Token {
   static const int Arrow = 11; // '=>'
   static const int Colon = 12;
   static const int Ampersand = 13;
+  static const int QuestionMark = 14;
+  static const int Asterisk = 15;
   static const int Invalid = 100;
 }
 
@@ -95,12 +97,16 @@ class DartTypeParser {
     switch (character) {
       case 38:
         return Token.Ampersand;
+      case 42:
+        return Token.Asterisk;
       case 44:
         return Token.Comma;
       case 60:
         return Token.LeftAngle;
       case 62:
         return Token.RightAngle;
+      case 63:
+        return Token.QuestionMark;
       case 40:
         return Token.LeftParen;
       case 41:
@@ -130,6 +136,21 @@ class DartTypeParser {
     }
   }
 
+  Nullability parseOptionalNullability(
+      [Nullability defaultNullability = Nullability.nonNullable]) {
+    int token = peekToken();
+    switch (token) {
+      case Token.QuestionMark:
+        scanToken();
+        return Nullability.nullable;
+      case Token.Asterisk:
+        scanToken();
+        return Nullability.legacy;
+      default:
+        return defaultNullability;
+    }
+  }
+
   DartType parseType() {
     int token = peekToken();
     switch (token) {
@@ -143,10 +164,16 @@ class DartTypeParser {
         if (target == null) {
           return fail('Unresolved type $name');
         } else if (target is Class) {
-          return new InterfaceType(target, parseOptionalTypeArgumentList());
+          List<DartType> typeArguments = parseOptionalTypeArgumentList();
+          Nullability nullability = parseOptionalNullability();
+          return new InterfaceType(target, nullability, typeArguments);
         } else if (target is Typedef) {
-          return new TypedefType(target, parseOptionalTypeArgumentList());
+          List<DartType> typeArguments = parseOptionalTypeArgumentList();
+          Nullability nullability = parseOptionalNullability();
+          return new TypedefType(target, nullability, typeArguments);
         } else if (target is TypeParameter) {
+          Nullability nullability =
+              parseOptionalNullability(Nullability.undetermined);
           DartType promotedBound;
           switch (peekToken()) {
             case Token.LeftAngle:
@@ -158,7 +185,7 @@ class DartTypeParser {
             default:
               break;
           }
-          return new TypeParameterType(target, promotedBound);
+          return new TypeParameterType(target, nullability, promotedBound);
         }
         return fail("Unexpected lookup result for $name: $target");
 
@@ -167,8 +194,9 @@ class DartTypeParser {
         List<NamedType> namedParameters = <NamedType>[];
         parseParameterList(parameters, namedParameters);
         consumeString('=>');
+        Nullability nullability = parseOptionalNullability();
         var returnType = parseType();
-        return new FunctionType(parameters, returnType,
+        return new FunctionType(parameters, returnType, nullability,
             namedParameters: namedParameters);
 
       case Token.LeftAngle:
@@ -177,9 +205,10 @@ class DartTypeParser {
         List<NamedType> namedParameters = <NamedType>[];
         parseParameterList(parameters, namedParameters);
         consumeString('=>');
+        Nullability nullability = parseOptionalNullability();
         var returnType = parseType();
         popTypeParameters(typeParameters);
-        return new FunctionType(parameters, returnType,
+        return new FunctionType(parameters, returnType, nullability,
             typeParameters: typeParameters, namedParameters: namedParameters);
 
       default:
@@ -274,7 +303,8 @@ class DartTypeParser {
       scanToken();
       typeParameter.bound = parseType();
     } else {
-      typeParameter.bound = new InterfaceType(lookupType('Object'));
+      typeParameter.bound =
+          new InterfaceType(lookupType('Object'), Nullability.nullable);
     }
     return typeParameter;
   }
@@ -291,7 +321,8 @@ class LazyTypeEnvironment {
   final Component component = new Component();
 
   LazyTypeEnvironment() {
-    dummyLibrary = new Library(Uri.parse('file://dummy.dart'));
+    dummyLibrary = new Library(Uri.parse('file://dummy.dart'))
+      ..isNonNullableByDefault = true;
     component.libraries.add(dummyLibrary..parent = component);
     dummyLibrary.name = 'lib';
   }
@@ -299,7 +330,9 @@ class LazyTypeEnvironment {
   TreeNode lookup(String name) {
     return name.length == 1
         ? typeParameters.putIfAbsent(
-            name, () => new TypeParameter(name, lookupClass('Object').rawType))
+            name,
+            () => new TypeParameter(name,
+                new InterfaceType(lookupClass('Object'), Nullability.nullable)))
         : lookupClass(name);
   }
 

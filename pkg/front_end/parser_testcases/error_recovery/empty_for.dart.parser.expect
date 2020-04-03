@@ -1,0 +1,11 @@
+NOTICE: Stream was rewritten by parser!
+
+main() {
+for (;;) {}
+}
+
+
+main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+for[KeywordToken] ([BeginToken][SyntheticStringToken];[SyntheticToken][SyntheticStringToken];[SyntheticToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

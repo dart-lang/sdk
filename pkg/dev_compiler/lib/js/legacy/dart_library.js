@@ -246,6 +246,7 @@ if (!dart_library) {
 
     /// Once the `onReloadStart()` completes, this finishes the restart.
     function finishHotRestart() {
+      window.console.clear();
       if (clearState) {
         // This resets all initialized fields and clears type caches and other
         // temporary data structures used by the compiler/SDK.

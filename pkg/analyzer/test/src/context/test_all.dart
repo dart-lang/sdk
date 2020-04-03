@@ -5,14 +5,14 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'builder_test.dart' as builder_test;
-import 'cache_test.dart' as cache_test;
-import 'source_test.dart' as source_test;
+import 'package_config_json_test.dart' as package_config_json_test;
+import 'packages_test.dart' as packages_test;
 
 /// Utility for manually running all tests.
 main() {
   defineReflectiveSuite(() {
     builder_test.main();
-    cache_test.main();
-    source_test.main();
+    package_config_json_test.main();
+    packages_test.main();
   }, name: 'context');
 }

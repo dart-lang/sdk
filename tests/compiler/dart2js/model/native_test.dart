@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common_elements.dart';
@@ -68,9 +70,7 @@ main() {
       '46',
       '51',
       // TODO(33834): Non-external constructors should not be allowed.
-      '34',
       '35',
-      '36',
       '37',
       // TODO(34345): Non-external static members should not be allowed.
       '43',
@@ -127,9 +127,7 @@ main() {
       '46',
       '51',
       // TODO(33834): Non-external constructors should not be allowed.
-      '34',
       '35',
-      '36',
       '37',
       // TODO(34345): Non-external static members should not be allowed.
       '43',

@@ -6,10 +6,12 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/function_type_builder.dart';
 import 'package:analyzer/src/summary2/lazy_ast.dart';
@@ -29,11 +31,14 @@ import 'package:analyzer/src/summary2/types_builder.dart';
 /// the type is set, otherwise we keep it empty, so we will attempt to infer
 /// it later).
 class ReferenceResolver extends ThrowingAstVisitor<void> {
+  final TypeSystemImpl _typeSystem;
   final NodesToBuildType nodesToBuildType;
   final LinkedElementFactory elementFactory;
   final LibraryElement _libraryElement;
   final Reference unitReference;
-  final bool nnbd;
+
+  /// Indicates whether the library is opted into NNBD.
+  final bool isNNBD;
 
   /// The depth-first number of the next [GenericFunctionType] node.
   int _nextGenericFunctionTypeId = 0;
@@ -49,9 +54,10 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     this.elementFactory,
     this._libraryElement,
     this.unitReference,
-    this.nnbd,
+    this.isNNBD,
     this.scope,
-  ) : reference = unitReference;
+  )   : _typeSystem = _libraryElement.typeSystem,
+        reference = unitReference;
 
   @override
   void visitBlockFunctionBody(BlockFunctionBody node) {}
@@ -68,14 +74,14 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.name.staticElement = element;
 
     _createTypeParameterElements(node.typeParameters);
-    scope = new TypeParameterScope(scope, element);
+    scope = TypeParameterScope(scope, element);
 
     node.typeParameters?.accept(this);
     node.extendsClause?.accept(this);
     node.implementsClause?.accept(this);
     node.withClause?.accept(this);
 
-    scope = new ClassScope(scope, element);
+    scope = ClassScope(scope, element);
     LinkingNodeContext(node, scope);
 
     _hasConstConstructor = false;
@@ -104,8 +110,8 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     ClassElementImpl element = reference.element;
     node.name.staticElement = element;
     _createTypeParameterElements(node.typeParameters);
-    scope = new TypeParameterScope(scope, element);
-    scope = new ClassScope(scope, element);
+    scope = TypeParameterScope(scope, element);
+    scope = ClassScope(scope, element);
     LinkingNodeContext(node, scope);
 
     node.typeParameters?.accept(this);
@@ -143,6 +149,9 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     LinkingNodeContext(node, functionScope);
 
     node.parameters?.accept(this);
+    node.initializers.accept(
+      _SetGenericFunctionTypeIdVisitor(this),
+    );
 
     scope = outerScope;
     reference = outerReference;
@@ -151,6 +160,9 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
     node.parameter.accept(this);
+    node.defaultValue?.accept(
+      _SetGenericFunctionTypeIdVisitor(this),
+    );
   }
 
   @override
@@ -176,12 +188,12 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.name?.staticElement = element;
 
     _createTypeParameterElements(node.typeParameters);
-    scope = new TypeParameterScope(scope, element);
+    scope = TypeParameterScope(scope, element);
 
     node.typeParameters?.accept(this);
     node.extendedType.accept(this);
 
-    scope = new ExtensionScope(scope, element);
+    scope = ExtensionScope(scope, element);
     LinkingNodeContext(node, scope);
 
     node.members.accept(this);
@@ -204,9 +216,33 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
+    var outerScope = scope;
+    var outerReference = reference;
+
+    var name = node.identifier.name;
+    reference = reference.getChild('@parameter').getChild(name);
+    reference.node = node;
+
+    var element = ParameterElementImpl.forLinkedNode(
+      outerReference.element,
+      reference,
+      node,
+    );
+    node.identifier.staticElement = element;
+    _createTypeParameterElements(node.typeParameters);
+
+    scope = EnclosedScope(scope);
+    for (var typeParameter in element.typeParameters) {
+      scope.define(typeParameter);
+    }
+
     node.type?.accept(this);
+    node.typeParameters?.accept(this);
     node.parameters?.accept(this);
     nodesToBuildType.addDeclaration(node);
+
+    scope = outerScope;
+    reference = outerReference;
   }
 
   @override
@@ -233,7 +269,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     ExecutableElementImpl element = reference.element;
     node.name.staticElement = element;
     _createTypeParameterElements(node.functionExpression.typeParameters);
-    scope = new FunctionScope(scope, element);
+    scope = FunctionScope(scope, element);
     LinkingNodeContext(node, scope);
 
     node.returnType?.accept(this);
@@ -265,7 +301,11 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     node.returnType?.accept(this);
     node.typeParameters?.accept(this);
+
+    reference = reference.getChild('@function');
+    reference.element = element;
     node.parameters.accept(this);
+
     nodesToBuildType.addDeclaration(node);
 
     scope = outerScope;
@@ -289,7 +329,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.identifier.staticElement = element;
     _createTypeParameterElements(node.typeParameters);
 
-    scope = new EnclosedScope(scope);
+    scope = EnclosedScope(scope);
     for (var typeParameter in element.typeParameters) {
       scope.define(typeParameter);
     }
@@ -328,7 +368,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.parameters.accept(this);
 
     var nullabilitySuffix = _getNullabilitySuffix(node.question != null);
-    var builder = FunctionTypeBuilder.of(node, nullabilitySuffix);
+    var builder = FunctionTypeBuilder.of(isNNBD, node, nullabilitySuffix);
     (node as GenericFunctionTypeImpl).type = builder;
     nodesToBuildType.addTypeBuilder(builder);
 
@@ -385,7 +425,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     );
     node.name.staticElement = element;
     _createTypeParameterElements(node.typeParameters);
-    scope = new FunctionScope(scope, element);
+    scope = FunctionScope(scope, element);
     LinkingNodeContext(node, scope);
 
     node.returnType?.accept(this);
@@ -409,13 +449,13 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.name.staticElement = element;
 
     _createTypeParameterElements(node.typeParameters);
-    scope = new TypeParameterScope(scope, element);
+    scope = TypeParameterScope(scope, element);
 
     node.typeParameters?.accept(this);
     node.onClause?.accept(this);
     node.implementsClause?.accept(this);
 
-    scope = new ClassScope(scope, element);
+    scope = ClassScope(scope, element);
     LinkingNodeContext(node, scope);
 
     node.members.accept(this);
@@ -472,11 +512,12 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var nullabilitySuffix = _getNullabilitySuffix(node.question != null);
     if (element is TypeParameterElement) {
       node.type = TypeParameterTypeImpl(
-        element,
+        element: element,
         nullabilitySuffix: nullabilitySuffix,
       );
     } else {
       var builder = NamedTypeBuilder.of(
+        _typeSystem,
         node,
         element,
         nullabilitySuffix,
@@ -530,7 +571,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   NullabilitySuffix _getNullabilitySuffix(bool hasQuestion) {
-    if (nnbd) {
+    if (isNNBD) {
       if (hasQuestion) {
         return NullabilitySuffix.question;
       } else {

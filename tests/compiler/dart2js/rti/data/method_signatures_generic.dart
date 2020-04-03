@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'package:expect/expect.dart';
 
 class Class1 {
@@ -16,7 +18,7 @@ class Class1 {
 }
 
 class Class2 {
-  /*strong.member: Class2.method4:direct,explicit=[method4.T],needsArgs,needsInst=[<num>,<num>]*/
+  /*strong.member: Class2.method4:direct,explicit=[method4.T],needsArgs,needsInst=[<num>,<num>,<num>,<num>]*/
   /*omit.member: Class2.method4:*/
   num method4<T>(T n) => null;
 }
@@ -27,19 +29,19 @@ class Class3 {
 }
 
 class Class4 {
-  /*strong.member: Class4.method6:direct,explicit=[method6.T],needsArgs,needsInst=[<num>,<num>]*/
+  /*strong.member: Class4.method6:direct,explicit=[method6.T],needsArgs,needsInst=[<num>,<num>,<num>,<num>]*/
   /*omit.member: Class4.method6:*/
   num method6<T>(num n, T t) => null;
 }
 
-/*strong.member: method7:direct,explicit=[method7.T],needsArgs,needsInst=[<num>,<num>]*/
+/*strong.member: method7:direct,explicit=[method7.T],needsArgs,needsInst=[<num>,<num>,<num>,<num>]*/
 /*omit.member: method7:*/
 num method7<T>(T n) => null;
 
 /*member: method8:*/
 T method8<T>(num n) => null;
 
-/*strong.member: method9:direct,explicit=[method9.T],needsArgs,needsInst=[<num>,<num>]*/
+/*strong.member: method9:direct,explicit=[method9.T],needsArgs,needsInst=[<num>,<num>,<num>,<num>]*/
 /*omit.member: method9:*/
 num method9<T>(num n, T t) => null;
 

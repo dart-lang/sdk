@@ -1,0 +1,16 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///issue_39682_lib.dart" deferred as foo;
+
+static method main() → dynamic
+  ;
+static method __loadLibrary_foo() → core::String*
+  ;
+
+library;
+import self as self2;
+
+static method foo() → dynamic
+  ;

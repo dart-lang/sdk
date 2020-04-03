@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import '../helpers/memory_compiler.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/apiimpl.dart' show CompilerImpl;
@@ -70,14 +72,14 @@ Future<List<int>> compileUnit(List<String> inputs, Map<String, dynamic> sources,
       entity.writeAsBytesSync(data);
     }
   });
-  List<Uri> linkedDependencies = [
+  List<Uri> additionalDills = [
     computePlatformBinariesLocation().resolve("dart2js_platform.dill"),
   ]..addAll(deps.map(toTestUri));
   fs.entityForUri(toTestUri('.packages')).writeAsStringSync('');
   var options = new CompilerOptions()
     ..target = new Dart2jsTarget("dart2js", new TargetFlags())
     ..fileSystem = new TestFileSystem(fs)
-    ..linkedDependencies = linkedDependencies
+    ..additionalDills = additionalDills
     ..packagesFileUri = toTestUri('.packages');
   var inputUris = inputs.map(toTestUri).toList();
   var inputUriSet = inputUris.toSet();

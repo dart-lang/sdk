@@ -251,6 +251,21 @@ const char* Platform::ResolveExecutablePath() {
   return canon_path;
 }
 
+intptr_t Platform::ResolveExecutablePathInto(char* result, size_t result_size) {
+  // Get the required length of the buffer.
+  uint32_t path_size = 0;
+  if (_NSGetExecutablePath(nullptr, &path_size) == 0) {
+    return -1;
+  }
+  if (path_size > result_size) {
+    return -1;
+  }
+  if (_NSGetExecutablePath(result, &path_size) != 0) {
+    return -1;
+  }
+  return path_size;
+}
+
 void Platform::Exit(int exit_code) {
   Console::RestoreConfig();
   Dart_PrepareToAbort();

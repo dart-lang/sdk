@@ -2,7 +2,7 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-typedef F<T extends core::Object* = dynamic> = (T*) →* dynamic;
+typedef F<contravariant T extends core::Object* = dynamic> = (T*) →* dynamic;
 class C<T extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::C<self::C::T*>*
     ;

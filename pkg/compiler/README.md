@@ -332,14 +332,6 @@ functionality is publicly exposed.
   abstraction was especially necessary when dart2js was used as a front-end for
   non-JS systems like dart2dart and dartino.
 
-  * `lib/src/constants/expressions.dart`: this is how constants are represented
-    after they are parsed but before they are evaluated. It is a target
-    agnostic representation, all expressions are kept as they appear in the
-    source, and it doesn't replace _environemnt_ values that are provided on the
-    command line. In particular, the constant `1 == 1.0` is represented as an
-    expression that includes the `==` binary expression, and `const
-    String.fromEnvironment("FOO")` is not expanded.
-
   * `lib/src/constants/value.dart`: this is the represented value of a constant
     after it has been evaluated. The resulting value is specific to the target
     of the compiler and will no longer have environment placeholders. For
@@ -347,9 +339,6 @@ functionality is publicly exposed.
     `false`, and when the target is JavaScript it is evaluated to `true`. This
     specific example is a result of the way dart2js compiles numbers as
     JavaScript Numbers.
-
-  * `lib/src/constants/evaluation.dart`: defines the algorithm to turn an
-    expression into a value.
 
   * `lib/src/constants/constant_system.dart`: an abstraction that defines how
     expressions may be folded. Different implementations of the constant system
@@ -364,12 +353,6 @@ functionality is publicly exposed.
   * `lib/src/js_backend/constant_system_javascript.dart`: defines an
     implementation of a constant system with the JavaScript semantics (where
     `1 == 1.0` is false).
-
-  * `lib/src/constants/constructors.dart` and
-    `lib/src/constants/constant_constructors.dart`: used to define expressions
-    containing constant constructors. They depend on the resolver to figure out
-    what is the meaning of an initializer or a field on a constructed constant
-    created this way.
 
   AI: consider deleting `constant_system_dart.dart` now that it is no longer
   used, or move under testing, if it might be used for unittests of the constant

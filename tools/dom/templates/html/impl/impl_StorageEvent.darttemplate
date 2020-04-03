@@ -8,12 +8,13 @@ part of $LIBRARYNAME;
 
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   factory $CLASSNAME(String type,
-    {bool canBubble: false, bool cancelable: false, String key, String oldValue,
-    String newValue, String url, Storage storageArea}) {
+    {bool canBubble: false, bool cancelable: false, String$NULLABLE key,
+    String$NULLABLE oldValue, String$NULLABLE newValue, String$NULLABLE url,
+    Storage$NULLABLE storageArea}) {
 
-    StorageEvent e = document._createEvent("StorageEvent");
-    e._initStorageEvent(type, canBubble, cancelable, key, oldValue,
-        newValue, url, storageArea);
+    StorageEvent e = document._createEvent("StorageEvent") $#NULLSAFECAST(as StorageEvent);
+    e._initStorageEvent(type, canBubble, cancelable, key, oldValue, newValue,
+        url, storageArea);
     return e;
   }
 $!MEMBERS

@@ -118,12 +118,20 @@ class Disassembler : public AllStatic {
   static void Disassemble(uword start,
                           uword end,
                           DisassemblyFormatter* formatter,
-                          const Code& code);
+                          const Code& code,
+                          const Code::Comments* comments = nullptr);
 
   static void Disassemble(uword start,
                           uword end,
                           DisassemblyFormatter* formatter) {
     Disassemble(start, end, formatter, Code::Handle());
+  }
+
+  static void Disassemble(uword start,
+                          uword end,
+                          DisassemblyFormatter* formatter,
+                          const Code::Comments* comments) {
+    Disassemble(start, end, formatter, Code::Handle(), comments);
   }
 
   static void Disassemble(uword start, uword end, const Code& code) {
@@ -175,6 +183,8 @@ class Disassembler : public AllStatic {
   static void DisassembleCode(const Function& function,
                               const Code& code,
                               bool optimized);
+
+  static void DisassembleStub(const char* name, const Code& code);
 
  private:
   static void DisassembleCodeHelper(const char* function_fullname,

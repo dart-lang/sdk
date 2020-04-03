@@ -5,19 +5,6 @@
   "packages": "../../../../.packages",
   "suites": [
     {
-      "name": "sourcemaps_ddc",
-      "kind": "Chain",
-      "source": "sourcemaps_ddc_suite.dart",
-      "path": "testfiles",
-      "status": "sourcemaps_ddc.status",
-      "pattern": [
-        "\\.dart$",
-        "\\.unformatteddart$"
-      ],
-      "exclude": [
-      ]
-    },
-    {
       "name": "sourcemaps_ddk",
       "kind": "Chain",
       "source": "sourcemaps_ddk_suite.dart",
@@ -36,18 +23,6 @@
       "source": "stacktrace_ddk_suite.dart",
       "path": "stacktrace_testfiles",
       "status": "stacktrace_ddk.status",
-      "pattern": [
-        "\\.dart$"
-      ],
-      "exclude": [
-      ]
-    },
-    {
-      "name": "stacktrace_ddc",
-      "kind": "Chain",
-      "source": "stacktrace_ddc_suite.dart",
-      "path": "stacktrace_testfiles",
-      "status": "stacktrace_ddc.status",
       "pattern": [
         "\\.dart$"
       ],

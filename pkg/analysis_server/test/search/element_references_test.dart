@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -12,7 +11,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'abstract_search_domain.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ElementReferencesTest);
   });
@@ -29,13 +28,13 @@ class ElementReferencesTest extends AbstractSearchDomainTest {
 
   Future<void> findElementReferences(
       String search, bool includePotential) async {
-    int offset = findOffset(search);
+    var offset = findOffset(search);
     await waitForTasksFinished();
-    Request request = new SearchFindElementReferencesParams(
-            testFile, offset, includePotential)
-        .toRequest('0');
-    Response response = await waitResponse(request);
-    var result = new SearchFindElementReferencesResult.fromResponse(response);
+    var request =
+        SearchFindElementReferencesParams(testFile, offset, includePotential)
+            .toRequest('0');
+    var response = await waitResponse(request);
+    var result = SearchFindElementReferencesResult.fromResponse(response);
     searchId = result.id;
     searchElement = result.element;
     if (searchId != null) {
@@ -128,7 +127,7 @@ main() {
     assertHasResult(SearchResultKind.REFERENCE, '(1)', 0);
   }
 
-  test_extension() async {
+  Future<void> test_extension() async {
     createAnalysisOptionsFile(experiments: ['extension-methods']);
     addTestFile('''
 extension E on int {
@@ -177,12 +176,12 @@ main(A a) {
     assertHasResult(SearchResultKind.WRITE, 'fff = 2;');
     assertHasResult(SearchResultKind.WRITE, 'fff += 3;');
     assertHasResult(SearchResultKind.READ, 'fff); // in m()');
-    assertHasResult(SearchResultKind.INVOCATION, 'fff(); // in m()');
+    assertHasResult(SearchResultKind.READ, 'fff(); // in m()');
     // main()
     assertHasResult(SearchResultKind.WRITE, 'fff = 20;');
     assertHasResult(SearchResultKind.WRITE, 'fff += 30;');
     assertHasResult(SearchResultKind.READ, 'fff); // in main()');
-    assertHasResult(SearchResultKind.INVOCATION, 'fff(); // in main()');
+    assertHasResult(SearchResultKind.READ, 'fff(); // in main()');
   }
 
   Future<void> test_field_implicit() async {
@@ -238,7 +237,7 @@ class A {
     assertHasResult(SearchResultKind.READ, 'fff); // in m()');
   }
 
-  test_field_ofExtension_explicit_static() async {
+  Future<void> test_field_ofExtension_explicit_static() async {
     createAnalysisOptionsFile(experiments: ['extension-methods']);
     addTestFile('''
 extension E on int {
@@ -266,15 +265,15 @@ main() {
     assertHasResult(SearchResultKind.WRITE, 'fff = 2;');
     assertHasResult(SearchResultKind.WRITE, 'fff += 3;');
     assertHasResult(SearchResultKind.READ, 'fff); // in m()');
-    assertHasResult(SearchResultKind.INVOCATION, 'fff(); // in m()');
+    assertHasResult(SearchResultKind.READ, 'fff(); // in m()');
     // main()
     assertHasResult(SearchResultKind.WRITE, 'fff = 20;');
     assertHasResult(SearchResultKind.WRITE, 'fff += 30;');
     assertHasResult(SearchResultKind.READ, 'fff); // in main()');
-    assertHasResult(SearchResultKind.INVOCATION, 'fff(); // in main()');
+    assertHasResult(SearchResultKind.READ, 'fff(); // in main()');
   }
 
-  test_field_ofExtension_implicit_instance() async {
+  Future<void> test_field_ofExtension_implicit_instance() async {
     createAnalysisOptionsFile(experiments: ['extension-methods']);
     addTestFile('''
 extension E on int {
@@ -309,7 +308,7 @@ main() {
     }
   }
 
-  test_field_ofExtension_implicit_static() async {
+  Future<void> test_field_ofExtension_implicit_static() async {
     createAnalysisOptionsFile(experiments: ['extension-methods']);
     addTestFile('''
 extension E on int {
@@ -489,7 +488,7 @@ main() {
     assertHasResult(SearchResultKind.READ, 'vvv);');
     assertHasResult(SearchResultKind.READ_WRITE, 'vvv += 3');
     assertHasResult(SearchResultKind.WRITE, 'vvv = 2');
-    assertHasResult(SearchResultKind.INVOCATION, 'vvv();');
+    assertHasResult(SearchResultKind.READ, 'vvv();');
   }
 
   Future<void> test_method() async {
@@ -515,7 +514,7 @@ main(A a) {
     assertHasResult(SearchResultKind.REFERENCE, 'mmm); // in main()');
   }
 
-  test_method_ofExtension() async {
+  Future<void> test_method_ofExtension() async {
     createAnalysisOptionsFile(experiments: ['extension-methods']);
     addTestFile('''
 extension E on int {
@@ -605,7 +604,7 @@ main(ppp) {
     assertHasResult(SearchResultKind.READ, 'ppp);');
     assertHasResult(SearchResultKind.READ_WRITE, 'ppp += 3');
     assertHasResult(SearchResultKind.WRITE, 'ppp = 2');
-    assertHasResult(SearchResultKind.INVOCATION, 'ppp();');
+    assertHasResult(SearchResultKind.READ, 'ppp();');
   }
 
   @failingTest
@@ -764,7 +763,7 @@ main() {
   ppp.Stream b;
 }
 ''');
-    await findElementReferences("ppp;", false);
+    await findElementReferences('ppp;', false);
     expect(searchElement.kind, ElementKind.PREFIX);
     expect(searchElement.name, 'ppp');
     expect(searchElement.location.startLine, 1);
@@ -789,7 +788,7 @@ main() {
     assertHasResult(SearchResultKind.READ, 'vvv);');
     assertHasResult(SearchResultKind.WRITE, 'vvv += 3');
     assertHasResult(SearchResultKind.WRITE, 'vvv = 2');
-    assertHasResult(SearchResultKind.INVOCATION, 'vvv();');
+    assertHasResult(SearchResultKind.READ, 'vvv();');
   }
 
   Future<void> test_topLevelVariable_implicit() async {

@@ -9,6 +9,8 @@ import 'package:kernel/kernel.dart'
 
 import 'package:kernel/util/graph.dart' show Graph;
 
+import 'incremental_compiler.dart' show getPartUri;
+
 class LibraryGraph implements Graph<Uri> {
   final Map<Uri, Library> libraries;
 
@@ -39,8 +41,8 @@ class LibraryGraph implements Graph<Uri> {
     // Normally there won't be libraries for these, but if, for instance,
     // the part didn't exist there will be a synthetic library.
     for (LibraryPart part in library.parts) {
-      Uri partUri = library.importUri.resolve(part.partUri);
-      Uri fileUri = library.fileUri.resolve(part.partUri);
+      Uri partUri = getPartUri(library.importUri, part);
+      Uri fileUri = getPartUri(library.fileUri, part);
       if (libraries.containsKey(partUri)) {
         yield partUri;
       } else if (fileUri != partUri && libraries.containsKey(fileUri)) {

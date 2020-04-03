@@ -4,8 +4,3 @@
 
 # This file contains all sources for the dart:isolate library.
 isolate_runtime_cc_files = [ "isolate.cc" ]
-
-isolate_runtime_dart_files = [
-  "isolate_patch.dart",
-  "timer_impl.dart",
-]

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart._http;
 
 /**
@@ -114,38 +116,6 @@ class HttpDate {
       "Nov",
       "Dec"
     ];
-    const List wkdaysLowerCase = const [
-      "mon",
-      "tue",
-      "wed",
-      "thu",
-      "fri",
-      "sat",
-      "sun"
-    ];
-    const List weekdaysLowerCase = const [
-      "monday",
-      "tuesday",
-      "wednesday",
-      "thursday",
-      "friday",
-      "saturday",
-      "sunday"
-    ];
-    const List monthsLowerCase = const [
-      "jan",
-      "feb",
-      "mar",
-      "apr",
-      "may",
-      "jun",
-      "jul",
-      "aug",
-      "sep",
-      "oct",
-      "nov",
-      "dec"
-    ];
 
     final int formatRfc1123 = 0;
     final int formatRfc850 = 1;
@@ -219,7 +189,7 @@ class HttpDate {
       try {
         int value = int.parse(tmp);
         return value;
-      } on FormatException catch (e) {
+      } on FormatException {
         throw new HttpException("Invalid HTTP date $date");
       }
     }

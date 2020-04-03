@@ -1,0 +1,96 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Test extension on String from import from dill.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import "lib1.dart";
+        import "lib2.dart";
+        import "lib3.dart";
+        main() {
+          "42".parseInt();
+          "42".fooMe1();
+          "42".fooMe2();
+        }
+      lib1.dart: |
+        extension NumberParsing on String {
+          int parseInt() {
+            return int.parse(this);
+          }
+        }
+      lib2.dart: |
+        extension DuplicateName on String {
+          String fooMe1() {
+            return "Foo1";
+          }
+        }
+      lib3.dart: |
+        extension DuplicateName on String {
+          String fooMe2() {
+            return "Foo2";
+          }
+        }
+    expectedLibraryCount: 4
+    expressionCompilation:
+      - uri: lib1.dart
+        expression: print("1234".parseInt())
+      - uri: lib2.dart
+        expression: print("1234".parseInt())
+        errors: true
+      - uri: lib3.dart
+        expression: print("1234".parseInt())
+        errors: true
+      - uri: main.dart
+        expression: print("1234".parseInt())
+      - uri: main.dart
+        expression: print("1234".fooMe1())
+  - entry: main.dart
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        import "lib1.dart";
+        import "lib2.dart";
+        import "lib3.dart";
+        main() {
+          "42".parseInt();
+          "42".fooMe1();
+          "42".fooMe2();
+        }
+      lib1.dart: |
+        extension NumberParsing on String {
+          int parseInt() {
+            return int.parse(this);
+          }
+        }
+      lib2.dart: |
+        extension DuplicateName on String {
+          String fooMe1() {
+            return "Foo1";
+          }
+        }
+      lib3.dart: |
+        extension DuplicateName on String {
+          String fooMe2() {
+            return "Foo2";
+          }
+        }
+    expectedLibraryCount: 4
+    expressionCompilation:
+      - uri: lib1.dart
+        expression: print("1234".parseInt())
+      - uri: lib2.dart
+        expression: print("1234".parseInt())
+        errors: true
+      - uri: lib3.dart
+        expression: print("1234".parseInt())
+        errors: true
+      - uri: main.dart
+        expression: print("1234".parseInt())
+      - uri: main.dart
+        expression: print("1234".fooMe1())

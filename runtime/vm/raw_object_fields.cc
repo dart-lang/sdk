@@ -6,9 +6,9 @@
 
 namespace dart {
 
-#if defined(DART_PRECOMPILER)
+#if defined(DART_PRECOMPILER) || !defined(DART_PRODUCT)
 
-#define RAW_CLASSES_AND_FIELDS(F)                                              \
+#define COMMON_CLASSES_AND_FIELDS(F)                                           \
   F(Class, name_)                                                              \
   F(Class, user_name_)                                                         \
   F(Class, functions_)                                                         \
@@ -55,14 +55,12 @@ namespace dart {
   F(Field, type_)                                                              \
   F(Field, guarded_list_length_)                                               \
   F(Field, dependent_code_)                                                    \
-  F(Field, type_test_cache_)                                                   \
   F(Field, initializer_function_)                                              \
   F(Script, url_)                                                              \
   F(Script, resolved_url_)                                                     \
   F(Script, compile_time_constants_)                                           \
   F(Script, line_starts_)                                                      \
   F(Script, debug_positions_)                                                  \
-  F(Script, yield_positions_)                                                  \
   F(Script, kernel_program_info_)                                              \
   F(Script, source_)                                                           \
   F(Library, name_)                                                            \
@@ -71,10 +69,9 @@ namespace dart {
   F(Library, dictionary_)                                                      \
   F(Library, metadata_)                                                        \
   F(Library, toplevel_class_)                                                  \
-  F(Library, owned_scripts_)                                                   \
+  F(Library, used_scripts_)                                                    \
   F(Library, imports_)                                                         \
   F(Library, exports_)                                                         \
-  F(Library, load_error_)                                                      \
   F(Library, kernel_data_)                                                     \
   F(Library, resolved_names_)                                                  \
   F(Library, exported_names_)                                                  \
@@ -96,12 +93,14 @@ namespace dart {
   F(KernelProgramInfo, constants_table_)                                       \
   F(KernelProgramInfo, libraries_cache_)                                       \
   F(KernelProgramInfo, classes_cache_)                                         \
+  F(KernelProgramInfo, retained_kernel_blob_)                                  \
   F(Code, object_pool_)                                                        \
   F(Code, instructions_)                                                       \
   F(Code, owner_)                                                              \
   F(Code, exception_handlers_)                                                 \
   F(Code, pc_descriptors_)                                                     \
-  F(Code, stackmaps_)                                                          \
+  F(Code, catch_entry_)                                                        \
+  F(Code, compressed_stackmaps_)                                               \
   F(Code, inlined_id_to_function_)                                             \
   F(Code, code_source_map_)                                                    \
   F(Bytecode, object_pool_)                                                    \
@@ -119,6 +118,8 @@ namespace dart {
   F(SingleTargetCache, target_)                                                \
   F(UnlinkedCall, target_name_)                                                \
   F(UnlinkedCall, args_descriptor_)                                            \
+  F(MonomorphicSmiableCall, expected_cid_)                                     \
+  F(MonomorphicSmiableCall, target_)                                           \
   F(ICData, entries_)                                                          \
   F(ICData, target_name_)                                                      \
   F(ICData, args_descriptor_)                                                  \
@@ -139,10 +140,10 @@ namespace dart {
   F(LibraryPrefix, name_)                                                      \
   F(LibraryPrefix, importer_)                                                  \
   F(LibraryPrefix, imports_)                                                   \
-  F(LibraryPrefix, dependent_code_)                                            \
   F(TypeArguments, instantiations_)                                            \
   F(TypeArguments, length_)                                                    \
   F(TypeArguments, hash_)                                                      \
+  F(TypeArguments, nullability_)                                               \
   F(AbstractType, type_test_stub_)                                             \
   F(Type, type_test_stub_)                                                     \
   F(Type, type_class_id_)                                                      \
@@ -193,17 +194,30 @@ namespace dart {
   F(WeakProperty, value_)                                                      \
   F(MirrorReference, referent_)                                                \
   F(UserTag, label_)                                                           \
+  F(PointerBase, data_)                                                        \
   F(Pointer, type_arguments_)                                                  \
-  F(Pointer, c_memory_address_)                                                \
   F(DynamicLibrary, handle_)                                                   \
   F(FfiTrampolineData, signature_type_)                                        \
   F(FfiTrampolineData, c_signature_)                                           \
   F(FfiTrampolineData, callback_target_)                                       \
   F(FfiTrampolineData, callback_exceptional_return_)                           \
-  F(TypedDataBase, data_)                                                      \
   F(TypedDataBase, length_)                                                    \
   F(TypedDataView, typed_data_)                                                \
-  F(TypedDataView, offset_in_bytes_)
+  F(TypedDataView, offset_in_bytes_)                                           \
+  F(FutureOr, type_arguments_)
+
+#define AOT_CLASSES_AND_FIELDS(F) F(WeakSerializationReference, cid_)
+
+#define JIT_CLASSES_AND_FIELDS(F)                                              \
+  F(Code, active_instructions_)                                                \
+  F(Code, deopt_info_array_)                                                   \
+  F(Code, static_calls_target_table_)                                          \
+  F(ICData, receivers_static_type_)                                            \
+  F(Function, bytecode_)                                                       \
+  F(Function, unoptimized_code_)                                               \
+  F(Field, saved_initial_value_)                                               \
+  F(Field, type_test_cache_)                                                   \
+  F(WeakSerializationReference, target_)
 
 OffsetsTable::OffsetsTable(Zone* zone) : cached_offsets_(zone) {
   for (intptr_t i = 0; offsets_table[i].class_id != -1; ++i) {
@@ -222,7 +236,12 @@ const char* OffsetsTable::FieldNameForOffset(intptr_t class_id,
 
 // clang-format off
 OffsetsTable::OffsetsTableEntry OffsetsTable::offsets_table[] = {
-    RAW_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
+    COMMON_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
+#if defined(DART_PRECOMPILED_RUNTIME)
+    AOT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
+#else
+    JIT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
+#endif
     {-1, nullptr, -1}
 };
 // clang-format on

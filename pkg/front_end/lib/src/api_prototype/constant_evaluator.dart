@@ -9,6 +9,7 @@ export '../fasta/kernel/constant_evaluator.dart'
         ConstantEvaluator,
         ConstantsTransformer,
         ErrorReporter,
+        EvaluationMode,
         EvaluationEnvironment,
         SimpleErrorReporter,
         transformComponent,

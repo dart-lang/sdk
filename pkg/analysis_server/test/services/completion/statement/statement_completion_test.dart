@@ -4,13 +4,12 @@
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/statement/statement_completion.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../abstract_single_unit.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(_ControlFlowCompletionTest);
     defineReflectiveTests(_DeclarationCompletionTest);
@@ -42,46 +41,45 @@ class StatementCompletionTest extends AbstractSingleUnitTest {
   ]) {
     if (change.message == message) {
       if (change.edits.isNotEmpty) {
-        String resultCode =
+        var resultCode =
             SourceEdit.applySequence(testCode, change.edits[0].edits);
         expect(resultCode, expectedCode.replaceAll('////', ''));
         if (cmp != null) {
-          int offset = cmp(resultCode);
+          var offset = cmp(resultCode);
           expect(change.selection.offset, offset);
         }
       } else {
         expect(testCode, expectedCode.replaceAll('////', ''));
         if (cmp != null) {
-          int offset = cmp(testCode);
+          var offset = cmp(testCode);
           expect(change.selection.offset, offset);
         }
       }
       return;
     }
-    fail("Expected to find |$message| but got: " + change.message);
+    fail('Expected to find |$message| but got: ' + change.message);
   }
 
-  _computeCompletion(int offset) async {
+  Future<void> _computeCompletion(int offset) async {
     driver.changeFile(testFile);
-    ResolvedUnitResult result = await session.getResolvedUnit(testFile);
-    var context = new StatementCompletionContext(result, offset);
-    StatementCompletionProcessor processor =
-        new StatementCompletionProcessor(context);
-    StatementCompletion completion = await processor.compute();
+    var result = await session.getResolvedUnit(testFile);
+    var context = StatementCompletionContext(result, offset);
+    var processor = StatementCompletionProcessor(context);
+    var completion = await processor.compute();
     change = completion.change;
   }
 
-  _prepareCompletion(String search, String sourceCode,
+  Future<void> _prepareCompletion(String search, String sourceCode,
       {bool atEnd = false, int delta = 0}) async {
     testCode = sourceCode.replaceAll('////', '');
-    int offset = findOffset(search);
+    var offset = findOffset(search);
     if (atEnd) {
       delta = search.length;
     }
     await _prepareCompletionAt(offset + delta, testCode);
   }
 
-  _prepareCompletionAt(int offset, String sourceCode) async {
+  Future<void> _prepareCompletionAt(int offset, String sourceCode) async {
     verifyNoTestUnitErrors = false;
     await resolveTestUnit(sourceCode);
     await _computeCompletion(offset);
@@ -90,7 +88,7 @@ class StatementCompletionTest extends AbstractSingleUnitTest {
 
 @reflectiveTest
 class _ControlFlowCompletionTest extends StatementCompletionTest {
-  test_doReturnExprLineComment() async {
+  Future<void> test_doReturnExprLineComment() async {
     await _prepareCompletion(
         'return 3',
         '''
@@ -114,7 +112,7 @@ ex(e) {
         (s) => _afterLast(s, '  '));
   }
 
-  test_doReturnUnterminated() async {
+  Future<void> test_doReturnUnterminated() async {
     await _prepareCompletion(
         'return',
         '''
@@ -138,7 +136,7 @@ ex(e) {
         (s) => _afterLast(s, '  '));
   }
 
-  test_forEachReturn() async {
+  Future<void> test_forEachReturn() async {
     await _prepareCompletion(
         'return;',
         '''
@@ -162,7 +160,7 @@ ex(e) {
         (s) => _afterLast(s, '  '));
   }
 
-  test_forThrowUnterminated() async {
+  Future<void> test_forThrowUnterminated() async {
     await _prepareCompletion(
         'throw e',
         '''
@@ -186,7 +184,7 @@ ex(e) {
         (s) => _afterLast(s, '  '));
   }
 
-  test_ifNoBlock() async {
+  Future<void> test_ifNoBlock() async {
     await _prepareCompletion(
         'return',
         '''
@@ -206,7 +204,7 @@ ex(e) {
         (s) => _afterLast(s, '  '));
   }
 
-  test_ifThrow() async {
+  Future<void> test_ifThrow() async {
     await _prepareCompletion(
         'throw e;',
         '''
@@ -230,7 +228,7 @@ ex(e) {
         (s) => _afterLast(s, '  '));
   }
 
-  test_ifThrowUnterminated() async {
+  Future<void> test_ifThrowUnterminated() async {
     await _prepareCompletion(
         'throw e',
         '''
@@ -254,7 +252,7 @@ ex(e) {
         (s) => _afterLast(s, '  '));
   }
 
-  test_whileReturnExpr() async {
+  Future<void> test_whileReturnExpr() async {
     await _prepareCompletion(
         '+ 4',
         '''
@@ -281,7 +279,7 @@ ex(e) {
 
 @reflectiveTest
 class _DeclarationCompletionTest extends StatementCompletionTest {
-  test_classNameNoBody() async {
+  Future<void> test_classNameNoBody() async {
     await _prepareCompletion(
         'Sample',
         '''
@@ -298,7 +296,7 @@ class Sample {
         (s) => _afterLast(s, '  '));
   }
 
-  test_extendsNoBody() async {
+  Future<void> test_extendsNoBody() async {
     await _prepareCompletion(
         'Sample',
         '''
@@ -315,7 +313,7 @@ class Sample extends Object {
         (s) => _afterLast(s, '  '));
   }
 
-  test_functionDeclNoBody() async {
+  Future<void> test_functionDeclNoBody() async {
     await _prepareCompletion(
         'source()',
         '''
@@ -332,7 +330,7 @@ String source() {
         (s) => _after(s, '  '));
   }
 
-  test_functionDeclNoParen() async {
+  Future<void> test_functionDeclNoParen() async {
     await _prepareCompletion(
         'source(',
         '''
@@ -349,7 +347,7 @@ String source() {
         (s) => _after(s, '  '));
   }
 
-  test_implementsNoBody() async {
+  Future<void> test_implementsNoBody() async {
     await _prepareCompletion(
         'Sample',
         '''
@@ -368,7 +366,7 @@ class Sample implements Interface {
         (s) => _afterLast(s, '  '));
   }
 
-  test_methodDeclNoBody() async {
+  Future<void> test_methodDeclNoBody() async {
     await _prepareCompletion(
         'source()',
         '''
@@ -389,7 +387,7 @@ class Sample {
         (s) => _after(s, '    '));
   }
 
-  test_methodDeclNoParen() async {
+  Future<void> test_methodDeclNoParen() async {
     await _prepareCompletion(
         'source(',
         '''
@@ -410,7 +408,7 @@ class Sample {
         (s) => _after(s, '    '));
   }
 
-  test_variableDeclNoBody() async {
+  Future<void> test_variableDeclNoBody() async {
     await _prepareCompletion(
         'source',
         '''
@@ -426,7 +424,7 @@ String source;
         (s) => _after(s, ';\n'));
   }
 
-  test_withNoBody() async {
+  Future<void> test_withNoBody() async {
     await _prepareCompletion(
         'Sample',
         '''
@@ -448,7 +446,7 @@ class Sample extends Object with M {
 
 @reflectiveTest
 class _DoCompletionTest extends StatementCompletionTest {
-  test_emptyCondition() async {
+  Future<void> test_emptyCondition() async {
     await _prepareCompletion(
         'while ()',
         '''
@@ -469,7 +467,7 @@ main() {
         (s) => _after(s, 'while ('));
   }
 
-  test_keywordOnly() async {
+  Future<void> test_keywordOnly() async {
     await _prepareCompletion(
         'do',
         '''
@@ -490,7 +488,7 @@ main() {
         (s) => _after(s, 'while ('));
   }
 
-  test_keywordStatement() async {
+  Future<void> test_keywordStatement() async {
     await _prepareCompletion(
         'do',
         '''
@@ -513,7 +511,7 @@ main() {
         (s) => _after(s, 'while ('));
   }
 
-  test_noBody() async {
+  Future<void> test_noBody() async {
     await _prepareCompletion(
         'do',
         '''
@@ -535,7 +533,7 @@ main() {
         (s) => _after(s, 'while ('));
   }
 
-  test_noCondition() async {
+  Future<void> test_noCondition() async {
     await _prepareCompletion(
         'while',
         '''
@@ -556,7 +554,7 @@ main() {
         (s) => _after(s, 'while ('));
   }
 
-  test_noWhile() async {
+  Future<void> test_noWhile() async {
     await _prepareCompletion(
         '}',
         '''
@@ -580,7 +578,7 @@ main() {
 
 @reflectiveTest
 class _ExpressionCompletionTest extends StatementCompletionTest {
-  test_listAssign() async {
+  Future<void> test_listAssign() async {
     await _prepareCompletion(
         '= ',
         '''
@@ -600,7 +598,7 @@ main() {
         (s) => _afterLast(s, '  '));
   }
 
-  test_listAssignMultiLine() async {
+  Future<void> test_listAssignMultiLine() async {
     // The indent of the final line is incorrect.
     await _prepareCompletion(
         '3',
@@ -629,7 +627,7 @@ main() {
   }
 
   @failingTest
-  test_mapAssign() async {
+  Future<void> test_mapAssign() async {
     await _prepareCompletion(
         '3: 3',
         '''
@@ -650,7 +648,7 @@ main() {
   }
 
   @failingTest
-  test_mapAssignMissingColon() async {
+  Future<void> test_mapAssignMissingColon() async {
     await _prepareCompletion(
         '3',
         '''
@@ -670,7 +668,7 @@ main() {
         (s) => _afterLast(s, '  '));
   }
 
-  test_returnString() async {
+  Future<void> test_returnString() async {
     await _prepareCompletion(
         'text',
         '''
@@ -694,7 +692,7 @@ main() {
         (s) => _afterLast(s, '  '));
   }
 
-  test_stringAssign() async {
+  Future<void> test_stringAssign() async {
     await _prepareCompletion(
         '= ',
         '''
@@ -714,7 +712,7 @@ main() {
         (s) => _afterLast(s, '  '));
   }
 
-  test_stringSingle() async {
+  Future<void> test_stringSingle() async {
     await _prepareCompletion(
         'text',
         '''
@@ -734,7 +732,7 @@ main() {
         (s) => _afterLast(s, '  '));
   }
 
-  test_stringSingleRaw() async {
+  Future<void> test_stringSingleRaw() async {
     await _prepareCompletion(
         'text',
         '''
@@ -754,7 +752,7 @@ main() {
         (s) => _afterLast(s, '  '));
   }
 
-  test_stringTriple() async {
+  Future<void> test_stringTriple() async {
     await _prepareCompletion(
         'text',
         '''
@@ -774,7 +772,7 @@ main() {
         (s) => _afterLast(s, '  '));
   }
 
-  test_stringTripleRaw() async {
+  Future<void> test_stringTripleRaw() async {
     await _prepareCompletion(
         'text',
         r"""
@@ -797,7 +795,7 @@ main() {
 
 @reflectiveTest
 class _ForCompletionTest extends StatementCompletionTest {
-  test_emptyCondition() async {
+  Future<void> test_emptyCondition() async {
     await _prepareCompletion(
         '0;',
         '''
@@ -818,7 +816,7 @@ main() {
         (s) => _after(s, '    '));
   }
 
-  test_emptyConditionWithBody() async {
+  Future<void> test_emptyConditionWithBody() async {
     await _prepareCompletion(
         '0;',
         '''
@@ -839,7 +837,7 @@ main() {
         (s) => _after(s, '0; '));
   }
 
-  test_emptyInitializers() async {
+  Future<void> test_emptyInitializers() async {
     // This does nothing, same as for Java.
     await _prepareCompletion(
         'r (',
@@ -861,7 +859,7 @@ main() {
         (s) => _after(s, 'r ('));
   }
 
-  test_emptyInitializersAfterBody() async {
+  Future<void> test_emptyInitializersAfterBody() async {
     await _prepareCompletion(
         '}',
         '''
@@ -883,7 +881,7 @@ main() {
         (s) => _afterLast(s, '  '));
   }
 
-  test_emptyInitializersEmptyCondition() async {
+  Future<void> test_emptyInitializersEmptyCondition() async {
     await _prepareCompletion(
         '/**/',
         '''
@@ -904,7 +902,7 @@ main() {
         (s) => _after(s, '    '));
   }
 
-  test_emptyParts() async {
+  Future<void> test_emptyParts() async {
     await _prepareCompletion(
         ';)',
         '''
@@ -925,7 +923,7 @@ main() {
         (s) => _after(s, '    '));
   }
 
-  test_emptyUpdaters() async {
+  Future<void> test_emptyUpdaters() async {
     await _prepareCompletion(
         '/**/',
         '''
@@ -946,7 +944,7 @@ main() {
         (s) => _after(s, '    '));
   }
 
-  test_emptyUpdatersWithBody() async {
+  Future<void> test_emptyUpdatersWithBody() async {
     await _prepareCompletion(
         '/**/',
         '''
@@ -967,7 +965,7 @@ main() {
         (s) => _after(s, '*/; '));
   }
 
-  test_keywordOnly() async {
+  Future<void> test_keywordOnly() async {
     await _prepareCompletion(
         'for',
         '''
@@ -988,7 +986,7 @@ main() {
         (s) => _after(s, 'for ('));
   }
 
-  test_missingLeftSeparator() async {
+  Future<void> test_missingLeftSeparator() async {
     await _prepareCompletion(
         '= 0',
         '''
@@ -1009,7 +1007,7 @@ main() {
         (s) => _after(s, '0; '));
   }
 
-  test_noError() async {
+  Future<void> test_noError() async {
     await _prepareCompletion(
         ';)',
         '''
@@ -1035,7 +1033,7 @@ main() {
 
 @reflectiveTest
 class _ForEachCompletionTest extends StatementCompletionTest {
-  test_emptyIdentifier() async {
+  Future<void> test_emptyIdentifier() async {
     await _prepareCompletion(
         'in xs)',
         '''
@@ -1056,7 +1054,7 @@ main() {
         (s) => _after(s, 'for ('));
   }
 
-  test_emptyIdentifierAndIterable() async {
+  Future<void> test_emptyIdentifierAndIterable() async {
     // Analyzer parser produces
     //    for (_s_ in _s_) ;
     // Fasta parser produces
@@ -1081,7 +1079,7 @@ main() {
         (s) => _after(s, 'for ('));
   }
 
-  test_emptyIterable() async {
+  Future<void> test_emptyIterable() async {
     await _prepareCompletion(
         'in)',
         '''
@@ -1102,7 +1100,7 @@ main() {
         (s) => _after(s, 'in '));
   }
 
-  test_noError() async {
+  Future<void> test_noError() async {
     await _prepareCompletion(
         '])',
         '''
@@ -1128,7 +1126,7 @@ main() {
 
 @reflectiveTest
 class _IfCompletionTest extends StatementCompletionTest {
-  test_afterCondition() async {
+  Future<void> test_afterCondition() async {
     await _prepareCompletion(
         'if (true) ', // Trigger completion after space.
         '''
@@ -1149,7 +1147,7 @@ main() {
         (s) => _after(s, '    '));
   }
 
-  test_emptyCondition() async {
+  Future<void> test_emptyCondition() async {
     await _prepareCompletion(
         'if ()',
         '''
@@ -1170,7 +1168,7 @@ main() {
         (s) => _after(s, 'if ('));
   }
 
-  test_keywordOnly() async {
+  Future<void> test_keywordOnly() async {
     await _prepareCompletion(
         'if',
         '''
@@ -1191,7 +1189,7 @@ main() {
         (s) => _after(s, 'if ('));
   }
 
-  test_noError() async {
+  Future<void> test_noError() async {
     await _prepareCompletion(
         'if (true)',
         '''
@@ -1214,7 +1212,7 @@ main() {
         (s) => _after(s, '    '));
   }
 
-  test_withCondition() async {
+  Future<void> test_withCondition() async {
     await _prepareCompletion(
         'if (tr', // Trigger completion from within expression.
         '''
@@ -1235,7 +1233,7 @@ main() {
         (s) => _after(s, '    '));
   }
 
-  test_withCondition_noRightParenthesis() async {
+  Future<void> test_withCondition_noRightParenthesis() async {
     await _prepareCompletion(
         'if (true',
         '''
@@ -1256,7 +1254,7 @@ main() {
         (s) => _after(s, '    '));
   }
 
-  test_withElse() async {
+  Future<void> test_withElse() async {
     await _prepareCompletion(
         'else',
         '''
@@ -1279,7 +1277,7 @@ main() {
         (s) => _after(s, '    '));
   }
 
-  test_withElse_BAD() async {
+  Future<void> test_withElse_BAD() async {
     await _prepareCompletion(
         'if ()',
         '''
@@ -1301,7 +1299,7 @@ main() {
         (s) => _after(s, 'if ()'));
   }
 
-  test_withElseNoThen() async {
+  Future<void> test_withElseNoThen() async {
     await _prepareCompletion(
         'else',
         '''
@@ -1324,7 +1322,7 @@ main() {
         (s) => _after(s, '    '));
   }
 
-  test_withinEmptyCondition() async {
+  Future<void> test_withinEmptyCondition() async {
     await _prepareCompletion(
         'if (',
         '''
@@ -1348,7 +1346,7 @@ main() {
 
 @reflectiveTest
 class _SimpleCompletionTest extends StatementCompletionTest {
-  test_enter() async {
+  Future<void> test_enter() async {
     await _prepareCompletion(
         'v = 1;',
         '''
@@ -1365,7 +1363,24 @@ main() {
 ''');
   }
 
-  test_noCloseParen() async {
+  Future<void> test_expressionBody() async {
+    await _prepareCompletion(
+        '=> 1',
+        '''
+class Thing extends Object {
+  int foo() => 1
+}
+''',
+        atEnd: true);
+    _assertHasChange('Add a semicolon and newline', '''
+class Thing extends Object {
+  int foo() => 1;
+  
+}
+''');
+  }
+
+  Future<void> test_noCloseParen() async {
     await _prepareCompletion(
         'ing(3',
         '''
@@ -1386,7 +1401,7 @@ main() {
   }
 
   @failingTest
-  test_noCloseParenWithSemicolon() async {
+  Future<void> test_noCloseParenWithSemicolon() async {
     // TODO(danrubel):
     // Fasta scanner produces an error message which is converted into
     // an Analyzer error message before the fasta parser gets a chance
@@ -1396,12 +1411,12 @@ main() {
     // Fixing this properly means modifying the scanner not to generate
     // closing ')', then updating the parser to handle that situation.
     // This is a fair amount of work and won't be tackled today.
-    String before = '''
+    var before = '''
 main() {
   var s = 'sample'.substring(3;
 }
 ''';
-    String after = '''
+    var after = '''
 main() {
   var s = 'sample'.substring(3);
   ////
@@ -1422,7 +1437,7 @@ main() {
     throw 'remove this once fasta parser is enabled by default';
   }
 
-  test_semicolonFn() async {
+  Future<void> test_semicolonFn() async {
     await _prepareCompletion(
         '=> 3',
         '''
@@ -1442,7 +1457,7 @@ main() {
         (s) => _afterLast(s, '  '));
   }
 
-  test_semicolonFnBody() async {
+  Future<void> test_semicolonFnBody() async {
     // It would be reasonable to add braces in this case. Unfortunately,
     // the incomplete line parses as two statements ['int;', 'f();'], not one.
     await _prepareCompletion(
@@ -1464,7 +1479,7 @@ main() {
   }
 
   @failingTest
-  test_semicolonFnBodyWithDef() async {
+  Future<void> test_semicolonFnBodyWithDef() async {
     // This ought to be the same as test_semicolonFnBody() but the definition
     // of f() removes an error and it appears to be a different case.
     // Suggestions for unifying the two are welcome.
@@ -1502,7 +1517,7 @@ f() {}
     throw 'remove this once fasta parser is enabled by default';
   }
 
-  test_semicolonFnExpr() async {
+  Future<void> test_semicolonFnExpr() async {
     await _prepareCompletion(
         '=>',
         '''
@@ -1522,7 +1537,7 @@ main() {
         (s) => _afterLast(s, '=> '));
   }
 
-  test_semicolonFnSpaceExpr() async {
+  Future<void> test_semicolonFnSpaceExpr() async {
     await _prepareCompletion(
         '=>',
         '''
@@ -1542,7 +1557,7 @@ main() {
         (s) => _afterLast(s, '=> '));
   }
 
-  test_semicolonVar() async {
+  Future<void> test_semicolonVar() async {
     await _prepareCompletion(
         'v = 1',
         '''
@@ -1565,7 +1580,7 @@ main() {
 
 @reflectiveTest
 class _SwitchCompletionTest extends StatementCompletionTest {
-  test_caseNoColon() async {
+  Future<void> test_caseNoColon() async {
     await _prepareCompletion(
         'label',
         '''
@@ -1588,7 +1603,7 @@ main(x) {
         (s) => _after(s, 'label: '));
   }
 
-  test_defaultNoColon() async {
+  Future<void> test_defaultNoColon() async {
     await _prepareCompletion(
         'default',
         '''
@@ -1611,7 +1626,7 @@ main(x) {
         (s) => _after(s, 'default: '));
   }
 
-  test_emptyCondition() async {
+  Future<void> test_emptyCondition() async {
     await _prepareCompletion(
         'switch',
         '''
@@ -1632,7 +1647,7 @@ main() {
         (s) => _after(s, 'switch ('));
   }
 
-  test_keywordOnly() async {
+  Future<void> test_keywordOnly() async {
     await _prepareCompletion(
         'switch',
         '''
@@ -1653,7 +1668,7 @@ main() {
         (s) => _after(s, 'switch ('));
   }
 
-  test_keywordSpace() async {
+  Future<void> test_keywordSpace() async {
     await _prepareCompletion(
         'switch',
         '''
@@ -1677,7 +1692,7 @@ main() {
 
 @reflectiveTest
 class _TryCompletionTest extends StatementCompletionTest {
-  test_catchOnly() async {
+  Future<void> test_catchOnly() async {
     await _prepareCompletion(
         '{} catch',
         '''
@@ -1700,7 +1715,7 @@ main() {
         (s) => _after(s, 'catch ('));
   }
 
-  test_catchSecond() async {
+  Future<void> test_catchSecond() async {
     await _prepareCompletion(
         '} catch ',
         '''
@@ -1725,7 +1740,7 @@ main() {
         (s) => _afterLast(s, 'catch ('));
   }
 
-  test_finallyOnly() async {
+  Future<void> test_finallyOnly() async {
     await _prepareCompletion(
         'finally',
         '''
@@ -1748,7 +1763,7 @@ main() {
         (s) => _after(s, '    '));
   }
 
-  test_keywordOnly() async {
+  Future<void> test_keywordOnly() async {
     await _prepareCompletion(
         'try',
         '''
@@ -1769,7 +1784,7 @@ main() {
         (s) => _after(s, '    '));
   }
 
-  test_keywordSpace() async {
+  Future<void> test_keywordSpace() async {
     await _prepareCompletion(
         'try',
         '''
@@ -1790,7 +1805,7 @@ main() {
         (s) => _after(s, '    '));
   }
 
-  test_onCatch() async {
+  Future<void> test_onCatch() async {
     await _prepareCompletion(
         'on',
         '''
@@ -1813,7 +1828,7 @@ main() {
         (s) => _after(s, 'catch ('));
   }
 
-  test_onCatchComment() async {
+  Future<void> test_onCatchComment() async {
     await _prepareCompletion(
         'on',
         '''
@@ -1838,7 +1853,7 @@ main() {
         (s) => _after(s, 'catch ('));
   }
 
-  test_onOnly() async {
+  Future<void> test_onOnly() async {
     await _prepareCompletion(
         'on',
         '''
@@ -1861,7 +1876,7 @@ main() {
         (s) => _after(s, ' on '));
   }
 
-  test_onSpace() async {
+  Future<void> test_onSpace() async {
     await _prepareCompletion(
         'on',
         '''
@@ -1884,7 +1899,7 @@ main() {
         (s) => _after(s, ' on '));
   }
 
-  test_onSpaces() async {
+  Future<void> test_onSpaces() async {
     await _prepareCompletion(
         'on',
         '''
@@ -1907,7 +1922,7 @@ main() {
         (s) => _after(s, ' on '));
   }
 
-  test_onType() async {
+  Future<void> test_onType() async {
     await _prepareCompletion(
         'on',
         '''
@@ -1940,7 +1955,7 @@ class _WhileCompletionTest extends StatementCompletionTest {
      _IfCompletionTest tests. If the implementation changes then the same
      set of tests defined for if-statements should be duplicated here.
    */
-  test_keywordOnly() async {
+  Future<void> test_keywordOnly() async {
     await _prepareCompletion(
         'while',
         '''

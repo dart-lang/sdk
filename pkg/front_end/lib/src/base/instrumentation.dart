@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' show DartType, Member;
+import 'package:kernel/src/text_util.dart';
 
 /// Convert '→' to '->' because '→' doesn't show up in some terminals.
 /// Remove prefixes that are used very often in tests.
@@ -10,7 +11,8 @@ String _shortenInstrumentationString(String s) => s
     .replaceAll('→', '->')
     .replaceAll('dart.core::', '')
     .replaceAll('dart.async::', '')
-    .replaceAll('test::', '');
+    .replaceAll('test::', '')
+    .replaceAll(new RegExp(r'\s*/\*.*?\*/\s*'), '');
 
 /// Interface providing the ability to record property/value pairs associated
 /// with source file locations.  Intended to facilitate testing.
@@ -41,7 +43,8 @@ class InstrumentationValueForMember extends InstrumentationValue {
   InstrumentationValueForMember(this.member);
 
   @override
-  String toString() => _shortenInstrumentationString(member.toString());
+  String toString() => _shortenInstrumentationString(
+      qualifiedMemberNameToString(member, includeLibraryName: true));
 }
 
 /// Instance of [InstrumentationValue] describing a [DartType].
@@ -51,7 +54,8 @@ class InstrumentationValueForType extends InstrumentationValue {
   InstrumentationValueForType(this.type);
 
   @override
-  String toString() => _shortenInstrumentationString(type.toString());
+  String toString() =>
+      _shortenInstrumentationString(type.leakingDebugToString());
 }
 
 /// Instance of [InstrumentationValue] describing a list of [DartType]s.

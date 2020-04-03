@@ -244,15 +244,7 @@ class CodeBreakpoint {
   CodeBreakpoint* next_;
 
   RawPcDescriptors::Kind breakpoint_kind_;
-#if !defined(TARGET_ARCH_DBC)
   RawCode* saved_value_;
-#else
-  // When running on the DBC interpreter we patch bytecode in place with
-  // DebugBreak. This is an instruction that was replaced. DebugBreak
-  // will execute it after the breakpoint.
-  Instr saved_value_;
-  Instr saved_value_fastsmi_;
-#endif
 
   friend class Debugger;
   DISALLOW_COPY_AND_ASSIGN(CodeBreakpoint);
@@ -361,8 +353,7 @@ class ActivationFrame : public ZoneAllocated {
       const GrowableObjectArray& param_values,
       const GrowableObjectArray& type_params_names);
 
-  RawObject* EvaluateCompiledExpression(const uint8_t* kernel_bytes,
-                                        intptr_t kernel_length,
+  RawObject* EvaluateCompiledExpression(const ExternalTypedData& kernel_data,
                                         const Array& arguments,
                                         const Array& type_definitions,
                                         const TypeArguments& type_arguments);
@@ -514,10 +505,6 @@ class Debugger {
     HandleCodeChange(/* bytecode_loaded = */ true, func);
   }
   void NotifyDoneLoading();
-
-  RawFunction* ResolveFunction(const Library& library,
-                               const String& class_name,
-                               const String& function_name);
 
   // Set breakpoint at closest location to function entry.
   Breakpoint* SetBreakpointAtEntry(const Function& target_function,
@@ -760,6 +747,7 @@ class Debugger {
                                Array* deopt_frame);
   static DebuggerStackTrace* CollectStackTrace();
   static DebuggerStackTrace* CollectAsyncCausalStackTrace();
+  static DebuggerStackTrace* CollectAsyncLazyStackTrace();
   void SignalPausedEvent(ActivationFrame* top_frame, Breakpoint* bpt);
 
   intptr_t nextId() { return next_id_++; }

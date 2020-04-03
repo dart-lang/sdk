@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 library _js_helper;
 
 import 'dart:_js_embedded_names'
     show
+        ARRAY_RTI_PROPERTY,
         CURRENT_SCRIPT,
         DEFERRED_LIBRARY_PARTS,
         DEFERRED_PART_URIS,
@@ -366,7 +369,7 @@ class JSInvocationMirror implements Invocation {
         list.add(createRuntimeType(_arguments[start + index]));
       }
     }
-    return list;
+    return JSArray.markUnmodifiableList(list);
   }
 
   List get positionalArguments {
@@ -2280,7 +2283,8 @@ abstract class Closure implements Function {
     if (JS('bool', 'typeof # == "string"', functionType)) {
       // A recipe to evaluate against the instance type.
       if (isStatic) {
-        throw 'TODO: Recipe for static tearoff.';
+        // TODO(sra): Recipe for static tearoff.
+        throw 'Cannot compute signature for static tearoff.';
       }
       var typeEvalMethod = isIntercepted
           ? RAW_DART_FUNCTION_REF(BoundClosure.evalRecipeIntercepted)
@@ -2558,11 +2562,12 @@ abstract class Closure implements Function {
   // to be visible to resolution and the generation of extra stubs.
 
   String toString() {
+    String name;
     var constructor = JS('', '#.constructor', this);
-    String name =
+    name =
         constructor == null ? null : JS('String|Null', '#.name', constructor);
     if (name == null) name = 'unknown';
-    return "Closure '$name'";
+    return "Closure '${unminifyOrTag(name)}'";
   }
 }
 
@@ -3072,9 +3077,9 @@ futureOrCheck(o, futureOrRti) => assertSubtypeOfRuntimeType(o, futureOrRti);
 futureOrCast(o, futureOrRti) => subtypeOfRuntimeTypeCast(o, futureOrRti);
 
 @pragma('dart2js:noInline')
-void checkDeferredIsLoaded(String loadId, String uri) {
+void checkDeferredIsLoaded(String loadId) {
   if (!_loadedLibraries.contains(loadId)) {
-    throw new DeferredNotLoadedError(uri);
+    throw new DeferredNotLoadedError(loadId);
   }
 }
 
@@ -3083,34 +3088,30 @@ void checkDeferredIsLoaded(String loadId, String uri) {
 /// visible to anyone, and is only injected into special libraries.
 abstract class JavaScriptIndexingBehavior<E> extends JSMutableIndexable<E> {}
 
-// TODO(lrn): These exceptions should be implemented in core.
-// When they are, remove the 'Implementation' here.
-
 /// Thrown by type assertions that fail.
-class TypeErrorImplementation extends Error implements TypeError {
-  final String message;
+class TypeErrorImplementation extends Error implements TypeError, CastError {
+  final String _message;
 
   /// Normal type error caused by a failed subtype test.
   TypeErrorImplementation(Object value, String type)
-      : message = "TypeError: ${Error.safeToString(value)}: type "
+      : _message = "TypeError: ${Error.safeToString(value)}: type "
             "'${_typeDescription(value)}' is not a subtype of type '$type'";
 
-  TypeErrorImplementation.fromMessage(String this.message);
+  TypeErrorImplementation.fromMessage(String this._message);
 
-  String toString() => message;
+  String toString() => _message;
 }
 
 /// Thrown by the 'as' operator if the cast isn't valid.
-class CastErrorImplementation extends Error implements CastError {
-  // TODO(lrn): Rename to CastError (and move implementation into core).
-  final String message;
+class CastErrorImplementation extends Error implements CastError, TypeError {
+  final String _message;
 
   /// Normal cast error caused by a failed type cast.
   CastErrorImplementation(Object value, Object type)
-      : message = "CastError: ${Error.safeToString(value)}: type "
+      : _message = "TypeError: ${Error.safeToString(value)}: type "
             "'${_typeDescription(value)}' is not a subtype of type '$type'";
 
-  String toString() => message;
+  String toString() => _message;
 }
 
 String _typeDescription(value) {
@@ -3542,3 +3543,12 @@ void registerGlobalObject(object) {}
 // Hook to register new browser classes.
 // This is currently a no-op in dart2js.
 void applyExtension(name, nativeObject) {}
+
+// See tests/compiler/dart2js_extra/platform_environment_variable1_test.dart
+const String testPlatformEnvironmentVariableValue = String.fromEnvironment(
+    'dart2js.test.platform.environment.variable',
+    defaultValue: 'not-specified');
+
+String testingGetPlatformEnvironmentVariable() {
+  return testPlatformEnvironmentVariableValue;
+}

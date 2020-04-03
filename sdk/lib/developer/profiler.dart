@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.developer;
 
 /// A UserTag can be used to group samples in the Observatory profiler.
@@ -125,6 +127,7 @@ class Metrics {
   }
 
   // ignore: unused_element, called from native code
+  @pragma("vm:entry-point", !const bool.fromEnvironment("dart.vm.product"))
   static String _printMetric(String id) {
     var metric = _metrics[id];
     if (metric == null) {

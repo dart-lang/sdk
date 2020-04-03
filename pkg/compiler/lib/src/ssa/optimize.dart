@@ -18,7 +18,13 @@ import '../js_backend/field_analysis.dart'
 import '../js_backend/backend.dart' show CodegenInputs;
 import '../js_backend/native_data.dart' show NativeData;
 import '../js_backend/runtime_types_codegen.dart';
-import '../js_model/type_recipe.dart' show TypeRecipe;
+import '../js_model/type_recipe.dart'
+    show
+        TypeRecipe,
+        TypeExpressionRecipe,
+        TypeRecipeAndEnvironmentStructure,
+        TypeRecipeDomain,
+        TypeRecipeDomainImpl;
 import '../js_backend/specialized_checks.dart';
 import '../native/behavior.dart';
 import '../options.dart';
@@ -70,18 +76,28 @@ class SsaOptimizerTask extends CompilerTask {
     SsaCodeMotion codeMotion;
     SsaLoadElimination loadElimination;
 
+    TypeRecipeDomain typeRecipeDomain =
+        TypeRecipeDomainImpl(closedWorld.dartTypes);
+
     OptimizationTestLog log;
     if (retainDataForTesting) {
       loggersForTesting ??= {};
-      loggersForTesting[member] = log = new OptimizationTestLog();
+      loggersForTesting[member] =
+          log = new OptimizationTestLog(closedWorld.dartTypes);
     }
 
     measure(() {
       List<OptimizationPhase> phases = <OptimizationPhase>[
         // Run trivial instruction simplification first to optimize
         // some patterns useful for type conversion.
-        new SsaInstructionSimplifier(globalInferenceResults, _options,
-            codegen.rtiSubstitutions, closedWorld, registry, log),
+        new SsaInstructionSimplifier(
+            globalInferenceResults,
+            _options,
+            codegen.rtiSubstitutions,
+            closedWorld,
+            typeRecipeDomain,
+            registry,
+            log),
         new SsaTypeConversionInserter(closedWorld),
         new SsaRedundantPhiEliminator(),
         new SsaDeadPhiEliminator(),
@@ -89,11 +105,23 @@ class SsaOptimizerTask extends CompilerTask {
             closedWorld.commonElements, closedWorld, log),
         // After type propagation, more instructions can be
         // simplified.
-        new SsaInstructionSimplifier(globalInferenceResults, _options,
-            codegen.rtiSubstitutions, closedWorld, registry, log),
+        new SsaInstructionSimplifier(
+            globalInferenceResults,
+            _options,
+            codegen.rtiSubstitutions,
+            closedWorld,
+            typeRecipeDomain,
+            registry,
+            log),
         new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
-        new SsaInstructionSimplifier(globalInferenceResults, _options,
-            codegen.rtiSubstitutions, closedWorld, registry, log),
+        new SsaInstructionSimplifier(
+            globalInferenceResults,
+            _options,
+            codegen.rtiSubstitutions,
+            closedWorld,
+            typeRecipeDomain,
+            registry,
+            log),
         new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
         new SsaTypePropagator(globalInferenceResults,
             closedWorld.commonElements, closedWorld, log),
@@ -118,8 +146,14 @@ class SsaOptimizerTask extends CompilerTask {
         new SsaValueRangeAnalyzer(closedWorld, this),
         // Previous optimizations may have generated new
         // opportunities for instruction simplification.
-        new SsaInstructionSimplifier(globalInferenceResults, _options,
-            codegen.rtiSubstitutions, closedWorld, registry, log),
+        new SsaInstructionSimplifier(
+            globalInferenceResults,
+            _options,
+            codegen.rtiSubstitutions,
+            closedWorld,
+            typeRecipeDomain,
+            registry,
+            log),
         new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
       ];
       phases.forEach(runPhase);
@@ -133,6 +167,7 @@ class SsaOptimizerTask extends CompilerTask {
       runPhase(dce);
       if (codeMotion.movedCode ||
           dce.eliminatedSideEffects ||
+          dce.newGvnCandidates ||
           loadElimination.newGvnCandidates) {
         phases = <OptimizationPhase>[
           new SsaTypePropagator(globalInferenceResults,
@@ -140,8 +175,14 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaGlobalValueNumberer(closedWorld.abstractValueDomain),
           new SsaCodeMotion(closedWorld.abstractValueDomain),
           new SsaValueRangeAnalyzer(closedWorld, this),
-          new SsaInstructionSimplifier(globalInferenceResults, _options,
-              codegen.rtiSubstitutions, closedWorld, registry, log),
+          new SsaInstructionSimplifier(
+              globalInferenceResults,
+              _options,
+              codegen.rtiSubstitutions,
+              closedWorld,
+              typeRecipeDomain,
+              registry,
+              log),
           new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
           new SsaSimplifyInterceptors(closedWorld, member.enclosingClass),
           new SsaDeadCodeEliminator(closedWorld, this),
@@ -152,8 +193,14 @@ class SsaOptimizerTask extends CompilerTask {
               closedWorld.commonElements, closedWorld, log),
           // Run the simplifier to remove unneeded type checks inserted by
           // type propagation.
-          new SsaInstructionSimplifier(globalInferenceResults, _options,
-              codegen.rtiSubstitutions, closedWorld, registry, log),
+          new SsaInstructionSimplifier(
+              globalInferenceResults,
+              _options,
+              codegen.rtiSubstitutions,
+              closedWorld,
+              typeRecipeDomain,
+              registry,
+              log),
         ];
       }
       phases.forEach(runPhase);
@@ -196,12 +243,19 @@ class SsaInstructionSimplifier extends HBaseVisitor
   final CompilerOptions _options;
   final RuntimeTypesSubstitutions _rtiSubstitutions;
   final JClosedWorld _closedWorld;
+  final TypeRecipeDomain _typeRecipeDomain;
   final CodegenRegistry _registry;
   final OptimizationTestLog _log;
   HGraph _graph;
 
-  SsaInstructionSimplifier(this._globalInferenceResults, this._options,
-      this._rtiSubstitutions, this._closedWorld, this._registry, this._log);
+  SsaInstructionSimplifier(
+      this._globalInferenceResults,
+      this._options,
+      this._rtiSubstitutions,
+      this._closedWorld,
+      this._typeRecipeDomain,
+      this._registry,
+      this._log);
 
   JCommonElements get commonElements => _closedWorld.commonElements;
 
@@ -637,8 +691,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
     node.block.addBefore(node, splitInstruction);
 
     HInstruction typeInfo;
-    if (_options.experimentNewRti) {
-      typeInfo = HLoadType(
+    if (_options.useNewRti) {
+      typeInfo = HLoadType.type(
           _closedWorld.elementEnvironment.createInterfaceType(
               commonElements.jsArrayClass, [commonElements.stringType]),
           _abstractValueDomain.dynamicType);
@@ -686,26 +740,26 @@ class SsaInstructionSimplifier extends HBaseVisitor
     AbstractValue receiverType = receiver.instructionType;
     MemberEntity element =
         _closedWorld.locateSingleMember(node.selector, receiverType);
+    if (element == null) return node;
+
     // TODO(ngeoffray): Also fold if it's a getter or variable.
-    if (element != null &&
-        element.isFunction &&
+    if (element.isFunction &&
         // If we found out that the only target is an implicitly called
-        // [:noSuchMethod:] we just ignore it.
+        // `noSuchMethod` we just ignore it.
         node.selector.applies(element)) {
       FunctionEntity method = element;
 
       if (_nativeData.isNativeMember(method)) {
-        HInstruction folded = tryInlineNativeMethod(node, method);
-        if (folded != null) return folded;
-      } else {
-        // TODO(ngeoffray): If the method has optional parameters,
-        // we should pass the default values.
-        ParameterStructure parameters = method.parameterStructure;
-        if (parameters.totalParameters == node.selector.argumentCount &&
-            parameters.typeParameters ==
-                node.selector.callStructure.typeArgumentCount) {
-          node.element = method;
-        }
+        return tryInlineNativeMethod(node, method) ?? node;
+      }
+
+      // TODO(ngeoffray): If the method has optional parameters, we should pass
+      // the default values.
+      ParameterStructure parameters = method.parameterStructure;
+      if (parameters.totalParameters == node.selector.argumentCount &&
+          parameters.typeParameters ==
+              node.selector.callStructure.typeArgumentCount) {
+        node.element = method;
       }
       return node;
     }
@@ -714,9 +768,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // the field. This usually removes the demand for the call-through stub and
     // makes the field load available to further optimization, e.g. LICM.
 
-    if (element != null &&
-        element.isField &&
-        element.name == node.selector.name) {
+    if (element.isField && element.name == node.selector.name) {
       FieldEntity field = element;
       if (!_nativeData.isNativeMember(field) &&
           !node.isCallOnInterceptor(_closedWorld)) {
@@ -729,18 +781,15 @@ class SsaInstructionSimplifier extends HBaseVisitor
           // The field is elided and replace it with its constant value.
           if (_abstractValueDomain.isNull(receiverType).isPotentiallyTrue) {
             // The receiver is potentially `null` so we insert a null receiver
-            // guard to trigger a null pointer exception.
-            //
-            // This could be inserted unconditionally and removed by later
-            // optimizations if unnecessary, but performance we do it
-            // conditionally here.
-            // TODO(35996): Replace with null receiver guard instruction.
-            HInstruction dummyGet = new HFieldGet(null, receiver,
-                _abstractValueDomain.dynamicType, node.sourceInformation,
-                isAssignable: false);
-            _log?.registerFieldCall(node, dummyGet);
-            node.block.addBefore(node, dummyGet);
-            insertionPoint = dummyGet;
+            // check to trigger a null pointer exception.  Insert check
+            // conditionally to avoid the work of removing it later.
+            HNullCheck check = HNullCheck(
+                receiver, _abstractValueDomain.excludeNull(receiverType))
+              ..selector = node.selector
+              ..sourceInformation = node.sourceInformation;
+            _log?.registerNullCheck(node, check);
+            node.block.addBefore(node, check);
+            insertionPoint = check;
           }
           ConstantValue value = fieldData.constantValue;
           load = _graph.addConstant(value, _closedWorld,
@@ -749,7 +798,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         } else {
           AbstractValue type = AbstractValueFactory.inferredTypeForMember(
               field, _globalInferenceResults);
-          load = new HFieldGet(field, receiver, type, node.sourceInformation);
+          load = HFieldGet(field, receiver, type, node.sourceInformation);
           _log?.registerFieldCall(node, load);
           node.block.addBefore(node, load);
           insertionPoint = load;
@@ -776,22 +825,120 @@ class SsaInstructionSimplifier extends HBaseVisitor
     return node;
   }
 
-  HInstruction tryInlineNativeMethod(
-      HInvokeDynamicMethod node, FunctionEntity method) {
-    // We can replace the call to the native class interceptor method (target)
-    // if the target does no conversions or useful type checks.
-    if (_options.disableInlining) return null;
+  bool _avoidInliningNativeMethod(HInvokeDynamic node, FunctionEntity method) {
+    assert(_nativeData.isNativeMember(method));
+    if (_options.disableInlining) return true;
     if (_closedWorld.annotationsData.hasNoInline(method)) {
+      return true;
+    }
+    return false;
+  }
+
+  // Try to 'inline' an instance getter call to a known native or js-interop
+  // getter. This replaces the call to the getter on the Dart interceptor with a
+  // direct call to the external method.
+  HInstruction tryInlineNativeGetter(
+      HInvokeDynamicGetter node, FunctionEntity method) {
+    if (_avoidInliningNativeMethod(node, method)) return null;
+
+    // Strengthen instruction type from annotations to help optimize dependent
+    // instructions.
+    NativeBehavior nativeBehavior = _nativeData.getNativeMethodBehavior(method);
+    AbstractValue returnType =
+        AbstractValueFactory.fromNativeBehavior(nativeBehavior, _closedWorld);
+    HInstruction receiver = node.inputs.last; // Drop interceptor.
+    receiver = maybeGuardWithNullCheck(receiver, node, null);
+    HInvokeExternal result = HInvokeExternal(
+        method, [receiver], returnType, nativeBehavior,
+        sourceInformation: node.sourceInformation);
+    _registry.registerStaticUse(StaticUse.methodInlining(method, null));
+    // Assume Native getters effect-free as an approximantion to being
+    // idempotent.
+    // TODO(sra): [native.BehaviorBuilder.buildMethodBehavior] should do this
+    // for us.
+    result.sideEffects.setDependsOnSomething();
+    result.sideEffects.clearAllSideEffects();
+    result.setUseGvn();
+    return result;
+  }
+
+  // Try to 'inline' an instance setter call to a known native or js-interop
+  // getter. This replaces the call to the setter on the Dart interceptor with a
+  // direct call to the external method.
+  HInstruction tryInlineNativeSetter(
+      HInvokeDynamicSetter node, FunctionEntity method) {
+    if (_avoidInliningNativeMethod(node, method)) return null;
+
+    assert(node.inputs.length == 3);
+    HInstruction receiver = node.inputs[1];
+    HInstruction value = node.inputs[2];
+    FunctionType type = _closedWorld.elementEnvironment.getFunctionType(method);
+    assert(type.optionalParameterTypes.isEmpty);
+    assert(type.namedParameterTypes.isEmpty);
+    DartType parameterType = type.parameterTypes.single;
+    if (_nativeArgumentNeedsCheckOrConversion(method, parameterType, value)) {
       return null;
     }
-    if (!node.isInterceptedCall) return null;
+
+    NativeBehavior nativeBehavior = _nativeData.getNativeMethodBehavior(method);
+    receiver = maybeGuardWithNullCheck(receiver, node, null);
+    HInvokeExternal result = HInvokeExternal(
+        method, [receiver, value], value.instructionType, nativeBehavior,
+        sourceInformation: node.sourceInformation);
+    _registry.registerStaticUse(StaticUse.methodInlining(method, null));
+    return result;
+  }
+
+  // TODO(sra): Refactor this code so that we can decide to inline the method
+  // with a few checks or conversions. We would want to do this if there was a
+  // single call site to [method], or most arguments do not require a check.
+  bool _nativeArgumentNeedsCheckOrConversion(
+      FunctionEntity method, DartType parameterType, HInstruction argument) {
+    // TODO(sra): JS-interop *instance* methods don't check their arguments
+    // since the forwarding stub is shared by all JS-interop methods with the
+    // same name, regardless of parameter types. We could 'inline' js-interop
+    // calls even when the types of the arguments are incorrect.
+
+    if (!_nativeData.isJsInteropMember(method)) {
+      // @Native methods have conversion code for function arguments. Rather
+      // than insert that code at the inlined call site, call the target on the
+      // interceptor.
+      if (parameterType is FunctionType) return true;
+    }
+
+    if (!_closedWorld.annotationsData
+        .getParameterCheckPolicy(method)
+        .isEmitted) {
+      // If the target has no checks we can inline.
+      return false;
+    }
+
+    AbstractValue parameterAbstractValue = _abstractValueDomain
+        .getAbstractValueForNativeMethodParameterType(parameterType);
+
+    if (parameterAbstractValue == null ||
+        _abstractValueDomain
+            .isIn(argument.instructionType, parameterAbstractValue)
+            .isPotentiallyFalse) {
+      return true;
+    }
+    return false;
+  }
+
+  // Try to 'inline' an instance method call to a known native or js-interop
+  // method. This replaces the call to the method on the Dart interceptor with a
+  // direct call to the external method.
+  HInstruction tryInlineNativeMethod(
+      HInvokeDynamicMethod node, FunctionEntity method) {
+    if (_avoidInliningNativeMethod(node, method)) return null;
+    // We can replace the call to the native class interceptor method (target)
+    // if the target does no conversions or useful type checks.
 
     FunctionType type = _closedWorld.elementEnvironment.getFunctionType(method);
     if (type.namedParameters.isNotEmpty) return null;
 
     // The call site might omit optional arguments. The inlined code must
     // preserve the number of arguments, so check only the actual arguments.
-
     bool canInline = true;
     List<HInstruction> inputs = node.inputs;
     int inputPosition = 2; // Skip interceptor and receiver.
@@ -800,28 +947,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
       if (!canInline) return;
       if (inputPosition >= inputs.length) return;
       HInstruction input = inputs[inputPosition++];
-      if (parameterType.unaliased.isFunctionType) {
-        // Must call the target since it contains a function conversion.
+      if (_nativeArgumentNeedsCheckOrConversion(method, parameterType, input)) {
         canInline = false;
-        return;
-      }
-
-      // If the target has no checks don't let a bad type stop us inlining.
-      if (!_closedWorld.annotationsData
-          .getParameterCheckPolicy(method)
-          .isEmitted) {
-        return;
-      }
-
-      AbstractValue parameterAbstractValue = _abstractValueDomain
-          .getAbstractValueForNativeMethodParameterType(parameterType);
-
-      if (parameterAbstractValue == null ||
-          _abstractValueDomain
-              .isIn(input.instructionType, parameterAbstractValue)
-              .isPotentiallyFalse) {
-        canInline = false;
-        return;
       }
     }
 
@@ -836,15 +963,15 @@ class SsaInstructionSimplifier extends HBaseVisitor
     NativeBehavior nativeBehavior = _nativeData.getNativeMethodBehavior(method);
     AbstractValue returnType =
         AbstractValueFactory.fromNativeBehavior(nativeBehavior, _closedWorld);
-    HInvokeDynamicMethod result = new HInvokeDynamicMethod(
-        node.selector,
-        node.receiverType,
-        inputs.sublist(1), // Drop interceptor.
+    HInstruction receiver = inputs[1];
+    receiver = maybeGuardWithNullCheck(receiver, node, null);
+    HInvokeExternal result = HInvokeExternal(
+        method,
+        [receiver, ...inputs.skip(2)], // '2': Drop interceptor and receiver.
         returnType,
-        node.typeArguments,
-        node.sourceInformation);
-    result.element = method;
-    _registry.registerStaticUse(new StaticUse.methodInlining(method, null));
+        nativeBehavior,
+        sourceInformation: node.sourceInformation);
+    _registry.registerStaticUse(StaticUse.methodInlining(method, null));
     return result;
   }
 
@@ -1041,15 +1168,13 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     if (!node.isRawCheck) {
       return node;
-    } else if (type.isTypedef) {
+    } else if (type is FunctionType) {
       return node;
-    } else if (type.isFunctionType) {
-      return node;
-    } else if (type.isFutureOr) {
+    } else if (type is FutureOrType) {
       return node;
     }
 
-    if (type == commonElements.objectType || type.treatAsDynamic) {
+    if (_closedWorld.dartTypes.isTopType(type)) {
       return _graph.addConstantBool(true, _closedWorld);
     }
     InterfaceType interfaceType = type;
@@ -1097,7 +1222,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
       // the notion of generics in the backend. For example, [:this:] in
       // a class [:A<T>:], is currently always considered to have the
       // raw type.
-    } else if (!RuntimeTypesSubstitutions.hasTypeArguments(type)) {
+    } else if (!RuntimeTypesSubstitutions.hasTypeArguments(
+        _closedWorld.dartTypes, type)) {
       AbstractValue expressionMask = expression.instructionType;
       AbstractBool isInstanceOf =
           _abstractValueDomain.isInstanceOf(expressionMask, element);
@@ -1122,7 +1248,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
           rep.kind == TypeInfoExpressionKind.COMPLETE &&
           rep.inputs.isEmpty) {
         DartType type = rep.dartType;
-        if (type.isInterfaceType && type.treatAsRaw) {
+        if (type is InterfaceType &&
+            _closedWorld.dartTypes.treatAsRawType(type)) {
           return node.checkedInput.convertType(_closedWorld, type, node.kind)
             ..sourceInformation = node.sourceInformation;
         }
@@ -1145,22 +1272,18 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   @override
+  HInstruction visitNullCheck(HNullCheck node) {
+    if (node.isRedundant(_closedWorld)) return node.checkedInput;
+    return node;
+  }
+
+  @override
   HInstruction visitTypeKnown(HTypeKnown node) {
     return node.isRedundant(_closedWorld) ? node.checkedInput : node;
   }
 
-  FieldEntity findConcreteFieldForDynamicAccess(
-      HInvokeDynamicField node, HInstruction receiver) {
-    AbstractValue receiverType = receiver.instructionType;
-    MemberEntity member = node.element is FieldEntity
-        ? node.element
-        : _closedWorld.locateSingleMember(node.selector, receiverType);
-    return member is FieldEntity ? member : null;
-  }
-
   @override
   HInstruction visitFieldGet(HFieldGet node) {
-    if (node.isNullCheck) return node;
     var receiver = node.receiver;
 
     // HFieldGet of a constructed constant can be replaced with the constant's
@@ -1243,6 +1366,23 @@ class SsaInstructionSimplifier extends HBaseVisitor
     return node;
   }
 
+  /// Returns the guarded receiver.
+  HInstruction maybeGuardWithNullCheck(
+      HInstruction receiver, HInvokeDynamic node, FieldEntity /*?*/ field) {
+    AbstractValue receiverType = receiver.instructionType;
+    if (_abstractValueDomain.isNull(receiverType).isPotentiallyTrue) {
+      HNullCheck check =
+          HNullCheck(receiver, _abstractValueDomain.excludeNull(receiverType))
+            ..selector = node.selector
+            ..field = field
+            ..sourceInformation = node.sourceInformation;
+      _log?.registerNullCheck(node, check);
+      node.block.addBefore(node, check);
+      return check;
+    }
+    return receiver;
+  }
+
   @override
   HInstruction visitInvokeDynamicGetter(HInvokeDynamicGetter node) {
     propagateConstantValueToUses(node);
@@ -1252,46 +1392,46 @@ class SsaInstructionSimplifier extends HBaseVisitor
     }
     HInstruction receiver = node.getDartReceiver(_closedWorld);
     AbstractValue receiverType = receiver.instructionType;
-    FieldEntity field = node.element is FieldEntity
-        ? node.element
-        : findConcreteFieldForDynamicAccess(node, receiver);
-    if (field != null) {
+
+    Selector selector = node.selector;
+    MemberEntity member =
+        node.element ?? _closedWorld.locateSingleMember(selector, receiverType);
+    if (member == null) return node;
+
+    if (member is FieldEntity) {
+      FieldEntity field = member;
       FieldAnalysisData fieldData =
           _closedWorld.fieldAnalysis.getFieldData(field);
       if (fieldData.isEffectivelyConstant) {
         // The field is elided and replace it with its constant value.
-        if (_abstractValueDomain.isNull(receiverType).isPotentiallyTrue) {
-          // The receiver is potentially `null` so we insert a null receiver
-          // guard to trigger a null pointer exception.
-          //
-          // This could be inserted unconditionally and removed by later
-          // optimizations if unnecessary, but performance we do it
-          // conditionally here.
-          // TODO(35996): Replace with null receiver guard instruction.
-          HInstruction dummyGet = new HFieldGet(null, receiver,
-              _abstractValueDomain.dynamicType, node.sourceInformation,
-              isAssignable: false);
-          _log?.registerFieldGet(node, dummyGet);
-          node.block.addBefore(node, dummyGet);
-        }
+        maybeGuardWithNullCheck(receiver, node, null);
         ConstantValue constant = fieldData.constantValue;
         HConstant result = _graph.addConstant(constant, _closedWorld,
             sourceInformation: node.sourceInformation);
         _log?.registerConstantFieldGet(node, field, result);
         return result;
       } else {
+        receiver = maybeGuardWithNullCheck(receiver, node, field);
         HFieldGet result = _directFieldGet(receiver, field, node);
         _log?.registerFieldGet(node, result);
         return result;
       }
     }
 
-    node.element ??=
-        _closedWorld.locateSingleMember(node.selector, receiverType);
-    if (node.element != null &&
-        node.element.name == node.selector.name &&
-        node.element.isFunction) {
+    if (member is FunctionEntity) {
+      // If the member is not a getter, this could be a property extraction
+      // getter or legacy `noSuchMethod`.
+      if (member.isGetter && member.name == selector.name) {
+        node.element = member;
+        if (_nativeData.isNativeMember(member)) {
+          return tryInlineNativeGetter(node, member) ?? node;
+        }
+      }
+    }
+
+    if (member.isFunction && member.name == selector.name) {
       // A property extraction getter, aka a tear-off.
+      node.element = member;
       node.sideEffects.clearAllDependencies();
       node.sideEffects.clearAllSideEffects();
       node.setUseGvn(); // We don't care about identity of tear-offs.
@@ -1318,7 +1458,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
           field, _globalInferenceResults);
     }
 
-    return new HFieldGet(field, receiver, type, node.sourceInformation,
+    return HFieldGet(field, receiver, type, node.sourceInformation,
         isAssignable: isAssignable);
   }
 
@@ -1330,69 +1470,87 @@ class SsaInstructionSimplifier extends HBaseVisitor
     }
 
     HInstruction receiver = node.getDartReceiver(_closedWorld);
-    FieldEntity field = findConcreteFieldForDynamicAccess(node, receiver);
-    if (field == null || !field.isAssignable) return node;
-    // Use `node.inputs.last` in case the call follows the interceptor calling
-    // convention, but is not a call on an interceptor.
-    HInstruction value = node.inputs.last;
+    AbstractValue receiverType = receiver.instructionType;
+    MemberEntity member = node.element ??=
+        _closedWorld.locateSingleMember(node.selector, receiverType);
+    if (member == null) return node;
 
-    HInstruction assignField() {
-      if (_closedWorld.fieldAnalysis.getFieldData(field).isElided) {
-        _log?.registerFieldSet(node);
-        return value;
-      } else {
-        HFieldSet result =
-            new HFieldSet(_abstractValueDomain, field, receiver, value)
-              ..sourceInformation = node.sourceInformation;
-        _log?.registerFieldSet(node, result);
-        return result;
+    if (member is FieldEntity) {
+      FieldEntity field = member;
+      if (field == null || !field.isAssignable) return node;
+      // Use `node.inputs.last` in case the call follows the interceptor calling
+      // convention, but is not a call on an interceptor.
+      HInstruction value = node.inputs.last;
+
+      HInstruction assignField() {
+        if (_closedWorld.fieldAnalysis.getFieldData(field).isElided) {
+          _log?.registerFieldSet(node);
+          return value;
+        } else {
+          HFieldSet result =
+              HFieldSet(_abstractValueDomain, field, receiver, value)
+                ..sourceInformation = node.sourceInformation;
+          _log?.registerFieldSet(node, result);
+          return result;
+        }
       }
-    }
 
-    if (!_closedWorld.annotationsData
-        .getParameterCheckPolicy(field)
-        .isEmitted) {
+      if (!_closedWorld.annotationsData
+          .getParameterCheckPolicy(field)
+          .isEmitted) {
+        return assignField();
+      }
+
+      DartType fieldType = _closedWorld.elementEnvironment.getFieldType(field);
+
+      if (_options.useNewRti) {
+        AbstractValueWithPrecision checkedType = _abstractValueDomain
+            .createFromStaticType(fieldType, nullable: true);
+        if (checkedType.isPrecise &&
+            _abstractValueDomain
+                .isIn(value.instructionType, checkedType.abstractValue)
+                .isDefinitelyTrue) {
+          return assignField();
+        }
+        // TODO(sra): Implement inlining of setters with checks for new rti. The
+        // check and field assignment for the setter should inlined if this is
+        // the only call to the setter, or the current function already computes
+        // the type of the field.
+        node.needsCheck = true;
+        return node;
+      }
+
+      if (!_closedWorld.dartTypes.treatAsRawType(fieldType) ||
+          fieldType is TypeVariableType ||
+          fieldType is FunctionType ||
+          fieldType is FutureOrType) {
+        // We cannot generate the correct type representation here, so don't
+        // inline this access.
+        // TODO(sra): If the input is such that we don't need a type check, we
+        // can skip the test an generate the HFieldSet.
+        node.needsCheck = true;
+        return node;
+      }
+      HInstruction other = value.convertType(
+          _closedWorld, fieldType, HTypeConversion.TYPE_CHECK);
+      if (other != value) {
+        node.block.addBefore(node, other);
+        value = other;
+      }
+
       return assignField();
     }
 
-    DartType fieldType = _closedWorld.elementEnvironment.getFieldType(field);
-
-    if (_options.experimentNewRti) {
-      AbstractValueWithPrecision checkedType =
-          _abstractValueDomain.createFromStaticType(fieldType, nullable: true);
-      if (checkedType.isPrecise &&
-          _abstractValueDomain
-              .isIn(value.instructionType, checkedType.abstractValue)
-              .isDefinitelyTrue) {
-        return assignField();
+    if (member is FunctionEntity) {
+      // If the member is not a setter is could be legacy `noSuchMethod`.
+      if (member.isSetter && member.name == node.selector.name) {
+        if (_nativeData.isNativeMember(member)) {
+          return tryInlineNativeSetter(node, member) ?? node;
+        }
       }
-      // TODO(sra): Implement inlining of setters with checks for new rti. The
-      // check and field assignmeny for the setter should inlined if this is the
-      // only call to the setter, or the current function already computes the
-      // type of the field.
-      node.needsCheck = true;
-      return node;
     }
 
-    if (!fieldType.treatAsRaw ||
-        fieldType.isTypeVariable ||
-        fieldType.unaliased.isFunctionType ||
-        fieldType.unaliased.isFutureOr) {
-      // We cannot generate the correct type representation here, so don't
-      // inline this access.
-      // TODO(sra): If the input is such that we don't need a type check, we
-      // can skip the test an generate the HFieldSet.
-      node.needsCheck = true;
-      return node;
-    }
-    HInstruction other =
-        value.convertType(_closedWorld, fieldType, HTypeConversion.TYPE_CHECK);
-    if (other != value) {
-      node.block.addBefore(node, other);
-      value = other;
-    }
-
-    return assignField();
+    return node;
   }
 
   @override
@@ -1480,6 +1638,11 @@ class SsaInstructionSimplifier extends HBaseVisitor
         }
       }
     }
+
+    // TODO(sra): [element] could be a native or js-interop method, in which
+    // case we could 'inline' the call to the Dart-convention wrapper code,
+    // replacing it with a HInvokeExternal instruction. Many of these static
+    // methods are already 'inlined' by the CFG builder.
 
     return node;
   }
@@ -1884,27 +2047,102 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   @override
   HInstruction visitTypeEval(HTypeEval node) {
-    if (TypeRecipe.isIdentity(node.typeExpression, node.envStructure)) {
-      return node.inputs.single;
+    HInstruction environment = node.inputs.single;
+    if (_typeRecipeDomain.isIdentity(node.typeExpression, node.envStructure)) {
+      return environment;
     }
+
+    if (environment is HLoadType) {
+      TypeRecipe result = _typeRecipeDomain.foldLoadEval(
+          environment.typeExpression, node.envStructure, node.typeExpression);
+      if (result != null) return HLoadType(result, node.instructionType);
+      return node;
+    }
+
+    if (environment is HTypeBind) {
+      HInstruction bindings = environment.inputs.last;
+      if (bindings is HLoadType) {
+        //  env.bind(LoadType(T)).eval(...1...)  -->  env.eval(...T...)
+        TypeRecipeAndEnvironmentStructure result =
+            _typeRecipeDomain.foldBindLoadEval(bindings.typeExpression,
+                node.envStructure, node.typeExpression);
+        if (result != null) {
+          HInstruction previousEnvironment = environment.inputs.first;
+          return HTypeEval(previousEnvironment, result.environmentStructure,
+              result.recipe, node.instructionType);
+        }
+      }
+      // TODO(sra):  LoadType(T).bind(E).eval(...1...) --> E.eval(...0...)
+      return node;
+    }
+
+    if (environment is HTypeEval) {
+      TypeRecipeAndEnvironmentStructure result = _typeRecipeDomain.foldEvalEval(
+          environment.envStructure,
+          environment.typeExpression,
+          node.envStructure,
+          node.typeExpression);
+      if (result != null) {
+        HInstruction previousEnvironment = environment.inputs.first;
+        return HTypeEval(previousEnvironment, result.environmentStructure,
+            result.recipe, node.instructionType);
+      }
+      return node;
+    }
+
+    if (environment is HInstanceEnvironment) {
+      HInstruction instance = environment.inputs.single;
+      AbstractValue instanceAbstractValue = instance.instructionType;
+      ClassEntity instanceClass =
+          _abstractValueDomain.getExactClass(instanceAbstractValue);
+      if (instanceClass == null) {
+        // All the subclasses of JSArray are JSArray at runtime.
+        ClassEntity jsArrayClass = _closedWorld.commonElements.jsArrayClass;
+        if (_abstractValueDomain
+            .isInstanceOf(instanceAbstractValue, jsArrayClass)
+            .isDefinitelyTrue) {
+          instanceClass = jsArrayClass;
+        }
+      }
+      if (instanceClass != null) {
+        if (_typeRecipeDomain.isReconstruction(
+            instanceClass, node.envStructure, node.typeExpression)) {
+          return environment;
+        }
+      }
+    }
+
+    return node;
+  }
+
+  @override
+  HInstruction visitTypeBind(HTypeBind node) {
+    // TODO(sra):  env1.eval(X).bind(env1.eval(Y)) --> env1.eval(...X...Y...)
     return node;
   }
 
   @override
   HInstruction visitAsCheck(HAsCheck node) {
+    // TODO(fishythefish): Correctly constant fold `null as T` (also in
+    // [visitAsCheckSimple]) when running with strong NNBD. We might get this
+    // for free if nullability is precisely propagated to the typemasks.
     if (node.isRedundant(_closedWorld)) return node.checkedInput;
 
     // See if this check can be lowered to a simple one.
     HInstruction typeInput = node.typeInput;
     if (typeInput is HLoadType) {
-      DartType dartType = typeInput.typeExpression;
-      MemberEntity specializedCheck = SpecializedChecks.findAsCheck(
-          dartType, node.isTypeError, _closedWorld.commonElements);
+      TypeExpressionRecipe recipe = typeInput.typeExpression;
+      DartType dartType = recipe.type;
+      MemberEntity specializedCheck =
+          SpecializedChecks.findAsCheck(dartType, _closedWorld.commonElements);
       if (specializedCheck != null) {
         AbstractValueWithPrecision checkedType =
             _abstractValueDomain.createFromStaticType(dartType, nullable: true);
         return HAsCheckSimple(node.checkedInput, dartType, checkedType,
             node.isTypeError, specializedCheck, node.instructionType);
+      }
+      if (_closedWorld.dartTypes.isTopType(dartType)) {
+        return node.checkedInput;
       }
     }
     return node;
@@ -1918,22 +2156,59 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   @override
   HInstruction visitIsTest(HIsTest node) {
-    AbstractValueWithPrecision checkedAbstractValue = node.checkedAbstractValue;
-    HInstruction checkedInput = node.checkedInput;
-    AbstractValue inputType = checkedInput.instructionType;
-
-    AbstractBool isIn = _abstractValueDomain.isIn(
-        inputType, checkedAbstractValue.abstractValue);
-
-    if (isIn.isDefinitelyFalse) {
+    AbstractBool result = node.evaluate(_closedWorld, _options.useNullSafety);
+    if (result.isDefinitelyFalse) {
       return _graph.addConstantBool(false, _closedWorld);
     }
-    if (!checkedAbstractValue.isPrecise) return node;
-
-    if (isIn.isDefinitelyTrue) {
+    if (result.isDefinitelyTrue) {
       return _graph.addConstantBool(true, _closedWorld);
     }
 
+    HInstruction typeInput = node.typeInput;
+    if (typeInput is HLoadType) {
+      TypeExpressionRecipe recipe = typeInput.typeExpression;
+      DartType dartType = recipe.type;
+      if (_closedWorld.dartTypes.isTopType(dartType)) {
+        return _graph.addConstantBool(true, _closedWorld);
+      }
+
+      IsTestSpecialization specialization =
+          SpecializedChecks.findIsTestSpecialization(
+              dartType, _graph, _closedWorld);
+
+      if (specialization == IsTestSpecialization.null_) {
+        return HIdentity(
+            node.checkedInput,
+            _graph.addConstantNull(_closedWorld),
+            null,
+            _abstractValueDomain.boolType);
+      }
+
+      if (specialization != null) {
+        AbstractValueWithPrecision checkedType =
+            _abstractValueDomain.createFromStaticType(dartType,
+                nullable: _abstractValueDomain
+                    .isNull(node.checkedAbstractValue.abstractValue)
+                    .isPotentiallyTrue);
+        return HIsTestSimple(dartType, checkedType, specialization,
+            node.checkedInput, _abstractValueDomain.boolType);
+      }
+    }
+
+    // TODO(fishythefish): Prune now-unneeded is-tests from the metadata.
+
+    return node;
+  }
+
+  @override
+  HInstruction visitIsTestSimple(HIsTestSimple node) {
+    AbstractBool result = node.evaluate(_closedWorld, _options.useNullSafety);
+    if (result.isDefinitelyFalse) {
+      return _graph.addConstantBool(false, _closedWorld);
+    }
+    if (result.isDefinitelyTrue) {
+      return _graph.addConstantBool(true, _closedWorld);
+    }
     return node;
   }
 
@@ -1957,7 +2232,13 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (instance is HCreate) {
       if (instance.hasRtiInput) {
         instance.instantiatedTypes?.forEach(_registry.registerInstantiation);
-        return instance.inputs.last;
+        return instance.rtiInput;
+      }
+      InterfaceType instanceType =
+          _closedWorld.elementEnvironment.getThisType(instance.element);
+      if (instanceType.typeArguments.length == 0) {
+        instance.instantiatedTypes?.forEach(_registry.registerInstantiation);
+        return HLoadType.type(instanceType, instance.instructionType);
       }
       return node;
     }
@@ -1966,12 +2247,22 @@ class SsaInstructionSimplifier extends HBaseVisitor
       ConstantValue constantValue = instance.constant;
       if (constantValue is ConstructedConstantValue) {
         _registry.registerInstantiation(constantValue.type);
-        return HLoadType(constantValue.type, instance.instructionType);
+        return HLoadType.type(constantValue.type, instance.instructionType);
+      }
+      if (constantValue is ListConstantValue) {
+        InterfaceType type = constantValue.type;
+        _registry.registerInstantiation(type);
+        return HLoadType.type(type, instance.instructionType);
       }
       return node;
     }
 
-    // TODO(sra): Store-forward list literal types.
+    if (instance is HInvokeStatic &&
+        instance.element == commonElements.setRuntimeTypeInfo) {
+      // TODO(sra): What is the 'instantiated type' we should be registering as
+      // discussed above? Perhaps it should be carried on HLiteralList.
+      return instance.inputs.last;
+    }
 
     return node;
   }
@@ -2081,6 +2372,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   Map<HInstruction, bool> trivialDeadStoreReceivers =
       new Maplet<HInstruction, bool>();
   bool eliminatedSideEffects = false;
+  bool newGvnCandidates = false;
 
   SsaDeadCodeEliminator(this.closedWorld, this.optimizer);
 
@@ -2097,19 +2389,15 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
     return zapInstructionCache;
   }
 
-  /// Returns true of [foreign] will throw an noSuchMethod error if
-  /// receiver is `null` before having any other side-effects.
-  bool templateThrowsNSMonNull(HForeignCode foreign, HInstruction receiver) {
-    if (foreign.inputs.length < 1) return false;
-    if (foreign.inputs.first != receiver) return false;
-    if (foreign.throwBehavior.isNullNSMGuard) return true;
-    return false;
-  }
+  /// Determines whether we can delete [instruction] because the only thing it
+  /// does is throw the same exception as the next instruction that throws or
+  /// has an effect.
+  bool canFoldIntoFollowingInstruction(HInstruction instruction) {
+    assert(instruction.usedBy.isEmpty);
+    assert(instruction.canThrow(_abstractValueDomain));
 
-  /// Returns whether the next throwing instruction that may have side
-  /// effects after [instruction], throws [NoSuchMethodError] on the
-  /// same receiver of [instruction].
-  bool hasFollowingThrowingNSM(HInstruction instruction) {
+    if (!instruction.onlyThrowsNSM()) return false;
+
     HInstruction receiver = instruction.getDartReceiver(closedWorld);
     HInstruction current = instruction.next;
     do {
@@ -2117,14 +2405,14 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
           current.canThrow(_abstractValueDomain)) {
         return true;
       }
-      if (current is HForeignCode &&
-          templateThrowsNSMonNull(current, receiver)) {
+      if (current is HForeignCode && current.isNullGuardFor(receiver)) {
         return true;
       }
       if (current.canThrow(_abstractValueDomain) ||
           current.sideEffects.hasSideEffects()) {
         return false;
       }
+
       HInstruction next = current.next;
       if (next == null) {
         // We do not merge blocks in our SSA graph, so if this block just jumps
@@ -2182,10 +2470,9 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
     if (isTrivialDeadStore(instruction)) return true;
     if (instruction.sideEffects.hasSideEffects()) return false;
     if (instruction.canThrow(_abstractValueDomain)) {
-      if (instruction.onlyThrowsNSM() && hasFollowingThrowingNSM(instruction)) {
-        // [instruction] is a null reciever guard that is followed by an
-        // instruction that fails the same way (by accessing a property of
-        // `null` or `undefined`).
+      if (canFoldIntoFollowingInstruction(instruction)) {
+        // TODO(35996): If we remove [instruction], the source location of the
+        // 'equivalent' instruction should be updated.
         return true;
       }
       return false;
@@ -2321,6 +2608,9 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
       while (!instruction.isControlFlow()) {
         HInstruction next = instruction.next;
         if (instruction is HTypeKnown && instruction.isPinned) break;
+        // It might be worth re-running GVN optimizations if we hoisted a
+        // GVN-able instructions from [target] into [block].
+        newGvnCandidates = newGvnCandidates || instruction.useGvn();
         instruction.block.detach(instruction);
         block.moveAtExit(instruction);
         instruction = next;
@@ -2706,6 +2996,10 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
       HInstruction next = instruction.next;
       int flags = instruction.sideEffects.getChangesFlags();
       assert(flags == 0 || !instruction.useGvn());
+      // TODO(sra): Is the above assertion too strong? We should be able to
+      // reuse the values generated by idempotent operations that have
+      // effects. Would it be correct to make the kill below be conditional on
+      // not replacing the instruction?
       values.kill(flags);
       if (instruction.useGvn()) {
         HInstruction other = values.lookup(instruction);
@@ -2974,9 +3268,7 @@ class SsaTypeConversionInserter extends HBaseVisitor
     DartType type = instruction.typeExpression;
     if (!instruction.isRawCheck) {
       return;
-    } else if (type.isTypedef) {
-      return;
-    } else if (type.isFutureOr) {
+    } else if (type is FutureOrType) {
       return;
     }
     InterfaceType interfaceType = type;
@@ -3004,6 +3296,27 @@ class SsaTypeConversionInserter extends HBaseVisitor
   void visitIsTest(HIsTest instruction) {
     List<HBasicBlock> trueTargets = <HBasicBlock>[];
     List<HBasicBlock> falseTargets = <HBasicBlock>[];
+
+    collectTargets(instruction, trueTargets, falseTargets);
+
+    if (trueTargets.isEmpty && falseTargets.isEmpty) return;
+
+    AbstractValue convertedType =
+        instruction.checkedAbstractValue.abstractValue;
+    HInstruction input = instruction.checkedInput;
+
+    for (HBasicBlock block in trueTargets) {
+      insertTypePropagationForDominatedUsers(block, input, convertedType);
+    }
+    // TODO(sra): Also strengthen uses for when the condition is precise and
+    // known false (e.g. int? x; ... if (x is! int) use(x)). Avoid strengthening
+    // to `null`.
+  }
+
+  @override
+  void visitIsTestSimple(HIsTestSimple instruction) {
+    List<HBasicBlock> trueTargets = [];
+    List<HBasicBlock> falseTargets = [];
 
     collectTargets(instruction, trueTargets, falseTargets);
 
@@ -3173,7 +3486,6 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
 
   @override
   void visitFieldGet(HFieldGet instruction) {
-    if (instruction.isNullCheck) return;
     FieldEntity element = instruction.element;
     HInstruction receiver =
         instruction.getDartReceiver(_closedWorld).nonCheck();
@@ -3364,6 +3676,8 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   void visitIsViaInterceptor(HIsViaInterceptor instruction) {}
   @override
   void visitNot(HNot instruction) {}
+  @override
+  void visitNullCheck(HNullCheck instruction) {}
   @override
   void visitParameterValue(HParameterValue instruction) {}
   @override

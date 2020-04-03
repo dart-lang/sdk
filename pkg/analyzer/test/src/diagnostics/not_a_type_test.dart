@@ -15,6 +15,16 @@ main() {
 
 @reflectiveTest
 class NotATypeTest extends DriverResolutionTest {
+  test_extension() async {
+    await assertErrorsInCode('''
+extension E on int {}
+E a;
+''', [error(StaticWarningCode.NOT_A_TYPE, 22, 1)]);
+    var typeName = findNode.typeName('E a;');
+    assertTypeDynamic(typeName.type);
+    assertTypeNull(typeName.name);
+  }
+
   test_function() async {
     await assertErrorsInCode('''
 f() {}

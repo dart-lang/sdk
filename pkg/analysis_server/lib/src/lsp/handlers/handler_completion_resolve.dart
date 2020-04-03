@@ -25,11 +25,13 @@ class CompletionResolveHandler
 
   CompletionResolveHandler(LspAnalysisServer server) : super(server);
 
+  @override
   Method get handlesMessage => Method.completionItem_resolve;
 
   @override
   LspJsonHandler<CompletionItem> get jsonHandler => CompletionItem.jsonHandler;
 
+  @override
   Future<ErrorOr<CompletionItem>> handle(
       CompletionItem item, CancellationToken token) async {
     // If this isn't an item with resolution data, return the same item back.
@@ -77,11 +79,6 @@ class CompletionResolveHandler
         var analysisDriver = server.getAnalysisDriver(data.file);
         var session = analysisDriver.currentSession;
 
-        var fileElement = await session.getUnitElement(data.file);
-        var libraryPath = fileElement.element.librarySource.fullName;
-
-        var resolvedLibrary = await session.getResolvedLibrary(libraryPath);
-
         if (token.isCancellationRequested) {
           return cancelled();
         }
@@ -115,14 +112,8 @@ class CompletionResolveHandler
 
         var newInsertText = item.insertText ?? item.label;
         final builder = DartChangeBuilder(session);
-        await builder.addFileEdit(libraryPath, (builder) {
-          final result = builder.importLibraryElement(
-            targetLibrary: resolvedLibrary,
-            targetPath: libraryPath,
-            targetOffset: data.offset,
-            requestedLibrary: requestedLibraryElement,
-            requestedElement: requestedElement,
-          );
+        await builder.addFileEdit(data.file, (builder) {
+          final result = builder.importLibraryElement(library.uri);
           if (result.prefix != null) {
             newInsertText = '${result.prefix}.$newInsertText';
           }
@@ -168,7 +159,7 @@ class CompletionResolveHandler
           item.filterText,
           newInsertText,
           item.insertTextFormat,
-          new TextEdit(
+          TextEdit(
             // TODO(dantup): If `clientSupportsSnippets == true` then we should map
             // `selection` in to a snippet (see how Dart Code does this).
             toRange(lineInfo, item.data.rOffset, item.data.rLength),

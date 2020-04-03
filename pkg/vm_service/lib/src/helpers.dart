@@ -24,9 +24,3 @@ class TagCounter {
 
   TagCounter(this.name, this.count);
 }
-
-//class GraphEventHelper {
-//  // int chunkIndex
-//  // int chunkCount
-//  // int nodeCount
-//}

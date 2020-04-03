@@ -4,73 +4,55 @@
 
 import 'package:analyzer/file_system/file_system.dart';
 
-/**
- * An object used to locate a plugin within a package.
- */
+/// An object used to locate a plugin within a package.
 class PluginLocator {
-  /**
-   * The key used in the `pubspec.yaml` file to specify the location of the
-   * analysis plugin.
-   */
+  /// The key used in the `pubspec.yaml` file to specify the location of the
+  /// analysis plugin.
   static const String analyzerPluginKey = 'analyzer_plugin';
 
-  /**
-   * The name of the default plugin directory, located within the `tools`
-   * directory.
-   */
+  /// The name of the default plugin directory, located within the `tools`
+  /// directory.
   static const String defaultPluginFolderName = 'analyzer_plugin';
 
-  /**
-   * The name of the `pubspec.yaml` file.
-   */
+  /// The name of the `pubspec.yaml` file.
   static const String pubspecFileName = 'pubspec.yaml';
 
-  /**
-   * The name of the `tools` directory, in which the default plugin directory is
-   * located.
-   */
+  /// The name of the `tools` directory, in which the default plugin directory
+  /// is located.
   static const String toolsFolderName = 'tools';
 
-  /**
-   * The resource provider used to access the file system.
-   */
+  /// The resource provider used to access the file system.
   final ResourceProvider resourceProvider;
 
   final Map<String, String> pluginMap = <String, String>{};
 
-  /**
-   * Initialize a newly created plugin locator to use the given
-   * [resourceProvider] to access the file system.
-   */
+  /// Initialize a newly created plugin locator to use the given
+  /// [resourceProvider] to access the file system.
   PluginLocator(this.resourceProvider);
 
-  /**
-   * Given the root directory of a package (the [packageRoot]), return the path
-   * to the plugin associated with the package, or `null` if there is no plugin
-   * associated with the package.
-   *
-   * This will look first in the `pubspec.yaml` file in the package root for a
-   * top-level key (`analysis_plugin`) indicating where the plugin is located.
-   * The value associated with the key is expected to be the path of the plugin
-   * relative to the package root. If the directory exists, the it is returned.
-   *
-   * If the key is not defined in the `pubspec.yaml` file, or if the directory
-   * given does not exist, then this method will look for the directory
-   * `tools/analysis_plugin` relative to the package root. If the directory
-   * exists, then it is returned.
-   *
-   * This method does not validate the content of the plugin directory before
-   * returning it.
-   */
+  /// Given the root directory of a package (the [packageRoot]), return the path
+  /// to the plugin associated with the package, or `null` if there is no plugin
+  /// associated with the package.
+  ///
+  /// This will look first in the `pubspec.yaml` file in the package root for a
+  /// top-level key (`analysis_plugin`) indicating where the plugin is located.
+  /// The value associated with the key is expected to be the path of the plugin
+  /// relative to the package root. If the directory exists, the it is returned.
+  ///
+  /// If the key is not defined in the `pubspec.yaml` file, or if the directory
+  /// given does not exist, then this method will look for the directory
+  /// `tools/analysis_plugin` relative to the package root. If the directory
+  /// exists, then it is returned.
+  ///
+  /// This method does not validate the content of the plugin directory before
+  /// returning it.
   String findPlugin(String packageRoot) {
     return pluginMap.putIfAbsent(packageRoot, () => _findPlugin(packageRoot));
   }
 
-  /**
-   * The implementation of [findPlugin].
-   */
+  /// The implementation of [findPlugin].
   String _findPlugin(String packageRoot) {
-    Folder packageFolder = resourceProvider.getFolder(packageRoot);
+    var packageFolder = resourceProvider.getFolder(packageRoot);
     // TODO(brianwilkerson) Re-enable this after deciding how we want to deal
     // with discovery of plugins.
 //    import 'package:yaml/yaml.dart';
@@ -94,7 +76,7 @@ class PluginLocator {
 //        // If we can't read the file, or if it isn't valid YAML, then ignore it.
 //      }
 //    }
-    Folder pluginFolder = packageFolder
+    var pluginFolder = packageFolder
         .getChildAssumingFolder(toolsFolderName)
         .getChildAssumingFolder(defaultPluginFolderName);
     if (pluginFolder.exists) {

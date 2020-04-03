@@ -14,6 +14,6 @@ class C extends self::B {
   method f() → void
     ;
 }
-static field dynamic x;
+static field void x;
 static method main() → dynamic
   ;

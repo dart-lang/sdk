@@ -7,12 +7,15 @@
 
 #include "vm/compiler/backend/il.h"
 #include "vm/compiler/frontend/base_flow_graph_builder.h"
+#include "vm/compiler/frontend/kernel_translation_helper.h"  // For InferredTypeMetadata
 #include "vm/constants_kbc.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 namespace kernel {
+
+class BytecodeLocalVariablesIterator;
 
 // This class builds flow graph from bytecode. It is used either to compile
 // from bytecode, or generate bytecode interpreter (the latter is not
@@ -40,7 +43,8 @@ class BytecodeFlowGraphBuilder {
         stacktrace_var_(nullptr),
         scratch_var_(nullptr),
         prologue_info_(-1, -1),
-        throw_no_such_method_(nullptr) {}
+        throw_no_such_method_(nullptr),
+        inferred_types_attribute_(Array::Handle(zone_)) {}
 
   FlowGraph* BuildGraph();
 
@@ -107,6 +111,24 @@ class BytecodeFlowGraphBuilder {
     const Object& value_;
   };
 
+  // Scope declared in bytecode local variables information.
+  class BytecodeScope : public ZoneAllocated {
+   public:
+    BytecodeScope(Zone* zone,
+                  intptr_t end_pc,
+                  intptr_t context_level,
+                  BytecodeScope* parent)
+        : end_pc_(end_pc),
+          context_level_(context_level),
+          parent_(parent),
+          hidden_vars_(zone, 4) {}
+
+    const intptr_t end_pc_;
+    const intptr_t context_level_;
+    BytecodeScope* const parent_;
+    ZoneGrowableArray<LocalVariable*> hidden_vars_;
+  };
+
   Operand DecodeOperandA();
   Operand DecodeOperandB();
   Operand DecodeOperandC();
@@ -137,7 +159,7 @@ class BytecodeFlowGraphBuilder {
   Value* Pop();
   intptr_t GetStackDepth() const;
   bool IsStackEmpty() const;
-  ArgumentArray GetArguments(int count);
+  InferredTypeMetadata GetInferredType(intptr_t pc);
   void PropagateStackState(intptr_t target_pc);
   void DropUnusedValuesFromStack();
   void BuildJumpIfStrictCompare(Token::Kind cmp_kind);
@@ -147,11 +169,13 @@ class BytecodeFlowGraphBuilder {
                         int num_args);
   void BuildIntOp(const String& name, Token::Kind token_kind, int num_args);
   void BuildDoubleOp(const String& name, Token::Kind token_kind, int num_args);
+  void BuildDirectCallCommon(bool is_unchecked_call);
   void BuildInterfaceCallCommon(bool is_unchecked_call,
                                 bool is_instantiated_call);
 
   void BuildInstruction(KernelBytecode::Opcode opcode);
   void BuildFfiAsFunction();
+  void BuildFfiNativeCallbackFunction();
   void BuildDebugStepCheck();
 
 #define DECLARE_BUILD_METHOD(name, encoding, kind, op1, op2, op3)              \
@@ -159,7 +183,6 @@ class BytecodeFlowGraphBuilder {
   KERNEL_BYTECODES_LIST(DECLARE_BUILD_METHOD)
 #undef DECLARE_BUILD_METHOD
 
-  void ProcessICDataInObjectPool(const ObjectPool& object_pool);
   intptr_t GetTryIndex(const PcDescriptors& descriptors, intptr_t pc);
   JoinEntryInstr* EnsureControlFlowJoin(const PcDescriptors& descriptors,
                                         intptr_t pc);
@@ -168,11 +191,9 @@ class BytecodeFlowGraphBuilder {
                           const ExceptionHandlers& handlers,
                           GraphEntryInstr* graph_entry);
 
-#if !defined(PRODUCT)
-  // Update context level for the given bytecode PC. returns
-  // next PC where context level might need an update.
-  intptr_t UpdateContextLevel(const Bytecode& bytecode, intptr_t pc);
-#endif
+  // Update current scope, context level and local variables for the given PC.
+  // Returns next PC where scope might need an update.
+  intptr_t UpdateScope(BytecodeLocalVariablesIterator* iter, intptr_t pc);
 
   // Figure out entry points style.
   UncheckedEntryPointStyle ChooseEntryPointStyle(
@@ -181,11 +202,11 @@ class BytecodeFlowGraphBuilder {
   Thread* thread() const { return flow_graph_builder_->thread_; }
   Isolate* isolate() const { return thread()->isolate(); }
 
-  ParsedFunction* parsed_function() {
+  ParsedFunction* parsed_function() const {
     ASSERT(!is_generating_interpreter());
     return parsed_function_;
   }
-  const Function& function() { return parsed_function()->function(); }
+  const Function& function() const { return parsed_function()->function(); }
 
   BaseFlowGraphBuilder* flow_graph_builder_;
   Zone* zone_;
@@ -202,6 +223,8 @@ class BytecodeFlowGraphBuilder {
   intptr_t next_pc_ = -1;
   const KBCInstr* bytecode_instr_ = nullptr;
   TokenPosition position_;
+  intptr_t last_yield_point_pc_ = 0;
+  intptr_t last_yield_point_index_ = 0;
   Fragment code_;
   ZoneGrowableArray<LocalVariable*> local_vars_;
   ZoneGrowableArray<LocalVariable*> parameters_;
@@ -215,6 +238,10 @@ class BytecodeFlowGraphBuilder {
   GraphEntryInstr* graph_entry_ = nullptr;
   UncheckedEntryPointStyle entry_point_style_ = UncheckedEntryPointStyle::kNone;
   bool build_debug_step_checks_ = false;
+  bool seen_parameters_scope_ = false;
+  BytecodeScope* current_scope_ = nullptr;
+  Array& inferred_types_attribute_;
+  intptr_t inferred_types_index_ = 0;
 };
 
 }  // namespace kernel

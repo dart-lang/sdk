@@ -27,6 +27,8 @@
     'dart2js': {
       'filepath': (
         '^pkg/compiler|'
+        '^sdk/lib/_internal/js_runtime|'
+        '^sdk_nnbd/lib/_internal/js_runtime|'
         '^tests/compiler/dart2js'
       )
     },
@@ -66,8 +68,8 @@
 
   'WATCHLISTS': {
     'build': [ 'keertip@google.com' ],
-    'dart2js': [ 'johnniwinther@google.com', 'sigmund@google.com',
-                 'sra@google.com', 'fishythefish@google.com' ],
+    'dart2js': [ 'sigmund@google.com', 'sra@google.com',
+                 'fishythefish@google.com', 'joshualitt@google.com' ],
     'front_end': [ 'dart-fe-team+reviews@google.com' ],
     'kernel': [ 'jensj@google.com', 'alexmarkov@google.com' ],
     'messages_review': [ 'dart-uxr+reviews@google.com' ],

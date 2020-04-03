@@ -1,0 +1,62 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application, change a file, but don't change the outline.
+# Use late fields without lowering.
+
+type: newworld
+forceLateLoweringForTesting: false
+worlds:
+  - entry: main.dart
+    experiments: non-nullable
+    useExperimentalInvalidation: true
+    sources:
+      main.dart: |
+        late int? field1 = 42;
+        late int? field2;
+        late final int? field3 = 42;
+        late final int? field4;
+        class C {
+          late int? field5 = 42;
+          late int? field6;
+          late final int? field7 = 42;
+          late final int? field8;
+          static late int? field9 = 42;
+          static late int? field10;
+          static late final int? field11 = 42;
+          static late final int? field12;
+        }
+        main() {
+          field1 = 43;
+          field2 = 42;
+        }
+    expectedLibraryCount: 1
+  - entry: main.dart
+    useExperimentalInvalidation: true
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        late int? field1 = 42;
+        late int? field2;
+        late final int? field3 = 42;
+        late final int? field4;
+        class C {
+          late int? field5 = 42;
+          late int? field6;
+          late final int? field7 = 42;
+          late final int? field8;
+          static late int? field9 = 42;
+          static late int? field10;
+          static late final int? field11 = 42;
+          static late final int? field12;
+        }
+        main() {
+          field1 = 44;
+          field2 = 43;
+        }
+    expectedLibraryCount: 1
+    expectsRebuildBodiesOnly: true

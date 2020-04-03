@@ -19,14 +19,15 @@ namespace kernel {
 static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
 
 // Both version numbers are inclusive.
-static const uint32_t kMinSupportedKernelFormatVersion = 18;
-static const uint32_t kMaxSupportedKernelFormatVersion = 29;
+static const uint32_t kMinSupportedKernelFormatVersion = 29;
+static const uint32_t kMaxSupportedKernelFormatVersion = 40;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
   V(Nothing, 0)                                                                \
   V(Something, 1)                                                              \
   V(Class, 2)                                                                  \
+  V(Extension, 115)                                                            \
   V(FunctionNode, 3)                                                           \
   V(Field, 4)                                                                  \
   V(Constructor, 5)                                                            \
@@ -59,6 +60,7 @@ static const uint32_t kMaxSupportedKernelFormatVersion = 29;
   V(ConstructorInvocation, 31)                                                 \
   V(ConstConstructorInvocation, 32)                                            \
   V(Not, 33)                                                                   \
+  V(NullCheck, 117)                                                            \
   V(LogicalExpression, 34)                                                     \
   V(ConditionalExpression, 35)                                                 \
   V(StringConcatenation, 36)                                                   \
@@ -66,6 +68,7 @@ static const uint32_t kMaxSupportedKernelFormatVersion = 29;
   V(SetConcatenation, 112)                                                     \
   V(MapConcatenation, 113)                                                     \
   V(InstanceCreation, 114)                                                     \
+  V(FileUriExpression, 116)                                                    \
   V(IsExpression, 37)                                                          \
   V(AsExpression, 38)                                                          \
   V(StringLiteral, 39)                                                         \
@@ -115,6 +118,7 @@ static const uint32_t kMaxSupportedKernelFormatVersion = 29;
   V(AssertBlock, 81)                                                           \
   V(TypedefType, 87)                                                           \
   V(BottomType, 89)                                                            \
+  V(NeverType, 98)                                                             \
   V(InvalidType, 90)                                                           \
   V(DynamicType, 91)                                                           \
   V(VoidType, 92)                                                              \
@@ -123,11 +127,7 @@ static const uint32_t kMaxSupportedKernelFormatVersion = 29;
   V(TypeParameterType, 95)                                                     \
   V(SimpleInterfaceType, 96)                                                   \
   V(SimpleFunctionType, 97)                                                    \
-  V(NullReference, 99)                                                         \
-  V(ClassReference, 100)                                                       \
-  V(MemberReference, 101)                                                      \
   V(ConstantExpression, 106)                                                   \
-  V(Deprecated_ConstantExpression, 107)                                        \
   V(SpecializedVariableGet, 128)                                               \
   V(SpecializedVariableSet, 136)                                               \
   V(SpecializedIntLiteral, 144)
@@ -163,11 +163,38 @@ enum ConstantTag {
 };
 
 // Keep in sync with package:kernel/lib/ast.dart
-enum Nullability {
-  kNullable = 0,
-  kNonNullable = 1,
-  kNeither = 2,
+enum class KernelNullability : int8_t {
+  kUndetermined = 0,
+  kNullable = 1,
+  kNonNullable = 2,
   kLegacy = 3,
+};
+
+// Keep in sync with package:kernel/lib/ast.dart
+enum Variance {
+  kUnrelated = 0,
+  kCovariant = 1,
+  kContravariant = 2,
+  kInvariant = 3,
+  kLegacyCovariant = 4,
+};
+
+// Keep in sync with package:kernel/lib/ast.dart
+enum AsExpressionFlags {
+  kAsExpressionFlagTypeError = 1 << 0,
+  kAsExpressionFlagCovarianceCheck = 1 << 1,
+  kAsExpressionFlagForDynamic = 1 << 2,
+  kAsExpressionFlagForNonNullableByDefault = 1 << 3,
+};
+
+// Keep in sync with package:kernel/lib/ast.dart
+enum IsExpressionFlags {
+  kIsExpressionFlagForNonNullableByDefault = 1 << 0,
+};
+
+// Keep in sync with package:kernel/lib/ast.dart
+enum class NamedTypeFlags : uint8_t {
+  kIsRequired = 1 << 0,
 };
 
 static const int SpecializedIntLiteralBias = 3;
@@ -327,9 +354,27 @@ class Reader : public ValueObject {
     }
   }
 
+  static Nullability ConvertNullability(KernelNullability kernel_nullability) {
+    switch (kernel_nullability) {
+      case KernelNullability::kNullable:
+        return Nullability::kNullable;
+      case KernelNullability::kLegacy:
+        return Nullability::kLegacy;
+      case KernelNullability::kNonNullable:
+      case KernelNullability::kUndetermined:
+        return Nullability::kNonNullable;
+    }
+    UNREACHABLE();
+  }
+
   Nullability ReadNullability() {
+    const uint8_t byte = ReadByte();
+    return ConvertNullability(static_cast<KernelNullability>(byte));
+  }
+
+  Variance ReadVariance() {
     uint8_t byte = ReadByte();
-    return static_cast<Nullability>(byte);
+    return static_cast<Variance>(byte);
   }
 
   void EnsureEnd() {
@@ -408,36 +453,43 @@ class Reader : public ValueObject {
 class AlternativeReadingScope {
  public:
   AlternativeReadingScope(Reader* reader, intptr_t new_position)
-      : reader_(reader),
-        saved_size_(reader_->size()),
-        saved_raw_buffer_(reader_->raw_buffer()),
-        saved_typed_data_(reader_->typed_data()),
-        saved_offset_(reader_->offset()) {
+      : reader_(reader), saved_offset_(reader_->offset()) {
     reader_->set_offset(new_position);
   }
 
-  AlternativeReadingScope(Reader* reader,
-                          const ExternalTypedData* new_typed_data,
-                          intptr_t new_position)
+  explicit AlternativeReadingScope(Reader* reader)
+      : reader_(reader), saved_offset_(reader_->offset()) {}
+
+  ~AlternativeReadingScope() { reader_->set_offset(saved_offset_); }
+
+  intptr_t saved_offset() { return saved_offset_; }
+
+ private:
+  Reader* const reader_;
+  const intptr_t saved_offset_;
+
+  DISALLOW_COPY_AND_ASSIGN(AlternativeReadingScope);
+};
+
+// Similar to AlternativeReadingScope, but also switches reading to another
+// typed data array.
+class AlternativeReadingScopeWithNewData {
+ public:
+  AlternativeReadingScopeWithNewData(Reader* reader,
+                                     const ExternalTypedData* new_typed_data,
+                                     intptr_t new_position)
       : reader_(reader),
         saved_size_(reader_->size()),
         saved_raw_buffer_(reader_->raw_buffer()),
         saved_typed_data_(reader_->typed_data()),
         saved_offset_(reader_->offset()) {
-    reader_->set_raw_buffer(NULL);
+    reader_->set_raw_buffer(nullptr);
     reader_->set_typed_data(new_typed_data);
     reader_->set_size(new_typed_data->Length());
     reader_->set_offset(new_position);
   }
 
-  explicit AlternativeReadingScope(Reader* reader)
-      : reader_(reader),
-        saved_size_(reader_->size()),
-        saved_raw_buffer_(reader_->raw_buffer()),
-        saved_typed_data_(reader_->typed_data()),
-        saved_offset_(reader_->offset()) {}
-
-  ~AlternativeReadingScope() {
+  ~AlternativeReadingScopeWithNewData() {
     reader_->set_raw_buffer(saved_raw_buffer_);
     reader_->set_typed_data(saved_typed_data_);
     reader_->set_size(saved_size_);
@@ -453,7 +505,7 @@ class AlternativeReadingScope {
   const ExternalTypedData* saved_typed_data_;
   intptr_t saved_offset_;
 
-  DISALLOW_COPY_AND_ASSIGN(AlternativeReadingScope);
+  DISALLOW_COPY_AND_ASSIGN(AlternativeReadingScopeWithNewData);
 };
 
 // A helper class that resets the readers min and max positions both upon

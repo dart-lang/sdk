@@ -5,6 +5,9 @@
 #ifndef RUNTIME_VM_ISOLATE_RELOAD_H_
 #define RUNTIME_VM_ISOLATE_RELOAD_H_
 
+#include <functional>
+#include <memory>
+
 #include "include/dart_tools_api.h"
 
 #include "vm/globals.h"
@@ -42,6 +45,7 @@ class BitVector;
 class GrowableObjectArray;
 class Isolate;
 class Library;
+class ObjectLocator;
 class ObjectPointerVisitor;
 class ObjectStore;
 class RawError;
@@ -54,47 +58,54 @@ class UpdateClassesVisitor;
 
 class InstanceMorpher : public ZoneAllocated {
  public:
-  InstanceMorpher(Zone* zone, const Class& from, const Class& to);
+  // Creates a new [InstanceMorpher] based on the [from]/[to] class
+  // descriptions.
+  static InstanceMorpher* CreateFromClassDescriptors(
+      Zone* zone,
+      SharedClassTable* shared_class_table,
+      const Class& from,
+      const Class& to);
+
+  InstanceMorpher(Zone* zone,
+                  classid_t cid,
+                  SharedClassTable* shared_class_table,
+                  ZoneGrowableArray<intptr_t>* mapping,
+                  ZoneGrowableArray<intptr_t>* new_fields_offsets);
   virtual ~InstanceMorpher() {}
 
   // Called on each instance that needs to be morphed.
   RawInstance* Morph(const Instance& instance) const;
 
-  void RunNewFieldInitializers() const;
-
   // Adds an object to be morphed.
-  void AddObject(RawObject* object) const;
+  void AddObject(RawObject* object);
 
   // Create the morphed objects based on the before() list.
-  void CreateMorphedCopies() const;
-
-  // Dump the state of the morpher.
-  void Dump() const;
+  void CreateMorphedCopies();
 
   // Append the morper info to JSON array.
   void AppendTo(JSONArray* array);
 
   // Returns the list of objects that need to be morphed.
-  ZoneGrowableArray<const Instance*>* before() const { return before_; }
+  const GrowableArray<const Instance*>* before() const { return &before_; }
+
   // Returns the list of morphed objects (matches order in before()).
-  ZoneGrowableArray<const Instance*>* after() const { return after_; }
-  // Returns the list of new fields.
-  ZoneGrowableArray<const Field*>* new_fields() const { return new_fields_; }
+  const GrowableArray<const Instance*>* after() const { return &after_; }
 
   // Returns the cid associated with the from_ and to_ class.
   intptr_t cid() const { return cid_; }
 
- private:
-  const Class& from_;
-  const Class& to_;
-  ZoneGrowableArray<intptr_t> mapping_;
-  ZoneGrowableArray<const Instance*>* before_;
-  ZoneGrowableArray<const Instance*>* after_;
-  ZoneGrowableArray<const Field*>* new_fields_;
-  intptr_t cid_;
+  // Dumps the field mappings for the [cid()] class.
+  void Dump() const;
 
-  void ComputeMapping();
-  void DumpFormatFor(const Class& cls) const;
+ private:
+  Zone* zone_;
+  classid_t cid_;
+  SharedClassTable* shared_class_table_;
+  ZoneGrowableArray<intptr_t>* mapping_;
+  ZoneGrowableArray<intptr_t>* new_fields_offsets_;
+
+  GrowableArray<const Instance*> before_;
+  GrowableArray<const Instance*> after_;
 };
 
 class ReasonForCancelling : public ZoneAllocated {
@@ -103,7 +114,7 @@ class ReasonForCancelling : public ZoneAllocated {
   virtual ~ReasonForCancelling() {}
 
   // Reports a reason for cancelling reload.
-  void Report(IsolateReloadContext* context);
+  void Report(IsolateGroupReloadContext* context);
 
   // Conversion to a VM error object.
   // Default implementation calls ToString.
@@ -130,13 +141,15 @@ class ClassReasonForCancelling : public ReasonForCancelling {
   const Class& to_;
 };
 
-class IsolateReloadContext {
+class IsolateGroupReloadContext {
  public:
-  explicit IsolateReloadContext(Isolate* isolate, JSONStream* js);
-  ~IsolateReloadContext();
+  IsolateGroupReloadContext(IsolateGroup* isolate,
+                            SharedClassTable* shared_class_table,
+                            JSONStream* js);
+  ~IsolateGroupReloadContext();
 
   // If kernel_buffer is provided, the VM takes ownership when Reload is called.
-  void Reload(bool force_reload,
+  bool Reload(bool force_reload,
               const char* root_script_url = NULL,
               const char* packages_url = NULL,
               const uint8_t* kernel_buffer = NULL,
@@ -145,9 +158,15 @@ class IsolateReloadContext {
   // All zone allocated objects must be allocated from this zone.
   Zone* zone() const { return zone_; }
 
+  bool UseSavedSizeTableForGC() const {
+    return saved_size_table_.load(std::memory_order_relaxed) != nullptr;
+  }
+
+  IsolateGroup* isolate_group() const { return isolate_group_; }
+  bool reload_aborted() const { return HasReasonsForCancelling(); }
   bool reload_skipped() const { return reload_skipped_; }
-  bool reload_aborted() const { return reload_aborted_; }
   RawError* error() const;
+  int64_t start_time_micros() const { return start_time_micros_; }
   int64_t reload_timestamp() const { return reload_timestamp_; }
 
   static Dart_FileModifiedCallback file_modified_callback() {
@@ -157,31 +176,9 @@ class IsolateReloadContext {
     file_modified_callback_ = callback;
   }
 
-  static bool IsSameField(const Field& a, const Field& b);
-  static bool IsSameLibrary(const Library& a_lib, const Library& b_lib);
-  static bool IsSameClass(const Class& a, const Class& b);
-
  private:
-  RawLibrary* saved_root_library() const;
-
-  RawGrowableObjectArray* saved_libraries() const;
-
-  RawClass* FindOriginalClass(const Class& cls);
-
-  bool IsDirty(const Library& lib);
-
-  // Prefers old classes when we are in the middle of a reload.
-  RawClass* GetClassForHeapWalkAt(intptr_t cid);
-  intptr_t GetClassSizeForHeapWalkAt(intptr_t cid);
-  void DiscardSavedClassTable();
-
-  void RegisterClass(const Class& new_cls);
-
-  // Finds the library private key for |replacement_or_new| or return null
-  // if |replacement_or_new| is new.
-  RawString* FindLibraryPrivateKey(const Library& replacement_or_new);
-
-  int64_t start_time_micros() const { return start_time_micros_; }
+  intptr_t GetClassSizeForHeapWalkAt(classid_t cid);
+  void DiscardSavedClassTable(bool is_rollback);
 
   // Tells whether there are reasons for cancelling the reload.
   bool HasReasonsForCancelling() const {
@@ -195,109 +192,68 @@ class IsolateReloadContext {
   void ReportReasonsForCancelling();
 
   // Reports the details of a reload operation.
-  void ReportOnJSON(JSONStream* stream);
+  void ReportOnJSON(JSONStream* stream, intptr_t final_library_count);
 
-  // Store morphing operation.
-  void AddInstanceMorpher(InstanceMorpher* morpher);
+  // Ensures there is a instance morpher for [cid], if not it will use
+  // [instance_morpher]
+  void EnsureHasInstanceMorpherFor(classid_t cid,
+                                   InstanceMorpher* instance_morpher);
 
   // Tells whether instance in the heap must be morphed.
   bool HasInstanceMorphers() const { return !instance_morphers_.is_empty(); }
 
-  // NOTE: FinalizeLoading will be called *before* Reload() returns. This
-  // function will not be called if the embedder does not call
-  // Dart_FinalizeLoading.
-  void FinalizeLoading();
-
-  // NOTE: FinalizeFailedLoad will be called *before* Reload returns. This
-  // function will not be called if the embedder calls Dart_FinalizeLoading.
-  void FinalizeFailedLoad(const Error& error);
-
   // Called by both FinalizeLoading and FinalizeFailedLoad.
-  void CommonFinalizeTail();
+  void CommonFinalizeTail(intptr_t final_library_count);
 
   // Report back through the observatory channels.
   void ReportError(const Error& error);
   void ReportSuccess();
 
-  void set_saved_root_library(const Library& value);
-
-  void set_saved_libraries(const GrowableObjectArray& value);
-
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
-  Isolate* isolate() { return isolate_; }
-  ObjectStore* object_store();
-
-  void EnsuredUnoptimizedCodeForStack();
-  void DeoptimizeDependentCode();
-
-  void Checkpoint();
-
-  void CheckpointClasses();
-
-  bool ScriptModifiedSince(const Script& script, int64_t since);
-  BitVector* FindModifiedLibraries(bool force_reload, bool root_lib_modified);
-  void FindModifiedSources(Thread* thread,
-                           bool force_reload,
+  void GetRootLibUrl(const char* root_script_url);
+  char* CompileToKernel(bool force_reload,
+                        const char* packages_url,
+                        const uint8_t** kernel_buffer,
+                        intptr_t* kernel_buffer_size);
+  void FindModifiedSources(bool force_reload,
                            Dart_SourceFile** modified_sources,
                            intptr_t* count,
                            const char* packages_url);
+  bool ScriptModifiedSince(const Script& script, int64_t since);
 
-  void CheckpointLibraries();
+  void CheckpointSharedClassTable();
 
-  void MorphInstancesAndApplyNewClassTable();
+  void MorphInstancesPhase1Allocate(ObjectLocator* locator,
+                                    const Array& before,
+                                    const Array& after);
+  void MorphInstancesPhase2Become(const Array& before, const Array& after);
 
-  void RunNewFieldInitializers();
-
-  bool ValidateReload();
-
-  void Rollback();
-
-  void RollbackClasses();
-  void RollbackLibraries();
-
-#ifdef DEBUG
-  void VerifyMaps();
-#endif
-
-  void Commit();
-
-  void PostCommit();
-
-  void ClearReplacedObjectBits();
-
-  // atomic_install:
-  void RunInvalidationVisitors();
-  void ResetUnoptimizedICsOnStack();
-  void ResetMegamorphicCaches();
-  void InvalidateWorld();
+  void ForEachIsolate(std::function<void(Isolate*)> callback);
 
   // The zone used for all reload related allocations.
   Zone* zone_;
 
-  int64_t start_time_micros_;
-  int64_t reload_timestamp_;
-  Isolate* isolate_;
-  bool reload_skipped_;
-  bool reload_aborted_;
-  bool reload_finalized_;
+  IsolateGroup* isolate_group_;
+  SharedClassTable* shared_class_table_;
+
+  int64_t start_time_micros_ = -1;
+  int64_t reload_timestamp_ = -1;
+  Isolate* first_isolate_ = nullptr;
+  bool reload_skipped_ = false;
+  bool reload_finalized_ = false;
   JSONStream* js_;
+  intptr_t num_old_libs_ = -1;
 
-  intptr_t saved_num_cids_;
-  ClassAndSize* saved_class_table_;
-  intptr_t num_saved_libs_;
-  intptr_t num_received_libs_;
-  intptr_t bytes_received_libs_;
-  intptr_t num_received_classes_;
-  intptr_t num_received_procedures_;
+  intptr_t saved_num_cids_ = -1;
+  std::atomic<intptr_t*> saved_size_table_;
+  intptr_t num_received_libs_ = -1;
+  intptr_t bytes_received_libs_ = -1;
+  intptr_t num_received_classes_ = -1;
+  intptr_t num_received_procedures_ = -1;
+  intptr_t num_saved_libs_ = -1;
 
-  // Collect the necessary instance transformation for schema changes.
-  ZoneGrowableArray<InstanceMorpher*> instance_morphers_;
-
-  // Collects the reasons for cancelling the reload.
-  ZoneGrowableArray<ReasonForCancelling*> reasons_to_cancel_reload_;
-
-  // Required trait for the cid_mapper_;
+  // Required trait for the instance_morpher_by_cid_;
   struct MorpherTrait {
     typedef InstanceMorpher* Value;
     typedef intptr_t Key;
@@ -309,53 +265,22 @@ class IsolateReloadContext {
     static bool IsKeyEqual(Pair kv, Key key) { return kv->cid() == key; }
   };
 
-  // Hash map from cid to InstanceMorpher.
-  DirectChainedHashMap<MorpherTrait> cid_mapper_;
+  // Collect the necessary instance transformation for schema changes.
+  GrowableArray<InstanceMorpher*> instance_morphers_;
 
-  struct LibraryInfo {
-    bool dirty;
-  };
-  MallocGrowableArray<LibraryInfo> library_infos_;
+  // Collects the reasons for cancelling the reload.
+  GrowableArray<ReasonForCancelling*> reasons_to_cancel_reload_;
+
+  // Hash map from cid to InstanceMorpher.
+  DirectChainedHashMap<MorpherTrait> instance_morpher_by_cid_;
 
   // A bit vector indicating which of the original libraries were modified.
-  BitVector* modified_libs_;
+  BitVector* modified_libs_ = nullptr;
 
-  RawClass* OldClassOrNull(const Class& replacement_or_new);
-
-  RawLibrary* OldLibraryOrNull(const Library& replacement_or_new);
-
-  RawLibrary* OldLibraryOrNullBaseMoved(const Library& replacement_or_new);
-
-  void BuildLibraryMapping();
-  void BuildRemovedClassesSet();
-
-  void AddClassMapping(const Class& replacement_or_new, const Class& original);
-
-  void AddLibraryMapping(const Library& replacement_or_new,
-                         const Library& original);
-
-  void AddStaticFieldMapping(const Field& old_field, const Field& new_field);
-
-  void AddBecomeMapping(const Object& old, const Object& neu);
-  void AddEnumBecomeMapping(const Object& old, const Object& neu);
-
-  void RebuildDirectSubclasses();
-
-  RawClass* MappedClass(const Class& replacement_or_new);
-  RawLibrary* MappedLibrary(const Library& replacement_or_new);
-
-  RawObject** from() { return reinterpret_cast<RawObject**>(&script_url_); }
-  RawString* script_url_;
-  RawError* error_;
-  RawArray* old_classes_set_storage_;
-  RawArray* class_map_storage_;
-  RawArray* removed_class_set_storage_;
-  RawArray* old_libraries_set_storage_;
-  RawArray* library_map_storage_;
-  RawArray* become_map_storage_;
-  RawGrowableObjectArray* become_enum_mappings_;
-  RawLibrary* saved_root_library_;
-  RawGrowableObjectArray* saved_libraries_;
+  String& root_lib_url_;
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&root_url_prefix_);
+  }
   RawString* root_url_prefix_;
   RawString* old_root_url_prefix_;
   RawObject** to() {
@@ -368,8 +293,167 @@ class IsolateReloadContext {
   friend class ObjectLocator;
   friend class MarkFunctionsForRecompilation;  // IsDirty.
   friend class ReasonForCancelling;
+  friend class IsolateReloadContext;
+  friend class IsolateGroup;  // GetClassSizeForHeapWalkAt
+  friend class RawObject;     // GetClassSizeForHeapWalkAt
 
   static Dart_FileModifiedCallback file_modified_callback_;
+};
+
+class IsolateReloadContext {
+ public:
+  IsolateReloadContext(
+      std::shared_ptr<IsolateGroupReloadContext> group_reload_context,
+      Isolate* isolate);
+  ~IsolateReloadContext();
+
+  // All zone allocated objects must be allocated from this zone.
+  Zone* zone() const { return zone_; }
+
+  IsolateGroupReloadContext* group_reload_context() {
+    return group_reload_context_.get();
+  }
+
+  static bool IsSameLibrary(const Library& a_lib, const Library& b_lib);
+  static bool IsSameClass(const Class& a, const Class& b);
+
+ private:
+  bool IsDirty(const Library& lib);
+
+  // Prefers old classes when we are in the middle of a reload.
+  RawClass* GetClassForHeapWalkAt(intptr_t cid);
+  void DiscardSavedClassTable(bool is_rollback);
+
+  void RegisterClass(const Class& new_cls);
+
+  // Finds the library private key for |replacement_or_new| or return null
+  // if |replacement_or_new| is new.
+  RawString* FindLibraryPrivateKey(const Library& replacement_or_new);
+
+  void VisitObjectPointers(ObjectPointerVisitor* visitor);
+
+  Isolate* isolate() { return isolate_; }
+  ObjectStore* object_store();
+
+  void EnsuredUnoptimizedCodeForStack();
+  void DeoptimizeDependentCode();
+
+  void ReloadPhase1AllocateStorageMapsAndCheckpoint();
+  void CheckpointClasses();
+  RawObject* ReloadPhase2LoadKernel(kernel::Program* program,
+                                    const String& root_lib_url);
+  void ReloadPhase3FinalizeLoading();
+  void ReloadPhase4CommitPrepare();
+  void ReloadPhase4CommitFinish();
+  void ReloadPhase4Rollback();
+
+  void CheckpointLibraries();
+
+  void RollbackClasses();
+  void RollbackLibraries();
+
+#ifdef DEBUG
+  void VerifyMaps();
+#endif
+
+  void CommitBeforeInstanceMorphing();
+  void CommitAfterInstanceMorphing();
+  void PostCommit();
+
+  void RunInvalidationVisitors();
+  void InvalidateKernelInfos(
+      Zone* zone,
+      const GrowableArray<const KernelProgramInfo*>& kernel_infos);
+  void InvalidateFunctions(Zone* zone,
+                           const GrowableArray<const Function*>& functions);
+  void InvalidateFields(Zone* zone,
+                        const GrowableArray<const Field*>& fields,
+                        const GrowableArray<const Instance*>& instances);
+  void ResetUnoptimizedICsOnStack();
+  void ResetMegamorphicCaches();
+  void InvalidateWorld();
+
+  struct LibraryInfo {
+    bool dirty;
+  };
+
+  // The zone used for all reload related allocations.
+  Zone* zone_;
+  std::shared_ptr<IsolateGroupReloadContext> group_reload_context_;
+  Isolate* isolate_;
+  intptr_t saved_num_cids_ = -1;
+  std::atomic<RawClass**> saved_class_table_;
+  MallocGrowableArray<LibraryInfo> library_infos_;
+
+  RawClass* OldClassOrNull(const Class& replacement_or_new);
+  RawLibrary* OldLibraryOrNull(const Library& replacement_or_new);
+  RawLibrary* OldLibraryOrNullBaseMoved(const Library& replacement_or_new);
+
+  void BuildLibraryMapping();
+  void BuildRemovedClassesSet();
+  void ValidateReload();
+
+  void AddClassMapping(const Class& replacement_or_new, const Class& original);
+  void AddLibraryMapping(const Library& replacement_or_new,
+                         const Library& original);
+  void AddStaticFieldMapping(const Field& old_field, const Field& new_field);
+  void AddBecomeMapping(const Object& old, const Object& neu);
+  void AddEnumBecomeMapping(const Object& old, const Object& neu);
+  void RebuildDirectSubclasses();
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&old_classes_set_storage_);
+  }
+  RawArray* old_classes_set_storage_;
+  RawArray* class_map_storage_;
+  RawArray* removed_class_set_storage_;
+  RawArray* old_libraries_set_storage_;
+  RawArray* library_map_storage_;
+  RawArray* become_map_storage_;
+  RawGrowableObjectArray* become_enum_mappings_;
+  RawLibrary* saved_root_library_;
+  RawGrowableObjectArray* saved_libraries_;
+  RawObject** to() { return reinterpret_cast<RawObject**>(&saved_libraries_); }
+
+  friend class Isolate;
+  friend class Class;  // AddStaticFieldMapping, AddEnumBecomeMapping.
+  friend class Library;
+  friend class ObjectLocator;
+  friend class MarkFunctionsForRecompilation;  // IsDirty.
+  friend class ReasonForCancelling;
+  friend class IsolateGroupReloadContext;
+};
+
+class CallSiteResetter : public ValueObject {
+ public:
+  explicit CallSiteResetter(Zone* zone);
+
+  void ZeroEdgeCounters(const Function& function);
+  void ResetCaches(const Code& code);
+  void ResetCaches(const ObjectPool& pool);
+  void RebindStaticTargets(const Bytecode& code);
+  void Reset(const ICData& ic);
+  void ResetSwitchableCalls(const Code& code);
+
+ private:
+  Zone* zone_;
+  Instructions& instrs_;
+  ObjectPool& pool_;
+  Object& object_;
+  String& name_;
+  Class& new_cls_;
+  Library& new_lib_;
+  Function& new_function_;
+  Field& new_field_;
+  Array& entries_;
+  Function& old_target_;
+  Function& new_target_;
+  Function& caller_;
+  Array& args_desc_array_;
+  Array& ic_data_array_;
+  Array& edge_counters_;
+  PcDescriptors& descriptors_;
+  ICData& ic_data_;
 };
 
 }  // namespace dart

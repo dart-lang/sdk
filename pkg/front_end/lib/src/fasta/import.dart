@@ -6,9 +6,9 @@ library fasta.import;
 
 import 'package:kernel/ast.dart' show LibraryDependency;
 
-import 'builder/builder.dart' show Builder, LibraryBuilder;
-
-import 'builder/prefix_builder.dart' show PrefixBuilder;
+import 'builder/builder.dart';
+import 'builder/library_builder.dart';
+import 'builder/prefix_builder.dart';
 
 import 'kernel/kernel_builder.dart' show toKernelCombinators;
 
@@ -21,7 +21,7 @@ class Import {
   final LibraryBuilder importer;
 
   /// The library being imported.
-  final LibraryBuilder imported;
+  LibraryBuilder imported;
 
   final PrefixBuilder prefixBuilder;
 
@@ -100,7 +100,7 @@ PrefixBuilder createPrefixBuilder(
   if (prefix == null) return null;
   LibraryDependency dependency = null;
   if (deferred) {
-    dependency = new LibraryDependency.deferredImport(imported.target, prefix,
+    dependency = new LibraryDependency.deferredImport(imported.library, prefix,
         combinators: toKernelCombinators(combinators))
       ..fileOffset = charOffset;
   }

@@ -46,9 +46,9 @@ const int hasInitializerMask = mixinDeclarationMask << 1;
 /// Not a modifier, used by formal parameters to track if they are initializing.
 const int initializingFormalMask = hasInitializerMask << 1;
 
-/// Not a modifier, used by classes to track if the class has a const
+/// Not a modifier, used by classes to track if the class declares a const
 /// constructor.
-const int hasConstConstructorMask = initializingFormalMask << 1;
+const int declaresConstConstructorMask = initializingFormalMask << 1;
 
 /// Not a real modifier, and by setting it to zero, it is automatically ignored
 /// by [Modifier.validate] below.

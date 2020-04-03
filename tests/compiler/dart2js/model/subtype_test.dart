@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 library subtype_test;
 
 import 'dart:async';
@@ -62,6 +64,8 @@ Future testInterfaceSubtype() async {
     void expect(bool expectSubtype, DartType T, DartType S) {
       testTypes(env, T, S, expectSubtype);
     }
+
+    var types = env.types;
 
     ClassEntity A = env.getClass('A');
     ClassEntity B = env.getClass('B');
@@ -124,12 +128,12 @@ Future testInterfaceSubtype() async {
     expect(false, dynamic_, Null_);
     expect(true, Null_, Null_);
 
-    DartType A_Object = instantiate(A, [Object_]);
-    DartType A_num = instantiate(A, [num_]);
-    DartType A_int = instantiate(A, [int_]);
-    DartType A_String = instantiate(A, [String_]);
-    DartType A_dynamic = instantiate(A, [dynamic_]);
-    DartType A_Null = instantiate(A, [Null_]);
+    DartType A_Object = instantiate(types, A, [Object_]);
+    DartType A_num = instantiate(types, A, [num_]);
+    DartType A_int = instantiate(types, A, [int_]);
+    DartType A_String = instantiate(types, A, [String_]);
+    DartType A_dynamic = instantiate(types, A, [dynamic_]);
+    DartType A_Null = instantiate(types, A, [Null_]);
 
     expect(true, A_Object, Object_);
     expect(false, A_Object, num_);
@@ -180,11 +184,11 @@ Future testInterfaceSubtype() async {
     expect(false, A_dynamic, A_Null);
     expect(true, A_Null, A_Null);
 
-    DartType B_Object_Object = instantiate(B, [Object_, Object_]);
-    DartType B_num_num = instantiate(B, [num_, num_]);
-    DartType B_int_num = instantiate(B, [int_, num_]);
-    DartType B_dynamic_dynamic = instantiate(B, [dynamic_, dynamic_]);
-    DartType B_String_dynamic = instantiate(B, [String_, dynamic_]);
+    DartType B_Object_Object = instantiate(types, B, [Object_, Object_]);
+    DartType B_num_num = instantiate(types, B, [num_, num_]);
+    DartType B_int_num = instantiate(types, B, [int_, num_]);
+    DartType B_dynamic_dynamic = instantiate(types, B, [dynamic_, dynamic_]);
+    DartType B_String_dynamic = instantiate(types, B, [String_, dynamic_]);
 
     expect(true, B_Object_Object, Object_);
     expect(true, B_Object_Object, A_Object);
@@ -251,10 +255,10 @@ Future testInterfaceSubtype() async {
     expect(false, B_dynamic_dynamic, B_String_dynamic);
     expect(true, B_String_dynamic, B_String_dynamic);
 
-    DartType C_Object_Object = instantiate(C, [Object_, Object_]);
-    DartType C_num_num = instantiate(C, [num_, num_]);
-    DartType C_int_String = instantiate(C, [int_, String_]);
-    DartType C_dynamic_dynamic = instantiate(C, [dynamic_, dynamic_]);
+    DartType C_Object_Object = instantiate(types, C, [Object_, Object_]);
+    DartType C_num_num = instantiate(types, C, [num_, num_]);
+    DartType C_int_String = instantiate(types, C, [int_, String_]);
+    DartType C_dynamic_dynamic = instantiate(types, C, [dynamic_, dynamic_]);
 
     expect(true, C_Object_Object, B_Object_Object);
     expect(false, C_Object_Object, B_num_num);
@@ -285,7 +289,7 @@ Future testInterfaceSubtype() async {
     // TODO(johnniwinther): Inheritance with different type arguments is
     // currently not supported by the implementation.
     //expect(true, C_int_String, instantiate(A, [A_int]));
-    expect(false, C_int_String, instantiate(A, [A_String]));
+    expect(false, C_int_String, instantiate(types, A, [A_String]));
   });
 }
 

@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-import("../build/dart/dart_host_sdk_toolchain.gni")
+import("../sdk_args.gni")
 import("configs.gni")
 import("runtime_args.gni")
 
@@ -59,36 +59,25 @@ config("dart_precompiler_config") {
   defines += [ "DART_PRECOMPILER" ]
 }
 
-config("dart_nosnapshot_config") {
-  defines = []
-  defines += [ "DART_NO_SNAPSHOT" ]
-}
-
 config("dart_os_config") {
   defines = []
 
-  # If dart_host_toolchain is the current toolchain, and it is different from
-  # host_toolchain, then we are building the SDK for the host, and should not
-  # hardcode these defines.
-  if (current_toolchain != dart_host_toolchain ||
-      host_toolchain == dart_host_toolchain) {
-    if (target_os == "android") {
-      defines += [ "TARGET_OS_ANDROID" ]
-    } else if (target_os == "fuchsia") {
-      defines += [ "TARGET_OS_FUCHSIA" ]
-    } else if (target_os == "ios") {
-      defines += [ "TARGET_OS_MACOS" ]
-      defines += [ "TARGET_OS_MACOS_IOS" ]
-    } else if (target_os == "linux") {
-      defines += [ "TARGET_OS_LINUX" ]
-    } else if (target_os == "mac") {
-      defines += [ "TARGET_OS_MACOS" ]
-    } else if (target_os == "win") {
-      defines += [ "TARGET_OS_WINDOWS" ]
-    } else {
-      print("Unknown target_os: $target_os")
-      assert(false)
-    }
+  if (target_os == "android") {
+    defines += [ "TARGET_OS_ANDROID" ]
+  } else if (target_os == "fuchsia") {
+    defines += [ "TARGET_OS_FUCHSIA" ]
+  } else if (target_os == "ios") {
+    defines += [ "TARGET_OS_MACOS" ]
+    defines += [ "TARGET_OS_MACOS_IOS" ]
+  } else if (target_os == "linux") {
+    defines += [ "TARGET_OS_LINUX" ]
+  } else if (target_os == "mac") {
+    defines += [ "TARGET_OS_MACOS" ]
+  } else if (target_os == "win") {
+    defines += [ "TARGET_OS_WINDOWS" ]
+  } else {
+    print("Unknown target_os: $target_os")
+    assert(false)
   }
 }
 
@@ -102,32 +91,20 @@ config("dart_os_fuchsia_config") {
 config("dart_arch_config") {
   defines = []
 
-  # If dart_host_toolchain is the current toolchain, and it is different from
-  # host_toolchain, then we are building the SDK for the host, and should not
-  # hardcode these defines.
-  if (current_toolchain != dart_host_toolchain ||
-      host_toolchain == dart_host_toolchain) {
-    if (dart_target_arch == "arm") {
-      defines += [ "TARGET_ARCH_ARM" ]
-    } else if (dart_target_arch == "armv6") {
-      defines += [ "TARGET_ARCH_ARM" ]
-      defines += [ "TARGET_ARCH_ARM_6" ]
-    } else if (dart_target_arch == "armv5te") {
-      defines += [ "TARGET_ARCH_ARM" ]
-      defines += [ "TARGET_ARCH_ARM_5TE" ]
-    } else if (dart_target_arch == "arm64") {
-      defines += [ "TARGET_ARCH_ARM64" ]
-    } else if (dart_target_arch == "x64") {
-      defines += [ "TARGET_ARCH_X64" ]
-    } else if (dart_target_arch == "ia32" || dart_target_arch == "x86") {
-      defines += [ "TARGET_ARCH_IA32" ]
-    } else if (dart_target_arch == "dbc") {
-      defines += [ "TARGET_ARCH_DBC" ]
-      defines += [ "USING_SIMULATOR" ]
-    } else {
-      print("Invalid dart_target_arch: $dart_target_arch")
-      assert(false)
-    }
+  if (dart_target_arch == "arm") {
+    defines += [ "TARGET_ARCH_ARM" ]
+  } else if (dart_target_arch == "armv6") {
+    defines += [ "TARGET_ARCH_ARM" ]
+    defines += [ "TARGET_ARCH_ARM_6" ]
+  } else if (dart_target_arch == "arm64") {
+    defines += [ "TARGET_ARCH_ARM64" ]
+  } else if (dart_target_arch == "x64") {
+    defines += [ "TARGET_ARCH_X64" ]
+  } else if (dart_target_arch == "ia32" || dart_target_arch == "x86") {
+    defines += [ "TARGET_ARCH_IA32" ]
+  } else {
+    print("Invalid dart_target_arch: $dart_target_arch")
+    assert(false)
   }
 }
 
@@ -163,6 +140,10 @@ config("dart_config") {
     }
   }
 
+  if (use_nnbd) {
+    defines += [ "DART_BUILT_WITH_NNBD_FLAG" ]
+  }
+
   if (!is_win) {
     cflags = [
       "-Werror",
@@ -181,6 +162,9 @@ config("dart_config") {
       "-fno-exceptions",
       "-Wimplicit-fallthrough",
     ]
+    if (!is_clang) {
+      cflags += [ "-Wno-cast-function-type" ]
+    }
 
     ldflags = []
     if (is_clang && dart_vm_code_coverage) {
@@ -194,16 +178,6 @@ config("dart_config") {
       cflags += [ "-O${dart_debug_optimization_level}" ]
     } else {
       cflags += [ "-O3" ]
-    }
-
-    if (defined(is_asan) && is_asan) {
-      ldflags += [ "-fsanitize=address" ]
-    }
-    if (defined(is_msan) && is_msan) {
-      ldflags += [ "-fsanitize=memory" ]
-    }
-    if (defined(is_tsan) && is_tsan) {
-      ldflags += [ "-fsanitize=thread" ]
     }
 
     if (is_fuchsia) {
@@ -237,12 +211,19 @@ source_set("dart_api") {
 library_for_all_configs("libdart") {
   target_type = dart_component_kind
   extra_deps = [
-    "third_party/double-conversion/src:libdouble_conversion",
     ":generate_version_cc_file",
+    "third_party/double-conversion/src:libdouble_conversion",
   ]
+  if (dart_enable_wasm) {
+    extra_deps += [ "//third_party/wasmer" ]
+    defines = [ "DART_ENABLE_WASM" ]
+  }
   if (is_fuchsia) {
     if (using_fuchsia_sdk) {
-      extra_deps += [ "$fuchsia_sdk_root/pkg:fdio" ]
+      extra_deps += [
+        "$fuchsia_sdk_root/pkg:fdio",
+        "$fuchsia_sdk_root/pkg:trace-engine",
+      ]
     } else {
       extra_deps += [
         "//zircon/public/lib/fbl",
@@ -276,12 +257,10 @@ action("generate_version_cc_file") {
     "vm/version_in.cc",
   ]
   if (dart_version_git_info) {
-    inputs += [ "../.git/logs/HEAD" ]
+    inputs += [ "$default_git_folder/logs/HEAD" ]
   }
   output = "$target_gen_dir/version.cc"
-  outputs = [
-    output,
-  ]
+  outputs = [ output ]
 
   script = "../tools/make_version.py"
   args = [

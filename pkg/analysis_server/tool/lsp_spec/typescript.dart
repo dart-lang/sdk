@@ -4,6 +4,21 @@
 
 import 'typescript_parser.dart';
 
+/// Removes types that are in the spec that we don't want in other signatures.
+bool allowTypeInSignatures(TypeBase type) {
+  // Don't allow arrays of MarkedStrings, but do allow simple MarkedStrings.
+  // The only place that uses these are Hovers and we only send one value
+  // (to match the MarkupString equiv) so the array just makes the types
+  // unnecessarily complicated.
+  if (type is ArrayType) {
+    final elementType = type.elementType;
+    if (elementType is Type && elementType.name == 'MarkedString') {
+      return false;
+    }
+  }
+  return true;
+}
+
 String cleanComment(String comment) {
   if (comment == null) {
     return null;
@@ -16,9 +31,9 @@ String cleanComment(String comment) {
     comment = comment.substring(2);
   }
 
-  final _commentLinePrefixes = new RegExp(r'\n\s*\* ?');
-  final _nonConcurrentNewlines = new RegExp(r'\n(?![\n\s\-*])');
-  final _newLinesThatRequireReinserting = new RegExp(r'\n (\w)');
+  final _commentLinePrefixes = RegExp(r'\n\s*\* ?');
+  final _nonConcurrentNewlines = RegExp(r'\n(?![\n\s\-*])');
+  final _newLinesThatRequireReinserting = RegExp(r'\n (\w)');
   // Remove any Windows newlines from the source.
   comment = comment.replaceAll('\r', '');
   // Remove the * prefixes.
@@ -32,6 +47,21 @@ String cleanComment(String comment) {
   return comment.trim();
 }
 
+/// Improves comments in generated code to support where types may have been
+/// altered (for ex. with [getImprovedType] above).
+String getImprovedComment(String interfaceName, String fieldName) {
+  const _improvedComments = <String, Map<String, String>>{
+    'ResponseError': {
+      'data':
+          '// A string that contains additional information about the error. Can be omitted.',
+    },
+  };
+
+  final interface = _improvedComments[interfaceName];
+
+  return interface != null ? interface[fieldName] : null;
+}
+
 /// Improves types in generated code, including:
 ///
 /// - Fixes up some enum types that are not as specific as they could be in the
@@ -42,73 +72,58 @@ String cleanComment(String comment) {
 ///   and we know we always use a specific type. This avoids wrapping a lot
 ///   of code in `EitherX<Y,Z>.tX()` and simplifies the testing of them.
 String getImprovedType(String interfaceName, String fieldName) {
-  const Map<String, Map<String, String>> _improvedTypeMappings = {
-    "Diagnostic": {
-      "severity": "DiagnosticSeverity",
-      "code": "String",
+  const _improvedTypeMappings = <String, Map<String, String>>{
+    'Diagnostic': {
+      'severity': 'DiagnosticSeverity',
+      'code': 'String',
     },
-    "TextDocumentSyncOptions": {
-      "change": "TextDocumentSyncKind",
+    'TextDocumentSyncOptions': {
+      'change': 'TextDocumentSyncKind',
     },
-    "TextDocumentChangeRegistrationOptions": {
-      "syncKind": "TextDocumentSyncKind",
+    'TextDocumentChangeRegistrationOptions': {
+      'syncKind': 'TextDocumentSyncKind',
     },
-    "FileSystemWatcher": {
-      "kind": "WatchKind",
+    'FileSystemWatcher': {
+      'kind': 'WatchKind',
     },
-    "CompletionItem": {
-      "kind": "CompletionItemKind",
-      "data": "CompletionItemResolutionInfo",
+    'CompletionItem': {
+      'kind': 'CompletionItemKind',
+      'data': 'CompletionItemResolutionInfo',
     },
-    "DocumentHighlight": {
-      "kind": "DocumentHighlightKind",
+    'DocumentHighlight': {
+      'kind': 'DocumentHighlightKind',
     },
-    "FoldingRange": {
-      "kind": "FoldingRangeKind",
+    'FoldingRange': {
+      'kind': 'FoldingRangeKind',
     },
-    "ResponseError": {
-      "code": "ErrorCodes",
+    'ResponseError': {
+      'code': 'ErrorCodes',
       // This is dynamic normally, but since this class can be serialised
       // we will crash if it data is set to something that can't be converted to
       // JSON (for ex. Uri) so this forces anyone setting this to convert to a
       // String.
-      "data": "String",
+      'data': 'String',
     },
-    "NotificationMessage": {
-      "method": "Method",
-      "params": "object",
+    'NotificationMessage': {
+      'method': 'Method',
+      'params': 'object',
     },
-    "RequestMessage": {
-      "method": "Method",
-      "params": "object",
+    'RequestMessage': {
+      'method': 'Method',
+      'params': 'object',
     },
-    "SymbolInformation": {
-      "kind": "SymbolKind",
+    'SymbolInformation': {
+      'kind': 'SymbolKind',
     },
-    "ParameterInformation": {
-      "label": "String",
+    'ParameterInformation': {
+      'label': 'String',
     },
-    "ServerCapabilities": {
-      "changeNotifications": "bool",
+    'ServerCapabilities': {
+      'changeNotifications': 'bool',
     }
   };
 
   final interface = _improvedTypeMappings[interfaceName];
-
-  return interface != null ? interface[fieldName] : null;
-}
-
-/// Improves comments in generated code to support where types may have been
-/// altered (for ex. with [getImprovedType] above).
-String getImprovedComment(String interfaceName, String fieldName) {
-  const Map<String, Map<String, String>> _improvedComments = {
-    "ResponseError": {
-      "data":
-          "// A string that contains additional information about the error. Can be omitted.",
-    },
-  };
-
-  final interface = _improvedComments[interfaceName];
 
   return interface != null ? interface[fieldName] : null;
 }
@@ -132,19 +147,4 @@ bool includeTypeDefinitionInOutput(AstNode node) {
       // when getting the .dartType for it.
       // .startsWith() because there are inline types that will be generated.
       !node.name.startsWith('MarkedString');
-}
-
-/// Removes types that are in the spec that we don't want in other signatures.
-bool allowTypeInSignatures(TypeBase type) {
-  // Don't allow arrays of MarkedStrings, but do allow simple MarkedStrings.
-  // The only place that uses these are Hovers and we only send one value
-  // (to match the MarkupString equiv) so the array just makes the types
-  // unnecessarily complicated.
-  if (type is ArrayType) {
-    final elementType = type.elementType;
-    if (elementType is Type && elementType.name == 'MarkedString') {
-      return false;
-    }
-  }
-  return true;
 }

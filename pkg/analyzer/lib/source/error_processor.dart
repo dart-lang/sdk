@@ -9,7 +9,7 @@ import 'package:analyzer/src/task/options.dart';
 import 'package:yaml/yaml.dart';
 
 /// String identifiers mapped to associated severities.
-const Map<String, ErrorSeverity> severityMap = const {
+const Map<String, ErrorSeverity> severityMap = {
   'error': ErrorSeverity.ERROR,
   'info': ErrorSeverity.INFO,
   'warning': ErrorSeverity.WARNING
@@ -33,11 +33,11 @@ class ErrorConfig {
     code = toUpperCase(code);
     action = toLowerCase(action);
     if (AnalyzerOptions.ignoreSynonyms.contains(action)) {
-      processors.add(new ErrorProcessor.ignore(code));
+      processors.add(ErrorProcessor.ignore(code));
     } else {
       ErrorSeverity severity = _toSeverity(action);
       if (severity != null) {
-        processors.add(new ErrorProcessor(code, severity));
+        processors.add(ErrorProcessor(code, severity));
       }
     }
   }
@@ -72,7 +72,7 @@ class ErrorProcessor {
   ErrorProcessor(this.code, [this.severity]);
 
   /// Create an error processor that ignores the given error by [code].
-  factory ErrorProcessor.ignore(String code) => new ErrorProcessor(code);
+  factory ErrorProcessor.ignore(String code) => ErrorProcessor(code);
 
   /// The string that unique describes the processor.
   String get description => '$code -> ${severity?.name}';

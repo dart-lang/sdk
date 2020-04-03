@@ -5,34 +5,20 @@
 import 'dart:async';
 import 'dart:isolate';
 
-import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer_cli/src/driver.dart';
 
-/**
- * An object that can be used to start a command-line analysis. This class
- * exists so that clients can configure a command-line analyzer before starting
- * it.
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// An object that can be used to start a command-line analysis. This class
+/// exists so that clients can configure a command-line analyzer before starting
+/// it.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class CommandLineStarter {
-  /**
-   * Initialize a newly created starter to start up a command-line analysis.
-   */
+  /// Initialize a newly created starter to start up a command-line analysis.
   factory CommandLineStarter() = Driver;
 
-  /**
-   * Set the package resolver provider used to override the way package URI's
-   * are resolved in some contexts. The provider should return `null` if the
-   * default package resolution scheme should be used instead.
-   */
-  void set packageResolverProvider(ResolverProvider provider);
-
-  /**
-   * Use the given command-line [arguments] to start this analyzer.
-   *
-   * If [sendPort] is provided it is used for bazel worker communication
-   * instead of stdin/stdout.
-   */
+  /// Use the given command-line [arguments] to start this analyzer.
+  ///
+  /// If [sendPort] is provided it is used for bazel worker communication
+  /// instead of stdin/stdout.
   Future<void> start(List<String> arguments, {SendPort sendPort});
 }

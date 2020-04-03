@@ -8,15 +8,22 @@ import "package:async_helper/async_helper.dart" show asyncTest;
 
 import "package:expect/expect.dart" show Expect;
 
-import "generate_messages.dart" show computeGeneratedFile, generateMessagesFile;
+import "generate_messages.dart";
 
 main() {
   asyncTest(() async {
-    Uri generatedFile = await computeGeneratedFile();
-    String generated = await generateMessagesFile();
-    String actual = (await new File.fromUri(generatedFile).readAsString())
+    Messages messages = await generateMessagesFiles();
+
+    Uri generatedFile = await computeSharedGeneratedFile();
+    String sharedActual = (await new File.fromUri(generatedFile).readAsString())
         .replaceAll('\r\n', '\n');
-    Expect.stringEquals(
-        generated, actual, "${generatedFile.path} is out of date");
+    Expect.stringEquals(messages.sharedMessages, sharedActual,
+        "${generatedFile.path} is out of date");
+
+    Uri cfeGeneratedFile = await computeCfeGeneratedFile();
+    String cfeActual = (await new File.fromUri(cfeGeneratedFile).readAsString())
+        .replaceAll('\r\n', '\n');
+    Expect.stringEquals(messages.cfeMessages, cfeActual,
+        "${cfeGeneratedFile.path} is out of date");
   });
 }

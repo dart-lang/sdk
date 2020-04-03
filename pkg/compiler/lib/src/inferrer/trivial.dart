@@ -57,10 +57,6 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
       AbstractBool.Maybe;
 
   @override
-  AbstractBool contains(AbstractValue superset, AbstractValue subset) =>
-      AbstractBool.Maybe;
-
-  @override
   AbstractBool needsNoSuchMethodHandling(
           AbstractValue receiver, Selector selector) =>
       AbstractBool.Maybe;

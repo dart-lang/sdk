@@ -357,7 +357,7 @@ ISOLATE_UNIT_TEST_CASE(SerializeCapability) {
   Capability& obj = Capability::Handle();
   obj ^= reader.ReadObject();
 
-  EXPECT_STREQ(12345, obj.Id());
+  EXPECT_EQ(static_cast<uint64_t>(12345), obj.Id());
 
   // Read object back from the snapshot into a C structure.
   ApiNativeScope scope;
@@ -1447,7 +1447,7 @@ VM_UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
       EXPECT_STREQ("A", element->value.as_string);
       element = root->value.as_array.values[1];
       EXPECT_EQ(Dart_CObject_kDouble, element->type);
-      EXPECT_STREQ(2.72, element->value.as_double);
+      EXPECT_EQ(2.72, element->value.as_double);
       for (int i = 2; i < kArrayLength; i++) {
         element = root->value.as_array.values[i];
         if ((i % 2) == 0) {
@@ -1458,7 +1458,7 @@ VM_UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
           // Double values are expected to not be canonicalized in messages.
           EXPECT_NE(root->value.as_array.values[1], element);
           EXPECT_EQ(Dart_CObject_kDouble, element->type);
-          EXPECT_STREQ(2.72, element->value.as_double);
+          EXPECT_EQ(2.72, element->value.as_double);
         }
       }
     }
@@ -1651,7 +1651,7 @@ VM_UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
       EXPECT_STREQ(".", element->value.as_string);
       element = root->value.as_array.values[1];
       EXPECT_EQ(Dart_CObject_kDouble, element->type);
-      EXPECT_STREQ(2.72, element->value.as_double);
+      EXPECT_EQ(2.72, element->value.as_double);
       for (int i = 2; i < kArrayLength; i++) {
         Dart_CObject* element = root->value.as_array.values[i];
         if ((i % 2) == 0) {
@@ -1662,7 +1662,7 @@ VM_UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
           // Double values are expected to not be canonicalized in messages.
           EXPECT_NE(root->value.as_array.values[1], element);
           EXPECT_EQ(Dart_CObject_kDouble, element->type);
-          EXPECT_STREQ(2.72, element->value.as_double);
+          EXPECT_EQ(2.72, element->value.as_double);
         }
       }
     }

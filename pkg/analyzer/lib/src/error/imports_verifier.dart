@@ -14,7 +14,7 @@ import 'package:analyzer/src/error/codes.dart';
 /// A visitor that visits ASTs and fills [UsedImportedElements].
 class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor {
   final LibraryElement library;
-  final UsedImportedElements usedElements = new UsedImportedElements();
+  final UsedImportedElements usedElements = UsedImportedElements();
 
   GatherUsedImportedElementsVisitor(this.library);
 
@@ -181,7 +181,7 @@ class ImportsVerifier {
 
   /// The cache of [Namespace]s for [ImportDirective]s.
   final HashMap<ImportDirective, Namespace> _namespaceMap =
-      new HashMap<ImportDirective, Namespace>();
+      HashMap<ImportDirective, Namespace>();
 
   /// This is a map between prefix elements and the import directives from which
   /// they are derived. In cases where a type is referenced via a prefix
@@ -194,7 +194,7 @@ class ImportsVerifier {
   /// situations where two imports use the same prefix and at least one import
   /// directive is used.
   final HashMap<PrefixElement, List<ImportDirective>> _prefixElementMap =
-      new HashMap<PrefixElement, List<ImportDirective>>();
+      HashMap<PrefixElement, List<ImportDirective>>();
 
   /// A map of identifiers that the current library's imports show, but that the
   /// library does not use.
@@ -210,17 +210,17 @@ class ImportsVerifier {
   ///
   /// See [ImportsVerifier.generateUnusedShownNameHints].
   final HashMap<ImportDirective, List<SimpleIdentifier>> _unusedShownNamesMap =
-      new HashMap<ImportDirective, List<SimpleIdentifier>>();
+      HashMap<ImportDirective, List<SimpleIdentifier>>();
 
   /// A map of names that are hidden more than once.
   final HashMap<NamespaceDirective, List<SimpleIdentifier>>
       _duplicateHiddenNamesMap =
-      new HashMap<NamespaceDirective, List<SimpleIdentifier>>();
+      HashMap<NamespaceDirective, List<SimpleIdentifier>>();
 
   /// A map of names that are shown more than once.
   final HashMap<NamespaceDirective, List<SimpleIdentifier>>
       _duplicateShownNamesMap =
-      new HashMap<NamespaceDirective, List<SimpleIdentifier>>();
+      HashMap<NamespaceDirective, List<SimpleIdentifier>>();
 
   void addImports(CompilationUnit node) {
     for (Directive directive in node.directives) {
@@ -241,7 +241,7 @@ class ImportsVerifier {
             if (element is PrefixElement) {
               List<ImportDirective> list = _prefixElementMap[element];
               if (list == null) {
-                list = new List<ImportDirective>();
+                list = <ImportDirective>[];
                 _prefixElementMap[element] = list;
               }
               list.add(directive);
@@ -259,7 +259,7 @@ class ImportsVerifier {
       // order the list of unusedImports to find duplicates in faster than
       // O(n^2) time
       List<ImportDirective> importDirectiveArray =
-          new List<ImportDirective>.from(_unusedImports);
+          List<ImportDirective>.from(_unusedImports);
       importDirectiveArray.sort(ImportDirective.COMPARATOR);
       ImportDirective currentDirective = importDirectiveArray[0];
       for (int i = 1; i < importDirectiveArray.length; i++) {
@@ -444,14 +444,14 @@ class ImportsVerifier {
     }
     for (Combinator combinator in directive.combinators) {
       // Use a Set to find duplicates in faster than O(n^2) time.
-      Set<Element> identifiers = new Set<Element>();
+      Set<Element> identifiers = <Element>{};
       if (combinator is HideCombinator) {
         for (SimpleIdentifier name in combinator.hiddenNames) {
           if (name.staticElement != null) {
             if (!identifiers.add(name.staticElement)) {
               // [name] is a duplicate.
               List<SimpleIdentifier> duplicateNames = _duplicateHiddenNamesMap
-                  .putIfAbsent(directive, () => new List<SimpleIdentifier>());
+                  .putIfAbsent(directive, () => <SimpleIdentifier>[]);
               duplicateNames.add(name);
             }
           }
@@ -462,7 +462,7 @@ class ImportsVerifier {
             if (!identifiers.add(name.staticElement)) {
               // [name] is a duplicate.
               List<SimpleIdentifier> duplicateNames = _duplicateShownNamesMap
-                  .putIfAbsent(directive, () => new List<SimpleIdentifier>());
+                  .putIfAbsent(directive, () => <SimpleIdentifier>[]);
               duplicateNames.add(name);
             }
           }
@@ -476,7 +476,7 @@ class ImportsVerifier {
     if (importDirective.combinators == null) {
       return;
     }
-    List<SimpleIdentifier> identifiers = new List<SimpleIdentifier>();
+    List<SimpleIdentifier> identifiers = <SimpleIdentifier>[];
     _unusedShownNamesMap[importDirective] = identifiers;
     for (Combinator combinator in importDirective.combinators) {
       if (combinator is ShowCombinator) {

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:kernel/ast.dart';
-import 'id.dart';
 
 /// Compute a canonical [Id] for kernel-based nodes.
 Id computeMemberId(Member node) {
@@ -61,9 +61,8 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
 
   DataExtractor(this.actualMap);
 
-  void computeForLibrary(Library library, {bool useFileUri: false}) {
-    LibraryId id =
-        new LibraryId(useFileUri ? library.fileUri : library.importUri);
+  void computeForLibrary(Library library) {
+    LibraryId id = new LibraryId(library.fileUri);
     T value = computeLibraryValue(id, library);
     registerValue(library.fileUri, null, id, value, library);
   }
@@ -141,6 +140,14 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
     return new NodeId(node.fileOffset, IdKind.moveNext);
   }
 
+  NodeId createExpressionStatementId(ExpressionStatement node) {
+    if (node.expression.fileOffset == TreeNode.noOffset) {
+      // TODO(johnniwinther): Find out why we something have no offset.
+      return null;
+    }
+    return new NodeId(node.expression.fileOffset, IdKind.stmt);
+  }
+
   NodeId createLabeledStatementId(LabeledStatement node) =>
       computeDefaultNodeId(node.body);
   NodeId createLoopId(TreeNode node) => computeDefaultNodeId(node);
@@ -207,7 +214,11 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
       computeForNode(node, createUpdateId(node));
       super.visitMethodInvocation(node);
     } else {
-      computeForNode(node, createInvokeId(node));
+      if (node.fileOffset != TreeNode.noOffset) {
+        // TODO(johnniwinther): Ensure file offset on all method invocations.
+        // Skip synthetic invocation created in the collection transformer.
+        computeForNode(node, createInvokeId(node));
+      }
       super.visitMethodInvocation(node);
     }
   }
@@ -267,6 +278,30 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
       computeForNode(node, createUpdateId(node));
     }
     super.visitVariableSet(node);
+  }
+
+  @override
+  visitExpressionStatement(ExpressionStatement node) {
+    computeForNode(node, createExpressionStatementId(node));
+    return super.visitExpressionStatement(node);
+  }
+
+  @override
+  visitIfStatement(IfStatement node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    return super.visitIfStatement(node);
+  }
+
+  @override
+  visitTryCatch(TryCatch node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    return super.visitTryCatch(node);
+  }
+
+  @override
+  visitTryFinally(TryFinally node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    return super.visitTryFinally(node);
   }
 
   @override
@@ -450,6 +485,18 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
   }
 
   @override
+  visitThrow(Throw node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    super.visitThrow(node);
+  }
+
+  @override
+  visitRethrow(Rethrow node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    super.visitRethrow(node);
+  }
+
+  @override
   visitAsExpression(AsExpression node) {
     if (node.isTypeError) {
       computeForNode(node, createImplicitAsId(node));
@@ -464,5 +511,12 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
     computeForNode(
         node, computeDefaultNodeId(node, skipNodeWithNoOffset: true));
     return super.visitArguments(node);
+  }
+
+  @override
+  visitBlock(Block node) {
+    computeForNode(
+        node, computeDefaultNodeId(node, skipNodeWithNoOffset: true));
+    return super.visitBlock(node);
   }
 }

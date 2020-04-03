@@ -27,42 +27,77 @@ class ObjectPointerVisitor;
   M(Isolate, isolate)                                                          \
   M(Math, math)                                                                \
   M(Mirrors, mirrors)                                                          \
-  M(Profiler, profiler)                                                        \
   M(TypedData, typed_data)                                                     \
-  M(VMService, _vmservice)
+  M(VMService, _vmservice)                                                     \
+  M(Wasm, wasm)
 
+// TODO(liama): Once NNBD is enabled, *_type will be deleted and all uses will
+// be replaced with *_type_non_nullable. Later, once we drop support for opted
+// out code, *_type_legacy will be deleted.
 #define OBJECT_STORE_FIELD_LIST(R_, RW)                                        \
   RW(Class, object_class)                                                      \
   RW(Type, object_type)                                                        \
+  RW(Type, legacy_object_type)                                                 \
+  RW(Type, non_nullable_object_type)                                           \
+  RW(Type, nullable_object_type)                                               \
   RW(Class, null_class)                                                        \
   RW(Type, null_type)                                                          \
   RW(Type, function_type)                                                      \
+  RW(Type, legacy_function_type)                                               \
+  RW(Type, non_nullable_function_type)                                         \
   RW(Type, type_type)                                                          \
   RW(Class, closure_class)                                                     \
   RW(Type, number_type)                                                        \
+  RW(Type, legacy_number_type)                                                 \
+  RW(Type, non_nullable_number_type)                                           \
   RW(Type, int_type)                                                           \
+  RW(Type, legacy_int_type)                                                    \
+  RW(Type, non_nullable_int_type)                                              \
   RW(Class, integer_implementation_class)                                      \
   RW(Type, int64_type)                                                         \
   RW(Class, smi_class)                                                         \
   RW(Type, smi_type)                                                           \
+  RW(Type, legacy_smi_type)                                                    \
+  RW(Type, non_nullable_smi_type)                                              \
   RW(Class, mint_class)                                                        \
   RW(Type, mint_type)                                                          \
+  RW(Type, legacy_mint_type)                                                   \
+  RW(Type, non_nullable_mint_type)                                             \
   RW(Class, double_class)                                                      \
   RW(Type, double_type)                                                        \
+  RW(Type, legacy_double_type)                                                 \
+  RW(Type, non_nullable_double_type)                                           \
   RW(Type, float32x4_type)                                                     \
   RW(Type, int32x4_type)                                                       \
   RW(Type, float64x2_type)                                                     \
   RW(Type, string_type)                                                        \
+  RW(Type, legacy_string_type)                                                 \
+  RW(Type, non_nullable_string_type)                                           \
+  RW(Type, non_nullable_list_rare_type)   /* maybe be null, lazily built */    \
+  RW(Type, non_nullable_map_rare_type)    /* maybe be null, lazily built */    \
+  RW(Type, non_nullable_future_rare_type) /* maybe be null, lazily built */    \
   RW(TypeArguments, type_argument_int)                                         \
+  RW(TypeArguments, type_argument_legacy_int)                                  \
+  RW(TypeArguments, type_argument_non_nullable_int)                            \
   RW(TypeArguments, type_argument_double)                                      \
+  RW(TypeArguments, type_argument_legacy_double)                               \
+  RW(TypeArguments, type_argument_non_nullable_double)                         \
   RW(TypeArguments, type_argument_string)                                      \
+  RW(TypeArguments, type_argument_legacy_string)                               \
+  RW(TypeArguments, type_argument_non_nullable_string)                         \
   RW(TypeArguments, type_argument_string_dynamic)                              \
+  RW(TypeArguments, type_argument_legacy_string_dynamic)                       \
+  RW(TypeArguments, type_argument_non_nullable_string_dynamic)                 \
   RW(TypeArguments, type_argument_string_string)                               \
+  RW(TypeArguments, type_argument_legacy_string_legacy_string)                 \
+  RW(TypeArguments, type_argument_non_nullable_string_non_nullable_string)     \
   RW(Class, compiletime_error_class)                                           \
   RW(Class, pragma_class)                                                      \
   RW(Field, pragma_name)                                                       \
   RW(Field, pragma_options)                                                    \
   RW(Class, future_class)                                                      \
+  RW(Type, non_nullable_future_never_type) /* maybe be null, lazily built */   \
+  RW(Type, nullable_future_null_type)      /* maybe be null, lazily built */   \
   RW(Class, completer_class)                                                   \
   RW(Class, symbol_class)                                                      \
   RW(Class, one_byte_string_class)                                             \
@@ -70,9 +105,13 @@ class ObjectPointerVisitor;
   RW(Class, external_one_byte_string_class)                                    \
   RW(Class, external_two_byte_string_class)                                    \
   RW(Type, bool_type)                                                          \
+  RW(Type, legacy_bool_type)                                                   \
+  RW(Type, non_nullable_bool_type)                                             \
   RW(Class, bool_class)                                                        \
   RW(Class, array_class)                                                       \
   RW(Type, array_type)                                                         \
+  RW(Type, legacy_array_type)                                                  \
+  RW(Type, non_nullable_array_type)                                            \
   RW(Class, immutable_array_class)                                             \
   RW(Class, growable_object_array_class)                                       \
   RW(Class, linked_hash_map_class)                                             \
@@ -101,15 +140,11 @@ class ObjectPointerVisitor;
   RW(Library, root_library)                                                    \
   RW(Library, typed_data_library)                                              \
   RW(Library, _vmservice_library)                                              \
+  RW(Library, wasm_library)                                                    \
   RW(GrowableObjectArray, libraries)                                           \
   RW(Array, libraries_map)                                                     \
   RW(GrowableObjectArray, closure_functions)                                   \
   RW(GrowableObjectArray, pending_classes)                                     \
-  RW(GrowableObjectArray, pending_unevaluated_const_fields)                    \
-  R_(GrowableObjectArray, pending_deferred_loads)                              \
-  R_(GrowableObjectArray, resume_capabilities)                                 \
-  R_(GrowableObjectArray, exit_listeners)                                      \
-  R_(GrowableObjectArray, error_listeners)                                     \
   RW(Instance, stack_overflow)                                                 \
   RW(Instance, out_of_memory)                                                  \
   RW(UnhandledException, preallocated_unhandled_exception)                     \
@@ -125,22 +160,35 @@ class ObjectPointerVisitor;
   RW(Function, async_star_move_next_helper)                                    \
   RW(Function, complete_on_async_return)                                       \
   RW(Class, async_star_stream_controller)                                      \
+  RW(Array, bytecode_attributes)                                               \
+  RW(Array, saved_unlinked_calls)                                              \
+  RW(GrowableObjectArray, llvm_constant_pool)                                  \
+  RW(GrowableObjectArray, llvm_function_pool)                                  \
+  RW(Array, llvm_constant_hash_table)                                          \
+  RW(CompressedStackMaps, canonicalized_stack_map_entries)                     \
   RW(ObjectPool, global_object_pool)                                           \
-  RW(Array, library_load_error_table)                                          \
   RW(Array, unique_dynamic_targets)                                            \
   RW(GrowableObjectArray, megamorphic_cache_table)                             \
   RW(Code, build_method_extractor_code)                                        \
+  RW(Code, dispatch_table_null_error_stub)                                     \
   RW(Code, null_error_stub_with_fpu_regs_stub)                                 \
   RW(Code, null_error_stub_without_fpu_regs_stub)                              \
+  RW(Code, null_arg_error_stub_with_fpu_regs_stub)                             \
+  RW(Code, null_arg_error_stub_without_fpu_regs_stub)                          \
+  RW(Code, allocate_mint_with_fpu_regs_stub)                                   \
+  RW(Code, allocate_mint_without_fpu_regs_stub)                                \
   RW(Code, stack_overflow_stub_with_fpu_regs_stub)                             \
   RW(Code, stack_overflow_stub_without_fpu_regs_stub)                          \
   RW(Code, write_barrier_wrappers_stub)                                        \
   RW(Code, array_write_barrier_stub)                                           \
   R_(Code, megamorphic_miss_code)                                              \
   R_(Function, megamorphic_miss_function)                                      \
+  R_(GrowableObjectArray, resume_capabilities)                                 \
+  R_(GrowableObjectArray, exit_listeners)                                      \
+  R_(GrowableObjectArray, error_listeners)                                     \
+  RW(Array, dispatch_table_code_entries)                                       \
   RW(Array, code_order_table)                                                  \
   RW(Array, obfuscation_map)                                                   \
-  RW(GrowableObjectArray, changed_in_last_reload)                              \
   RW(Class, ffi_pointer_class)                                                 \
   RW(Class, ffi_native_type_class)                                             \
   RW(Class, ffi_struct_class)                                                  \
@@ -199,10 +247,6 @@ class ObjectStore {
     }
   }
 
-  void clear_pending_deferred_loads() {
-    pending_deferred_loads_ = GrowableObjectArray::New();
-  }
-
   void SetMegamorphicMissHandler(const Code& code, const Function& func) {
     // Hold onto the code so it is traced and not detached from the function.
     megamorphic_miss_code_ = code.raw();
@@ -218,6 +262,8 @@ class ObjectStore {
   RawError* PreallocateObjects();
 
   void InitKnownObjects();
+
+  void PostLoad();
 
   static void Init(Isolate* isolate);
 
@@ -242,7 +288,7 @@ class ObjectStore {
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFull:
-        return reinterpret_cast<RawObject**>(&library_load_error_table_);
+        return reinterpret_cast<RawObject**>(&global_object_pool_);
       case Snapshot::kFullJIT:
       case Snapshot::kFullAOT:
         return reinterpret_cast<RawObject**>(&megamorphic_miss_function_);

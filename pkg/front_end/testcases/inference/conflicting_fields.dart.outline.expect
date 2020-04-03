@@ -2,15 +2,49 @@ library;
 //
 // Problems in library:
 //
+// pkg/front_end/testcases/inference/conflicting_fields.dart:18:7: Error: Can't infer a return type for 'field1' as some of the inherited members have different types.
+// Try adding an explicit type.
+//   get field1 => null;
+//       ^^^^^^
+// pkg/front_end/testcases/inference/conflicting_fields.dart:8:11: Context: This is one of the inherited members.
+//   dynamic field1;
+//           ^^^^^^
+// pkg/front_end/testcases/inference/conflicting_fields.dart:13:7: Context: This is one of the inherited members.
+//   int field1;
+//       ^^^^^^
+//
 // pkg/front_end/testcases/inference/conflicting_fields.dart:20:14: Error: Can't infer a type for 'value' as some of the inherited members have different types.
 // Try adding an explicit type.
 //   set field1(value) {}
 //              ^^^^^
+// pkg/front_end/testcases/inference/conflicting_fields.dart:8:11: Context: This is one of the inherited members.
+//   dynamic field1;
+//           ^^^^^^
+// pkg/front_end/testcases/inference/conflicting_fields.dart:13:7: Context: This is one of the inherited members.
+//   int field1;
+//       ^^^^^^
+//
+// pkg/front_end/testcases/inference/conflicting_fields.dart:19:7: Error: Can't infer a return type for 'field2' as some of the inherited members have different types.
+// Try adding an explicit type.
+//   get field2 => null;
+//       ^^^^^^
+// pkg/front_end/testcases/inference/conflicting_fields.dart:9:7: Context: This is one of the inherited members.
+//   int field2;
+//       ^^^^^^
+// pkg/front_end/testcases/inference/conflicting_fields.dart:14:11: Context: This is one of the inherited members.
+//   dynamic field2;
+//           ^^^^^^
 //
 // pkg/front_end/testcases/inference/conflicting_fields.dart:21:14: Error: Can't infer a type for 'value' as some of the inherited members have different types.
 // Try adding an explicit type.
 //   set field2(value) {}
 //              ^^^^^
+// pkg/front_end/testcases/inference/conflicting_fields.dart:9:7: Context: This is one of the inherited members.
+//   int field2;
+//       ^^^^^^
+// pkg/front_end/testcases/inference/conflicting_fields.dart:14:11: Context: This is one of the inherited members.
+//   dynamic field2;
+//           ^^^^^^
 //
 import self as self;
 import "dart:core" as core;
@@ -30,9 +64,9 @@ class I extends core::Object {
 class B extends self::A implements self::I {
   synthetic constructor •() → self::B*
     ;
-  get field1() → core::int*
+  get field1() → invalid-type
     ;
-  get field2() → core::int*
+  get field2() → invalid-type
     ;
   set field1(invalid-type value) → void
     ;

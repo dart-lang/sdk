@@ -7,8 +7,8 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary/link.dart' as graph
     show DependencyWalker, Node;
-import 'package:analyzer/src/summary2/builder/source_library_builder.dart';
 import 'package:analyzer/src/summary2/lazy_ast.dart';
+import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 
 /// Compute simple-boundedness for all classes and generic types aliases in
@@ -16,7 +16,7 @@ import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 /// so they all should be processed simultaneously.
 void computeSimplyBounded(
   LinkedBundleContext bundleContext,
-  Iterable<SourceLibraryBuilder> libraryBuilders,
+  Iterable<LibraryBuilder> libraryBuilders,
 ) {
   var walker = SimplyBoundedDependencyWalker(bundleContext);
   var nodes = <SimplyBoundedNode>[];
@@ -127,6 +127,32 @@ class SimplyBoundedDependencyWalker
   /// parameter declarations and their bounds are not included.
   static List<TypeAnnotation> _collectTypedefRhsTypes(AstNode node) {
     if (node is FunctionTypeAlias) {
+      // TODO(scheglov) https://github.com/dart-lang/sdk/issues/41023
+      if (node.parameters == null) {
+        var buffer = StringBuffer();
+        buffer.writeln('Unexpected FunctionTypeAlias state.');
+        try {
+          buffer.writeln('unit: ');
+          buffer.writeln(node.parent.toSource());
+        } catch (_) {
+          try {
+            buffer.writeln('node: ');
+            buffer.writeln(node.toSource());
+          } catch (_) {
+            try {
+              buffer.writeln('node parts:');
+              buffer.writeln('  name: ${node.name}');
+              buffer.writeln('  typeParameters: ${node.typeParameters}');
+              buffer.writeln('  returnType: ${node.returnType}');
+              buffer.writeln('  parameters: ${node.parameters}');
+            } catch (_) {
+              buffer.writeln('nothing worked');
+            }
+          }
+        }
+        throw StateError(buffer.toString());
+      }
+
       var collector = _TypeCollector();
       collector.addType(node.returnType);
       collector.visitParameters(node.parameters);
@@ -302,6 +328,8 @@ class _TypeCollector {
   void visitParameter(FormalParameter node) {
     if (node is DefaultFormalParameter) {
       visitParameter(node.parameter);
+    } else if (node is FieldFormalParameter) {
+      // The spec does not allow them here, ignore.
     } else if (node is FunctionTypedFormalParameter) {
       addType(node.returnType);
       visitParameters(node.parameters);

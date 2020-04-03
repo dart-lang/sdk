@@ -101,9 +101,8 @@ template("gcc_toolchain") {
       command = "$cc -MMD -MF $depfile {{defines}} {{include_dirs}} {{cflags}} {{cflags_c}} -c {{source}} -o {{output}}"
       depsformat = "gcc"
       description = "CC {{output}}"
-      outputs = [
-        "{{source_out_dir}}/{{target_output_name}}.{{source_name_part}}.o",
-      ]
+      outputs =
+          [ "{{source_out_dir}}/{{target_output_name}}.{{source_name_part}}.o" ]
     }
 
     tool("cxx") {
@@ -111,9 +110,8 @@ template("gcc_toolchain") {
       command = "$cxx -MMD -MF $depfile {{defines}} {{include_dirs}} {{cflags}} {{cflags_cc}} -c {{source}} -o {{output}}"
       depsformat = "gcc"
       description = "CXX {{output}}"
-      outputs = [
-        "{{source_out_dir}}/{{target_output_name}}.{{source_name_part}}.o",
-      ]
+      outputs =
+          [ "{{source_out_dir}}/{{target_output_name}}.{{source_name_part}}.o" ]
     }
 
     tool("asm") {
@@ -122,9 +120,8 @@ template("gcc_toolchain") {
       command = "$cc -MMD -MF $depfile {{defines}} {{include_dirs}} {{asmflags}} -c {{source}} -o {{output}}"
       depsformat = "gcc"
       description = "ASM {{output}}"
-      outputs = [
-        "{{source_out_dir}}/{{target_output_name}}.{{source_name_part}}.o",
-      ]
+      outputs =
+          [ "{{source_out_dir}}/{{target_output_name}}.{{source_name_part}}.o" ]
     }
 
     tool("alink") {
@@ -132,9 +129,8 @@ template("gcc_toolchain") {
       command = "rm -f {{output}} && $ar rcs {{output}} @$rspfile"
       description = "AR {{output}}"
       rspfile_content = "{{inputs}}"
-      outputs = [
-        "{{target_out_dir}}/{{target_output_name}}{{output_extension}}",
-      ]
+      outputs =
+          [ "{{target_out_dir}}/{{target_output_name}}{{output_extension}}" ]
       default_output_extension = ".a"
       output_prefix = "lib"
     }
@@ -208,8 +204,7 @@ template("gcc_toolchain") {
         command += " && " + strip_command
       } else if (defined(invoker.llvm_objcopy)) {
         strip = invoker.llvm_objcopy
-        strip_command =
-            "${strip} --strip-all $outfile $stripped_outfile"
+        strip_command = "${strip} --strip-all $outfile $stripped_outfile"
         command += " && " + strip_command
       }
       if (defined(invoker.postlink)) {
@@ -217,9 +212,7 @@ template("gcc_toolchain") {
       }
       description = "LINK $outfile"
       rspfile_content = "{{inputs}}"
-      outputs = [
-        outfile,
-      ]
+      outputs = [ outfile ]
       if (defined(invoker.strip) || defined(invoker.llvm_objcopy)) {
         outputs += [ stripped_outfile ]
       }

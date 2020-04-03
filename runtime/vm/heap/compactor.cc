@@ -4,6 +4,7 @@
 
 #include "vm/heap/compactor.h"
 
+#include "platform/atomic.h"
 #include "vm/globals.h"
 #include "vm/heap/become.h"
 #include "vm/heap/heap.h"
@@ -18,12 +19,6 @@ DEFINE_FLAG(bool,
             false,
             "Force compaction to move every movable object");
 
-static const intptr_t kBitVectorWordsPerBlock = 1;
-static const intptr_t kBlockSize =
-    kObjectAlignment * kBitsPerWord * kBitVectorWordsPerBlock;
-static const intptr_t kBlockMask = ~(kBlockSize - 1);
-static const intptr_t kBlocksPerPage = kPageSize / kBlockSize;
-
 // Each HeapPage is divided into blocks of size kBlockSize. Each object belongs
 // to the block containing its header word (so up to kBlockSize +
 // kAllocatablePageSize - 2 * kObjectAlignment bytes belong to the same block).
@@ -33,9 +28,13 @@ static const intptr_t kBlocksPerPage = kPageSize / kBlockSize;
 // allocation units are live, so the new address of any object in the block can
 // be found by adding the number of live allocation units before the object to
 // the block's new start address.
+// Compare CountingBlock used for heap snapshot generation.
 class ForwardingBlock {
  public:
-  ForwardingBlock() : new_address_(0), live_bitvector_(0) {}
+  void Clear() {
+    new_address_ = 0;
+    live_bitvector_ = 0;
+  }
 
   uword Lookup(uword old_addr) const {
     uword block_offset = old_addr & ~kBlockMask;
@@ -87,7 +86,11 @@ class ForwardingBlock {
 
 class ForwardingPage {
  public:
-  ForwardingPage() : blocks_() {}
+  void Clear() {
+    for (intptr_t i = 0; i < kBlocksPerPage; i++) {
+      blocks_[i].Clear();
+    }
+  }
 
   uword Lookup(uword old_addr) { return BlockFor(old_addr)->Lookup(old_addr); }
 
@@ -102,31 +105,28 @@ class ForwardingPage {
  private:
   ForwardingBlock blocks_[kBlocksPerPage];
 
-  DISALLOW_COPY_AND_ASSIGN(ForwardingPage);
+  DISALLOW_ALLOCATION();
+  DISALLOW_IMPLICIT_CONSTRUCTORS(ForwardingPage);
 };
 
-ForwardingPage* HeapPage::AllocateForwardingPage() {
+void HeapPage::AllocateForwardingPage() {
   ASSERT(forwarding_page_ == NULL);
-  forwarding_page_ = new ForwardingPage();
-  return forwarding_page_;
-}
-
-void HeapPage::FreeForwardingPage() {
-  ASSERT(forwarding_page_ != NULL);
-  delete forwarding_page_;
-  forwarding_page_ = NULL;
+  ASSERT((object_start() + sizeof(ForwardingPage)) < object_end());
+  ASSERT(Utils::IsAligned(sizeof(ForwardingPage), kObjectAlignment));
+  object_end_ -= sizeof(ForwardingPage);
+  forwarding_page_ = reinterpret_cast<ForwardingPage*>(object_end_);
 }
 
 class CompactorTask : public ThreadPool::Task {
  public:
-  CompactorTask(Isolate* isolate,
+  CompactorTask(IsolateGroup* isolate_group,
                 GCCompactor* compactor,
                 ThreadBarrier* barrier,
-                intptr_t* next_forwarding_task,
+                RelaxedAtomic<intptr_t>* next_forwarding_task,
                 HeapPage* head,
                 HeapPage** tail,
                 FreeList* freelist)
-      : isolate_(isolate),
+      : isolate_group_(isolate_group),
         compactor_(compactor),
         barrier_(barrier),
         next_forwarding_task_(next_forwarding_task),
@@ -137,18 +137,20 @@ class CompactorTask : public ThreadPool::Task {
         free_current_(0),
         free_end_(0) {}
 
- private:
   void Run();
+  void RunEnteredIsolateGroup();
+
+ private:
   void PlanPage(HeapPage* page);
   void SlidePage(HeapPage* page);
   uword PlanBlock(uword first_object, ForwardingPage* forwarding_page);
   uword SlideBlock(uword first_object, ForwardingPage* forwarding_page);
   void PlanMoveToContiguousSize(intptr_t size);
 
-  Isolate* isolate_;
+  IsolateGroup* isolate_group_;
   GCCompactor* compactor_;
   ThreadBarrier* barrier_;
-  intptr_t* next_forwarding_task_;
+  RelaxedAtomic<intptr_t>* next_forwarding_task_;
   HeapPage* head_;
   HeapPage** tail_;
   FreeList* freelist_;
@@ -237,21 +239,24 @@ void GCCompactor::Compact(HeapPage* pages,
   }
 
   {
-    ThreadBarrier barrier(num_tasks + 1, heap_->barrier(),
-                          heap_->barrier_done());
-    intptr_t next_forwarding_task = 0;
+    ThreadBarrier barrier(num_tasks, heap_->barrier(), heap_->barrier_done());
+    RelaxedAtomic<intptr_t> next_forwarding_task = {0};
 
     for (intptr_t task_index = 0; task_index < num_tasks; task_index++) {
-      Dart::thread_pool()->Run<CompactorTask>(
-          thread()->isolate(), this, &barrier, &next_forwarding_task,
-          heads[task_index], &tails[task_index], freelist);
+      if (task_index < (num_tasks - 1)) {
+        // Begin compacting on a helper thread.
+        Dart::thread_pool()->Run<CompactorTask>(
+            thread()->isolate_group(), this, &barrier, &next_forwarding_task,
+            heads[task_index], &tails[task_index], freelist);
+      } else {
+        // Last worker is the main thread.
+        CompactorTask task(thread()->isolate_group(), this, &barrier,
+                           &next_forwarding_task, heads[task_index],
+                           &tails[task_index], freelist);
+        task.RunEnteredIsolateGroup();
+        barrier.Exit();
+      }
     }
-
-    // Plan pages.
-    barrier.Sync();
-    // Slides pages. Forward large pages, new space, etc.
-    barrier.Sync();
-    barrier.Exit();
   }
 
   // Update inner pointers in typed data views (needs to be done after all
@@ -301,7 +306,6 @@ void GCCompactor::Compact(HeapPage* pages,
         HeapPage* next = page->next();
         heap_->old_space()->IncreaseCapacityInWordsLocked(
             -(page->memory_->size() >> kWordSizeLog2));
-        page->FreeForwardingPage();
         page->Deallocate();
         page = next;
       }
@@ -318,17 +322,23 @@ void GCCompactor::Compact(HeapPage* pages,
     delete[] heads;
     delete[] tails;
   }
-
-  // Free forwarding information from the suriving pages.
-  for (HeapPage* page = pages; page != NULL; page = page->next()) {
-    page->FreeForwardingPage();
-  }
 }
 
 void CompactorTask::Run() {
   bool result =
-      Thread::EnterIsolateAsHelper(isolate_, Thread::kCompactorTask, true);
+      Thread::EnterIsolateGroupAsHelper(isolate_group_, Thread::kCompactorTask,
+                                        /*bypass_safepoint=*/true);
   ASSERT(result);
+
+  RunEnteredIsolateGroup();
+
+  Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/true);
+
+  // This task is done. Notify the original thread.
+  barrier_->Exit();
+}
+
+void CompactorTask::RunEnteredIsolateGroup() {
 #ifdef SUPPORT_TIMELINE
   Thread* thread = Thread::Current();
 #endif
@@ -372,13 +382,12 @@ void CompactorTask::Run() {
 
     bool more_forwarding_tasks = true;
     while (more_forwarding_tasks) {
-      intptr_t forwarding_task =
-          AtomicOperations::FetchAndIncrement(next_forwarding_task_);
+      intptr_t forwarding_task = next_forwarding_task_->fetch_add(1u);
       switch (forwarding_task) {
         case 0: {
           TIMELINE_FUNCTION_GC_DURATION(thread, "ForwardLargePages");
           for (HeapPage* large_page =
-                   isolate_->heap()->old_space()->large_pages_;
+                   isolate_group_->heap()->old_space()->large_pages_;
                large_page != NULL; large_page = large_page->next()) {
             large_page->VisitObjectPointers(compactor_);
           }
@@ -386,30 +395,32 @@ void CompactorTask::Run() {
         }
         case 1: {
           TIMELINE_FUNCTION_GC_DURATION(thread, "ForwardNewSpace");
-          isolate_->heap()->new_space()->VisitObjectPointers(compactor_);
+          isolate_group_->heap()->new_space()->VisitObjectPointers(compactor_);
           break;
         }
         case 2: {
           TIMELINE_FUNCTION_GC_DURATION(thread, "ForwardRememberedSet");
-          isolate_->store_buffer()->VisitObjectPointers(compactor_);
+          isolate_group_->store_buffer()->VisitObjectPointers(compactor_);
           break;
         }
         case 3: {
           TIMELINE_FUNCTION_GC_DURATION(thread, "ForwardWeakTables");
-          isolate_->heap()->ForwardWeakTables(compactor_);
+          isolate_group_->heap()->ForwardWeakTables(compactor_);
           break;
         }
         case 4: {
           TIMELINE_FUNCTION_GC_DURATION(thread, "ForwardWeakHandles");
-          isolate_->VisitWeakPersistentHandles(compactor_);
+          isolate_group_->VisitWeakPersistentHandles(compactor_);
           break;
         }
 #ifndef PRODUCT
         case 5: {
-          if (FLAG_support_service) {
-            TIMELINE_FUNCTION_GC_DURATION(thread, "ForwardObjectIdRing");
-            isolate_->object_id_ring()->VisitPointers(compactor_);
-          }
+          TIMELINE_FUNCTION_GC_DURATION(thread, "ForwardObjectIdRing");
+          isolate_group_->ForEachIsolate(
+              [&](Isolate* isolate) {
+                isolate->object_id_ring()->VisitPointers(compactor_);
+              },
+              /*at_safepoint=*/true);
           break;
         }
 #endif  // !PRODUCT
@@ -420,17 +431,15 @@ void CompactorTask::Run() {
 
     barrier_->Sync();
   }
-  Thread::ExitIsolateAsHelper(true);
-
-  // This task is done. Notify the original thread.
-  barrier_->Exit();
 }
 
 void CompactorTask::PlanPage(HeapPage* page) {
   uword current = page->object_start();
   uword end = page->object_end();
 
-  auto forwarding_page = page->AllocateForwardingPage();
+  ForwardingPage* forwarding_page = page->forwarding_page();
+  ASSERT(forwarding_page != nullptr);
+  forwarding_page->Clear();
   while (current < end) {
     current = PlanBlock(current, forwarding_page);
   }
@@ -440,7 +449,8 @@ void CompactorTask::SlidePage(HeapPage* page) {
   uword current = page->object_start();
   uword end = page->object_end();
 
-  auto forwarding_page = page->forwarding_page();
+  ForwardingPage* forwarding_page = page->forwarding_page();
+  ASSERT(forwarding_page != nullptr);
   while (current < end) {
     current = SlideBlock(current, forwarding_page);
   }
@@ -603,6 +613,7 @@ void GCCompactor::ForwardPointer(RawObject** ptr) {
 
   RawObject* new_target =
       RawObject::FromAddr(forwarding_page->Lookup(old_addr));
+  ASSERT(!new_target->IsSmiOrNewObject());
   *ptr = new_target;
 }
 
@@ -658,7 +669,8 @@ void GCCompactor::ForwardStackPointers() {
   // N.B.: Heap pointers have already been forwarded. We forward the heap before
   // forwarding the stack to limit the number of places that need to be aware of
   // forwarding when reading stack maps.
-  isolate()->VisitObjectPointers(this, ValidationPolicy::kDontValidateFrames);
+  isolate_group()->VisitObjectPointers(this,
+                                       ValidationPolicy::kDontValidateFrames);
 }
 
 }  // namespace dart

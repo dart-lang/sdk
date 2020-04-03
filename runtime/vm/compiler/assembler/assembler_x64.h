@@ -13,6 +13,7 @@
 
 #include "platform/assert.h"
 #include "platform/utils.h"
+#include "vm/compiler/assembler/assembler_base.h"
 #include "vm/constants.h"
 #include "vm/constants_x86.h"
 #include "vm/hash_map.h"
@@ -191,6 +192,7 @@ class Address : public Operand {
 
   Address(Register index, ScaleFactor scale, int32_t disp) {
     ASSERT(index != RSP);  // Illegal addressing mode.
+    ASSERT(scale != TIMES_16);  // Unsupported scale factor.
     SetModRM(0, RSP);
     SetSIB(scale, index, RBP);
     SetDisp32(disp);
@@ -201,6 +203,7 @@ class Address : public Operand {
 
   Address(Register base, Register index, ScaleFactor scale, int32_t disp) {
     ASSERT(index != RSP);  // Illegal addressing mode.
+    ASSERT(scale != TIMES_16);  // Unsupported scale factor.
     if ((disp == 0) && ((base & 7) != RBP)) {
       SetModRM(0, RSP);
       SetSIB(scale, index, base);
@@ -306,9 +309,12 @@ class Assembler : public AssemblerBase {
 
   void setcc(Condition condition, ByteRegister dst);
 
+  void EnterSafepoint();
+  void LeaveSafepoint();
   void TransitionGeneratedToNative(Register destination_address,
-                                   Register new_exit_frame);
-  void TransitionNativeToGenerated();
+                                   Register new_exit_frame,
+                                   bool enter_safepoint);
+  void TransitionNativeToGenerated(bool leave_safepoint);
 
 // Register-register, register-address and address-register instructions.
 #define RR(width, name, ...)                                                   \
@@ -331,7 +337,10 @@ class Assembler : public AssemblerBase {
   REGULAR_INSTRUCTION(test, 0x85)
   REGULAR_INSTRUCTION(xchg, 0x87)
   REGULAR_INSTRUCTION(imul, 0xAF, 0x0F)
+  REGULAR_INSTRUCTION(bsf, 0xBC, 0x0F)
   REGULAR_INSTRUCTION(bsr, 0xBD, 0x0F)
+  REGULAR_INSTRUCTION(popcnt, 0xB8, 0x0F, 0xF3)
+  REGULAR_INSTRUCTION(lzcnt, 0xBD, 0x0F, 0xF3)
 #undef REGULAR_INSTRUCTION
   RA(Q, movsxd, 0x63)
   RR(Q, movsxd, 0x63)
@@ -587,6 +596,7 @@ class Assembler : public AssemblerBase {
   REGULAR_UNARY(not, 0xF7, 2)
   REGULAR_UNARY(neg, 0xF7, 3)
   REGULAR_UNARY(mul, 0xF7, 4)
+  REGULAR_UNARY(imul, 0xF7, 5)
   REGULAR_UNARY(div, 0xF7, 6)
   REGULAR_UNARY(idiv, 0xF7, 7)
   REGULAR_UNARY(inc, 0xFF, 0)
@@ -671,6 +681,15 @@ class Assembler : public AssemblerBase {
   void PushRegister(Register r);
   void PopRegister(Register r);
 
+  void PushRegisterPair(Register r0, Register r1) {
+    PushRegister(r1);
+    PushRegister(r0);
+  }
+  void PopRegisterPair(Register r0, Register r1) {
+    PopRegister(r0);
+    PopRegister(r1);
+  }
+
   // Methods for adding/subtracting an immediate value that may be loaded from
   // the constant pool.
   // TODO(koda): Assert that these are not used for heap objects.
@@ -692,6 +711,7 @@ class Assembler : public AssemblerBase {
   void LoadImmediate(Register reg, const Immediate& imm);
 
   void LoadIsolate(Register dst);
+  void LoadDispatchTable(Register dst);
   void LoadObject(Register dst, const Object& obj);
   void LoadUniqueObject(Register dst, const Object& obj);
   void LoadNativeEntry(Register dst,
@@ -706,6 +726,8 @@ class Assembler : public AssemblerBase {
   void CallToRuntime();
 
   void CallNullErrorShared(bool save_fpu_registers);
+
+  void CallNullArgErrorShared(bool save_fpu_registers);
 
   // Emit a call that shares its object pool entries with other calls
   // that have the same equivalence marker.
@@ -799,8 +821,6 @@ class Assembler : public AssemblerBase {
 
   // Loading and comparing classes of objects.
   void LoadClassId(Register result, Register object);
-
-  // Overwrites class_id register (it will be tagged afterwards).
   void LoadClassById(Register result, Register class_id);
 
   void CompareClassId(Register object,
@@ -834,9 +854,17 @@ class Assembler : public AssemblerBase {
   void Jump(Label* label) { jmp(label); }
 
   void LoadField(Register dst, FieldAddress address) { movq(dst, address); }
+  void LoadMemoryValue(Register dst, Register base, int32_t offset) {
+    movq(dst, Address(base, offset));
+  }
 
   void CompareWithFieldValue(Register value, FieldAddress address) {
     cmpq(value, address);
+  }
+
+  void CompareTypeNullabilityWith(Register type, int8_t value) {
+    cmpb(FieldAddress(type, compiler::target::Type::nullability_offset()),
+         Immediate(value));
   }
 
   void RestoreCodePointer();
@@ -889,11 +917,6 @@ class Assembler : public AssemblerBase {
   void MonomorphicCheckedEntryAOT();
   void BranchOnMonomorphicCheckedEntryJIT(Label* label);
 
-  void UpdateAllocationStats(intptr_t cid);
-
-  void UpdateAllocationStatsWithSize(intptr_t cid, Register size_reg);
-  void UpdateAllocationStatsWithSize(intptr_t cid, intptr_t instance_size);
-
   // If allocation tracing for |cid| is enabled, will jump to |trace| label,
   // which will allocate in the runtime where tracing occurs.
   void MaybeTraceAllocation(intptr_t cid, Label* trace, bool near_jump);
@@ -934,10 +957,7 @@ class Assembler : public AssemblerBase {
   void GenerateUnRelocatedPcRelativeCall(intptr_t offset_into_target = 0);
 
   // Debugging and bringup support.
-  void Breakpoint() { int3(); }
-  void Stop(const char* message) override;
-
-  static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);
+  void Breakpoint() override { int3(); }
 
   static Address ElementAddressForIntIndex(bool is_external,
                                            intptr_t cid,
@@ -947,6 +967,7 @@ class Assembler : public AssemblerBase {
   static Address ElementAddressForRegIndex(bool is_external,
                                            intptr_t cid,
                                            intptr_t index_scale,
+                                           bool index_unboxed,
                                            Register array,
                                            Register index);
 

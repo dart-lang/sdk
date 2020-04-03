@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'package:expect/expect.dart';
 
 /// Dart2js only supports the const constructor for `?.fromEnvironment`. The
@@ -9,7 +11,7 @@ import 'package:expect/expect.dart';
 /// `new` instead of `const`.
 main() {
   Expect.isFalse(const bool.fromEnvironment('X'));
-  Expect.isNull(const String.fromEnvironment('X'));
+  Expect.equals('', const String.fromEnvironment('X', defaultValue: ''));
   Expect.equals(const int.fromEnvironment('X', defaultValue: 0), 0);
 
   Expect.throws(() => new bool.fromEnvironment('X'));

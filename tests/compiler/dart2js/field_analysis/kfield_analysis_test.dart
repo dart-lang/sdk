@@ -2,13 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'dart:io';
+import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/js_backend/field_analysis.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
-import 'package:front_end/src/testing/features.dart';
 import 'package:kernel/ast.dart' as ir;
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
@@ -35,6 +38,7 @@ class KAllocatorAnalysisDataComputer extends DataComputer<Features> {
       {bool verbose: false}) {
     if (member.isField) {
       KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
+      DartTypes dartTypes = frontendStrategy.commonElements.dartTypes;
       KFieldAnalysis allocatorAnalysis =
           frontendStrategy.fieldAnalysisForTesting;
       ir.Member node = frontendStrategy.elementMap.getMemberNode(member);
@@ -44,11 +48,12 @@ class KAllocatorAnalysisDataComputer extends DataComputer<Features> {
             allocatorAnalysis.getAllocatorDataForTesting(member);
         if (data != null) {
           if (data.initialValue != null) {
-            features[Tags.initialValue] = data.initialValue.toStructuredText();
+            features[Tags.initialValue] =
+                data.initialValue.toStructuredText(dartTypes);
           }
           data.initializers.forEach((constructor, value) {
             features['${constructor.enclosingClass.name}.${constructor.name}'] =
-                value?.shortText;
+                value?.shortText(dartTypes);
           });
         }
       } else {
@@ -56,7 +61,7 @@ class KAllocatorAnalysisDataComputer extends DataComputer<Features> {
             allocatorAnalysis.getStaticFieldDataForTesting(member);
         if (staticFieldData.initialValue != null) {
           features[Tags.initialValue] =
-              staticFieldData.initialValue.toStructuredText();
+              staticFieldData.initialValue.toStructuredText(dartTypes);
         }
         features[Tags.complexity] = staticFieldData.complexity.shortText;
       }

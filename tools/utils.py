@@ -79,9 +79,7 @@ def GuessOS():
 # Try to guess the host architecture.
 def GuessArchitecture():
     os_id = platform.machine()
-    if os_id.startswith('armv5te'):
-        return 'armv5te'
-    elif os_id.startswith('armv6'):
+    if os_id.startswith('armv6'):
         return 'armv6'
     elif os_id.startswith('arm'):
         return 'arm'
@@ -255,6 +253,17 @@ BUILD_MODES = {
     'product': 'Product',
 }
 
+# Mapping table between build mode and build configuration.
+BUILD_SANITIZERS = {
+    None: '',
+    'none': '',
+    'asan': 'ASAN',
+    'lsan': 'LSAN',
+    'msan': 'MSAN',
+    'tsan': 'TSAN',
+    'ubsan': 'UBSAN',
+}
+
 # Mapping table between OS and build output location.
 BUILD_ROOT = {
     'win32': os.path.join('out'),
@@ -263,21 +272,17 @@ BUILD_ROOT = {
     'macos': os.path.join('xcodebuild'),
 }
 
+# Note: gn expects these to be lower case.
 ARCH_FAMILY = {
     'ia32': 'ia32',
     'x64': 'ia32',
     'arm': 'arm',
     'armv6': 'arm',
-    'armv5te': 'arm',
     'arm64': 'arm',
+    'arm_x64': 'arm',
     'simarm': 'ia32',
     'simarmv6': 'ia32',
-    'simarmv5te': 'ia32',
     'simarm64': 'ia32',
-    'simdbc': 'ia32',
-    'simdbc64': 'ia32',
-    'armsimdbc': 'arm',
-    'armsimdbc64': 'arm',
     'simarm_x64': 'ia32',
 }
 
@@ -298,6 +303,10 @@ def GetBuildMode(mode):
     return BUILD_MODES[mode]
 
 
+def GetBuildSanitizer(sanitizer):
+    return BUILD_SANITIZERS[sanitizer]
+
+
 def GetArchFamily(arch):
     return ARCH_FAMILY[arch]
 
@@ -307,33 +316,48 @@ def IsCrossBuild(target_os, arch):
     return ((GetArchFamily(host_arch) != GetArchFamily(arch)) or
             (target_os != GuessOS()))
 
-
-def GetBuildConf(mode, arch, conf_os=None):
+# TODO(38701): Remove use_nnbd once the forked NNBD SDK is merged back in.
+def GetBuildConf(mode, arch, conf_os=None, sanitizer=None, use_nnbd=False):
+    nnbd = "NNBD" if use_nnbd else ""
     if conf_os == 'android':
-        return '%s%s%s' % (GetBuildMode(mode), conf_os.title(), arch.upper())
+        return '%s%s%s%s' % (GetBuildMode(mode), conf_os.title(), arch.upper(),
+                             nnbd)
     else:
         # Ask for a cross build if the host and target architectures don't match.
         host_arch = ARCH_GUESS
         cross_build = ''
         if GetArchFamily(host_arch) != GetArchFamily(arch):
             cross_build = 'X'
-        return '%s%s%s' % (GetBuildMode(mode), cross_build, arch.upper())
+        return '%s%s%s%s%s' % (GetBuildMode(mode), GetBuildSanitizer(sanitizer),
+                               cross_build, arch.upper(), nnbd)
 
 
 def GetBuildDir(host_os):
     return BUILD_ROOT[host_os]
 
 
-def GetBuildRoot(host_os, mode=None, arch=None, target_os=None):
+# TODO(38701): Remove use_nnbd once the forked NNBD SDK is merged back in.
+def GetBuildRoot(host_os,
+                 mode=None,
+                 arch=None,
+                 target_os=None,
+                 sanitizer=None,
+                 use_nnbd=False):
     build_root = GetBuildDir(host_os)
     if mode:
-        build_root = os.path.join(build_root, GetBuildConf(
-            mode, arch, target_os))
+        build_root = os.path.join(
+            build_root, GetBuildConf(mode, arch, target_os, sanitizer,
+                                     use_nnbd))
     return build_root
 
 
-def GetBuildSdkBin(host_os, mode=None, arch=None, target_os=None):
-    build_root = GetBuildRoot(host_os, mode, arch, target_os)
+# TODO(38701): Remove use_nnbd once the forked NNBD SDK is merged back in.
+def GetBuildSdkBin(host_os,
+                   mode=None,
+                   arch=None,
+                   target_os=None,
+                   use_nnbd=False):
+    build_root = GetBuildRoot(host_os, mode, arch, target_os, use_nnbd)
     return os.path.join(build_root, 'dart-sdk', 'bin')
 
 
@@ -354,7 +378,7 @@ def GetSemanticSDKVersion(no_git_hash=False, version_file=None):
 
     if version.channel == 'be':
         postfix = '-edge' if no_git_hash else '-edge.%s' % GetGitRevision()
-    elif version.channel == 'dev':
+    elif version.channel in ('beta', 'dev'):
         postfix = '-dev.%s.%s' % (version.prerelease, version.prerelease_patch)
     else:
         assert version.channel == 'stable'
@@ -802,7 +826,8 @@ class PosixCoreDumpEnabler(object):
         resource.setrlimit(resource.RLIMIT_CORE, (-1, -1))
 
     def __exit__(self, *_):
-        resource.setrlimit(resource.RLIMIT_CORE, self._old_limits)
+        if self._old_limits != None:
+            resource.setrlimit(resource.RLIMIT_CORE, self._old_limits)
 
 
 class LinuxCoreDumpEnabler(PosixCoreDumpEnabler):

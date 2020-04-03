@@ -2,14 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Regression test: stack trace can be null when using async-await.
+// @dart = 2.7
+
+/// Regression test: stack trace could be null when using async-await.
 import 'dart:async';
 
 import 'package:expect/expect.dart';
 
 main() async {
   C value = await test();
-  Expect.equals("[[null]]", "$value");
+  Expect.identical(StackTrace.empty, value._s);
 }
 
 Future<C> test() async {
@@ -17,7 +19,7 @@ Future<C> test() async {
     await throwInFuture();
     return C(StackTrace.fromString("no-throw"));
   } on MyException catch (e, s) {
-    return C(s); // Note: s is null
+    return C(s); // Note: s is *no longer* null
   }
 }
 

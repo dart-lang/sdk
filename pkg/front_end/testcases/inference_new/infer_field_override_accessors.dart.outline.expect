@@ -2,10 +2,27 @@ library;
 //
 // Problems in library:
 //
+// pkg/front_end/testcases/inference_new/infer_field_override_accessors.dart:16:7: Error: Can't infer a type for 'x' as some of the inherited members have different types.
+// Try adding an explicit type.
+//   var x;
+//       ^
+// pkg/front_end/testcases/inference_new/infer_field_override_accessors.dart:6:9: Context: This is one of the inherited members.
+//   A get x;
+//         ^
+// pkg/front_end/testcases/inference_new/infer_field_override_accessors.dart:7:12: Context: This is one of the inherited members.
+//   void set x(B value);
+//            ^
+//
 // pkg/front_end/testcases/inference_new/infer_field_override_accessors.dart:17:7: Error: Can't infer a type for 'y' as some of the inherited members have different types.
 // Try adding an explicit type.
 //   var y;
 //       ^
+// pkg/front_end/testcases/inference_new/infer_field_override_accessors.dart:9:9: Context: This is one of the inherited members.
+//   B get y;
+//         ^
+// pkg/front_end/testcases/inference_new/infer_field_override_accessors.dart:10:12: Context: This is one of the inherited members.
+//   void set y(A value);
+//            ^
 //
 import self as self;
 import "dart:core" as core;
@@ -23,7 +40,7 @@ abstract class B extends self::A {
     ;
 }
 class C extends self::B {
-  field self::A* x;
+  field invalid-type x;
   field invalid-type y;
   synthetic constructor •() → self::C*
     ;

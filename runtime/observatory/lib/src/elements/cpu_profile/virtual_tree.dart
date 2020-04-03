@@ -90,7 +90,6 @@ class CpuProfileVirtualTreeElement extends CustomElement implements Renderable {
     var create;
     var update;
     var search;
-
     switch (type) {
       case M.SampleProfileType.cpu:
         create = _createCpuRow;

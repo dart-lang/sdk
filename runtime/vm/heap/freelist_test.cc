@@ -2,15 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/heap/freelist.h"
+#include <memory>
+
 #include "platform/assert.h"
+#include "vm/heap/freelist.h"
+#include "vm/pointer_tagging.h"
 #include "vm/unit_test.h"
 
 namespace dart {
 
 static uword Allocate(FreeList* free_list, intptr_t size, bool is_protected) {
   uword result = free_list->TryAllocate(size, is_protected);
-  if (result && is_protected) {
+  if ((result != 0u) && is_protected) {
     VirtualMemory::Protect(reinterpret_cast<void*>(result), size,
                            VirtualMemory::kReadExecute);
   }
@@ -82,7 +85,7 @@ TEST_CASE(FreeList) {
   FreeList* free_list = new FreeList();
   const intptr_t kBlobSize = 1 * MB;
   VirtualMemory* region =
-      VirtualMemory::Allocate(kBlobSize, /* is_executable */ false, NULL);
+      VirtualMemory::Allocate(kBlobSize, /* is_executable */ false, "test");
 
   TestFreeList(region, free_list, false);
 
@@ -95,7 +98,7 @@ TEST_CASE(FreeListProtected) {
   FreeList* free_list = new FreeList();
   const intptr_t kBlobSize = 1 * MB;
   VirtualMemory* region =
-      VirtualMemory::Allocate(kBlobSize, /* is_executable */ false, NULL);
+      VirtualMemory::Allocate(kBlobSize, /* is_executable */ false, "test");
 
   TestFreeList(region, free_list, true);
 
@@ -111,7 +114,7 @@ TEST_CASE(FreeListProtectedTinyObjects) {
   uword* objects = new uword[kBlobSize / kObjectSize];
 
   VirtualMemory* blob =
-      VirtualMemory::Allocate(kBlobSize, /* is_executable = */ false, NULL);
+      VirtualMemory::Allocate(kBlobSize, /* is_executable = */ false, "test");
   ASSERT(Utils::IsAligned(blob->start(), 4096));
   blob->Protect(VirtualMemory::kReadWrite);
 
@@ -151,7 +154,7 @@ TEST_CASE(FreeListProtectedVariableSizeObjects) {
   }
 
   VirtualMemory* blob =
-      VirtualMemory::Allocate(kBlobSize, /* is_executable = */ false, NULL);
+      VirtualMemory::Allocate(kBlobSize, /* is_executable = */ false, "test");
   ASSERT(Utils::IsAligned(blob->start(), 4096));
   blob->Protect(VirtualMemory::kReadWrite);
 
@@ -180,6 +183,53 @@ TEST_CASE(FreeListProtectedVariableSizeObjects) {
   delete blob;
   delete free_list;
   delete[] objects;
+}
+
+static void TestRegress38528(intptr_t header_overlap) {
+  // Test the following scenario.
+  //
+  // | <------------ free list element -----------------> |
+  // | <allocated code> | <header> | <remainder - header> | <other code> |
+  //                         ^
+  //    page boundary around here, depending on header_overlap
+  //
+  // It is important that after the allocation has been re-protected, the
+  // "<other code>" region is also still executable (and not writable).
+  std::unique_ptr<FreeList> free_list(new FreeList());
+  const uword page = VirtualMemory::PageSize();
+  std::unique_ptr<VirtualMemory> blob(
+      VirtualMemory::Allocate(2 * page,
+                              /*is_executable=*/false, "test"));
+  const intptr_t remainder_size = page / 2;
+  const intptr_t alloc_size = page - header_overlap * kObjectAlignment;
+  void* const other_code =
+      reinterpret_cast<void*>(blob->start() + alloc_size + remainder_size);
+
+  // Load a simple function into the "other code" section which just returns.
+  // This is used to ensure that it's still executable.
+#if defined(HOST_ARCH_X64) || defined(HOST_ARCH_IA32)
+  const uint8_t ret[1] = {0xC3};  // ret
+#elif defined(HOST_ARCH_ARM)
+  const uint8_t ret[4] = {0x1e, 0xff, 0x2f, 0xe1};  // bx lr
+#elif defined(HOST_ARCH_ARM64)
+  const uint8_t ret[4] = {0xc0, 0x03, 0x5f, 0xd6};  // ret
+#else
+#error "Unknown architecture."
+#endif
+  memcpy(other_code, ret, sizeof(ret));  // NOLINT
+
+  free_list->Free(blob->start(), alloc_size + remainder_size);
+  blob->Protect(VirtualMemory::kReadExecute);  // not writable
+  Allocate(free_list.get(), alloc_size, /*protected=*/true);
+  VirtualMemory::Protect(blob->address(), alloc_size,
+                         VirtualMemory::kReadExecute);
+  reinterpret_cast<void (*)()>(other_code)();
+}
+
+TEST_CASE(Regress38528) {
+  for (const intptr_t i : {-2, -1, 0, 1, 2}) {
+    TestRegress38528(i);
+  }
 }
 
 }  // namespace dart

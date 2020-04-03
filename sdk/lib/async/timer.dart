@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.async;
 
 /**
@@ -67,6 +69,8 @@ abstract class Timer {
    * a `duration` after either when the previous callback ended,
    * when the previous callback started, or when the previous callback was
    * scheduled for - even if the actual callback was delayed.
+   *
+   * [duration] must a non-negative [Duration].
    */
   factory Timer.periodic(Duration duration, void callback(Timer timer)) {
     if (Zone.current == Zone.root) {

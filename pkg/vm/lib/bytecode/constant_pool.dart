@@ -31,20 +31,6 @@ abstract type ConstantPoolEntry {
   Byte tag;
 }
 
-enum InvocationKind {
-  method, // x.foo(...) or foo(...)
-  getter, // x.foo
-  setter  // x.foo = ...
-}
-
-type ConstantICData extends ConstantPoolEntry {
-  Byte tag = 7;
-  Byte flags(invocationKindBit0, invocationKindBit1, isDynamic);
-             // Where invocationKind is index into InvocationKind.
-  PackedObject targetName;
-  ConstantIndex argDesc;
-}
-
 type ConstantStaticField extends ConstantPoolEntry {
   Byte tag = 9;
   PackedObject field;
@@ -120,6 +106,20 @@ type ConstantInstantiatedInterfaceCall extends ConstantPoolEntry {
   PackedObject staticReceiverType;
 }
 
+// Occupies 2 entries in the constant pool
+type ConstantDynamicCall extends ConstantPoolEntry {
+  Byte tag = 31;
+  PackedObject selectorName;
+  PackedObject argDesc;
+}
+
+// Occupies 2 entries in the constant pool.
+type ConstantDirectCallViaDynamicForwarder extends ConstantPoolEntry {
+  Byte tag = 32;
+  PackedObject target;
+  PackedObject argDesc;
+}
+
 */
 
 enum ConstantTag {
@@ -130,7 +130,7 @@ enum ConstantTag {
   kUnused4,
   kUnused5,
   kUnused6,
-  kICData,
+  kUnused6a,
   kUnused7,
   kStaticField,
   kInstanceField,
@@ -154,6 +154,8 @@ enum ConstantTag {
   kDirectCall,
   kInterfaceCall,
   kInstantiatedInterfaceCall,
+  kDynamicCall,
+  kDirectCallViaDynamicForwarder,
 }
 
 String constantTagToString(ConstantTag tag) =>
@@ -180,8 +182,6 @@ abstract class ConstantPoolEntry {
     switch (tag) {
       case ConstantTag.kInvalid:
         break;
-      case ConstantTag.kICData:
-        return new ConstantICData.read(reader);
       case ConstantTag.kStaticField:
         return new ConstantStaticField.read(reader);
       case ConstantTag.kInstanceField:
@@ -210,6 +210,10 @@ abstract class ConstantPoolEntry {
         return new ConstantInterfaceCall.read(reader);
       case ConstantTag.kInstantiatedInterfaceCall:
         return new ConstantInstantiatedInterfaceCall.read(reader);
+      case ConstantTag.kDynamicCall:
+        return new ConstantDynamicCall.read(reader);
+      case ConstantTag.kDirectCallViaDynamicForwarder:
+        return new ConstantDirectCallViaDynamicForwarder.read(reader);
       // Make analyzer happy.
       case ConstantTag.kUnused1:
       case ConstantTag.kUnused2:
@@ -217,6 +221,7 @@ abstract class ConstantPoolEntry {
       case ConstantTag.kUnused4:
       case ConstantTag.kUnused5:
       case ConstantTag.kUnused6:
+      case ConstantTag.kUnused6a:
       case ConstantTag.kUnused7:
       case ConstantTag.kUnused8:
       case ConstantTag.kUnused9:
@@ -232,67 +237,10 @@ abstract class ConstantPoolEntry {
   }
 }
 
-enum InvocationKind { method, getter, setter }
-
-String _invocationKindToString(InvocationKind kind) {
-  switch (kind) {
-    case InvocationKind.method:
-      return '';
-    case InvocationKind.getter:
-      return 'get ';
-    case InvocationKind.setter:
-      return 'set ';
-  }
-  throw 'Unexpected InvocationKind $kind';
-}
-
-class ConstantICData extends ConstantPoolEntry {
-  static const int invocationKindMask = 3;
-  static const int flagDynamic = 1 << 2;
-
-  final int _flags;
-  final ObjectHandle targetName;
-  final int argDescConstantIndex;
-
-  ConstantICData(InvocationKind invocationKind, this.targetName,
-      this.argDescConstantIndex, bool isDynamic)
-      : assert(invocationKind.index <= invocationKindMask),
-        _flags = invocationKind.index | (isDynamic ? flagDynamic : 0);
-
-  InvocationKind get invocationKind =>
-      InvocationKind.values[_flags & invocationKindMask];
-
-  bool get isDynamic => (_flags & flagDynamic) != 0;
-
-  @override
-  ConstantTag get tag => ConstantTag.kICData;
-
-  @override
-  void writeValue(BufferedWriter writer) {
-    writer.writeByte(_flags);
-    writer.writePackedObject(targetName);
-    writer.writePackedUInt30(argDescConstantIndex);
-  }
-
-  ConstantICData.read(BufferedReader reader)
-      : _flags = reader.readByte(),
-        targetName = reader.readPackedObject(),
-        argDescConstantIndex = reader.readPackedUInt30();
-
-  @override
-  String toString() => 'ICData '
-      '${isDynamic ? 'dynamic ' : ''}'
-      '${_invocationKindToString(invocationKind)}'
-      'target-name $targetName, arg-desc CP#$argDescConstantIndex';
-
-  // ConstantICData entries are created per call site and should not be merged,
-  // so ConstantICData class uses identity [hashCode] and [operator ==].
-
-  @override
-  int get hashCode => identityHashCode(this);
-
-  @override
-  bool operator ==(other) => identical(this, other);
+enum InvocationKind {
+  method, // x.foo(...) or foo(...)
+  getter, // x.foo
+  setter // x.foo = ...
 }
 
 class ConstantStaticField extends ConstantPoolEntry {
@@ -615,6 +563,41 @@ class ConstantDirectCall extends ConstantPoolEntry {
       this.argDesc == other.argDesc;
 }
 
+class ConstantDirectCallViaDynamicForwarder extends ConstantPoolEntry {
+  final ObjectHandle target;
+  final ObjectHandle argDesc;
+
+  ConstantDirectCallViaDynamicForwarder(this.target, this.argDesc);
+
+  // Reserve 1 extra slot for arguments descriptor, following target slot.
+  int get numReservedEntries => 1;
+
+  @override
+  ConstantTag get tag => ConstantTag.kDirectCallViaDynamicForwarder;
+
+  @override
+  void writeValue(BufferedWriter writer) {
+    writer.writePackedObject(target);
+    writer.writePackedObject(argDesc);
+  }
+
+  ConstantDirectCallViaDynamicForwarder.read(BufferedReader reader)
+      : target = reader.readPackedObject(),
+        argDesc = reader.readPackedObject();
+
+  @override
+  String toString() => "DirectCallViaDynamicForwarder '$target', $argDesc";
+
+  @override
+  int get hashCode => _combineHashes(target.hashCode, argDesc.hashCode);
+
+  @override
+  bool operator ==(other) =>
+      other is ConstantDirectCallViaDynamicForwarder &&
+      this.target == other.target &&
+      this.argDesc == other.argDesc;
+}
+
 class ConstantInterfaceCall extends ConstantPoolEntry {
   final ObjectHandle target;
   final ObjectHandle argDesc;
@@ -693,6 +676,41 @@ class ConstantInstantiatedInterfaceCall extends ConstantPoolEntry {
       this.staticReceiverType == other.staticReceiverType;
 }
 
+class ConstantDynamicCall extends ConstantPoolEntry {
+  final ObjectHandle selectorName;
+  final ObjectHandle argDesc;
+
+  ConstantDynamicCall(this.selectorName, this.argDesc);
+
+  // Reserve 1 extra slot for arguments descriptor, following selector slot.
+  int get numReservedEntries => 1;
+
+  @override
+  ConstantTag get tag => ConstantTag.kDynamicCall;
+
+  @override
+  void writeValue(BufferedWriter writer) {
+    writer.writePackedObject(selectorName);
+    writer.writePackedObject(argDesc);
+  }
+
+  ConstantDynamicCall.read(BufferedReader reader)
+      : selectorName = reader.readPackedObject(),
+        argDesc = reader.readPackedObject();
+
+  @override
+  String toString() => 'DynamicCall $selectorName, $argDesc';
+
+  @override
+  int get hashCode => _combineHashes(selectorName.hashCode, argDesc.hashCode);
+
+  @override
+  bool operator ==(other) =>
+      other is ConstantDynamicCall &&
+      this.selectorName == other.selectorName &&
+      this.argDesc == other.argDesc;
+}
+
 /// Reserved constant pool entry.
 class _ReservedConstantPoolEntry extends ConstantPoolEntry {
   const _ReservedConstantPoolEntry();
@@ -716,6 +734,9 @@ class ConstantPool {
 
   int addString(String value) => addObjectRef(new StringConstant(value));
 
+  int addName(String name) =>
+      _add(new ConstantObjectRef(objectTable.getPublicNameHandle(name)));
+
   int addArgDesc(int numArguments,
           {int numTypeArgs = 0, List<String> argNames = const <String>[]}) =>
       _add(new ConstantObjectRef(
@@ -726,24 +747,16 @@ class ConstantPool {
       _add(new ConstantObjectRef(objectTable.getArgDescHandleByArguments(args,
           hasReceiver: hasReceiver, isFactory: isFactory)));
 
-  int addICData(
-          InvocationKind invocationKind, Name targetName, int argDescCpIndex,
-          {bool isDynamic: false}) =>
-      _add(new ConstantICData(
-          invocationKind,
-          objectTable.getSelectorNameHandle(targetName,
-              isGetter: invocationKind == InvocationKind.getter,
-              isSetter: invocationKind == InvocationKind.setter),
-          argDescCpIndex,
-          isDynamic));
-
   int addDirectCall(
-          InvocationKind invocationKind, Member target, ObjectHandle argDesc) =>
-      _add(new ConstantDirectCall(
-          objectTable.getMemberHandle(target,
-              isGetter: invocationKind == InvocationKind.getter,
-              isSetter: invocationKind == InvocationKind.setter),
-          argDesc));
+      InvocationKind invocationKind, Member target, ObjectHandle argDesc,
+      [bool isDynamicForwarder = false]) {
+    final targetHandle = objectTable.getMemberHandle(target,
+        isGetter: invocationKind == InvocationKind.getter,
+        isSetter: invocationKind == InvocationKind.setter);
+    return _add(isDynamicForwarder
+        ? new ConstantDirectCallViaDynamicForwarder(targetHandle, argDesc)
+        : new ConstantDirectCall(targetHandle, argDesc));
+  }
 
   int addInterfaceCall(
           InvocationKind invocationKind, Member target, ObjectHandle argDesc) =>
@@ -762,12 +775,18 @@ class ConstantPool {
           argDesc,
           objectTable.getHandle(staticReceiverType)));
 
+  int addDynamicCall(
+          InvocationKind invocationKind, Name selector, ObjectHandle argDesc) =>
+      _add(new ConstantDynamicCall(
+          objectTable.getSelectorNameHandle(selector,
+              isGetter: invocationKind == InvocationKind.getter,
+              isSetter: invocationKind == InvocationKind.setter),
+          argDesc));
+
   int addInstanceCall(InvocationKind invocationKind, Member target,
           Name targetName, ObjectHandle argDesc) =>
       (target == null)
-          ? addICData(
-              invocationKind, targetName, _add(new ConstantObjectRef(argDesc)),
-              isDynamic: true)
+          ? addDynamicCall(invocationKind, targetName, argDesc)
           : addInterfaceCall(invocationKind, target, argDesc);
 
   int addStaticField(Field field) =>
@@ -804,15 +823,22 @@ class ConstantPool {
   int addObjectRef(Node node) =>
       _add(new ConstantObjectRef(objectTable.getHandle(node)));
 
+  int addSelectorName(Name name, InvocationKind invocationKind) =>
+      _add(new ConstantObjectRef(objectTable.getSelectorNameHandle(name,
+          isGetter: invocationKind == InvocationKind.getter,
+          isSetter: invocationKind == InvocationKind.setter)));
+
   int _add(ConstantPoolEntry entry) {
-    return _canonicalizationCache.putIfAbsent(entry, () {
-      int index = entries.length;
+    int index = _canonicalizationCache[entry];
+    if (index == null) {
+      index = entries.length;
       if (index >= constantPoolIndexLimit) {
         throw new ConstantPoolIndexOverflowException();
       }
       _addEntry(entry);
-      return index;
-    });
+      _canonicalizationCache[entry] = index;
+    }
+    return index;
   }
 
   void _addEntry(ConstantPoolEntry entry) {

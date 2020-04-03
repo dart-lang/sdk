@@ -12,8 +12,7 @@
 
 namespace dart {
 
-#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&                  \
-    !defined(TARGET_ARCH_IA32)
+#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
 
 // Only for testing.
 DEFINE_FLAG(bool,
@@ -21,9 +20,12 @@ DEFINE_FLAG(bool,
             false,
             "Generate always trampolines (for testing purposes).");
 
-// The trampolines will have a 1-word object header in front of them.
+// The trampolines will be disguised as FreeListElement objects, with a 1-word
+// object header in front of the jump code.
 const intptr_t kOffsetInTrampoline = kWordSize;
-const intptr_t kTrampolineSize = OS::kMaxPreferredCodeAlignment;
+const intptr_t kTrampolineSize = Utils::RoundUp(
+    kOffsetInTrampoline + PcRelativeTrampolineJumpPattern::kLengthInBytes,
+    kObjectAlignment);
 
 CodeRelocator::CodeRelocator(Thread* thread,
                              GrowableArray<RawCode*>* code_objects,
@@ -119,9 +121,11 @@ void CodeRelocator::FindInstructionAndCallLimits() {
       StaticCallsTable calls(call_targets);
       for (auto call : calls) {
         kind_type_and_offset_ = call.Get<Code::kSCallTableKindAndOffset>();
-        auto kind = Code::KindField::decode(kind_type_and_offset_.Value());
-        auto offset = Code::OffsetField::decode(kind_type_and_offset_.Value());
-        auto call_entry_point =
+        const auto kind =
+            Code::KindField::decode(kind_type_and_offset_.Value());
+        const auto return_pc_offset =
+            Code::OffsetField::decode(kind_type_and_offset_.Value());
+        const auto call_entry_point =
             Code::EntryPointField::decode(kind_type_and_offset_.Value());
 
         if (kind == Code::kCallViaCode) {
@@ -144,20 +148,19 @@ void CodeRelocator::FindInstructionAndCallLimits() {
         // A call site can decide to jump not to the beginning of a function but
         // rather jump into it at a certain (positive) offset.
         int32_t offset_into_target = 0;
+        const intptr_t call_instruction_offset =
+            return_pc_offset - PcRelativeCallPattern::kLengthInBytes;
         {
-          PcRelativeCallPattern call(
-              Instructions::PayloadStart(current_caller.instructions()) +
-              offset);
+          PcRelativeCallPattern call(current_caller.PayloadStart() +
+                                     call_instruction_offset);
           ASSERT(call.IsValid());
           offset_into_target = call.distance();
         }
 
-        const uword destination_payload =
-            Instructions::PayloadStart(destination_.instructions());
-        const uword entry_point =
-            call_entry_point == Code::kUncheckedEntry
-                ? Instructions::UncheckedEntryPoint(destination_.instructions())
-                : Instructions::EntryPoint(destination_.instructions());
+        const uword destination_payload = destination_.PayloadStart();
+        const uword entry_point = call_entry_point == Code::kUncheckedEntry
+                                      ? destination_.UncheckedEntryPoint()
+                                      : destination_.EntryPoint();
 
         offset_into_target += (entry_point - destination_payload);
 
@@ -235,9 +238,10 @@ void CodeRelocator::ScanCallTargets(const Code& code,
   StaticCallsTable calls(call_targets);
   for (auto call : calls) {
     kind_type_and_offset_ = call.Get<Code::kSCallTableKindAndOffset>();
-    auto kind = Code::KindField::decode(kind_type_and_offset_.Value());
-    auto offset = Code::OffsetField::decode(kind_type_and_offset_.Value());
-    auto call_entry_point =
+    const auto kind = Code::KindField::decode(kind_type_and_offset_.Value());
+    const auto return_pc_offset =
+        Code::OffsetField::decode(kind_type_and_offset_.Value());
+    const auto call_entry_point =
         Code::EntryPointField::decode(kind_type_and_offset_.Value());
 
     if (kind == Code::kCallViaCode) {
@@ -259,27 +263,27 @@ void CodeRelocator::ScanCallTargets(const Code& code,
     // A call site can decide to jump not to the beginning of a function but
     // rather jump into it at a certain offset.
     int32_t offset_into_target = 0;
+    const intptr_t call_instruction_offset =
+        return_pc_offset - PcRelativeCallPattern::kLengthInBytes;
     {
-      PcRelativeCallPattern call(
-          Instructions::PayloadStart(code.instructions()) + offset);
+      PcRelativeCallPattern call(code.PayloadStart() + call_instruction_offset);
       ASSERT(call.IsValid());
       offset_into_target = call.distance();
     }
 
-    const uword destination_payload =
-        Instructions::PayloadStart(destination_.instructions());
-    const uword entry_point =
-        call_entry_point == Code::kUncheckedEntry
-            ? Instructions::UncheckedEntryPoint(destination_.instructions())
-            : Instructions::EntryPoint(destination_.instructions());
+    const uword destination_payload = destination_.PayloadStart();
+    const uword entry_point = call_entry_point == Code::kUncheckedEntry
+                                  ? destination_.UncheckedEntryPoint()
+                                  : destination_.EntryPoint();
 
     offset_into_target += (entry_point - destination_payload);
 
-    const intptr_t text_offset = code_text_offset +
-                                 compiler::target::Instructions::HeaderSize() +
-                                 offset;
-    UnresolvedCall unresolved_call(code.raw(), offset, text_offset,
-                                   destination_.raw(), offset_into_target);
+    const intptr_t text_offset =
+        code_text_offset + AdjustPayloadOffset(call_instruction_offset);
+
+    UnresolvedCall unresolved_call(code.raw(), call_instruction_offset,
+                                   text_offset, destination_.raw(),
+                                   offset_into_target);
     if (!TryResolveBackwardsCall(&unresolved_call)) {
       EnqueueUnresolvedCall(new UnresolvedCall(unresolved_call));
     }
@@ -362,12 +366,12 @@ void CodeRelocator::ResolveCallToDestination(UnresolvedCall* unresolved_call,
   const intptr_t call_text_offset = unresolved_call->text_offset;
   const intptr_t call_offset = unresolved_call->call_offset;
 
-  auto caller = Code::InstructionsOf(unresolved_call->caller);
   const int32_t distance = destination_text - call_text_offset;
   {
-    uword addr = Instructions::PayloadStart(caller) + call_offset;
+    auto const caller = unresolved_call->caller;
+    uword addr = Code::PayloadStartOf(caller) + call_offset;
     if (FLAG_write_protect_code) {
-      addr -= HeapPage::Of(caller)->AliasOffset();
+      addr -= HeapPage::Of(Code::InstructionsOf(caller))->AliasOffset();
     }
     PcRelativeCallPattern call(addr);
     ASSERT(call.IsValid());
@@ -408,7 +412,12 @@ bool CodeRelocator::IsTargetInRangeFor(UnresolvedCall* unresolved_call,
 static void MarkAsFreeListElement(uint8_t* trampoline_bytes,
                                   intptr_t trampoline_length) {
   uint32_t tags = 0;
+#if defined(IS_SIMARM_X64)
+  // Account for difference in kObjectAlignment between host and target.
+  tags = RawObject::SizeTag::update(trampoline_length * 2, tags);
+#else
   tags = RawObject::SizeTag::update(trampoline_length, tags);
+#endif
   tags = RawObject::ClassIdTag::update(kFreeListElement, tags);
   tags = RawObject::OldBit::update(true, tags);
   tags = RawObject::OldAndNotMarkedBit::update(true, tags);
@@ -464,9 +473,6 @@ void CodeRelocator::BuildTrampolinesForAlmostOutOfRangeCalls() {
       // buffer.
       auto trampoline_bytes = new uint8_t[kTrampolineSize];
       memset(trampoline_bytes, 0x00, kTrampolineSize);
-      ASSERT((kOffsetInTrampoline +
-              PcRelativeTrampolineJumpPattern::kLengthInBytes) <
-             kTrampolineSize);
       auto unresolved_trampoline = new UnresolvedTrampoline{
           unresolved_call->callee,
           unresolved_call->offset_into_target,
@@ -502,12 +508,17 @@ void CodeRelocator::BuildTrampolinesForAlmostOutOfRangeCalls() {
 intptr_t CodeRelocator::FindDestinationInText(
     const RawInstructions* destination,
     intptr_t offset_into_target) {
-  auto destination_offset = text_offsets_.LookupValue(destination);
-  return destination_offset + compiler::target::Instructions::HeaderSize() +
-         offset_into_target;
+  auto const destination_offset = text_offsets_.LookupValue(destination);
+  return destination_offset + AdjustPayloadOffset(offset_into_target);
 }
 
-#endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&           \
-        // !defined(TARGET_ARCH_IA32)
+intptr_t CodeRelocator::AdjustPayloadOffset(intptr_t payload_offset) {
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    return payload_offset;
+  }
+  return compiler::target::Instructions::HeaderSize() + payload_offset;
+}
+
+#endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
 
 }  // namespace dart

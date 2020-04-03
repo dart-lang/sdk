@@ -2,11 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // Test that constants depended on by other constants are correctly deferred.
 
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/constants/values.dart';
+import 'package:compiler/src/elements/types.dart';
 import 'package:expect/expect.dart';
 import '../helpers/memory_compiler.dart';
 
@@ -16,6 +19,7 @@ void main() {
         await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
 
     Compiler compiler = result.compiler;
+    DartTypes dartTypes = compiler.frontendStrategy.commonElements.dartTypes;
     var closedWorld = compiler.backendClosedWorldForTesting;
     var outputUnitForConstant =
         closedWorld.outputUnitData.outputUnitForConstant;
@@ -35,12 +39,15 @@ void main() {
           allConstants.firstWhere((dynamic constant) {
         return constant.isString && constant.stringValue == stringValue;
       });
-      Expect.notEquals(null, outputUnitForConstant(constant),
-          "Constant value ${constant.toStructuredText()} has no output unit.");
+      Expect.notEquals(
+          null,
+          outputUnitForConstant(constant),
+          "Constant value ${constant.toStructuredText(dartTypes)} has no "
+          "output unit.");
       Expect.notEquals(
           mainOutputUnit,
           outputUnitForConstant(constant),
-          "Constant value ${constant.toStructuredText()} "
+          "Constant value ${constant.toStructuredText(dartTypes)} "
           "is in the main output unit.");
     }
   }

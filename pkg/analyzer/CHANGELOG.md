@@ -1,3 +1,192 @@
+## 0.39.5-dev
+* Deprecated `ClassElement.instantiateToBounds()` and
+  `FunctionTypeAliasElement.instantiateToBounds()`. With the null-safety
+  feature, type arguments derived from type parameter bounds cannot be used as
+  is, and might require erasing nullability, when the element is instantiated
+  from a legacy library. Use `TypeSystem.instantiateToBounds2()` instead.
+* Deprecated `DeclaredVariables.getBool/getInt/getString()`. These methods
+  are used internally for constants computation, and should not be used by
+  clients.
+
+## 0.39.4
+* Deprecated `DartType.name`, use `element` or `getDisplayString()` instead.
+* Fixed bugs 35108 and 39996.
+
+## 0.39.3
+* Bumped the analyzer's SDK requirement to `>=2.6.0`, so that extension methods
+  can be used within the analyzer implementation.
+* Deprecated `ErrorReporter.source` setter. One file - one reporter.
+* Deprecated `Element.getAncestor`.  Use thisOrAncestorMatching or
+  thisOrAncestorOfType instead.
+* Deprecated `DartType.displayName`.  Use getDisplayString instead.
+* Deprecated the following methods in `InterfaceType`: `lookupGetter`,
+  `lookUpGetterInSuperclass`, `lookUpInheritedGetter`,
+  `lookUpInheritedGetterOrMethod`, `lookUpInheritedMethod`,
+  `lookUpInheritedSetter`, `lookUpMethod`, `lookUpMethodInSuperclass`,
+  `lookUpSetter`, and `lookUpSetterInSuperclass`.  Use `lookUpGetter2()`,
+  `lookUpMethod2()`, or `lookUpSetter2()` instead, with `concrete` or
+  `inherited` flags as necessary.
+* Deprecated `ErrorReporter.reportTypeErrorForNode`.  Use `reportErrorForNode`
+  instead.
+* Added new error codes: EXPORT_LEGACY_SYMBOL and DEAD_NULL_COALESCE.
+* Removed error codes CONST_WITH_INVALID_TYPE_PARAMETERS and
+  NEW_WITH_INVALID_TYPE_PARAMETERS.  WRONG_NUMBER_OF_TYPE_ARGUMENTS is now
+  reported instead.
+* Removed error codes: DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS,
+  INVALID_OPTIONAL_PARAMETER_TYPE.
+* Reclassified error codes as compile time errors: BREAK_LABEL_ON_SWITCH_MEMBER,
+  CONTINUE_LABEL_ON_SWITCH, PART_OF_UNNAMED_LIBRARY.
+* Removed error codes: ASSIGNMENT_CAST, StrongModeCode.DOWN_CAST_COMPOSITE,
+  DOWN_CAST_IMPLICIT, DOWN_CAST_IMPLICIT_ASSIGN, DYNAMIC_CAST, DYNAMIC_INVOKE,
+  IMPLICIT_DYNAMIC_FIELD, IMPLICIT_DYNAMIC_FUNCTION, IMPLICIT_DYNAMIC_INVOKE,
+  IMPLICIT_DYNAMIC_LIST_LITERAL, IMPLICIT_DYNAMIC_MAP_LITERAL,
+  IMPLICIT_DYNAMIC_METHOD, IMPLICIT_DYNAMIC_PARAMETER, IMPLICIT_DYNAMIC_RETURN,
+  IMPLICIT_DYNAMIC_TYPE, IMPLICIT_DYNAMIC_VARIABLE, INFERRED_TYPE,
+  INFERRED_TYPE_ALLOCATION, INFERRED_TYPE_CLOSURE, INFERRED_TYPE_LITERAL, and
+  NON_GROUND_TYPE_CHECK_INFO.  These were used internally by the analyzer for
+  testing and were not exposed to users.
+* Fixed bugs 37116, 38281, 38859, 39524, 39598, 39651, 39667, 39668, 39709,
+  39711, 39752, 39773, 39848, 39849, and 39880.
+
+## 0.39.2+1
+* Fixed bug #39702.
+
+## 0.39.2
+* Deprecated `AnalysisSession.typeProvider` and `AnalysisSession.typeSystem`.
+  Please use the corresponding getters in `LibraryElement` instead.
+* Added new error codes: AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER,
+  DEFERRED_IMPORT_OF_EXTENSION, LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR,
+  WRONG_TYPE_PARAMETER_VARIANCE_POSITION, and
+  WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE.
+* Added new hint codes: INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN,
+  INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS,
+  INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE,
+  INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER,
+  INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX,
+  INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS, and
+  INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES.
+* Changed error code TYPE_PARAMETER_ON_CONSTRUCTOR from a CompileTimeErrorCode
+  to a ParserErrorCode.
+* Split warning code RETURN_OF_INVALID_TYPE into two warnings:
+  RETURN_OF_INVALID_TYPE_FROM_FUNCTION and RETURN_OF_INVALID_TYPE_FROM_METHOD.
+* Merged warning codes CONST_WITH_ABSTRACT_CLASS and NEW_WITH_ABSTRACT_CLASS
+  into INSTANTIATE_ABSTRACT_CLASS.
+* Removed warning code MIXED_RETURN_TYPES (this is now allowed by the language
+  spec).
+* Bug fixes: 33745, 35677, 35677, 37504, 37936, 38506, 38551, 38734, 38813,
+  38878, 38953, 38992, 39051, 39115, 39117, 39120, 39192, 39250, 39267, 39380,
+  39389, 39402, 39407, 39476, 39509, 39532, 39563, 39618.
+
+## 0.39.1
+* Deprecated `DartType.substitute2()`. Use `ClassElement.instantiate()`
+  or `FunctionTypeAliasElement.instantiate()` instead.
+* Deprecated `ParameterizedType.instantiate()` and
+  `InterfaceType.instantiate()`. Use `ClassElement.instantiate()` instead.
+  Using `FunctionType.instantiate()` is still valid.
+* Deprecated `FunctionTypeAliasElement.instantiate2`, use `instantiate2`.
+  In the next version `instantiate2` will be removed.
+* Deprecated `ParameterizedType.typeParameters`.  Please use
+  `ClassElement.typeParameters or FunctionType.typeFormals` instead.
+* Bug fixes: 27617, 34378, 35607, 38494, 38582, 38583, 38643, 38761, 38991,
+  39089, 39111, 39156, 39158, 39170, 39171, 39178.
+
+## 0.39.0
+* Removed deprecated `DartType.isEquivalentTo`.
+* Removed `useDart2jsPaths` argument in `FolderBasedDartSdk` constructor.
+  Dartium does not exist anymore, so there is just one `dart:html`.
+* Removed several unused members of `SourceFactory`: `context`,
+  `localSourcePredicate`, `clone`, `fromEncoding`, `isLocalSource`.
+* Removed deprecated method `Element.computeNode`.
+* Removed deprecated getter `CompilationUnitElement.unit`.
+* Removed deprecated method `Element.computeDocumentationComment`.
+* Removed unused `wrapped.dart` with `WrappedLibraryElement`, etc.
+* Removed deprecated 'bestElement', 'bestType', 'propagatedElement',
+  'propagatedType', etc. Use 'staticElement' and 'staticType' instead.
+* Removed deprecated 'Declaration.element'.
+  Use 'Declaration.declaredElement' instead.
+* Removed deprecated 'Expression.precedence2'. Use 'precedence' instead.
+* Removed `ResolutionMap resolutionMap`. Use corresponding accessors
+  on AstNode(s) directly to get elements and types.
+* Removed 'InheritanceManager2'. Use 'InheritanceManager3' instead.
+* Removed 'InheritanceManager'. Use 'InheritanceManager3' instead.
+* Removed deprecated methods in `DartType`: `flattenFutures`,
+  `isAssignableTo`, `isEquivalentTo`, `isMoreSpecificThan`,
+  `isSubtypeOf`, `isSupertypeOf`, `isDirectSupertypeOf`.
+  Use corresponding methods of `TypeSystem` instead.
+* Removed deprecated getters for checking a specific annotations on
+  'Element': `isAlwaysThrows`, `isDeprecated`, `isFactory`, `isJS`,
+  `isOverride`, `isProtected`, `isRequired`, `isVisibleForTesting`.
+  Use corresponding `hasXyz` getters.
+* Removed 'LocalElement.visibleRange'.
+  Visible ranges of local variables and functions can be computed when
+  AST is available.
+* Removed unused `LibraryElement.libraryCycle`.
+* Removed `ElementHandle` and `ElementResynthesizer`.
+* Remove `ElementBuilder`, `DeclarationResolver`, `DirectiveResolver`,
+  `TypeParameterBoundsResolver`, `TypeResolverVisitor`, etc.
+  Use `ResolutionVisitor` instead, it combines all these operations.
+* Removed `FunctionTypeAliasElement.instantiate`, use `instantiate2` for now.
+  In the next version `instantiate` will be re-introduced with the same
+  signature and semantics as `instantiate2`, and `instantiate2` will be
+  deprecated and removed in the next breaking change version.
+* Stop setting types for identifiers where they are not expressions.
+  Specifically, where a SimpleIdentifier is the name of a declaration,
+  or Identifier is the name of the class in a TypeName.
+* Removed transitional `InheritanceManagerBase`.
+* Removed deprecated method `ArgumentList.correspondingPropagatedParameters`.
+  Use `ArgumentList.correspondingStaticParameters` instead.
+* Removed deprecated getter `PrefixElement.importedLibraries`.  It was never
+  implemented.
+* Removed deprecated getter `VariableElement.isPotentiallyMutatedInClosure` and
+  `VariableElement.isPotentiallyMutatedInScope`.  Please use the corresponding
+  methods in `FunctionBody` instead.
+* Bug fixes: 33441, 35777, 35993, 37898, 38560, 38803, 38811, 38900, 38911.
+
+## 0.38.5
+* Added the interface `PromotableElement`, which representing
+  variables that can be type promoted (local variables and parameters,
+  but not fields).
+* Deprecated the boolean `AnalysisDriver.useSummary2`.  Summary1 support has
+  been removed, so clients should assume Summary2 is in use now.
+* Deprecated the constructor argument `useDart2jsPaths` for SdkLibrariesReader.
+  We now always use Dart2js paths.
+* Bug fixes: #37608, #37708, #37867, #38498, #38565, #38572, #38589, #38641,
+  #38653, #38667, #38695, #38706.
+
+## 0.38.4
+* Bug fixes: #33300, #38484, #38505.
+
+## 0.38.3
+* Deprecated the following codes from `StaticWarningCode`.  Please use the
+  corresponding error codes from `CompileTimeErrorCode` instead:
+  * `EXTRA_POSITIONAL_ARGUMENTS`
+  * `EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED`
+  * `IMPORT_OF_NON_LIBRARY`
+  * `NOT_ENOUGH_REQUIRED_ARGUMENTS`
+  * `REDIRECT_TO_MISSING_CONSTRUCTOR`
+  * `REDIRECT_TO_NON_CLASS`
+  * `UNDEFINED_CLASS`
+  * `UNDEFINED_NAMED_PARAMETER`
+* Bug fixes: #33749, #35985, #37708, #37857, #37858, #37859, #37945, #38022,
+  #38057, #38071, #38091, #38095, #38105, #38113, #38198, #38202, #38203,
+  #38261, #38282, #38365, #38417, #38448, #38449.
+
+## 0.38.2
+* The type of `FunctionTypeAlias.declaredElement` has been refined to
+  `FunctionTypeAliasElement`.  Since the new type is a refinement of
+  the old one, the only effect on clients should be to make certain
+  casts unnecessary.
+* Deprecated `HintCode.INVALID_REQUIRED_PARAM` and replaced it with more
+  specific hints, `HintCode.INVALID_REQUIRED_NAMED_PARAM`,
+  `HintCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM`, and
+  `HintCode.INVALID_REQUIRED_POSITIONAL_PARAM` to address #36966.
+* Deprecated `CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS`.  It
+  has been renamed to
+  `CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS`.
+
+## 0.38.1
+* LinterVistor support for extension method AST nodes.
+
 ## 0.38.0
 * The deprecated method `AstFactory.compilationUnit2` has been removed.  Clients
   should switch back to `AstFactory.compilationUnit`.

@@ -19,4 +19,16 @@
 #define NO_SANITIZE_SAFE_STACK
 #endif
 
+#if defined(__has_feature)
+#if __has_feature(shadow_call_stack)
+#define USING_SHADOW_CALL_STACK
+#endif
+#endif
+
+#if defined(USING_SHADOW_CALL_STACK)
+#define NO_SANITIZE_SHADOW_CALL_STACK __attribute__((no_sanitize("shadow-call-stack")))
+#else
+#define NO_SANITIZE_SHADOW_CALL_STACK
+#endif
+
 #endif  // RUNTIME_PLATFORM_SAFE_STACK_H_

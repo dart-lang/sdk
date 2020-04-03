@@ -5,64 +5,52 @@
 analyses/analyze_test: Slow, Pass
 analyses/api_dynamic_test: Slow, Pass
 analyses/dart2js_dynamic_test: Slow, Pass
-closure/closure_test: Pass, Slow
-codegen/gvn_dynamic_field_get_test: Fail # Issue 18519
-codegen/list_tracer_length_test: Fail # Issue 33051
-codegen/load_elimination_test: Pass, Slow
-codegen/logical_expression_test: Fail # Issue 17027
-codegen/model_test: Pass, Slow
-codegen/side_effect_tdiv_regression_test: Fail # Issue 33050
-codegen/simple_function_subtype_test: Fail # simple_function_subtype_test is temporarily(?) disabled due to new method for building function type tests.
+closure/closure_test: Slow, Pass
+codegen/load_elimination_test: Slow, Pass
+codegen/model_test: Slow, Pass
 deferred_loading/deferred_loading_test: Slow, Pass
 end_to_end/dump_info_test: Slow, Pass
-end_to_end/generate_code_with_compile_time_errors_test: RuntimeError # not supported yet with the new FE.
-end_to_end/show_package_warnings_test: RuntimeError # missing errors from the FE
-equivalence/id_equivalence1_test: Pass, Slow
-equivalence/id_equivalence2_test: Pass, Slow
-impact/impact_test: Pass, Slow
+equivalence/id_equivalence1_test: Slow, Pass
+equivalence/id_equivalence2_test: Slow, Pass
+impact/impact_test: Slow, Pass
 inference/inference0_test: Slow, Pass
 inference/inference1_test: Slow, Pass
 inference/inference2_test: Slow, Pass
 inference/inference3_test: Slow, Pass
-inference/simple_inferrer_const_closure2_test: Fail # Issue 16507
-inference/simple_inferrer_const_closure_test: Fail # Issue 16507
-inference/simple_inferrer_global_field_closure_test: Fail # Issue 16507
-inference/swarm_test: Slow, Pass, Fail #
+inference/swarm_test: Slow, Pass #
 inlining/inlining_test: Slow, Pass
-model/native_test: Pass, Slow
-model/no_such_method_enabled_test: Pass, Slow
-model/subtype_test: Pass, Slow
+model/native_test: Slow, Pass
+model/no_such_method_enabled_test: Slow, Pass
+model/subtype_test: Slow, Pass
 modular/*: Slow, Pass
 packages/*: Skip # Skip packages folder
-rti/rti_emission_test: Pass, Slow
-rti/rti_need0_test: Pass, Slow
-rti/rti_need1_test: Pass, Slow
-serialization/serialization_test: Pass, Slow
-sourcemaps/d2js_validity_test: RuntimeError # Issue 33072
-sourcemaps/deferred_d2js_validity_test: RuntimeError # Issue 33072
-sourcemaps/source_mapping_invokes_test: Pass, Slow
-sourcemaps/source_mapping_operators_test: Pass, Slow
-sourcemaps/source_mapping_test: Pass, Slow
-sourcemaps/stacktrace_test: Pass, Slow
+rti/rti_emission_test: Slow, Pass
+rti/rti_need0_test: Slow, Pass
+rti/rti_need1_test: Slow, Pass
+serialization/serialization_test: Slow, Pass
+sourcemaps/source_mapping_invokes_test: Slow, Pass
+sourcemaps/source_mapping_operators_test: Slow, Pass
+sourcemaps/source_mapping_test: Slow, Pass
+sourcemaps/stacktrace_test: Slow, Pass
 
 [ $mode == debug ]
-deferred/load_graph_segmentation_test: Pass, Slow
-deferred/load_mapping_test: Pass, Slow
-end_to_end/dart2js_batch_test: Pass, Slow
-end_to_end/exit_code_test: Pass, Slow
-end_to_end/in_user_code_test: Pass, Slow
-end_to_end/show_package_warnings_test: Pass, Slow
+deferred/load_graph_segmentation_test: Slow, Pass
+deferred/load_mapping_test: Slow, Pass
+end_to_end/dart2js_batch_test: Slow, Pass
+end_to_end/exit_code_test: Slow, Pass
+end_to_end/in_user_code_test: Slow, Pass
+end_to_end/show_package_warnings_test: Slow, Pass
 
 [ $checked ]
-codegen/value_range_kernel_test: Pass, Slow
-codegen/value_range_test: Pass, Slow
-end_to_end/exit_code_test: Pass, Slow
-end_to_end/output_type_test: Pass, Slow
-end_to_end/uri_retention_test: Pass, Slow
+codegen/value_range_kernel_test: Slow, Pass
+codegen/value_range_test: Slow, Pass
+end_to_end/exit_code_test: Slow, Pass
+end_to_end/output_type_test: Slow, Pass
+end_to_end/uri_retention_test: Slow, Pass
 jsinterop/declaration_test: Slow, Pass
-jsinterop/interop_anonymous_unreachable_test: Pass, Slow
-jsinterop/world_test: Pass, Slow
-sourcemaps/stacktrace_test: Pass, Slow
+jsinterop/interop_anonymous_unreachable_test: Slow, Pass
+jsinterop/world_test: Slow, Pass
+sourcemaps/stacktrace_test: Slow, Pass
 
 [ !$checked ]
 end_to_end/exit_code_test: Skip # This tests requires checked mode.

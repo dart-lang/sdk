@@ -4,6 +4,9 @@
 
 library fasta.type_builder_computer;
 
+import 'package:_fe_analyzer_shared/src/parser/parser.dart'
+    show FormalParameterKind;
+
 import 'package:kernel/ast.dart'
     show
         BottomType,
@@ -16,26 +19,25 @@ import 'package:kernel/ast.dart'
         InvalidType,
         Library,
         NamedType,
+        NeverType,
         TypeParameter,
         TypeParameterType,
         TypedefType,
         VoidType;
 
-import '../kernel/kernel_builder.dart'
-    show
-        DynamicTypeBuilder,
-        FunctionTypeBuilder,
-        ClassBuilder,
-        FormalParameterBuilder,
-        NamedTypeBuilder,
-        TypeVariableBuilder,
-        LibraryBuilder,
-        TypeBuilder,
-        VoidTypeBuilder;
+import '../builder/class_builder.dart';
+import '../builder/dynamic_type_builder.dart';
+import '../builder/formal_parameter_builder.dart';
+import '../builder/function_type_builder.dart';
+import '../builder/library_builder.dart';
+import '../builder/named_type_builder.dart';
+import '../builder/never_type_builder.dart';
+import '../builder/nullability_builder.dart';
+import '../builder/type_builder.dart';
+import '../builder/type_variable_builder.dart';
+import '../builder/void_type_builder.dart';
 
 import '../loader.dart' show Loader;
-
-import '../parser.dart' show FormalParameterKind;
 
 class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
   final Loader loader;
@@ -51,18 +53,28 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
   }
 
   TypeBuilder visitDynamicType(DynamicType node) {
-    return new NamedTypeBuilder("dynamic", null)
+    // 'dynamic' is always nullable.
+    return new NamedTypeBuilder(
+        "dynamic", const NullabilityBuilder.nullable(), null)
       ..bind(
           new DynamicTypeBuilder(const DynamicType(), loader.coreLibrary, -1));
   }
 
   TypeBuilder visitVoidType(VoidType node) {
-    return new NamedTypeBuilder("void", null)
+    // 'void' is always nullable.
+    return new NamedTypeBuilder(
+        "void", const NullabilityBuilder.nullable(), null)
       ..bind(new VoidTypeBuilder(const VoidType(), loader.coreLibrary, -1));
   }
 
   TypeBuilder visitBottomType(BottomType node) {
     throw "Not implemented";
+  }
+
+  TypeBuilder visitNeverType(NeverType node) {
+    return new NamedTypeBuilder(
+        "Never", new NullabilityBuilder.fromNullability(node.nullability), null)
+      ..bind(new NeverTypeBuilder(node, loader.coreLibrary, -1));
   }
 
   TypeBuilder visitInterfaceType(InterfaceType node) {
@@ -76,7 +88,9 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
         arguments[i] = kernelArguments[i].accept(this);
       }
     }
-    return new NamedTypeBuilder(cls.name, arguments)..bind(cls);
+    return new NamedTypeBuilder(cls.name,
+        new NullabilityBuilder.fromNullability(node.nullability), arguments)
+      ..bind(cls);
   }
 
   @override
@@ -95,18 +109,19 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
       if (i >= node.requiredParameterCount) {
         kind = FormalParameterKind.optionalPositional;
       }
-      formals[i] = new FormalParameterBuilder(null, 0, type, null, null, -1)
-        ..kind = kind;
+      formals[i] =
+          new FormalParameterBuilder(null, 0, type, null, null, -1, null)
+            ..kind = kind;
     }
     for (int i = 0; i < namedParameters.length; i++) {
       NamedType parameter = namedParameters[i];
       TypeBuilder type = positionalParameters[i].accept(this);
-      formals[i + positionalParameters.length] =
-          new FormalParameterBuilder(null, 0, type, parameter.name, null, -1)
-            ..kind = FormalParameterKind.optionalNamed;
+      formals[i + positionalParameters.length] = new FormalParameterBuilder(
+          null, 0, type, parameter.name, null, -1, null)
+        ..kind = FormalParameterKind.optionalNamed;
     }
-
-    return new FunctionTypeBuilder(returnType, typeVariables, formals);
+    return new FunctionTypeBuilder(returnType, typeVariables, formals,
+        new NullabilityBuilder.fromNullability(node.nullability));
   }
 
   TypeBuilder visitTypeParameterType(TypeParameterType node) {
@@ -114,7 +129,8 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
     Class kernelClass = parameter.parent;
     Library kernelLibrary = kernelClass.enclosingLibrary;
     LibraryBuilder library = loader.builders[kernelLibrary.importUri];
-    return new NamedTypeBuilder(parameter.name, null)
+    return new NamedTypeBuilder(parameter.name,
+        new NullabilityBuilder.fromNullability(node.nullability), null)
       ..bind(new TypeVariableBuilder.fromKernel(parameter, library));
   }
 

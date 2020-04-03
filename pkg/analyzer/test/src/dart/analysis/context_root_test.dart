@@ -23,7 +23,7 @@ class ContextRootTest with ResourceProviderMixin {
   void setUp() {
     rootPath = convertPath('/test/root');
     rootFolder = newFolder(rootPath);
-    contextRoot = new ContextRootImpl(resourceProvider, rootFolder);
+    contextRoot = ContextRootImpl(resourceProvider, rootFolder);
     contextRoot.included.add(rootFolder);
   }
 
@@ -84,7 +84,7 @@ class ContextRootTest with ResourceProviderMixin {
     String bPath = convertPath('/test/root/lib/b.dart');
     File aFile = getFile(aPath);
 
-    contextRoot = new ContextRootImpl(resourceProvider, rootFolder);
+    contextRoot = ContextRootImpl(resourceProvider, rootFolder);
     contextRoot.included.add(aFile);
 
     expect(contextRoot.isAnalyzed(aPath), isTrue);

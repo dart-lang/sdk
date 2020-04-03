@@ -67,8 +67,8 @@ static void TestScriptJIT(const char* script_chars,
                           intptr_t expected_before,
                           intptr_t expected_after) {
   auto jit_result = ApplyBCE(script_chars, CompilerPass::kJIT);
-  EXPECT_STREQ(expected_before, jit_result.first);
-  EXPECT_STREQ(expected_after, jit_result.second);
+  EXPECT_EQ(expected_before, jit_result.first);
+  EXPECT_EQ(expected_after, jit_result.second);
 }
 
 //
@@ -83,8 +83,7 @@ ISOLATE_UNIT_TEST_CASE(BCECannotRemove) {
         return l[0];
       }
       main() {
-        var l = new Float64List(1);
-        foo(l);
+        foo(new Float64List(1));
       }
     )";
   TestScriptJIT(kScriptChars, 1, 1);
@@ -98,14 +97,13 @@ ISOLATE_UNIT_TEST_CASE(BCERemoveOne) {
         return l[1] + l[0];
       }
       main() {
-        var l = new Float64List(2);
-        foo(l);
+        foo(new Float64List(2));
       }
     )";
   TestScriptJIT(kScriptChars, 2, 1);
 }
 
-ISOLATE_UNIT_TEST_CASE(BCESimpleLoop) {
+ISOLATE_UNIT_TEST_CASE(BCESimpleLoops) {
   const char* kScriptChars =
       R"(
       import 'dart:typed_data';
@@ -113,13 +111,34 @@ ISOLATE_UNIT_TEST_CASE(BCESimpleLoop) {
         for (int i = 0; i < l.length; i++) {
           l[i] = 0;
         }
+        for (int i = 10; i <= l.length - 5; i++) {
+          l[i] = 1;
+        }
       }
       main() {
-        var l = new Float64List(100);
-        foo(l);
+        foo(new Float64List(100));
       }
     )";
-  TestScriptJIT(kScriptChars, 1, 0);
+  TestScriptJIT(kScriptChars, 2, 0);
+}
+
+ISOLATE_UNIT_TEST_CASE(BCESimpleLoopsDown) {
+  const char* kScriptChars =
+      R"(
+      import 'dart:typed_data';
+      foo(Float64List l) {
+        for (int i = l.length - 1; i >= 0; i--) {
+          l[i] = 0;
+        }
+        for (int i = l.length - 5; i >= 10; i--) {
+          l[i] = 1;
+        }
+      }
+      main() {
+        foo(new Float64List(100));
+      }
+    )";
+  TestScriptJIT(kScriptChars, 2, 0);
 }
 
 ISOLATE_UNIT_TEST_CASE(BCEModulo) {
@@ -136,6 +155,143 @@ ISOLATE_UNIT_TEST_CASE(BCEModulo) {
   TestScriptJIT(kScriptChars, 2, 0);
 }
 
-// TODO(ajcbik): add more tests
+ISOLATE_UNIT_TEST_CASE(BCELowerTriangular) {
+  const char* kScriptChars =
+      R"(
+      import 'dart:typed_data';
+      foo(Float64List l) {
+        for (int i = 0; i < l.length; i++) {
+          for (int j = 0; j <= i; j++) {
+            l[i] += l[j];
+          }
+        }
+      }
+      main() {
+        foo(new Float64List(100));
+      }
+    )";
+  TestScriptJIT(kScriptChars, 2, 0);
+}
+
+ISOLATE_UNIT_TEST_CASE(BCEUpperTriangular) {
+  const char* kScriptChars =
+      R"(
+      import 'dart:typed_data';
+      foo(Float64List l) {
+        for (int i = 0; i < l.length; i++) {
+          for (int j = i; j < l.length; j++) {
+            l[i] += l[j];
+          }
+        }
+      }
+      main() {
+        foo(new Float64List(100));
+      }
+    )";
+  TestScriptJIT(kScriptChars, 2, 0);
+}
+
+ISOLATE_UNIT_TEST_CASE(BCETriangularDown) {
+  const char* kScriptChars =
+      R"(
+      import 'dart:typed_data';
+      foo(Float64List l) {
+        for (int i = l.length - 1; i >= 0; i--) {
+          for (int j = i; j >= 0; j--) {
+            l[i] += l[j];
+          }
+        }
+      }
+      main() {
+        foo(new Float64List(100));
+      }
+    )";
+  TestScriptJIT(kScriptChars, 2, 0);
+}
+
+ISOLATE_UNIT_TEST_CASE(BCENamedLength) {
+  const char* kScriptChars =
+      R"(
+      import 'dart:typed_data';
+      Int8List foo(int count) {
+        var x = new Int8List(count);
+        for (int i = 0; i < count; i++) {
+          x[i] = 0;
+        }
+        return x;
+      }
+      main() {
+        foo(100);
+      }
+    )";
+  TestScriptJIT(kScriptChars, 1, 0);
+}
+
+ISOLATE_UNIT_TEST_CASE(BCEBubbleSort) {
+  const char* kScriptChars =
+      R"(
+      import 'dart:typed_data';
+      foo(Float64List a) {
+        int len = a.length;
+        for (int i = len - 2; i >= 0; i--) {
+          for (int j = 0; j <= i; j++) {
+            var c = a[j];
+            var n = a[j + 1];
+            if (c > n) {
+              a[j] = n;
+              a[j + 1] = c;
+            }
+          }
+        }
+      }
+      main() {
+        foo(new Float64List(100));
+      }
+    )";
+  TestScriptJIT(kScriptChars, 2, 0);
+}
+
+ISOLATE_UNIT_TEST_CASE(BCEArithmeticWrapAround) {
+  const char* kScriptChars =
+      R"(
+      import 'dart:typed_data';
+      const kMax = 0x7fffffffffffffff;
+      foo(Float64List a) {
+        for (int i = kMax - 10; i < kMax; i++) {
+          for (int j = i + 10; j < a.length; j++) {
+            // Don't be fooled: j in [-minint, len).
+            a[j] = 1;
+          }
+        }
+      }
+      main() {
+        try {
+          foo(new Float64List(100));
+        }  catch (e) {
+        }
+      }
+    )";
+  TestScriptJIT(kScriptChars, 1, 1);
+}
+
+ISOLATE_UNIT_TEST_CASE(BCEListNamedAndPlainLength) {
+  const char* kScriptChars =
+      R"(
+      List<int> foo(int count) {
+        var x = new List<int>(count);
+        for (int i = 0; i < count; i++) {
+          x[i] = 0;
+        }
+        for (int i = 0; i < x.length; i++) {
+          x[i] = 0;
+        }
+        return x;
+      }
+      main() {
+        foo(100);
+      }
+    )";
+  TestScriptJIT(kScriptChars, 2, 0);
+}
 
 }  // namespace dart

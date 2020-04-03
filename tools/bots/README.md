@@ -1,14 +1,20 @@
 # tools/bots
+
 This folder contains scripts and configuration files used by Dart's continuous
 integration and testing infrastructure.
 
 ## Test matrix
+
 The file `test_matrix.json` defines the test configurations run by Dart's CI
 infrastructure. Changes to the test matrix affect all builds that include them.
 
 ### Structure
-The test matrix is a JSON document and consists of the `"filesets"` object and
-the `"configurations"` array.
+
+The test matrix is a JSON document and consists of the `"filesets"` object, the
+`"configurations"` list, and the `"builder_configurations"` list as well as a
+`"global"` values object and a `"branches"` list.
+
+### Filesets
 
 The file sets define files and/or directories that need to be present for a test
 configuration at runtime. Any directory specified will be included along with
@@ -28,13 +34,39 @@ paths are relative to the SDK checkout's root directory.
 }
 ```
 
-The builder configurations describe all test configurations a specific builder
+### Configurations
+
+The configurations describe all named configurations that the CI infrastructure
+supports. It consists of a list of configuration descriptions.
+
+Each configuration description defines one or more configuration names using a
+simple template syntax, where a group `(a|b|c)` means taking each of the
+options for a different configuration name. The set of all configuration names
+is the result of picking each combination of group options.
+
+The configuration name implicitly defines the options of the configuration
+(system, architecture, compiler, etc.), but additional options can be given in
+an `options` field.
+
+```json
+"configurations": {
+  "unittest-(linux|win|mac)": {
+    "options": {
+      "compiler": "dartk",
+      "mode": "release",
+}},
+```
+
+
+### Builder Configurations
+
+The builder configurations describes all test configurations a specific builder
 must execute. Each builder configuration is an object that specifies which
 builders it applies to, defines the build steps for the builders, and some
 additional metadata. Only one builder configuration can apply to a builder.
 
 ```json
-"configurations": [
+"builder_configurations": [
   {
     "builders": [
       "a-builder",
@@ -53,6 +85,13 @@ Each step is an object and must have a name. A step may also specify a script to
 run instead of the default script: `tools/test.py`. Additional arguments may be
 specified. These arguments will be passed to the script.
 
+Inside arguments, the following variables will be expanded to values extracted
+from the builder name:
+- `${mode}`: the mode in which to run the tests; e.g., `release`, `debug`
+- `${arch}`: architecture to run the tests on; e.g., `ia32`, `x64`
+- `$[system}`: the system on which to run the tests; e.g., `win`, `linux`, `mac`
+- `${runtime}`: the runtime to use to run the tests; e.g., `vm`, `chrome`, `d8`
+
 ```json
 "steps": [
   {
@@ -62,9 +101,14 @@ specified. These arguments will be passed to the script.
   },
   {
     "name": "test it",
+    "arguments": ["-nconfiguration-${system}"]
   }
 ]
 ```
+
+A step that uses the script `tools/test.py` either explicitely or by default is
+called a "test step". Test steps must include the `-n` command line argument to
+select one of the named configurations defined in the `configurations` section.
 
 A step using the default script may also be sharded across many machines using
 the `"shards"` parameter. If a step is sharded, it must specify a `"fileset"`.
@@ -79,11 +123,13 @@ script when it's running on a shard.
 }
 ```
 
+## Builders
+
 ### Builder name parsing
 The builder names are split by '-' and each part is then examined if it is an
 option. Options can be runtimes (e.g. "chrome"), architectures (e.g. x64) and
 operating system families (e.g. win). For each valid option, additional
-arguments are passed to the `tools/test.py` and `tools/build.py` scripts.
+arguments are passed to the `tools/build.py` script.
 
 ### Adding a new builder
 To add a builder:

@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'server_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ImplementationTest);
   });
@@ -16,25 +16,25 @@ main() {
 
 @reflectiveTest
 class ImplementationTest extends AbstractLspAnalysisServerTest {
-  test_class_excludesSelf() => _testMarkedContent('''
+  Future<void> test_class_excludesSelf() => _testMarkedContent('''
       abstract class ^[[A]] {}
       class B extends A {}
       class C extends A {}
     ''', shouldMatch: false);
 
-  test_class_excludesSuper() => _testMarkedContent('''
+  Future<void> test_class_excludesSuper() => _testMarkedContent('''
       abstract class [[A]] {}
       class ^B extends A {}
       class C extends A {}
     ''', shouldMatch: false);
 
-  test_class_sub() => _testMarkedContent('''
+  Future<void> test_class_sub() => _testMarkedContent('''
       abstract class ^A {}
       class [[B]] extends A {}
       class [[C]] extends A {}
     ''');
 
-  test_class_subSub() => _testMarkedContent('''
+  Future<void> test_class_subSub() => _testMarkedContent('''
       abstract class ^A {}
       class [[B]] extends A {}
       class [[C]] extends A {}
@@ -43,7 +43,7 @@ class ImplementationTest extends AbstractLspAnalysisServerTest {
       class [[F]] extends E {}
     ''');
 
-  test_emptyResults() async {
+  Future<void> test_emptyResults() async {
     final content = '';
 
     await initialize();
@@ -56,7 +56,8 @@ class ImplementationTest extends AbstractLspAnalysisServerTest {
     expect(res, isEmpty);
   }
 
-  test_method_excludesClassesWithoutImplementations() => _testMarkedContent('''
+  Future<void> test_method_excludesClassesWithoutImplementations() =>
+      _testMarkedContent('''
       abstract class A {
         void ^b();
       }
@@ -66,7 +67,7 @@ class ImplementationTest extends AbstractLspAnalysisServerTest {
       class [[E]] extends B {}
     ''', shouldMatch: false);
 
-  test_method_excludesSelf() => _testMarkedContent('''
+  Future<void> test_method_excludesSelf() => _testMarkedContent('''
       abstract class A {
         void ^[[b]]();
       }
@@ -76,7 +77,7 @@ class ImplementationTest extends AbstractLspAnalysisServerTest {
       }
     ''', shouldMatch: false);
 
-  test_method_excludesSuper() => _testMarkedContent('''
+  Future<void> test_method_excludesSuper() => _testMarkedContent('''
       abstract class A {
         void [[b]]();
       }
@@ -86,7 +87,7 @@ class ImplementationTest extends AbstractLspAnalysisServerTest {
       }
     ''', shouldMatch: false);
 
-  test_method_fromCallSite() => _testMarkedContent('''
+  Future<void> test_method_fromCallSite() => _testMarkedContent('''
       abstract class A {
         void b();
       }
@@ -115,7 +116,7 @@ class ImplementationTest extends AbstractLspAnalysisServerTest {
       }
     ''');
 
-  test_method_sub() => _testMarkedContent('''
+  Future<void> test_method_sub() => _testMarkedContent('''
       abstract class A {
         void ^b();
       }
@@ -129,7 +130,7 @@ class ImplementationTest extends AbstractLspAnalysisServerTest {
       }
     ''');
 
-  test_method_subSub() => _testMarkedContent('''
+  Future<void> test_method_subSub() => _testMarkedContent('''
       abstract class A {
         void ^b();
       }
@@ -149,7 +150,7 @@ class ImplementationTest extends AbstractLspAnalysisServerTest {
       }
     ''');
 
-  test_nonDartFile() async {
+  Future<void> test_nonDartFile() async {
     newFile(pubspecFilePath, content: simplePubspecContent);
     await initialize();
 

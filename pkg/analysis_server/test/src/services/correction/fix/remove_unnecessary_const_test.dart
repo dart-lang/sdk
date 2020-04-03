@@ -3,38 +3,43 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(UnnecessaryConstTest);
+    defineReflectiveTests(RemoveUnnecessaryConstTest);
   });
 }
 
 @reflectiveTest
-class UnnecessaryConstTest extends FixProcessorLintTest {
+class RemoveUnnecessaryConstTest extends FixProcessorLintTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_UNNECESSARY_CONST;
 
   @override
   String get lintCode => LintNames.unnecessary_const;
 
-  test_constConstructor() async {
+  Future<void> test_instanceCreation() async {
     await resolveTestUnit('''
-class A { const A(); }
-m(){
-  const a = /*LINT*/const A();
-}
+class C { const C(); }
+const c = const C();
 ''');
     await assertHasFix('''
-class A { const A(); }
-m(){
-  const a = /*LINT*/A();
-}
+class C { const C(); }
+const c = C();
+''');
+  }
+
+  Future<void> test_typedLiteral() async {
+    await resolveTestUnit('''
+const list = const [];
+''');
+    await assertHasFix('''
+const list = [];
 ''');
   }
 }

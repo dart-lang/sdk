@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/messages/codes.dart' show Code, Message;
 import 'package:analyzer/dart/ast/token.dart' show Token;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:front_end/src/fasta/messages.dart' show Code, Message;
 
 /// An error reporter that knows how to convert a Fasta error into an analyzer
 /// error.
@@ -26,12 +26,6 @@ class FastaErrorReporter {
     String lexeme() => (arguments['token'] as Token).lexeme;
 
     switch (analyzerCode) {
-      case "ANNOTATION_WITH_TYPE_ARGUMENTS":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS,
-            offset,
-            length);
-        return;
       case "ASYNC_FOR_IN_WRONG_CONTEXT":
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT, offset, length);
@@ -181,10 +175,6 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.INVALID_CODE_POINT, offset, length, ['\\u{...}']);
         return;
-      case "INVALID_CONSTRUCTOR_NAME":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, offset, length);
-        return;
       case "INVALID_GENERIC_FUNCTION_TYPE":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.INVALID_GENERIC_FUNCTION_TYPE, offset, length);
@@ -284,9 +274,9 @@ class FastaErrorReporter {
             offset,
             length);
         return;
-      case "TYPE_PARAMETER_ON_CONSTRUCTOR":
+      case "TYPE_PARAMETER_ON_OPERATOR":
         errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.TYPE_PARAMETER_ON_CONSTRUCTOR, offset, length);
+            ParserErrorCode.TYPE_PARAMETER_ON_OPERATOR, offset, length);
         return;
       case "UNDEFINED_CLASS":
         errorReporter?.reportErrorForOffset(
@@ -356,13 +346,8 @@ class FastaErrorReporter {
     if (index != null && index > 0 && index < fastaAnalyzerErrorCodes.length) {
       ErrorCode errorCode = fastaAnalyzerErrorCodes[index];
       if (errorCode != null) {
-        errorReporter.reportError(new AnalysisError.forValues(
-            errorReporter.source,
-            offset,
-            length,
-            errorCode,
-            message.message,
-            message.tip));
+        errorReporter.reportError(AnalysisError.forValues(errorReporter.source,
+            offset, length, errorCode, message.message, message.tip));
         return;
       }
     }
@@ -379,13 +364,8 @@ class FastaErrorReporter {
   void _reportByCode(
       ErrorCode errorCode, Message message, int offset, int length) {
     if (errorReporter != null) {
-      errorReporter.reportError(new AnalysisError.forValues(
-          errorReporter.source,
-          offset,
-          length,
-          errorCode,
-          message.message,
-          null));
+      errorReporter.reportError(AnalysisError.forValues(errorReporter.source,
+          offset, length, errorCode, message.message, null));
     }
   }
 }

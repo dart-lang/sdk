@@ -39,7 +39,7 @@ class SourceMapContext extends ChainContextWithCleanupHelper
   }
 
   @override
-  bool debugging() => environment.containsKey("debug");
+  bool debugging() => environment.containsKey('debug');
 }
 
 class DevCompilerRunner implements CompilerRunner {
@@ -50,24 +50,24 @@ class DevCompilerRunner implements CompilerRunner {
 
   @override
   Future<Null> run(Uri inputFile, Uri outputFile, Uri outWrapperFile) async {
-    Uri outDir = outputFile.resolve(".");
-    String outputFilename = outputFile.pathSegments.last;
+    var outDir = outputFile.resolve('.');
+    var outputFilename = outputFile.pathSegments.last;
 
-    File sdkJsFile = findInOutDir("gen/utils/dartdevc/js/es6/dart_sdk.js");
+    var sdkJsFile = findInOutDir('gen/utils/dartdevc/kernel/es6/dart_sdk.js');
     var jsSdkPath = sdkJsFile.uri;
 
-    File ddcSdkSummary = findInOutDir("gen/utils/dartdevc/kernel/ddc_sdk.dill");
+    var ddcSdkSummary = findInOutDir('ddc_sdk.dill');
 
-    List<String> args = <String>[
+    var args = <String>[
       "--packages=${sdkRoot.uri.resolve(".packages").toFilePath()}",
-      "--modules=es6",
-      "--dart-sdk-summary=${ddcSdkSummary.path}",
-      "-o",
+      '--modules=es6',
+      '--dart-sdk-summary=${ddcSdkSummary.path}',
+      '-o',
       outputFile.toFilePath(),
       inputFile.toFilePath()
     ];
 
-    bool succeeded = false;
+    var succeeded = false;
     try {
       var result = await compile(args, compilerState: context.compilerState);
       context.compilerState =
@@ -80,10 +80,10 @@ class DevCompilerRunner implements CompilerRunner {
     }
 
     if (!succeeded) {
-      var ddc = getDdcDir().uri.resolve("bin/dartdevc.dart");
+      var ddc = getDdcDir().uri.resolve('bin/dartdevc.dart');
 
-      throw "Error from ddc when executing with something like "
-          "$dartExecutable ${ddc.toFilePath()} --kernel "
+      throw 'Error from ddc when executing with something like '
+          '$dartExecutable ${ddc.toFilePath()} --kernel '
           "${args.reduce((value, element) => '$value "$element"')}";
     }
 
@@ -97,7 +97,7 @@ class DevCompilerRunner implements CompilerRunner {
     }
 
     var inputPath = inputFile.path;
-    inputPath = inputPath.substring(0, inputPath.lastIndexOf("."));
+    inputPath = inputPath.substring(0, inputPath.lastIndexOf('.'));
     var inputFileNameNoExt = pathToJSIdentifier(inputPath);
     File.fromUri(outWrapperFile).writeAsStringSync(
         getWrapperContent(jsSdkPath, inputFileNameNoExt, outputFilename));
@@ -105,4 +105,4 @@ class DevCompilerRunner implements CompilerRunner {
 }
 
 void main(List<String> arguments) =>
-    runMe(arguments, createContext, "testing.json");
+    runMe(arguments, createContext, configurationPath: 'testing.json');

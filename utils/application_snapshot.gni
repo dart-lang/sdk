@@ -4,6 +4,7 @@
 
 import("../build/dart/dart_action.gni")
 import("../runtime/runtime_args.gni")
+import("../sdk_args.gni")
 
 _dart_root = get_path_info("..", "abspath")
 
@@ -74,32 +75,76 @@ template("_application_snapshot") {
   if (defined(invoker.output)) {
     output = invoker.output
   }
+
+  # Build the kernel file using the prebuilt VM to speed up the debug and
+  # simulator builds.
+  prebuilt_dart_action(target_name + "_dill") {
+    deps = extra_deps + [
+             "$_dart_root/runtime/vm:kernel_platform_files($host_toolchain)",
+             "$_dart_root/runtime/vm:vm_platform",
+           ]
+    gen_kernel_script = "$_dart_root/pkg/vm/bin/gen_kernel.dart"
+    platform_dill = "$root_out_dir/vm_platform_strong.dill"
+
+    inputs = extra_inputs + [
+               gen_kernel_script,
+               platform_dill,
+               main_dart,
+               dot_packages,
+             ]
+    output = "$target_gen_dir/$name.dart.dill"
+    outputs = [ output ]
+
+    depfile = "$output.d"
+    abs_depfile = rebase_path(depfile)
+    rebased_output = rebase_path(output, root_build_dir)
+    vm_args = [
+      "--depfile=$abs_depfile",
+      "--depfile_output_filename=$rebased_output",
+    ]
+
+    script = gen_kernel_script
+
+    args = [
+      "--packages=" + rebase_path(dot_packages),
+      "--platform=" + rebase_path(platform_dill),
+      "--no-aot",
+      "--no-embed-sources",
+      "--no-link-platform",
+      "--output=" + rebase_path(output),
+    ]
+    if (dart_platform_bytecode) {
+      args += [
+        "--gen-bytecode",
+        "--drop-ast",
+        "--bytecode-options=source-positions",
+      ]
+    }
+    args += [ rebase_path(main_dart) ]
+  }
+
   dart_action(target_name) {
-    deps = extra_deps
+    deps = extra_deps + [ ":${target_name}_dill" ]
     depfile = "$output.d"
 
-    script = main_dart
+    script = "$target_gen_dir/$name.dart.dill"
 
     inputs = extra_inputs
 
-    outputs = [
-      output,
-    ]
+    outputs = [ output ]
 
     abs_depfile = rebase_path(depfile)
     abs_output = rebase_path(output, root_build_dir)
 
     vm_args = [
-      "--deterministic",
-      "--packages=$dot_packages",
-      "--snapshot=$abs_output",
-      "--snapshot-depfile=$abs_depfile",
-    ] + snapshot_vm_args
+                "--deterministic",
+                "--packages=$dot_packages",
+                "--snapshot=$abs_output",
+                "--snapshot-depfile=$abs_depfile",
+              ] + snapshot_vm_args
 
     if (dart_snapshot_kind == "kernel") {
-      vm_args += [
-        "--snapshot-kind=kernel",
-      ]
+      vm_args += [ "--snapshot-kind=kernel" ]
       assert(training_args != "", "Ignoring unused argument")
       args = []
     } else if (dart_snapshot_kind == "app-jit") {
@@ -141,9 +186,7 @@ template("application_snapshot") {
     if (!defined(invoker.deps)) {
       deps = []
     }
-    deps += [
-      "$_dart_root/utils/kernel-service:kernel-service"
-    ]
+    deps += [ "$_dart_root/utils/kernel-service:kernel-service" ]
   }
 }
 

@@ -192,16 +192,23 @@ class ExceptionHandlerFinder : public StackResource {
               if (cached_catch_entry_moves != NULL) {
                 cached_catch_entry_moves_ = *cached_catch_entry_moves;
               }
-#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_PRECOMPILER)
-              intptr_t num_vars = Smi::Value(code_->variables());
               if (cached_catch_entry_moves_.IsEmpty()) {
-                GetCatchEntryMovesFromDeopt(num_vars, frame);
-              }
-#else
-              if (cached_catch_entry_moves_.IsEmpty()) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+                // Only AOT mode is supported.
                 ReadCompressedCatchEntryMoves();
+#elif defined(DART_PRECOMPILER)
+                // Both AOT and JIT modes are supported.
+                if (FLAG_precompiled_mode) {
+                  ReadCompressedCatchEntryMoves();
+                } else {
+                  GetCatchEntryMovesFromDeopt(code_->num_variables(), frame);
+                }
+#else
+                // Only JIT mode is supported.
+                ASSERT(!FLAG_precompiled_mode);
+                GetCatchEntryMovesFromDeopt(code_->num_variables(), frame);
+#endif
               }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_PRECOMPILER)
             }
           }
           if (needs_stacktrace || is_catch_all) {
@@ -323,7 +330,9 @@ class ExceptionHandlerFinder : public StackResource {
     CatchEntryMovesMapReader reader(td);
     catch_entry_moves_ = reader.ReadMovesForPcOffset(pc_offset);
   }
-#else
+#endif  // defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
   void GetCatchEntryMovesFromDeopt(intptr_t num_vars, StackFrame* frame) {
     Isolate* isolate = thread_->isolate();
     DeoptContext* deopt_context =
@@ -336,7 +345,7 @@ class ExceptionHandlerFinder : public StackResource {
     isolate->set_deopt_context(NULL);
     delete deopt_context;
   }
-#endif  // defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   bool needs_stacktrace;
   uword handler_pc;
@@ -346,13 +355,9 @@ class ExceptionHandlerFinder : public StackResource {
  private:
   template <typename T>
   static T* SlotAt(uword fp, int stack_slot) {
-#if defined(TARGET_ARCH_DBC)
-    return reinterpret_cast<T*>(fp + stack_slot * kWordSize);
-#else
     const intptr_t frame_slot =
         runtime_frame_layout.FrameSlotForVariableIndex(-stack_slot);
     return reinterpret_cast<T*>(fp + frame_slot * kWordSize);
-#endif
   }
 
   static RawObject** TaggedSlotAt(uword fp, int stack_slot) {
@@ -384,6 +389,101 @@ void CatchEntryMove::WriteTo(WriteStream* stream) {
   Writer::Write(stream, dest_and_kind_);
 }
 #endif
+
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+const char* CatchEntryMove::ToCString() const {
+  char from[256];
+
+  switch (source_kind()) {
+    case SourceKind::kConstant:
+      Utils::SNPrint(from, ARRAY_SIZE(from), "pp[%" Pd "]", src_slot());
+      break;
+
+    case SourceKind::kTaggedSlot:
+      Utils::SNPrint(from, ARRAY_SIZE(from), "fp[%" Pd "]", src_slot());
+      break;
+
+    case SourceKind::kDoubleSlot:
+      Utils::SNPrint(from, ARRAY_SIZE(from), "f64 [fp + %" Pd "]",
+                     src_slot() * compiler::target::kWordSize);
+      break;
+
+    case SourceKind::kFloat32x4Slot:
+      Utils::SNPrint(from, ARRAY_SIZE(from), "f32x4 [fp + %" Pd "]",
+                     src_slot() * compiler::target::kWordSize);
+      break;
+
+    case SourceKind::kFloat64x2Slot:
+      Utils::SNPrint(from, ARRAY_SIZE(from), "f64x2 [fp + %" Pd "]",
+                     src_slot() * compiler::target::kWordSize);
+      break;
+
+    case SourceKind::kInt32x4Slot:
+      Utils::SNPrint(from, ARRAY_SIZE(from), "i32x4 [fp + %" Pd "]",
+                     src_slot() * compiler::target::kWordSize);
+      break;
+
+    case SourceKind::kInt64PairSlot:
+      Utils::SNPrint(from, ARRAY_SIZE(from),
+                     "i64 ([fp + %" Pd "], [fp + %" Pd "])",
+                     src_lo_slot() * compiler::target::kWordSize,
+                     src_hi_slot() * compiler::target::kWordSize);
+      break;
+
+    case SourceKind::kInt64Slot:
+      Utils::SNPrint(from, ARRAY_SIZE(from), "i64 [fp + %" Pd "]",
+                     src_slot() * compiler::target::kWordSize);
+      break;
+
+    case SourceKind::kInt32Slot:
+      Utils::SNPrint(from, ARRAY_SIZE(from), "i32 [fp + %" Pd "]",
+                     src_slot() * compiler::target::kWordSize);
+      break;
+
+    case SourceKind::kUint32Slot:
+      Utils::SNPrint(from, ARRAY_SIZE(from), "u32 [fp + %" Pd "]",
+                     src_slot() * compiler::target::kWordSize);
+      break;
+
+    default:
+      UNREACHABLE();
+  }
+
+  return Thread::Current()->zone()->PrintToString("fp[%" Pd "] <- %s",
+                                                  dest_slot(), from);
+}
+
+void CatchEntryMovesMapReader::PrintEntries() {
+  NoSafepointScope no_safepoint;
+
+  using Reader = ReadStream::Raw<sizeof(intptr_t), intptr_t>;
+
+  ReadStream stream(static_cast<uint8_t*>(bytes_.DataAddr(0)), bytes_.Length());
+
+  while (stream.PendingBytes() > 0) {
+    const intptr_t stream_position = stream.Position();
+    const intptr_t target_pc_offset = Reader::Read(&stream);
+    const intptr_t prefix_length = Reader::Read(&stream);
+    const intptr_t suffix_length = Reader::Read(&stream);
+    const intptr_t length = prefix_length + suffix_length;
+    Reader::Read(&stream);  // Skip suffix_offset
+    for (intptr_t j = 0; j < prefix_length; j++) {
+      CatchEntryMove::ReadFrom(&stream);
+    }
+
+    ReadStream inner_stream(static_cast<uint8_t*>(bytes_.DataAddr(0)),
+                            bytes_.Length());
+    CatchEntryMoves* moves = ReadCompressedCatchEntryMovesSuffix(
+        &inner_stream, stream_position, length);
+    THR_Print("  [code+0x%08" Px "]: (% " Pd " moves)\n", target_pc_offset,
+              moves->count());
+    for (intptr_t i = 0; i < moves->count(); i++) {
+      THR_Print("    %s\n", moves->At(i).ToCString());
+    }
+    CatchEntryMoves::Free(moves);
+  }
+}
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 
 CatchEntryMoves* CatchEntryMovesMapReader::ReadMovesForPcOffset(
     intptr_t pc_offset) {
@@ -479,7 +579,6 @@ static void FindErrorHandler(uword* handler_pc,
 static uword RemapExceptionPCForDeopt(Thread* thread,
                                       uword program_counter,
                                       uword frame_pointer) {
-#if !defined(TARGET_ARCH_DBC)
   MallocGrowableArray<PendingLazyDeopt>* pending_deopts =
       thread->isolate()->pending_deopts();
   if (pending_deopts->length() > 0) {
@@ -495,17 +594,23 @@ static uword RemapExceptionPCForDeopt(Thread* thread,
         if (FLAG_trace_deoptimization) {
           THR_Print("Throwing to frame scheduled for lazy deopt fp=%" Pp "\n",
                     frame_pointer);
+
+#if defined(DEBUG)
+          // Ensure the frame references optimized code.
+          RawObject* pc_marker = *(reinterpret_cast<RawObject**>(
+              frame_pointer + runtime_frame_layout.code_from_fp * kWordSize));
+          Code& code = Code::Handle(Code::RawCast(pc_marker));
+          ASSERT(code.is_optimized() && !code.is_force_optimized());
+#endif
         }
         break;
       }
     }
   }
-#endif  // !DBC
   return program_counter;
 }
 
 static void ClearLazyDeopts(Thread* thread, uword frame_pointer) {
-#if !defined(TARGET_ARCH_DBC)
   MallocGrowableArray<PendingLazyDeopt>* pending_deopts =
       thread->isolate()->pending_deopts();
   if (pending_deopts->length() > 0) {
@@ -515,12 +620,16 @@ static void ClearLazyDeopts(Thread* thread, uword frame_pointer) {
     {
       DartFrameIterator frames(thread,
                                StackFrameIterator::kNoCrossThreadIteration);
-      StackFrame* frame = frames.NextFrame();
-      while ((frame != NULL) && (frame->fp() < frame_pointer)) {
+      for (StackFrame* frame = frames.NextFrame(); frame != nullptr;
+           frame = frames.NextFrame()) {
+        if (frame->is_interpreted()) {
+          continue;
+        } else if (frame->fp() >= frame_pointer) {
+          break;
+        }
         if (frame->IsMarkedForLazyDeopt()) {
           frame->UnmarkForLazyDeopt();
         }
-        frame = frames.NextFrame();
       }
     }
 
@@ -536,7 +645,7 @@ static void ClearLazyDeopts(Thread* thread, uword frame_pointer) {
               "fp=%" Pp ", pc=%" Pp "\n",
               (*pending_deopts)[i].fp(), (*pending_deopts)[i].pc());
         }
-        pending_deopts->RemoveAt(i);
+        pending_deopts->RemoveAt(i--);
       }
     }
 
@@ -544,7 +653,6 @@ static void ClearLazyDeopts(Thread* thread, uword frame_pointer) {
     ValidateFrames();
 #endif
   }
-#endif  // !DBC
 }
 
 static void JumpToExceptionHandler(Thread* thread,
@@ -619,6 +727,10 @@ void Exceptions::JumpToFrame(Thread* thread,
 #if defined(USING_SAFE_STACK)
   const uword saved_ssp = thread->saved_safestack_limit();
   OSThread::SetCurrentSafestackPointer(saved_ssp);
+#endif
+
+#if defined(USING_SHADOW_CALL_STACK)
+  // The shadow call stack register will be restored by the JumpToFrame stub.
 #endif
 
   func(program_counter, stack_pointer, frame_pointer, thread);
@@ -781,7 +893,11 @@ RawScript* Exceptions::GetCallerScript(DartFrameIterator* iterator) {
   StackFrame* caller_frame = iterator->NextFrame();
   ASSERT(caller_frame != NULL && caller_frame->IsDartFrame());
   const Function& caller = Function::Handle(caller_frame->LookupDartFunction());
+#if defined(DART_PRECOMPILED_RUNTIME)
+  if (caller.IsNull()) return Script::null();
+#else
   ASSERT(!caller.IsNull());
+#endif
   return caller.script();
 }
 
@@ -818,18 +934,15 @@ void Exceptions::CreateAndThrowTypeError(TokenPosition location,
   DartFrameIterator iterator(thread,
                              StackFrameIterator::kNoCrossThreadIteration);
   const Script& script = Script::Handle(zone, GetCallerScript(&iterator));
+  const String& url = String::Handle(
+      zone, script.IsNull() ? Symbols::OptimizedOut().raw() : script.url());
   intptr_t line = -1;
   intptr_t column = -1;
-  ASSERT(!script.IsNull());
-  if (location.IsReal()) {
-    if (script.HasSource() || script.kind() == RawScript::kKernelTag) {
-      script.GetTokenLocation(location, &line, &column);
-    } else {
-      script.GetTokenLocation(location, &line, NULL);
-    }
+  if (!script.IsNull() && location.IsReal()) {
+    script.GetTokenLocation(location, &line, &column);
   }
   // Initialize '_url', '_line', and '_column' arguments.
-  args.SetAt(0, String::Handle(zone, script.url()));
+  args.SetAt(0, url);
   args.SetAt(1, Smi::Handle(zone, Smi::New(line)));
   args.SetAt(2, Smi::Handle(zone, Smi::New(column)));
 
@@ -837,7 +950,6 @@ void Exceptions::CreateAndThrowTypeError(TokenPosition location,
   const GrowableObjectArray& pieces =
       GrowableObjectArray::Handle(zone, GrowableObjectArray::New(20));
 
-  // If dst_type is malformed or malbounded, only print the embedded error.
   if (!dst_type.IsNull()) {
     // Describe the type error.
     if (!src_type.IsNull()) {
@@ -861,7 +973,8 @@ void Exceptions::CreateAndThrowTypeError(TokenPosition location,
     if (!src_type.IsNull()) {
       src_type.EnumerateURIs(&uris);
     }
-    if (!dst_type.IsDynamicType() && !dst_type.IsVoidType()) {
+    if (!dst_type.IsDynamicType() && !dst_type.IsVoidType() &&
+        !dst_type.IsNeverType()) {
       dst_type.EnumerateURIs(&uris);
     }
     const String& formatted_uris =
@@ -999,12 +1112,6 @@ void Exceptions::ThrowUnsupportedError(const char* msg) {
   const Array& args = Array::Handle(Array::New(1));
   args.SetAt(0, String::Handle(String::New(msg)));
   Exceptions::ThrowByType(Exceptions::kUnsupported, args);
-}
-
-void Exceptions::ThrowRangeErrorMsg(const char* msg) {
-  const Array& args = Array::Handle(Array::New(1));
-  args.SetAt(0, String::Handle(String::New(msg)));
-  Exceptions::ThrowByType(Exceptions::kRangeMsg, args);
 }
 
 void Exceptions::ThrowCompileTimeError(const LanguageError& error) {

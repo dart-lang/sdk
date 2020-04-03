@@ -1,0 +1,39 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field core::int* field = null;
+  synthetic constructor •() → self::Class*
+    : super core::Object::•()
+    ;
+}
+extension Extension on self::Class* {
+  get property = self::Extension|get#property;
+  method method = self::Extension|method;
+  tearoff method = self::Extension|get#method;
+  set property = self::Extension|set#property;
+}
+static method Extension|get#property(final self::Class* #this) → core::int*
+  return #this.{self::Class::field};
+static method Extension|set#property(final self::Class* #this, core::int* value) → void {
+  #this.{self::Class::field} = value;
+}
+static method Extension|method(final self::Class* #this) → core::int*
+  return #this.{self::Class::field};
+static method Extension|get#method(final self::Class* #this) → () →* core::int*
+  return () → core::int* => self::Extension|method(#this);
+static method main() → dynamic {
+  self::Class* c;
+  let final core::int* #t1 = let final self::Class* #t2 = c in #t2.{core::Object::==}(null) ?{core::int*} null : self::Extension|get#property(#t2) in #t1.{core::num::==}(null) ?{core::int*} 0 : #t1;
+  let final core::int* #t3 = let final self::Class* #t4 = c in #t4.{core::Object::==}(null) ?{core::int*} null : self::Extension|get#property(#t4) in #t3.{core::num::==}(null) ?{core::int*} 0 : #t3;
+  let final self::Class* #t5 = c in #t5.{core::Object::==}(null) ?{core::int*} null : self::Extension|set#property(#t5, let final core::int* #t6 = 42 in #t6.{core::num::==}(null) ?{core::int*} 0 : #t6);
+  let final self::Class* #t7 = c in #t7.{core::Object::==}(null) ?{core::int*} null : self::Extension|set#property(#t7, let final core::int* #t8 = 42 in #t8.{core::num::==}(null) ?{core::int*} 0 : #t8);
+  let final core::int* #t9 = let final self::Class* #t10 = c in #t10.{core::Object::==}(null) ?{core::int*} null : let final core::int* #t11 = 42 in let final void #t12 = self::Extension|set#property(#t10, #t11) in #t11 in #t9.{core::num::==}(null) ?{core::int*} 0 : #t9;
+  let final core::int* #t13 = let final self::Class* #t14 = c in #t14.{core::Object::==}(null) ?{core::int*} null : let final core::int* #t15 = 42 in let final void #t16 = self::Extension|set#property(#t14, #t15) in #t15 in #t13.{core::num::==}(null) ?{core::int*} 0 : #t13;
+  let final core::int* #t17 = let final self::Class* #t18 = c in #t18.{core::Object::==}(null) ?{core::int*} null : self::Extension|method(#t18) in #t17.{core::num::==}(null) ?{core::int*} 0 : #t17;
+  let final core::int* #t19 = let final self::Class* #t20 = c in #t20.{core::Object::==}(null) ?{core::int*} null : self::Extension|method(#t20) in #t19.{core::num::==}(null) ?{core::int*} 0 : #t19;
+  c = new self::Class::•();
+  let final core::int* #t21 = self::Extension|get#property(c) in #t21.{core::num::==}(null) ?{core::int*} 0 : #t21;
+  let final core::int* #t22 = self::Extension|get#property(c) in #t22.{core::num::==}(null) ?{core::int*} 0 : #t22;
+}

@@ -583,7 +583,10 @@ void SimulatorDebugger::Debug() {
           OS::PrintErr("execution tracing off\n");
         }
       } else if (strcmp(cmd, "bt") == 0) {
+        Thread* thread = reinterpret_cast<Thread*>(sim_->get_register(THR));
+        thread->set_execution_state(Thread::kThreadInVM);
         PrintBacktrace();
+        thread->set_execution_state(Thread::kThreadInGenerated);
       } else {
         OS::PrintErr("Unknown command: %s\n", cmd);
       }
@@ -751,23 +754,20 @@ class Redirection {
                           int argument_count) {
     MutexLocker ml(mutex_);
 
-    for (Redirection* current = list_; current != NULL;
+    Redirection* old_head = list_.load(std::memory_order_relaxed);
+    for (Redirection* current = old_head; current != nullptr;
          current = current->next_) {
       if (current->external_function_ == external_function) return current;
     }
 
     Redirection* redirection =
         new Redirection(external_function, call_kind, argument_count);
-    redirection->next_ = list_;
+    redirection->next_ = old_head;
 
     // Use a memory fence to ensure all pending writes are written at the time
     // of updating the list head, so the profiling thread always has a valid
     // list to look at.
-    Redirection* old_head = list_;
-    Redirection* replaced_list_head =
-        AtomicOperations::CompareAndSwapPointer<Redirection>(&list_, old_head,
-                                                             redirection);
-    ASSERT(old_head == replaced_list_head);
+    list_.store(redirection, std::memory_order_release);
 
     return redirection;
   }
@@ -784,8 +784,8 @@ class Redirection {
   // allowed to hold any locks - which is precisely the reason why the list is
   // prepend-only and a memory fence is used when writing the list head [list_]!
   static uword FunctionForRedirect(uword address_of_svc) {
-    Redirection* current;
-    for (current = list_; current != NULL; current = current->next_) {
+    for (Redirection* current = list_.load(std::memory_order_acquire);
+         current != nullptr; current = current->next_) {
       if (current->address_of_svc_instruction() == address_of_svc) {
         return current->external_function_;
       }
@@ -808,11 +808,11 @@ class Redirection {
   int argument_count_;
   uint32_t svc_instruction_;
   Redirection* next_;
-  static Redirection* list_;
+  static std::atomic<Redirection*> list_;
   static Mutex* mutex_;
 };
 
-Redirection* Redirection::list_ = NULL;
+std::atomic<Redirection*> Redirection::list_ = {nullptr};
 Mutex* Redirection::mutex_ = new Mutex();
 
 uword Simulator::RedirectExternalReference(uword function,
@@ -1047,11 +1047,11 @@ intptr_t Simulator::WriteExclusiveW(uword addr, intptr_t value, Instr* instr) {
     return 1;  // Failure.
   }
 
-  uword old_value = exclusive_access_value_;
+  int32_t old_value = static_cast<uint32_t>(exclusive_access_value_);
   ClearExclusive();
 
-  if (AtomicOperations::CompareAndSwapWord(reinterpret_cast<uword*>(addr),
-                                           old_value, value) == old_value) {
+  auto atomic_addr = reinterpret_cast<RelaxedAtomic<int32_t>*>(addr);
+  if (atomic_addr->compare_exchange_weak(old_value, value)) {
     return 0;  // Success.
   }
   return 1;  // Failure.
@@ -1642,14 +1642,11 @@ DART_FORCE_INLINE void Simulator::DecodeType01(Instr* instr) {
           case 2:
             // Registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
             // Format(instr, "umaal'cond's 'rd, 'rn, 'rm, 'rs");
-            if (TargetCPUFeatures::arm_version() == ARMv5TE) {
-              // umaal is only in ARMv6 and above.
-              UnimplementedInstruction(instr);
-            }
             FALL_THROUGH;
           case 5:
-          // Registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
-          // Format(instr, "umlal'cond's 'rd, 'rn, 'rm, 'rs");
+            // Registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
+            // Format(instr, "umlal'cond's 'rd, 'rn, 'rm, 'rs");
+            FALL_THROUGH;
           case 7: {
             // Registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
             // Format(instr, "smlal'cond's 'rd, 'rn, 'rm, 'rs");
@@ -1697,10 +1694,6 @@ DART_FORCE_INLINE void Simulator::DecodeType01(Instr* instr) {
           }
         }
       } else {
-        if (TargetCPUFeatures::arm_version() == ARMv5TE) {
-          UnimplementedInstruction(instr);
-          return;
-        }
         // synchronization primitives
         Register rd = instr->RdField();
         Register rn = instr->RnField();
@@ -2234,6 +2227,12 @@ void Simulator::DecodeType3(Instr* instr) {
   if (instr->IsDivision()) {
     DoDivision(instr);
     return;
+  } else if (instr->IsRbit()) {
+    // Format(instr, "rbit'cond 'rd, 'rm");
+    Register rm = instr->RmField();
+    Register rd = instr->RdField();
+    set_register(rd, Utils::ReverseBits32(get_register(rm)));
+    return;
   }
   Register rd = instr->RdField();
   Register rn = instr->RnField();
@@ -2738,17 +2737,17 @@ void Simulator::DecodeType7(Instr* instr) {
                 float sm_val = get_sregister(sm);
                 if (instr->Bit(16) == 0) {
                   // Format(instr, "vcvtus'cond 'sd, 'sm");
-                  if (sm_val >= INT_MAX) {
-                    ud_val = INT_MAX;
+                  if (sm_val >= static_cast<float>(INT32_MAX)) {
+                    ud_val = INT32_MAX;
                   } else if (sm_val > 0.0) {
                     ud_val = static_cast<uint32_t>(sm_val);
                   }
                 } else {
                   // Format(instr, "vcvtis'cond 'sd, 'sm");
-                  if (sm_val <= INT_MIN) {
-                    id_val = INT_MIN;
-                  } else if (sm_val >= INT_MAX) {
-                    id_val = INT_MAX;
+                  if (sm_val <= static_cast<float>(INT32_MIN)) {
+                    id_val = INT32_MIN;
+                  } else if (sm_val >= static_cast<float>(INT32_MAX)) {
+                    id_val = INT32_MAX;
                   } else {
                     id_val = static_cast<int32_t>(sm_val);
                   }
@@ -2759,17 +2758,17 @@ void Simulator::DecodeType7(Instr* instr) {
                 double dm_val = get_dregister(dm);
                 if (instr->Bit(16) == 0) {
                   // Format(instr, "vcvtud'cond 'sd, 'dm");
-                  if (dm_val >= INT_MAX) {
-                    ud_val = INT_MAX;
+                  if (dm_val >= static_cast<double>(INT32_MAX)) {
+                    ud_val = INT32_MAX;
                   } else if (dm_val > 0.0) {
                     ud_val = static_cast<uint32_t>(dm_val);
                   }
                 } else {
                   // Format(instr, "vcvtid'cond 'sd, 'dm");
-                  if (dm_val <= INT_MIN) {
-                    id_val = INT_MIN;
-                  } else if (dm_val >= INT_MAX) {
-                    id_val = INT_MAX;
+                  if (dm_val <= static_cast<double>(INT32_MIN)) {
+                    id_val = INT32_MIN;
+                  } else if (dm_val >= static_cast<double>(INT32_MAX)) {
+                    id_val = INT32_MAX;
                   } else if (isnan(dm_val)) {
                     id_val = 0;
                   } else {
@@ -2848,96 +2847,6 @@ void Simulator::DecodeType7(Instr* instr) {
   } else {
     UnimplementedInstruction(instr);
   }
-}
-
-static float arm_reciprocal_sqrt_estimate(float a) {
-  // From the ARM Architecture Reference Manual A2-87.
-  if (isinf(a) || (fabs(a) >= exp2f(126)))
-    return 0.0;
-  else if (a == 0.0)
-    return kPosInfinity;
-  else if (isnan(a))
-    return a;
-
-  uint32_t a_bits = bit_cast<uint32_t, float>(a);
-  uint64_t scaled;
-  if (((a_bits >> 23) & 1) != 0) {
-    // scaled = '0 01111111101' : operand<22:0> : Zeros(29)
-    scaled = (static_cast<uint64_t>(0x3fd) << 52) |
-             ((static_cast<uint64_t>(a_bits) & 0x7fffff) << 29);
-  } else {
-    // scaled = '0 01111111110' : operand<22:0> : Zeros(29)
-    scaled = (static_cast<uint64_t>(0x3fe) << 52) |
-             ((static_cast<uint64_t>(a_bits) & 0x7fffff) << 29);
-  }
-  // result_exp = (380 - UInt(operand<30:23>) DIV 2;
-  int32_t result_exp = (380 - ((a_bits >> 23) & 0xff)) / 2;
-
-  double scaled_d = bit_cast<double, uint64_t>(scaled);
-  ASSERT((scaled_d >= 0.25) && (scaled_d < 1.0));
-
-  double r;
-  if (scaled_d < 0.5) {
-    // range 0.25 <= a < 0.5
-
-    // a in units of 1/512 rounded down.
-    int32_t q0 = static_cast<int32_t>(scaled_d * 512.0);
-    // reciprocal root r.
-    r = 1.0 / sqrt((static_cast<double>(q0) + 0.5) / 512.0);
-  } else {
-    // range 0.5 <= a < 1.0
-
-    // a in units of 1/256 rounded down.
-    int32_t q1 = static_cast<int32_t>(scaled_d * 256.0);
-    // reciprocal root r.
-    r = 1.0 / sqrt((static_cast<double>(q1) + 0.5) / 256.0);
-  }
-  // r in units of 1/256 rounded to nearest.
-  int32_t s = static_cast<int>(256.0 * r + 0.5);
-  double estimate = static_cast<double>(s) / 256.0;
-  ASSERT((estimate >= 1.0) && (estimate <= (511.0 / 256.0)));
-
-  // result = 0 : result_exp<7:0> : estimate<51:29>
-  int32_t result_bits =
-      ((result_exp & 0xff) << 23) |
-      ((bit_cast<uint64_t, double>(estimate) >> 29) & 0x7fffff);
-  return bit_cast<float, int32_t>(result_bits);
-}
-
-static float arm_recip_estimate(float a) {
-  // From the ARM Architecture Reference Manual A2-85.
-  if (isinf(a) || (fabs(a) >= exp2f(126)))
-    return 0.0;
-  else if (a == 0.0)
-    return kPosInfinity;
-  else if (isnan(a))
-    return a;
-
-  uint32_t a_bits = bit_cast<uint32_t, float>(a);
-  // scaled = '0011 1111 1110' : a<22:0> : Zeros(29)
-  uint64_t scaled = (static_cast<uint64_t>(0x3fe) << 52) |
-                    ((static_cast<uint64_t>(a_bits) & 0x7fffff) << 29);
-  // result_exp = 253 - UInt(a<30:23>)
-  int32_t result_exp = 253 - ((a_bits >> 23) & 0xff);
-  ASSERT((result_exp >= 1) && (result_exp <= 252));
-
-  double scaled_d = bit_cast<double, uint64_t>(scaled);
-  ASSERT((scaled_d >= 0.5) && (scaled_d < 1.0));
-
-  // a in units of 1/512 rounded down.
-  int32_t q = static_cast<int32_t>(scaled_d * 512.0);
-  // reciprocal r.
-  double r = 1.0 / ((static_cast<double>(q) + 0.5) / 512.0);
-  // r in units of 1/256 rounded to nearest.
-  int32_t s = static_cast<int32_t>(256.0 * r + 0.5);
-  double estimate = static_cast<double>(s) / 256.0;
-  ASSERT((estimate >= 1.0) && (estimate <= (511.0 / 256.0)));
-
-  // result = sign : result_exp<7:0> : estimate<51:29>
-  int32_t result_bits =
-      (a_bits & 0x80000000) | ((result_exp & 0xff) << 23) |
-      ((bit_cast<uint64_t, double>(estimate) >> 29) & 0x7fffff);
-  return bit_cast<float, int32_t>(result_bits);
 }
 
 static void simd_value_swap(simd_value_t* s1,
@@ -3175,15 +3084,13 @@ void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
                (instr->Bits(20, 2) == 2) && (instr->Bits(23, 2) == 0)) {
       // Format(instr, "vminqs 'qd, 'qn, 'qm");
       for (int i = 0; i < 4; i++) {
-        s8d.data_[i].f =
-            s8n.data_[i].f <= s8m.data_[i].f ? s8n.data_[i].f : s8m.data_[i].f;
+        s8d.data_[i].f = fminf(s8n.data_[i].f, s8m.data_[i].f);
       }
     } else if ((instr->Bits(8, 4) == 15) && (instr->Bit(4) == 0) &&
                (instr->Bits(20, 2) == 0) && (instr->Bits(23, 2) == 0)) {
       // Format(instr, "vmaxqs 'qd, 'qn, 'qm");
       for (int i = 0; i < 4; i++) {
-        s8d.data_[i].f =
-            s8n.data_[i].f >= s8m.data_[i].f ? s8n.data_[i].f : s8m.data_[i].f;
+        s8d.data_[i].f = fmaxf(s8n.data_[i].f, s8m.data_[i].f);
       }
     } else if ((instr->Bits(8, 4) == 7) && (instr->Bit(4) == 0) &&
                (instr->Bits(20, 2) == 3) && (instr->Bits(23, 2) == 3) &&
@@ -3204,26 +3111,26 @@ void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
                (instr->Bits(16, 4) == 11)) {
       // Format(instr, "vrecpeq 'qd, 'qm");
       for (int i = 0; i < 4; i++) {
-        s8d.data_[i].f = arm_recip_estimate(s8m.data_[i].f);
+        s8d.data_[i].f = ReciprocalEstimate(s8m.data_[i].f);
       }
     } else if ((instr->Bits(8, 4) == 15) && (instr->Bit(4) == 1) &&
                (instr->Bits(20, 2) == 0) && (instr->Bits(23, 2) == 0)) {
       // Format(instr, "vrecpsq 'qd, 'qn, 'qm");
       for (int i = 0; i < 4; i++) {
-        s8d.data_[i].f = 2.0 - (s8n.data_[i].f * s8m.data_[i].f);
+        s8d.data_[i].f = ReciprocalStep(s8n.data_[i].f, s8m.data_[i].f);
       }
     } else if ((instr->Bits(8, 4) == 5) && (instr->Bit(4) == 0) &&
                (instr->Bits(20, 2) == 3) && (instr->Bits(23, 2) == 3) &&
                (instr->Bit(7) == 1) && (instr->Bits(16, 4) == 11)) {
       // Format(instr, "vrsqrteqs 'qd, 'qm");
       for (int i = 0; i < 4; i++) {
-        s8d.data_[i].f = arm_reciprocal_sqrt_estimate(s8m.data_[i].f);
+        s8d.data_[i].f = ReciprocalSqrtEstimate(s8m.data_[i].f);
       }
     } else if ((instr->Bits(8, 4) == 15) && (instr->Bit(4) == 1) &&
                (instr->Bits(20, 2) == 2) && (instr->Bits(23, 2) == 0)) {
       // Format(instr, "vrsqrtsqs 'qd, 'qn, 'qm");
       for (int i = 0; i < 4; i++) {
-        s8d.data_[i].f = (3.0 - s8n.data_[i].f * s8m.data_[i].f) / 2.0;
+        s8d.data_[i].f = ReciprocalSqrtStep(s8n.data_[i].f, s8m.data_[i].f);
       }
     } else if ((instr->Bits(8, 4) == 12) && (instr->Bit(4) == 0) &&
                (instr->Bits(20, 2) == 3) && (instr->Bits(23, 2) == 3) &&

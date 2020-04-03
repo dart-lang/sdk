@@ -335,7 +335,7 @@ void ThreadPool::Worker::StartThread() {
     ASSERT(task_ != nullptr);
   }
 #endif
-  int result = OSThread::Start("Dart ThreadPool Worker", &Worker::Main,
+  int result = OSThread::Start("DartWorker", &Worker::Main,
                                reinterpret_cast<uword>(this));
   if (result != 0) {
     FATAL1("Could not start worker thread: result = %d.", result);
@@ -343,6 +343,7 @@ void ThreadPool::Worker::StartThread() {
 }
 
 void ThreadPool::Worker::SetTask(std::unique_ptr<Task> task) {
+  std::atomic_thread_fence(std::memory_order_release);
   MonitorLocker ml(&monitor_);
   ASSERT(task_ == nullptr);
   task_ = std::move(task);
@@ -377,6 +378,7 @@ bool ThreadPool::Worker::Loop() {
 
     // Release monitor while handling the task.
     ml.Exit();
+    std::atomic_thread_fence(std::memory_order_acquire);
     task->Run();
     ASSERT(Isolate::Current() == NULL);
     task.reset();
@@ -421,9 +423,6 @@ void ThreadPool::Worker::Main(uword args) {
   ASSERT(os_thread != NULL);
   ThreadId id = os_thread->id();
   ThreadPool* pool;
-
-  // Set the thread's stack_base based on the current stack pointer.
-  os_thread->RefineStackBoundsFromSP(OSThread::GetCurrentStackPointer());
 
   {
     MonitorLocker ml(&worker->monitor_);

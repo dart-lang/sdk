@@ -3,7 +3,6 @@ library test;
 // Problems in library:
 //
 // pkg/front_end/testcases/runtime_checks/covariant_generic_method_type_parameter.dart:11:15: Error: The argument type 'double' can't be assigned to the parameter type 'U'.
-// Try changing the type of the parameter, or casting the argument to 'U'.
 //     this.f<U>(1.5);
 //               ^
 //
@@ -23,7 +22,6 @@ class C<T extends core::Object* = dynamic> extends core::Object {
   method f<generic-covariant-impl U extends self::C::T* = self::C::T*>(self::C::f::U* x) → void {}
   method g1<generic-covariant-impl U extends self::C::T* = self::C::T*>() → void {
     this.{self::C::f}<self::C::g1::U*>(let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/runtime_checks/covariant_generic_method_type_parameter.dart:11:15: Error: The argument type 'double' can't be assigned to the parameter type 'U'.
-Try changing the type of the parameter, or casting the argument to 'U'.
     this.f<U>(1.5);
               ^" in 1.5 as{TypeError} <BottomType>);
   }

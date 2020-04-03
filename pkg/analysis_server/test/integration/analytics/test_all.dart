@@ -9,7 +9,7 @@ import 'is_enabled_test.dart' as is_enabled_test;
 import 'send_event_test.dart' as send_event_test;
 import 'send_timing_test.dart' as send_timing_test;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     enable_test.main();
     is_enabled_test.main();

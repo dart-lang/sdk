@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /*member: main:[null]*/
 main() {
   emptyTryCatch();
@@ -110,7 +112,7 @@ tryFinallyAssignmentInFinally() {
 /// block.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: tryCatchAssignmentInTryCatch:Union([exact=JSUInt31], [null|exact=JSString])*/
+/*member: tryCatchAssignmentInTryCatch:Union(null, [exact=JSString], [exact=JSUInt31])*/
 tryCatchAssignmentInTryCatch() {
   dynamic o = 0;
   try {
@@ -196,7 +198,7 @@ tryFinallyParameterAssignmentInFinally() {
 /// catch clause.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _tryCatchParameterAssignmentInTryCatch:Union([exact=JSUInt31], [null|exact=JSString])*/
+/*member: _tryCatchParameterAssignmentInTryCatch:Union(null, [exact=JSString], [exact=JSUInt31])*/
 _tryCatchParameterAssignmentInTryCatch(/*[exact=JSUInt31]*/ o) {
   try {
     o = '';

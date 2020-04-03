@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /*member: main:[null]*/
 main() {
   simpleWhile();
@@ -49,7 +51,7 @@ whileNull() {
 /*member: whileNotNull:[exact=JSString]*/
 whileNotNull() {
   var o = '';
-  while (o != null) {
+  while (o /*invoke: [null|exact=JSString]*/ != null) {
     o = o. /*invoke: [exact=JSString]*/ toString();
   }
   return o;
@@ -62,7 +64,7 @@ whileNotNull() {
 /*member: whileNullUnreachable:[exact=JSString]*/
 whileNullUnreachable() {
   var o = '';
-  while (o == null) {
+  while (o /*invoke: [null|exact=JSString]*/ == null) {
     o = o. /*invoke: [null]*/ toString();
   }
   return o;
@@ -98,7 +100,7 @@ class Class2 {
   var field;
 }
 
-/*member: _whileUnion1:Union([exact=Class1], [null|exact=Class2])*/
+/*member: _whileUnion1:Union(null, [exact=Class1], [exact=Class2])*/
 _whileUnion1(/*[exact=Class1]*/ o) {
   while (o != null) {
     o = o. /*Union([exact=Class1], [exact=Class2])*/ field;
@@ -132,7 +134,7 @@ class Class4 {
   var field;
 }
 
-/*member: _whileUnion2:Union([exact=Class4], [null|exact=Class3])*/
+/*member: _whileUnion2:Union(null, [exact=Class3], [exact=Class4])*/
 _whileUnion2(/*[exact=Class4]*/ o) {
   while (o != null) {
     o = o. /*Union([exact=Class3], [exact=Class4])*/ field;
@@ -166,7 +168,7 @@ class Class6 {
   var field;
 }
 
-/*member: _whileUnion3:Union([null|exact=Class5], [null|exact=Class6])*/
+/*member: _whileUnion3:Union(null, [exact=Class5], [exact=Class6])*/
 _whileUnion3(/*Union([exact=Class5], [exact=Class6])*/ o) {
   while (o != null) {
     o = o. /*Union([exact=Class5], [exact=Class6])*/ field;
@@ -200,7 +202,7 @@ class Class8 {
   var field;
 }
 
-/*member: _whileIs:Union([exact=Class7], [null|exact=Class8])*/
+/*member: _whileIs:Union(null, [exact=Class7], [exact=Class8])*/
 _whileIs(/*[exact=Class7]*/ o) {
   while (o is Class7) {
     o = o. /*[exact=Class7]*/ field;
@@ -233,10 +235,10 @@ class Class10 {
   var field;
 }
 
-/*member: _whileIsNot:Union([exact=Class9], [null|exact=Class10])*/
+/*member: _whileIsNot:Union(null, [exact=Class10], [exact=Class9])*/
 _whileIsNot(/*[exact=Class9]*/ o) {
   while (o is! Class10) {
-    o = o. /*Union([exact=Class9], [null|exact=Class10])*/ field;
+    o = o. /*Union(null, [exact=Class10], [exact=Class9])*/ field;
   }
   return o;
 }

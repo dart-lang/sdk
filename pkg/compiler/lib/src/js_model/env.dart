@@ -6,16 +6,13 @@ library dart2js.js_model.env;
 
 import 'package:kernel/ast.dart' as ir;
 
-import '../common.dart';
-import '../constants/constructors.dart';
-import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/indexed.dart';
 import '../elements/types.dart';
 import '../ir/element_map.dart';
 import '../ir/static_type_cache.dart';
-import '../ir/visitors.dart';
+import '../ir/util.dart';
 import '../js_model/element_map.dart';
 import '../ordered_typeset.dart';
 import '../serialization/serialization.dart';
@@ -440,7 +437,9 @@ abstract class JClassData {
   ClassDefinition get definition;
 
   InterfaceType get thisType;
+  InterfaceType get jsInteropType;
   InterfaceType get rawType;
+  InterfaceType get instantiationToBounds;
   InterfaceType get supertype;
   InterfaceType get mixedInType;
   List<InterfaceType> get interfaces;
@@ -449,6 +448,8 @@ abstract class JClassData {
 
   bool get isEnumClass;
   bool get isMixinApplication;
+
+  List<Variance> getVariances();
 }
 
 class JClassDataImpl implements JClassData {
@@ -466,7 +467,11 @@ class JClassDataImpl implements JClassData {
   @override
   InterfaceType thisType;
   @override
+  InterfaceType jsInteropType;
+  @override
   InterfaceType rawType;
+  @override
+  InterfaceType instantiationToBounds;
   @override
   InterfaceType supertype;
   @override
@@ -475,6 +480,8 @@ class JClassDataImpl implements JClassData {
   List<InterfaceType> interfaces;
   @override
   OrderedTypeSet orderedTypeSet;
+
+  List<Variance> _variances;
 
   JClassDataImpl(this.cls, this.definition);
 
@@ -500,6 +507,10 @@ class JClassDataImpl implements JClassData {
 
   @override
   DartType get callType => null;
+
+  @override
+  List<Variance> getVariances() =>
+      _variances ??= cls.typeParameters.map(convertVariance).toList();
 }
 
 /// Enum used for identifying [JMemberData] subclasses in serialization.
@@ -607,7 +618,9 @@ abstract class FunctionDataTypeVariablesMixin implements FunctionData {
           _typeVariables = functionNode.typeParameters
               .map<TypeVariableType>((ir.TypeParameter typeParameter) {
             return elementMap
-                .getDartType(new ir.TypeParameterType(typeParameter));
+                .getDartType(new ir.TypeParameterType(
+                    typeParameter, ir.Nullability.nonNullable))
+                .withoutNullability;
           }).toList();
         }
       }
@@ -619,19 +632,25 @@ abstract class FunctionDataTypeVariablesMixin implements FunctionData {
 abstract class FunctionDataForEachParameterMixin implements FunctionData {
   ir.FunctionNode get functionNode;
 
+  // TODO(johnniwinther,sigmund): Remove this when it's no longer needed for
+  //  `getConstantValue` in [forEachParameter].
+  ir.Member get memberContext;
+
   @override
   void forEachParameter(
       JsToElementMap elementMap,
       ParameterStructure parameterStructure,
       void f(DartType type, String name, ConstantValue defaultValue),
       {bool isNative: false}) {
-    void handleParameter(ir.VariableDeclaration node, {bool isOptional: true}) {
-      DartType type = elementMap.getDartType(node.type);
-      String name = node.name;
+    void handleParameter(ir.VariableDeclaration parameter,
+        {bool isOptional: true}) {
+      DartType type = elementMap.getDartType(parameter.type);
+      String name = parameter.name;
       ConstantValue defaultValue;
       if (isOptional) {
-        if (node.initializer != null) {
-          defaultValue = elementMap.getConstantValue(node.initializer);
+        if (parameter.initializer != null) {
+          defaultValue =
+              elementMap.getConstantValue(memberContext, parameter.initializer);
         } else {
           defaultValue = new NullConstantValue();
         }
@@ -692,6 +711,9 @@ class FunctionDataImpl extends JMemberDataImpl
     staticTypes.writeToDataSink(sink, node);
     sink.end(tag);
   }
+
+  @override
+  ir.Member get memberContext => node;
 
   @override
   FunctionType getFunctionType(covariant JsKernelToElementMap elementMap) {
@@ -756,7 +778,10 @@ class SignatureFunctionData implements FunctionData {
   List<TypeVariableType> getFunctionTypeVariables(IrToElementMap elementMap) {
     return typeParameters
         .map<TypeVariableType>((ir.TypeParameter typeParameter) {
-      return elementMap.getDartType(new ir.TypeParameterType(typeParameter));
+      return elementMap
+          .getDartType(new ir.TypeParameterType(
+              typeParameter, ir.Nullability.nonNullable))
+          .withoutNullability;
     }).toList();
   }
 
@@ -844,10 +869,7 @@ class GeneratorBodyFunctionData extends DelegatedFunctionData {
   StaticTypeCache get staticTypes => const StaticTypeCache();
 }
 
-abstract class JConstructorData extends FunctionData {
-  ConstantConstructor getConstructorConstant(
-      JsKernelToElementMap elementMap, ConstructorEntity constructor);
-}
+abstract class JConstructorData extends FunctionData {}
 
 class JConstructorDataImpl extends FunctionDataImpl
     implements JConstructorData {
@@ -855,7 +877,6 @@ class JConstructorDataImpl extends FunctionDataImpl
   /// debugging data stream.
   static const String tag = 'constructor-data';
 
-  ConstantConstructor _constantConstructor;
   JConstructorBody constructorBody;
 
   JConstructorDataImpl(ir.Member node, ir.FunctionNode functionNode,
@@ -892,23 +913,6 @@ class JConstructorDataImpl extends FunctionDataImpl
     assert(constructorBody == null);
     staticTypes.writeToDataSink(sink, node);
     sink.end(tag);
-  }
-
-  @override
-  ConstantConstructor getConstructorConstant(
-      JsKernelToElementMap elementMap, ConstructorEntity constructor) {
-    if (_constantConstructor == null) {
-      if (node is ir.Constructor && constructor.isConst) {
-        _constantConstructor =
-            new Constantifier(elementMap).computeConstantConstructor(node);
-      } else {
-        failedAt(
-            constructor,
-            "Unexpected constructor $constructor in "
-            "ConstructorDataImpl._getConstructorConstant");
-      }
-    }
-    return _constantConstructor;
   }
 
   @override
@@ -965,9 +969,6 @@ class ConstructorBodyDataImpl extends FunctionDataImpl {
 
 abstract class JFieldData extends JMemberData {
   DartType getFieldType(IrToElementMap elementMap);
-
-  ConstantExpression getFieldConstantExpression(
-      JsKernelToElementMap elementMap);
 }
 
 class JFieldDataImpl extends JMemberDataImpl implements JFieldData {
@@ -976,7 +977,6 @@ class JFieldDataImpl extends JMemberDataImpl implements JFieldData {
   static const String tag = 'field-data';
 
   DartType _type;
-  ConstantExpression _constantExpression;
 
   JFieldDataImpl(
       ir.Field node, MemberDefinition definition, StaticTypeCache staticTypes)
@@ -1012,52 +1012,9 @@ class JFieldDataImpl extends JMemberDataImpl implements JFieldData {
   }
 
   @override
-  ConstantExpression getFieldConstantExpression(
-      JsKernelToElementMap elementMap) {
-    if (_constantExpression == null) {
-      if (node.isConst) {
-        _constantExpression =
-            new Constantifier(elementMap).visit(node.initializer);
-      } else {
-        failedAt(
-            definition.location,
-            "Unexpected field ${definition} in "
-            "FieldDataImpl.getFieldConstant");
-      }
-    }
-    return _constantExpression;
-  }
-
-  @override
   ClassTypeVariableAccess get classTypeVariableAccess {
     if (node.isInstanceMember) return ClassTypeVariableAccess.instanceField;
     return ClassTypeVariableAccess.none;
-  }
-}
-
-class JTypedefData {
-  /// Tag used for identifying serialized [JTypedefData] objects in
-  /// a debugging data stream.
-  static const String tag = 'typedef-data';
-
-  final ir.Typedef node;
-  final TypedefType rawType;
-
-  JTypedefData(this.node, this.rawType);
-
-  factory JTypedefData.readFromDataSource(DataSource source) {
-    source.begin(tag);
-    ir.Typedef node = source.readTypedefNode();
-    TypedefType rawType = source.readDartType();
-    source.end(tag);
-    return new JTypedefData(node, rawType);
-  }
-
-  void writeToDataSink(DataSink sink) {
-    sink.begin(tag);
-    sink.writeTypedefNode(node);
-    sink.writeDartType(rawType);
-    sink.end(tag);
   }
 }
 

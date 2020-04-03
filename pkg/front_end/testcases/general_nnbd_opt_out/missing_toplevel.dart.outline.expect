@@ -1,0 +1,36 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class EmptyClass extends core::Object {
+  synthetic constructor •() → self::EmptyClass*
+    ;
+}
+class ClassWithProperty extends core::Object {
+  field self::EmptyClass* property;
+  synthetic constructor •() → self::ClassWithProperty*
+    ;
+}
+class ClassWithIndexSet extends core::Object {
+  synthetic constructor •() → self::ClassWithIndexSet*
+    ;
+  operator []=(core::int* index, core::int* value) → void
+    ;
+}
+class ClassWithIndexGet extends core::Object {
+  synthetic constructor •() → self::ClassWithIndexGet*
+    ;
+  operator [](core::int* index) → core::int*
+    ;
+}
+static field self::EmptyClass* emptyClass;
+static field self::ClassWithProperty* classWithProperty;
+static field self::ClassWithIndexSet* classWithIndexSet;
+static field self::ClassWithIndexGet* classWithIndexGet;
+static field dynamic missingBinary;
+static field dynamic missingIndexGet;
+static field core::int* missingIndexSet;
+static field dynamic missingPropertyGet;
+static field core::int* missingPropertySet;
+static method main() → dynamic
+  ;

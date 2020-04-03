@@ -259,6 +259,19 @@ class Token {
     return tok_str_[tok];
   }
 
+  static bool FromStr(const char* str, Kind* out) {
+    ASSERT(str != nullptr && out != nullptr);
+#define TOK_CASE(t, s, p, a)                                                   \
+  if (strcmp(str, tok_str_[(t)]) == 0) {                                       \
+    *out = (t);                                                                \
+    return true;                                                               \
+  }
+    DART_TOKEN_LIST(TOK_CASE)
+    DART_KEYWORD_LIST(TOK_CASE)
+#undef TOK_CASE
+    return false;
+  }
+
   static int Precedence(Kind tok) {
     ASSERT(tok < kNumTokens);
     return precedence_[tok];

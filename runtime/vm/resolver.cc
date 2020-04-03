@@ -116,20 +116,18 @@ RawFunction* Resolver::ResolveDynamicAnyArgs(Zone* zone,
       return function.raw();
     }
     // Getter invocation might actually be a method extraction.
-    if (FLAG_lazy_dispatchers) {
-      if (is_getter && function.IsNull()) {
-        function = cls.LookupDynamicFunction(demangled);
-        if (!function.IsNull()) {
-          if (allow_add) {
-            // We were looking for the getter but found a method with the same
-            // name. Create a method extractor and return it.
-            // The extractor does not exist yet, so using GetMethodExtractor is
-            // not necessary here.
-            function = function.CreateMethodExtractor(function_name);
-            return function.raw();
-          } else {
-            return Function::null();
-          }
+    if (is_getter && function.IsNull()) {
+      function = cls.LookupDynamicFunction(demangled);
+      if (!function.IsNull()) {
+        if (allow_add && FLAG_lazy_dispatchers) {
+          // We were looking for the getter but found a method with the same
+          // name. Create a method extractor and return it.
+          // The extractor does not exist yet, so using GetMethodExtractor is
+          // not necessary here.
+          function = function.CreateMethodExtractor(function_name);
+          return function.raw();
+        } else {
+          return Function::null();
         }
       }
     }
@@ -211,37 +209,6 @@ RawFunction* Resolver::ResolveStatic(const Class& cls,
       }
       THR_Print("ResolveStatic error '%s': %s.\n", function_name.ToCString(),
                 error_message.ToCString());
-    }
-    return Function::null();
-  }
-  return function.raw();
-}
-
-RawFunction* Resolver::ResolveStaticAllowPrivate(const Class& cls,
-                                                 const String& function_name,
-                                                 intptr_t type_args_len,
-                                                 intptr_t num_arguments,
-                                                 const Array& argument_names) {
-  ASSERT(!cls.IsNull());
-  if (FLAG_trace_resolving) {
-    THR_Print("ResolveStaticAllowPrivate '%s'\n", function_name.ToCString());
-  }
-  const Function& function =
-      Function::Handle(cls.LookupStaticFunctionAllowPrivate(function_name));
-  if (function.IsNull() ||
-      !function.AreValidArguments(type_args_len, num_arguments, argument_names,
-                                  NULL)) {
-    // Return a null function to signal to the upper levels to throw a
-    // resolution error or maybe throw the error right here.
-    if (FLAG_trace_resolving) {
-      String& error_message = String::Handle(String::New("function not found"));
-      if (!function.IsNull()) {
-        // Obtain more detailed error message.
-        function.AreValidArguments(type_args_len, num_arguments, argument_names,
-                                   &error_message);
-      }
-      THR_Print("ResolveStaticAllowPrivate error '%s': %s.\n",
-                function_name.ToCString(), error_message.ToCString());
     }
     return Function::null();
   }

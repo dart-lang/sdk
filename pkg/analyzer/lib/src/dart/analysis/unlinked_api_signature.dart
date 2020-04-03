@@ -119,6 +119,8 @@ class _UnitApiSignatureComputer {
   }
 
   void compute(CompilationUnit unit) {
+    signature.addFeatureSet(unit.featureSet);
+
     signature.addInt(unit.directives.length);
     unit.directives.forEach(addNode);
 

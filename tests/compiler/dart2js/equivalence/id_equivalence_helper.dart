@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'dart:async';
 import 'dart:io';
 
+import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/common_elements.dart';
@@ -14,13 +17,12 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/kernel/element_map_impl.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:expect/expect.dart';
-import 'package:front_end/src/testing/id_testing.dart';
 import 'package:kernel/ast.dart' as ir;
 
 import '../helpers/memory_compiler.dart';
 import '../equivalence/id_equivalence.dart';
 
-export 'package:front_end/src/testing/id_testing.dart'
+export 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show DataInterpreter, StringDataInterpreter;
 export '../helpers/memory_compiler.dart' show CollectedMessage;
 
@@ -195,7 +197,7 @@ Future<CompiledData<T>> computeData<T>(Uri entryPoint,
   }
 
   dynamic closedWorld = testFrontend
-      ? compiler.resolutionWorldBuilder.closedWorldForTesting
+      ? compiler.frontendClosedWorldForTesting
       : compiler.backendClosedWorldForTesting;
   ElementEnvironment elementEnvironment = closedWorld?.elementEnvironment;
   CommonElements commonElements = closedWorld.commonElements;
@@ -388,7 +390,7 @@ class TestConfig {
 /// [setUpFunction] is called once for every test that is executed.
 /// If [forUserSourceFilesOnly] is true, we examine the elements in the main
 /// file and any supporting libraries.
-Future checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
+Future<void> checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
     {List<String> skip: const <String>[],
     bool filterActualData(IdValue idValue, ActualData<T> actualData),
     List<String> options: const <String>[],
@@ -398,7 +400,6 @@ Future checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
     int shards: 1,
     int shardIndex: 0,
     void onTest(Uri uri),
-    Iterable<String> supportedMarkers = allInternalMarkers,
     List<TestConfig> testedConfigs = defaultInternalConfigs}) async {
   Set<String> testedMarkers =
       testedConfigs.map((config) => config.marker).toSet();
@@ -406,21 +407,23 @@ Future checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
       testedConfigs.length == testedMarkers.length,
       "Unexpected test markers $testedMarkers. "
       "Tested configs: $testedConfigs.");
-  Iterable<String> unknownMarkers =
-      testedMarkers.where((marker) => !supportedMarkers.contains(marker));
-  Expect.isTrue(
-      unknownMarkers.isEmpty,
-      "Unexpected test markers $unknownMarkers. "
-      "Supported markers: $supportedMarkers.");
 
   dataComputer.setup();
 
-  Future<bool> checkTest(TestData testData,
+  Future<Map<String, TestResult<T>>> checkTest(TestData testData,
       {bool testAfterFailures,
       bool verbose,
       bool succinct,
-      bool printCode}) async {
-    bool hasFailures = false;
+      bool printCode,
+      Map<String, List<String>> skipMap,
+      Uri nullUri}) async {
+    for (TestConfig testConfiguration in testedConfigs) {
+      Expect.isTrue(
+          testData.expectedMaps.containsKey(testConfiguration.marker),
+          "Unexpected test marker '${testConfiguration.marker}'. "
+          "Supported markers: ${testData.expectedMaps.keys}.");
+    }
+
     String name = testData.name;
     List<String> testOptions = options.toList();
     if (name.endsWith('_ea.dart')) {
@@ -429,33 +432,33 @@ Future checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
 
     if (setUpFunction != null) setUpFunction();
 
-    print('name="${name}"');
+    Map<String, TestResult<T>> results = {};
     if (skip.contains(name)) {
       print('--skipped ------------------------------------------------------');
     } else {
       for (TestConfig testConfiguration in testedConfigs) {
+        if (skipForConfig(testData.name, testConfiguration.marker, skipMap)) {
+          continue;
+        }
         print('--from (${testConfiguration.name})-------------');
-        if (await runTestForConfiguration(
+        results[testConfiguration.marker] = await runTestForConfiguration(
             testConfiguration, dataComputer, testData, testOptions,
             filterActualData: filterActualData,
             verbose: verbose,
             succinct: succinct,
             testAfterFailures: testAfterFailures,
             forUserLibrariesOnly: forUserLibrariesOnly,
-            printCode: printCode)) {
-          hasFailures = true;
-        }
+            printCode: printCode);
       }
     }
-    return hasFailures;
+    return results;
   }
 
-  await runTests(dataDir,
+  await runTests<T>(dataDir,
       args: args,
       shards: shards,
       shardIndex: shardIndex,
       onTest: onTest,
-      supportedMarkers: supportedMarkers,
       createUriForFileName: createUriForFileName,
       onFailure: Expect.fail,
       runTest: checkTest);
@@ -467,7 +470,7 @@ Uri createUriForFileName(String fileName) {
   return Uri.parse('memory:sdk/tests/compiler/dart2js_native/$fileName');
 }
 
-Future<bool> runTestForConfiguration<T>(TestConfig testConfiguration,
+Future<TestResult<T>> runTestForConfiguration<T>(TestConfig testConfiguration,
     DataComputer<T> dataComputer, TestData testData, List<String> options,
     {bool filterActualData(IdValue idValue, ActualData<T> actualData),
     bool verbose: false,

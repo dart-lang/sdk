@@ -1,0 +1,36 @@
+main = <No Member>;
+library from "org-dartlang-test:///main.dart" as main {
+//
+// Problems in library:
+//
+// org-dartlang-test:///main.dart:3:7: Error: 'Object' doesn't implement 'A<dynamic>' so it can't be used with 'M<dynamic>'.
+//  - 'Object' is from 'dart:core'.
+//  - 'A' is from 'org-dartlang-test:///main.dart'.
+//  - 'M' is from 'org-dartlang-test:///main.dart'.
+// class C extends Object with M {}
+//       ^
+//
+// org-dartlang-test:///main.dart:3:7: Error: Type parameters could not be inferred for the mixin 'M' because 'Object' does not implement the mixin's supertype constraint 'A<T>'.
+//  - 'A' is from 'org-dartlang-test:///main.dart'.
+// class C extends Object with M {}
+//       ^
+//
+
+  abstract class A<T extends dart.core::Object* = dynamic> extends dart.core::Object {
+    synthetic constructor •() → main::A<main::A::T*>*
+      : super dart.core::Object::•()
+      ;
+  }
+  abstract class M<T extends dart.core::Object* = dynamic> extends main::A<main::M::T*> /*isMixinDeclaration*/  {
+  }
+  abstract class _C&Object&M extends dart.core::Object implements main::M<dynamic> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+    const synthetic constructor •() → main::_C&Object&M*
+      : super dart.core::Object::•()
+      ;
+  }
+  class C extends main::_C&Object&M {
+    synthetic constructor •() → main::C*
+      : super main::_C&Object&M::•()
+      ;
+  }
+}

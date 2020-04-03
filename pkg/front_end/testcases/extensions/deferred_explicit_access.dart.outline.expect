@@ -1,0 +1,54 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/deferred_explicit_access.dart:5:1: Error: Extension 'Extension' cannot be imported through a deferred import.
+// Try adding the `hide Extension` to the import.
+// import 'deferred_explicit_access_lib.dart' deferred as prefix;
+// ^
+//
+import self as self;
+
+import "org-dartlang-testcase:///deferred_explicit_access_lib.dart" deferred as prefix;
+
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+extension Extension on core::int* {
+  static field staticField = self2::Extension|staticField;
+  static get staticProperty = get self2::Extension|staticProperty;
+  static method staticMethod = self2::Extension|staticMethod;
+  get property = self2::Extension|get#property;
+  method method = self2::Extension|method;
+  tearoff method = self2::Extension|get#method;
+  static set staticProperty = set self2::Extension|staticProperty;
+  set property = self2::Extension|set#property;
+}
+static field core::int* Extension|staticField;
+static field core::int* topLevelField;
+static get Extension|staticProperty() → core::int*
+  ;
+static set Extension|staticProperty(core::int* value) → void
+  ;
+static method Extension|staticMethod() → core::int*
+  ;
+static method Extension|get#property(final core::int* #this) → core::int*
+  ;
+static method Extension|set#property(final core::int* #this, core::int* value) → void
+  ;
+static method Extension|method(final core::int* #this) → core::int*
+  ;
+static method Extension|get#method(final core::int* #this) → () →* core::int*
+  return () → core::int* => self2::Extension|method(#this);
+static get topLevelProperty() → core::int*
+  ;
+static set topLevelProperty(core::int* value) → void
+  ;
+static method topLevelMethod() → dynamic
+  ;

@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddMissingParameterNamedTest);
   });
@@ -19,7 +19,7 @@ class AddMissingParameterNamedTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.ADD_MISSING_PARAMETER_NAMED;
 
-  test_constructor_hasNamed() async {
+  Future<void> test_constructor_hasNamed() async {
     await resolveTestUnit('''
 class A {
   A(int a, {int b}) {}
@@ -40,7 +40,7 @@ main() {
 ''');
   }
 
-  test_constructor_hasRequired() async {
+  Future<void> test_constructor_hasRequired() async {
     await resolveTestUnit('''
 class A {
   A(int a) {}
@@ -61,7 +61,7 @@ main() {
 ''');
   }
 
-  test_constructor_noParameters() async {
+  Future<void> test_constructor_noParameters() async {
     await resolveTestUnit('''
 class A {
   A() {}
@@ -82,7 +82,7 @@ main() {
 ''');
   }
 
-  test_constructor_noParameters_named() async {
+  Future<void> test_constructor_noParameters_named() async {
     await resolveTestUnit('''
 class A {
   A.aaa() {}
@@ -103,7 +103,7 @@ main() {
 ''');
   }
 
-  test_function_hasNamed() async {
+  Future<void> test_function_hasNamed() async {
     await resolveTestUnit('''
 test(int a, {int b: 0}) {}
 
@@ -120,7 +120,7 @@ main() {
 ''');
   }
 
-  test_function_hasRequired() async {
+  Future<void> test_function_hasRequired() async {
     await resolveTestUnit('''
 test(int a) {}
 
@@ -137,7 +137,7 @@ main() {
 ''');
   }
 
-  test_function_noParameters() async {
+  Future<void> test_function_noParameters() async {
     await resolveTestUnit('''
 test() {}
 
@@ -154,7 +154,7 @@ main() {
 ''');
   }
 
-  test_method_hasNamed() async {
+  Future<void> test_method_hasNamed() async {
     await resolveTestUnit('''
 class A {
   test(int a, {int b: 0}) {}
@@ -175,7 +175,7 @@ class A {
 ''');
   }
 
-  test_method_hasOptionalPositional() async {
+  Future<void> test_method_hasOptionalPositional() async {
     await resolveTestUnit('''
 class A {
   test(int a, [int b]) {}
@@ -188,7 +188,7 @@ class A {
     await assertNoFix();
   }
 
-  test_method_hasRequired() async {
+  Future<void> test_method_hasRequired() async {
     await resolveTestUnit('''
 class A {
   test(int a) {}
@@ -209,7 +209,7 @@ class A {
 ''');
   }
 
-  test_method_noParameters() async {
+  Future<void> test_method_noParameters() async {
     await resolveTestUnit('''
 class A {
   test() {}

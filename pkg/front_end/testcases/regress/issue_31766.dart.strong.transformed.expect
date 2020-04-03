@@ -14,7 +14,7 @@ static method main() → dynamic {
     core::print("t.foo()=${t.{self::A::foo}()}");
   }
   bar.call<self::A*>(new self::A::•());
-  (<S extends self::A* = self::A*>(S* s) → core::Null* {
+  (<S extends self::A* = self::A*>(S* s) → core::Null? {
     core::print("s.foo()=${s.{self::A::foo}()}");
   }).call<self::A*>(new self::A::•());
 }

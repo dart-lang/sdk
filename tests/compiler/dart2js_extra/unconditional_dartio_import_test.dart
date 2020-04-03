@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /// Tests that dart2js allows to import dart:io for web clients, but it
 /// continues to indicate that it is not supported (so config-specific imports
 /// continue to have the same semantics as before).

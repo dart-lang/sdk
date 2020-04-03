@@ -6,8 +6,8 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:convert' show jsonDecode;
 
+import 'package:_fe_analyzer_shared/src/testing/annotated_code_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:front_end/src/testing/annotated_code_helper.dart';
 import 'package:source_maps/source_maps.dart';
 import 'package:source_maps/src/utils.dart';
 import 'package:source_span/source_span.dart';

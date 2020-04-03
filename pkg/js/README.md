@@ -1,16 +1,27 @@
-Methods and annotations to specify interoperability with JavaScript APIs.
+Use this package when you want to call JavaScript APIs from Dart code, or vice versa.
 
-### Example
+This package's main library, `js`, provides annotations and functions
+that let you specify how your Dart code interoperates with JavaScript code.
+The Dart-to-JavaScript compilers — dartdevc and dart2js — recognize these
+annotations, using them to connect your Dart code with JavaScript.
+
+**Important:** This library supersedes `dart:js`, so don't import `dart:js`.
+Instead, import `package:js/js.dart`.
+
+A second library in this package, `js_util`, provides low-level utilities
+that you can use when it isn't possible to wrap JavaScript with a static, annotated API.
+
+
+## Example
 
 See the [Chart.js Dart API](https://github.com/google/chartjs.dart/) for an
 end-to-end example.
 
-### Usage
+## Usage
 
-All Dart code interacting with JavaScript should use the utilities provided with
-`package:js`. Developers should avoid importing `dart:js` directly.
+The following examples show how to handle common interoperability tasks.
 
-#### Calling methods
+### Calling JavaScript functions
 
 ```dart
 @JS()
@@ -23,7 +34,7 @@ import 'package:js/js.dart';
 external String stringify(Object obj);
 ```
 
-#### Classes and Namespaces
+### Using JavaScript namespaces and classes
 
 ```dart
 @JS('google.maps')
@@ -52,7 +63,7 @@ class Location {
 }
 ```
 
-#### JavaScript object literals
+### Passing object literals to JavaScript
 
 Many JavaScript APIs take an object literal as an argument. For example:
 ```js
@@ -88,18 +99,12 @@ class Options {
 }
 ```
 
-#### Passing functions to JavaScript
+### Making a Dart function callable from JavaScript
 
-If you are passing a Dart function to a JavaScript API as an argument , you must
-wrap it using `allowInterop` or `allowInteropCaptureThis`. **Warning** There is
-a behavior difference between the Dart2JS and DDC compilers. When compiled with
-DDC there will be no errors despite missing `allowInterop` calls, because DDC
-uses JS calling semantics by default. When compiling with Dart2JS the
-`allowInterop` utility must be used.
+If you pass a Dart function to a JavaScript API as an argument,
+wrap the Dart function using `allowInterop()` or `allowInteropCaptureThis()`.
 
-#### Making a Dart function callable from JavaScript
-
-To provide a Dart function callable from JavaScript by name use a setter
+To make a Dart function callable from JavaScript _by name_, use a setter
 annotated with `@JS()`.
 
 ```dart
@@ -126,35 +131,25 @@ void main() {
 }
 ```
 
+## Reporting issues
+
+Please file bugs and feature requests on the [SDK issue tracker][issues].
+
+[issues]: https://goo.gl/j3rzs0
+
+
 ## Known limitations and bugs
 
-### Differences betwenn Dart2JS and DDC
+<!-- [TODO: add intro. perhaps move this to another page?] -->
+
+### Differences between dart2js and dartdevc
 
 Dart's production and development JavaScript compilers use different calling
 conventions and type representation, and therefore have different challenges in
-JavaScript interop. There are currently some know differences in behavior and
+JavaScript interop. There are currently some known differences in behavior and
 bugs in one or both compilers.
 
-#### allowInterop is required in Dart2JS, optional in DDC
-
-DDC uses the same calling conventions as JavaScript and so Dart functions passed
-as callbacks can be invoked without modification. In Dart2JS the calling
-conventions are different and so `allowInterop` or `allowInteropCaptureThis`
-must be used for any callback.
-
-**Workaround:**: Always use `allowInterop` even when not required in DDC.
-
-#### Callbacks allow extra ignored arguments in DDC
-
-In JavaScript a caller may pass any number of "extra" arguments to a function
-and they will be ignored. DDC follows this behavior, Dart2JS will have a runtime
-error if a function is invoked with more arguments than expected.
-
-**Workaround:** Write functions that take the same number of arguments as will
-be passed from JavaScript. If the number is variable use optional positional
-arguments.
-
-#### DDC and Dart2JS have different representation for Maps
+#### Dartdevc and dart2js have different representation for Maps
 
 Passing a `Map<String, String>` as an argument to a JavaScript function will
 have different behavior depending on the compiler. Calling something like
@@ -163,20 +158,20 @@ have different behavior depending on the compiler. Calling something like
 **Workaround:** Only pass object literals instead of Maps as arguments. For json
 specifically use `jsonEncode` in Dart rather than a JS alternative.
 
-#### Missing validation for anonymous factory constructors in DDC
+#### Missing validation for anonymous factory constructors in dartdevc
 
-When using an `@anonymous` class to create JavaScript object literals Dart2JS
-will enforce that only named arguments are used, while DDC will allow positional
+When using an `@anonymous` class to create JavaScript object literals dart2js
+will enforce that only named arguments are used, while dartdevc will allow positional
 arguments but may generate incorrect code.
 
 **Workaround:** Try builds in both development and release mode to get the full
 scope of static validation.
 
-### Sharp Edges
+### Common problems
 
-Dart and JavaScript have different semantics and common patterns which makes it
-easy to make some mistakes, and difficult for the tools to provide safety. These
-sharp edges are known pitfalls.
+Dart and JavaScript have different semantics and common patterns, which makes it
+easy to make some mistakes and difficult for the tools to provide safety. These
+common problems are also known as _sharp edges_.
 
 #### Lack of runtime type checking
 
@@ -194,8 +189,9 @@ from a JavaScript function cannot make guarantees about it's elements without
 inspecting each one. At runtime a check like `result is List` may succeed, while
 `result is List<String>` will always fail.
 
-**Workaround:** Use a `.cast<String>().toList()` call to get a `List` with the
-expected reified type at runtime.
+**Workaround:** Use `.cast()` or construct a new `List` to get an instance with
+the expected reified type. For instance if you want a `List<String>` use
+`.cast<String>()` or `List<String>.from`.
 
 #### The `JsObject` type from `dart:js` can't be used with `@JS()` annotation
 
@@ -205,9 +201,3 @@ be passed as an argument to a method annotated with `@JS()`.
 **Workaround:** Avoid importing `dart:js` and only use the `package:js` provided
 approach. To handle object literals use `@anonymous` on an `@JS()` annotated
 class.
-
-## Reporting issues
-
-Please file bugs and features requests on the [SDK issue tracker][issues].
-
-[issues]: https://goo.gl/j3rzs0

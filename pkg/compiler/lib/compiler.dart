@@ -89,12 +89,8 @@ class CompilationResult {
 /// to the compiled script. This behavior will be removed in the future
 /// as the compiler may create multiple files to support lazy loading
 /// of libraries.
-Future<CompilationResult> compile(
-    Uri script,
-    Uri librariesSpecificationUri,
-    Uri packageRoot,
-    CompilerInputProvider inputProvider,
-    DiagnosticHandler handler,
+Future<CompilationResult> compile(Uri script, Uri librariesSpecificationUri,
+    CompilerInputProvider inputProvider, DiagnosticHandler handler,
     [List<String> options = const [],
     CompilerOutputProvider outputProvider,
     Map<String, String> environment = const {},
@@ -102,7 +98,6 @@ Future<CompilationResult> compile(
   CompilerOptions compilerOptions = CompilerOptions.parse(options,
       librariesSpecificationUri: librariesSpecificationUri)
     ..entryPoint = script
-    ..packageRoot = packageRoot
     ..packageConfig = packageConfig
     ..environment = environment;
 

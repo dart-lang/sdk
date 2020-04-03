@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/element/type.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:test/test.dart';
@@ -27,7 +28,67 @@ class NodeBuilderTest extends MigrationVisitorTestBase {
       variables.decoratedTypeParameterBound(
           findNode.typeParameter(search).declaredElement);
 
-  test_class_alias_synthetic_constructors_no_parameters() async {
+  Future<void> test_catch_clause_with_stacktrace_with_on() async {
+    await analyze('''
+void f() {
+  try {} on String catch (ex, st) {}
+}
+''');
+    var exceptionType =
+        variables.decoratedElementType(findNode.simple('ex').staticElement);
+    expect(exceptionType.node, TypeMatcher<NullabilityNodeMutable>());
+    var stackTraceType =
+        variables.decoratedElementType(findNode.simple('st').staticElement);
+    assertEdge(stackTraceType.node, never, hard: true, checkable: false);
+  }
+
+  Future<void> test_catch_clause_with_stacktrace_without_on() async {
+    await analyze('''
+void f() {
+  try {} catch (ex, st) {}
+}
+''');
+    var exceptionType =
+        variables.decoratedElementType(findNode.simple('ex').staticElement);
+    expect(exceptionType.node.isImmutable, false);
+    var stackTraceType =
+        variables.decoratedElementType(findNode.simple('st').staticElement);
+    assertEdge(stackTraceType.node, never, hard: true, checkable: false);
+  }
+
+  Future<void> test_catch_clause_without_catch() async {
+    await analyze('''
+void f() {
+  try {} on String {}
+}
+''');
+    // No assertions, since no variables are declared; we just want to make sure
+    // we don't crash.
+  }
+
+  Future<void> test_catch_clause_without_stacktrace_with_on() async {
+    await analyze('''
+void f() {
+  try {} on String catch (ex) {}
+}
+''');
+    var exceptionType =
+        variables.decoratedElementType(findNode.simple('ex').staticElement);
+    expect(exceptionType.node, TypeMatcher<NullabilityNodeMutable>());
+  }
+
+  Future<void> test_catch_clause_without_stacktrace_without_on() async {
+    await analyze('''
+void f() {
+  try {} catch (ex) {}
+}
+''');
+    var exceptionType =
+        variables.decoratedElementType(findNode.simple('ex').staticElement);
+    expect(exceptionType.node.isImmutable, false);
+  }
+
+  Future<void> test_class_alias_synthetic_constructors_no_parameters() async {
     await analyze('''
 class C {
   C.a();
@@ -40,21 +101,21 @@ class D = C with M;
     expect(constructors, hasLength(2));
     var a = findElement.constructor('a', of: 'D');
     var aType = variables.decoratedElementType(a);
-    expect(aType.type.toString(), 'D Function()');
+    _assertType(aType.type, 'D Function()');
     expect(aType.node, same(never));
     expect(aType.typeArguments, isEmpty);
-    expect(aType.returnType.type.toString(), 'D');
+    _assertType(aType.returnType.type, 'D');
     expect(aType.returnType.node, same(never));
     var b = findElement.constructor('b', of: 'D');
     var bType = variables.decoratedElementType(b);
-    expect(bType.type.toString(), 'D Function()');
+    _assertType(bType.type, 'D Function()');
     expect(bType.node, same(never));
     expect(bType.typeArguments, isEmpty);
-    expect(bType.returnType.type.toString(), 'D');
+    _assertType(bType.returnType.type, 'D');
     expect(bType.returnType.node, same(never));
   }
 
-  test_class_alias_synthetic_constructors_with_parameters() async {
+  Future<void> test_class_alias_synthetic_constructors_with_parameters() async {
     await analyze('''
 class C {
   C.a(int i);
@@ -69,61 +130,61 @@ class D = C with M;
     expect(constructors, hasLength(4));
     var a = findElement.constructor('a', of: 'D');
     var aType = variables.decoratedElementType(a);
-    expect(aType.type.toString(), 'D Function(int)');
+    _assertType(aType.type, 'D Function(int)');
     expect(aType.node, same(never));
     expect(aType.typeArguments, isEmpty);
-    expect(aType.returnType.type.toString(), 'D');
+    _assertType(aType.returnType.type, 'D');
     expect(aType.returnType.node, same(never));
     expect(aType.positionalParameters, hasLength(1));
-    expect(aType.positionalParameters[0].type.toString(), 'int');
+    _assertType(aType.positionalParameters[0].type, 'int');
     expect(aType.positionalParameters[0].node,
         TypeMatcher<NullabilityNodeMutable>());
     expect(aType.namedParameters, isEmpty);
     var b = findElement.constructor('b', of: 'D');
     var bType = variables.decoratedElementType(b);
-    expect(bType.type.toString(), 'D Function([int])');
+    _assertType(bType.type, 'D Function([int])');
     expect(bType.node, same(never));
     expect(bType.typeArguments, isEmpty);
-    expect(bType.returnType.type.toString(), 'D');
+    _assertType(bType.returnType.type, 'D');
     expect(bType.returnType.node, same(never));
     expect(bType.positionalParameters, hasLength(1));
-    expect(bType.positionalParameters[0].type.toString(), 'int');
+    _assertType(bType.positionalParameters[0].type, 'int');
     expect(bType.positionalParameters[0].node,
         TypeMatcher<NullabilityNodeMutable>());
     expect(bType.namedParameters, isEmpty);
     var c = findElement.constructor('c', of: 'D');
     var cType = variables.decoratedElementType(c);
-    expect(cType.type.toString(), 'D Function({i: int})');
+    _assertType(cType.type, 'D Function({int i})');
     expect(cType.node, same(never));
     expect(cType.typeArguments, isEmpty);
-    expect(cType.returnType.type.toString(), 'D');
+    _assertType(cType.returnType.type, 'D');
     expect(cType.returnType.node, same(never));
     expect(cType.positionalParameters, isEmpty);
     expect(cType.namedParameters, hasLength(1));
     expect(cType.namedParameters, contains('i'));
-    expect(cType.namedParameters['i'].type.toString(), 'int');
+    _assertType(cType.namedParameters['i'].type, 'int');
     expect(
         cType.namedParameters['i'].node, TypeMatcher<NullabilityNodeMutable>());
     var d = findElement.constructor('d', of: 'D');
     var dType = variables.decoratedElementType(d);
-    expect(dType.type.toString(), 'D Function(List<int>)');
+    _assertType(dType.type, 'D Function(List<int>)');
     expect(dType.node, same(never));
     expect(dType.typeArguments, isEmpty);
-    expect(dType.returnType.type.toString(), 'D');
+    _assertType(dType.returnType.type, 'D');
     expect(dType.returnType.node, same(never));
     expect(dType.positionalParameters, hasLength(1));
-    expect(dType.positionalParameters[0].type.toString(), 'List<int>');
+    _assertType(dType.positionalParameters[0].type, 'List<int>');
     expect(dType.positionalParameters[0].node,
         TypeMatcher<NullabilityNodeMutable>());
     expect(dType.positionalParameters[0].typeArguments, hasLength(1));
-    expect(
-        dType.positionalParameters[0].typeArguments[0].type.toString(), 'int');
+    _assertType(dType.positionalParameters[0].typeArguments[0].type, 'int');
     expect(dType.positionalParameters[0].typeArguments[0].node,
         TypeMatcher<NullabilityNodeMutable>());
     expect(dType.namedParameters, isEmpty);
   }
 
-  test_class_alias_synthetic_constructors_with_parameters_generic() async {
+  Future<void>
+      test_class_alias_synthetic_constructors_with_parameters_generic() async {
     await analyze('''
 class C<T> {
   C(T t);
@@ -133,55 +194,55 @@ class D<U> = C<U> with M;
 ''');
     var dConstructor = findElement.unnamedConstructor('D');
     var dConstructorType = variables.decoratedElementType(dConstructor);
-    expect(dConstructorType.type.toString(), 'D<U> Function(U)');
+    _assertType(dConstructorType.type, 'D<U> Function(U)');
     expect(dConstructorType.node, same(never));
     expect(dConstructorType.typeFormals, isEmpty);
-    expect(dConstructorType.returnType.type.toString(), 'D<U>');
+    _assertType(dConstructorType.returnType.type, 'D<U>');
     expect(dConstructorType.returnType.node, same(never));
     var typeArguments = dConstructorType.returnType.typeArguments;
     expect(typeArguments, hasLength(1));
-    expect(typeArguments[0].type.toString(), 'U');
+    _assertType(typeArguments[0].type, 'U');
     expect(typeArguments[0].node, same(never));
     var dParams = dConstructorType.positionalParameters;
     expect(dParams, hasLength(1));
-    expect(dParams[0].type.toString(), 'U');
+    _assertType(dParams[0].type, 'U');
     expect(dParams[0].node, TypeMatcher<NullabilityNodeMutable>());
   }
 
-  test_class_with_default_constructor() async {
+  Future<void> test_class_with_default_constructor() async {
     await analyze('''
 class C {}
 ''');
     var defaultConstructor = findElement.class_('C').constructors.single;
     var decoratedConstructorType =
         variables.decoratedElementType(defaultConstructor);
-    expect(decoratedConstructorType.type.toString(), 'C Function()');
+    _assertType(decoratedConstructorType.type, 'C Function()');
     expect(decoratedConstructorType.node, same(never));
-    expect(decoratedConstructorType.returnType.type.toString(), 'C');
+    _assertType(decoratedConstructorType.returnType.type, 'C');
     expect(decoratedConstructorType.returnType.node, same(never));
   }
 
-  test_class_with_default_constructor_generic() async {
+  Future<void> test_class_with_default_constructor_generic() async {
     await analyze('''
 class C<T, U> {}
 ''');
     var defaultConstructor = findElement.class_('C').constructors.single;
     var decoratedConstructorType =
         variables.decoratedElementType(defaultConstructor);
-    expect(decoratedConstructorType.type.toString(), 'C<T, U> Function()');
+    _assertType(decoratedConstructorType.type, 'C<T, U> Function()');
     expect(decoratedConstructorType.node, same(never));
     expect(decoratedConstructorType.typeArguments, isEmpty);
     var returnType = decoratedConstructorType.returnType;
-    expect(returnType.type.toString(), 'C<T, U>');
+    _assertType(returnType.type, 'C<T, U>');
     expect(returnType.node, same(never));
     expect(returnType.typeArguments, hasLength(2));
-    expect(returnType.typeArguments[0].type.toString(), 'T');
+    _assertType(returnType.typeArguments[0].type, 'T');
     expect(returnType.typeArguments[0].node, same(never));
-    expect(returnType.typeArguments[1].type.toString(), 'U');
+    _assertType(returnType.typeArguments[1].type, 'U');
     expect(returnType.typeArguments[1].node, same(never));
   }
 
-  test_constructor_factory() async {
+  Future<void> test_constructor_factory() async {
     await analyze('''
 class C {
   C._();
@@ -192,7 +253,7 @@ class C {
     expect(decoratedType.node, same(never));
   }
 
-  test_constructor_metadata() async {
+  Future<void> test_constructor_metadata() async {
     await analyze('''
 class A {
   final Object x;
@@ -207,7 +268,7 @@ class C {
     expect(node, TypeMatcher<NullabilityNodeMutable>());
   }
 
-  test_constructor_returnType_implicit_dynamic() async {
+  Future<void> test_constructor_returnType_implicit_dynamic() async {
     await analyze('''
 class C {
   C();
@@ -217,7 +278,7 @@ class C {
     expect(decoratedType.node, same(never));
   }
 
-  test_constructorFieldInitializer_visit_expression() async {
+  Future<void> test_constructorFieldInitializer_visit_expression() async {
     await analyze('''
 class C {
   C() : f = <int>[];
@@ -228,14 +289,14 @@ class C {
     expect(node, TypeMatcher<NullabilityNodeMutable>());
   }
 
-  test_directSupertypes_class_extends() async {
+  Future<void> test_directSupertypes_class_extends() async {
     await analyze('''
 class C<T, U> {}
 class D<V> extends C<int, V> {}
 ''');
     var types = decoratedDirectSupertypes('D');
     var decorated = types[findElement.class_('C')];
-    expect(decorated.type.toString(), 'C<int, V>');
+    _assertType(decorated.type, 'C<int, V>');
     expect(decorated.node, same(never));
     expect(decorated.typeArguments, hasLength(2));
     expect(decorated.typeArguments[0].node,
@@ -244,25 +305,25 @@ class D<V> extends C<int, V> {}
         same(decoratedTypeAnnotation('V> {').node));
   }
 
-  test_directSupertypes_class_extends_default() async {
+  Future<void> test_directSupertypes_class_extends_default() async {
     await analyze('''
 class C<T, U> {}
 ''');
     var types = decoratedDirectSupertypes('C');
     var decorated = types[typeProvider.objectType.element];
-    expect(decorated.type.toString(), 'Object');
-    expect(decorated.node, same(never));
+    _assertType(decorated.type, 'Object');
+    assertEdge(decorated.node, never, hard: true, checkable: false);
     expect(decorated.typeArguments, isEmpty);
   }
 
-  test_directSupertypes_class_implements() async {
+  Future<void> test_directSupertypes_class_implements() async {
     await analyze('''
 class C<T, U> {}
 class D<V> implements C<int, V> {}
 ''');
     var types = decoratedDirectSupertypes('D');
     var decorated = types[findElement.class_('C')];
-    expect(decorated.type.toString(), 'C<int, V>');
+    _assertType(decorated.type, 'C<int, V>');
     expect(decorated.node, same(never));
     expect(decorated.typeArguments, hasLength(2));
     expect(decorated.typeArguments[0].node,
@@ -271,14 +332,14 @@ class D<V> implements C<int, V> {}
         same(decoratedTypeAnnotation('V> {').node));
   }
 
-  test_directSupertypes_class_with() async {
+  Future<void> test_directSupertypes_class_with() async {
     await analyze('''
 class C<T, U> {}
 class D<V> extends Object with C<int, V> {}
 ''');
     var types = decoratedDirectSupertypes('D');
     var decorated = types[findElement.class_('C')];
-    expect(decorated.type.toString(), 'C<int, V>');
+    _assertType(decorated.type, 'C<int, V>');
     expect(decorated.node, same(never));
     expect(decorated.typeArguments, hasLength(2));
     expect(decorated.typeArguments[0].node,
@@ -287,7 +348,7 @@ class D<V> extends Object with C<int, V> {}
         same(decoratedTypeAnnotation('V> {').node));
   }
 
-  test_directSupertypes_classAlias_extends() async {
+  Future<void> test_directSupertypes_classAlias_extends() async {
     await analyze('''
 class M {}
 class C<T, U> {}
@@ -295,7 +356,7 @@ class D<V> = C<int, V> with M;
 ''');
     var types = decoratedDirectSupertypes('D');
     var decorated = types[findElement.class_('C')];
-    expect(decorated.type.toString(), 'C<int, V>');
+    _assertType(decorated.type, 'C<int, V>');
     expect(decorated.node, same(never));
     expect(decorated.typeArguments, hasLength(2));
     expect(decorated.typeArguments[0].node,
@@ -304,7 +365,7 @@ class D<V> = C<int, V> with M;
         same(decoratedTypeAnnotation('V> w').node));
   }
 
-  test_directSupertypes_classAlias_implements() async {
+  Future<void> test_directSupertypes_classAlias_implements() async {
     await analyze('''
 class M {}
 class C<T, U> {}
@@ -312,7 +373,7 @@ class D<V> = Object with M implements C<int, V>;
 ''');
     var types = decoratedDirectSupertypes('D');
     var decorated = types[findElement.class_('C')];
-    expect(decorated.type.toString(), 'C<int, V>');
+    _assertType(decorated.type, 'C<int, V>');
     expect(decorated.node, same(never));
     expect(decorated.typeArguments, hasLength(2));
     expect(decorated.typeArguments[0].node,
@@ -321,14 +382,14 @@ class D<V> = Object with M implements C<int, V>;
         same(decoratedTypeAnnotation('V>;').node));
   }
 
-  test_directSupertypes_classAlias_with() async {
+  Future<void> test_directSupertypes_classAlias_with() async {
     await analyze('''
 class C<T, U> {}
 class D<V> = Object with C<int, V>;
 ''');
     var types = decoratedDirectSupertypes('D');
     var decorated = types[findElement.class_('C')];
-    expect(decorated.type.toString(), 'C<int, V>');
+    _assertType(decorated.type, 'C<int, V>');
     expect(decorated.node, same(never));
     expect(decorated.typeArguments, hasLength(2));
     expect(decorated.typeArguments[0].node,
@@ -337,25 +398,38 @@ class D<V> = Object with C<int, V>;
         same(decoratedTypeAnnotation('V>;').node));
   }
 
-  test_directSupertypes_mixin_extends_default() async {
+  Future<void> test_directSupertypes_dartCoreClass() async {
+    await analyze('''
+abstract class D<V> extends Iterable<V> {}
+''');
+    var types = decoratedDirectSupertypes('D');
+    var super_ = types.values.single;
+    _assertType(super_.type, 'Iterable<V>');
+    expect(super_.node, same(never));
+    expect(super_.typeArguments, hasLength(1));
+    expect(super_.typeArguments[0].node,
+        same(decoratedTypeAnnotation('V> {').node));
+  }
+
+  Future<void> test_directSupertypes_mixin_extends_default() async {
     await analyze('''
 mixin C<T, U> {}
 ''');
     var types = decoratedDirectSupertypes('C');
     var decorated = types[typeProvider.objectType.element];
-    expect(decorated.type.toString(), 'Object');
-    expect(decorated.node, same(never));
+    _assertType(decorated.type, 'Object');
+    assertEdge(decorated.node, never, hard: true, checkable: false);
     expect(decorated.typeArguments, isEmpty);
   }
 
-  test_directSupertypes_mixin_implements() async {
+  Future<void> test_directSupertypes_mixin_implements() async {
     await analyze('''
 class C<T, U> {}
 mixin D<V> implements C<int, V> {}
 ''');
     var types = decoratedDirectSupertypes('D');
     var decorated = types[findElement.class_('C')];
-    expect(decorated.type.toString(), 'C<int, V>');
+    _assertType(decorated.type, 'C<int, V>');
     expect(decorated.node, same(never));
     expect(decorated.typeArguments, hasLength(2));
     expect(decorated.typeArguments[0].node,
@@ -364,14 +438,14 @@ mixin D<V> implements C<int, V> {}
         same(decoratedTypeAnnotation('V> {').node));
   }
 
-  test_directSupertypes_mixin_on() async {
+  Future<void> test_directSupertypes_mixin_on() async {
     await analyze('''
 class C<T, U> {}
 mixin D<V> on C<int, V> {}
 ''');
     var types = decoratedDirectSupertypes('D');
     var decorated = types[findElement.class_('C')];
-    expect(decorated.type.toString(), 'C<int, V>');
+    _assertType(decorated.type, 'C<int, V>');
     expect(decorated.node, same(never));
     expect(decorated.typeArguments, hasLength(2));
     expect(decorated.typeArguments[0].node,
@@ -380,16 +454,34 @@ mixin D<V> on C<int, V> {}
         same(decoratedTypeAnnotation('V> {').node));
   }
 
-  test_dynamic_type() async {
+  Future<void> test_displayName_explicitParameterType_named() async {
+    await analyze('void f({int x, int y}) {}');
+    expect(decoratedTypeAnnotation('int x').node.displayName,
+        'parameter x of f (test.dart:1:9)');
+    expect(decoratedTypeAnnotation('int y').node.displayName,
+        'parameter y of f (test.dart:1:16)');
+  }
+
+  Future<void> test_displayName_explicitParameterType_positional() async {
+    await analyze('void f(int x, int y, [int z]) {}');
+    expect(decoratedTypeAnnotation('int x').node.displayName,
+        'parameter 0 of f (test.dart:1:8)');
+    expect(decoratedTypeAnnotation('int y').node.displayName,
+        'parameter 1 of f (test.dart:1:15)');
+    expect(decoratedTypeAnnotation('int z').node.displayName,
+        'parameter 2 of f (test.dart:1:23)');
+  }
+
+  Future<void> test_dynamic_type() async {
     await analyze('''
 dynamic f() {}
 ''');
     var decoratedType = decoratedTypeAnnotation('dynamic');
     expect(decoratedFunctionType('f').returnType, same(decoratedType));
-    assertEdge(always, decoratedType.node, hard: false);
+    assertNoEdge(always, decoratedType.node);
   }
 
-  test_field_type_implicit_dynamic() async {
+  Future<void> test_field_type_implicit_dynamic() async {
     await analyze('''
 class C {
   var x;
@@ -397,10 +489,10 @@ class C {
 ''');
     var decoratedType =
         variables.decoratedElementType(findNode.simple('x').staticElement);
-    expect(decoratedType.node, same(always));
+    expect(decoratedType.node.isImmutable, false);
   }
 
-  test_field_type_inferred() async {
+  Future<void> test_field_type_inferred() async {
     await analyze('''
 class C {
   var x = 1;
@@ -411,7 +503,7 @@ class C {
     expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
   }
 
-  test_field_type_inferred_dynamic() async {
+  Future<void> test_field_type_inferred_dynamic() async {
     await analyze('''
 dynamic f() {}
 class C {
@@ -420,10 +512,10 @@ class C {
 ''');
     var decoratedType =
         variables.decoratedElementType(findNode.simple('x').staticElement);
-    expect(decoratedType.node, same(always));
+    expect(decoratedType.node.isImmutable, false);
   }
 
-  test_field_type_simple() async {
+  Future<void> test_field_type_simple() async {
     await analyze('''
 class C {
   int f = 0;
@@ -437,7 +529,7 @@ class C {
         same(decoratedType));
   }
 
-  test_fieldFormalParameter_function_namedParameter_typed() async {
+  Future<void> test_fieldFormalParameter_function_namedParameter_typed() async {
     await analyze('''
 class C {
   Object f;
@@ -454,7 +546,8 @@ class C {
         same(decoratedTypeAnnotation('int')));
   }
 
-  test_fieldFormalParameter_function_namedParameter_untyped() async {
+  Future<void>
+      test_fieldFormalParameter_function_namedParameter_untyped() async {
     await analyze('''
 class C {
   Object f;
@@ -467,11 +560,12 @@ class C {
     var ctorParamType = variables.decoratedElementType(ctorParam);
     expect(ctorType.positionalParameters[0], same(ctorParamType));
     expect(ctorParamType.node, TypeMatcher<NullabilityNodeMutable>());
-    expect(ctorParamType.namedParameters['i'].type.toString(), 'dynamic');
-    expect(ctorParamType.namedParameters['i'].node, same(always));
+    _assertType(ctorParamType.namedParameters['i'].type, 'dynamic');
+    expect(ctorParamType.namedParameters['i'].node.isImmutable, false);
   }
 
-  test_fieldFormalParameter_function_positionalParameter_typed() async {
+  Future<void>
+      test_fieldFormalParameter_function_positionalParameter_typed() async {
     await analyze('''
 class C {
   Object f;
@@ -488,7 +582,8 @@ class C {
         same(decoratedTypeAnnotation('int')));
   }
 
-  test_fieldFormalParameter_function_positionalParameter_untyped() async {
+  Future<void>
+      test_fieldFormalParameter_function_positionalParameter_untyped() async {
     await analyze('''
 class C {
   Object f;
@@ -501,11 +596,11 @@ class C {
     var ctorParamType = variables.decoratedElementType(ctorParam);
     expect(ctorType.positionalParameters[0], same(ctorParamType));
     expect(ctorParamType.node, TypeMatcher<NullabilityNodeMutable>());
-    expect(ctorParamType.positionalParameters[0].type.toString(), 'dynamic');
-    expect(ctorParamType.positionalParameters[0].node, same(always));
+    _assertType(ctorParamType.positionalParameters[0].type, 'dynamic');
+    expect(ctorParamType.positionalParameters[0].node.isImmutable, false);
   }
 
-  test_fieldFormalParameter_function_return_typed() async {
+  Future<void> test_fieldFormalParameter_function_return_typed() async {
     await analyze('''
 class C {
   Object f;
@@ -521,7 +616,7 @@ class C {
     expect(ctorParamType.returnType, same(decoratedTypeAnnotation('int')));
   }
 
-  test_fieldFormalParameter_function_return_untyped() async {
+  Future<void> test_fieldFormalParameter_function_return_untyped() async {
     await analyze('''
 class C {
   Object f;
@@ -534,11 +629,11 @@ class C {
     var ctorParamType = variables.decoratedElementType(ctorParam);
     expect(ctorType.positionalParameters[0], same(ctorParamType));
     expect(ctorParamType.node, TypeMatcher<NullabilityNodeMutable>());
-    expect(ctorParamType.returnType.type.toString(), 'dynamic');
-    expect(ctorParamType.returnType.node, same(always));
+    _assertType(ctorParamType.returnType.type, 'dynamic');
+    expect(ctorParamType.returnType.node.isImmutable, false);
   }
 
-  test_fieldFormalParameter_typed() async {
+  Future<void> test_fieldFormalParameter_typed() async {
     await analyze('''
 class C {
   int i;
@@ -549,14 +644,14 @@ class C {
         decoratedConstructorDeclaration('named').positionalParameters[0];
     expect(decoratedTypeAnnotation('int this'),
         same(decoratedConstructorParamType));
-    expect(decoratedConstructorParamType.type.toString(), 'int');
+    _assertType(decoratedConstructorParamType.type, 'int');
     expect(decoratedConstructorParamType.node,
         TypeMatcher<NullabilityNodeMutable>());
     // Note: the edge builder will connect this node to the node for the type of
     // the field.
   }
 
-  test_fieldFormalParameter_untyped() async {
+  Future<void> test_fieldFormalParameter_untyped() async {
     await analyze('''
 class C {
   int i;
@@ -565,37 +660,44 @@ class C {
 ''');
     var decoratedConstructorParamType =
         decoratedConstructorDeclaration('named').positionalParameters[0];
-    expect(decoratedConstructorParamType.type.toString(), 'int');
+    _assertType(decoratedConstructorParamType.type, 'int');
     expect(decoratedConstructorParamType.node,
         TypeMatcher<NullabilityNodeMutable>());
     // Note: the edge builder will unify this implicit type with the type of the
     // field.
   }
 
-  test_function_generic_bounded() async {
+  Future<void> test_function_explicit_returnType() async {
+    await analyze('''
+class C {
+  int f() => null;
+}
+''');
+    var decoratedType = decoratedTypeAnnotation('int');
+    expect(
+        decoratedType.node.displayName, 'return type of C.f (test.dart:2:3)');
+  }
+
+  Future<void> test_function_generic_bounded() async {
     await analyze('''
 T f<T extends Object>(T t) => t;
 ''');
-    var decoratedType = decoratedFunctionType('f');
     var bound = decoratedTypeParameterBound('T extends');
-    expect(decoratedType.typeFormalBounds[0], same(bound));
     expect(decoratedTypeAnnotation('Object'), same(bound));
     expect(bound.node, isNot(always));
     expect(bound.type, typeProvider.objectType);
   }
 
-  test_function_generic_implicit_bound() async {
+  Future<void> test_function_generic_implicit_bound() async {
     await analyze('''
 T f<T>(T t) => t;
 ''');
-    var decoratedType = decoratedFunctionType('f');
     var bound = decoratedTypeParameterBound('T>');
-    expect(decoratedType.typeFormalBounds[0], same(bound));
-    assertUnion(always, bound.node);
+    assertEdge(always, bound.node, hard: false);
     expect(bound.type, same(typeProvider.objectType));
   }
 
-  test_function_metadata() async {
+  Future<void> test_function_metadata() async {
     await analyze('''
 class A {
   final Object x;
@@ -608,7 +710,7 @@ f() {}
     expect(node, TypeMatcher<NullabilityNodeMutable>());
   }
 
-  test_functionExpression() async {
+  Future<void> test_functionExpression() async {
     await analyze('''
 void f() {
   var x = (int i) => 1;
@@ -625,7 +727,69 @@ void f() {
         decoratedType.returnType.node, TypeMatcher<NullabilityNodeMutable>());
   }
 
-  test_functionTypedFormalParameter_namedParameter_typed() async {
+  Future<void> test_functionExpression_returns_bottom() async {
+    await analyze('''
+void f() {
+  var x = (int i) => throw 'foo';
+}
+''');
+    var functionExpressionElement =
+        findNode.simpleParameter('int i').declaredElement.enclosingElement;
+    var decoratedType =
+        variables.decoratedElementType(functionExpressionElement);
+    expect(
+        decoratedType.returnType.node, TypeMatcher<NullabilityNodeMutable>());
+  }
+
+  Future<void> test_functionTypeAlias_generic() async {
+    await analyze('''
+typedef T F<T, U>(U u);
+''');
+    var element = findElement.functionTypeAlias('F');
+    var decoratedType = variables.decoratedElementType(element.function);
+    var t = element.typeParameters[0];
+    var u = element.typeParameters[1];
+    // typeFormals should be empty because this is not a generic function type,
+    // it's a generic typedef that defines an ordinary (non-generic) function
+    // type.
+    expect(decoratedType.typeFormals, isEmpty);
+    expect(decoratedType.returnType, same(decoratedTypeAnnotation('T F')));
+    expect(
+        (decoratedType.returnType.type as TypeParameterType).element, same(t));
+    expect(
+        decoratedType.returnType.node, TypeMatcher<NullabilityNodeMutable>());
+    expect(
+        (decoratedType.positionalParameters[0].type as TypeParameterType)
+            .element,
+        same(u));
+    expect(decoratedType.positionalParameters[0].node,
+        TypeMatcher<NullabilityNodeMutable>());
+  }
+
+  Future<void> test_functionTypeAlias_implicit_return_type() async {
+    await analyze('''
+typedef F();
+''');
+    var decoratedType = variables
+        .decoratedElementType(findElement.functionTypeAlias('F').function);
+    expect(decoratedType.returnType.type.isDynamic, isTrue);
+    expect(decoratedType.returnType.node.isImmutable, false);
+    expect(decoratedType.typeFormals, isEmpty);
+  }
+
+  Future<void> test_functionTypeAlias_simple() async {
+    await analyze('''
+typedef int F(String s);
+''');
+    var decoratedType = variables
+        .decoratedElementType(findElement.functionTypeAlias('F').function);
+    expect(decoratedType.returnType, same(decoratedTypeAnnotation('int')));
+    expect(decoratedType.typeFormals, isEmpty);
+    expect(decoratedType.positionalParameters[0],
+        same(decoratedTypeAnnotation('String')));
+  }
+
+  Future<void> test_functionTypedFormalParameter_namedParameter_typed() async {
     await analyze('''
 void f(void g({int i})) {}
 ''');
@@ -638,7 +802,8 @@ void f(void g({int i})) {}
     expect(gType.namedParameters['i'], same(decoratedTypeAnnotation('int')));
   }
 
-  test_functionTypedFormalParameter_namedParameter_untyped() async {
+  Future<void>
+      test_functionTypedFormalParameter_namedParameter_untyped() async {
     await analyze('''
 void f(void g({i})) {}
 ''');
@@ -648,11 +813,12 @@ void f(void g({i})) {}
     var gType = variables.decoratedElementType(g);
     expect(fType.positionalParameters[0], same(gType));
     expect(gType.node, TypeMatcher<NullabilityNodeMutable>());
-    expect(gType.namedParameters['i'].type.toString(), 'dynamic');
-    expect(gType.namedParameters['i'].node, same(always));
+    _assertType(gType.namedParameters['i'].type, 'dynamic');
+    expect(gType.namedParameters['i'].node.isImmutable, false);
   }
 
-  test_functionTypedFormalParameter_positionalParameter_typed() async {
+  Future<void>
+      test_functionTypedFormalParameter_positionalParameter_typed() async {
     await analyze('''
 void f(void g(int i)) {}
 ''');
@@ -665,7 +831,8 @@ void f(void g(int i)) {}
     expect(gType.positionalParameters[0], same(decoratedTypeAnnotation('int')));
   }
 
-  test_functionTypedFormalParameter_positionalParameter_untyped() async {
+  Future<void>
+      test_functionTypedFormalParameter_positionalParameter_untyped() async {
     await analyze('''
 void f(void g(i)) {}
 ''');
@@ -675,11 +842,11 @@ void f(void g(i)) {}
     var gType = variables.decoratedElementType(g);
     expect(fType.positionalParameters[0], same(gType));
     expect(gType.node, TypeMatcher<NullabilityNodeMutable>());
-    expect(gType.positionalParameters[0].type.toString(), 'dynamic');
-    expect(gType.positionalParameters[0].node, same(always));
+    _assertType(gType.positionalParameters[0].type, 'dynamic');
+    expect(gType.positionalParameters[0].node.isImmutable, false);
   }
 
-  test_functionTypedFormalParameter_return_typed() async {
+  Future<void> test_functionTypedFormalParameter_return_typed() async {
     await analyze('''
 void f(int g()) {}
 ''');
@@ -692,7 +859,7 @@ void f(int g()) {}
     expect(gType.returnType, same(decoratedTypeAnnotation('int')));
   }
 
-  test_functionTypedFormalParameter_return_untyped() async {
+  Future<void> test_functionTypedFormalParameter_return_untyped() async {
     await analyze('''
 void f(g()) {}
 ''');
@@ -702,24 +869,31 @@ void f(g()) {}
     var gType = variables.decoratedElementType(g);
     expect(fType.positionalParameters[0], same(gType));
     expect(gType.node, TypeMatcher<NullabilityNodeMutable>());
-    expect(gType.returnType.type.toString(), 'dynamic');
-    expect(gType.returnType.node, same(always));
+    _assertType(gType.returnType.type, 'dynamic');
+    expect(gType.returnType.node.isImmutable, false);
   }
 
-  test_generic_function_type_syntax_inferred_dynamic_return() async {
+  Future<void> test_genericFunctionType_formals() async {
     await analyze('''
-abstract class C {
-  Function() f();
-}
+void f(T Function<T, U>(U) x) {}
 ''');
-    var decoratedFType = decoratedMethodType('f');
-    var decoratedFReturnType = decoratedFType.returnType;
-    var decoratedFReturnReturnType = decoratedFReturnType.returnType;
-    expect(decoratedFReturnReturnType.type.toString(), 'dynamic');
-    expect(decoratedFReturnReturnType.node, same(always));
+    var decoratedType = decoratedGenericFunctionTypeAnnotation('T Function');
+    expect(decoratedFunctionType('f').positionalParameters[0],
+        same(decoratedType));
+    expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
+    _assertType(decoratedType.type, 'T Function<T, U>(U)');
+    expect(decoratedType.typeFormals, hasLength(2));
+    var t = decoratedType.typeFormals[0];
+    var u = decoratedType.typeFormals[1];
+    expect(
+        (decoratedType.returnType.type as TypeParameterType).element, same(t));
+    expect(
+        (decoratedType.positionalParameters[0].type as TypeParameterType)
+            .element,
+        same(u));
   }
 
-  test_genericFunctionType_namedParameterType() async {
+  Future<void> test_genericFunctionType_namedParameterType() async {
     await analyze('''
 void f(void Function({int y}) x) {}
 ''');
@@ -734,7 +908,7 @@ void f(void Function({int y}) x) {}
     expect(decoratedIntType.node, isNot(never));
   }
 
-  test_genericFunctionType_returnType() async {
+  Future<void> test_genericFunctionType_returnType() async {
     await analyze('''
 void f(int Function() x) {}
 ''');
@@ -747,9 +921,24 @@ void f(int Function() x) {}
     expect(decoratedType.returnType, same(decoratedIntType));
     expect(decoratedIntType.node, isNotNull);
     expect(decoratedIntType.node, isNot(never));
+    expect(decoratedType.returnType.node.displayName,
+        'parameter 0 of f (test.dart:1:8)');
   }
 
-  test_genericFunctionType_unnamedParameterType() async {
+  Future<void> test_genericFunctionType_syntax_inferred_dynamic_return() async {
+    await analyze('''
+abstract class C {
+  Function() f();
+}
+''');
+    var decoratedFType = decoratedMethodType('f');
+    var decoratedFReturnType = decoratedFType.returnType;
+    var decoratedFReturnReturnType = decoratedFReturnType.returnType;
+    _assertType(decoratedFReturnReturnType.type, 'dynamic');
+    expect(decoratedFReturnReturnType.node.isImmutable, false);
+  }
+
+  Future<void> test_genericFunctionType_unnamedParameterType() async {
     await analyze('''
 void f(void Function(int) x) {}
 ''');
@@ -764,7 +953,87 @@ void f(void Function(int) x) {}
     expect(decoratedIntType.node, isNot(never));
   }
 
-  test_interfaceType_generic_instantiate_to_dynamic() async {
+  Future<void> test_genericTypeAlias_generic_inner() async {
+    await analyze('''
+typedef F = T Function<T, U>(U u);
+''');
+    var element = findElement.functionTypeAlias('F');
+    var decoratedType = variables.decoratedElementType(element.function);
+    expect(decoratedType,
+        same(decoratedGenericFunctionTypeAnnotation('T Function')));
+    expect(decoratedType.typeFormals, hasLength(2));
+    var t = decoratedType.typeFormals[0];
+    var u = decoratedType.typeFormals[1];
+    expect(decoratedType.returnType, same(decoratedTypeAnnotation('T F')));
+    expect(
+        (decoratedType.returnType.type as TypeParameterType).element, same(t));
+    expect(
+        decoratedType.returnType.node, TypeMatcher<NullabilityNodeMutable>());
+    expect(
+        (decoratedType.positionalParameters[0].type as TypeParameterType)
+            .element,
+        same(u));
+    expect(decoratedType.positionalParameters[0].node,
+        TypeMatcher<NullabilityNodeMutable>());
+  }
+
+  Future<void> test_genericTypeAlias_generic_outer() async {
+    await analyze('''
+typedef F<T, U> = T Function(U u);
+''');
+    var element = findElement.functionTypeAlias('F');
+    var decoratedType = variables.decoratedElementType(element.function);
+    expect(decoratedType,
+        same(decoratedGenericFunctionTypeAnnotation('T Function')));
+    var t = element.typeParameters[0];
+    var u = element.typeParameters[1];
+    // typeFormals should be empty because this is not a generic function type,
+    // it's a generic typedef that defines an ordinary (non-generic) function
+    // type.
+    expect(decoratedType.typeFormals, isEmpty);
+    expect(decoratedType.returnType, same(decoratedTypeAnnotation('T F')));
+    expect(
+        (decoratedType.returnType.type as TypeParameterType).element, same(t));
+    expect(
+        decoratedType.returnType.node, TypeMatcher<NullabilityNodeMutable>());
+    expect(
+        (decoratedType.positionalParameters[0].type as TypeParameterType)
+            .element,
+        same(u));
+    expect(decoratedType.positionalParameters[0].node,
+        TypeMatcher<NullabilityNodeMutable>());
+  }
+
+  Future<void> test_genericTypeAlias_implicit_return_type() async {
+    await analyze('''
+typedef F = Function();
+''');
+    var decoratedType = variables
+        .decoratedElementType(findElement.functionTypeAlias('F').function);
+    expect(decoratedType,
+        same(decoratedGenericFunctionTypeAnnotation('Function')));
+    expect(decoratedType.returnType.type.isDynamic, isTrue);
+    expect(decoratedType.returnType.node.isImmutable, false);
+    expect(decoratedType.typeFormals, isEmpty);
+  }
+
+  Future<void> test_genericTypeAlias_simple() async {
+    await analyze('''
+typedef F = int Function(String s);
+''');
+    var decoratedType = variables
+        .decoratedElementType(findElement.functionTypeAlias('F').function);
+    expect(decoratedType,
+        same(decoratedGenericFunctionTypeAnnotation('int Function')));
+    expect(decoratedType.returnType, same(decoratedTypeAnnotation('int')));
+    expect(decoratedType.typeFormals, isEmpty);
+    expect(decoratedType.positionalParameters[0],
+        same(decoratedTypeAnnotation('String')));
+    expect(decoratedType.returnType.node.displayName,
+        'return type of F (test.dart:1:13)');
+  }
+
+  Future<void> test_interfaceType_generic_instantiate_to_dynamic() async {
     await analyze('''
 void f(List x) {}
 ''');
@@ -774,10 +1043,10 @@ void f(List x) {}
     expect(decoratedListType.node, isNotNull);
     expect(decoratedListType.node, isNot(never));
     var decoratedArgType = decoratedListType.typeArguments[0];
-    expect(decoratedArgType.node, same(always));
+    expect(decoratedArgType.node.isImmutable, false);
   }
 
-  test_interfaceType_generic_instantiate_to_function_type() async {
+  Future<void> test_interfaceType_generic_instantiate_to_function_type() async {
     await analyze('''
 class C<T extends int Function()> {}
 void f(C x) {}
@@ -795,7 +1064,8 @@ void f(C x) {}
     expect(decoratedArgReturnType.typeArguments, isEmpty);
   }
 
-  test_interfaceType_generic_instantiate_to_function_type_void() async {
+  Future<void>
+      test_interfaceType_generic_instantiate_to_function_type_void() async {
     await analyze('''
 class C<T extends void Function()> {}
 void f(C x) {}
@@ -809,11 +1079,11 @@ void f(C x) {}
     expect(decoratedArgType.node, TypeMatcher<NullabilityNodeMutable>());
     expect(decoratedArgType.typeArguments, isEmpty);
     var decoratedArgReturnType = decoratedArgType.returnType;
-    expect(decoratedArgReturnType.node, same(always));
+    expect(decoratedArgReturnType.node.isImmutable, false);
     expect(decoratedArgReturnType.typeArguments, isEmpty);
   }
 
-  test_interfaceType_generic_instantiate_to_generic_type() async {
+  Future<void> test_interfaceType_generic_instantiate_to_generic_type() async {
     await analyze('''
 class C<T> {}
 class D<T extends C<int>> {}
@@ -832,7 +1102,8 @@ void f(D x) {}
     expect(decoratedArgArgType.typeArguments, isEmpty);
   }
 
-  test_interfaceType_generic_instantiate_to_generic_type_2() async {
+  Future<void>
+      test_interfaceType_generic_instantiate_to_generic_type_2() async {
     await analyze('''
 class C<T, U> {}
 class D<T extends C<int, String>, U extends C<num, double>> {}
@@ -863,7 +1134,7 @@ void f(D x) {}
     expect(decoratedArg1Arg1Type.typeArguments, isEmpty);
   }
 
-  test_interfaceType_generic_instantiate_to_object() async {
+  Future<void> test_interfaceType_generic_instantiate_to_object() async {
     await analyze('''
 class C<T extends Object> {}
 void f(C x) {}
@@ -878,7 +1149,7 @@ void f(C x) {}
     expect(decoratedArgType.typeArguments, isEmpty);
   }
 
-  test_interfaceType_typeParameter() async {
+  Future<void> test_interfaceType_typeParameter() async {
     await analyze('''
 void f(List<int> x) {}
 ''');
@@ -893,7 +1164,7 @@ void f(List<int> x) {}
     expect(decoratedIntType.node, isNot(never));
   }
 
-  test_local_function() async {
+  Future<void> test_local_function() async {
     await analyze('''
 void f() {
   int g(int i) => 1;
@@ -906,7 +1177,7 @@ void f() {
     expect(decoratedType.node, same(never));
   }
 
-  test_localVariable_type_implicit_dynamic() async {
+  Future<void> test_localVariable_type_implicit_dynamic() async {
     await analyze('''
 main() {
   var x;
@@ -914,10 +1185,10 @@ main() {
 ''');
     var decoratedType =
         variables.decoratedElementType(findNode.simple('x').staticElement);
-    expect(decoratedType.node, same(always));
+    expect(decoratedType.node.isImmutable, false);
   }
 
-  test_localVariable_type_inferred() async {
+  Future<void> test_localVariable_type_inferred() async {
     await analyze('''
 main() {
   var x = 1;
@@ -928,7 +1199,7 @@ main() {
     expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
   }
 
-  test_localVariable_type_inferred_dynamic() async {
+  Future<void> test_localVariable_type_inferred_dynamic() async {
     await analyze('''
 dynamic f() {}
 main() {
@@ -937,37 +1208,58 @@ main() {
 ''');
     var decoratedType =
         variables.decoratedElementType(findNode.simple('x').staticElement);
-    expect(decoratedType.node, same(always));
+    expect(decoratedType.node.isImmutable, false);
   }
 
-  test_method_generic_bounded() async {
+  Future<void> test_localVariable_type_inferred_function() async {
+    await analyze('''
+main() {
+  var x = () => 1;
+}
+''');
+    var decoratedType =
+        variables.decoratedElementType(findNode.simple('x').staticElement);
+    expect(decoratedType.returnType.node.displayName, 'return type of main.x');
+  }
+
+  Future<void> test_localVariable_type_inferred_generic() async {
+    await analyze('''
+main() {
+  var x = {1: 2};
+}
+''');
+    var decoratedType =
+        variables.decoratedElementType(findNode.simple('x').staticElement);
+    expect(decoratedType.typeArguments[0].node.displayName,
+        'type argument 0 of main.x');
+    expect(decoratedType.typeArguments[1].node.displayName,
+        'type argument 1 of main.x');
+  }
+
+  Future<void> test_method_generic_bounded() async {
     await analyze('''
 class C {
   T f<T extends Object>(T t) => t;
 }
 ''');
-    var decoratedType = decoratedMethodType('f');
     var bound = decoratedTypeParameterBound('T extends');
-    expect(decoratedType.typeFormalBounds[0], same(bound));
     expect(decoratedTypeAnnotation('Object'), same(bound));
     expect(bound.node, isNot(always));
     expect(bound.type, typeProvider.objectType);
   }
 
-  test_method_generic_implicit_bound() async {
+  Future<void> test_method_generic_implicit_bound() async {
     await analyze('''
 class C {
   T f<T>(T t) => t;
 }
 ''');
-    var decoratedType = decoratedMethodType('f');
     var bound = decoratedTypeParameterBound('T>');
-    expect(decoratedType.typeFormalBounds[0], same(bound));
-    assertUnion(always, bound.node);
+    assertEdge(always, bound.node, hard: false);
     expect(bound.type, same(typeProvider.objectType));
   }
 
-  test_method_metadata() async {
+  Future<void> test_method_metadata() async {
     await analyze('''
 class A {
   final Object x;
@@ -982,27 +1274,27 @@ class C {
     expect(node, TypeMatcher<NullabilityNodeMutable>());
   }
 
-  test_method_parameterType_implicit_dynamic() async {
+  Future<void> test_method_parameterType_implicit_dynamic() async {
     await analyze('''
 class C {
   void f(x) {}
 }
 ''');
     var decoratedType = decoratedMethodType('f').positionalParameters[0];
-    expect(decoratedType.node, same(always));
+    expect(decoratedType.node.isImmutable, false);
   }
 
-  test_method_parameterType_implicit_dynamic_named() async {
+  Future<void> test_method_parameterType_implicit_dynamic_named() async {
     await analyze('''
 class C {
   void f({x}) {}
 }
 ''');
     var decoratedType = decoratedMethodType('f').namedParameters['x'];
-    expect(decoratedType.node, same(always));
+    expect(decoratedType.node.isImmutable, false);
   }
 
-  test_method_parameterType_inferred() async {
+  Future<void> test_method_parameterType_inferred() async {
     await analyze('''
 class B {
   void f(int x) {}
@@ -1015,7 +1307,7 @@ class C extends B {
     expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
   }
 
-  test_method_parameterType_inferred_dynamic() async {
+  Future<void> test_method_parameterType_inferred_dynamic() async {
     await analyze('''
 class B {
   void f(dynamic x) {}
@@ -1025,10 +1317,10 @@ class C extends B {
 }
 ''');
     var decoratedType = decoratedMethodType('f/*C*/').positionalParameters[0];
-    expect(decoratedType.node, same(always));
+    expect(decoratedType.node.isImmutable, false);
   }
 
-  test_method_parameterType_inferred_dynamic_named() async {
+  Future<void> test_method_parameterType_inferred_dynamic_named() async {
     await analyze('''
 class B {
   void f({dynamic x = 0}) {}
@@ -1038,10 +1330,54 @@ class C extends B {
 }
 ''');
     var decoratedType = decoratedMethodType('f/*C*/').namedParameters['x'];
-    expect(decoratedType.node, same(always));
+    expect(decoratedType.node.isImmutable, false);
   }
 
-  test_method_parameterType_inferred_named() async {
+  Future<void>
+      test_method_parameterType_inferred_generic_function_typed_no_bound() async {
+    await analyze('''
+class B {
+  void f/*B*/(T Function<T>() x) {}
+}
+class C extends B {
+  void f/*C*/(x) {}
+}
+''');
+    var decoratedBaseType =
+        decoratedMethodType('f/*B*/').positionalParameters[0];
+    var decoratedType = decoratedMethodType('f/*C*/').positionalParameters[0];
+    var decoratedTypeFormalBound = decoratedTypeParameterBounds
+        .get((decoratedType.type as FunctionType).typeFormals[0]);
+    _assertType(decoratedTypeFormalBound.type, 'Object');
+    var decoratedBaseTypeFormalBound = decoratedTypeParameterBounds
+        .get((decoratedBaseType.type as FunctionType).typeFormals[0]);
+    expect(decoratedTypeFormalBound.node,
+        isNot(same(decoratedBaseTypeFormalBound.node)));
+  }
+
+  Future<void>
+      test_method_parameterType_inferred_generic_function_typed_with_bound() async {
+    await analyze('''
+class B {
+  void f/*B*/(T Function<T extends num>() x) {}
+}
+class C extends B {
+  void f/*C*/(x) {}
+}
+''');
+    var decoratedBaseType =
+        decoratedMethodType('f/*B*/').positionalParameters[0];
+    var decoratedType = decoratedMethodType('f/*C*/').positionalParameters[0];
+    var decoratedTypeFormalBound = decoratedTypeParameterBounds
+        .get((decoratedType.type as FunctionType).typeFormals[0]);
+    _assertType(decoratedTypeFormalBound.type, 'num');
+    var decoratedBaseTypeFormalBound = decoratedTypeParameterBounds
+        .get((decoratedBaseType.type as FunctionType).typeFormals[0]);
+    expect(decoratedTypeFormalBound.node,
+        isNot(same(decoratedBaseTypeFormalBound.node)));
+  }
+
+  Future<void> test_method_parameterType_inferred_named() async {
     await analyze('''
 class B {
   void f({int x = 0}) {}
@@ -1054,17 +1390,17 @@ class C extends B {
     expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
   }
 
-  test_method_returnType_implicit_dynamic() async {
+  Future<void> test_method_returnType_implicit_dynamic() async {
     await analyze('''
 class C {
   f() => 1;
 }
 ''');
     var decoratedType = decoratedMethodType('f').returnType;
-    expect(decoratedType.node, same(always));
+    expect(decoratedType.node.isImmutable, false);
   }
 
-  test_method_returnType_inferred() async {
+  Future<void> test_method_returnType_inferred() async {
     await analyze('''
 class B {
   int f() => 1;
@@ -1077,7 +1413,7 @@ class C extends B {
     expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
   }
 
-  test_method_returnType_inferred_dynamic() async {
+  Future<void> test_method_returnType_inferred_dynamic() async {
     await analyze('''
 class B {
   dynamic f() => 1;
@@ -1087,10 +1423,10 @@ class C extends B {
 }
 ''');
     var decoratedType = decoratedMethodType('f/*C*/').returnType;
-    expect(decoratedType.node, same(always));
+    expect(decoratedType.node.isImmutable, false);
   }
 
-  test_parameters() async {
+  Future<void> test_parameters() async {
     await analyze('''
 void foo({List<int> values})  {
   values.where((i) => true);
@@ -1099,7 +1435,7 @@ void foo({List<int> values})  {
     // No assertions; just checking that it doesn't crash.
   }
 
-  test_topLevelFunction_parameterType_implicit_dynamic() async {
+  Future<void> test_topLevelFunction_parameterType_implicit_dynamic() async {
     await analyze('''
 void f(x) {}
 ''');
@@ -1110,7 +1446,7 @@ void f(x) {}
     expect(decoratedType.type.isDynamic, isTrue);
   }
 
-  test_topLevelFunction_parameterType_named_no_default() async {
+  Future<void> test_topLevelFunction_parameterType_named_no_default() async {
     await analyze('''
 void f({String s}) {}
 ''');
@@ -1123,7 +1459,8 @@ void f({String s}) {}
     expect(functionType.namedParameters['s'].node.isPossiblyOptional, true);
   }
 
-  test_topLevelFunction_parameterType_named_no_default_required() async {
+  Future<void>
+      test_topLevelFunction_parameterType_named_no_default_required() async {
     addMetaPackage();
     await analyze('''
 import 'package:meta/meta.dart';
@@ -1138,7 +1475,7 @@ void f({@required String s}) {}
     expect(functionType.namedParameters['s'].node.isPossiblyOptional, false);
   }
 
-  test_topLevelFunction_parameterType_named_with_default() async {
+  Future<void> test_topLevelFunction_parameterType_named_with_default() async {
     await analyze('''
 void f({String s: 'x'}) {}
 ''');
@@ -1150,7 +1487,7 @@ void f({String s: 'x'}) {}
     expect(functionType.namedParameters['s'].node.isPossiblyOptional, false);
   }
 
-  test_topLevelFunction_parameterType_positionalOptional() async {
+  Future<void> test_topLevelFunction_parameterType_positionalOptional() async {
     await analyze('''
 void f([int i]) {}
 ''');
@@ -1161,7 +1498,7 @@ void f([int i]) {}
     expect(decoratedType.node, isNot(never));
   }
 
-  test_topLevelFunction_parameterType_simple() async {
+  Future<void> test_topLevelFunction_parameterType_simple() async {
     await analyze('''
 void f(int i) {}
 ''');
@@ -1172,7 +1509,7 @@ void f(int i) {}
     expect(decoratedType.node, isNot(never));
   }
 
-  test_topLevelFunction_returnType_implicit_dynamic() async {
+  Future<void> test_topLevelFunction_returnType_implicit_dynamic() async {
     await analyze('''
 f() {}
 ''');
@@ -1180,7 +1517,7 @@ f() {}
     expect(decoratedType.type.isDynamic, isTrue);
   }
 
-  test_topLevelFunction_returnType_simple() async {
+  Future<void> test_topLevelFunction_returnType_simple() async {
     await analyze('''
 int f() => 0;
 ''');
@@ -1190,16 +1527,16 @@ int f() => 0;
     expect(decoratedType.node, isNot(never));
   }
 
-  test_topLevelVariable_type_implicit_dynamic() async {
+  Future<void> test_topLevelVariable_type_implicit_dynamic() async {
     await analyze('''
 var x;
 ''');
     var decoratedType =
         variables.decoratedElementType(findNode.simple('x').staticElement);
-    expect(decoratedType.node, same(always));
+    expect(decoratedType.node.isImmutable, false);
   }
 
-  test_topLevelVariable_type_inferred() async {
+  Future<void> test_topLevelVariable_type_inferred() async {
     await analyze('''
 var x = 1;
 ''');
@@ -1208,31 +1545,32 @@ var x = 1;
     expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
   }
 
-  test_topLevelVariable_type_inferred_dynamic() async {
+  Future<void> test_topLevelVariable_type_inferred_dynamic() async {
     await analyze('''
 dynamic f() {}
 var x = f();
 ''');
     var decoratedType =
         variables.decoratedElementType(findNode.simple('x').staticElement);
-    expect(decoratedType.node, same(always));
+    expect(decoratedType.node.isImmutable, false);
   }
 
-  test_type_comment_bang() async {
+  Future<void> test_type_comment_bang() async {
     await analyze('''
 void f(int/*!*/ i) {}
 ''');
-    assertEdge(decoratedTypeAnnotation('int').node, never, hard: true);
+    assertEdge(decoratedTypeAnnotation('int').node, never,
+        hard: true, checkable: false);
   }
 
-  test_type_comment_question() async {
+  Future<void> test_type_comment_question() async {
     await analyze('''
 void f(int/*?*/ i) {}
 ''');
-    assertEdge(always, decoratedTypeAnnotation('int').node, hard: false);
+    assertUnion(always, decoratedTypeAnnotation('int').node);
   }
 
-  test_type_parameter_explicit_bound() async {
+  Future<void> test_type_parameter_explicit_bound() async {
     await analyze('''
 class C<T extends Object> {}
 ''');
@@ -1242,7 +1580,7 @@ class C<T extends Object> {}
     expect(bound.type, typeProvider.objectType);
   }
 
-  test_type_parameter_implicit_bound() async {
+  Future<void> test_type_parameter_implicit_bound() async {
     // The implicit bound of `T` is automatically `Object?`.  TODO(paulberry):
     // consider making it possible for type inference to infer an explicit bound
     // of `Object`.
@@ -1250,11 +1588,156 @@ class C<T extends Object> {}
 class C<T> {}
 ''');
     var bound = decoratedTypeParameterBound('T');
-    assertUnion(always, bound.node);
+    assertEdge(always, bound.node, hard: false);
     expect(bound.type, same(typeProvider.objectType));
   }
 
-  test_variableDeclaration_type_simple() async {
+  Future<void> test_typedef_reference_generic_instantiated() async {
+    await analyze('''
+typedef F<T> = T Function();
+F<int> f;
+''');
+    // The instantiation of F should produce fresh nullability nodes, distinct
+    // from the ones in the typedef (they will be unified by the edge builder).
+    // This is necessary because there is no guarantee of whether the typedef or
+    // its usage will be visited first.
+    var typedefDecoratedType = variables
+        .decoratedElementType(findElement.functionTypeAlias('F').function);
+    var decoratedType = decoratedTypeAnnotation('F<int>');
+    expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
+    expect(decoratedType.node, isNot(same(typedefDecoratedType.node)));
+    _assertType(decoratedType.returnType.type, 'int');
+    expect(
+        decoratedType.returnType.node, TypeMatcher<NullabilityNodeMutable>());
+    expect(decoratedType.returnType.node,
+        isNot(same(typedefDecoratedType.returnType.node)));
+  }
+
+  Future<void> test_typedef_reference_generic_uninstantiated() async {
+    await analyze('''
+typedef F = T Function<T extends num>();
+F f;
+''');
+    // The instantiation of F should produce fresh nullability nodes, distinct
+    // from the ones in the typedef (they will be unified by the edge builder).
+    // This is necessary because there is no guarantee of whether the typedef or
+    // its usage will be visited first.
+    var typedefDecoratedType = variables
+        .decoratedElementType(findElement.functionTypeAlias('F').function);
+    var decoratedType = decoratedTypeAnnotation('F f');
+    expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
+    expect(decoratedType.node, isNot(same(typedefDecoratedType.node)));
+    _assertType(decoratedType.returnType.type, 'T');
+    expect(
+        decoratedType.returnType.node, TypeMatcher<NullabilityNodeMutable>());
+    expect(decoratedType.returnType.node,
+        isNot(same(typedefDecoratedType.returnType.node)));
+    var decoratedTypeFormalBound = decoratedTypeParameterBounds
+        .get((decoratedType.type as FunctionType).typeFormals[0]);
+    _assertType(decoratedTypeFormalBound.type, 'num');
+    expect(decoratedTypeFormalBound.node.displayName,
+        'bound of type formal T of explicit type (test.dart:2:1)');
+    var decoratedTypedefTypeFormalBound = decoratedTypeParameterBounds
+        .get((typedefDecoratedType.type as FunctionType).typeFormals[0]);
+    expect(decoratedTypeFormalBound.node,
+        isNot(same(decoratedTypedefTypeFormalBound.node)));
+  }
+
+  Future<void> test_typedef_reference_simple() async {
+    await analyze('''
+typedef int F(String s);
+F f;
+''');
+    // The instantiation of F should produce fresh nullability nodes, distinct
+    // from the ones in the typedef (they will be unified by the edge builder).
+    // This is necessary because there is no guarantee of whether the typedef or
+    // its usage will be visited first.
+    var typedefDecoratedType = variables
+        .decoratedElementType(findElement.functionTypeAlias('F').function);
+    var decoratedType = decoratedTypeAnnotation('F f');
+    expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
+    expect(decoratedType.node, isNot(same(typedefDecoratedType.node)));
+    _assertType(decoratedType.returnType.type, 'int');
+    expect(
+        decoratedType.returnType.node, TypeMatcher<NullabilityNodeMutable>());
+    expect(decoratedType.returnType.node,
+        isNot(same(typedefDecoratedType.returnType.node)));
+    expect(typedefDecoratedType.returnType.node.displayName,
+        'return type of F (test.dart:1:9)');
+    expect(decoratedType.returnType.node.displayName,
+        'return type of explicit type (test.dart:2:1)');
+    _assertType(decoratedType.positionalParameters[0].type, 'String');
+    expect(decoratedType.positionalParameters[0].node,
+        TypeMatcher<NullabilityNodeMutable>());
+    expect(decoratedType.positionalParameters[0].node,
+        isNot(same(typedefDecoratedType.positionalParameters[0].node)));
+    expect(decoratedType.positionalParameters[0].node.displayName,
+        'parameter 0 of explicit type (test.dart:2:1)');
+  }
+
+  Future<void> test_typedef_reference_simple_named_parameter() async {
+    await analyze('''
+typedef int F({String s});
+F f;
+''');
+    // The instantiation of F should produce fresh nullability nodes, distinct
+    // from the ones in the typedef (they will be unified by the edge builder).
+    // This is necessary because there is no guarantee of whether the typedef or
+    // its usage will be visited first.
+    var decoratedType = decoratedTypeAnnotation('F f');
+    expect(decoratedType.namedParameters['s'].node.displayName,
+        'parameter s of explicit type (test.dart:2:1)');
+  }
+
+  Future<void> test_typedef_reference_simple_two_parameters() async {
+    await analyze('''
+typedef int F(String s, int i);
+F f;
+''');
+    // The instantiation of F should produce fresh nullability nodes, distinct
+    // from the ones in the typedef (they will be unified by the edge builder).
+    // This is necessary because there is no guarantee of whether the typedef or
+    // its usage will be visited first.
+    var decoratedType = decoratedTypeAnnotation('F f');
+    expect(decoratedType.positionalParameters[0].node.displayName,
+        'parameter 0 of explicit type (test.dart:2:1)');
+    expect(decoratedType.positionalParameters[1].node.displayName,
+        'parameter 1 of explicit type (test.dart:2:1)');
+  }
+
+  Future<void> test_typedef_rhs_nullability() async {
+    await analyze('''
+typedef F = void Function();
+''');
+    var decorated = decoratedGenericFunctionTypeAnnotation('void Function()');
+    expect(decorated.node, same(never));
+  }
+
+  Future<void> test_variableDeclaration_late_hint_after_metadata() async {
+    await analyze('@deprecated /*late*/ int i;');
+    expect(
+        variables.isLateHinted(
+            testSource, findNode.variableDeclarationList('int i')),
+        true);
+  }
+
+  Future<void> test_variableDeclaration_late_hint_multiple_comments() async {
+    await analyze('/*other*/ /*late*/ int i;');
+    expect(
+        variables.isLateHinted(
+            testSource, findNode.variableDeclarationList('int i')),
+        true);
+  }
+
+  Future<void> test_variableDeclaration_late_hint_simple() async {
+    await analyze('/*late*/ int i;');
+    expect(
+        variables.isLateHinted(
+            testSource, findNode.variableDeclarationList('int i')),
+        true);
+  }
+
+  Future<void> test_variableDeclaration_type_simple() async {
     await analyze('''
 main() {
   int i;
@@ -1264,7 +1747,7 @@ main() {
     expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
   }
 
-  test_variableDeclaration_visit_initializer() async {
+  Future<void> test_variableDeclaration_visit_initializer() async {
     await analyze('''
 class C<T> {}
 void f(C<dynamic> c) {
@@ -1275,12 +1758,17 @@ void f(C<dynamic> c) {
     expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
   }
 
-  test_void_type() async {
+  Future<void> test_void_type() async {
     await analyze('''
 void f() {}
 ''');
     var decoratedType = decoratedTypeAnnotation('void');
     expect(decoratedFunctionType('f').returnType, same(decoratedType));
-    assertEdge(always, decoratedType.node, hard: false);
+    assertNoEdge(always, decoratedType.node);
+  }
+
+  void _assertType(DartType type, String expected) {
+    var typeStr = type.getDisplayString(withNullability: false);
+    expect(typeStr, expected);
   }
 }

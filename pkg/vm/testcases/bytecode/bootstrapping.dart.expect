@@ -9,13 +9,13 @@ Library '#lib'
 
 Class '', script = '#lib'
 
-Field '_stdinFD', type = dart:core::int, reflectable, static
+Field '_stdinFD', type = dart:core::int, reflectable, static, has-initializer
     value = const 0
 
-Field '_stdoutFD', type = dart:core::int, reflectable, static
+Field '_stdoutFD', type = dart:core::int, reflectable, static, has-initializer
     value = const 1
 
-Field '_stderrFD', type = dart:core::int, reflectable, static
+Field '_stderrFD', type = dart:core::int, reflectable, static, has-initializer
     value = const 2
 
 Field '_rawScript', type = dart:core::String, reflectable, static
@@ -133,30 +133,17 @@ Bytecode {
   PushConstant         CP#4
   InterfaceCall        CP#2, 2
   AssertBoolean        0
-  PopLocal             r1
-  Jump                 L2
-L1:
-  PushTrue
-  PopLocal             r1
-L2:
-  Push                 r1
-  JumpIfTrue           L3
+  JumpIfTrue           L1
   LoadStatic           CP#0
   PushConstant         CP#5
   InterfaceCall        CP#2, 2
   AssertBoolean        0
-  PopLocal             r0
-  Jump                 L4
-L3:
-  PushTrue
-  PopLocal             r0
-L4:
-  Push                 r0
-  JumpIfFalse          L5
+  JumpIfFalse          L2
+L1:
   LoadStatic           CP#0
   DirectCall           CP#6, 1
   ReturnTOS
-L5:
+L2:
   DirectCall           CP#8, 0
   PushNull
   LoadStatic           CP#0
@@ -210,8 +197,7 @@ Bytecode {
   Entry                2
   CheckStack           0
   LoadStatic           CP#0
-  EqualsNull
-  JumpIfFalse          L1
+  JumpIfNotNull        L1
   LoadStatic           CP#1
   DirectCall           CP#2, 1
   StoreLocal           r1
@@ -252,7 +238,7 @@ ConstantPool {
 Class '_ScheduleImmediate', script = '#lib'
     extends dart:core::Object
 
-Field '_closure', type = FunctionType (FunctionType () -> void) -> void, reflectable, static
+Field '_closure', type = FunctionType (FunctionType () -> void) -> void, reflectable, static, has-initializer
     value = null
 
 Function '', constructor, reflectable
@@ -277,7 +263,7 @@ Class '_NamespaceImpl', script = '#lib'
     extends dart:core::Object
     implements [#lib::_Namespace]
 
-Field '_cachedNamespace', type = #lib::_NamespaceImpl, reflectable, static
+Field '_cachedNamespace', type = #lib::_NamespaceImpl, reflectable, static, has-initializer
     value = null
 
 Function '_', constructor, reflectable, debuggable
@@ -383,8 +369,7 @@ Bytecode {
   Entry                2
   CheckStack           0
   LoadStatic           CP#0
-  EqualsNull
-  JumpIfFalse          L1
+  JumpIfNotNull        L1
   Allocate             CP#1
   StoreLocal           r1
   Push                 r1
@@ -503,37 +488,37 @@ ConstantPool {
 Class 'VMLibraryHooks', script = '#lib'
     extends dart:core::Object
 
-Field 'timerFactory', type = dynamic, reflectable, static
+Field 'timerFactory', type = dynamic, reflectable, static, has-initializer
     value = null
 
-Field 'eventHandlerSendData', type = dynamic, reflectable, static
+Field 'eventHandlerSendData', type = dynamic, reflectable, static, has-initializer
     value = null
 
-Field 'timerMillisecondClock', type = dynamic, reflectable, static
+Field 'timerMillisecondClock', type = dynamic, reflectable, static, has-initializer
     value = null
 
-Field 'resourceReadAsBytes', type = dynamic, reflectable, static
+Field 'resourceReadAsBytes', type = dynamic, reflectable, static, has-initializer
     value = null
 
-Field 'packageRootString', type = dynamic, reflectable, static
+Field 'packageRootString', type = dynamic, reflectable, static, has-initializer
     value = null
 
-Field 'packageConfigString', type = dynamic, reflectable, static
+Field 'packageConfigString', type = dynamic, reflectable, static, has-initializer
     value = null
 
-Field 'packageRootUriFuture', type = dynamic, reflectable, static
+Field 'packageRootUriFuture', type = dynamic, reflectable, static, has-initializer
     value = null
 
-Field 'packageConfigUriFuture', type = dynamic, reflectable, static
+Field 'packageConfigUriFuture', type = dynamic, reflectable, static, has-initializer
     value = null
 
-Field 'resolvePackageUriFuture', type = dynamic, reflectable, static
+Field 'resolvePackageUriFuture', type = dynamic, reflectable, static, has-initializer
     value = null
 
-Field '_computeScriptUri', type = dynamic, reflectable, static
+Field '_computeScriptUri', type = dynamic, reflectable, static, has-initializer
     value = null
 
-Field '_cachedScript', type = dynamic, reflectable, static
+Field '_cachedScript', type = dynamic, reflectable, static, has-initializer
     value = null
 
 Function '', constructor, reflectable
@@ -583,31 +568,21 @@ Bytecode {
   Entry                1
   CheckStack           0
   LoadStatic           CP#0
-  EqualsNull
-  JumpIfFalse          L1
+  JumpIfNotNull        L1
   LoadStatic           CP#1
-  EqualsNull
-  BooleanNegateTOS
-  PopLocal             r0
-  Jump                 L2
-L1:
-  PushFalse
-  PopLocal             r0
-L2:
-  Push                 r0
-  JumpIfFalse          L3
+  JumpIfNull           L1
   LoadStatic           CP#1
-  DynamicCall          CP#3, 1
+  DynamicCall          CP#2, 1
   StoreStaticTOS       CP#0
-L3:
+L1:
   LoadStatic           CP#0
   ReturnTOS
 }
 ConstantPool {
   [0] = StaticField #lib::VMLibraryHooks::_cachedScript (field)
   [1] = StaticField #lib::VMLibraryHooks::_computeScriptUri (field)
-  [2] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
-  [3] = ICData dynamic target-name 'call', arg-desc CP#2
+  [2] = DynamicCall 'call', ArgDesc num-args 1, num-type-args 0, names []
+  [3] = Reserved
 }
 
 Class 'Stdin', script = '#lib'
@@ -735,7 +710,7 @@ ConstantPool {
     }
     static get platformScript() → dynamic {
       if(#lib::VMLibraryHooks::_cachedScript.{dart.core::Object::==}(null) && !#lib::VMLibraryHooks::_computeScriptUri.{dart.core::Object::==}(null)) {
-        #lib::VMLibraryHooks::_cachedScript = [@vm.call-site-attributes.metadata=receiverType:dynamic] #lib::VMLibraryHooks::_computeScriptUri.call();
+        #lib::VMLibraryHooks::_cachedScript = [@vm.call-site-attributes.metadata=receiverType:DynamicType(dynamic)] #lib::VMLibraryHooks::_computeScriptUri.call();
       }
       return #lib::VMLibraryHooks::_cachedScript;
     }

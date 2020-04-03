@@ -1,0 +1,29 @@
+main = <No Member>;
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "package:moduleA/a.dart";
+
+  static method main() → dynamic {
+    a::A* a = new a::A::•();
+  }
+}
+library from "package:moduleA/a.dart" as a {
+additionalExports = (b::B)
+
+  export "package:moduleB/b.dart";
+
+  class A extends dart.core::Object {
+    synthetic constructor •() → a::A*
+      : super dart.core::Object::•()
+      ;
+  }
+}
+library from "package:moduleB/b.dart" as b {
+
+  class B extends dart.core::Object {
+    field dart.core::int* foo = 42;
+    synthetic constructor •() → b::B*
+      : super dart.core::Object::•()
+      ;
+  }
+}

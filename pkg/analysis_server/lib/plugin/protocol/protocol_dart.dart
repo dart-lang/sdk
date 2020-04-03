@@ -2,26 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Utilities for converting Dart entities into analysis server's protocol
- * entities.
- */
+/// Utilities for converting Dart entities into analysis server's protocol
+/// entities.
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/element/element.dart' as engine;
 import 'package:analyzer/src/generated/utilities_dart.dart' as engine;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:path/path.dart' as pathos;
 
-/**
- * Return a protocol [Element] corresponding to the given [engine.Element].
- */
+/// Return a protocol [Element] corresponding to the given [engine.Element].
 Element convertElement(engine.Element element) {
-  String name = getElementDisplayName(element);
-  String elementTypeParameters = _getTypeParametersString(element);
-  String elementParameters = _getParametersString(element);
-  String elementReturnType = getReturnTypeString(element);
-  ElementKind kind = convertElementToElementKind(element);
-  return new Element(
+  var name = getElementDisplayName(element);
+  var elementTypeParameters = _getTypeParametersString(element);
+  var elementParameters = _getParametersString(element);
+  var elementReturnType = getReturnTypeString(element);
+  var kind = convertElementToElementKind(element);
+  return Element(
       kind,
       name,
       Element.makeFlags(
@@ -37,14 +33,12 @@ Element convertElement(engine.Element element) {
       returnType: elementReturnType);
 }
 
-/**
- * Return a protocol [ElementKind] corresponding to the given
- * [engine.ElementKind].
- *
- * This does not take into account that an instance of [ClassElement] can be an
- * enum and an instance of [FieldElement] can be an enum constant.
- * Use [convertElementToElementKind] where possible.
- */
+/// Return a protocol [ElementKind] corresponding to the given
+/// [engine.ElementKind].
+///
+/// This does not take into account that an instance of [ClassElement] can be an
+/// enum and an instance of [FieldElement] can be an enum constant.
+/// Use [convertElementToElementKind] where possible.
 ElementKind convertElementKind(engine.ElementKind kind) {
   if (kind == engine.ElementKind.CLASS) {
     return ElementKind.CLASS;
@@ -103,9 +97,7 @@ ElementKind convertElementKind(engine.ElementKind kind) {
   return ElementKind.UNKNOWN;
 }
 
-/**
- * Return an [ElementKind] corresponding to the given [engine.Element].
- */
+/// Return an [ElementKind] corresponding to the given [engine.Element].
 ElementKind convertElementToElementKind(engine.Element element) {
   if (element is engine.ClassElement) {
     if (element.isEnum) {
@@ -151,16 +143,16 @@ String _getParametersString(engine.Element element) {
     }
     parameters = element.parameters.toList();
   } else if (element is engine.FunctionTypeAliasElement) {
-    parameters = element.parameters.toList();
+    parameters = element.function.parameters.toList();
   } else {
     return null;
   }
 
   parameters.sort(_preferRequiredParams);
 
-  StringBuffer sb = new StringBuffer();
-  String closeOptionalString = '';
-  for (engine.ParameterElement parameter in parameters) {
+  var sb = StringBuffer();
+  var closeOptionalString = '';
+  for (var parameter in parameters) {
     if (sb.isNotEmpty) {
       sb.write(', ');
     }
@@ -176,7 +168,7 @@ String _getParametersString(engine.Element element) {
     if (parameter.hasRequired) {
       sb.write('@required ');
     }
-    parameter.appendToWithoutDelimiters(sb);
+    parameter.appendToWithoutDelimiters(sb, withNullability: false);
   }
   sb.write(closeOptionalString);
   return '(' + sb.toString() + ')';
@@ -239,10 +231,10 @@ bool _isStatic(engine.Element element) {
   return false;
 }
 
-// Sort @required named parameters before optional ones.
+/// Sort required named parameters before optional ones.
 int _preferRequiredParams(
     engine.ParameterElement e1, engine.ParameterElement e2) {
-  int rank1 = (e1.isRequiredNamed || e1.hasRequired) ? 0 : !e1.isNamed ? -1 : 1;
-  int rank2 = (e2.isRequiredNamed || e2.hasRequired) ? 0 : !e2.isNamed ? -1 : 1;
+  var rank1 = (e1.isRequiredNamed || e1.hasRequired) ? 0 : !e1.isNamed ? -1 : 1;
+  var rank2 = (e2.isRequiredNamed || e2.hasRequired) ? 0 : !e2.isNamed ? -1 : 1;
   return rank1 - rank2;
 }

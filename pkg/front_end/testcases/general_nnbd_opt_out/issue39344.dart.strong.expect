@@ -1,0 +1,96 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/issue39344.dart:21:12: Error: A value of type 'List<T>' can't be assigned to a variable of type 'List<B>'.
+//  - 'List' is from 'dart:core'.
+//  - 'B' is from 'pkg/front_end/testcases/general_nnbd_opt_out/issue39344.dart'.
+//       xs = ys;
+//            ^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/issue39344.dart:33:13: Error: A value of type 'List<List<T>>' can't be assigned to a variable of type 'List<List<B>>'.
+//  - 'List' is from 'dart:core'.
+//  - 'B' is from 'pkg/front_end/testcases/general_nnbd_opt_out/issue39344.dart'.
+//       xss = yss;
+//             ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+}
+class B extends self::A {
+  synthetic constructor •() → self::B*
+    : super self::A::•()
+    ;
+}
+class Class<T extends self::A* = self::A*> extends core::Object {
+  synthetic constructor •() → self::Class<self::Class::T*>*
+    : super core::Object::•()
+    ;
+  method method1a(generic-covariant-impl self::Class::T* t) → void {
+    if(t is self::B*) {
+      core::List<self::Class::T*>* ys = <self::Class::T*>[t{self::Class::T* & self::B* /* '*' & '*' = '*' */}];
+      self::xs = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/issue39344.dart:21:12: Error: A value of type 'List<T>' can't be assigned to a variable of type 'List<B>'.
+ - 'List' is from 'dart:core'.
+ - 'B' is from 'pkg/front_end/testcases/general_nnbd_opt_out/issue39344.dart'.
+      xs = ys;
+           ^" in ys as{TypeError} core::List<self::B*>*;
+    }
+  }
+  method method1b(generic-covariant-impl self::Class::T* t) → void {
+    if(t is self::B*) {
+      core::List<core::List<self::Class::T*>*>* yss = <core::List<self::Class::T*>*>[<self::Class::T*>[t{self::Class::T* & self::B* /* '*' & '*' = '*' */}]];
+      self::xss = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/issue39344.dart:33:13: Error: A value of type 'List<List<T>>' can't be assigned to a variable of type 'List<List<B>>'.
+ - 'List' is from 'dart:core'.
+ - 'B' is from 'pkg/front_end/testcases/general_nnbd_opt_out/issue39344.dart'.
+      xss = yss;
+            ^" in yss as{TypeError} core::List<core::List<self::B*>*>*;
+    }
+  }
+  method method2a(generic-covariant-impl self::Class::T* t) → void {
+    dynamic alias;
+    if(t is self::B*) {
+      core::List<self::Class::T*>* ys = <self::Class::T*>[t{self::Class::T* & self::B* /* '*' & '*' = '*' */}];
+      alias = ys;
+      self::xs = alias as{TypeError,ForDynamic} core::List<self::B*>*;
+    }
+  }
+  method method2b(generic-covariant-impl self::Class::T* t) → void {
+    dynamic alias;
+    if(t is self::B*) {
+      core::List<core::List<self::Class::T*>*>* yss = <core::List<self::Class::T*>*>[<self::Class::T*>[t{self::Class::T* & self::B* /* '*' & '*' = '*' */}]];
+      alias = yss;
+      self::xss = alias as{TypeError,ForDynamic} core::List<core::List<self::B*>*>*;
+    }
+  }
+}
+static field core::List<self::B*>* xs;
+static field core::List<core::List<self::B*>*>* xss;
+static method main() → void {
+  self::throws(() → core::Null? {
+    new self::Class::•<self::A*>().{self::Class::method2a}(new self::B::•());
+    core::print(self::xs.{core::Object::runtimeType});
+  });
+  self::throws(() → core::Null? {
+    new self::Class::•<self::A*>().{self::Class::method2b}(new self::B::•());
+    core::print(self::xs.{core::Object::runtimeType});
+  });
+}
+static method errors() → void {
+  new self::Class::•<self::A*>().{self::Class::method1a}(new self::B::•());
+  new self::Class::•<self::A*>().{self::Class::method1b}(new self::B::•());
+}
+static method throws(() →* void f) → void {
+  try {
+    f.call();
+  }
+  on dynamic catch(final dynamic e) {
+    core::print(e);
+    return;
+  }
+  throw "Expected throws";
+}

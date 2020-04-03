@@ -7,7 +7,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'server_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ChangeWorkspaceFoldersTest);
   });
@@ -29,7 +29,7 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
     workspaceFolder3Uri = Uri.file(workspaceFolder3Path);
   }
 
-  test_changeWorkspaceFolders_add() async {
+  Future<void> test_changeWorkspaceFolders_add() async {
     await initialize(rootUri: workspaceFolder1Uri);
     await changeWorkspaceFolders(
         add: [workspaceFolder2Uri, workspaceFolder3Uri]);
@@ -44,7 +44,7 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
     );
   }
 
-  test_changeWorkspaceFolders_addAndRemove() async {
+  Future<void> test_changeWorkspaceFolders_addAndRemove() async {
     await initialize(
       workspaceFolders: [workspaceFolder1Uri, workspaceFolder2Uri],
     );
@@ -59,7 +59,7 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
     );
   }
 
-  test_changeWorkspaceFolders_remove() async {
+  Future<void> test_changeWorkspaceFolders_remove() async {
     await initialize(
       workspaceFolders: [workspaceFolder1Uri, workspaceFolder2Uri],
     );
@@ -73,7 +73,7 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
     );
   }
 
-  test_changeWorkspaceFolders_removeFlushesDiagnostics() async {
+  Future<void> test_changeWorkspaceFolders_removeFlushesDiagnostics() async {
     // Add our standard test project as well as a dummy project.
     await initialize(workspaceFolders: [projectFolderUri, workspaceFolder1Uri]);
 

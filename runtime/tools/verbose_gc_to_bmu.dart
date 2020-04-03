@@ -17,7 +17,7 @@ import 'dart:math';
 const WINDOW_STEP_FACTOR = 0.9;
 const MINIMUM_WINDOW_SIZE_MS = 1;
 
-class Interval<T> {
+class Interval<T extends int> {
   T begin;
   T end;
   Interval(this.begin, this.end);

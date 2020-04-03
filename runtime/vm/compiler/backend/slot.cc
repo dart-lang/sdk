@@ -46,13 +46,63 @@ class SlotCache : public ZoneAllocated {
   DirectChainedHashMap<PointerKeyValueTrait<const Slot> > fields_;
 };
 
+#define NATIVE_SLOT_NAME(C, F, id, M) Kind::k##C##_##F
+#define NATIVE_TO_STR(C, F, id, M) #C "_" #F
+
+const char* Slot::KindToCString(Kind k) {
+  switch (k) {
+#define NATIVE_CASE(C, U, F, id, M)                                            \
+  case NATIVE_SLOT_NAME(C, F, id, M):                                          \
+    return NATIVE_TO_STR(C, F, id, M);
+    NATIVE_SLOTS_LIST(NATIVE_CASE)
+#undef NATIVE_CASE
+    case Kind::kTypeArguments:
+      return "TypeArguments";
+    case Kind::kCapturedVariable:
+      return "CapturedVariable";
+    case Kind::kDartField:
+      return "DartField";
+    default:
+      UNREACHABLE();
+      return nullptr;
+  }
+}
+
+bool Slot::ParseKind(const char* str, Kind* out) {
+  ASSERT(str != nullptr && out != nullptr);
+#define NATIVE_CASE(C, U, F, id, M)                                            \
+  if (strcmp(str, NATIVE_TO_STR(C, F, id, M)) == 0) {                          \
+    *out = NATIVE_SLOT_NAME(C, F, id, M);                                      \
+    return true;                                                               \
+  }
+  NATIVE_SLOTS_LIST(NATIVE_CASE)
+#undef NATIVE_CASE
+  if (strcmp(str, "TypeArguments") == 0) {
+    *out = Kind::kTypeArguments;
+    return true;
+  }
+  if (strcmp(str, "CapturedVariable") == 0) {
+    *out = Kind::kCapturedVariable;
+    return true;
+  }
+  if (strcmp(str, "DartField") == 0) {
+    *out = Kind::kDartField;
+    return true;
+  }
+  return false;
+}
+
+#undef NATIVE_TO_STR
+#undef NATIVE_SLOT_NAME
+
 const Slot& Slot::GetNativeSlot(Kind kind) {
   // There is a fixed statically known number of native slots so we cache
   // them statically.
   static const Slot fields[] = {
 #define FIELD_FINAL (IsImmutableBit::encode(true))
 #define FIELD_VAR (0)
-#define DEFINE_NATIVE_FIELD(ClassName, FieldName, cid, mutability)             \
+#define DEFINE_NATIVE_FIELD(ClassName, UnderlyingType, FieldName, cid,         \
+                            mutability)                                        \
   Slot(Kind::k##ClassName##_##FieldName, FIELD_##mutability, k##cid##Cid,      \
        compiler::target::ClassName::FieldName##_offset(),                      \
        #ClassName "." #FieldName, nullptr),
@@ -110,16 +160,22 @@ const Slot& Slot::GetTypeArgumentsSlotFor(Thread* thread, const Class& cls) {
 const Slot& Slot::GetContextVariableSlotFor(Thread* thread,
                                             const LocalVariable& variable) {
   ASSERT(variable.is_captured());
-  // TODO(vegorov) Can't assign static type to local variables because
-  // for captured parameters we generate the code that first stores a
-  // variable into the context and then loads it from the context to perform
-  // the type check.
-  return SlotCache::Instance(thread).Canonicalize(Slot(
-      Kind::kCapturedVariable,
-      IsImmutableBit::encode(variable.is_final()) | IsNullableBit::encode(true),
-      kDynamicCid,
-      compiler::target::Context::variable_offset(variable.index().value()),
-      &variable.name(), /*static_type=*/nullptr));
+  return SlotCache::Instance(thread).Canonicalize(
+      Slot(Kind::kCapturedVariable,
+           IsImmutableBit::encode(variable.is_final() && !variable.is_late()) |
+               IsNullableBit::encode(true),
+           kDynamicCid,
+           compiler::target::Context::variable_offset(variable.index().value()),
+           &variable.name(), &variable.type()));
+}
+
+const Slot& Slot::GetTypeArgumentsIndexSlot(Thread* thread, intptr_t index) {
+  const intptr_t offset =
+      compiler::target::TypeArguments::type_at_offset(index);
+  const Slot& slot =
+      Slot(Kind::kTypeArgumentsIndex, IsImmutableBit::encode(true), kDynamicCid,
+           offset, ":argument", /*static_type=*/nullptr);
+  return SlotCache::Instance(thread).Canonicalize(slot);
 }
 
 const Slot& Slot::Get(const Field& field,
@@ -154,13 +210,32 @@ const Slot& Slot::Get(const Field& field,
     }
   }
 
-  const Slot& slot = SlotCache::Instance(thread).Canonicalize(
-      Slot(Kind::kDartField,
-           IsImmutableBit::encode(field.is_final() || field.is_const()) |
-               IsNullableBit::encode(is_nullable) |
-               IsGuardedBit::encode(used_guarded_state),
-           nullable_cid, compiler::target::Field::OffsetOf(field), &field,
-           &AbstractType::ZoneHandle(zone, field.type())));
+  AbstractType& type = AbstractType::ZoneHandle(zone, field.type());
+
+  if (field.needs_load_guard()) {
+    // Should be kept in sync with LoadStaticFieldInstr::ComputeType.
+    type = Type::DynamicType();
+    nullable_cid = kDynamicCid;
+    is_nullable = true;
+    used_guarded_state = false;
+  }
+
+  if (field.is_non_nullable_integer()) {
+    is_nullable = false;
+  }
+
+  if (field.is_late()) {
+    // TODO(dartbug.com/40796): Extend CompileType to handle lateness.
+    is_nullable = true;
+  }
+
+  const Slot& slot = SlotCache::Instance(thread).Canonicalize(Slot(
+      Kind::kDartField,
+      IsImmutableBit::encode((field.is_final() && !field.is_late()) ||
+                             field.is_const()) |
+          IsNullableBit::encode(is_nullable) |
+          IsGuardedBit::encode(used_guarded_state),
+      nullable_cid, compiler::target::Field::OffsetOf(field), &field, &type));
 
   // If properties of this slot were based on the guarded state make sure
   // to add the field to the list of guarded fields. Note that during background
@@ -182,7 +257,7 @@ const Slot& Slot::Get(const Field& field,
     } else {
       // In precompiled mode we use guarded_cid field for type information
       // inferred by TFA.
-      ASSERT(FLAG_precompiled_mode);
+      ASSERT(CompilerState::Current().is_aot());
     }
   }
 
@@ -214,6 +289,7 @@ bool Slot::Equals(const Slot* other) const {
 
   switch (kind_) {
     case Kind::kTypeArguments:
+    case Kind::kTypeArgumentsIndex:
       return (offset_in_bytes_ == other->offset_in_bytes_);
 
     case Kind::kCapturedVariable:

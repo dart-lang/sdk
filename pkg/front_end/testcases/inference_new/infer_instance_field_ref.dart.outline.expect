@@ -20,8 +20,8 @@ class D extends self::C {
   synthetic constructor •() → self::D*
     ;
 }
-static field dynamic a;
-static field dynamic x;
-static field dynamic y;
+static field self::A* a;
+static field self::C* x;
+static field self::C* y;
 static method main() → dynamic
   ;

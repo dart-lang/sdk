@@ -8,7 +8,9 @@
 
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/il.h"
+#include "vm/compiler/backend/range_analysis.h"
 #include "vm/compiler/method_recognizer.h"
+#include "vm/object_store.h"
 #include "vm/os.h"
 
 namespace dart {
@@ -16,40 +18,107 @@ namespace dart {
 DEFINE_FLAG(bool,
             serialize_flow_graph_types,
             true,
-            "Serialize inferred type information in flow graphs"
-            " (with --serialize_flow_graphs_to)");
+            "Serialize inferred type information in flow graphs");
 
 DEFINE_FLAG(bool,
             verbose_flow_graph_serialization,
             false,
-            "Serialize extra information useful for debugging"
-            " (with --serialize_flow_graphs_to)");
+            "Serialize extra information useful for debugging");
 
 DEFINE_FLAG(bool,
             pretty_print_serialization,
             false,
-            "Format serialized output nicely"
-            " (with --serialize_flow_graphs_to)");
+            "Format serialized output nicely");
+
+DECLARE_FLAG(bool, populate_llvm_constant_pool);
 
 const char* const FlowGraphSerializer::initial_indent = "";
 
+FlowGraphSerializer::FlowGraphSerializer(Zone* zone,
+                                         const FlowGraph* flow_graph)
+    : flow_graph_(ASSERT_NOTNULL(flow_graph)),
+      zone_(zone),
+      object_store_(flow_graph->thread()->isolate()->object_store()),
+      open_recursive_types_(zone_),
+      llvm_constants_(
+          GrowableObjectArray::Handle(zone_,
+                                      object_store_->llvm_constant_pool())),
+      llvm_functions_(
+          GrowableObjectArray::Handle(zone_,
+                                      object_store_->llvm_function_pool())),
+      llvm_constant_map_(zone_, object_store_->llvm_constant_hash_table()),
+      llvm_index_(Smi::Handle(zone_)),
+      tmp_string_(String::Handle(zone_)),
+      array_type_args_((TypeArguments::Handle(zone_))),
+      closure_context_(Context::Handle(zone_)),
+      closure_function_(Function::Handle(zone_)),
+      closure_type_args_(TypeArguments::Handle(zone_)),
+      code_owner_(Object::Handle(zone_)),
+      context_parent_(Context::Handle(zone_)),
+      context_elem_(Object::Handle(zone_)),
+      function_type_args_(TypeArguments::Handle(zone_)),
+      ic_data_target_(Function::Handle(zone_)),
+      ic_data_type_(AbstractType::Handle(zone_)),
+      instance_field_(Field::Handle(zone_)),
+      instance_type_args_(TypeArguments::Handle(zone_)),
+      serialize_library_(Library::Handle(zone_)),
+      serialize_owner_(Class::Handle(zone_)),
+      serialize_parent_(Function::Handle(zone_)),
+      type_arguments_elem_(AbstractType::Handle(zone_)),
+      type_class_(Class::Handle(zone_)),
+      type_function_(Function::Handle(zone_)),
+      type_ref_type_(AbstractType::Handle(zone_)) {
+  // Double-check that the zone in the flow graph is a parent of the
+  // zone we'll be using for serialization.
+  ASSERT(flow_graph->zone()->ContainsNestedZone(zone));
+}
+
+FlowGraphSerializer::~FlowGraphSerializer() {
+  object_store_->set_llvm_constant_hash_table(llvm_constant_map_.Release());
+}
+
 void FlowGraphSerializer::SerializeToBuffer(const FlowGraph* flow_graph,
                                             TextBuffer* buffer) {
-  SerializeToBuffer(flow_graph->zone(), flow_graph, buffer);
+  SerializeToBuffer(Thread::Current()->zone(), flow_graph, buffer);
 }
 
 void FlowGraphSerializer::SerializeToBuffer(Zone* zone,
                                             const FlowGraph* flow_graph,
                                             TextBuffer* buffer) {
   ASSERT(buffer != nullptr);
-  FlowGraphSerializer serializer(zone, flow_graph);
-  auto const sexp = serializer.FlowGraphToSExp();
+  auto const sexp = SerializeToSExp(zone, flow_graph);
   if (FLAG_pretty_print_serialization) {
-    sexp->SerializeTo(serializer.zone(), buffer, initial_indent);
+    sexp->SerializeTo(zone, buffer, initial_indent);
   } else {
     sexp->SerializeToLine(buffer);
   }
   buffer->AddString("\n\n");
+}
+
+SExpression* FlowGraphSerializer::SerializeToSExp(const FlowGraph* flow_graph) {
+  return SerializeToSExp(Thread::Current()->zone(), flow_graph);
+}
+
+SExpression* FlowGraphSerializer::SerializeToSExp(Zone* zone,
+                                                  const FlowGraph* flow_graph) {
+  FlowGraphSerializer serializer(zone, flow_graph);
+  return serializer.FlowGraphToSExp();
+}
+
+#define KIND_STR(name) #name,
+static const char* block_entry_kind_tags[FlowGraphSerializer::kNumEntryKinds] =
+    {FOR_EACH_BLOCK_ENTRY_KIND(KIND_STR)};
+#undef KIND_STR
+
+FlowGraphSerializer::BlockEntryKind FlowGraphSerializer::BlockEntryTagToKind(
+    SExpSymbol* tag) {
+  if (tag == nullptr) return kTarget;
+  auto const str = tag->value();
+  for (intptr_t i = 0; i < kNumEntryKinds; i++) {
+    auto const current = block_entry_kind_tags[i];
+    if (strcmp(str, current) == 0) return static_cast<BlockEntryKind>(i);
+  }
+  return kInvalid;
 }
 
 void FlowGraphSerializer::AddBool(SExpList* sexp, bool b) {
@@ -101,7 +170,9 @@ void FlowGraphSerializer::SerializeCanonicalName(TextBuffer* b,
   ASSERT(!obj.IsNull());
   if (obj.IsFunction()) {
     const auto& function = Function::Cast(obj);
-    tmp_string_ = function.UserVisibleName();
+    tmp_string_ = function.name();
+    // We only want private keys removed, no other changes.
+    tmp_string_ = String::RemovePrivateKey(tmp_string_);
     const char* function_name = tmp_string_.ToCString();
     // If this function is an inner closure then the parent points to its
     // containing function, which will also be part of the canonical name.
@@ -159,50 +230,62 @@ SExpression* FlowGraphSerializer::CanonicalNameToSExp(const Object& obj) {
   return new (zone()) SExpSymbol(OS::SCreate(zone(), "%s", b.buf()));
 }
 
+SExpSymbol* FlowGraphSerializer::BlockEntryKindToTag(BlockEntryKind k) {
+  ASSERT(k >= 0 && k < kNumEntryKinds);
+  return new (zone()) SExpSymbol(block_entry_kind_tags[k]);
+}
+
+#define KIND_TAG(name) block_entry_kind_tags[k##name]
 SExpSymbol* FlowGraphSerializer::BlockEntryTag(const BlockEntryInstr* entry) {
   if (entry == nullptr) return nullptr;
-  BlockEntryInstr* const to_test = const_cast<BlockEntryInstr*>(entry);
-  if (to_test->IsGraphEntry()) {
-    return new (zone()) SExpSymbol("Graph");
+  if (entry->IsGraphEntry()) {
+    return BlockEntryKindToTag(kGraph);
   }
-  if (to_test->IsOsrEntry()) {
-    return new (zone()) SExpSymbol("OSR");
+  if (entry->IsOsrEntry()) {
+    return BlockEntryKindToTag(kOSR);
   }
-  if (to_test->IsCatchBlockEntry()) {
-    return new (zone()) SExpSymbol("Catch");
+  if (entry->IsCatchBlockEntry()) {
+    return BlockEntryKindToTag(kCatch);
   }
-  if (to_test->IsIndirectEntry()) {
-    return new (zone()) SExpSymbol("Indirect");
+  if (entry->IsIndirectEntry()) {
+    return BlockEntryKindToTag(kIndirect);
   }
-  if (to_test->IsFunctionEntry()) {
+  if (entry->IsFunctionEntry()) {
     if (entry == flow_graph()->graph_entry()->normal_entry()) {
-      return new (zone()) SExpSymbol("Normal");
+      return BlockEntryKindToTag(kNormal);
     }
     if (entry == flow_graph()->graph_entry()->unchecked_entry()) {
-      return new (zone()) SExpSymbol("Unchecked");
+      return BlockEntryKindToTag(kUnchecked);
     }
   }
-  if (to_test->IsJoinEntry()) {
-    return new (zone()) SExpSymbol("Join");
+  if (entry->IsJoinEntry()) {
+    return BlockEntryKindToTag(kJoin);
   }
   return nullptr;
 }
+#undef KIND_TAG
 
-SExpression* FlowGraphSerializer::FunctionEntryToSExp(BlockEntryInstr* entry) {
+SExpression* FlowGraphSerializer::FunctionEntryToSExp(
+    const BlockEntryInstr* entry) {
   if (entry == nullptr) return nullptr;
   auto sexp = new (zone()) SExpList(zone());
   sexp->Add(BlockEntryTag(entry));
   sexp->Add(BlockIdToSExp(entry->block_id()));
-  if (auto with_defs = entry->AsBlockEntryWithInitialDefs()) {
-    auto initial_defs = with_defs->initial_definitions();
+  if (auto const with_defs = entry->AsBlockEntryWithInitialDefs()) {
+    auto const initial_defs = with_defs->initial_definitions();
     for (intptr_t i = 0; i < initial_defs->length(); i++) {
       sexp->Add(initial_defs->At(i)->ToSExpression(this));
     }
   }
+
+  // Also include the extra info here, to avoid having to find the
+  // corresponding block to get it.
+  entry->BlockEntryInstr::AddExtraInfoToSExpression(sexp, this);
+
   return sexp;
 }
 
-SExpression* FlowGraphSerializer::EntriesToSExp(GraphEntryInstr* start) {
+SExpression* FlowGraphSerializer::EntriesToSExp(const GraphEntryInstr* start) {
   auto sexp = new (zone()) SExpList(zone());
   AddSymbol(sexp, "Entries");
   if (auto const normal = FunctionEntryToSExp(start->normal_entry())) {
@@ -229,6 +312,9 @@ SExpression* FlowGraphSerializer::FlowGraphToSExp() {
   AddSymbol(sexp, "FlowGraph");
   sexp->Add(CanonicalNameToSExp(flow_graph()->function()));
   AddExtraInteger(sexp, "deopt_id", start->deopt_id());
+  if (start->env() != nullptr) {
+    sexp->AddExtra("env", start->env()->ToSExpression(this));
+  }
   if (start->IsCompiledForOsr()) {
     AddExtraInteger(sexp, "osr_id", start->osr_id());
   }
@@ -243,6 +329,11 @@ SExpression* FlowGraphSerializer::FlowGraphToSExp() {
   ASSERT(block_order[0]->IsGraphEntry());
   for (intptr_t i = 1; i < block_order.length(); ++i) {
     sexp->Add(block_order[i]->ToSExpression(this));
+  }
+  if (FLAG_populate_llvm_constant_pool) {
+    auto const new_index = llvm_functions_.Length();
+    llvm_functions_.Add(flow_graph_->function());
+    AddExtraInteger(sexp, "llvm_index", new_index);
   }
   return sexp;
 }
@@ -286,8 +377,7 @@ SExpression* FlowGraphSerializer::ClassToSExp(const Class& cls) {
 static bool ShouldSerializeType(CompileType* type) {
   return (FLAG_verbose_flow_graph_serialization ||
           FLAG_serialize_flow_graph_types) &&
-         type != NULL &&
-         (type->ToNullableCid() != kDynamicCid || !type->is_nullable());
+         type != nullptr;
 }
 
 SExpression* FlowGraphSerializer::FieldToSExp(const Field& field) {
@@ -304,19 +394,50 @@ SExpression* FlowGraphSerializer::FieldToSExp(const Field& field) {
 
 SExpression* FlowGraphSerializer::AbstractTypeToSExp(const AbstractType& t) {
   if (t.IsNull()) return nullptr;
+  ASSERT(t.IsFinalized());
   auto sexp = new (zone()) SExpList(zone());
   if (t.IsTypeParameter()) {
     const auto& param = TypeParameter::Cast(t);
     AddSymbol(sexp, "TypeParameter");
     tmp_string_ = param.name();
     AddSymbol(sexp, tmp_string_.ToCString());
+    if (param.IsFunctionTypeParameter()) {
+      if (param.parameterized_function() != flow_graph_->function().raw()) {
+        type_function_ = param.parameterized_function();
+        sexp->AddExtra("function", CanonicalNameToSExp(type_function_));
+      } else if (FLAG_verbose_flow_graph_serialization) {
+        sexp->AddExtra("function",
+                       CanonicalNameToSExp(flow_graph_->function()));
+      }
+    } else if (param.IsClassTypeParameter()) {
+      type_class_ = param.parameterized_class();
+      AddExtraInteger(sexp, "class", type_class_.id());
+    }
     return sexp;
   }
   if (t.IsTypeRef()) {
     const auto& ref = TypeRef::Cast(t);
     AddSymbol(sexp, "TypeRef");
     type_ref_type_ = ref.type();
-    AddExtraInteger(sexp, "hash", type_ref_type_.Hash());
+    auto const hash = type_ref_type_.Hash();
+    // Check to see if this is a TypeRef to a type we're currently serializing.
+    // If it is not, then we need to serialize the underlying type, as it
+    // otherwise won't be available when deserializing.
+    auto const open_type = open_recursive_types_.LookupValue(hash);
+    if (open_type == nullptr) {
+      // Allocate a new handle as we may re-enter the TypeRef branch.
+      auto& type = AbstractType::Handle(zone(), ref.type());
+      sexp->Add(AbstractTypeToSExp(type));
+      // If we serialized the referrent, then we don't need this information,
+      // but it may be useful for debugging so add it in verbose mode.
+      if (FLAG_verbose_flow_graph_serialization) {
+        AddExtraInteger(sexp, "hash", hash);
+      }
+    } else {
+      // Make sure we didn't have a hash collision.
+      ASSERT(open_type->Equals(type_ref_type_));
+      AddExtraInteger(sexp, "hash", hash);
+    }
     if (FLAG_verbose_flow_graph_serialization) {
       AddExtraString(sexp, "type", type_ref_type_.ToCString());
     }
@@ -324,27 +445,43 @@ SExpression* FlowGraphSerializer::AbstractTypeToSExp(const AbstractType& t) {
   }
   ASSERT(t.IsType());
   AddSymbol(sexp, "Type");
-  const auto& typ = Type::Cast(t);
-  if (typ.HasTypeClass()) {
-    type_class_ = typ.type_class();
+  const auto& type = Type::Cast(t);
+  if (!type.token_pos().IsNoSource()) {
+    AddExtraInteger(sexp, "token_pos", type.token_pos().value());
+  }
+  // We want to check for the type being recursive before we may serialize
+  // any sub-parts that include possible TypeRefs to this type.
+  const bool is_recursive = type.IsRecursive();
+  intptr_t hash = 0;
+  if (is_recursive) {
+    hash = type.Hash();
+    AddExtraInteger(sexp, "hash", hash);
+    open_recursive_types_.Insert(hash, &type);
+  }
+  if (type.HasTypeClass()) {
+    type_class_ = type.type_class();
     // This avoids re-entry as long as serializing a class doesn't involve
     // serializing concrete (non-parameter, non-reference) types.
     sexp->Add(DartValueToSExp(type_class_));
-    if (typ.IsRecursive()) {
-      AddExtraInteger(sexp, "hash", typ.Hash());
-    }
-    // Since type arguments may themselves be instantiations of generic
-    // classes, we may call back into this function in the middle of printing
-    // the TypeArguments and so we must allocate a fresh handle here.
-    const auto& args = TypeArguments::Handle(zone(), typ.arguments());
-    if (auto const args_sexp = NonEmptyTypeArgumentsToSExp(args)) {
-      sexp->AddExtra("type_args", args_sexp);
-    }
   } else {
     // TODO(dartbug.com/36882): Actually structure non-class types instead of
     // just printing out this version.
-    AddString(sexp, typ.ToCString());
+    AddExtraString(sexp, "name", type.ToCString());
   }
+  if (type.IsFunctionType()) {
+    type_function_ = type.signature();
+    sexp->AddExtra("signature", DartValueToSExp(type_function_));
+  }
+  // Since type arguments may themselves be instantiations of generic
+  // types, we may call back into this function in the middle of printing
+  // the TypeArguments and so we must allocate a fresh handle here.
+  const auto& args = TypeArguments::Handle(zone(), type.arguments());
+  if (auto const args_sexp = NonEmptyTypeArgumentsToSExp(args)) {
+    sexp->AddExtra("type_args", args_sexp);
+  }
+  // If we were parsing a recursive type, we're now done building it, so
+  // remove it from the open recursive types.
+  if (is_recursive) open_recursive_types_.Remove(hash);
   return sexp;
 }
 
@@ -381,6 +518,9 @@ SExpression* FlowGraphSerializer::TypeArgumentsToSExp(const TypeArguments& ta) {
   for (intptr_t i = 0; i < ta.Length(); i++) {
     type_arguments_elem_ = ta.TypeAt(i);
     sexp->Add(DartValueToSExp(type_arguments_elem_));
+  }
+  if (FLAG_verbose_flow_graph_serialization && ta.IsRecursive()) {
+    AddExtraInteger(sexp, "hash", ta.Hash());
   }
   return sexp;
 }
@@ -450,8 +590,9 @@ SExpression* FlowGraphSerializer::FunctionToSExp(const Function& func) {
       AddExtraSymbol(sexp, "native_name", tmp_string_.ToCString());
     }
   }
-  if (FLAG_verbose_flow_graph_serialization) {
-    AddExtraSymbol(sexp, "kind", Function::KindToCString(func.kind()));
+  if (func.kind() != RawFunction::Kind::kRegularFunction ||
+      FLAG_verbose_flow_graph_serialization) {
+    AddExtraSymbol(sexp, "kind", RawFunction::KindToCString(func.kind()));
   }
   function_type_args_ = func.type_parameters();
   if (auto const ta_sexp = NonEmptyTypeArgumentsToSExp(function_type_args_)) {
@@ -474,6 +615,10 @@ SExpression* FlowGraphSerializer::ArrayToSExp(const Array& arr) {
     array_elem = arr.At(i);
     sexp->Add(DartValueToSExp(array_elem));
   }
+  array_type_args_ = arr.GetTypeArguments();
+  if (auto const type_args_sexp = TypeArgumentsToSExp(array_type_args_)) {
+    sexp->AddExtra("type_args", type_args_sexp);
+  }
   return sexp;
 }
 
@@ -484,6 +629,10 @@ SExpression* FlowGraphSerializer::ClosureToSExp(const Closure& c) {
   closure_function_ = c.function();
   if (auto const func = FunctionToSExp(closure_function_)) {
     sexp->Add(func);
+  }
+  closure_context_ = c.context();
+  if (auto const context = ContextToSExp(closure_context_)) {
+    sexp->AddExtra("context", context);
   }
   closure_type_args_ = c.function_type_arguments();
   if (auto const type_args = NonEmptyTypeArgumentsToSExp(closure_type_args_)) {
@@ -500,9 +649,29 @@ SExpression* FlowGraphSerializer::ClosureToSExp(const Closure& c) {
   return sexp;
 }
 
+SExpression* FlowGraphSerializer::ContextToSExp(const Context& c) {
+  if (c.IsNull()) return nullptr;
+  auto sexp = new (zone()) SExpList(zone());
+  AddSymbol(sexp, "Context");
+  for (intptr_t i = 0; i < c.num_variables(); i++) {
+    context_elem_ = c.At(i);
+    auto const elem_sexp = DartValueToSExp(context_elem_);
+    if (elem_sexp == nullptr) return nullptr;
+    sexp->Add(elem_sexp);
+  }
+  context_parent_ = c.parent();
+  if (auto const parent_sexp = ContextToSExp(context_parent_)) {
+    sexp->AddExtra("parent", parent_sexp);
+  }
+  return sexp;
+}
+
 SExpression* FlowGraphSerializer::ObjectToSExp(const Object& dartval) {
   if (dartval.IsNull()) {
     return new (zone()) SExpSymbol("null");
+  }
+  if (dartval.raw() == Object::sentinel().raw()) {
+    return new (zone()) SExpSymbol("sentinel");
   }
   if (dartval.IsString()) {
     return new (zone()) SExpString(dartval.ToCString());
@@ -561,22 +730,32 @@ SExpression* FlowGraphSerializer::NonEmptyTypeArgumentsToSExp(
   return DartValueToSExp(ta);
 }
 
-SExpression* FlowGraphSerializer::ConstantPoolToSExp(GraphEntryInstr* start) {
+SExpression* FlowGraphSerializer::ConstantPoolToSExp(
+    const GraphEntryInstr* start) {
   auto const initial_defs = start->initial_definitions();
   if (initial_defs == nullptr || initial_defs->is_empty()) return nullptr;
   auto constant_list = new (zone()) SExpList(zone());
   AddSymbol(constant_list, "Constants");
   for (intptr_t i = 0; i < initial_defs->length(); i++) {
     ASSERT(initial_defs->At(i)->IsConstant());
-    ConstantInstr* value = initial_defs->At(i)->AsConstant();
+    auto const definition = initial_defs->At(i)->AsDefinition();
     auto elem = new (zone()) SExpList(zone());
     AddSymbol(elem, "def");
-    elem->Add(UseToSExp(value->AsDefinition()));
+    elem->Add(UseToSExp(definition));
     // Use ObjectToSExp here, not DartValueToSExp!
-    elem->Add(ObjectToSExp(value->value()));
-    if (ShouldSerializeType(value->AsDefinition()->Type())) {
-      auto const val = value->AsDefinition()->Type()->ToSExpression(this);
-      elem->AddExtra("type", val);
+    const auto& value = definition->AsConstant()->value();
+    elem->Add(ObjectToSExp(value));
+    AddDefinitionExtraInfoToSExp(definition, elem);
+    // Only add constants to the LLVM constant pool that are actually used in
+    // the flow graph.
+    if (FLAG_populate_llvm_constant_pool && definition->HasUses()) {
+      auto const pool_len = llvm_constants_.Length();
+      llvm_index_ = Smi::New(pool_len);
+      llvm_index_ ^= llvm_constant_map_.InsertOrGetValue(value, llvm_index_);
+      if (llvm_index_.Value() == pool_len) {
+        llvm_constants_.Add(value);
+      }
+      AddExtraInteger(elem, "llvm_index", llvm_index_.Value());
     }
     constant_list->Add(elem);
   }
@@ -603,10 +782,13 @@ SExpression* BlockEntryInstr::ToSExpression(FlowGraphSerializer* s) const {
 void BlockEntryInstr::AddExtraInfoToSExpression(SExpList* sexp,
                                                 FlowGraphSerializer* s) const {
   Instruction::AddExtraInfoToSExpression(sexp, s);
+  if (try_index() != kInvalidTryIndex) {
+    s->AddExtraInteger(sexp, "try_index", try_index());
+  }
+  if (auto const entry_tag = s->BlockEntryTag(this)) {
+    sexp->AddExtra("block_type", entry_tag);
+  }
   if (FLAG_verbose_flow_graph_serialization) {
-    if (auto const entry_tag = s->BlockEntryTag(this)) {
-      sexp->AddExtra("block_type", entry_tag);
-    }
     if (PredecessorCount() > 0) {
       auto const preds = new (s->zone()) SExpList(s->zone());
       for (intptr_t i = 0; i < PredecessorCount(); i++) {
@@ -619,10 +801,8 @@ void BlockEntryInstr::AddExtraInfoToSExpression(SExpList* sexp,
 
 void BlockEntryInstr::AddOperandsToSExpression(SExpList* sexp,
                                                FlowGraphSerializer* s) const {
-  // We don't use RemoveCurrentFromGraph(), so this cast is safe.
-  auto block = const_cast<BlockEntryInstr*>(this);
-  for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
-    sexp->Add(it.Current()->ToSExpression(s));
+  for (const auto* inst = next_; inst != nullptr; inst = inst->next_) {
+    sexp->Add(inst->ToSExpression(s));
   }
 }
 
@@ -652,20 +832,88 @@ void Instruction::AddExtraInfoToSExpression(SExpList* sexp,
   if (env() != nullptr) {
     sexp->AddExtra("env", env()->ToSExpression(s));
   }
+  if (!token_pos().IsNoSource()) {
+    s->AddExtraInteger(sexp, "token_pos", token_pos().value());
+  }
+  if (lifetime_position() != kNoPlaceId) {
+    s->AddExtraInteger(sexp, "lifetime_position", lifetime_position());
+  }
+}
+
+SExpression* Range::ToSExpression(FlowGraphSerializer* s) {
+  auto const sexp = new (s->zone()) SExpList(s->zone());
+  s->AddSymbol(sexp, "Range");
+  sexp->Add(min_.ToSExpression(s));
+  if (!max_.Equals(min_)) sexp->Add(max_.ToSExpression(s));
+  return sexp;
+}
+
+SExpression* RangeBoundary::ToSExpression(FlowGraphSerializer* s) {
+  switch (kind_) {
+    case kSymbol: {
+      auto const sexp = new (s->zone()) SExpList(s->zone());
+      sexp->Add(s->UseToSExp(symbol()));
+      if (offset() != 0) {
+        s->AddExtraInteger(sexp, "offset", offset());
+      }
+      return sexp;
+    }
+    case kConstant:
+      return new (s->zone()) SExpInteger(value_);
+    default:
+      return new (s->zone()) SExpSymbol(RangeBoundary::KindToCString(kind_));
+  }
+}
+
+bool FlowGraphSerializer::HasDefinitionExtraInfo(const Definition* def) {
+  return ShouldSerializeType(def->type_) || def->range() != nullptr;
+}
+
+void FlowGraphSerializer::AddDefinitionExtraInfoToSExp(const Definition* def,
+                                                       SExpList* sexp) {
+  // Type() isn't a const method as it can cause changes to the type_
+  // field, so access type_ directly instead.
+  if (ShouldSerializeType(def->type_)) {
+    sexp->AddExtra("type", def->type_->ToSExpression(this));
+  }
+  if (def->range() != nullptr) {
+    sexp->AddExtra("range", def->range()->ToSExpression(this));
+  }
 }
 
 SExpression* Definition::ToSExpression(FlowGraphSerializer* s) const {
-  if (!HasSSATemp() && !HasTemp()) {
+  // If we don't have a temp index, then this is a Definition that has no
+  // usable result.
+  const bool binds_name = HasSSATemp() || HasTemp();
+  // Don't serialize non-binding definitions as definitions unless we either
+  // have Definition-specific extra info or we're in verbose mode.
+  if (!binds_name && !FLAG_verbose_flow_graph_serialization &&
+      !s->HasDefinitionExtraInfo(this)) {
     return Instruction::ToSExpression(s);
   }
   auto sexp = new (s->zone()) SExpList(s->zone());
   s->AddSymbol(sexp, "def");
-  sexp->Add(s->UseToSExp(this));
-  if (ShouldSerializeType(type_)) {
-    sexp->AddExtra("type", type_->ToSExpression(s));
+  if (binds_name) {
+    sexp->Add(s->UseToSExp(this));
+  } else {
+    // Since there is Definition-specific extra info to serialize, we use "_"
+    // as the bound name, which lets the deserializer know the result is unused.
+    s->AddSymbol(sexp, "_");
   }
+  // Add only Definition-specific extra info to this form. Any extra info
+  // that is Instruction-specific or specific to the actual instruction type is
+  // added to the nested instruction form.
+  s->AddDefinitionExtraInfoToSExp(this, sexp);
   sexp->Add(Instruction::ToSExpression(s));
   return sexp;
+}
+
+void AssertAssignableInstr::AddExtraInfoToSExpression(
+    SExpList* sexp,
+    FlowGraphSerializer* s) const {
+  Instruction::AddExtraInfoToSExpression(sexp, s);
+  sexp->AddExtra("type", s->DartValueToSExp(dst_type()));
+  sexp->AddExtra("name", s->DartValueToSExp(dst_name()));
 }
 
 void ConstantInstr::AddOperandsToSExpression(SExpList* sexp,
@@ -683,11 +931,15 @@ void BranchInstr::AddOperandsToSExpression(SExpList* sexp,
 void ParameterInstr::AddOperandsToSExpression(SExpList* sexp,
                                               FlowGraphSerializer* s) const {
   s->AddInteger(sexp, index());
+  s->AddExtraInteger(sexp, "param_offset", param_offset());
+  s->AddExtraSymbol(sexp, "representation",
+                    Location::RepresentationToCString(representation()));
 }
 
 void SpecialParameterInstr::AddOperandsToSExpression(
     SExpList* sexp,
     FlowGraphSerializer* s) const {
+  ASSERT(kind() < SpecialParameterInstr::kNumKinds);
   s->AddSymbol(sexp, KindToCString(kind()));
 }
 
@@ -713,30 +965,13 @@ void StoreLocalInstr::AddOperandsToSExpression(SExpList* sexp,
   sexp->Add(s->LocalVariableToSExp(local()));
 }
 
-static const char* SlotKindToCString(Slot::Kind kind) {
-  switch (kind) {
-    case Slot::Kind::kDartField:
-      return "DartField";
-    case Slot::Kind::kCapturedVariable:
-      return "CapturedVariable";
-    case Slot::Kind::kTypeArguments:
-      return "TypeArguments";
-    default:
-      return "NativeSlot";
-  }
-}
-
 SExpression* FlowGraphSerializer::SlotToSExp(const Slot& slot) {
   auto sexp = new (zone()) SExpList(zone());
   AddSymbol(sexp, "Slot");
   AddInteger(sexp, slot.offset_in_bytes());
-  if (FLAG_verbose_flow_graph_serialization) {
-    AddExtraSymbol(sexp, "kind", SlotKindToCString(slot.kind()));
-    if (slot.IsDartField()) {
-      sexp->AddExtra("field", DartValueToSExp(slot.field()));
-    } else {
-      AddExtraString(sexp, "name", slot.Name());
-    }
+  AddExtraSymbol(sexp, "kind", Slot::KindToCString(slot.kind()));
+  if (slot.IsDartField()) {
+    sexp->AddExtra("field", DartValueToSExp(slot.field()));
   }
   return sexp;
 }
@@ -753,6 +988,24 @@ void StoreInstanceFieldInstr::AddOperandsToSExpression(
   sexp->Add(instance()->ToSExpression(s));
   sexp->Add(s->SlotToSExp(slot()));
   sexp->Add(value()->ToSExpression(s));
+}
+
+void StoreInstanceFieldInstr::AddExtraInfoToSExpression(
+    SExpList* sexp,
+    FlowGraphSerializer* s) const {
+  Instruction::AddExtraInfoToSExpression(sexp, s);
+  if (is_initialization_ || FLAG_verbose_flow_graph_serialization) {
+    s->AddExtraBool(sexp, "is_init", is_initialization_);
+  }
+  if (emit_store_barrier_ != kNoStoreBarrier ||
+      FLAG_verbose_flow_graph_serialization) {
+    // Make sure that we aren't seeing a new value added to the StoreBarrierType
+    // enum that isn't handled by the serializer.
+    ASSERT(emit_store_barrier_ == kNoStoreBarrier ||
+           emit_store_barrier_ == kEmitStoreBarrier);
+    s->AddExtraBool(sexp, "emit_barrier",
+                    emit_store_barrier_ != kNoStoreBarrier);
+  }
 }
 
 void LoadIndexedUnsafeInstr::AddExtraInfoToSExpression(
@@ -779,6 +1032,15 @@ void ComparisonInstr::AddOperandsToSExpression(SExpList* sexp,
   Instruction::AddOperandsToSExpression(sexp, s);
 }
 
+void StrictCompareInstr::AddExtraInfoToSExpression(
+    SExpList* sexp,
+    FlowGraphSerializer* s) const {
+  Instruction::AddExtraInfoToSExpression(sexp, s);
+  if (needs_number_check_ || FLAG_verbose_flow_graph_serialization) {
+    s->AddExtraBool(sexp, "needs_check", needs_number_check_);
+  }
+}
+
 void DoubleTestOpInstr::AddOperandsToSExpression(SExpList* sexp,
                                                  FlowGraphSerializer* s) const {
   const bool negated = kind() != Token::kEQ;
@@ -800,6 +1062,66 @@ void GotoInstr::AddOperandsToSExpression(SExpList* sexp,
   sexp->Add(s->BlockIdToSExp(successor()->block_id()));
 }
 
+void DebugStepCheckInstr::AddExtraInfoToSExpression(
+    SExpList* sexp,
+    FlowGraphSerializer* s) const {
+  Instruction::AddExtraInfoToSExpression(sexp, s);
+  if (stub_kind_ != RawPcDescriptors::kAnyKind ||
+      FLAG_verbose_flow_graph_serialization) {
+    auto const stub_kind_name = RawPcDescriptors::KindToCString(stub_kind_);
+    ASSERT(stub_kind_name != nullptr);
+    s->AddExtraSymbol(sexp, "stub_kind", stub_kind_name);
+  }
+}
+
+SExpression* FlowGraphSerializer::ICDataToSExp(const ICData* ic_data) {
+  auto const sexp = new (zone()) SExpList(zone());
+  AddSymbol(sexp, "ICData");
+
+  if (ic_data->is_tracking_exactness()) {
+    ic_data_type_ = ic_data->receivers_static_type();
+    sexp->AddExtra("receivers_static_type", AbstractTypeToSExp(ic_data_type_));
+  }
+
+  if (ic_data->is_megamorphic() || FLAG_verbose_flow_graph_serialization) {
+    AddExtraBool(sexp, "is_megamorphic", ic_data->is_megamorphic());
+  }
+
+  auto const num_checks = ic_data->NumberOfChecks();
+  GrowableArray<intptr_t> class_ids(zone(), 2);
+  for (intptr_t i = 0; i < num_checks; i++) {
+    auto const entry = new (zone()) SExpList(zone());
+
+    auto const count = ic_data->GetCountAt(i);
+    if (count > 0 || FLAG_verbose_flow_graph_serialization) {
+      AddExtraInteger(entry, "count", count);
+    }
+
+    class_ids.Clear();
+    ic_data->GetCheckAt(i, &class_ids, &ic_data_target_);
+    entry->AddExtra("target", DartValueToSExp(ic_data_target_));
+    for (auto const cid : class_ids) {
+      entry->Add(new (zone()) SExpInteger(cid));
+    }
+
+    sexp->Add(entry);
+  }
+
+  if (FLAG_verbose_flow_graph_serialization) {
+    AddExtraSymbol(sexp, "rebind_rule",
+                   ICData::RebindRuleToCString(ic_data->rebind_rule()));
+    tmp_string_ = ic_data->target_name();
+    AddExtraString(sexp, "target_name", tmp_string_.ToCString());
+    ic_data_target_ = ic_data->Owner();
+    sexp->AddExtra("owner", DartValueToSExp(ic_data_target_));
+    AddExtraInteger(sexp, "num_args_tested", ic_data->NumArgsTested());
+    auto& args_desc = Array::Handle(zone(), ic_data->arguments_descriptor());
+    sexp->AddExtra("arguments_descriptor", DartValueToSExp(args_desc));
+  }
+
+  return sexp;
+}
+
 void TailCallInstr::AddOperandsToSExpression(SExpList* sexp,
                                              FlowGraphSerializer* s) const {
   if (auto const code = s->DartValueToSExp(code_)) {
@@ -810,13 +1132,25 @@ void TailCallInstr::AddOperandsToSExpression(SExpList* sexp,
 
 void NativeCallInstr::AddOperandsToSExpression(SExpList* sexp,
                                                FlowGraphSerializer* s) const {
+  Instruction::AddOperandsToSExpression(sexp, s);
+}
+
+void NativeCallInstr::AddExtraInfoToSExpression(SExpList* sexp,
+                                                FlowGraphSerializer* s) const {
+  TemplateDartCall<0>::AddExtraInfoToSExpression(sexp, s);
   if (auto const func = s->DartValueToSExp(function())) {
-    sexp->Add(func);
+    sexp->AddExtra("function", func);
+  }
+  if (!native_name().IsNull()) {
+    s->AddExtraString(sexp, "name", native_name().ToCString());
+  }
+  if (link_lazily() || FLAG_verbose_flow_graph_serialization) {
+    s->AddExtraBool(sexp, "link_lazily", link_lazily());
   }
 }
 
-template <>
-void TemplateDartCall<0l>::AddExtraInfoToSExpression(
+template <intptr_t kExtraInputs>
+void TemplateDartCall<kExtraInputs>::AddExtraInfoToSExpression(
     SExpList* sexp,
     FlowGraphSerializer* s) const {
   Instruction::AddExtraInfoToSExpression(sexp, s);
@@ -824,44 +1158,125 @@ void TemplateDartCall<0l>::AddExtraInfoToSExpression(
     s->AddExtraInteger(sexp, "type_args_len", type_args_len());
   }
   s->AddExtraInteger(sexp, "args_len", ArgumentCountWithoutTypeArgs());
+
+  const auto& arg_names = argument_names();
+  if (!arg_names.IsNull()) {
+    auto arg_names_sexp = new (s->zone()) SExpList(s->zone());
+    auto& str = String::Handle(s->zone());
+    for (intptr_t i = 0; i < arg_names.Length(); i++) {
+      str = String::RawCast(arg_names.At(i));
+      arg_names_sexp->Add(s->ObjectToSExp(str));
+    }
+    sexp->AddExtra("arg_names", arg_names_sexp);
+  }
+
+  ASSERT(!HasPushArguments());
 }
 
-template <>
-void TemplateDartCall<1l>::AddExtraInfoToSExpression(
-    SExpList* sexp,
-    FlowGraphSerializer* s) const {
-  Instruction::AddExtraInfoToSExpression(sexp, s);
-  if (type_args_len() > 0 || FLAG_verbose_flow_graph_serialization) {
-    s->AddExtraInteger(sexp, "type_args_len", type_args_len());
-  }
-  s->AddExtraInteger(sexp, "args_len", ArgumentCountWithoutTypeArgs());
+void ClosureCallInstr::AddExtraInfoToSExpression(SExpList* sexp,
+                                                 FlowGraphSerializer* s) const {
+  // For now, just here to ensure TemplateDartCall<1>::AddExtraInfoToSExpression
+  // gets instantiated.
+  TemplateDartCall<1>::AddExtraInfoToSExpression(sexp, s);
 }
 
 void StaticCallInstr::AddOperandsToSExpression(SExpList* sexp,
                                                FlowGraphSerializer* s) const {
+  Instruction::AddOperandsToSExpression(sexp, s);
+}
+
+void StaticCallInstr::AddExtraInfoToSExpression(SExpList* sexp,
+                                                FlowGraphSerializer* s) const {
+  TemplateDartCall<0>::AddExtraInfoToSExpression(sexp, s);
+
   if (auto const func = s->DartValueToSExp(function())) {
-    sexp->Add(func);
+    sexp->AddExtra("function", func);
+  }
+
+  if (HasICData()) {
+    sexp->AddExtra("ic_data", s->ICDataToSExp(ic_data()));
+  } else if (CallCount() > 0 || FLAG_verbose_flow_graph_serialization) {
+    s->AddExtraInteger(sexp, "call_count", CallCount());
+  }
+
+  if (rebind_rule_ != ICData::kStatic ||
+      FLAG_verbose_flow_graph_serialization) {
+    auto const str = ICData::RebindRuleToCString(rebind_rule_);
+    ASSERT(str != nullptr);
+    s->AddExtraSymbol(sexp, "rebind_rule", str);
+  }
+
+  if (ShouldSerializeType(result_type())) {
+    sexp->AddExtra("result_type", result_type()->ToSExpression(s));
+  }
+
+  if (entry_kind() != Code::EntryKind::kNormal ||
+      FLAG_verbose_flow_graph_serialization) {
+    auto const kind_str = Code::EntryKindToCString(entry_kind());
+    s->AddExtraSymbol(sexp, "entry_kind", kind_str);
   }
 }
 
-void InstanceCallInstr::AddOperandsToSExpression(SExpList* sexp,
-                                                 FlowGraphSerializer* s) const {
-  if (auto const target = s->DartValueToSExp(interface_target())) {
-    sexp->Add(target);
-  }
-}
-
-void PolymorphicInstanceCallInstr::AddOperandsToSExpression(
+void InstanceCallBaseInstr::AddOperandsToSExpression(
     SExpList* sexp,
     FlowGraphSerializer* s) const {
-  instance_call()->AddOperandsToSExpression(sexp, s);
+  Instruction::AddOperandsToSExpression(sexp, s);
+}
+
+void InstanceCallBaseInstr::AddExtraInfoToSExpression(
+    SExpList* sexp,
+    FlowGraphSerializer* s) const {
+  TemplateDartCall<0>::AddExtraInfoToSExpression(sexp, s);
+
+  if (auto const target = s->DartValueToSExp(interface_target())) {
+    sexp->AddExtra("interface_target", target);
+  }
+
+  if (HasICData()) {
+    sexp->AddExtra("ic_data", s->ICDataToSExp(ic_data()));
+  }
+
+  if (function_name().IsNull()) {
+    if (!interface_target().IsNull()) {
+      s->AddExtraSymbol(sexp, "function_name", "null");
+    }
+  } else {
+    if (interface_target().IsNull() ||
+        function_name().raw() != interface_target().name()) {
+      s->AddExtraString(sexp, "function_name", function_name().ToCString());
+    }
+  }
+
+  if (token_kind() != Token::kILLEGAL) {
+    s->AddExtraSymbol(sexp, "token_kind", Token::Str(token_kind()));
+  }
+
+  if (ShouldSerializeType(result_type())) {
+    sexp->AddExtra("result_type", result_type()->ToSExpression(s));
+  }
+
+  if (entry_kind() != Code::EntryKind::kNormal ||
+      FLAG_verbose_flow_graph_serialization) {
+    auto const kind_str = Code::EntryKindToCString(entry_kind());
+    s->AddExtraSymbol(sexp, "entry_kind", kind_str);
+  }
+}
+
+void InstanceCallInstr::AddExtraInfoToSExpression(
+    SExpList* sexp,
+    FlowGraphSerializer* s) const {
+  InstanceCallBaseInstr::AddExtraInfoToSExpression(sexp, s);
+
+  if (checked_argument_count() > 0 || FLAG_verbose_flow_graph_serialization) {
+    s->AddExtraInteger(sexp, "checked_arg_count", checked_argument_count());
+  }
 }
 
 void PolymorphicInstanceCallInstr::AddExtraInfoToSExpression(
     SExpList* sexp,
     FlowGraphSerializer* s) const {
-  ASSERT(deopt_id() == instance_call()->deopt_id());
-  instance_call()->AddExtraInfoToSExpression(sexp, s);
+  InstanceCallBaseInstr::AddExtraInfoToSExpression(sexp, s);
+
   if (targets().length() > 0 || FLAG_verbose_flow_graph_serialization) {
     auto elem_list = new (s->zone()) SExpList(s->zone());
     for (intptr_t i = 0; i < targets().length(); i++) {
@@ -890,18 +1305,21 @@ void AllocateObjectInstr::AddOperandsToSExpression(
   if (auto const sexp_cls = s->DartValueToSExp(cls())) {
     sexp->Add(sexp_cls);
   }
+  if (type_arguments() != nullptr) {
+    sexp->Add(type_arguments()->ToSExpression(s));
+  }
 }
 
 void AllocateObjectInstr::AddExtraInfoToSExpression(
     SExpList* sexp,
     FlowGraphSerializer* s) const {
   Instruction::AddExtraInfoToSExpression(sexp, s);
-  s->AddExtraInteger(sexp, "size", cls().instance_size());
-  if (ArgumentCount() > 0 || FLAG_verbose_flow_graph_serialization) {
-    s->AddExtraInteger(sexp, "args_len", ArgumentCount());
-  }
+  s->AddExtraInteger(sexp, "size", cls().target_instance_size());
   if (auto const closure = s->DartValueToSExp(closure_function())) {
     sexp->AddExtra("closure_function", closure);
+  }
+  if (!Identity().IsUnknown() || FLAG_verbose_flow_graph_serialization) {
+    s->AddExtraSymbol(sexp, "identity", Identity().ToCString());
   }
 }
 
@@ -982,60 +1400,76 @@ void CheckStackOverflowInstr::AddExtraInfoToSExpression(
   if (in_loop() || FLAG_verbose_flow_graph_serialization) {
     s->AddExtraInteger(sexp, "loop_depth", loop_depth());
   }
+  if (kind_ != kOsrAndPreemption) {
+    ASSERT(kind_ == kOsrOnly);
+    s->AddExtraSymbol(sexp, "kind", "OsrOnly");
+  }
+}
+
+void CheckNullInstr::AddExtraInfoToSExpression(SExpList* sexp,
+                                               FlowGraphSerializer* s) const {
+  Instruction::AddExtraInfoToSExpression(sexp, s);
+  if (!function_name_.IsNull()) {
+    s->AddExtraString(sexp, "function_name", function_name_.ToCString());
+  }
 }
 
 SExpression* Value::ToSExpression(FlowGraphSerializer* s) const {
   auto name = s->UseToSExp(definition());
-  if (reaching_type_ == nullptr || reaching_type_ == definition()->type_ ||
-      !ShouldSerializeType(reaching_type_)) {
-    return name;
-  }
+  // If we're not serializing types or there is no reaching type for this use,
+  // just serialize the use as the bound name.
+  if (!ShouldSerializeType(reaching_type_)) return name;
+
   auto sexp = new (s->zone()) SExpList(s->zone());
   s->AddSymbol(sexp, "value");
   sexp->Add(name);
-  sexp->AddExtra("type", reaching_type_->ToSExpression(s));
+  // If there is no owner for the type, then serialize the type in full.
+  // Otherwise the owner should be the definition, so we'll inherit the type
+  // from it. (That is, (value v<X>) with no explicit type info means the
+  // reaching type comes from the definition of v<X>.) We'll serialize an
+  // "inherit_type" extra info field to make this explicit when in verbose mode.
+  if (reaching_type_->owner() == nullptr) {
+    sexp->AddExtra("type", reaching_type_->ToSExpression(s));
+  } else {
+    ASSERT(reaching_type_->owner() == definition());
+  }
+  if (FLAG_verbose_flow_graph_serialization) {
+    s->AddExtraBool(sexp, "inherit_type",
+                    reaching_type_->owner() == definition());
+  }
   return sexp;
 }
 
 SExpression* CompileType::ToSExpression(FlowGraphSerializer* s) const {
   ASSERT(FLAG_verbose_flow_graph_serialization ||
          FLAG_serialize_flow_graph_types);
-  ASSERT(cid_ != kDynamicCid || !is_nullable());
 
   auto sexp = new (s->zone()) SExpList(s->zone());
   s->AddSymbol(sexp, "CompileType");
-  if (cid_ != kIllegalCid && cid_ != kDynamicCid) {
-    s->AddInteger(sexp, cid_);
-  }
   AddExtraInfoToSExpression(sexp, s);
   return sexp;
 }
 
 void CompileType::AddExtraInfoToSExpression(SExpList* sexp,
                                             FlowGraphSerializer* s) const {
+  if (cid_ != kIllegalCid || FLAG_verbose_flow_graph_serialization) {
+    s->AddExtraInteger(sexp, "cid", cid_);
+  }
+  // TODO(sstrickl): Currently we only print out nullable if it's false
+  // (or during verbose printing). Switch this when NNBD is the standard.
   if (!is_nullable() || FLAG_verbose_flow_graph_serialization) {
     s->AddExtraBool(sexp, "nullable", is_nullable());
   }
-  if (cid_ == kIllegalCid || cid_ == kDynamicCid ||
-      FLAG_verbose_flow_graph_serialization) {
-    if (type_ != nullptr) {
-      sexp->AddExtra("type", s->DartValueToSExp(*type_));
-    } else {
-      s->AddExtraString(sexp, "name", ToCString());
-    }
+  if (type_ != nullptr) {
+    sexp->AddExtra("type", s->DartValueToSExp(*type_));
   }
 }
 
 SExpression* Environment::ToSExpression(FlowGraphSerializer* s) const {
   auto sexp = new (s->zone()) SExpList(s->zone());
-  intptr_t arg_count = 0;
-
   for (intptr_t i = 0; i < values_.length(); ++i) {
-    if (values_[i]->definition()->IsPushArgument()) {
-      s->AddSymbol(sexp, OS::SCreate(s->zone(), "arg[%" Pd "]", arg_count++));
-    } else {
-      sexp->Add(values_[i]->ToSExpression(s));
-    }
+    ASSERT(!values_[i]->definition()->IsPushArgument());
+    sexp->Add(values_[i]->ToSExpression(s));
     // TODO(sstrickl): This currently assumes that there are no locations in the
     // environment (e.g. before register allocation). If we ever want to print
     // out environments on steps after AllocateRegisters, we'll need to handle
@@ -1043,7 +1477,11 @@ SExpression* Environment::ToSExpression(FlowGraphSerializer* s) const {
     ASSERT(locations_ == nullptr || locations_[i].IsInvalid());
   }
   if (outer_ != NULL) {
-    sexp->Add(outer_->ToSExpression(s));
+    auto outer_sexp = outer_->ToSExpression(s)->AsList();
+    if (outer_->deopt_id_ != DeoptId::kNone) {
+      s->AddExtraInteger(outer_sexp, "deopt_id", outer_->deopt_id_);
+    }
+    sexp->AddExtra("outer", outer_sexp);
   }
   return sexp;
 }

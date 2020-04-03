@@ -4,7 +4,7 @@
 // VMOptions=--no_background_compilation --optimization_counter_threshold=10
 
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 import 'service_test_common.dart';
 import 'dart:developer';
@@ -37,12 +37,12 @@ var tests = <IsolateTest>[
 
     var expectedRange = {
       'scriptIndex': 0,
-      'startPos': ifKernel(469, 26),
-      'endPos': ifKernel(536, 51),
+      'startPos': 461,
+      'endPos': 528,
       'compiled': true,
       'coverage': {
-        'hits': ifKernel([469, 509, 520, 524], [26, 37, 41, 45]),
-        'misses': ifKernel([], [])
+        'hits': [461, 501, 512, 516],
+        'misses': []
       }
     };
 

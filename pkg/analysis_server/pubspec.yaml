@@ -2,7 +2,7 @@ name: analysis_server
 publish_to: none
 
 environment:
-  sdk: '>=2.1.0-dev.5.0 <3.0.0'
+  sdk: '>=2.6.0 <3.0.0'
 
 dependencies:
   analyzer: any
@@ -17,6 +17,7 @@ dependencies:
   meta: any
   nnbd_migration: any
   source_span: any
+  stream_channel: any
   package_config: any
   path: any
   tflite_native: any
@@ -27,5 +28,6 @@ dev_dependencies:
   analysis_tool: any
   html: any
   http: any
+  pedantic: ^1.8.0
   test_reflective_loader: any
   test: any

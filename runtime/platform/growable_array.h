@@ -29,7 +29,33 @@ class BaseGrowableArray : public B {
     }
   }
 
+  BaseGrowableArray(BaseGrowableArray&& other)
+      : length_(other.length_),
+        capacity_(other.capacity_),
+        data_(other.data_),
+        allocator_(other.allocator_) {
+    other.length_ = 0;
+    other.capacity_ = 0;
+    other.data_ = NULL;
+  }
+
   ~BaseGrowableArray() { allocator_->template Free<T>(data_, capacity_); }
+
+  BaseGrowableArray& operator=(BaseGrowableArray&& other) {
+    intptr_t temp = other.length_;
+    other.length_ = length_;
+    length_ = temp;
+    temp = other.capacity_;
+    other.capacity_ = capacity_;
+    capacity_ = temp;
+    T* temp_data = other.data_;
+    other.data_ = data_;
+    data_ = temp_data;
+    Allocator* temp_allocator = other.allocator_;
+    other.allocator_ = allocator_;
+    allocator_ = temp_allocator;
+    return *this;
+  }
 
   intptr_t length() const { return length_; }
   T* data() const { return data_; }
@@ -130,6 +156,16 @@ class BaseGrowableArray : public B {
     intptr_t last = length_ - 1;
     if (i < last) {
       Swap(i, last);
+    }
+    RemoveLast();
+  }
+
+  // Preserves array order.
+  void EraseAt(intptr_t idx) {
+    ASSERT(idx >= 0);
+    ASSERT(idx < length_);
+    for (intptr_t i = idx; i < length_ - 1; i++) {
+      data_[i] = data_[i + 1];
     }
     RemoveLast();
   }

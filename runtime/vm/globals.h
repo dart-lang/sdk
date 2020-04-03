@@ -37,10 +37,11 @@ const intptr_t kBytesPerBigIntDigit = 4;
 
 // The default old gen heap size in MB, where 0 == unlimited.
 // 32-bit: OS limit is 2 or 3 GB
-// 64-bit: OS limit is 2^16 page table entries * 256 KB HeapPages = 16 GB
+// 64-bit: Linux's limit is
+//   sysctl vm.max_map_count (default 2^16) * 512 KB HeapPages = 32 GB
 // Set the VM limit below the OS limit to increase the likelihood of failing
 // gracefully with a Dart OutOfMemory exception instead of SIGABORT.
-const intptr_t kDefaultMaxOldGenHeapSize = (kWordSize <= 4) ? 1536 : 15360;
+const intptr_t kDefaultMaxOldGenHeapSize = (kWordSize <= 4) ? 1536 : 30720;
 
 #define kPosInfinity bit_cast<double>(DART_UINT64_C(0x7ff0000000000000))
 #define kNegInfinity bit_cast<double>(DART_UINT64_C(0xfff0000000000000))
@@ -77,11 +78,11 @@ const intptr_t kDefaultMaxOldGenHeapSize = (kWordSize <= 4) ? 1536 : 15360;
 #define NOT_IN_PRECOMPILED(code) code
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
-#if defined(TARGET_ARCH_DBC)
-#define NOT_IN_DBC(code)
+#if defined(DART_PRECOMPILED_RUNTIME)
+#define ONLY_IN_PRECOMPILED(code) code
 #else
-#define NOT_IN_DBC(code) code
-#endif  // defined(TARGET_ARCH_DBC)
+#define ONLY_IN_PRECOMPILED(code)
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64) ||                  \
     defined(TARGET_ARCH_X64)

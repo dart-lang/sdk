@@ -85,7 +85,7 @@ def main(args):
             return -1
 
         return 0
-    except Exception, inst:
+    except Exception as inst:
         sys.stderr.write('create_string_literal.py exception\n')
         sys.stderr.write(str(inst))
         sys.stderr.write('\n')

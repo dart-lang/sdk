@@ -1,0 +1,12 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static const field core::int* x1 = 1;
+static final field core::int* x2;
+static final field core::int* y1;
+static final field core::int* y2;
+static method foo() → dynamic
+  ;
+static method main() → dynamic
+  ;

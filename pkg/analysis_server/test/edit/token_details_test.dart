@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/domain_completion.dart';
 import 'package:test/test.dart';
@@ -10,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CompletionListTokenDetailsTest);
   });
@@ -21,24 +20,23 @@ class CompletionListTokenDetailsTest extends AbstractAnalysisTest {
   CompletionDomainHandler completionHandler;
 
   Future<CompletionListTokenDetailsResult> getTokenDetails() async {
-    CompletionListTokenDetailsParams params =
-        new CompletionListTokenDetailsParams(testFile);
+    var params = CompletionListTokenDetailsParams(testFile);
     await completionHandler.listTokenDetails(params.toRequest('0'));
-    Response response = await serverChannel.responseController.stream.first;
+    var response = await serverChannel.responseController.stream.first;
     return CompletionListTokenDetailsResult.fromResponse(response);
   }
 
   @override
   void setUp() {
     super.setUp();
-    completionHandler = new CompletionDomainHandler(server);
+    completionHandler = CompletionDomainHandler(server);
   }
 
-  test_packageUri() async {
-    newFile('/project/.packages', content: ''''
+  Future<void> test_packageUri() async {
+    newFile('/project/.packages', content: '''
 project:lib/
 ''');
-    newFile('/project/lib/c.dart', content: ''''
+    newFile('/project/lib/c.dart', content: '''
 class C {}
 ''');
     addTestFile('''
@@ -47,8 +45,8 @@ import 'package:project/c.dart';
 C c;
 ''');
     createProject();
-    CompletionListTokenDetailsResult result = await getTokenDetails();
-    List<TokenDetails> tokens = result.tokens;
+    var result = await getTokenDetails();
+    var tokens = result.tokens;
     expect(tokens, hasLength(6));
   }
 }

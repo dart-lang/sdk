@@ -8,31 +8,48 @@ import 'dart:io';
 
 import 'dart:isolate';
 
-import 'package:yaml/yaml.dart' show loadYaml;
+import "package:_fe_analyzer_shared/src/messages/severity.dart"
+    show severityEnumNames;
 
 import 'package:dart_style/dart_style.dart' show DartFormatter;
 
-import "package:front_end/src/fasta/severity.dart" show severityEnumNames;
+import 'package:yaml/yaml.dart' show loadYaml;
 
 main(List<String> arguments) async {
   var port = new ReceivePort();
-  await new File.fromUri(await computeGeneratedFile())
-      .writeAsString(await generateMessagesFile(), flush: true);
+  Messages message = await generateMessagesFiles();
+  await new File.fromUri(await computeSharedGeneratedFile())
+      .writeAsString(message.sharedMessages, flush: true);
+  await new File.fromUri(await computeCfeGeneratedFile())
+      .writeAsString(message.cfeMessages, flush: true);
   port.close();
 }
 
-Future<Uri> computeGeneratedFile() {
-  return Isolate.resolvePackageUri(
-      Uri.parse('package:front_end/src/fasta/fasta_codes_generated.dart'));
+Future<Uri> computeSharedGeneratedFile() {
+  return Isolate.resolvePackageUri(Uri.parse(
+      'package:_fe_analyzer_shared/src/messages/codes_generated.dart'));
 }
 
-Future<String> generateMessagesFile() async {
+Future<Uri> computeCfeGeneratedFile() {
+  return Isolate.resolvePackageUri(
+      Uri.parse('package:front_end/src/fasta/fasta_codes_cfe_generated.dart'));
+}
+
+class Messages {
+  final String sharedMessages;
+  final String cfeMessages;
+
+  Messages(this.sharedMessages, this.cfeMessages);
+}
+
+Future<Messages> generateMessagesFiles() async {
   Uri messagesFile = Platform.script.resolve("../../messages.yaml");
   Map<dynamic, dynamic> yaml =
       loadYaml(await new File.fromUri(messagesFile).readAsStringSync());
-  StringBuffer sb = new StringBuffer();
+  StringBuffer sharedMessages = new StringBuffer();
+  StringBuffer cfeMessages = new StringBuffer();
 
-  sb.writeln("""
+  const String preamble = """
 // Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -43,7 +60,15 @@ Future<String> generateMessagesFile() async {
 // 'pkg/front_end/tool/fasta generate-messages' to update.
 
 // ignore_for_file: lines_longer_than_80_chars
+""";
 
+  sharedMessages.writeln(preamble);
+  sharedMessages.writeln("""
+part of _fe_analyzer_shared.messages.codes;
+""");
+
+  cfeMessages.writeln(preamble);
+  cfeMessages.writeln("""
 part of fasta.codes;
 """);
 
@@ -84,8 +109,13 @@ part of fasta.codes;
         }
       }
     }
-    sb.writeln(compileTemplate(name, index, map['template'], map['tip'],
-        map['analyzerCode'], map['severity']));
+    Template template = compileTemplate(name, index, map['template'],
+        map['tip'], map['analyzerCode'], map['severity']);
+    if (template.isShared) {
+      sharedMessages.writeln(template.text);
+    } else {
+      cfeMessages.writeln(template.text);
+    }
   }
   if (largestIndex > indexNameMap.length) {
     print('Error: The "index:" field values should be unique, consecutive'
@@ -105,21 +135,29 @@ part of fasta.codes;
       }
     }
     print('The next available index is ${nextAvailableIndex}');
-    return '';
+    return new Messages('', '');
   }
 
-  return new DartFormatter().format("$sb");
+  return new Messages(new DartFormatter().format("$sharedMessages"),
+      new DartFormatter().format("$cfeMessages"));
 }
 
 final RegExp placeholderPattern =
     new RegExp("#\([-a-zA-Z0-9_]+\)(?:%\([0-9]*\)\.\([0-9]+\))?");
 
-String compileTemplate(String name, int index, String template, String tip,
+class Template {
+  final String text;
+  final isShared;
+
+  Template(this.text, {this.isShared}) : assert(isShared != null);
+}
+
+Template compileTemplate(String name, int index, String template, String tip,
     Object analyzerCode, String severity) {
   if (template == null) {
     print('Error: missing template for message: $name');
     exitCode = 1;
-    return '';
+    return new Template('', isShared: true);
   }
   // Remove trailing whitespace. This is necessary for templates defined with
   // `|` (verbatim) as they always contain a trailing newline that we don't
@@ -130,10 +168,13 @@ String compileTemplate(String name, int index, String template, String tip,
   var conversions2 = new Set<String>();
   var arguments = new Set<String>();
   bool hasLabeler = false;
+  bool canBeShared = true;
   void ensureLabeler() {
     if (hasLabeler) return;
-    conversions.add("TypeLabeler labeler = new TypeLabeler();");
+    conversions
+        .add("TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);");
     hasLabeler = true;
+    canBeShared = false;
   }
 
   for (Match match
@@ -318,6 +359,10 @@ String compileTemplate(String name, int index, String template, String tip,
     }
   }
 
+  if (hasLabeler) {
+    parameters.add("bool isNonNullableByDefault");
+  }
+
   conversions.addAll(conversions2);
 
   String interpolate(String text) {
@@ -355,14 +400,14 @@ String compileTemplate(String name, int index, String template, String tip,
       codeArguments.add('tip: r"""$tip"""');
     }
 
-    return """
+    return new Template("""
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> code$name = message$name;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode message$name =
     const MessageCode(\"$name\", ${codeArguments.join(', ')});
-""";
+""", isShared: canBeShared);
   }
 
   List<String> templateArguments = <String>[];
@@ -386,7 +431,7 @@ const MessageCode message$name =
   }
   messageArguments.add("arguments: { ${arguments.join(', ')} }");
 
-  return """
+  return new Template("""
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(${parameters.join(', ')})> template$name =
     const Template<Message Function(${parameters.join(', ')})>(
@@ -404,5 +449,5 @@ Message _withArguments$name(${parameters.join(', ')}) {
      code$name,
      ${messageArguments.join(', ')});
 }
-""";
+""", isShared: canBeShared);
 }

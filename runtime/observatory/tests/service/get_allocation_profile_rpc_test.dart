@@ -4,7 +4,7 @@
 
 import 'dart:async';
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'test_helper.dart';
 
@@ -32,8 +32,6 @@ var tests = <IsolateTest>[
     expect(member['type'], equals('ClassHeapStats'));
     expect(member.containsKey('_new'), isTrue);
     expect(member.containsKey('_old'), isTrue);
-    expect(member.containsKey('_promotedInstances'), isTrue);
-    expect(member.containsKey('_promotedBytes'), isTrue);
     expect(member.containsKey('instancesAccumulated'), isTrue);
     expect(member.containsKey('instancesCurrent'), isTrue);
     expect(member.containsKey('bytesCurrent'), isTrue);
@@ -57,8 +55,6 @@ var tests = <IsolateTest>[
     expect(member['type'], equals('ClassHeapStats'));
     expect(member.containsKey('_new'), isTrue);
     expect(member.containsKey('_old'), isTrue);
-    expect(member.containsKey('_promotedInstances'), isTrue);
-    expect(member.containsKey('_promotedBytes'), isTrue);
     expect(member.containsKey('instancesAccumulated'), isTrue);
     expect(member.containsKey('instancesCurrent'), isTrue);
     expect(member.containsKey('bytesCurrent'), isTrue);
@@ -88,8 +84,6 @@ var tests = <IsolateTest>[
     expect(member['type'], equals('ClassHeapStats'));
     expect(member.containsKey('_new'), isTrue);
     expect(member.containsKey('_old'), isTrue);
-    expect(member.containsKey('_promotedInstances'), isTrue);
-    expect(member.containsKey('_promotedBytes'), isTrue);
     expect(member.containsKey('instancesAccumulated'), isTrue);
     expect(member.containsKey('instancesCurrent'), isTrue);
     expect(member.containsKey('bytesCurrent'), isTrue);

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 library dart._debugger;
 
 import 'dart:_foreign_helper' show JS;
@@ -10,7 +12,6 @@ import 'dart:_js_helper' show InternalMap;
 import 'dart:_runtime' as dart;
 import 'dart:core';
 import 'dart:collection';
-import 'dart:html' as html;
 import 'dart:math';
 
 part 'profile.dart';
@@ -341,7 +342,7 @@ bool isNativeJavaScriptObject(object) {
 
   // Treat Node objects as a native JavaScript type as the regular DOM render
   // in devtools is superior to the dart specific view.
-  return object is html.Node;
+  return JS<bool>('!', '# instanceof Node', object);
 }
 
 /// Class implementing the Devtools Formatter API described by:
@@ -488,7 +489,7 @@ class DartFormatter {
     } catch (e, trace) {
       // Log formatter internal errors as unfortunately the devtools cannot
       // be used to debug formatter errors.
-      html.window.console.error("Caught exception $e\n trace:\n$trace");
+      _printConsoleError("Caught exception $e\n trace:\n$trace");
     }
 
     return null;
@@ -503,8 +504,7 @@ class DartFormatter {
       }
     } catch (e, trace) {
       // See comment for preview.
-      html.window.console
-          .error("[hasChildren] Caught exception $e\n trace:\n$trace");
+      _printConsoleError("[hasChildren] Caught exception $e\n trace:\n$trace");
     }
     return false;
   }
@@ -519,10 +519,13 @@ class DartFormatter {
       }
     } catch (e, trace) {
       // See comment for preview.
-      html.window.console.error("Caught exception $e\n trace:\n$trace");
+      _printConsoleError("Caught exception $e\n trace:\n$trace");
     }
     return <NameValuePair>[];
   }
+
+  void _printConsoleError(String message) =>
+      JS('', 'window.console.error(#)', message);
 }
 
 /// Default formatter for Dart Objects.

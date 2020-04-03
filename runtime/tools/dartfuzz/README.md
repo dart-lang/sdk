@@ -16,10 +16,14 @@ To generate a single random Dart program, run
 
 where
 
-    --help     : prints help and exits
-    --seed     : defines random seed (system-set by default)
-    --[no-]fp  : enables/disables floating-point operations (default: on)
-    --[no-]ffi : enables/disables FFI method calls (default: off)
+    --help      : prints help and exits
+    --seed      : defines random seed (system-set by default)
+    --[no-]fp   : enables/disables floating-point operations (default: on)
+    --[no-]ffi  : enables/disables FFI method calls (default: off)
+    --[no-]flat : enables/disables flat types (default: off)
+    --[no-]mini : enables minimization mode (default: off)
+    --smask     : bitmask indicating which statements to omit (Bit=1 omits, defaults to "0")
+    --emask     : bitmask indicating which expressions to omit (Bit=1 omits, defaults to "0")
 
 The tool provides a runnable main isolate. A typical single
 test run looks as:
@@ -35,23 +39,27 @@ To start a fuzz testing session, run
                             [--isolates ISOLATES ]
                             [--repeat REPEAT]
                             [--time TIME]
+                            [--num-output-lines NUMOUTPUTLINES]
                             [--true_divergence]
+                            [--show-stats]
+                            [--dart-top DARTTOP]
                             [--mode1 MODE]
                             [--mode2 MODE]
                             [--[no-]rerun]
 
 where
 
-    --help            : prints help and exits
-    --isolates        : number of isolates in the session (1 by default)
-    --repeat          : number of tests to run (1000 by default)
-    --time            : time limit in seconds (none by default)
-    --show-stats      : show statistics during session (true by default)
-    --true-divergence : only report true divergences (true by default)
-    --dart-top        : sets DART_TOP explicitly through command line
-    --mode1           : m1
-    --mode2           : m2, and values one of
-        jit-[debug-][ia32|x64|arm32|arm64|dbc32|dbc64]   = Dart JIT
+    --help             : prints help and exits
+    --isolates         : number of isolates in the session (1 by default)
+    --repeat           : number of tests to run (1000 by default)
+    --time             : time limit in seconds (none by default)
+    --num-output-lines : number of output lines to be printed in the case of a divergence (200 by default)
+    --true-divergence  : only report true divergences (true by default)
+    --show-stats       : show statistics during session (true by default)
+    --dart-top         : sets DART_TOP explicitly through command line
+    --mode1            : m1
+    --mode2            : m2, and values one of
+        jit-[debug-][ia32|x64|arm32|arm64]               = Dart JIT
         aot-[debug-][x64|arm32|arm64]                    = Dart AOT
         kbc-[int|mix|cmp]-[debug-][ia32|x64|arm32|arm64] = Dart KBC
                                                            (interpreted/

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 // Patch file for the dart:async library.
 
 import 'dart:_js_helper'
@@ -203,7 +205,8 @@ class _AsyncAwaitCompleter<T> implements Completer<T> {
     }
   }
 
-  void completeError(e, [st]) {
+  void completeError(Object e, [StackTrace st]) {
+    st ??= AsyncError.defaultStackTrace(e);
     if (isSync) {
       _future._completeError(e, st);
     } else {
@@ -296,7 +299,7 @@ void _awaitOnObject(object, _WrappedAsyncBody bodyFunction) {
     _Future future = new _Future().._setValue(object);
     // We can skip the zone registration, since the bodyFunction is already
     // registered (see [_wrapJsFunctionForAsync]).
-    future._thenAwait(thenCallback, null);
+    future._thenAwait(thenCallback, errorCallback);
   }
 }
 

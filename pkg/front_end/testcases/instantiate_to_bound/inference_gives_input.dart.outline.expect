@@ -6,7 +6,7 @@ class A<T extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::A<self::A::T*>*
     ;
 }
-class B<T extends core::num* = dynamic, S extends core::List<self::B::T*>* = dynamic> extends self::A<self::B::T*> {
+class B<T extends core::num* = core::num*, S extends core::List<self::B::T*>* = core::List<core::num*>*> extends self::A<self::B::T*> {
   constructor •([self::B::T* x]) → self::B<self::B::T*, self::B::S*>*
     ;
 }

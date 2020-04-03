@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:analysis_server/src/utilities/profiling.dart';
 import 'package:test/test.dart';
 
-main() {
+void main() {
   group('ProcessProfiler', () {
     // Skip on windows.
     if (Platform.isWindows) {
@@ -19,8 +19,8 @@ main() {
     });
 
     test('getProcessUsage', () async {
-      ProcessProfiler profiler = ProcessProfiler.getProfilerForPlatform();
-      UsageInfo info = await profiler.getProcessUsage(pid);
+      var profiler = ProcessProfiler.getProfilerForPlatform();
+      var info = await profiler.getProcessUsage(pid);
 
       expect(info, isNotNull);
       expect(info.cpuPercentage, greaterThanOrEqualTo(0.0));

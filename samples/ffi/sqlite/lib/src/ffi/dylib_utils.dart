@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:ffi' as ffi;
+import 'dart:ffi';
 import 'dart:io' show Platform;
 
 String _platformPath(String name, {String path}) {
@@ -14,7 +14,7 @@ String _platformPath(String name, {String path}) {
   throw Exception("Platform not implemented");
 }
 
-ffi.DynamicLibrary dlopenPlatformSpecific(String name, {String path}) {
+DynamicLibrary dlopenPlatformSpecific(String name, {String path}) {
   String fullPath = _platformPath(name, path: path);
-  return ffi.DynamicLibrary.open(fullPath);
+  return DynamicLibrary.open(fullPath);
 }

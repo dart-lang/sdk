@@ -2,27 +2,27 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:front_end/src/testing/package_root.dart' as package_root;
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
-main() {
-  PhysicalResourceProvider provider = PhysicalResourceProvider.INSTANCE;
-  String packageRoot = provider.pathContext.normalize(package_root.packageRoot);
-  String analysisServerPath =
-      provider.pathContext.join(packageRoot, 'analyzer_plugin');
-  String testDirPath = provider.pathContext.join(analysisServerPath, 'test');
+import 'utils/package_root.dart' as package_root;
 
-  AnalysisContextCollection collection = new AnalysisContextCollection(
+void main() {
+  var provider = PhysicalResourceProvider.INSTANCE;
+  var packageRoot = provider.pathContext.normalize(package_root.packageRoot);
+  var analysisServerPath =
+      provider.pathContext.join(packageRoot, 'analyzer_plugin');
+  var testDirPath = provider.pathContext.join(analysisServerPath, 'test');
+
+  var collection = AnalysisContextCollection(
       includedPaths: <String>[testDirPath], resourceProvider: provider);
-  List<AnalysisContext> contexts = collection.contexts;
+  var contexts = collection.contexts;
   if (contexts.length != 1) {
     fail('The test directory contains multiple analysis contexts.');
   }
@@ -33,11 +33,11 @@ main() {
 
 void buildTestsIn(
     AnalysisSession session, String testDirPath, Folder directory) {
-  List<String> testFileNames = [];
+  var testFileNames = <String>[];
   File testAllFile;
-  List<Resource> children = directory.getChildren();
+  var children = directory.getChildren();
   children.sort((first, second) => first.shortName.compareTo(second.shortName));
-  for (Resource child in children) {
+  for (var child in children) {
     if (child is Folder) {
       if (child.shortName == 'integration') {
         continue;
@@ -46,7 +46,7 @@ void buildTestsIn(
       }
       buildTestsIn(session, testDirPath, child);
     } else if (child is File) {
-      String name = child.shortName;
+      var name = child.shortName;
       if (name == 'test_all.dart') {
         testAllFile = child;
       } else if (name.endsWith('_test.dart')) {
@@ -54,7 +54,7 @@ void buildTestsIn(
       }
     }
   }
-  String relativePath = path.relative(directory.path, from: testDirPath);
+  var relativePath = path.relative(directory.path, from: testDirPath);
   test(relativePath, () {
     if (testFileNames.isEmpty) {
       return;
@@ -62,18 +62,18 @@ void buildTestsIn(
     if (testAllFile == null) {
       fail('Missing "test_all.dart" in $relativePath');
     }
-    ParsedUnitResult result = session.getParsedUnit(testAllFile.path);
+    var result = session.getParsedUnit(testAllFile.path);
     if (result.state != ResultState.VALID) {
       fail('Could not parse ${testAllFile.path}');
     }
-    List<String> importedFiles = [];
+    var importedFiles = <String>[];
     for (var directive in result.unit.directives) {
       if (directive is ImportDirective) {
         importedFiles.add(directive.uri.stringValue);
       }
     }
-    List<String> missingFiles = [];
-    for (String testFileName in testFileNames) {
+    var missingFiles = <String>[];
+    for (var testFileName in testFileNames) {
       if (!importedFiles.contains(testFileName)) {
         missingFiles.add(testFileName);
       }

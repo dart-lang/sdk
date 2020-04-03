@@ -4,13 +4,17 @@
 
 library fasta.target_implementation;
 
-import 'package:kernel/ast.dart' show Source;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+
+import 'package:kernel/ast.dart' show Library, Source;
 
 import 'package:kernel/target/targets.dart' as backend show Target;
 
 import '../base/processed_options.dart' show ProcessedOptions;
 
-import 'builder/builder.dart' show Builder, ClassBuilder, LibraryBuilder;
+import 'builder/class_builder.dart';
+import 'builder/library_builder.dart';
+import 'builder/member_builder.dart';
 
 import 'compiler_context.dart' show CompilerContext;
 
@@ -19,8 +23,6 @@ import 'loader.dart' show Loader;
 import 'messages.dart' show FormattedMessage, LocatedMessage, Message;
 
 import 'rewrite_severity.dart' show rewriteSeverity;
-
-import 'severity.dart' show Severity;
 
 import 'target.dart' show Target;
 
@@ -41,33 +43,31 @@ abstract class TargetImplementation extends Target {
   /// Shared with [CompilerContext].
   final Map<Uri, Source> uriToSource = CompilerContext.current.uriToSource;
 
-  Builder cachedAbstractClassInstantiationError;
-  Builder cachedCompileTimeError;
-  Builder cachedDuplicatedFieldInitializerError;
-  Builder cachedFallThroughError;
-  Builder cachedNativeAnnotation;
-  Builder cachedNativeExtensionAnnotation;
+  MemberBuilder cachedAbstractClassInstantiationError;
+  MemberBuilder cachedCompileTimeError;
+  MemberBuilder cachedDuplicatedFieldInitializerError;
+  MemberBuilder cachedNativeAnnotation;
 
-  bool enableConstantUpdate2018;
-  bool enableControlFlowCollections;
   bool enableExtensionMethods;
   bool enableNonNullable;
-  bool enableSpreadCollections;
   bool enableTripleShift;
+  bool enableVariance;
+  bool enableNonfunctionTypeAliases;
 
   TargetImplementation(Ticker ticker, this.uriTranslator, this.backendTarget)
-      : enableConstantUpdate2018 = CompilerContext.current.options
-            .isExperimentEnabled(ExperimentalFlag.constantUpdate2018),
-        enableControlFlowCollections = CompilerContext.current.options
-            .isExperimentEnabled(ExperimentalFlag.controlFlowCollections),
+      : assert(ticker != null),
+        assert(uriTranslator != null),
+        assert(backendTarget != null),
         enableExtensionMethods = CompilerContext.current.options
             .isExperimentEnabled(ExperimentalFlag.extensionMethods),
         enableNonNullable = CompilerContext.current.options
             .isExperimentEnabled(ExperimentalFlag.nonNullable),
-        enableSpreadCollections = CompilerContext.current.options
-            .isExperimentEnabled(ExperimentalFlag.spreadCollections),
         enableTripleShift = CompilerContext.current.options
             .isExperimentEnabled(ExperimentalFlag.tripleShift),
+        enableVariance = CompilerContext.current.options
+            .isExperimentEnabled(ExperimentalFlag.variance),
+        enableNonfunctionTypeAliases = CompilerContext.current.options
+            .isExperimentEnabled(ExperimentalFlag.nonfunctionTypeAliases),
         super(ticker);
 
   /// Creates a [LibraryBuilder] corresponding to [uri], if one doesn't exist
@@ -78,7 +78,11 @@ abstract class TargetImplementation extends Target {
   ///
   /// [origin] is non-null if the created library is a patch to [origin].
   LibraryBuilder createLibraryBuilder(
-      Uri uri, Uri fileUri, covariant LibraryBuilder origin);
+      Uri uri,
+      Uri fileUri,
+      covariant LibraryBuilder origin,
+      Library referencesFrom,
+      bool referenceIsPartOwner);
 
   /// The class [cls] is involved in a cyclic definition. This method should
   /// ensure that the cycle is broken, for example, by removing superclass and
@@ -91,7 +95,7 @@ abstract class TargetImplementation extends Target {
   /// [AbstractClassInstantiationError] error.  The constructor is expected to
   /// accept a single argument of type String, which is the name of the
   /// abstract class.
-  Builder getAbstractClassInstantiationError(Loader loader) {
+  MemberBuilder getAbstractClassInstantiationError(Loader loader) {
     if (cachedAbstractClassInstantiationError != null) {
       return cachedAbstractClassInstantiationError;
     }
@@ -102,7 +106,7 @@ abstract class TargetImplementation extends Target {
   /// Returns a reference to the constructor used for creating a compile-time
   /// error. The constructor is expected to accept a single argument of type
   /// String, which is the compile-time error message.
-  Builder getCompileTimeError(Loader loader) {
+  MemberBuilder getCompileTimeError(Loader loader) {
     if (cachedCompileTimeError != null) return cachedCompileTimeError;
     return cachedCompileTimeError = loader.coreLibrary
         .getConstructor("_CompileTimeError", bypassLibraryPrivacy: true);
@@ -111,7 +115,7 @@ abstract class TargetImplementation extends Target {
   /// Returns a reference to the constructor used for creating a runtime error
   /// when a final field is initialized twice. The constructor is expected to
   /// accept a single argument which is the name of the field.
-  Builder getDuplicatedFieldInitializerError(Loader loader) {
+  MemberBuilder getDuplicatedFieldInitializerError(Loader loader) {
     if (cachedDuplicatedFieldInitializerError != null) {
       return cachedDuplicatedFieldInitializerError;
     }
@@ -123,7 +127,7 @@ abstract class TargetImplementation extends Target {
   /// Returns a reference to the constructor used for creating `native`
   /// annotations. The constructor is expected to accept a single argument of
   /// type String, which is the name of the native method.
-  Builder getNativeAnnotation(Loader loader) {
+  MemberBuilder getNativeAnnotation(Loader loader) {
     if (cachedNativeAnnotation != null) return cachedNativeAnnotation;
     LibraryBuilder internal = loader.read(Uri.parse("dart:_internal"), -1,
         accessor: loader.coreLibrary);
@@ -133,6 +137,11 @@ abstract class TargetImplementation extends Target {
   void loadExtraRequiredLibraries(Loader loader) {
     for (String uri in backendTarget.extraRequiredLibraries) {
       loader.read(Uri.parse(uri), 0, accessor: loader.coreLibrary);
+    }
+    if (context.compilingPlatform) {
+      for (String uri in backendTarget.extraRequiredLibrariesPlatform) {
+        loader.read(Uri.parse(uri), 0, accessor: loader.coreLibrary);
+      }
     }
   }
 
@@ -157,9 +166,41 @@ abstract class TargetImplementation extends Target {
 
   Severity fixSeverity(Severity severity, Message message, Uri fileUri) {
     severity ??= message.code.severity;
-    if (severity == Severity.errorLegacyWarning) {
-      severity = backendTarget.legacyMode ? Severity.warning : Severity.error;
-    }
     return rewriteSeverity(severity, message.code, fileUri);
   }
+
+  String get currentSdkVersion {
+    return CompilerContext.current.options.currentSdkVersion;
+  }
+
+  int _currentSdkVersionMajor;
+  int _currentSdkVersionMinor;
+  int get currentSdkVersionMajor {
+    if (_currentSdkVersionMajor != null) return _currentSdkVersionMajor;
+    _parseCurrentSdkVersion();
+    return _currentSdkVersionMajor;
+  }
+
+  int get currentSdkVersionMinor {
+    if (_currentSdkVersionMinor != null) return _currentSdkVersionMinor;
+    _parseCurrentSdkVersion();
+    return _currentSdkVersionMinor;
+  }
+
+  void _parseCurrentSdkVersion() {
+    bool good = false;
+    if (currentSdkVersion != null) {
+      List<String> dotSeparatedParts = currentSdkVersion.split(".");
+      if (dotSeparatedParts.length >= 2) {
+        _currentSdkVersionMajor = int.tryParse(dotSeparatedParts[0]);
+        _currentSdkVersionMinor = int.tryParse(dotSeparatedParts[1]);
+        good = true;
+      }
+    }
+    if (!good) {
+      throw new StateError("Unparsable sdk version given: $currentSdkVersion");
+    }
+  }
+
+  void releaseAncillaryResources();
 }

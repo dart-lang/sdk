@@ -31,10 +31,10 @@ class PubspecValidatorTest with ResourceProviderMixin {
     YamlNode node = loadYamlNode(content);
     if (node is! YamlMap) {
       // The file is empty.
-      node = new YamlMap();
+      node = YamlMap();
     }
     List<AnalysisError> errors = validator.validate((node as YamlMap).nodes);
-    GatheringErrorListener listener = new GatheringErrorListener();
+    GatheringErrorListener listener = GatheringErrorListener();
     listener.addAll(errors);
     listener.assertErrorsWithCodes(expectedErrorCodes);
   }
@@ -50,7 +50,7 @@ class PubspecValidatorTest with ResourceProviderMixin {
   void setUp() {
     File pubspecFile = getFile('/sample/pubspec.yaml');
     Source source = pubspecFile.createSource();
-    validator = new PubspecValidator(resourceProvider, source);
+    validator = PubspecValidator(resourceProvider, source);
   }
 
   test_assetDirectoryDoesExists_noError() {

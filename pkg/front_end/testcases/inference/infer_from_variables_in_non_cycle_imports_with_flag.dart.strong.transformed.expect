@@ -3,12 +3,10 @@ library test;
 // Problems in library:
 //
 // pkg/front_end/testcases/inference/infer_from_variables_in_non_cycle_imports_with_flag.dart:13:36: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-// Try changing the type of the left hand side, or casting the right hand side to 'int'.
 //   x = /*error:INVALID_ASSIGNMENT*/ "hi";
 //                                    ^
 //
 // pkg/front_end/testcases/inference/infer_from_variables_in_non_cycle_imports_with_flag.dart:14:36: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-// Try changing the type of the left hand side, or casting the right hand side to 'int'.
 //   y = /*error:INVALID_ASSIGNMENT*/ "hi";
 //                                    ^
 //
@@ -21,11 +19,9 @@ import "org-dartlang-testcase:///infer_from_variables_in_non_cycle_imports_with_
 static field core::int* y = inf::x;
 static method test1() → dynamic {
   inf::x = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/infer_from_variables_in_non_cycle_imports_with_flag.dart:13:36: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-Try changing the type of the left hand side, or casting the right hand side to 'int'.
   x = /*error:INVALID_ASSIGNMENT*/ \"hi\";
                                    ^" in "hi" as{TypeError} core::int*;
   self::y = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/inference/infer_from_variables_in_non_cycle_imports_with_flag.dart:14:36: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-Try changing the type of the left hand side, or casting the right hand side to 'int'.
   y = /*error:INVALID_ASSIGNMENT*/ \"hi\";
                                    ^" in "hi" as{TypeError} core::int*;
 }

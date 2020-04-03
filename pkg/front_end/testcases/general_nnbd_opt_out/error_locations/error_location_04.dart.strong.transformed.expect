@@ -1,0 +1,50 @@
+//
+// Problems in component:
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/error_locations/error_location_04_lib2.dart:11:27: Error: Constant evaluation error:
+//   const Bar() : x = const Foo(0);
+//                           ^
+// pkg/front_end/testcases/general_nnbd_opt_out/error_locations/error_location_04_lib1.dart:8:31: Context: This assertion failed.
+//   const Foo(int i) : assert(i > 0);
+//                               ^
+//
+library;
+import self as self;
+import "error_location_04_lib1.dart" as err;
+import "error_location_04_lib2.dart" as err2;
+
+import "org-dartlang-testcase:///error_location_04_lib1.dart";
+import "org-dartlang-testcase:///error_location_04_lib2.dart";
+
+static method main() → dynamic {
+  err::foo();
+  err2::bar();
+}
+
+library;
+import self as err;
+import "dart:core" as core;
+
+class Foo extends core::Object /*hasConstConstructor*/  {
+  const constructor •(core::int* i) → err::Foo*
+    : assert(i.{core::num::>}(0)), super core::Object::•()
+    ;
+}
+static method foo() → dynamic {
+  new err::Foo::•(0);
+}
+
+library;
+import self as err2;
+import "dart:core" as core;
+import "error_location_04_lib1.dart" as err;
+
+import "org-dartlang-testcase:///error_location_04_lib1.dart";
+
+class Bar extends core::Object /*hasConstConstructor*/  {
+  final field err::Foo* x;
+  const constructor •() → err2::Bar*
+    : err2::Bar::x = invalid-expression "This assertion failed.", super core::Object::•()
+    ;
+}
+static method bar() → dynamic {}

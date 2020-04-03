@@ -4,7 +4,7 @@
 
 import 'dart:async';
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 
 var tests = <IsolateTest>[
@@ -25,9 +25,9 @@ var tests = <IsolateTest>[
     subscription = stream.listen((ServiceEvent event) {
       assert(event.kind == '_Echo');
       expect(event.data.lengthInBytes, equals(3));
-      expect(event.data.getUint8(0), equals(0));
-      expect(event.data.getUint8(1), equals(128));
-      expect(event.data.getUint8(2), equals(255));
+      expect(event.data[0], equals(0));
+      expect(event.data[1], equals(128));
+      expect(event.data[2], equals(255));
       subscription.cancel();
       completer.complete();
     });

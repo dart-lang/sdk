@@ -35,7 +35,7 @@ List<bool> decodeFlags(List<String> flags) {
 /// If [sdkVersion] is not supplied (or is `null`), then the current set of
 /// enabled features is used as the starting point.
 List<bool> enableFlagsForTesting(
-    {String sdkVersion, List<Feature> additionalFeatures: const []}) {
+    {String sdkVersion, List<Feature> additionalFeatures = const []}) {
   var flags = decodeFlags([]);
   if (sdkVersion != null) {
     flags = restrictEnableFlagsToVersion(flags, Version.parse(sdkVersion));
@@ -79,7 +79,7 @@ List<String> experimentStatusToStringList(ExperimentStatus status) {
 /// (synchronously) executing.
 @visibleForTesting
 T overrideKnownFeatures<T>(
-    Map<String, ExperimentalFeature> knownFeatures, T callback()) {
+    Map<String, ExperimentalFeature> knownFeatures, T Function() callback) {
   var oldKnownFeatures = _knownFeatures;
   try {
     _knownFeatures = knownFeatures;
@@ -123,7 +123,7 @@ Iterable<ConflictingFlagLists> validateFlagCombination(
   var flag2Map = _flagStringsToMap(flags2);
   for (var entry in flag2Map.entries) {
     if (flag1Map[entry.key] != null && flag1Map[entry.key] != entry.value) {
-      yield new ConflictingFlagLists(
+      yield ConflictingFlagLists(
           _featureIndexToFeature(entry.key), !entry.value);
     }
   }
@@ -172,7 +172,7 @@ ExperimentalFeature _featureIndexToFeature(int index) {
   for (var feature in _knownFeatures.values) {
     if (feature.index == index) return feature;
   }
-  throw new ArgumentError('Unrecognized feature index');
+  throw ArgumentError('Unrecognized feature index');
 }
 
 Map<int, bool> _flagStringsToMap(List<String> flags) {

@@ -35,7 +35,6 @@ VM_UNIT_TEST_CASE_WITH_EXPECTATION(SNPrint_BadArgs, "Crash") {
 
 VM_UNIT_TEST_CASE(OsFuncs) {
   EXPECT(Utils::IsPowerOfTwo(OS::ActivationFrameAlignment()));
-  EXPECT(Utils::IsPowerOfTwo(OS::PreferredCodeAlignment()));
   int procs = OS::NumberOfAvailableProcessors();
   EXPECT_LE(1, procs);
 }

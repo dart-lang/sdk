@@ -8,7 +8,7 @@ import 'package:test/test.dart';
 
 import 'test_context.dart';
 
-main() {
+void main() {
   test('help explicit', () async {
     final driver = Driver();
     final testContext = TestContext();
@@ -28,7 +28,6 @@ main() {
     expect(errText, isEmpty);
     expect(outText, contains('--$excludeFixOption'));
     expect(outText, isNot(contains('Use --help to display the fixes')));
-    expect(outText, contains('use-mixin'));
   });
 
   test('help implicit', () async {
@@ -52,6 +51,5 @@ main() {
     expect(errText, isEmpty);
     expect(outText, contains('--$excludeFixOption'));
     expect(outText, isNot(contains('Use --help to display the fixes')));
-    expect(outText, contains('use-mixin'));
   });
 }

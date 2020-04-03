@@ -35,8 +35,7 @@ void diagnosticMessageHandler(DiagnosticMessage message) {
 test({bool sdkFromSource}) async {
   final CompilerOptions optionBuilder = new CompilerOptions()
     ..packagesFileUri = Uri.base.resolve(".packages")
-    ..target = new VmTarget(new TargetFlags(legacyMode: true))
-    ..legacyMode = true
+    ..target = new VmTarget(new TargetFlags())
     ..omitPlatform = true
     ..onDiagnostic = diagnosticMessageHandler
     ..environmentDefines = const {};
@@ -47,7 +46,7 @@ test({bool sdkFromSource}) async {
   } else {
     optionBuilder.sdkSummary =
         computePlatformBinariesLocation(forceBuildDir: true)
-            .resolve("vm_platform.dill");
+            .resolve("vm_platform_strong.dill");
   }
 
   final Uri helloDart =

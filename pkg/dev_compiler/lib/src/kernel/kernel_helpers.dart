@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
+import 'package:front_end/src/api_unstable/ddc.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 
@@ -17,11 +18,16 @@ Library getLibrary(NamedNode node) {
   return null;
 }
 
-final Pattern _syntheticTypeCharacters = RegExp('[&^#.]');
+final Pattern _syntheticTypeCharacters = RegExp('[&^#.|]');
 
-String _escapeIdentifier(String identifier) {
+String escapeIdentifier(String identifier) {
   // Remove the special characters used to encode mixin application class names
-  // which are legal in Kernel, but not in JavaScript.
+  // and extension method / parameter names which are legal in Kernel, but not
+  // in JavaScript.
+  //
+  // Note, there is an implicit assumption here that we won't have
+  // collisions since everything is mapped to \$.  That may work out fine given
+  // how these are sythesized, but may need to revisit.
   return identifier?.replaceAll(_syntheticTypeCharacters, r'$');
 }
 
@@ -32,13 +38,13 @@ String _escapeIdentifier(String identifier) {
 ///
 /// In the current encoding, generic classes are generated in a function scope
 /// which avoids name clashes of the escaped class name.
-String getLocalClassName(Class node) => _escapeIdentifier(node.name);
+String getLocalClassName(Class node) => escapeIdentifier(node.name);
 
 /// Returns the escaped name for the type parameter [node].
 ///
 /// In the current encoding, generic classes are generated in a function scope
 /// which avoids name clashes of the escaped parameter name.
-String getTypeParameterName(TypeParameter node) => _escapeIdentifier(node.name);
+String getTypeParameterName(TypeParameter node) => escapeIdentifier(node.name);
 
 String getTopLevelName(NamedNode n) {
   if (n is Procedure) return n.name.name;
@@ -61,7 +67,7 @@ String getTopLevelName(NamedNode n) {
 ///
 ///    (v) => v.type.name == 'Deprecated' && v.type.element.library.isDartCore
 ///
-Expression findAnnotation(TreeNode node, bool test(Expression value)) {
+Expression findAnnotation(TreeNode node, bool Function(Expression) test) {
   List<Expression> annotations;
   if (node is Class) {
     annotations = node.annotations;
@@ -101,7 +107,6 @@ bool isBuiltinAnnotation(
 /// This function works regardless of whether the CFE is evaluating constants,
 /// or whether the constant is a field reference (such as "anonymous" above).
 Class getAnnotationClass(Expression node) {
-  node = unwrapUnevaluatedConstant(node);
   if (node is ConstantExpression) {
     var constant = node.constant;
     if (constant is InstanceConstant) return constant.classNode;
@@ -112,19 +117,6 @@ Class getAnnotationClass(Expression node) {
     if (type is InterfaceType) return type.classNode;
   }
   return null;
-}
-
-Expression unwrapUnevaluatedConstant(Expression node) {
-  // TODO(jmesserly): see if we can configure CFE to preseve the original
-  // expression, rather than wrapping in an UnevaluatedConstant and then
-  // a ConstantExpression.
-  if (node is ConstantExpression) {
-    var constant = node.constant;
-    if (constant is UnevaluatedConstant) {
-      return constant.expression;
-    }
-  }
-  return node;
 }
 
 /// Returns true if [name] is an operator method that is available on primitive
@@ -248,7 +240,7 @@ bool isUnsupportedFactoryConstructor(Procedure node) {
 /// if the field [f] is storing that information, otherwise returns `null`.
 Iterable<Member> getRedirectingFactories(Field f) {
   // TODO(jmesserly): this relies on implementation details in Kernel
-  if (f.name.name == "_redirecting#") {
+  if (isRedirectingFactoryField(f)) {
     assert(f.isStatic);
     var list = f.initializer as ListLiteral;
     return list.expressions.map((e) => (e as StaticGet).target);
@@ -261,8 +253,7 @@ Iterable<Member> getRedirectingFactories(Field f) {
 ///
 /// This is used to ignore synthetic mixin application classes.
 ///
-// TODO(jmesserly): consider replacing this with Kernel's mixin unrolling once
-// we don't have the Analyzer backend to maintain.
+// TODO(jmesserly): consider replacing this with Kernel's mixin unrolling
 Class getSuperclassAndMixins(Class c, List<Class> mixins) {
   assert(mixins.isEmpty);
 
@@ -284,47 +275,48 @@ bool hasLabeledContinue(SwitchStatement node) {
   return visitor.found;
 }
 
-class LabelContinueFinder extends StatementVisitor {
+class LabelContinueFinder extends StatementVisitor<void> {
   var found = false;
 
-  visit(Statement s) {
+  void visit(Statement s) {
     if (!found && s != null) s.accept(this);
   }
 
   @override
-  visitBlock(Block node) => node.statements.forEach(visit);
+  void visitBlock(Block node) => node.statements.forEach(visit);
   @override
-  visitAssertBlock(AssertBlock node) => node.statements.forEach(visit);
+  void visitAssertBlock(AssertBlock node) => node.statements.forEach(visit);
   @override
-  visitWhileStatement(WhileStatement node) => visit(node.body);
+  void visitWhileStatement(WhileStatement node) => visit(node.body);
   @override
-  visitDoStatement(DoStatement node) => visit(node.body);
+  void visitDoStatement(DoStatement node) => visit(node.body);
   @override
-  visitForStatement(ForStatement node) => visit(node.body);
+  void visitForStatement(ForStatement node) => visit(node.body);
   @override
-  visitForInStatement(ForInStatement node) => visit(node.body);
+  void visitForInStatement(ForInStatement node) => visit(node.body);
   @override
-  visitContinueSwitchStatement(ContinueSwitchStatement node) => found = true;
+  void visitContinueSwitchStatement(ContinueSwitchStatement node) =>
+      found = true;
 
   @override
-  visitSwitchStatement(SwitchStatement node) {
+  void visitSwitchStatement(SwitchStatement node) {
     node.cases.forEach((c) => visit(c.body));
   }
 
   @override
-  visitIfStatement(IfStatement node) {
+  void visitIfStatement(IfStatement node) {
     visit(node.then);
     visit(node.otherwise);
   }
 
   @override
-  visitTryCatch(TryCatch node) {
+  void visitTryCatch(TryCatch node) {
     visit(node.body);
     node.catches.forEach((c) => visit(c.body));
   }
 
   @override
-  visitTryFinally(TryFinally node) {
+  void visitTryFinally(TryFinally node) {
     visit(node.body);
     visit(node.finalizer);
   }

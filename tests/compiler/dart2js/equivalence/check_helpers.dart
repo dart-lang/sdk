@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /// General equivalence test functions.
 
 library dart2js.equivalence.helpers;
@@ -426,7 +428,7 @@ class DartTypePrinter implements DartTypeVisitor {
   StringBuffer sb = new StringBuffer();
 
   @override
-  visit(DartType type, [_]) {
+  void visit(DartType type, [_]) {
     type.accept(this, null);
   }
 
@@ -441,14 +443,46 @@ class DartTypePrinter implements DartTypeVisitor {
   }
 
   @override
-  visitDynamicType(DynamicType type, _) {
+  void visitLegacyType(LegacyType type, _) {
+    visit(type.baseType);
+    sb.write('*');
+  }
+
+  @override
+  void visitNullableType(NullableType type, _) {
+    visit(type.baseType);
+    sb.write('?');
+  }
+
+  @override
+  void visitNeverType(NeverType type, _) {
+    sb.write('Never');
+  }
+
+  @override
+  void visitVoidType(VoidType type, _) {
+    sb.write('void');
+  }
+
+  @override
+  void visitDynamicType(DynamicType type, _) {
     sb.write('dynamic');
   }
 
   @override
-  visitTypedefType(TypedefType type, _) {
+  void visitErasedType(ErasedType type, _) {
+    sb.write('erased');
+  }
+
+  @override
+  void visitAnyType(AnyType type, _) {
+    sb.write('any');
+  }
+
+  @override
+  void visitInterfaceType(InterfaceType type, _) {
     sb.write(type.element.name);
-    if (type.typeArguments.any((type) => !type.isDynamic)) {
+    if (type.typeArguments.any((type) => type is! DynamicType)) {
       sb.write('<');
       visitTypes(type.typeArguments);
       sb.write('>');
@@ -456,17 +490,7 @@ class DartTypePrinter implements DartTypeVisitor {
   }
 
   @override
-  visitInterfaceType(InterfaceType type, _) {
-    sb.write(type.element.name);
-    if (type.typeArguments.any((type) => !type.isDynamic)) {
-      sb.write('<');
-      visitTypes(type.typeArguments);
-      sb.write('>');
-    }
-  }
-
-  @override
-  visitFunctionType(FunctionType type, _) {
+  void visitFunctionType(FunctionType type, _) {
     visit(type.returnType);
     sb.write(' Function');
     if (type.typeVariables.isNotEmpty) {
@@ -498,22 +522,17 @@ class DartTypePrinter implements DartTypeVisitor {
   }
 
   @override
-  visitFunctionTypeVariable(FunctionTypeVariable type, _) {
+  void visitFunctionTypeVariable(FunctionTypeVariable type, _) {
     sb.write(type);
   }
 
   @override
-  visitTypeVariableType(TypeVariableType type, _) {
+  void visitTypeVariableType(TypeVariableType type, _) {
     sb.write(type);
   }
 
   @override
-  visitVoidType(VoidType type, _) {
-    sb.write('void');
-  }
-
-  @override
-  visitFutureOrType(FutureOrType type, _) {
+  void visitFutureOrType(FutureOrType type, _) {
     sb.write('FutureOr<');
     visit(type.typeArgument);
     sb.write('>');

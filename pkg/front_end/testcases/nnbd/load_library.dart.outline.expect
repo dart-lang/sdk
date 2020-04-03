@@ -1,0 +1,7 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+import "dart:math" deferred as math;
+
+static method main() → dynamic
+  ;

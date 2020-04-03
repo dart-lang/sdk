@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'isolate_channel_test.dart' as isolate_channel_test;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     isolate_channel_test.main();
   }, name: 'channel');

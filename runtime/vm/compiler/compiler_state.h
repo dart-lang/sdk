@@ -57,8 +57,8 @@ class DeoptId : public AllStatic {
 // Global compiler state attached to the thread.
 class CompilerState : public ThreadStackResource {
  public:
-  explicit CompilerState(Thread* thread)
-      : ThreadStackResource(thread), cha_(thread) {
+  CompilerState(Thread* thread, bool is_aot)
+      : ThreadStackResource(thread), cha_(thread), is_aot_(is_aot) {
     previous_ = thread->SetCompilerState(this);
   }
 
@@ -98,6 +98,8 @@ class CompilerState : public ThreadStackResource {
   //
   // TODO(vegorov): create context classes for distinct context IDs and
   // populate them with slots without creating variables.
+  // Beware that context_id is satured at 8-bits, so multiple contexts may
+  // share id 255.
   const ZoneGrowableArray<const Slot*>& GetDummyContextSlots(
       intptr_t context_id,
       intptr_t num_context_slots);
@@ -113,7 +115,11 @@ class CompilerState : public ThreadStackResource {
   // same index.
   //
   // TODO(vegorov): disambiguate slots for different context IDs.
+  // Beware that context_id is satured at 8-bits, so multiple contexts may
+  // share id 255.
   LocalVariable* GetDummyCapturedVariable(intptr_t context_id, intptr_t index);
+
+  bool is_aot() const { return is_aot_; }
 
  private:
   CHA cha_;
@@ -126,6 +132,8 @@ class CompilerState : public ThreadStackResource {
   // to IL translation.
   ZoneGrowableArray<ZoneGrowableArray<const Slot*>*>* dummy_slots_ = nullptr;
   ZoneGrowableArray<LocalVariable*>* dummy_captured_vars_ = nullptr;
+
+  bool is_aot_;
 
   CompilerState* previous_;
 };

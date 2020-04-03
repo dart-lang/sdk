@@ -5,7 +5,7 @@ import "package:expect/expect.dart" as exp;
 
 import "package:expect/expect.dart";
 
-class A<N extends core::Object* = dynamic, S extends core::Object* = dynamic, U extends core::Object* = dynamic> extends core::Object {
+class A<N extends core::Object* = dynamic, S extends core::Object* = dynamic, U extends core::Object* = dynamic> extends core::Object /*hasConstConstructor*/  {
   final field core::List<self::A::U*>* field;
   constructor •(self::A::N* n, self::A::S* s) → self::A<self::A::N*, self::A::S*, self::A::U*>*
     : self::A::field = core::_GrowableList::•<self::A::U*>(0), super core::Object::•() {
@@ -46,6 +46,6 @@ static method main() → dynamic {
 
 constants  {
   #C1 = null
-  #C2 = <core::Null*>[#C1]
+  #C2 = <core::Null?>[#C1]
   #C3 = self::A<core::int*, core::int*, core::List<dynamic>*> {field:#C2}
 }

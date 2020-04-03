@@ -176,17 +176,51 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     return null;
   }
 
-  HInstruction findDominator(Iterable<HInstruction> instructions) {
-    HInstruction result;
-    L1:
-    for (HInstruction candidate in instructions) {
-      for (HInstruction current in instructions) {
-        if (current != candidate && !candidate.dominates(current)) continue L1;
+  // Returns the element of [instructions] that dominates all other elements, if
+  // such an instruction exists.  [dominator] is an optional hint of an
+  // instruction that dominates all elements of [instructions], but that is not
+  // one of [instructions].
+  HInstruction findDominatingInstruction(List<HInstruction> instructions,
+      [HInstruction dominator]) {
+    // If there is a single dominator instruction, it will be in a block which
+    // dominates all the other instruction's blocks. This means that the
+    // dominatorDfsIn..dominatorDfsOut range will include all the other ranges,
+    // i.e. the block must have the minimum dominatorDfsIn and maximum
+    // dominatorDfsOut.  We can test this in a single pass over the candidates.
+    HInstruction bestInstruction = instructions.first;
+    HBasicBlock bestBlock = bestInstruction.block;
+    int maxDfsOut = bestBlock.dominatorDfsOut;
+    for (int i = 1; i < instructions.length; i++) {
+      HInstruction candidate = instructions[i];
+      if (candidate == bestInstruction) continue; // ignore repeated uses
+      HBasicBlock block = candidate.block;
+      if (block == bestBlock) {
+        bestInstruction = null; // There are two instructions in bestBlock
+        continue;
       }
-      result = candidate;
-      break;
+      if (maxDfsOut < block.dominatorDfsOut) maxDfsOut = block.dominatorDfsOut;
+      if (block.dominatorDfsIn < bestBlock.dominatorDfsIn) {
+        bestInstruction = candidate;
+        bestBlock = block;
+      }
     }
-    return result;
+
+    // [bestBlock] only dominates if all other blocks are in range.
+    if (maxDfsOut > bestBlock.dominatorDfsOut) return null;
+
+    // If best block had a single candidate instruction, we can return it.
+    if (bestInstruction != null) return bestInstruction;
+
+    // If multiple instructions are present in bestBlock, we scan bestBlock from
+    // the start to find first instruction. If the [dominator] hint is in the
+    // same block, can start from there instead.
+    Set<HInstruction> set =
+        instructions.where((i) => i.block == bestBlock).toSet();
+    HInstruction current =
+        (dominator?.block == bestBlock) ? dominator : bestBlock.first;
+    while (current != null && !set.contains(current)) current = current.next;
+    assert(current != null);
+    return current;
   }
 
   static int useCount(HInstruction user, HInstruction used) =>
@@ -222,7 +256,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     // a HTypeKnown instruction.
 
     Set<ClassEntity> interceptedClasses;
-    HInstruction dominator = findDominator(node.usedBy);
+    HInstruction dominator = findDominatingInstruction(node.usedBy, node);
     // If there is a call that dominates all other uses, we can use just the
     // selector of that instruction.
     if (dominator is HInvokeDynamic &&
@@ -231,7 +265,6 @@ class SsaSimplifyInterceptors extends HBaseVisitor
         useCount(dominator, node) == 1) {
       interceptedClasses = _interceptorData.getInterceptedClassesOn(
           dominator.selector.name, _closedWorld);
-
       // If we found that we need number, we must still go through all
       // uses to check if they require int, or double.
       if (interceptedClasses.contains(_commonElements.jsNumberClass) &&
@@ -239,20 +272,17 @@ class SsaSimplifyInterceptors extends HBaseVisitor
               interceptedClasses.contains(_commonElements.jsIntClass))) {
         Set<ClassEntity> required;
         for (HInstruction user in node.usedBy) {
-          if (user is! HInvoke) continue;
-          Set<ClassEntity> intercepted = _interceptorData
-              .getInterceptedClassesOn(user.selector.name, _closedWorld);
-          if (intercepted.contains(_commonElements.jsIntClass)) {
-            // TODO(johnniwinther): Use type argument when all uses of
-            // intercepted classes expect entities instead of elements.
-            required ??= new Set<ClassEntity>();
-            required.add(_commonElements.jsIntClass);
-          }
-          if (intercepted.contains(_commonElements.jsDoubleClass)) {
-            // TODO(johnniwinther): Use type argument when all uses of
-            // intercepted classes expect entities instead of elements.
-            required ??= new Set<ClassEntity>();
-            required.add(_commonElements.jsDoubleClass);
+          if (user is HInvokeDynamic) {
+            Set<ClassEntity> intercepted = _interceptorData
+                .getInterceptedClassesOn(user.selector.name, _closedWorld);
+            if (intercepted.contains(_commonElements.jsIntClass)) {
+              required ??= {};
+              required.add(_commonElements.jsIntClass);
+            }
+            if (intercepted.contains(_commonElements.jsDoubleClass)) {
+              required ??= {};
+              required.add(_commonElements.jsDoubleClass);
+            }
           }
         }
         // Don't modify the result of
@@ -262,9 +292,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
         }
       }
     } else {
-      // TODO(johnniwinther): Use type argument when all uses of intercepted
-      // classes expect entities instead of elements.
-      interceptedClasses = new Set<ClassEntity>();
+      interceptedClasses = {};
       for (HInstruction user in node.usedBy) {
         if (user is HInvokeDynamic &&
             user.isCallOnInterceptor(_closedWorld) &&

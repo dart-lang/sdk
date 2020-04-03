@@ -15,51 +15,47 @@ import 'package:test/test.dart';
 import 'integration_test_methods.dart';
 import 'protocol_matchers.dart';
 
-const Matcher isBool = const TypeMatcher<bool>();
+const Matcher isBool = TypeMatcher<bool>();
 
-const Matcher isInt = const TypeMatcher<int>();
+const Matcher isInt = TypeMatcher<int>();
 
-const Matcher isNotification = const MatchesJsonObject(
-    'notification', const {'event': isString},
-    optionalFields: const {'params': isMap});
+const Matcher isNotification = MatchesJsonObject(
+    'notification', {'event': isString},
+    optionalFields: {'params': isMap});
 
 const Matcher isObject = isMap;
 
-const Matcher isString = const TypeMatcher<String>();
+const Matcher isString = TypeMatcher<String>();
 
-final Matcher isResponse = new MatchesJsonObject('response', {'id': isString},
+final Matcher isResponse = MatchesJsonObject('response', {'id': isString},
     optionalFields: {'result': anything, 'error': isRequestError});
 
-Matcher isListOf(Matcher elementMatcher) => new _ListOf(elementMatcher);
+Matcher isListOf(Matcher elementMatcher) => _ListOf(elementMatcher);
 
 Matcher isMapOf(Matcher keyMatcher, Matcher valueMatcher) =>
-    new _MapOf(keyMatcher, valueMatcher);
+    _MapOf(keyMatcher, valueMatcher);
 
-Matcher isOneOf(List<Matcher> choiceMatchers) => new _OneOf(choiceMatchers);
+Matcher isOneOf(List<Matcher> choiceMatchers) => _OneOf(choiceMatchers);
 
-/**
- * Assert that [actual] matches [matcher].
- */
+/// Assert that [actual] matches [matcher].
 void outOfTestExpect(actual, Matcher matcher,
-    {String reason, skip, bool verbose: false}) {
+    {String reason, skip, bool verbose = false}) {
   var matchState = {};
   try {
     if (matcher.matches(actual, matchState)) return;
   } catch (e, trace) {
-    if (reason == null) {
-      reason = '${(e is String) ? e : e.toString()} at $trace';
-    }
+    reason ??= '${(e is String) ? e : e.toString()} at $trace';
   }
   fail(_defaultFailFormatter(actual, matcher, reason, matchState, verbose));
 }
 
 String _defaultFailFormatter(
     actual, Matcher matcher, String reason, Map matchState, bool verbose) {
-  var description = new StringDescription();
+  var description = StringDescription();
   description.add('Expected: ').addDescriptionOf(matcher).add('\n');
   description.add('  Actual: ').addDescriptionOf(actual).add('\n');
 
-  var mismatchDescription = new StringDescription();
+  var mismatchDescription = StringDescription();
   matcher.describeMismatch(actual, mismatchDescription, matchState, verbose);
 
   if (mismatchDescription.length > 0) {
@@ -69,54 +65,37 @@ String _defaultFailFormatter(
   return description.toString();
 }
 
-/**
- * Type of closures used by LazyMatcher.
- */
-typedef Matcher MatcherCreator();
+/// Type of closures used by LazyMatcher.
+typedef MatcherCreator = Matcher Function();
 
-/**
- * Type of closures used by MatchesJsonObject to record field mismatches.
- */
-typedef Description MismatchDescriber(Description mismatchDescription);
+/// Type of closures used by MatchesJsonObject to record field mismatches.
+typedef MismatchDescriber = Description Function(
+    Description mismatchDescription);
 
-/**
- * Type of callbacks used to process notifications.
- */
-typedef void NotificationProcessor(String event, params);
+/// Type of callbacks used to process notifications.
+typedef NotificationProcessor = void Function(String event, Map params);
 
-/**
- * Base class for analysis server integration tests.
- */
+/// Base class for analysis server integration tests.
 abstract class AbstractAnalysisServerIntegrationTest
     extends IntegrationTestMixin {
-  /**
-   * Amount of time to give the server to respond to a shutdown request before
-   * forcibly terminating it.
-   */
-  static const Duration SHUTDOWN_TIMEOUT = const Duration(seconds: 5);
+  /// Amount of time to give the server to respond to a shutdown request before
+  /// forcibly terminating it.
+  static const Duration SHUTDOWN_TIMEOUT = Duration(seconds: 5);
 
-  /**
-   * Connection to the analysis server.
-   */
+  /// Connection to the analysis server.
   @override
-  final Server server = new Server();
+  final Server server = Server();
 
-  /**
-   * Temporary directory in which source files can be stored.
-   */
+  /// Temporary directory in which source files can be stored.
   Directory sourceDirectory;
 
-  /**
-   * Map from file path to the list of analysis errors which have most recently
-   * been received for the file.
-   */
+  /// Map from file path to the list of analysis errors which have most recently
+  /// been received for the file.
   Map<String, List<AnalysisError>> currentAnalysisErrors =
-      new HashMap<String, List<AnalysisError>>();
+      HashMap<String, List<AnalysisError>>();
 
-  /**
-   * True if the teardown process should skip sending a "server.shutdown"
-   * request (e.g. because the server is known to have already shutdown).
-   */
+  /// True if the teardown process should skip sending a "server.shutdown"
+  /// request (e.g. because the server is known to have already shutdown).
   bool skipShutdown = false;
 
   AbstractAnalysisServerIntegrationTest() {
@@ -128,7 +107,7 @@ abstract class AbstractAnalysisServerIntegrationTest
 //   * received from the server with 'analyzing' set to false.
 //   *
 //   * The future will only be completed by 'server.status' notifications that are
-//   * received after this function call.  So it is safe to use this getter
+//   * received after this function call. So it is safe to use this getter
 //   * multiple times in one test; each time it is used it will wait afresh for
 //   * analysis to finish.
 //   */
@@ -147,25 +126,21 @@ abstract class AbstractAnalysisServerIntegrationTest
 //    return completer.future;
 //  }
 
-  /**
-   * Print out any messages exchanged with the server.  If some messages have
-   * already been exchanged with the server, they are printed out immediately.
-   */
+  /// Print out any messages exchanged with the server. If some messages have
+  /// already been exchanged with the server, they are printed out immediately.
   void debugStdio() {
     server.debugStdio();
   }
 
-  /**
-   * The server is automatically started before every test, and a temporary
-   * [sourceDirectory] is created.
-   */
+  /// The server is automatically started before every test, and a temporary
+  /// [sourceDirectory] is created.
   Future setUp() {
     sourceDirectory = Directory.systemTemp.createTempSync('analysisServer');
 
     onAnalysisErrors.listen((AnalysisErrorsParams params) {
       currentAnalysisErrors[params.file] = params.errors;
     });
-    Completer serverConnected = new Completer();
+    var serverConnected = Completer();
     // TODO(brianwilkerson) Implement this.
 //    onServerConnected.listen((_) {
 //      outOfTestExpect(serverConnected.isCompleted, isFalse);
@@ -184,12 +159,10 @@ abstract class AbstractAnalysisServerIntegrationTest
     });
   }
 
-  /**
-   * If [skipShutdown] is not set, shut down the server.
-   */
+  /// If [skipShutdown] is not set, shut down the server.
   Future shutdownIfNeeded() {
     if (skipShutdown) {
-      return new Future.value();
+      return Future.value();
     }
     // Give the server a short time to comply with the shutdown request; if it
     // doesn't exit, then forcibly terminate it.
@@ -199,23 +172,19 @@ abstract class AbstractAnalysisServerIntegrationTest
     });
   }
 
-  /**
-   * Convert the given [relativePath] to an absolute path, by interpreting it
-   * relative to [sourceDirectory].  On Windows any forward slashes in
-   * [relativePath] are converted to backslashes.
-   */
+  /// Convert the given [relativePath] to an absolute path, by interpreting it
+  /// relative to [sourceDirectory]. On Windows any forward slashes in
+  /// [relativePath] are converted to backslashes.
   String sourcePath(String relativePath) {
     return join(sourceDirectory.path, relativePath.replaceAll('/', separator));
   }
 
-  /**
-   * Send the server an 'analysis.setAnalysisRoots' command directing it to
-   * analyze [sourceDirectory].  If [subscribeStatus] is true (the default),
-   * then also enable [SERVER_STATUS] notifications so that [analysisFinished]
-   * can be used.
-   */
-  Future standardAnalysisSetup({bool subscribeStatus: true}) {
-    List<Future> futures = <Future>[];
+  /// Send the server an 'analysis.setAnalysisRoots' command directing it to
+  /// analyze [sourceDirectory]. If [subscribeStatus] is true (the default),
+  /// then also enable [SERVER_STATUS] notifications so that [analysisFinished]
+  /// can be used.
+  Future standardAnalysisSetup({bool subscribeStatus = true}) {
+    var futures = <Future>[];
     // TODO(brianwilkerson) Implement this.
 //    if (subscribeStatus) {
 //      futures.add(sendServerSetSubscriptions([ServerService.STATUS]));
@@ -224,59 +193,47 @@ abstract class AbstractAnalysisServerIntegrationTest
     return Future.wait(futures);
   }
 
-  /**
-   * Start [server].
-   */
+  /// Start [server].
   Future startServer(
-          {bool checked: true, int diagnosticPort, int servicesPort}) =>
+          {bool checked = true, int diagnosticPort, int servicesPort}) =>
       server.start(
           checked: checked,
           diagnosticPort: diagnosticPort,
           servicesPort: servicesPort);
 
-  /**
-   * After every test, the server is stopped and [sourceDirectory] is deleted.
-   */
+  /// After every test, the server is stopped and [sourceDirectory] is deleted.
   Future tearDown() {
     return shutdownIfNeeded().then((_) {
       sourceDirectory.deleteSync(recursive: true);
     });
   }
 
-  /**
-   * Write a source file with the given absolute [pathname] and [contents].
-   *
-   * If the file didn't previously exist, it is created.  If it did, it is
-   * overwritten.
-   *
-   * Parent directories are created as necessary.
-   *
-   * Return a normalized path to the file (with symbolic links resolved).
-   */
+  /// Write a source file with the given absolute [pathname] and [contents].
+  ///
+  /// If the file didn't previously exist, it is created. If it did, it is
+  /// overwritten.
+  ///
+  /// Parent directories are created as necessary.
+  ///
+  /// Return a normalized path to the file (with symbolic links resolved).
   String writeFile(String pathname, String contents) {
-    new Directory(dirname(pathname)).createSync(recursive: true);
-    File file = new File(pathname);
+    Directory(dirname(pathname)).createSync(recursive: true);
+    var file = File(pathname);
     file.writeAsStringSync(contents);
     return file.resolveSymbolicLinksSync();
   }
 }
 
-/**
- * Wrapper class for Matcher which doesn't create the underlying Matcher object
- * until it is needed.  This is necessary in order to create matchers that can
- * refer to themselves (so that recursive data structures can be represented).
- */
+/// Wrapper class for Matcher which doesn't create the underlying Matcher object
+/// until it is needed. This is necessary in order to create matchers that can
+/// refer to themselves (so that recursive data structures can be represented).
 class LazyMatcher implements Matcher {
-  /**
-   * Callback that will be used to create the matcher the first time it is
-   * needed.
-   */
+  /// Callback that will be used to create the matcher the first time it is
+  /// needed.
   final MatcherCreator _creator;
 
-  /**
-   * The matcher returned by [_creator], if it has already been called.
-   * Otherwise null.
-   */
+  /// The matcher returned by [_creator], if it has already been called.
+  /// Otherwise null.
   Matcher _wrappedMatcher;
 
   LazyMatcher(this._creator);
@@ -301,28 +258,18 @@ class LazyMatcher implements Matcher {
     return _wrappedMatcher.matches(item, matchState);
   }
 
-  /**
-   * Create the wrapped matcher object, if it hasn't been created already.
-   */
+  /// Create the wrapped matcher object, if it hasn't been created already.
   void _createMatcher() {
-    if (_wrappedMatcher == null) {
-      _wrappedMatcher = _creator();
-    }
+    _wrappedMatcher ??= _creator();
   }
 }
 
-/**
- * Matcher that matches a String drawn from a limited set.
- */
+/// Matcher that matches a String drawn from a limited set.
 class MatchesEnum extends Matcher {
-  /**
-   * Short description of the expected type.
-   */
+  /// Short description of the expected type.
   final String description;
 
-  /**
-   * The set of enum values that are allowed.
-   */
+  /// The set of enum values that are allowed.
   final List<String> allowedValues;
 
   const MatchesEnum(this.description, this.allowedValues);
@@ -337,26 +284,18 @@ class MatchesEnum extends Matcher {
   }
 }
 
-/**
- * Matcher that matches a JSON object, with a given set of required and
- * optional fields, and their associated types (expressed as [Matcher]s).
- */
+/// Matcher that matches a JSON object, with a given set of required and
+/// optional fields, and their associated types (expressed as [Matcher]s).
 class MatchesJsonObject extends _RecursiveMatcher {
-  /**
-   * Short description of the expected type.
-   */
+  /// Short description of the expected type.
   final String description;
 
-  /**
-   * Fields that are required to be in the JSON object, and [Matcher]s describing
-   * their expected types.
-   */
+  /// Fields that are required to be in the JSON object, and [Matcher]s describing
+  /// their expected types.
   final Map<String, Matcher> requiredFields;
 
-  /**
-   * Fields that are optional in the JSON object, and [Matcher]s describing
-   * their expected types.
-   */
+  /// Fields that are optional in the JSON object, and [Matcher]s describing
+  /// their expected types.
   final Map<String, Matcher> optionalFields;
 
   const MatchesJsonObject(this.description, this.requiredFields,
@@ -400,11 +339,9 @@ class MatchesJsonObject extends _RecursiveMatcher {
     });
   }
 
-  /**
-   * Check the type of a field called [key], having value [value], using
-   * [valueMatcher].  If it doesn't match, record a closure in [mismatches]
-   * which can describe the mismatch.
-   */
+  /// Check the type of a field called [key], having value [value], using
+  /// [valueMatcher]. If it doesn't match, record a closure in [mismatches]
+  /// which can describe the mismatch.
   void _checkField(String key, value, Matcher valueMatcher,
       List<MismatchDescriber> mismatches) {
     checkSubstructure(
@@ -416,108 +353,78 @@ class MatchesJsonObject extends _RecursiveMatcher {
   }
 }
 
-/**
- * Instances of the class [Server] manage a connection to a server process, and
- * facilitate communication to and from the server.
- */
+/// Instances of the class [Server] manage a connection to a server process, and
+/// facilitate communication to and from the server.
 class Server {
-  /**
-   * Server process object, or null if server hasn't been started yet.
-   */
-  Process _process = null;
+  /// Server process object, or null if server hasn't been started yet.
+  Process _process;
 
-  /**
-   * Commands that have been sent to the server but not yet acknowledged, and
-   * the [Completer] objects which should be completed when acknowledgement is
-   * received.
-   */
+  /// Commands that have been sent to the server but not yet acknowledged, and
+  /// the [Completer] objects which should be completed when acknowledgement is
+  /// received.
   final Map<String, Completer> _pendingCommands = <String, Completer>{};
 
-  /**
-   * Number which should be used to compute the 'id' to send in the next command
-   * sent to the server.
-   */
+  /// Number which should be used to compute the 'id' to send in the next command
+  /// sent to the server.
   int _nextId = 0;
 
-  /**
-   * Messages which have been exchanged with the server; we buffer these
-   * up until the test finishes, so that they can be examined in the debugger
-   * or printed out in response to a call to [debugStdio].
-   */
+  /// Messages which have been exchanged with the server; we buffer these
+  /// up until the test finishes, so that they can be examined in the debugger
+  /// or printed out in response to a call to [debugStdio].
   final List<String> _recordedStdio = <String>[];
 
-  /**
-   * True if we are currently printing out messages exchanged with the server.
-   */
+  /// True if we are currently printing out messages exchanged with the server.
   bool _debuggingStdio = false;
 
-  /**
-   * True if we've received bad data from the server, and we are aborting the
-   * test.
-   */
+  /// True if we've received bad data from the server, and we are aborting the
+  /// test.
   bool _receivedBadDataFromServer = false;
 
-  /**
-   * Stopwatch that we use to generate timing information for debug output.
-   */
-  Stopwatch _time = new Stopwatch();
+  /// Stopwatch that we use to generate timing information for debug output.
+  final Stopwatch _time = Stopwatch();
 
-  /**
-   * The [currentElapseTime] at which the last communication was received from the server
-   * or `null` if no communication has been received.
-   */
+  /// The [currentElapseTime] at which the last communication was received from the server
+  /// or `null` if no communication has been received.
   double lastCommunicationTime;
 
-  /**
-   * The current elapse time (seconds) since the server was started.
-   */
+  /// The current elapse time (seconds) since the server was started.
   double get currentElapseTime => _time.elapsedTicks / _time.frequency;
 
-  /**
-   * Future that completes when the server process exits.
-   */
+  /// Future that completes when the server process exits.
   Future<int> get exitCode => _process.exitCode;
 
-  /**
-   * Print out any messages exchanged with the server.  If some messages have
-   * already been exchanged with the server, they are printed out immediately.
-   */
+  /// Print out any messages exchanged with the server. If some messages have
+  /// already been exchanged with the server, they are printed out immediately.
   void debugStdio() {
     if (_debuggingStdio) {
       return;
     }
     _debuggingStdio = true;
-    for (String line in _recordedStdio) {
+    for (var line in _recordedStdio) {
       print(line);
     }
   }
 
-  /**
-   * Find the root directory of the analysis_server package by proceeding
-   * upward to the 'test' dir, and then going up one more directory.
-   */
+  /// Find the root directory of the analysis_server package by proceeding
+  /// upward to the 'test' dir, and then going up one more directory.
   String findRoot(String pathname) {
     while (!['benchmark', 'test'].contains(basename(pathname))) {
-      String parent = dirname(pathname);
+      var parent = dirname(pathname);
       if (parent.length >= pathname.length) {
-        throw new Exception("Can't find root directory");
+        throw Exception("Can't find root directory");
       }
       pathname = parent;
     }
     return dirname(pathname);
   }
 
-  /**
-   * Return a future that will complete when all commands that have been sent
-   * to the server so far have been flushed to the OS buffer.
-   */
+  /// Return a future that will complete when all commands that have been sent
+  /// to the server so far have been flushed to the OS buffer.
   Future flushCommands() {
     return _process.stdin.flush();
   }
 
-  /**
-   * Stop the server.
-   */
+  /// Stop the server.
   Future<int> kill(String reason) {
     debugStdio();
     _recordStdio('FORCIBLY TERMINATING PROCESS: $reason');
@@ -525,17 +432,15 @@ class Server {
     return _process.exitCode;
   }
 
-  /**
-   * Start listening to output from the server, and deliver notifications to
-   * [notificationProcessor].
-   */
+  /// Start listening to output from the server, and deliver notifications to
+  /// [notificationProcessor].
   void listenToOutput(NotificationProcessor notificationProcessor) {
     _process.stdout
-        .transform((new Utf8Codec()).decoder)
-        .transform(new LineSplitter())
+        .transform((Utf8Codec()).decoder)
+        .transform(LineSplitter())
         .listen((String line) {
       lastCommunicationTime = currentElapseTime;
-      String trimmedLine = line.trim();
+      var trimmedLine = line.trim();
       if (trimmedLine.startsWith('Observatory listening on ')) {
         return;
       }
@@ -548,96 +453,89 @@ class Server {
         return;
       }
       outOfTestExpect(message, isMap);
-      Map messageAsMap = message as Map;
+      var messageAsMap = message as Map;
       if (messageAsMap.containsKey('id')) {
         outOfTestExpect(messageAsMap['id'], isString);
-        String id = message['id'] as String;
-        Completer completer = _pendingCommands[id];
+        var id = message['id'] as String;
+        var completer = _pendingCommands[id];
         if (completer == null) {
           fail('Unexpected response from server: id=$id');
         } else {
           _pendingCommands.remove(id);
         }
         if (messageAsMap.containsKey('error')) {
-          completer.completeError(new ServerErrorMessage(messageAsMap));
+          completer.completeError(ServerErrorMessage(messageAsMap));
         } else {
           completer.complete(messageAsMap['result']);
         }
-        // Check that the message is well-formed.  We do this after calling
+        // Check that the message is well-formed. We do this after calling
         // completer.complete() or completer.completeError() so that we don't
         // stall the test in the event of an error.
         outOfTestExpect(message, isResponse);
       } else {
-        // Message is a notification.  It should have an event and possibly
+        // Message is a notification. It should have an event and possibly
         // params.
         outOfTestExpect(messageAsMap, contains('event'));
         outOfTestExpect(messageAsMap['event'], isString);
         notificationProcessor(
-            messageAsMap['event'] as String, messageAsMap['params']);
-        // Check that the message is well-formed.  We do this after calling
+            messageAsMap['event'] as String, messageAsMap['params'] as Map);
+        // Check that the message is well-formed. We do this after calling
         // notificationController.add() so that we don't stall the test in the
         // event of an error.
         outOfTestExpect(message, isNotification);
       }
     });
     _process.stderr
-        .transform((new Utf8Codec()).decoder)
-        .transform(new LineSplitter())
+        .transform((Utf8Codec()).decoder)
+        .transform(LineSplitter())
         .listen((String line) {
-      String trimmedLine = line.trim();
+      var trimmedLine = line.trim();
       _recordStdio('ERR:  $trimmedLine');
       _badDataFromServer('Message received on stderr', silent: true);
     });
   }
 
-  /**
-   * Send a command to the server.  An 'id' will be automatically assigned.
-   * The returned [Future] will be completed when the server acknowledges the
-   * command with a response.  If the server acknowledges the command with a
-   * normal (non-error) response, the future will be completed with the 'result'
-   * field from the response.  If the server acknowledges the command with an
-   * error response, the future will be completed with an error.
-   */
+  /// Send a command to the server. An 'id' will be automatically assigned.
+  /// The returned [Future] will be completed when the server acknowledges the
+  /// command with a response. If the server acknowledges the command with a
+  /// normal (non-error) response, the future will be completed with the 'result'
+  /// field from the response. If the server acknowledges the command with an
+  /// error response, the future will be completed with an error.
   Future send(String method, Map<String, dynamic> params) {
-    String id = '${_nextId++}';
-    Map<String, dynamic> command = <String, dynamic>{
-      'id': id,
-      'method': method
-    };
+    var id = '${_nextId++}';
+    var command = <String, dynamic>{'id': id, 'method': method};
     if (params != null) {
       command['params'] = params;
     }
-    Completer completer = new Completer();
+    var completer = Completer();
     _pendingCommands[id] = completer;
-    String line = json.encode(command);
+    var line = json.encode(command);
     _recordStdio('SEND: $line');
-    _process.stdin.add(utf8.encoder.convert("$line\n"));
+    _process.stdin.add(utf8.encoder.convert('$line\n'));
     return completer.future;
   }
 
-  /**
-   * Start the server.  If [debugServer] is `true`, the server will be started
-   * with "--debug", allowing a debugger to be attached. If [profileServer] is
-   * `true`, the server will be started with "--observe" and
-   * "--pause-isolates-on-exit", allowing the observatory to be used.
-   */
+  /// Start the server. If [debugServer] is `true`, the server will be started
+  /// with "--debug", allowing a debugger to be attached. If [profileServer] is
+  /// `true`, the server will be started with "--observe" and
+  /// "--pause-isolates-on-exit", allowing the observatory to be used.
   Future start(
-      {bool checked: true,
-      bool debugServer: false,
+      {bool checked = true,
+      bool debugServer = false,
       int diagnosticPort,
-      bool profileServer: false,
+      bool profileServer = false,
       String sdkPath,
       int servicesPort,
-      bool useAnalysisHighlight2: false}) {
+      bool useAnalysisHighlight2 = false}) {
     if (_process != null) {
-      throw new Exception('Process already started');
+      throw Exception('Process already started');
     }
     _time.start();
-    String dartBinary = Platform.executable;
-    String rootDir =
+    var dartBinary = Platform.executable;
+    var rootDir =
         findRoot(Platform.script.toFilePath(windows: Platform.isWindows));
-    String serverPath = normalize(join(rootDir, 'bin', 'server.dart'));
-    List<String> arguments = [];
+    var serverPath = normalize(join(rootDir, 'bin', 'server.dart'));
+    var arguments = <String>[];
     //
     // Add VM arguments.
     //
@@ -689,10 +587,8 @@ class Server {
     });
   }
 
-  /**
-   * Deal with bad data received from the server.
-   */
-  void _badDataFromServer(String details, {bool silent: false}) {
+  /// Deal with bad data received from the server.
+  void _badDataFromServer(String details, {bool silent = false}) {
     if (!silent) {
       _recordStdio('BAD DATA FROM SERVER: $details');
     }
@@ -703,22 +599,20 @@ class Server {
     _receivedBadDataFromServer = true;
     debugStdio();
     // Give the server 1 second to continue outputting bad data before we kill
-    // the test.  This is helpful if the server has had an unhandled exception
+    // the test. This is helpful if the server has had an unhandled exception
     // and is outputting a stacktrace, because it ensures that we see the
-    // entire stacktrace.  Use expectAsync() to prevent the test from
+    // entire stacktrace. Use expectAsync() to prevent the test from
     // ending during this 1 second.
-    new Future.delayed(new Duration(seconds: 1), expectAsync0(() {
+    Future.delayed(Duration(seconds: 1), expectAsync0(() {
       fail('Bad data received from server: $details');
     }));
   }
 
-  /**
-   * Record a message that was exchanged with the server, and print it out if
-   * [debugStdio] has been called.
-   */
+  /// Record a message that was exchanged with the server, and print it out if
+  /// [debugStdio] has been called.
   void _recordStdio(String line) {
-    double elapsedTime = currentElapseTime;
-    line = "$elapsedTime: $line";
+    var elapsedTime = currentElapseTime;
+    line = '$elapsedTime: $line';
     if (_debuggingStdio) {
       print(line);
     }
@@ -726,9 +620,7 @@ class Server {
   }
 }
 
-/**
- * An error result from a server request.
- */
+/// An error result from a server request.
 class ServerErrorMessage {
   final Map message;
 
@@ -737,19 +629,13 @@ class ServerErrorMessage {
   dynamic get error => message['error'];
 }
 
-/**
- * Matcher that matches a list of objects, each of which satisfies the given
- * matcher.
- */
+/// Matcher that matches a list of objects, each of which satisfies the given
+/// matcher.
 class _ListOf extends Matcher {
-  /**
-   * Matcher which every element of the list must satisfy.
-   */
+  /// Matcher which every element of the list must satisfy.
   final Matcher elementMatcher;
 
-  /**
-   * Iterable matcher which we use to test the contents of the list.
-   */
+  /// Iterable matcher which we use to test the contents of the list.
   final Matcher iterableMatcher;
 
   _ListOf(Matcher elementMatcher)
@@ -781,19 +667,13 @@ class _ListOf extends Matcher {
   }
 }
 
-/**
- * Matcher that matches a map of objects, where each key/value pair in the
- * map satisies the given key and value matchers.
- */
+/// Matcher that matches a map of objects, where each key/value pair in the
+/// map satisies the given key and value matchers.
 class _MapOf extends _RecursiveMatcher {
-  /**
-   * Matcher which every key in the map must satisfy.
-   */
+  /// Matcher which every key in the map must satisfy.
   final Matcher keyMatcher;
 
-  /**
-   * Matcher which every value in the map must satisfy.
-   */
+  /// Matcher which every value in the map must satisfy.
   final Matcher valueMatcher;
 
   _MapOf(this.keyMatcher, this.valueMatcher);
@@ -828,21 +708,17 @@ class _MapOf extends _RecursiveMatcher {
   }
 }
 
-/**
- * Matcher that matches a union of different types, each of which is described
- * by a matcher.
- */
+/// Matcher that matches a union of different types, each of which is described
+/// by a matcher.
 class _OneOf extends Matcher {
-  /**
-   * Matchers for the individual choices.
-   */
+  /// Matchers for the individual choices.
   final List<Matcher> choiceMatchers;
 
   _OneOf(this.choiceMatchers);
 
   @override
   Description describe(Description description) {
-    for (int i = 0; i < choiceMatchers.length; i++) {
+    for (var i = 0; i < choiceMatchers.length; i++) {
       if (i != 0) {
         if (choiceMatchers.length == 2) {
           description = description.add(' or ');
@@ -860,8 +736,8 @@ class _OneOf extends Matcher {
 
   @override
   bool matches(item, Map matchState) {
-    for (Matcher choiceMatcher in choiceMatchers) {
-      Map subState = {};
+    for (var choiceMatcher in choiceMatchers) {
+      var subState = {};
       if (choiceMatcher.matches(item, subState)) {
         return true;
       }
@@ -870,30 +746,29 @@ class _OneOf extends Matcher {
   }
 }
 
-/**
- * Base class for matchers that operate by recursing through the contents of
- * an object.
- */
+/// Base class for matchers that operate by recursing through the contents of
+/// an object.
 abstract class _RecursiveMatcher extends Matcher {
   const _RecursiveMatcher();
 
-  /**
-   * Check the type of a substructure whose value is [item], using [matcher].
-   * If it doesn't match, record a closure in [mismatches] which can describe
-   * the mismatch.  [describeSubstructure] is used to describe which
-   * substructure did not match.
-   */
-  checkSubstructure(item, Matcher matcher, List<MismatchDescriber> mismatches,
-      Description describeSubstructure(Description description)) {
-    Map subState = {};
+  /// Check the type of a substructure whose value is [item], using [matcher].
+  /// If it doesn't match, record a closure in [mismatches] which can describe
+  /// the mismatch. [describeSubstructure] is used to describe which
+  /// substructure did not match.
+  void checkSubstructure(
+      item,
+      Matcher matcher,
+      List<MismatchDescriber> mismatches,
+      Description Function(Description description) describeSubstructure) {
+    var subState = {};
     if (!matcher.matches(item, subState)) {
       mismatches.add((Description mismatchDescription) {
         mismatchDescription = mismatchDescription.add('contains malformed ');
         mismatchDescription = describeSubstructure(mismatchDescription);
         mismatchDescription =
             mismatchDescription.add(' (should be ').addDescriptionOf(matcher);
-        String subDescription = matcher
-            .describeMismatch(item, new StringDescription(), subState, false)
+        var subDescription = matcher
+            .describeMismatch(item, StringDescription(), subState, false)
             .toString();
         if (subDescription.isNotEmpty) {
           mismatchDescription =
@@ -907,11 +782,10 @@ abstract class _RecursiveMatcher extends Matcher {
   @override
   Description describeMismatch(
       item, Description mismatchDescription, Map matchState, bool verbose) {
-    List<MismatchDescriber> mismatches =
-        matchState['mismatches'] as List<MismatchDescriber>;
+    var mismatches = matchState['mismatches'] as List<MismatchDescriber>;
     if (mismatches != null) {
-      for (int i = 0; i < mismatches.length; i++) {
-        MismatchDescriber mismatch = mismatches[i];
+      for (var i = 0; i < mismatches.length; i++) {
+        var mismatch = mismatches[i];
         if (i > 0) {
           if (mismatches.length == 2) {
             mismatchDescription = mismatchDescription.add(' and ');
@@ -932,7 +806,7 @@ abstract class _RecursiveMatcher extends Matcher {
 
   @override
   bool matches(item, Map matchState) {
-    List<MismatchDescriber> mismatches = <MismatchDescriber>[];
+    var mismatches = <MismatchDescriber>[];
     populateMismatches(item, mismatches);
     if (mismatches.isEmpty) {
       return true;
@@ -942,15 +816,11 @@ abstract class _RecursiveMatcher extends Matcher {
     }
   }
 
-  /**
-   * Populate [mismatches] with descriptions of all the ways in which [item]
-   * does not match.
-   */
+  /// Populate [mismatches] with descriptions of all the ways in which [item]
+  /// does not match.
   void populateMismatches(item, List<MismatchDescriber> mismatches);
 
-  /**
-   * Create a [MismatchDescriber] describing a mismatch with a simple string.
-   */
+  /// Create a [MismatchDescriber] describing a mismatch with a simple string.
   MismatchDescriber simpleDescription(String description) =>
       (Description mismatchDescription) => mismatchDescription.add(description);
 }

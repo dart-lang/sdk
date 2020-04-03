@@ -1,0 +1,13 @@
+NOTICE: Stream was rewritten by parser!
+
+main() {
+var i;
+for (i in []) {}
+}
+
+
+main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+var[KeywordToken] i[StringToken];[SimpleToken]
+for[KeywordToken] ([BeginToken]i[StringToken] in[KeywordToken] [[BeginToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

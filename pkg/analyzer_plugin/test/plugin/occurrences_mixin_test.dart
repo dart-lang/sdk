@@ -34,35 +34,34 @@ class OccurrencesMixinTest with ResourceProviderMixin {
     packagePath1 = convertPath('/package1');
     filePath1 = join(packagePath1, 'lib', 'test.dart');
     newFile(filePath1);
-    contextRoot1 = new ContextRoot(packagePath1, <String>[]);
+    contextRoot1 = ContextRoot(packagePath1, <String>[]);
 
-    channel = new MockChannel();
-    plugin = new _TestServerPlugin(resourceProvider);
+    channel = MockChannel();
+    plugin = _TestServerPlugin(resourceProvider);
     plugin.start(channel);
   }
 
-  test_sendOccurrencesNotification() async {
+  Future<void> test_sendOccurrencesNotification() async {
     await plugin.handleAnalysisSetContextRoots(
-        new AnalysisSetContextRootsParams([contextRoot1]));
+        AnalysisSetContextRootsParams([contextRoot1]));
 
-    Completer<void> notificationReceived = new Completer<void>();
+    var notificationReceived = Completer<void>();
     channel.listen(null, onNotification: (Notification notification) {
       expect(notification, isNotNull);
-      AnalysisOccurrencesParams params =
-          new AnalysisOccurrencesParams.fromNotification(notification);
+      var params = AnalysisOccurrencesParams.fromNotification(notification);
       expect(params.file, filePath1);
-      List<Occurrences> occurrenceList = params.occurrences;
+      var occurrenceList = params.occurrences;
       expect(occurrenceList, hasLength(3));
 
       void validate(String elementName, List<int> expectedOffsets) {
-        for (Occurrences occurrences in occurrenceList) {
+        for (var occurrences in occurrenceList) {
           if (occurrences.element.name == elementName) {
             expect(occurrences.offsets, expectedOffsets);
             expect(occurrences.length, elementName.length);
             return;
           }
         }
-        fail('No occurence named $elementName');
+        fail('No occurrence named $elementName');
       }
 
       validate('method', [10, 30]);
@@ -84,7 +83,7 @@ class _TestOccurrencesContributor implements OccurrencesContributor {
   void computeOccurrences(
       OccurrencesRequest request, OccurrencesCollector collector) {
     elements.forEach((element, offsets) {
-      for (int offset in offsets) {
+      for (var offset in offsets) {
         collector.addOccurrence(element, offset);
       }
     });
@@ -97,15 +96,15 @@ class _TestServerPlugin extends MockServerPlugin with OccurrencesMixin {
 
   @override
   List<OccurrencesContributor> getOccurrencesContributors(String path) {
-    Element element1 = new Element(ElementKind.METHOD, 'method', 0);
-    Element element2 = new Element(ElementKind.CLASS, 'C', 0);
-    Element element3 = new Element(ElementKind.LOCAL_VARIABLE, 'local', 0);
+    var element1 = Element(ElementKind.METHOD, 'method', 0);
+    var element2 = Element(ElementKind.CLASS, 'C', 0);
+    var element3 = Element(ElementKind.LOCAL_VARIABLE, 'local', 0);
     return <OccurrencesContributor>[
-      new _TestOccurrencesContributor({
+      _TestOccurrencesContributor({
         element1: [10, 30],
         element2: [20, 40, 60]
       }),
-      new _TestOccurrencesContributor({
+      _TestOccurrencesContributor({
         element2: [50, 70],
         element3: [80]
       })
@@ -114,7 +113,7 @@ class _TestServerPlugin extends MockServerPlugin with OccurrencesMixin {
 
   @override
   Future<OccurrencesRequest> getOccurrencesRequest(String path) async {
-    var result = new MockResolvedUnitResult(path: path);
-    return new DartOccurrencesRequestImpl(resourceProvider, result);
+    var result = MockResolvedUnitResult(path: path);
+    return DartOccurrencesRequestImpl(resourceProvider, result);
   }
 }

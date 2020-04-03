@@ -2,13 +2,49 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/*cfe.library: nnbd=false*/
+/*cfe:nnbd.library: nnbd=true*/
+
 main() {
   // ignore: unused_local_variable
-  var a0 = /*Map<dynamic,dynamic>*/ {};
+  var a0 =
+      /*cfe.Map<dynamic,dynamic>*/
+      /*cfe:nnbd.Map<dynamic,dynamic>!*/
+      {};
+
   // ignore: unused_local_variable
-  var a1 = /*Set<int>*/ {/*int*/ 0};
+  var a1 =
+      /*cfe.Set<int>*/
+      /*cfe:nnbd.Set<int!>!*/
+      {
+    /*cfe.int*/
+    /*cfe:nnbd.int!*/
+    0
+  };
+
   // ignore: unused_local_variable
-  var a2 = /*Set<num>*/ {/*int*/ 0, /*double*/ 0.5};
+  var a2 =
+      /*cfe.Set<num>*/
+      /*cfe:nnbd.Set<num!>!*/
+      {
+    /*cfe.int*/
+    /*cfe:nnbd.int!*/
+    0,
+    /*cfe.double*/
+    /*cfe:nnbd.double!*/
+    0.5
+  };
+
   // ignore: unused_local_variable
-  var a3 = /*Set<Object>*/ {/*int*/ 0, /*String*/ ''};
+  var a3 =
+      /*cfe.Set<Object>*/
+      /*cfe:nnbd.Set<Object!>!*/
+      {
+    /*cfe.int*/
+    /*cfe:nnbd.int!*/
+    0,
+    /*cfe.String*/
+    /*cfe:nnbd.String!*/
+    ''
+  };
 }

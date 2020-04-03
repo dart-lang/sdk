@@ -382,7 +382,8 @@ void Symbols::Compact() {
       ASSERT(type.IsType());
       ASSERT(type.IsCanonical());
       bool present = table.Insert(type);
-      ASSERT(!present);
+      // Two recursive types with different topology (and hashes) may be equal.
+      ASSERT(!present || type.IsRecursive());
     }
     object_store->set_canonical_types(table.Release());
   }
@@ -397,7 +398,8 @@ void Symbols::Compact() {
       ASSERT(type_arg.IsTypeArguments());
       ASSERT(type_arg.IsCanonical());
       bool present = table.Insert(type_arg);
-      ASSERT(!present);
+      // Two recursive types with different topology (and hashes) may be equal.
+      ASSERT(!present || type_arg.IsRecursive());
     }
     object_store->set_canonical_type_arguments(table.Release());
   }

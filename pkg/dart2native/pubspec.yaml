@@ -1,0 +1,12 @@
+name: dart2native
+publish_to: none
+
+# Add the bin/dart2native.dart script to the scripts pub installs.
+executables:
+  dart2native:
+
+dependencies:
+   args: ^1.4.0
+
+dev_dependencies:
+

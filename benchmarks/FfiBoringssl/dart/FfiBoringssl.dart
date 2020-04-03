@@ -9,6 +9,7 @@ import 'dart:ffi';
 import 'dart:typed_data';
 
 import 'package:benchmark_harness/benchmark_harness.dart';
+import 'package:ffi/ffi.dart';
 
 import 'digest.dart';
 import 'types.dart';
@@ -29,7 +30,7 @@ Uint8List toUint8List(Bytes bytes, int length) {
   final result = Uint8List(length);
   final uint8bytes = bytes.asUint8Pointer();
   for (int i = 0; i < length; i++) {
-    result[i] = uint8bytes.elementAt(i).load<int>();
+    result[i] = uint8bytes[i];
   }
   return result;
 }
@@ -38,7 +39,7 @@ void copyFromUint8ListToTarget(Uint8List source, Data target) {
   final int length = source.length;
   final uint8target = target.asUint8Pointer();
   for (int i = 0; i < length; i++) {
-    uint8target.offsetBy(i).store(source[i]);
+    uint8target[i] = source[i];
   }
 }
 
@@ -47,12 +48,11 @@ String hash(Pointer<Data> data, int length, Pointer<EVP_MD> hashAlgorithm) {
   EVP_DigestInit(context, hashAlgorithm);
   EVP_DigestUpdate(context, data, length);
   final int resultSize = EVP_MD_CTX_size(context);
-  final Pointer<Bytes> result =
-      Pointer<Uint8>.allocate(count: resultSize).cast();
-  EVP_DigestFinal(context, result, nullptr.cast());
+  final Pointer<Bytes> result = allocate<Uint8>(count: resultSize).cast();
+  EVP_DigestFinal(context, result, nullptr);
   EVP_MD_CTX_free(context);
-  final String hash = base64Encode(toUint8List(result.load(), resultSize));
-  result.free();
+  final String hash = base64Encode(toUint8List(result.ref, resultSize));
+  free(result);
   return hash;
 }
 
@@ -64,9 +64,6 @@ String hash(Pointer<Data> data, int length, Pointer<EVP_MD> hashAlgorithm) {
 //  * CPU: Intel(R) Xeon(R) Gold 6154
 //    * Architecture: x64
 //      * 23000 - 52000000 us (without optimizations)
-//      * 23000 - 30000 us (with optimizations)
-//    * Architecture: SimDBC64
-//      * 23000 - 5500000 us (without optimizations)
 //      * 23000 - 30000 us (with optimizations)
 const int L = 1000; // Length of data in bytes.
 
@@ -85,13 +82,13 @@ class DigestCMemory extends BenchmarkBase {
   Pointer<Data> data; // Data in C memory that we want to digest.
 
   void setup() {
-    data = Pointer<Uint8>.allocate(count: L).cast();
-    copyFromUint8ListToTarget(inventData(L), data.load());
+    data = allocate<Uint8>(count: L).cast();
+    copyFromUint8ListToTarget(inventData(L), data.ref);
     hash(data, L, hashAlgorithm);
   }
 
   void teardown() {
-    data.free();
+    free(data);
   }
 
   void run() {
@@ -112,19 +109,19 @@ class DigestDartMemory extends BenchmarkBase {
 
   void setup() {
     data = inventData(L);
-    final Pointer<Data> dataInC = Pointer<Uint8>.allocate(count: L).cast();
-    copyFromUint8ListToTarget(data, dataInC.load());
+    final Pointer<Data> dataInC = allocate<Uint8>(count: L).cast();
+    copyFromUint8ListToTarget(data, dataInC.ref);
     hash(dataInC, L, hashAlgorithm);
-    dataInC.free();
+    free(dataInC);
   }
 
   void teardown() {}
 
   void run() {
-    final Pointer<Data> dataInC = Pointer<Uint8>.allocate(count: L).cast();
-    copyFromUint8ListToTarget(data, dataInC.load());
+    final Pointer<Data> dataInC = allocate<Uint8>(count: L).cast();
+    copyFromUint8ListToTarget(data, dataInC.ref);
     final String result = hash(dataInC, L, hashAlgorithm);
-    dataInC.free();
+    free(dataInC);
     if (result != expectedHash) {
       throw Exception("$name: Unexpected result: $result");
     }

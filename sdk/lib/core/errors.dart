@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.core;
 
 /**
@@ -98,18 +100,26 @@ class Error {
 class AssertionError extends Error {
   /** Message describing the assertion error. */
   final Object message;
+
   AssertionError([this.message]);
-  String toString() => "Assertion failed";
+
+  String toString() {
+    if (message != null) {
+      return "Assertion failed: ${Error.safeToString(message)}";
+    }
+    return "Assertion failed";
+  }
 }
 
 /**
- * Error thrown by the runtime system when a type assertion fails.
+ * Error thrown by the runtime system when a dynamic type error happens.
  */
-class TypeError extends AssertionError {}
+class TypeError extends Error {}
 
 /**
  * Error thrown by the runtime system when a cast operation fails.
  */
+@Deprecated("Use TypeError instead")
 class CastError extends Error {}
 
 /**
@@ -175,10 +185,16 @@ class ArgumentError extends Error {
 
   /**
    * Throws if [argument] is `null`.
+   *
+   * If [name] is supplied, it is used as the parameter name
+   * in the error message.
+   *
+   * Returns the [argument] if it is not null.
    */
   @Since("2.1")
-  static void checkNotNull(Object argument, [String name]) {
+  static T checkNotNull<@Since("2.8") T>(T argument, [String name]) {
     if (argument == null) throw ArgumentError.notNull(name);
+    return argument;
   }
 
   // Helper functions for toString overridden in subclasses.
@@ -270,30 +286,42 @@ class RangeError extends ArgumentError {
       [String name, String message, int length]) = IndexError;
 
   /**
-   * Check that a [value] lies in a specific interval.
+   * Check that an integer [value] lies in a specific interval.
    *
    * Throws if [value] is not in the interval.
    * The interval is from [minValue] to [maxValue], both inclusive.
+   *
+   * If [name] or [message] are provided, they are used as the parameter
+   * name and message text of the thrown error.
+   *
+   * Returns [value] if it is in the interval.
    */
-  static void checkValueInInterval(int value, int minValue, int maxValue,
+  static int checkValueInInterval(int value, int minValue, int maxValue,
       [String name, String message]) {
     if (value < minValue || value > maxValue) {
       throw RangeError.range(value, minValue, maxValue, name, message);
     }
+    return value;
   }
 
   /**
-   * Check that a value is a valid index into an indexable object.
+   * Check that [index] is a valid index into an indexable object.
    *
    * Throws if [index] is not a valid index into [indexable].
    *
    * An indexable object is one that has a `length` and a and index-operator
    * `[]` that accepts an index if `0 <= index < length`.
    *
+   * If [name] or [message] are provided, they are used as the parameter
+   * name and message text of the thrown error. If [name] is omitted, it
+   * defaults to `"index"`.
+   *
    * If [length] is provided, it is used as the length of the indexable object,
    * otherwise the length is found as `indexable.length`.
+   *
+   * Returns [index] if it is a valid index.
    */
-  static void checkValidIndex(int index, dynamic indexable,
+  static int checkValidIndex(int index, dynamic indexable,
       [String name, int length, String message]) {
     length ??= indexable.length;
     // Comparing with `0` as receiver produces better dart2js type inference.
@@ -301,6 +329,7 @@ class RangeError extends ArgumentError {
       name ??= "index";
       throw RangeError.index(index, indexable, name, message, length);
     }
+    return index;
   }
 
   /**
@@ -338,12 +367,19 @@ class RangeError extends ArgumentError {
   }
 
   /**
-   * Check that an integer value isn't negative.
+   * Check that an integer value is non-negative.
    *
    * Throws if the value is negative.
+   *
+   * If [name] or [message] are provided, they are used as the parameter
+   * name and message text of the thrown error. If [name] is omitted, it
+   * defaults to `index`.
+   *
+   * Returns [value] if it is not negative.
    */
-  static void checkNotNegative(int value, [String name, String message]) {
+  static int checkNotNegative(int value, [String name, String message]) {
     if (value < 0) throw RangeError.range(value, 0, null, name, message);
+    return value;
   }
 
   String get _errorName => "RangeError";
@@ -585,4 +621,21 @@ class CyclicInitializationError extends Error {
   String toString() => variableName == null
       ? "Reading static variable during its initialization"
       : "Reading static variable '$variableName' during its initialization";
+}
+
+/**
+ * Error thrown when a late variable is accessed in an invalid manner.
+ *
+ * A late variable must be initialized before it's read.
+ * If a late variable has no initializer expression and has not
+ * been written to, then reading it will throw a
+ * late initialization error.
+ *
+ * A late final variable with no initializer expression may only
+ * be written to once.
+ * If it is written to again, the writing will throw a
+ * late initialization error.
+ */
+abstract class LateInitializationError extends Error {
+  factory LateInitializationError._() => throw UnsupportedError("");
 }

@@ -5,6 +5,7 @@
 library dart2js.kernel.frontend_strategy;
 
 import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/type_environment.dart' as ir;
 
 import '../common.dart';
 import '../common/backend_api.dart';
@@ -80,9 +81,6 @@ class KernelFrontendStrategy extends FrontendStrategy {
 
   KFieldAnalysis _fieldAnalysis;
 
-  /// Backend transformation methods for the world impacts.
-  ImpactTransformer impactTransformer;
-
   @override
   NoSuchMethodRegistry noSuchMethodRegistry;
 
@@ -141,7 +139,7 @@ class KernelFrontendStrategy extends FrontendStrategy {
       CompilerTask task, Compiler compiler) {
     RuntimeTypesNeedBuilder rtiNeedBuilder = _createRuntimeTypesNeedBuilder();
     BackendImpacts impacts =
-        new BackendImpacts(commonElements, compiler.options.experimentNewRti);
+        new BackendImpacts(commonElements, compiler.options);
     _nativeResolutionEnqueuer = new NativeResolutionEnqueuer(
         compiler.options,
         elementEnvironment,
@@ -165,7 +163,7 @@ class KernelFrontendStrategy extends FrontendStrategy {
     // before creating the resolution enqueuer.
     AnnotationsData annotationsData = new AnnotationsDataImpl(
         compiler.options, annotationsDataBuilder.pragmaAnnotations);
-    impactTransformer = new JavaScriptImpactTransformer(
+    ImpactTransformer impactTransformer = new JavaScriptImpactTransformer(
         elementEnvironment,
         commonElements,
         impacts,
@@ -251,10 +249,8 @@ class KernelFrontendStrategy extends FrontendStrategy {
   @override
   void registerLoadedLibraries(KernelResult kernelResult) {
     _elementMap.addComponent(kernelResult.component);
-    if (_options.useCFEConstants) {
-      _irAnnotationData = processAnnotations(new ModularCore(
-          kernelResult.component, _elementMap.constantEvaluator));
-    }
+    _irAnnotationData = processAnnotations(
+        new ModularCore(kernelResult.component, _elementMap.constantEvaluator));
     _annotationProcessor = new KernelAnnotationProcessor(
         elementMap, nativeBasicDataBuilder, _irAnnotationData);
     for (Uri uri in kernelResult.libraries) {
@@ -437,12 +433,7 @@ class KernelModularStrategy extends ModularStrategy {
 
   @override
   List<PragmaAnnotationData> getPragmaAnnotationData(ir.Member node) {
-    if (_elementMap.options.useCFEConstants) {
-      return computePragmaAnnotationDataFromIr(node);
-    } else {
-      return computePragmaAnnotationData(_elementMap.commonElements,
-          _elementMap.elementEnvironment, _elementMap.getMember(node));
-    }
+    return computePragmaAnnotationDataFromIr(node);
   }
 
   @override
@@ -457,8 +448,10 @@ class KernelModularStrategy extends ModularStrategy {
       // depend on metadata, so these parts of the impact data need to be
       // computed during conversion to [ResolutionImpact].
       impactBuilderData = _compilerTask.measureSubtask('worldImpact', () {
-        ImpactBuilder builder = new ImpactBuilder(_elementMap.typeEnvironment,
-            _elementMap.classHierarchy, scopeModel.variableScopeModel,
+        ImpactBuilder builder = new ImpactBuilder(
+            new ir.StaticTypeContext(node, _elementMap.typeEnvironment),
+            _elementMap.classHierarchy,
+            scopeModel.variableScopeModel,
             useAsserts: _elementMap.options.enableUserAssertions,
             inferEffectivelyFinalVariableTypes:
                 !annotations.contains(PragmaAnnotation.disableFinal));

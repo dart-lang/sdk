@@ -8,7 +8,7 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS implements CanvasRenderingCo
 $!MEMBERS
 
   void readPixels(int x, int y, int width, int height, int format, int type,
-          TypedData pixels) {
+          TypedData$NULLABLE pixels) {
       _readPixels(x, y, width, height, format, type, pixels);
   }
 

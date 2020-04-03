@@ -1,0 +1,17 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  constructor •() → self::A*
+    ;
+  operator ~() → core::int*
+    ;
+  operator unary-() → core::double*
+    ;
+}
+static field self::A* a;
+static field core::int* v_complement;
+static field core::double* v_negate;
+static method main() → dynamic
+  ;

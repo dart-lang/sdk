@@ -103,7 +103,50 @@ static bool IsControlFlow(Instruction* instruction) {
   return instruction->IsBranch() || instruction->IsGoto() ||
          instruction->IsIndirectGoto() || instruction->IsReturn() ||
          instruction->IsThrow() || instruction->IsReThrow() ||
-         instruction->IsStop() || instruction->IsTailCall();
+         instruction->IsTailCall();
+}
+
+// Asserts that arguments appear in environment at the right place.
+static void AssertArgumentsInEnv(FlowGraph* flow_graph, Definition* call) {
+  Environment* env = call->env();
+  if (env == nullptr) {
+    // Environments can be removed by EliminateEnvironments pass and
+    // are not present before SSA.
+  } else if (flow_graph->function().IsIrregexpFunction()) {
+    // TODO(dartbug.com/38577): cleanup regexp pipeline too....
+  } else {
+    // Otherwise, the trailing environment entries must
+    // correspond directly with the arguments.
+    const intptr_t env_count = env->Length();
+    const intptr_t arg_count = call->ArgumentCount();
+    ASSERT(arg_count <= env_count);
+    const intptr_t env_base = env_count - arg_count;
+    for (intptr_t i = 0; i < arg_count; i++) {
+      if (call->HasPushArguments()) {
+        ASSERT(call->ArgumentAt(i) == env->ValueAt(env_base + i)
+                                          ->definition()
+                                          ->AsPushArgument()
+                                          ->value()
+                                          ->definition());
+      } else {
+        // Redefintion instructions and boxing/unboxing are inserted
+        // without updating environment uses (FlowGraph::RenameDominatedUses,
+        // FlowGraph::InsertConversionsFor).
+        // Also, constants may belong to different blocks (e.g. function entry
+        // and graph entry).
+        Definition* arg_def =
+            call->ArgumentAt(i)->OriginalDefinitionIgnoreBoxingAndConstraints();
+        Definition* env_def =
+            env->ValueAt(env_base + i)
+                ->definition()
+                ->OriginalDefinitionIgnoreBoxingAndConstraints();
+        ASSERT((arg_def == env_def) ||
+               (arg_def->IsConstant() && env_def->IsConstant() &&
+                arg_def->AsConstant()->value().raw() ==
+                    env_def->AsConstant()->value().raw()));
+      }
+    }
+  }
 }
 
 void FlowGraphChecker::VisitBlocks() {
@@ -224,6 +267,14 @@ void FlowGraphChecker::VisitInstructions(BlockEntryInstr* block) {
 
 void FlowGraphChecker::VisitInstruction(Instruction* instruction) {
   ASSERT(!instruction->IsBlockEntry());
+
+#if !defined(DART_PRECOMPILER)
+  // In JIT mode, any instruction which may throw must have a deopt-id, except
+  // tail-call because it replaces the stack frame.
+  ASSERT(!instruction->MayThrow() || instruction->IsTailCall() ||
+         instruction->deopt_id() != DeoptId::kNone);
+#endif  // !defined(DART_PRECOMPILER)
+
   // Check all regular inputs.
   for (intptr_t i = 0, n = instruction->InputCount(); i < n; ++i) {
     VisitUseDef(instruction, instruction->InputAt(i), i, /*is_env*/ false);
@@ -317,6 +368,10 @@ void FlowGraphChecker::VisitDefUse(Definition* def,
   } else {
     ASSERT(instruction->InputAt(use->use_index()) == use);
   }
+  // Make sure the reaching type, if any, has an owner consistent with this use.
+  if (auto const type = use->reaching_type()) {
+    ASSERT(type->owner() == nullptr || type->owner() == def);
+  }
   // Make sure each use appears in the graph and is properly dominated
   // by the definition (note that the proper dominance relation on the
   // input values of Phis is checked by the Phi visitor below).
@@ -330,6 +385,8 @@ void FlowGraphChecker::VisitDefUse(Definition* def,
     // BlockEntry instructions have environments attached to them but
     // have no reliable way to verify if they are still in the graph.
     ASSERT(is_env);
+    ASSERT(instruction->next() != nullptr);
+    ASSERT(DefDominatesUse(def, instruction));
   } else {
     // Others are fully linked into graph.
     ASSERT(IsControlFlow(instruction) || instruction->next() != nullptr);
@@ -360,6 +417,7 @@ void FlowGraphChecker::VisitPhi(PhiInstr* phi) {
   ASSERT(phi->InputCount() == current_block_->PredecessorCount());
   for (intptr_t i = 0, n = phi->InputCount(); i < n; ++i) {
     Definition* def = phi->InputAt(i)->definition();
+    ASSERT(def->HasSSATemp());  // phis have SSA defs
     BlockEntryInstr* edge = current_block_->PredecessorAt(i);
     ASSERT(DefDominatesUse(def, edge->last_instruction()));
   }
@@ -381,14 +439,24 @@ void FlowGraphChecker::VisitRedefinition(RedefinitionInstr* def) {
   ASSERT(def->value()->definition() != def);
 }
 
-void FlowGraphChecker::VisitInstanceCall(InstanceCallInstr* instr) {
+void FlowGraphChecker::VisitClosureCall(ClosureCallInstr* call) {
+  AssertArgumentsInEnv(flow_graph_, call);
+}
+
+void FlowGraphChecker::VisitStaticCall(StaticCallInstr* call) {
+  AssertArgumentsInEnv(flow_graph_, call);
+}
+
+void FlowGraphChecker::VisitInstanceCall(InstanceCallInstr* call) {
+  AssertArgumentsInEnv(flow_graph_, call);
   // Force-optimized functions may not have instance calls inside them because
   // we do not reset ICData for these.
   ASSERT(!flow_graph_->function().ForceOptimize());
 }
 
 void FlowGraphChecker::VisitPolymorphicInstanceCall(
-    PolymorphicInstanceCallInstr* instr) {
+    PolymorphicInstanceCallInstr* call) {
+  AssertArgumentsInEnv(flow_graph_, call);
   // Force-optimized functions may not have instance calls inside them because
   // we do not reset ICData for these.
   ASSERT(!flow_graph_->function().ForceOptimize());

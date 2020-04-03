@@ -40,7 +40,7 @@ class H extends self::G {
   method foo() → self::C*
     ;
 }
-static field dynamic x;
+static field self::B* x;
 static method bar() → self::G*
   ;
 static method main() → dynamic

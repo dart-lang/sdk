@@ -86,7 +86,7 @@ static bool TermHasXTerm() {
 }
 
 bool Stdin::AnsiSupported(intptr_t fd, bool* supported) {
-  *supported = isatty(fd) && TermHasXTerm();
+  *supported = (isatty(fd) != 0) && TermHasXTerm();
   return true;
 }
 
@@ -102,7 +102,7 @@ bool Stdout::GetTerminalSize(intptr_t fd, int size[2]) {
 }
 
 bool Stdout::AnsiSupported(intptr_t fd, bool* supported) {
-  *supported = isatty(fd) && TermHasXTerm();
+  *supported = (isatty(fd) != 0) && TermHasXTerm();
   return true;
 }
 

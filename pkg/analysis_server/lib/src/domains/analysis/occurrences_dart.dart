@@ -8,27 +8,24 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/member.dart';
 
 void addDartOccurrences(OccurrencesCollector collector, CompilationUnit unit) {
-  _DartUnitOccurrencesComputerVisitor visitor =
-      new _DartUnitOccurrencesComputerVisitor();
+  var visitor = _DartUnitOccurrencesComputerVisitor();
   unit.accept(visitor);
   visitor.elementsOffsets.forEach((engineElement, offsets) {
-    int length = engineElement.nameLength;
-    protocol.Element serverElement = protocol.convertElement(engineElement);
-    protocol.Occurrences occurrences =
-        new protocol.Occurrences(serverElement, offsets, length);
+    var length = engineElement.nameLength;
+    var serverElement = protocol.convertElement(engineElement);
+    var occurrences = protocol.Occurrences(serverElement, offsets, length);
     collector.addOccurrences(occurrences);
   });
 }
 
-class _DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor {
+class _DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
   final Map<Element, List<int>> elementsOffsets = <Element, List<int>>{};
 
   @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
-    Element element = node.staticElement;
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    var element = node.staticElement;
     if (element != null) {
       _addOccurrence(element, node.offset);
     }
@@ -40,7 +37,7 @@ class _DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor {
     if (element == null || element == DynamicElementImpl.instance) {
       return;
     }
-    List<int> offsets = elementsOffsets[element];
+    var offsets = elementsOffsets[element];
     if (offsets == null) {
       offsets = <int>[];
       elementsOffsets[element] = offsets;
@@ -55,9 +52,6 @@ class _DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor {
     if (element is PropertyAccessorElement) {
       element = (element as PropertyAccessorElement).variable;
     }
-    if (element is Member) {
-      element = (element as Member).baseElement;
-    }
-    return element;
+    return element?.declaration;
   }
 }

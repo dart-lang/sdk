@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'test_helper.dart';
 
@@ -27,44 +27,49 @@ void warmup() {
   fn = _TopLevelClosure;
 }
 
-eval(Isolate isolate, String expression) async {
+@pragma("vm:entry-point")
+getX() => x;
+
+@pragma("vm:entry-point")
+getFn() => fn;
+
+invoke(Isolate isolate, String selector) async {
   Map params = {
     'targetId': isolate.rootLibrary.id,
-    'expression': expression,
+    'selector': selector,
+    'argumentIds': <String>[],
   };
-  return await isolate.invokeRpcNoUpgrade('evaluate', params);
+  return await isolate.invokeRpcNoUpgrade('invoke', params);
 }
 
 var tests = <IsolateTest>[
   // Expect a simple path through variable x instead of long path filled
   // with VM objects
   (Isolate isolate) async {
-    var target1 = await eval(isolate, 'x');
+    var target1 = await invoke(isolate, 'getX');
     var params = {
       'targetId': target1['id'],
       'limit': 100,
     };
     var result = await isolate.invokeRpcNoUpgrade('getRetainingPath', params);
     expect(result['type'], equals('RetainingPath'));
-    expect(result['elements'].length, equals(2));
+    expect(result['elements'].length, equals(1));
     expect(
         result['elements'][0]['value']['class']['name'], equals('_TestConst'));
-    expect(result['elements'][1]['value']['name'], equals('x'));
   },
 
   // Expect a simple path through variable fn instead of long path filled
   // with VM objects
   (Isolate isolate) async {
-    var target2 = await eval(isolate, 'fn');
+    var target2 = await invoke(isolate, 'getFn');
     var params = {
       'targetId': target2['id'],
       'limit': 100,
     };
     var result = await isolate.invokeRpcNoUpgrade('getRetainingPath', params);
     expect(result['type'], equals('RetainingPath'));
-    expect(result['elements'].length, equals(2));
+    expect(result['elements'].length, equals(1));
     expect(result['elements'][0]['value']['class']['name'], equals('_Closure'));
-    expect(result['elements'][1]['value']['name'], equals('fn'));
   }
 ];
 

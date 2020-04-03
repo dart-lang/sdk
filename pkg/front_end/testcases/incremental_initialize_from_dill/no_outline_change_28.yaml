@@ -1,0 +1,88 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application, change a file, but don't change the outline.
+# Have a procedure after a mixin "class".
+
+type: newworld
+worlds:
+  - entry: main.dart
+    useExperimentalInvalidation: true
+    sources:
+      main.dart: |
+        abstract class A {
+          a() {
+            print("Class A method a");
+          }
+        }
+        topLevelA() {
+          print("top level method topLevelA");
+        }
+        mixin B on A {
+          b() {
+            print("Class A method b");
+          }
+        }
+        topLevelB() {
+          print("top level method topLevelB");
+        }
+        mixin C on A, B {
+          c() {
+            print("Class C method c");
+          }
+        }
+        topLevelC() {
+          print("top level method topLevelC");
+        }
+        class D extends A with B, C {
+          d() {
+            print("Class D method d");
+          }
+        }
+        topLevelD() {
+          print("top level method topLevelD");
+        }
+    expectedLibraryCount: 1
+  - entry: main.dart
+    useExperimentalInvalidation: true
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        abstract class A {
+          a() {
+            print("Class A method a!");
+          }
+        }
+        topLevelA() {
+          print("top level method topLevelA!");
+        }
+        mixin B on A {
+          b() {
+            print("Class A method b!");
+          }
+        }
+        topLevelB() {
+          print("top level method topLevelB!");
+        }
+        mixin C on A, B {
+          c() {
+            print("Class C method c!");
+          }
+        }
+        topLevelC() {
+          print("top level method topLevelC!");
+        }
+        class D extends A with B, C {
+          d() {
+            print("Class D method d!");
+          }
+        }
+        topLevelD() {
+          print("top level method topLevelD!");
+        }
+    expectedLibraryCount: 1
+    expectsRebuildBodiesOnly: true

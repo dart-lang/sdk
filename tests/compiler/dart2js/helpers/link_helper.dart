@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 library link_helper;
 
-import 'package:front_end/src/fasta/util/link.dart';
-import 'package:front_end/src/fasta/util/link_implementation.dart';
+import 'package:_fe_analyzer_shared/src/util/link.dart';
+import 'package:_fe_analyzer_shared/src/util/link_implementation.dart';
 
 Link LinkFromList(List list) {
   switch (list.length) {

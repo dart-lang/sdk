@@ -1,6 +1,0 @@
-pkg/front_end/testcases/inference/null_literal_should_not_infer_as_bottom.dart:15:5: Context: Write to f@353
-  f = /*@ returnType=Null* */ (/*@ type=Object* */ x) => 'hello';
-    ^
-pkg/front_end/testcases/inference/null_literal_should_not_infer_as_bottom.dart:18:5: Context: Write to g@537
-  g = 'hello';
-    ^

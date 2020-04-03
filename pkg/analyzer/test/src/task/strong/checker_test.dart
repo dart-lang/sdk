@@ -20,7 +20,7 @@ class CheckerTest extends AbstractStrongTest with PackageMixin {
 import 'dart:async';
 
 abstract class MyStream<T> extends Stream<T> {
-  factory MyStream() => null;
+  factory MyStream() => throw 0;
 }
 
 main() async {
@@ -28,7 +28,7 @@ main() async {
   await for (var i in /*error:FOR_IN_OF_INVALID_TYPE*/1234) {}
 
   // Dynamic cast.
-  await for (String /*info:DYNAMIC_CAST*/s in new MyStream<dynamic>()) {}
+  await for (String s in new MyStream<dynamic>()) {}
 
   // Identity cast.
   await for (String s in new MyStream<String>()) {}
@@ -37,7 +37,7 @@ main() async {
   await for (var s in new MyStream<String>()) {}
 
   // Downcast.
-  await for (int /*info:DOWN_CAST_IMPLICIT*/i in new MyStream<num>()) {}
+  await for (int i in new MyStream<num>()) {}
 }
 ''');
   }
@@ -46,10 +46,10 @@ main() async {
     await checkFile('''
 main() async {
   dynamic d;
-  await for (var i in /*info:DYNAMIC_CAST*/d) {}
+  await for (var i in d) {}
 
   Object o;
-  await for (var i in /*info:DOWN_CAST_IMPLICIT*/o) {}
+  await for (var i in o) {}
 }
 ''');
   }
@@ -82,7 +82,7 @@ test() {
   B b = new B();
   var c = foo();
   a = a * b;
-  a = a * /*info:DYNAMIC_CAST*/c;
+  a = a * c;
   a = a / b;
   a = a ~/ b;
   a = a % b;
@@ -95,25 +95,25 @@ test() {
   a = a & b;
   a = a ^ b;
   a = a | b;
-  c = (/*info:DYNAMIC_INVOKE*/c + b);
+  c = (c + b);
 
   String x = 'hello';
   int y = 42;
   x = x + x;
-  x = x + /*info:DYNAMIC_CAST*/c;
+  x = x + c;
   x = x + /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/y;
 
   bool p = true;
   p = p && p;
-  p = p && /*info:DYNAMIC_CAST*/c;
-  p = (/*info:DYNAMIC_CAST*/c) && p;
-  p = (/*info:DYNAMIC_CAST*/c) && /*info:DYNAMIC_CAST*/c;
+  p = p && c;
+  p = (c) && p;
+  p = (c) && c;
   p = /*error:NON_BOOL_OPERAND*/y && p;
   p = c == y;
 
   a = a[b];
-  a = a[/*info:DYNAMIC_CAST*/c];
-  c = (/*info:DYNAMIC_INVOKE*/c[b]);
+  a = a[c];
+  c = (c[b]);
   a[/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/y];
 }
 ''');
@@ -133,7 +133,7 @@ main() {
 main() {
   bool b = true;
   num x = b ? 1 : 2.3;
-  int y = /*info:ASSIGNMENT_CAST*/b ? 1 : 2.3;
+  int y = b ? 1 : 2.3;
   String z = !b ? "hello" : null;
   z = b ? null : "hello";
 }
@@ -146,15 +146,15 @@ class A {
   static const num n = 3.0;
   // The severe error is from constant evaluation where we know the
   // concrete type.
-  static const int /*error:VARIABLE_TYPE_MISMATCH*/i = /*info:ASSIGNMENT_CAST*/n;
+  static const int i = /*error:VARIABLE_TYPE_MISMATCH*/n;
   final int fi;
-  const A(num a) : this.fi = /*info:DOWN_CAST_IMPLICIT*/a;
+  const A(num a) : this.fi = a;
 }
 class B extends A {
-  const B(Object a) : super(/*info:DOWN_CAST_IMPLICIT*/a);
+  const B(Object a) : super(a);
 }
 void foo(Object o) {
-  var a = const A(/*info:DOWN_CAST_IMPLICIT, error:CONST_WITH_NON_CONSTANT_ARGUMENT*/o);
+  var a = const A(/*error:CONST_WITH_NON_CONSTANT_ARGUMENT*/o);
 }
 ''');
   }
@@ -184,7 +184,7 @@ abstract class I1 {
     m(A a);
 }
 
-class /*error:NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE*/Base
+class /*error:NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER*/Base
     implements I1 {}
 
 class T1 extends Base {
@@ -249,8 +249,8 @@ class Foo {
 
 main() {
   var foo = new Foo();
-  foo = /*info:DYNAMIC_CAST*/foo + 1;
-  /*info:DYNAMIC_CAST*/foo += 1;
+  foo = foo + 1;
+  foo += 1;
 }
     ''');
   }
@@ -299,22 +299,22 @@ test() {
   z += 5;
   z += 3.14;
 
-  x = /*info:DOWN_CAST_IMPLICIT*/x + z;
-  /*info:DOWN_CAST_IMPLICIT_ASSIGN*/x += z;
+  x = x + z;
+  x += z;
   y = y + z;
   y += z;
 
   dynamic w = 42;
-  /*info:DOWN_CAST_IMPLICIT_ASSIGN*/x += /*info:DYNAMIC_CAST*/w;
-  y += /*info:DYNAMIC_CAST*/w;
-  z += /*info:DYNAMIC_CAST*/w;
+  x += w;
+  y += w;
+  z += w;
 
   A a = new A();
   B b = new B();
   var c = foo();
   a = a * b;
   a *= b;
-  a *= /*info:DYNAMIC_CAST*/c;
+  a *= c;
   a /= b;
   a ~/= b;
   a %= b;
@@ -327,19 +327,19 @@ test() {
   a &= b;
   a ^= b;
   a |= b;
-  /*info:DYNAMIC_INVOKE*/c += b;
+  c += b;
 
   SubA sa;
-  /*info:DOWN_CAST_IMPLICIT_ASSIGN*/sa += b;
-  SubSubA ssa = /*info:ASSIGNMENT_CAST,info:DOWN_CAST_IMPLICIT_ASSIGN*/sa += b;
+  sa += b;
+  SubSubA ssa = sa += b;
 
   var d = new D();
   a[b] += d;
-  a[/*info:DYNAMIC_CAST*/c] += d;
+  a[c] += d;
   a[/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/z] += d;
-  a[b] += /*info:DYNAMIC_CAST*/c;
+  a[b] += c;
   a[b] += /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/z;
-  /*info:DYNAMIC_INVOKE,info:DYNAMIC_INVOKE*/c[b] += d;
+  c[b] += d;
 }
 ''');
   }
@@ -376,19 +376,19 @@ main() {
     await checkFile('''
 abstract class Equality<Q> {}
 abstract class EqualityBase<R> implements Equality<R> {
-  final C<R> c = /*info:INFERRED_TYPE_ALLOCATION*/const C();
+  final C<R> c = const C();
   const EqualityBase();
 }
 class DefaultEquality<S> extends EqualityBase<S> {
   const DefaultEquality();
 }
 class SetEquality<T> implements Equality<T> {
-  final Equality<T> field = /*info:INFERRED_TYPE_ALLOCATION*/const DefaultEquality();
-  const SetEquality([Equality<T> inner = /*info:INFERRED_TYPE_ALLOCATION*/const DefaultEquality()]);
+  final Equality<T> field = const DefaultEquality();
+  const SetEquality([Equality<T> inner = const DefaultEquality()]);
 }
 class C<Q> {
-  final List<Q> list = /*info:INFERRED_TYPE_LITERAL*/const [];
-  final Map<Q, Iterable<Q>> m =  /*info:INFERRED_TYPE_LITERAL*/const {};
+  final List<Q> list = const [];
+  final Map<Q, Iterable<Q>> m =  const {};
   const C();
 }
 main() {
@@ -418,7 +418,7 @@ class A {
 
   A(this.x) : this.y = /*error:FIELD_INITIALIZER_NOT_ASSIGNABLE*/42;
 
-  A.c1(p): this.x = /*info:DOWN_CAST_IMPLICIT*/z, this.y = /*info:DYNAMIC_CAST*/p;
+  A.c1(p): this.x = z, this.y = p;
 
   A.c2(this.x, this.y);
 
@@ -431,19 +431,19 @@ class B extends A {
   B.c2(int x, String y) : super.c2(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/y,
                                    /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/x);
 
-  B.c3(num x, Object y) : super.c3(x, /*info:DOWN_CAST_IMPLICIT*/y);
+  B.c3(num x, Object y) : super.c3(x, y);
 }
 
 void main() {
-   A a = new A.c2(/*info:DOWN_CAST_IMPLICIT*/z, /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/z);
-   var b = new B.c2(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/"hello", /*info:DOWN_CAST_IMPLICIT*/obj);
+   A a = new A.c2(z, /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/z);
+   var b = new B.c2(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/"hello", obj);
 }
 ''');
   }
 
   test_conversionAndDynamicInvoke() async {
     addFile('''
-dynamic toString = /*info:INFERRED_TYPE_CLOSURE*/(int x) => x + 42;
+dynamic toString = (int x) => x + 42;
 dynamic hashCode = "hello";
 ''', name: '/helper.dart');
     await checkFile('''
@@ -452,8 +452,8 @@ import 'helper.dart' as helper;
 class A {
   String x = "hello world";
 
-  void baz1(y) { x + /*info:DYNAMIC_CAST*/y; }
-  static baz2(y) => /*info:DYNAMIC_INVOKE*/y + y;
+  void baz1(y) { x + y; }
+  static baz2(y) => y + y;
 }
 
 void foo(String str) {
@@ -465,7 +465,7 @@ class B {
 }
 
 void bar(a) {
-  foo(/*info:DYNAMIC_CAST,info:DYNAMIC_INVOKE*/a.x);
+  foo(a.x);
 }
 
 baz() => new B();
@@ -484,7 +484,7 @@ void main() {
   var f1 = foo;
   f1("hello");
   dynamic f2 = foo;
-  (/*info:DYNAMIC_INVOKE*/f2("hello"));
+  (f2("hello"));
   DynFun f3 = /*error:INVALID_CAST_FUNCTION*/foo;
   (f3("hello"));
   (f3(42));
@@ -498,22 +498,22 @@ void main() {
   (b2("hello"));
 
   dynamic a1 = new B();
-  (/*info:DYNAMIC_INVOKE*/a1.x);
+  (a1.x);
   a1.toString();
-  (/*info:DYNAMIC_INVOKE*/a1.toString(42));
+  (a1.toString(42));
   var toStringClosure = a1.toString;
-  (/*info:DYNAMIC_INVOKE*/a1.toStringClosure());
-  (/*info:DYNAMIC_INVOKE*/a1.toStringClosure(42));
-  (/*info:DYNAMIC_INVOKE*/a1.toStringClosure("hello"));
+  (a1.toStringClosure());
+  (a1.toStringClosure(42));
+  (a1.toStringClosure("hello"));
   a1.hashCode;
 
-  dynamic toString = /*info:INFERRED_TYPE_CLOSURE*/() => null;
-  (/*info:DYNAMIC_INVOKE*/toString());
+  dynamic toString = () => null;
+  (toString());
 
-  (/*info:DYNAMIC_INVOKE*/helper.toString());
+  (helper.toString());
   var toStringClosure2 = helper.toString;
-  (/*info:DYNAMIC_INVOKE*/toStringClosure2());
-  int hashCode = /*info:DYNAMIC_CAST*/helper.hashCode;
+  (toStringClosure2());
+  int hashCode = helper.hashCode;
 
   baz().toString();
   baz().hashCode;
@@ -530,7 +530,7 @@ class D extends C {
   int f(covariant int x) => x;
 }
 class E extends D {
-  int f(Object x) => /*info:DOWN_CAST_IMPLICIT*/x;
+  int f(Object x) => x;
 }
 class F extends E {
   int f(covariant int x) => x;
@@ -538,16 +538,16 @@ class F extends E {
 class G extends E implements D {}
 
 class D_error extends C {
-  /*error:INVALID_OVERRIDE*/int f(int x) => x;
+  int /*error:INVALID_OVERRIDE*/f(int x) => x;
 }
 class E_error extends D {
-  /*error:INVALID_OVERRIDE*/int f(covariant double x) => 0;
+  int /*error:INVALID_OVERRIDE*/f(covariant double x) => 0;
 }
 class F_error extends E {
-  /*error:INVALID_OVERRIDE*/int f(covariant double x) => 0;
+  int /*error:INVALID_OVERRIDE*/f(covariant double x) => 0;
 }
 class G_error extends E implements D {
-  /*error:INVALID_OVERRIDE*/int f(covariant double x) => 0;
+  int /*error:INVALID_OVERRIDE*/f(covariant double x) => 0;
 }
     ''');
   }
@@ -607,7 +607,7 @@ class D extends C {
   int f(int x) => x;
 }
 class E extends D {
-  int f(Object x) => /*info:DOWN_CAST_IMPLICIT*/x;
+  int f(Object x) => x;
 }
 class F extends E {
   int f(int x) => x;
@@ -615,16 +615,16 @@ class F extends E {
 class G extends E implements D {}
 
 class D_error extends C {
-  /*error:INVALID_OVERRIDE*/int f(String x) => 0;
+  int /*error:INVALID_OVERRIDE*/f(String x) => 0;
 }
 class E_error extends D {
-  /*error:INVALID_OVERRIDE*/int f(double x) => 0;
+  int /*error:INVALID_OVERRIDE*/f(double x) => 0;
 }
 class F_error extends E {
-  /*error:INVALID_OVERRIDE*/int f(double x) => 0;
+  int /*error:INVALID_OVERRIDE*/f(double x) => 0;
 }
 class G_error extends E implements D {
-  /*error:INVALID_OVERRIDE*/int f(double x) => 0;
+  int /*error:INVALID_OVERRIDE*/f(double x) => 0;
 }
     ''');
   }
@@ -652,14 +652,14 @@ void main() {
     Function f = new B();
     int x;
     bool y;
-    x = /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/f(3);
-    x = /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_METHOD*/col(true);
-    y = /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/f(3);
-    y = /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_METHOD*/col(true);
-    /*info:DYNAMIC_INVOKE*/f(true);
+    x = f(3);
+    x = f./*error:UNDEFINED_METHOD*/col(true);
+    y = f(3);
+    y = f./*error:UNDEFINED_METHOD*/col(true);
+    f(true);
     // Through type propagation, we know f is actually a B, hence the
     // hint.
-    /*info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_METHOD*/col(3);
+    f./*error:UNDEFINED_METHOD*/col(3);
   }
   {
     A f = /*error:INVALID_ASSIGNMENT*/new B();
@@ -667,22 +667,22 @@ void main() {
     f = /* error:INVALID_ASSIGNMENT*/b;
     int x;
     bool y;
-    x = /*info:DYNAMIC_CAST*/f(3);
-    y = /*info:DYNAMIC_CAST*/f(3);
+    x = f(3);
+    y = f(3);
     f(true);
   }
   {
     dynamic g = new B();
-    /*info:DYNAMIC_INVOKE*/g.call(true);
-    /*info:DYNAMIC_INVOKE*/g.col(true);
-    /*info:DYNAMIC_INVOKE*/g.foo(true);
-    /*info:DYNAMIC_INVOKE*/g.x;
+    g.call(true);
+    g.col(true);
+    g.foo(true);
+    g.x;
     A f = /* error:INVALID_ASSIGNMENT*/new B();
     B b = new B();
     f = /*error:INVALID_ASSIGNMENT*/b;
-    /*info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_METHOD*/col(true);
-    /*info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_METHOD*/foo(true);
-    /*info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_GETTER*/x;
+    f./*error:UNDEFINED_METHOD*/col(true);
+    f./*error:UNDEFINED_METHOD*/foo(true);
+    f./*error:UNDEFINED_GETTER*/x;
   }
 }
 ''');
@@ -698,7 +698,7 @@ class Animal {
 class Cat extends Animal {}
 
 void main() {
-  Cat c = /*info:ASSIGNMENT_CAST*/new Animal.cat();
+  Cat c = new Animal.cat();
   c = /*error:INVALID_CAST_NEW_EXPR*/new Animal();
 }''');
   }
@@ -717,17 +717,17 @@ class Base {
 }
 
 class Child extends Base {
-  /*error:INVALID_OVERRIDE*/A f1; // invalid for getter
-  /*error:INVALID_OVERRIDE*/C f2; // invalid for setter
+  A /*error:INVALID_OVERRIDE*/f1; // invalid for getter
+  C /*error:INVALID_OVERRIDE*/f2; // invalid for setter
   var f3;
-  /*error:INVALID_OVERRIDE*/dynamic f4;
+  dynamic /*error:INVALID_OVERRIDE*/f4;
 }
 
 class Child2 implements Base {
-  /*error:INVALID_OVERRIDE*/A f1; // invalid for getter
-  /*error:INVALID_OVERRIDE*/C f2; // invalid for setter
+  A /*error:INVALID_OVERRIDE*/f1; // invalid for getter
+  C /*error:INVALID_OVERRIDE*/f2; // invalid for setter
   var f3;
-  /*error:INVALID_OVERRIDE*/dynamic f4;
+  dynamic /*error:INVALID_OVERRIDE*/f4;
 }
 ''');
   }
@@ -746,17 +746,17 @@ abstract class Base {
 }
 
 class Child extends Base {
-  /*error:INVALID_OVERRIDE*/A get f1 => null;
+  A get /*error:INVALID_OVERRIDE*/f1 => null;
   C get f2 => null;
   get f3 => null;
-  /*error:INVALID_OVERRIDE*/dynamic get f4 => null;
+  dynamic get /*error:INVALID_OVERRIDE*/f4 => null;
 }
 
-class /*error:NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR*/Child2 implements Base {
-  /*error:INVALID_OVERRIDE*/A get f1 => null;
+class /*error:NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER*/Child2 implements Base {
+  A get /*error:INVALID_OVERRIDE*/f1 => null;
   C get f2 => null;
   get f3 => null;
-  /*error:INVALID_OVERRIDE*/dynamic get f4 => null;
+  dynamic get /*error:INVALID_OVERRIDE*/f4 => null;
 }
 ''');
   }
@@ -770,12 +770,12 @@ class F {
 }
 
 class G extends F {
-  /*error:INVALID_OVERRIDE*/final ToVoid<int> f = null;
+  final ToVoid<int> /*error:INVALID_OVERRIDE*/f = null;
   final ToVoid<dynamic> g = null;
 }
 
 class H implements F {
-  /*error:INVALID_OVERRIDE*/final ToVoid<int> f = null;
+  final ToVoid<int> /*error:INVALID_OVERRIDE*/f = null;
   final ToVoid<dynamic> g = null;
 }
  ''');
@@ -833,7 +833,7 @@ class Child extends Base {
   B get f5 => null;
 
   void set f1(A value) {}
-  /*error:INVALID_OVERRIDE*/void set f2(C value) {}
+  void set /*error:INVALID_OVERRIDE*/f2(C value) {}
   void set f3(value) {}
   void set f4(dynamic value) {}
   set f5(B value) {}
@@ -847,7 +847,7 @@ class Child2 implements Base {
   B get f5 => null;
 
   void set f1(A value) {}
-  /*error:INVALID_OVERRIDE*/void set f2(C value) {}
+  void set /*error:INVALID_OVERRIDE*/f2(C value) {}
   void set f3(value) {}
   void set f4(dynamic value) {}
   set f5(B value) {}
@@ -862,7 +862,7 @@ main() {
   for (var i in /*error:FOR_IN_OF_INVALID_TYPE*/1234) {}
 
   // Dynamic cast.
-  for (String /*info:DYNAMIC_CAST*/s in <dynamic>[]) {}
+  for (String s in <dynamic>[]) {}
 
   // Identity cast.
   for (String s in <String>[]) {}
@@ -871,7 +871,7 @@ main() {
   for (var s in <String>[]) {}
 
   // Downcast.
-  for (int /*info:DOWN_CAST_IMPLICIT*/i in <num>[]) {}
+  for (int i in <num>[]) {}
 }
 ''');
   }
@@ -880,10 +880,10 @@ main() {
     await checkFile('''
 main() {
   dynamic d;
-  for (var i in /*info:DYNAMIC_CAST*/d) {}
+  for (var i in d) {}
 
   Object o;
-  for (var i in /*info:DOWN_CAST_IMPLICIT*/o) {}
+  for (var i in o) {}
 }
 ''');
   }
@@ -912,28 +912,28 @@ dynamic x;
 
 foo1() async => x;
 Future foo2() async => x;
-Future<int> foo3() async => /*info:DYNAMIC_CAST*/x;
-Future<int> foo4() async => new Future<int>.value(/*info:DYNAMIC_CAST*/x);
+Future<int> foo3() async => x;
+Future<int> foo4() async => new Future<int>.value(x);
 Future<int> foo5() async =>
     /*error:RETURN_OF_INVALID_TYPE*/new Future<String>.value(
-        /*info:DYNAMIC_CAST*/x);
+        x);
 
 bar1() async { return x; }
 Future bar2() async { return x; }
-Future<int> bar3() async { return /*info:DYNAMIC_CAST*/x; }
+Future<int> bar3() async { return x; }
 Future<int> bar4() async {
-  return new Future<int>.value(/*info:DYNAMIC_CAST*/x);
+  return new Future<int>.value(x);
 }
 Future<int> bar5() async {
   return /*error:RETURN_OF_INVALID_TYPE*/new Future<String>.value(
-      /*info:DYNAMIC_CAST*/x);
+      x);
 }
 
 int y;
 Future<int> z;
 
 baz() async {
-  int a = /*info:DYNAMIC_CAST*/await x;
+  int a = await x;
   int b = await y;
   int c = await z;
   String d = /*error:INVALID_ASSIGNMENT*/await z;
@@ -950,50 +950,8 @@ Future<bool> get issue_ddc_264 async {
 
 
 Future<String> issue_sdk_26404() async {
-  return (/*info:DOWN_CAST_COMPOSITE*/(1 > 0) ? new Future<String>.value('hello') : "world");
+  return ((1 > 0) ? new Future<String>.value('hello') : "world");
 }
-''');
-  }
-
-  test_functionModifiers_asyncStar() async {
-    await checkFile('''
-import 'dart:async';
-
-dynamic x;
-
-Stream<int> intStream;
-
-abstract class MyStream<T> extends Stream<T> {
-  factory MyStream() => null;
-}
-
-bar1() async* { yield x; }
-Stream bar2() async* { yield x; }
-Stream<int> bar3() async* { yield /*info:DYNAMIC_CAST*/x; }
-Stream<int> bar4() async* { yield /*error:YIELD_OF_INVALID_TYPE*/intStream; }
-
-baz1() async* { yield* /*info:DYNAMIC_CAST*/x; }
-Stream baz2() async* { yield* /*info:DYNAMIC_CAST*/x; }
-Stream<int> baz3() async* { yield* /*info:DYNAMIC_CAST*/x; }
-Stream<int> baz4() async* { yield* intStream; }
-Stream<int> baz5() async* { yield* /*info:INFERRED_TYPE_ALLOCATION*/new MyStream(); }
-''');
-  }
-
-  test_functionModifiers_syncStar() async {
-    await checkFile('''
-dynamic x;
-
-bar1() sync* { yield x; }
-Iterable bar2() sync* { yield x; }
-Iterable<int> bar3() sync* { yield /*info:DYNAMIC_CAST*/x; }
-Iterable<int> bar4() sync* { yield /*error:YIELD_OF_INVALID_TYPE*/bar3(); }
-
-baz1() sync* { yield* /*info:DYNAMIC_CAST*/x; }
-Iterable baz2() sync* { yield* /*info:DYNAMIC_CAST*/x; }
-Iterable<int> baz3() sync* { yield* /*info:DYNAMIC_CAST*/x; }
-Iterable<int> baz4() sync* { yield* bar3(); }
-Iterable<int> baz5() sync* { yield* /*info:INFERRED_TYPE_ALLOCATION*/new List(); }
 ''');
   }
 
@@ -1009,7 +967,7 @@ typedef A Right(A x); // Right branch
 typedef B Bot(A x);   // Bottom of the lattice
 
 B left(B x) => x;
-B bot_(A x) => /*info:DOWN_CAST_IMPLICIT*/x;
+B bot_(A x) => x;
 B bot(A x) => x as B;
 A top(B x) => x;
 A right(A x) => x;
@@ -1074,23 +1032,23 @@ void main() {
   }
   {
     Left f;
-    f = /*info:DOWN_CAST_COMPOSITE*/top;
+    f = top;
     f = left;
     f = /*error:INVALID_ASSIGNMENT*/right;
     f = bot;
   }
   {
     Right f;
-    f = /*info:DOWN_CAST_COMPOSITE*/top;
+    f = top;
     f = /*error:INVALID_ASSIGNMENT*/left;
     f = right;
     f = bot;
   }
   {
     Bottom f;
-    f = /*info:DOWN_CAST_COMPOSITE*/top;
-    f = /*info:DOWN_CAST_COMPOSITE*/left;
-    f = /*info:DOWN_CAST_COMPOSITE*/right;
+    f = top;
+    f = left;
+    f = right;
     f = bot;
   }
 }
@@ -1126,7 +1084,7 @@ typedef dynamic TopTop(Object x);
 dynamic aTop(A x) => x;
 A aa(A x) => x;
 dynamic topTop(dynamic x) => x;
-A topA(dynamic x) => /*info:DYNAMIC_CAST*/x;
+A topA(dynamic x) => x;
 void apply<T>(T f0, T f1, T f2,
                   T f3, T f4, T f5) {}
 void main() {
@@ -1149,10 +1107,10 @@ void main() {
         botTop
                       );
     apply<BotTop>(
-        /*info:INFERRED_TYPE_CLOSURE*/(dynamic x) => new A(),
-        /*info:INFERRED_TYPE_CLOSURE*/(dynamic x) => (x as Object),
-        /*info:INFERRED_TYPE_CLOSURE*/(A x) => x,
-        /*info:INFERRED_TYPE_CLOSURE*/(A x) => null,
+        (dynamic x) => new A(),
+        (dynamic x) => (x as Object),
+        (A x) => x,
+        (A x) => null,
         botA,
         botTop
                       );
@@ -1164,22 +1122,22 @@ void main() {
     f = aa;
     f = aTop;
     f = /*error:INVALID_ASSIGNMENT*/botA;
-    f = /*info:DOWN_CAST_COMPOSITE*/botTop;
+    f = botTop;
     apply<ATop>(
         topA,
         topTop,
         aa,
         aTop,
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/botA,
-        /*info:DOWN_CAST_COMPOSITE*/botTop
+        botTop
                     );
     apply<ATop>(
-        /*info:INFERRED_TYPE_CLOSURE*/(dynamic x) => new A(),
-        /*info:INFERRED_TYPE_CLOSURE*/(dynamic x) => (x as Object),
-        /*info:INFERRED_TYPE_CLOSURE*/(A x) => x,
-        /*info:INFERRED_TYPE_CLOSURE*/(A x) => null,
+        (dynamic x) => new A(),
+        (dynamic x) => (x as Object),
+        (A x) => x,
+        (A x) => null,
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/botA,
-        /*info:DOWN_CAST_COMPOSITE*/botTop
+        botTop
                     );
   }
   {
@@ -1189,22 +1147,22 @@ void main() {
     f = aa;
     f = /*error:INVALID_ASSIGNMENT*/aTop;
     f = botA;
-    f = /*info:DOWN_CAST_COMPOSITE*/botTop;
+    f = botTop;
     apply<BotA>(
         topA,
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/topTop,
         aa,
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/aTop,
         botA,
-        /*info:DOWN_CAST_COMPOSITE*/botTop
+        botTop
                     );
     apply<BotA>(
-        /*info:INFERRED_TYPE_CLOSURE*/(dynamic x) => new A(),
-        /*info:INFERRED_TYPE_CLOSURE*/(dynamic x) => (/*info:DOWN_CAST_IMPLICIT*/x as Object),
-        /*info:INFERRED_TYPE_CLOSURE*/(A x) => x,
-        /*info:INFERRED_TYPE_CLOSURE*/(A x) => (/*info:DOWN_CAST_IMPLICIT, info:UNNECESSARY_CAST*/x as Object),
+        (dynamic x) => new A(),
+        (dynamic x) => (x as Object),
+        (A x) => x,
+        (A x) => (/*info:UNNECESSARY_CAST*/x as Object),
         botA,
-        /*info:DOWN_CAST_COMPOSITE*/botTop
+        botTop
                     );
   }
   {
@@ -1213,23 +1171,23 @@ void main() {
     f = /*error:INVALID_ASSIGNMENT*/topTop;
     f = aa;
     f = /*error:INVALID_CAST_FUNCTION*/aTop; // known function
-    f = /*info:DOWN_CAST_COMPOSITE*/botA;
-    f = /*info:DOWN_CAST_COMPOSITE*/botTop;
+    f = botA;
+    f = botTop;
     apply<AA>(
         topA,
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/topTop,
         aa,
         /*error:INVALID_CAST_FUNCTION*/aTop, // known function
-        /*info:DOWN_CAST_COMPOSITE*/botA,
-        /*info:DOWN_CAST_COMPOSITE*/botTop
+        botA,
+        botTop
                   );
     apply<AA>(
-        /*info:INFERRED_TYPE_CLOSURE*/(dynamic x) => new A(),
-        /*info:INFERRED_TYPE_CLOSURE*/(dynamic x) => (/*info:DOWN_CAST_IMPLICIT*/x as Object),
-        /*info:INFERRED_TYPE_CLOSURE*/(A x) => x,
-        /*info:INFERRED_TYPE_CLOSURE*/(A x) => (/*info:DOWN_CAST_IMPLICIT, info:UNNECESSARY_CAST*/x as Object), // known function
-        /*info:DOWN_CAST_COMPOSITE*/botA,
-        /*info:DOWN_CAST_COMPOSITE*/botTop
+        (dynamic x) => new A(),
+        (dynamic x) => (x as Object),
+        (A x) => x,
+        (A x) => (/*info:UNNECESSARY_CAST*/x as Object), // known function
+        botA,
+        botTop
                   );
   }
   {
@@ -1239,22 +1197,22 @@ void main() {
     f = /*error:INVALID_ASSIGNMENT*/aa;
     f = /*error:INVALID_CAST_FUNCTION*/aTop; // known function
     f = /*error:INVALID_ASSIGNMENT*/botA;
-    f = /*info:DOWN_CAST_COMPOSITE*/botTop;
+    f = botTop;
     apply<TopTop>(
         topA,
         topTop,
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/aa,
         /*error:INVALID_CAST_FUNCTION*/aTop, // known function
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/botA,
-        /*info:DOWN_CAST_COMPOSITE*/botTop
+        botTop
                       );
     apply<TopTop>(
-        /*info:INFERRED_TYPE_CLOSURE*/(dynamic x) => new A(),
-        /*info:INFERRED_TYPE_CLOSURE*/(dynamic x) => (x as Object),
-        /*info:INFERRED_TYPE_CLOSURE, error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/(A x) => x,
-        /*info:INFERRED_TYPE_CLOSURE, error:INVALID_CAST_FUNCTION_EXPR*/(A x) => (/*info:UNNECESSARY_CAST*/x as Object), // known function
+        (dynamic x) => new A(),
+        (dynamic x) => (x as Object),
+        /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/(A x) => x,
+        /*error:INVALID_CAST_FUNCTION_EXPR*/(A x) => (/*info:UNNECESSARY_CAST*/x as Object), // known function
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/botA,
-        /*info:DOWN_CAST_COMPOSITE*/botTop
+        botTop
                       );
   }
   {
@@ -1263,23 +1221,23 @@ void main() {
     f = /*error:INVALID_CAST_FUNCTION*/topTop; // known function
     f = /*error:INVALID_CAST_FUNCTION*/aa; // known function
     f = /*error:INVALID_CAST_FUNCTION*/aTop; // known function
-    f = /*info:DOWN_CAST_COMPOSITE*/botA;
-    f = /*info:DOWN_CAST_COMPOSITE*/botTop;
+    f = botA;
+    f = botTop;
     apply<TopA>(
         topA,
         /*error:INVALID_CAST_FUNCTION*/topTop, // known function
         /*error:INVALID_CAST_FUNCTION*/aa, // known function
         /*error:INVALID_CAST_FUNCTION*/aTop, // known function
-        /*info:DOWN_CAST_COMPOSITE*/botA,
-        /*info:DOWN_CAST_COMPOSITE*/botTop
+        botA,
+        botTop
                     );
     apply<TopA>(
-        /*info:INFERRED_TYPE_CLOSURE*/(dynamic x) => new A(),
-        /*info:INFERRED_TYPE_CLOSURE*/(dynamic x) => (/*info:DOWN_CAST_IMPLICIT*/x as Object), // known function
-        /*info:INFERRED_TYPE_CLOSURE, error:INVALID_CAST_FUNCTION_EXPR*/(A x) => x, // known function
-        /*info:INFERRED_TYPE_CLOSURE, error:INVALID_CAST_FUNCTION_EXPR*/(A x) => (/*info:DOWN_CAST_IMPLICIT, info:UNNECESSARY_CAST*/x as Object), // known function
-        /*info:DOWN_CAST_COMPOSITE*/botA,
-        /*info:DOWN_CAST_COMPOSITE*/botTop
+        (dynamic x) => new A(),
+        (dynamic x) => (x as Object), // known function
+        /*error:INVALID_CAST_FUNCTION_EXPR*/(A x) => x, // known function
+        /*error:INVALID_CAST_FUNCTION_EXPR*/(A x) => (/*info:UNNECESSARY_CAST*/x as Object), // known function
+        botA,
+        botTop
                     );
   }
 }
@@ -1350,19 +1308,19 @@ void main() {
     top = top;
     top = left;
 
-    left = /*info:DOWN_CAST_COMPOSITE*/top;
+    left = top;
     left = left;
     left = /*error:INVALID_ASSIGNMENT*/right;
     left = bot;
 
-    right = /*info:DOWN_CAST_COMPOSITE*/top;
+    right = top;
     right = /*error:INVALID_ASSIGNMENT*/left;
     right = right;
     right = bot;
 
-    bot = /*info:DOWN_CAST_COMPOSITE*/top;
-    bot = /*info:DOWN_CAST_COMPOSITE*/left;
-    bot = /*info:DOWN_CAST_COMPOSITE*/right;
+    bot = top;
+    bot = left;
+    bot = right;
     bot = bot;
   }
 }
@@ -1382,7 +1340,7 @@ typedef B AToB(A x);  // Bot of the base lattice
 BToA top(AToB f) => f;
 AToB left(AToB f) => f;
 BToA right(BToA f) => f;
-AToB bot_(BToA f) => /*info:DOWN_CAST_COMPOSITE*/f;
+AToB bot_(BToA f) => f;
 AToB bot(BToA f) => f as AToB;
 
 void main() {
@@ -1431,7 +1389,7 @@ typedef B AToB(A x);  // Bot of the base lattice
 Function2<B, A> top(AToB f) => f;
 Function2<A, B> left(AToB f) => f;
 Function2<B, A> right(BToA f) => f;
-Function2<A, B> bot_(BToA f) => /*info:DOWN_CAST_COMPOSITE*/f;
+Function2<A, B> bot_(BToA f) => f;
 Function2<A, B> bot(BToA f) => f as Function2<A, B>;
 
 void main() {
@@ -1480,7 +1438,7 @@ typedef B AToB(A x);  // Bot of the base lattice
 BToA top(Function2<A, B> f) => f;
 AToB left(Function2<A, B> f) => f;
 BToA right(Function2<B, A> f) => f;
-AToB bot_(Function2<B, A> f) => /*info:DOWN_CAST_COMPOSITE*/f;
+AToB bot_(Function2<B, A> f) => f;
 AToB bot(Function2<B, A> f) => f as AToB;
 
 void main() {
@@ -1535,21 +1493,21 @@ void main() {
     top = top;
     top = left;
 
-    left = /*info:DOWN_CAST_COMPOSITE*/top;
+    left = top;
     left = left;
     left =
         /*error:INVALID_ASSIGNMENT*/right;
     left = bot;
 
-    right = /*info:DOWN_CAST_COMPOSITE*/top;
+    right = top;
     right =
         /*error:INVALID_ASSIGNMENT*/left;
     right = right;
     right = bot;
 
-    bot = /*info:DOWN_CAST_COMPOSITE*/top;
-    bot = /*info:DOWN_CAST_COMPOSITE*/left;
-    bot = /*info:DOWN_CAST_COMPOSITE*/right;
+    bot = top;
+    bot = left;
+    bot = right;
     bot = bot;
   }
 }
@@ -1581,23 +1539,23 @@ void main() {
   }
   {
     Function2<B, B> f;
-    f = /*info:DOWN_CAST_COMPOSITE*/c.top;
+    f = c.top;
     f = c.left;
     f = /*error:INVALID_ASSIGNMENT*/c.right;
     f = c.bot;
   }
   {
     Function2<A, A> f;
-    f = /*info:DOWN_CAST_COMPOSITE*/c.top;
+    f = c.top;
     f = /*error:INVALID_ASSIGNMENT*/c.left;
     f = c.right;
     f = c.bot;
   }
   {
     Function2<A, B> f;
-    f = /*info:DOWN_CAST_COMPOSITE*/c.top;
-    f = /*info:DOWN_CAST_COMPOSITE*/c.left;
-    f = /*info:DOWN_CAST_COMPOSITE*/c.right;
+    f = c.top;
+    f = c.left;
+    f = c.right;
     f = c.bot;
   }
 }
@@ -1615,7 +1573,7 @@ typedef int Bot(Object x);      // Bottom of the lattice
 Object globalTop(int x) => x;
 int globalLeft(int x) => x;
 Object globalRight(Object x) => x;
-int bot_(Object x) => /*info:DOWN_CAST_IMPLICIT*/x;
+int bot_(Object x) => x;
 int globalBot(Object x) => x as int;
 
 void main() {
@@ -1639,23 +1597,23 @@ void main() {
   }
   {
     Left f;
-    f = /*info:DOWN_CAST_COMPOSITE*/top;
+    f = top;
     f = left;
     f = /*error:INVALID_ASSIGNMENT*/right;
     f = bot;
   }
   {
     Right f;
-    f = /*info:DOWN_CAST_COMPOSITE*/top;
+    f = top;
     f = /*error:INVALID_ASSIGNMENT*/left;
     f = right;
     f = bot;
   }
   {
     Bot f;
-    f = /*info:DOWN_CAST_COMPOSITE*/top;
-    f = /*info:DOWN_CAST_COMPOSITE*/left;
-    f = /*info:DOWN_CAST_COMPOSITE*/right;
+    f = top;
+    f = left;
+    f = right;
     f = bot;
   }
 }
@@ -1697,7 +1655,7 @@ void main() {
    r = /*error:INVALID_ASSIGNMENT*/nn;
    r = /*error:INVALID_ASSIGNMENT*/nnn;
 
-   o = /*info:DOWN_CAST_COMPOSITE*/r;
+   o = r;
    o = o;
    o = /*error:INVALID_ASSIGNMENT*/n;
    o = /*error:INVALID_ASSIGNMENT*/rr;
@@ -1727,17 +1685,17 @@ void main() {
    rr = /*error:INVALID_ASSIGNMENT*/nn;
    rr = /*error:INVALID_ASSIGNMENT*/nnn;
 
-   ro = /*info:DOWN_CAST_COMPOSITE*/r;
+   ro = r;
    ro = /*error:INVALID_ASSIGNMENT*/o;
    ro = /*error:INVALID_ASSIGNMENT*/n;
-   ro = /*info:DOWN_CAST_COMPOSITE*/rr;
+   ro = rr;
    ro = ro;
    ro = /*error:INVALID_ASSIGNMENT*/rn;
    ro = oo;
    ro = /*error:INVALID_ASSIGNMENT*/nn;
    ro = /*error:INVALID_ASSIGNMENT*/nnn;
 
-   rn = /*info:DOWN_CAST_COMPOSITE*/r;
+   rn = r;
    rn = /*error:INVALID_ASSIGNMENT*/o;
    rn = /*error:INVALID_ASSIGNMENT*/n;
    rn = /*error:INVALID_ASSIGNMENT*/rr;
@@ -1747,11 +1705,11 @@ void main() {
    rn = /*error:INVALID_ASSIGNMENT*/nn;
    rn = /*error:INVALID_ASSIGNMENT*/nnn;
 
-   oo = /*info:DOWN_CAST_COMPOSITE*/r;
-   oo = /*info:DOWN_CAST_COMPOSITE*/o;
+   oo = r;
+   oo = o;
    oo = /*error:INVALID_ASSIGNMENT*/n;
-   oo = /*info:DOWN_CAST_COMPOSITE*/rr;
-   oo = /*info:DOWN_CAST_COMPOSITE*/ro;
+   oo = rr;
+   oo = ro;
    oo = /*error:INVALID_ASSIGNMENT*/rn;
    oo = oo;
    oo = /*error:INVALID_ASSIGNMENT*/nn;
@@ -1759,7 +1717,7 @@ void main() {
 
    nn = /*error:INVALID_ASSIGNMENT*/r;
    nn = /*error:INVALID_ASSIGNMENT*/o;
-   nn = /*info:DOWN_CAST_COMPOSITE*/n;
+   nn = n;
    nn = /*error:INVALID_ASSIGNMENT*/rr;
    nn = /*error:INVALID_ASSIGNMENT*/ro;
    nn = /*error:INVALID_ASSIGNMENT*/rn;
@@ -1769,12 +1727,12 @@ void main() {
 
    nnn = /*error:INVALID_ASSIGNMENT*/r;
    nnn = /*error:INVALID_ASSIGNMENT*/o;
-   nnn = /*info:DOWN_CAST_COMPOSITE*/n;
+   nnn = n;
    nnn = /*error:INVALID_ASSIGNMENT*/rr;
    nnn = /*error:INVALID_ASSIGNMENT*/ro;
    nnn = /*error:INVALID_ASSIGNMENT*/rn;
    nnn = /*error:INVALID_ASSIGNMENT*/oo;
-   nnn = /*info:DOWN_CAST_COMPOSITE*/nn;
+   nnn = nn;
    nnn = nnn;
 }
 ''');
@@ -1799,8 +1757,8 @@ void main() {
      f = /*error:INVALID_ASSIGNMENT*/new B();
      f = i2i;
      f = /*error:INVALID_ASSIGNMENT*/n2n;
-     f = /*info:UNNECESSARY_CAST,info:DOWN_CAST_COMPOSITE*/i2i as Object;
-     f = /*info:UNNECESSARY_CAST,info:DOWN_CAST_COMPOSITE*/n2n as Function;
+     f = /*info:UNNECESSARY_CAST*/i2i as Object;
+     f = /*info:UNNECESSARY_CAST*/n2n as Function;
    }
    {
      N2N f;
@@ -1808,8 +1766,8 @@ void main() {
      f = new B();
      f = /*error:INVALID_ASSIGNMENT*/i2i;
      f = n2n;
-     f = /*info:UNNECESSARY_CAST,info:DOWN_CAST_COMPOSITE*/i2i as Object;
-     f = /*info:UNNECESSARY_CAST,info:DOWN_CAST_COMPOSITE*/n2n as Function;
+     f = /*info:UNNECESSARY_CAST*/i2i as Object;
+     f = /*info:UNNECESSARY_CAST*/n2n as Function;
    }
    {
      A f;
@@ -1817,7 +1775,7 @@ void main() {
      f = /*error:INVALID_ASSIGNMENT*/new B();
      f = /*error:INVALID_ASSIGNMENT*/i2i;
      f = /*error:INVALID_ASSIGNMENT*/n2n;
-     f = /*info:UNNECESSARY_CAST,info:DOWN_CAST_IMPLICIT*/i2i as Object;
+     f = /*info:UNNECESSARY_CAST*/i2i as Object;
      f = /*info:UNNECESSARY_CAST,error:INVALID_ASSIGNMENT*/n2n as Function;
    }
    {
@@ -1826,7 +1784,7 @@ void main() {
      f = new B();
      f = /*error:INVALID_ASSIGNMENT*/i2i;
      f = /*error:INVALID_ASSIGNMENT*/n2n;
-     f = /*info:UNNECESSARY_CAST,info:DOWN_CAST_IMPLICIT*/i2i as Object;
+     f = /*info:UNNECESSARY_CAST*/i2i as Object;
      f = /*info:UNNECESSARY_CAST,error:INVALID_ASSIGNMENT*/n2n as Function;
    }
    {
@@ -1835,7 +1793,7 @@ void main() {
      f = new B();
      f = i2i;
      f = n2n;
-     f = /*info:UNNECESSARY_CAST,info:DOWN_CAST_IMPLICIT*/i2i as Object;
+     f = /*info:UNNECESSARY_CAST*/i2i as Object;
      f = /*info:UNNECESSARY_CAST*/n2n as Function;
    }
 }
@@ -1892,7 +1850,7 @@ void main() {
   test_functionTypingAndSubtyping_subtypeOfUniversalType() async {
     await checkFile('''
 void main() {
-  nonGenericFn/*info:INFERRED_TYPE_CLOSURE*/(x) => null;
+  nonGenericFn(x) => null;
   {
     R f<P, R>(P p) => null;
     T g<S, T>(S s) => null;
@@ -1901,7 +1859,7 @@ void main() {
     local = g; // valid
 
     // Non-generic function cannot subtype a generic one.
-    local = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*/(x) => null;
+    local = /*error:INVALID_ASSIGNMENT*/(x) => null;
     local = /*error:INVALID_ASSIGNMENT*/nonGenericFn;
   }
   {
@@ -1914,10 +1872,10 @@ void main() {
     var local2 = g;
     local = local2;
     local2 = /*error:INVALID_CAST_FUNCTION*/f;
-    local2 = /*info:DOWN_CAST_COMPOSITE*/local;
+    local2 = local;
 
     // Non-generic function cannot subtype a generic one.
-    local = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*/(x) => null;
+    local = /*error:INVALID_ASSIGNMENT*/(x) => null;
     local = /*error:INVALID_ASSIGNMENT*/nonGenericFn;
   }
 }
@@ -1928,7 +1886,7 @@ void main() {
     await checkFile('''
 typedef num Num2Num(num x);
 void main() {
-  Num2Num g = /*info:INFERRED_TYPE_CLOSURE,error:INVALID_ASSIGNMENT*/(int x) { return x; };
+  Num2Num g = /*error:INVALID_ASSIGNMENT*/(int x) { return x; };
   print(g(42));
 }
 ''');
@@ -1953,7 +1911,7 @@ class Base<T extends B> {
 }
 
 class Derived<S extends A> extends Base<B> {
-  /*error:INVALID_OVERRIDE*/S foo() => null;
+  S /*error:INVALID_OVERRIDE*/foo() => null;
 }
 
 class Derived2<S extends B> extends Base<B> {
@@ -1972,10 +1930,10 @@ main() {
   // resolving these shouldn't crash.
   foo/*error:EXTRA_POSITIONAL_ARGUMENTS*/(1, 2, 3);
   x = foo/*error:EXTRA_POSITIONAL_ARGUMENTS*/('1', '2', '3');
-  foo/*error:NOT_ENOUGH_REQUIRED_ARGUMENTS*/(1);
-  x = foo/*error:NOT_ENOUGH_REQUIRED_ARGUMENTS*/('1');
+  foo/*error:NOT_ENOUGH_POSITIONAL_ARGUMENTS*/(1);
+  x = foo/*error:NOT_ENOUGH_POSITIONAL_ARGUMENTS*/('1');
   x = foo/*error:EXTRA_POSITIONAL_ARGUMENTS*/(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/1, /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/2, 3);
-  x = foo/*error:NOT_ENOUGH_REQUIRED_ARGUMENTS*/(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/1);
+  x = foo/*error:NOT_ENOUGH_POSITIONAL_ARGUMENTS*/(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/1);
 
   // named arguments
   bar(y: 1, x: 2, /*error:UNDEFINED_NAMED_PARAMETER*/z: 3);
@@ -2037,12 +1995,12 @@ class F extends A<num> {
 
   test_genericMethodSuperSubstitute() async {
     await checkFile(r'''
-class Clonable<T> {}
+class Cloneable<T> {}
 class G<T> {
-  create<A extends Clonable<T>, B extends Iterable<A>>() => null;
+  create<A extends Cloneable<T>, B extends Iterable<A>>() => null;
 }
 class H extends G<num> {
-  create2() => super.create<Clonable<int>, List<Clonable<int>>>();
+  create2() => super.create<Cloneable<int>, List<Cloneable<int>>>();
 }
     ''');
   }
@@ -2061,10 +2019,10 @@ abstract class Base {
 }
 
 class Child extends Base {
-  /*error:INVALID_OVERRIDE*/A get f1 => null;
+  A get /*error:INVALID_OVERRIDE*/f1 => null;
   C get f2 => null;
   get f3 => null;
-  /*error:INVALID_OVERRIDE*/dynamic get f4 => null;
+  dynamic get /*error:INVALID_OVERRIDE*/f4 => null;
 }
 ''');
   }
@@ -2079,12 +2037,12 @@ class F {
 }
 
 class G extends F {
-  /*error:INVALID_OVERRIDE*/ToVoid<int> get f => null;
+  ToVoid<int> get /*error:INVALID_OVERRIDE*/f => null;
   ToVoid<dynamic> get g => null;
 }
 
 class H implements F {
-  /*error:INVALID_OVERRIDE*/ToVoid<int> get f => null;
+  ToVoid<int> get /*error:INVALID_OVERRIDE*/f => null;
   ToVoid<dynamic> get g => null;
 }
 ''');
@@ -2099,31 +2057,30 @@ main() {
   bool b = false;
 
   if (b) {}
-  if (/*info:DYNAMIC_CAST*/dyn) {}
-  if (/*info:DOWN_CAST_IMPLICIT*/obj) {}
+  if (dyn) {}
+  if (obj) {}
   if (/*error:NON_BOOL_CONDITION*/i) {}
 
   while (b) {}
-  while (/*info:DYNAMIC_CAST*/dyn) {}
-  while (/*info:DOWN_CAST_IMPLICIT*/obj) {}
+  while (dyn) {}
+  while (obj) {}
   while (/*error:NON_BOOL_CONDITION*/i) {}
 
   do {} while (b);
-  do {} while (/*info:DYNAMIC_CAST*/dyn);
-  do {} while (/*info:DOWN_CAST_IMPLICIT*/obj);
+  do {} while (dyn);
+  do {} while (obj);
   do {} while (/*error:NON_BOOL_CONDITION*/i);
 
   for (;b;) {}
-  for (;/*info:DYNAMIC_CAST*/dyn;) {}
-  for (;/*info:DOWN_CAST_IMPLICIT*/obj;) {}
+  for (;dyn;) {}
+  for (;obj;) {}
   for (;/*error:NON_BOOL_CONDITION*/i;) {}
 }
 ''');
   }
 
   test_implicitCasts_assignment() async {
-    addFile(
-        'num n; int i; void main() { i = /*info:DOWN_CAST_IMPLICIT*/n;}//yy');
+    addFile('num n; int i; void main() { i = n;}//yy');
     await check();
 
     addFile(
@@ -2133,7 +2090,7 @@ main() {
 
   test_implicitCasts_compoundAssignment() async {
     addFile('''f(num n, int i) {
-               /*info:DOWN_CAST_IMPLICIT_ASSIGN*/i += n;}//yy''');
+               i += n;}//yy''');
     await check();
 
     addFile('''f(num n, int i) {
@@ -2142,8 +2099,7 @@ main() {
   }
 
   test_implicitCasts_constructorInitializer() async {
-    addFile(
-        'class A { int i; A(num n) : i = /*info:DOWN_CAST_IMPLICIT*/n;}//yy');
+    addFile('class A { int i; A(num n) : i = n;}//yy');
     await check();
 
     addFile(
@@ -2153,7 +2109,7 @@ main() {
 
   test_implicitCasts_defaultValue() async {
     addFile('''const num n = 0;
-               f({int i = /*info:DOWN_CAST_IMPLICIT*/n}) => i;//yy''');
+               f({int i = n}) => i;//yy''');
     await check();
 
     addFile('''const num n = 0;
@@ -2162,7 +2118,7 @@ main() {
   }
 
   test_implicitCasts_fieldInitializer() async {
-    addFile('class A { static num n; int i = /*info:ASSIGNMENT_CAST*/n;}//yy');
+    addFile('class A { static num n; int i = n;}//yy');
     await check();
 
     addFile(
@@ -2170,10 +2126,50 @@ main() {
     await check(implicitCasts: false);
   }
 
+  test_implicitCasts_forEach() async {
+    addFile(r'''
+main(dynamic a) {
+  for (int v in a) {
+    v;
+  }
+}
+''');
+    await check();
+
+    addFile(r'''
+main(dynamic a) {
+  for (int v in /*error:FOR_IN_OF_INVALID_ELEMENT_TYPE*/a) {
+    v;
+  }
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_implicitCasts_forEach_async() async {
+    addFile(r'''
+main(dynamic a) async {
+  await for (int v in a) {
+    v;
+  }
+}
+''');
+    await check();
+
+    addFile(r'''
+main(dynamic a) async {
+  await for (int v in /*error:FOR_IN_OF_INVALID_ELEMENT_TYPE*/a) {
+    v;
+  }
+}
+''');
+    await check(implicitCasts: false);
+  }
+
   test_implicitCasts_functionCall() async {
     addFile('''num n;
                f(int i) => i;
-               var i = f(/*info:DOWN_CAST_IMPLICIT*/n);//yy''');
+               var i = f(n);//yy''');
     await check();
 
     addFile('''num n;
@@ -2184,13 +2180,13 @@ main() {
 
   test_implicitCasts_genericMethods() async {
     addFile('''
-var x = <String>[].map<String>(/*info:INFERRED_TYPE_CLOSURE*/(x) => "");
+var x = <String>[].map<String>((x) => "");
 ''');
     await check(implicitCasts: false);
   }
 
   test_implicitCasts_initializer() async {
-    addFile('num n; int i = /*info:ASSIGNMENT_CAST*/n;//yy');
+    addFile('num n; int i = n;//yy');
     await check();
 
     addFile('num n; int i = /*error:INVALID_ASSIGNMENT*/n;//nn');
@@ -2212,7 +2208,7 @@ void f() {
   test_implicitCasts_operator() async {
     addFile('''num n;
              int i;
-             var r = i & /*info:DOWN_CAST_IMPLICIT*/n;//yy''');
+             var r = i & n;//yy''');
     await check();
 
     addFile('''num n;
@@ -2222,7 +2218,7 @@ void f() {
   }
 
   test_implicitCasts_return() async {
-    addFile('int f(num n) => /*info:DOWN_CAST_IMPLICIT*/n;//yy');
+    addFile('int f(num n) => n;//yy');
     await check();
 
     addFile('int f(num n) => /*error:RETURN_OF_INVALID_TYPE*/n;//nn');
@@ -2235,7 +2231,7 @@ import 'dart:async';
 
 Future<List<String>> foo() async {
   List<Object> x = <Object>["hello", "world"];
-  return /*info:DOWN_CAST_IMPLICIT*/x;
+  return x;
 }
     ''');
     await check();
@@ -2279,9 +2275,9 @@ void main<S>() {
   d = /*error:IMPLICIT_DYNAMIC_FUNCTION*/g();
   i = g();
 
-  /*error:IMPLICIT_DYNAMIC_INVOKE*/(/*info:INFERRED_TYPE_CLOSURE*/<T>(T t) => t)(d);
-  (/*info:INFERRED_TYPE_CLOSURE*/<T>(T t) => t)(42);
-  (/*info:INFERRED_TYPE_CLOSURE*/<T>() => /*info:UNNECESSARY_CAST*/null as T)<int>();
+  /*error:IMPLICIT_DYNAMIC_INVOKE*/(<T>(T t) => t)(d);
+  (<T>(T t) => t)(42);
+  (<T>() => /*info:UNNECESSARY_CAST*/null as T)<int>();
 }
     ''');
     await check(implicitDynamic: false);
@@ -2298,26 +2294,26 @@ var l3 = /*error:IMPLICIT_DYNAMIC_LIST_LITERAL*/[d, d];
 
 var l4 = <dynamic>[];
 var l5 = <int>[];
-List<int> l6 = /*info:INFERRED_TYPE_LITERAL*/[];
-var l7 = /*info:INFERRED_TYPE_LITERAL*/[42];
+List<int> l6 = [];
+var l7 = [42];
     ''');
     await check(implicitDynamic: false);
   }
 
   test_implicitDynamic_mapLiteral() async {
     addFile(r'''
-var m0 = /*info:INFERRED_TYPE_LITERAL,error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{};
-Map m1 = /*info:INFERRED_TYPE_LITERAL,error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{};
-Map<dynamic, dynamic> m2 = /*info:INFERRED_TYPE_LITERAL,error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{};
+var m0 = /*error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{};
+Map m1 = /*error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{};
+Map<dynamic, dynamic> m2 = /*error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{};
 dynamic d = 42;
-var m3 = /*info:INFERRED_TYPE_LITERAL,error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{d: d};
-var m4 = /*info:INFERRED_TYPE_LITERAL,error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{'x': d, 'y': d};
-var m5 = /*info:INFERRED_TYPE_LITERAL,error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{d: 'x'};
+var m3 = /*error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{d: d};
+var m4 = /*error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{'x': d, 'y': d};
+var m5 = /*error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{d: 'x'};
 
 var m6 = <dynamic, dynamic>{};
 var m7 = <String, String>{};
-Map<String, String> m8 = /*info:INFERRED_TYPE_LITERAL*/{};
-var m9 = /*info:INFERRED_TYPE_LITERAL*/{'hi': 'there'};
+Map<String, String> m8 = {};
+var m9 = {'hi': 'there'};
     ''');
     await check(implicitDynamic: false);
   }
@@ -2394,7 +2390,7 @@ dynamic f1() { return 42; }
 
 // nested function
 void main() {
-  /*error:IMPLICIT_DYNAMIC_RETURN*/g0/*info:INFERRED_TYPE_CLOSURE*/() {return g0();}
+  /*error:IMPLICIT_DYNAMIC_RETURN*/g0() {return g0();}
   dynamic g1() { return 42; }
 }
 
@@ -2418,8 +2414,8 @@ void ftf0(/*error:IMPLICIT_DYNAMIC_RETURN*/f(int x)) {}
 void ftf1(dynamic f(int x)) {}
 
 // function expressions
-var fe0 = /*info:INFERRED_TYPE_CLOSURE*/(int x) => x as dynamic;
-var fe1 = /*info:INFERRED_TYPE_CLOSURE*/(int x) => x;
+var fe0 = (int x) => x as dynamic;
+var fe1 = (int x) => x;
     ''');
     await check(implicitDynamic: false);
   }
@@ -2431,7 +2427,7 @@ class C {
 }
 
 void main() {
-  C.test(/*info:INFERRED_TYPE_CLOSURE*/()  {
+  C.test(()  {
     return 42;
   });
 }
@@ -2453,10 +2449,10 @@ class D2<T, S> = /*error:IMPLICIT_DYNAMIC_TYPE*/C
     implements /*error:IMPLICIT_DYNAMIC_TYPE*/I;
 
 C f(D d) {
-  D x = /*info:INFERRED_TYPE_ALLOCATION*/new /*error:IMPLICIT_DYNAMIC_TYPE*/D();
-  D<int, dynamic> y = /*info:INFERRED_TYPE_ALLOCATION*/new /*error:IMPLICIT_DYNAMIC_TYPE*/D();
-  D<dynamic, int> z = /*info:INFERRED_TYPE_ALLOCATION*/new /*error:IMPLICIT_DYNAMIC_TYPE*/D();
-  return /*info:INFERRED_TYPE_ALLOCATION*/new /*error:IMPLICIT_DYNAMIC_TYPE*/C();
+  D x = new /*error:IMPLICIT_DYNAMIC_TYPE*/D();
+  D<int, dynamic> y = new /*error:IMPLICIT_DYNAMIC_TYPE*/D();
+  D<dynamic, int> z = new /*error:IMPLICIT_DYNAMIC_TYPE*/D();
+  return new /*error:IMPLICIT_DYNAMIC_TYPE*/C();
 }
 
 class A<T extends num> {}
@@ -2465,8 +2461,8 @@ class N2<T extends Object> {}
 class J<T extends Object> {}
 class B<T extends Object> extends A with N1, N2 implements J {}
 A g(B b) {
-  B y = /*info:INFERRED_TYPE_ALLOCATION*/new B();
-  return /*info:INFERRED_TYPE_ALLOCATION*/new A();
+  B y = new B();
+  return new A();
 }
     ''');
     await check(implicitDynamic: false);
@@ -2495,7 +2491,7 @@ class C {
   set x(Object y) {}
 }
 class D implements B, C {
-  /*error:INVALID_OVERRIDE*/int x;
+  int /*error:INVALID_OVERRIDE*/x;
 }
     ''');
   }
@@ -2509,13 +2505,13 @@ abstract class I {
 abstract class M implements I {}
 
 class C extends Object with M {
-  /*error:INVALID_OVERRIDE*/String x;
+  String /*error:INVALID_OVERRIDE*/x;
 }
 
 abstract class M2 = Object with M;
 
 class C2 extends Object with M2 {
-  /*error:INVALID_OVERRIDE*/String x;
+  String /*error:INVALID_OVERRIDE*/x;
 }
     ''');
   }
@@ -2545,13 +2541,13 @@ abstract class I<E> {
 abstract class M<E> implements I<E> {}
 
 class C extends Object with M<int> {
-  /*error:INVALID_OVERRIDE*/String x;
+  String /*error:INVALID_OVERRIDE*/x;
 }
 
 abstract class D extends Object with M<num> {}
 /*error:CONFLICTING_GENERIC_INTERFACES*/
 /*error:CONFLICTING_GENERIC_INTERFACES*/class E extends D with M<int> {
-  /*error:INVALID_OVERRIDE*/int x;
+  int /*error:INVALID_OVERRIDE*/x;
 }
 /*error:CONFLICTING_GENERIC_INTERFACES*/
 /*error:CONFLICTING_GENERIC_INTERFACES*/class F extends D with M<int> {
@@ -2588,37 +2584,37 @@ class Base {
 }
 
 class T1 extends Base {
-  /*error:INVALID_OVERRIDE*/B get /*error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f => null;
+  B get /*error:INVALID_OVERRIDE, error:GETTER_NOT_ASSIGNABLE_SETTER_TYPES*/f => null;
 }
 
 class T2 extends Base {
-  /*error:INVALID_OVERRIDE*/set /*error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f(
+  set /*error:INVALID_OVERRIDE, error:GETTER_NOT_ASSIGNABLE_SETTER_TYPES*/f(
       B b) => null;
 }
 
 class T3 extends Base {
-  /*error:INVALID_OVERRIDE*/final B
-      /*error:FINAL_NOT_INITIALIZED, error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f;
+  final B
+      /*error:FINAL_NOT_INITIALIZED, error:INVALID_OVERRIDE, error:GETTER_NOT_ASSIGNABLE_SETTER_TYPES*/f;
 }
 class T4 extends Base {
   // two: one for the getter one for the setter.
-  /*error:INVALID_OVERRIDE, error:INVALID_OVERRIDE*/B f;
+  B /*error:INVALID_OVERRIDE, error:INVALID_OVERRIDE*/f;
 }
 
-class /*error:NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE*/T5 implements Base {
-  /*error:INVALID_OVERRIDE*/B get /*error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f => null;
+class /*error:NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER*/T5 implements Base {
+  /**/B get /*error:INVALID_OVERRIDE, error:GETTER_NOT_ASSIGNABLE_SETTER_TYPES*/f => null;
 }
 
-class /*error:NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE*/T6 implements Base {
-  /*error:INVALID_OVERRIDE*/set /*error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f(B b) => null;
+class /*error:NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER*/T6 implements Base {
+  set /*error:INVALID_OVERRIDE, error:GETTER_NOT_ASSIGNABLE_SETTER_TYPES*/f(B b) => null;
 }
 
-class /*error:NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE*/T7 implements Base {
-  /*error:INVALID_OVERRIDE*/final B /*error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f = null;
+class /*error:NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER*/T7 implements Base {
+  final B /*error:INVALID_OVERRIDE, error:GETTER_NOT_ASSIGNABLE_SETTER_TYPES*/f = null;
 }
 class T8 implements Base {
   // two: one for the getter one for the setter.
-  /*error:INVALID_OVERRIDE, error:INVALID_OVERRIDE*/B f;
+  B /*error:INVALID_OVERRIDE, error:INVALID_OVERRIDE*/f;
 }
 ''');
   }
@@ -2887,19 +2883,19 @@ int bar(int x, int y) => x + y;
 
 void main() {
   bool b;
-  b = /*info:NON_GROUND_TYPE_CHECK_INFO*/foo is I2I;
-  b = /*info:NON_GROUND_TYPE_CHECK_INFO*/foo is D2I;
-  b = /*info:NON_GROUND_TYPE_CHECK_INFO*/foo is I2D;
-  b = /*info:NON_GROUND_TYPE_CHECK_INFO*/foo is D2D;
+  b = foo is I2I;
+  b = foo is D2I;
+  b = foo is I2D;
+  b = foo is D2D;
 
-  b = /*info:NON_GROUND_TYPE_CHECK_INFO*/bar is II2I;
-  b = /*info:NON_GROUND_TYPE_CHECK_INFO*/bar is DI2I;
-  b = /*info:NON_GROUND_TYPE_CHECK_INFO*/bar is ID2I;
-  b = /*info:NON_GROUND_TYPE_CHECK_INFO*/bar is II2D;
-  b = /*info:NON_GROUND_TYPE_CHECK_INFO*/bar is DD2I;
-  b = /*info:NON_GROUND_TYPE_CHECK_INFO*/bar is DI2D;
-  b = /*info:NON_GROUND_TYPE_CHECK_INFO*/bar is ID2D;
-  b = /*info:NON_GROUND_TYPE_CHECK_INFO*/bar is DD2D;
+  b = bar is II2I;
+  b = bar is DI2I;
+  b = bar is ID2I;
+  b = bar is II2D;
+  b = bar is DD2I;
+  b = bar is DI2D;
+  b = bar is ID2D;
+  b = bar is DD2D;
 
   // For as, the validity of checks is deferred to runtime.
   Function f;
@@ -2960,10 +2956,8 @@ class C {
   Iterable<num> test2(bool b) {
     List<int> li;
     Iterable<double> id;
-    int x =
-        /*info:ASSIGNMENT_CAST should be error:INVALID_ASSIGNMENT*/
-        b ? li : id;
-    return /*info:DOWN_CAST_COMPOSITE should be pass*/b ? li : id;
+    int x = b ? li : id;
+    return b ? li : id;
   }
 }
 ''');
@@ -2983,7 +2977,7 @@ void main() {
     addFile(r'''
 dynamic c;
 void main() {
-  <int>[if (/*info:DYNAMIC_CAST*/c) 0];
+  <int>[if (c) 0];
 }
 ''');
     await check();
@@ -3005,7 +2999,7 @@ void main() {
 bool c;
 dynamic dyn;
 void main() {
-  <int>[if (c) 0 else /*info:DYNAMIC_CAST*/dyn];
+  <int>[if (c) 0 else dyn];
 }
 ''');
     await check();
@@ -3027,7 +3021,7 @@ void main() {
 bool c;
 num someNum;
 void main() {
-  <int>[if (c) 0 else /*info:DOWN_CAST_IMPLICIT*/someNum];
+  <int>[if (c) 0 else someNum];
 }
 ''');
     await check();
@@ -3047,7 +3041,7 @@ void main() {
     addFile(r'''
 Object c;
 void main() {
-  <int>[if (/*info:DOWN_CAST_IMPLICIT*/c) 0];
+  <int>[if (c) 0];
 }
 ''');
     await check();
@@ -3069,7 +3063,7 @@ void main() {
 bool c;
 dynamic dyn;
 void main() {
-  <int>[if (c) /*info:DYNAMIC_CAST*/dyn];
+  <int>[if (c) dyn];
 }
 ''');
     await check();
@@ -3091,7 +3085,7 @@ void main() {
 bool c;
 num someNum;
 void main() {
-  <int>[if (c) /*info:DOWN_CAST_IMPLICIT*/someNum];
+  <int>[if (c) someNum];
 }
 ''');
     await check();
@@ -3121,7 +3115,7 @@ void main() {
     addFile(r'''
 dynamic c;
 void main() {
-  <int, int>{if (/*info:DYNAMIC_CAST*/c) 0: 0};
+  <int, int>{if (c) 0: 0};
 }
 ''');
     await check();
@@ -3143,7 +3137,7 @@ void main() {
 bool c;
 dynamic dyn;
 void main() {
-  <int, int>{if (c) 0:0 else /*info:DYNAMIC_CAST*/dyn:0};
+  <int, int>{if (c) 0:0 else dyn:0};
 }
 ''');
     await check();
@@ -3165,7 +3159,7 @@ void main() {
 bool c;
 dynamic dyn;
 void main() {
-  <int, int>{if (c) 0:0 else 0:/*info:DYNAMIC_CAST*/dyn};
+  <int, int>{if (c) 0:0 else 0:dyn};
 }
 ''');
     await check();
@@ -3187,7 +3181,7 @@ void main() {
 bool c;
 num someNum;
 void main() {
-  <int, int>{if (c) 0:0 else /*info:DOWN_CAST_IMPLICIT*/someNum:0};
+  <int, int>{if (c) 0:0 else someNum:0};
 }
 ''');
     await check();
@@ -3209,7 +3203,7 @@ void main() {
 bool c;
 num someNum;
 void main() {
-  <int, int>{if (c) 0:0 else 0:/*info:DOWN_CAST_IMPLICIT*/someNum};
+  <int, int>{if (c) 0:0 else 0:someNum};
 }
 ''');
     await check();
@@ -3229,7 +3223,7 @@ void main() {
     addFile(r'''
 Object c;
 void main() {
-  <int, int>{if (/*info:DOWN_CAST_IMPLICIT*/c) 0: 0};
+  <int, int>{if (c) 0: 0};
 }
 ''');
     await check();
@@ -3251,7 +3245,7 @@ void main() {
 bool c;
 dynamic dyn;
 void main() {
-  <int, int>{if (c) /*info:DYNAMIC_CAST*/dyn:0 else 0:0};
+  <int, int>{if (c) dyn:0 else 0:0};
 }
 ''');
     await check();
@@ -3273,7 +3267,7 @@ void main() {
 bool c;
 dynamic dyn;
 void main() {
-  <int, int>{if (c) 0:/*info:DYNAMIC_CAST*/dyn else 0:0};
+  <int, int>{if (c) 0:dyn else 0:0};
 }
 ''');
     await check();
@@ -3295,7 +3289,7 @@ void main() {
 bool c;
 num someNum;
 void main() {
-  <int, int>{if (c) /*info:DOWN_CAST_IMPLICIT*/someNum:0 else 0:0};
+  <int, int>{if (c) someNum:0 else 0:0};
 }
 ''');
     await check();
@@ -3317,7 +3311,7 @@ void main() {
 bool c;
 num someNum;
 void main() {
-  <int, int>{if (c) 0:/*info:DOWN_CAST_IMPLICIT*/someNum else 0:0};
+  <int, int>{if (c) 0:someNum else 0:0};
 }
 ''');
     await check();
@@ -3339,12 +3333,12 @@ class Base {
 }
 
 class Child extends Base {
-  /*error:INVALID_OVERRIDE*/A m1(A value) => null;
-  /*error:INVALID_OVERRIDE*/C m2(C value) => null;
-  /*error:INVALID_OVERRIDE*/A m3(C value) => null;
+  A /*error:INVALID_OVERRIDE*/m1(A value) => null;
+  C /*error:INVALID_OVERRIDE*/m2(C value) => null;
+  A /*error:INVALID_OVERRIDE*/m3(C value) => null;
   C m4(A value) => null;
   m5(value) => null;
-  /*error:INVALID_OVERRIDE*/dynamic m6(dynamic value) => null;
+  dynamic /*error:INVALID_OVERRIDE*/m6(dynamic value) => null;
 }
 ''');
   }
@@ -3363,12 +3357,12 @@ class F {
 }
 
 class G extends F {
-  /*error:INVALID_OVERRIDE*/void f(int x) {}
+  void /*error:INVALID_OVERRIDE*/f(int x) {}
   void g(dynamic x) {}
 }
 
 class H implements F {
-  /*error:INVALID_OVERRIDE*/void f(int x) {}
+  void /*error:INVALID_OVERRIDE*/f(int x) {}
   void g(dynamic x) {}
 }
 ''');
@@ -3433,7 +3427,7 @@ abstract class I1 {
     m(A a);
 }
 
-class /*error:NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE*/Base
+class /*error:NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER*/Base
     implements I1 {}
 
 class M {
@@ -3685,8 +3679,8 @@ main() {
 
   // downwards inference
   C<int> c, d;
-  c ??= /*info:INFERRED_TYPE_ALLOCATION*/new C();
-  d = d ?? /*info:INFERRED_TYPE_ALLOCATION*/new C();
+  c ??= new C();
+  d = d ?? new C();
 }
 ''');
   }
@@ -3708,10 +3702,8 @@ class C<T> {
     // Regression test for https://github.com/dart-lang/sdk/issues/26155
     await checkFile(r'''
 void takesF(void f(int x)) {
-  takesF(/*info:INFERRED_TYPE_CLOSURE,
-           info:INFERRED_TYPE_CLOSURE*/([x]) { bool z = x.isEven; });
-  takesF(/*info:INFERRED_TYPE_CLOSURE,
-           info:INFERRED_TYPE_CLOSURE*/(y) { bool z = y.isEven; });
+  takesF(([x]) { bool z = x.isEven; });
+  takesF((y) { bool z = y.isEven; });
 }
     ''');
   }
@@ -3749,7 +3741,7 @@ class D extends B implements A { }
     return checkFile(r'''
 abstract class A { void test(A arg) { } }
 abstract class B extends A {
-  /*error:INVALID_OVERRIDE*/void test(B arg) { }
+  void /*error:INVALID_OVERRIDE*/test(B arg) { }
 }
 abstract class X implements A { }
 
@@ -3779,7 +3771,7 @@ class GrandChild extends main.Child {
   var _f3;
   var _f4;
 
-  /*error:INVALID_OVERRIDE*/String _m1() => null;
+  String /*error:INVALID_OVERRIDE*/_m1() => null;
 }
 ''', name: '/helper.dart');
     await checkFile('''
@@ -3820,15 +3812,15 @@ m() {
   d();
 
   C c = new C();
-  /*info:DYNAMIC_INVOKE*/c./*error:UNDEFINED_METHOD*/m();
-  /*info:DYNAMIC_INVOKE*/c./*error:UNDEFINED_GETTER*/m;
-  /*info:DYNAMIC_INVOKE,error:UNDEFINED_OPERATOR*/-c;
-  /*info:DYNAMIC_INVOKE*/c /*error:UNDEFINED_OPERATOR*/+ 7;
-  /*info:DYNAMIC_INVOKE*/c /*error:UNDEFINED_OPERATOR*/[7];
-  /*error:INVOCATION_OF_NON_FUNCTION,info:DYNAMIC_INVOKE*/c();
+  c./*error:UNDEFINED_METHOD*/m();
+  c./*error:UNDEFINED_GETTER*/m;
+  /*error:UNDEFINED_OPERATOR*/-c;
+  c /*error:UNDEFINED_OPERATOR*/+ 7;
+  c /*error:UNDEFINED_OPERATOR*/[7];
+  /*error:INVOCATION_OF_NON_FUNCTION_EXPRESSION*/c();
 
   F f = new F();
-  /*error:INVOCATION_OF_NON_FUNCTION,info:DYNAMIC_INVOKE*/f();
+  /*error:INVOCATION_OF_NON_FUNCTION_EXPRESSION*/f();
 }
     ''');
   }
@@ -3873,7 +3865,7 @@ void main() {
     lOfDs = lOfDs;
     lOfDs = lOfOs;
     lOfDs = lOfAs;
-    lOfDs = /*info:INFERRED_TYPE_ALLOCATION*/new L(); // Reset type propagation.
+    lOfDs = new L(); // Reset type propagation.
   }
   {
     lOfOs = mOfDs;
@@ -3888,8 +3880,8 @@ void main() {
     lOfAs = /*error:INVALID_ASSIGNMENT*/mOfDs;
     lOfAs = /*error:INVALID_ASSIGNMENT*/mOfOs;
     lOfAs = mOfAs;
-    lOfAs = /*info:DOWN_CAST_COMPOSITE*/lOfDs;
-    lOfAs = /*info:DOWN_CAST_IMPLICIT*/lOfOs;
+    lOfAs = lOfDs;
+    lOfAs = lOfOs;
     lOfAs = lOfAs;
     lOfAs = new L<A>(); // Reset type propagation.
   }
@@ -3897,27 +3889,27 @@ void main() {
     mOfDs = mOfDs;
     mOfDs = mOfOs;
     mOfDs = mOfAs;
-    mOfDs = /*info:DOWN_CAST_IMPLICIT*/lOfDs;
-    mOfDs = /*info:DOWN_CAST_IMPLICIT*/lOfOs;
+    mOfDs = lOfDs;
+    mOfDs = lOfOs;
     mOfDs = /*error:INVALID_ASSIGNMENT*/lOfAs;
-    mOfDs = /*info:INFERRED_TYPE_ALLOCATION*/new M(); // Reset type propagation.
+    mOfDs = new M(); // Reset type propagation.
   }
   {
     mOfOs = mOfDs;
     mOfOs = mOfOs;
     mOfOs = mOfAs;
-    mOfOs = /*info:DOWN_CAST_IMPLICIT*/lOfDs;
-    mOfOs = /*info:DOWN_CAST_IMPLICIT*/lOfOs;
+    mOfOs = lOfDs;
+    mOfOs = lOfOs;
     mOfOs = /*error:INVALID_ASSIGNMENT*/lOfAs;
     mOfOs = new M<Object>(); // Reset type propagation.
   }
   {
-    mOfAs = /*info:DOWN_CAST_COMPOSITE*/mOfDs;
-    mOfAs = /*info:DOWN_CAST_IMPLICIT*/mOfOs;
+    mOfAs = mOfDs;
+    mOfAs = mOfOs;
     mOfAs = mOfAs;
-    mOfAs = /*info:DOWN_CAST_COMPOSITE*/lOfDs;
-    mOfAs = /*info:DOWN_CAST_IMPLICIT*/lOfOs;
-    mOfAs = /*info:DOWN_CAST_IMPLICIT*/lOfAs;
+    mOfAs = lOfDs;
+    mOfAs = lOfOs;
+    mOfAs = lOfAs;
   }
 }
 ''');
@@ -3937,7 +3929,7 @@ void main() {
     addFile(r'''
 dynamic c;
 void main() {
-  <int>{if (/*info:DYNAMIC_CAST*/c) 0};
+  <int>{if (c) 0};
 }
 ''');
     await check();
@@ -3959,7 +3951,7 @@ void main() {
 bool c;
 dynamic dyn;
 void main() {
-  <int>{if (c) 0 else /*info:DYNAMIC_CAST*/dyn};
+  <int>{if (c) 0 else dyn};
 }
 ''');
     await check();
@@ -3981,7 +3973,7 @@ void main() {
 bool c;
 num someNum;
 void main() {
-  <int>{if (c) 0 else /*info:DOWN_CAST_IMPLICIT*/someNum};
+  <int>{if (c) 0 else someNum};
 }
 ''');
     await check();
@@ -4001,7 +3993,7 @@ void main() {
     addFile(r'''
 Object c;
 void main() {
-  <int>{if (/*info:DOWN_CAST_IMPLICIT*/c) 0};
+  <int>{if (c) 0};
 }
 ''');
     await check();
@@ -4023,7 +4015,7 @@ void main() {
 bool c;
 dynamic dyn;
 void main() {
-  <int>[if (c) /*info:DYNAMIC_CAST*/dyn];
+  <int>[if (c) dyn];
 }
 ''');
     await check();
@@ -4045,7 +4037,7 @@ void main() {
 bool c;
 num someNum;
 void main() {
-  <int>{if (c) /*info:DOWN_CAST_IMPLICIT*/someNum};
+  <int>{if (c) someNum};
 }
 ''');
     await check();
@@ -4063,15 +4055,15 @@ class F {
 
 class G extends F {
   void set f(ToVoid<int> x) {}
-  /*error:INVALID_OVERRIDE*/void set g(ToVoid<dynamic> x) {}
-  /*error:INVALID_OVERRIDE*/void set h(int x) {}
+  void set /*error:INVALID_OVERRIDE*/g(ToVoid<dynamic> x) {}
+  void set /*error:INVALID_OVERRIDE*/h(int x) {}
   void set i(dynamic x) {}
 }
 
 class H implements F {
   void set f(ToVoid<int> x) {}
-  /*error:INVALID_OVERRIDE*/void set g(ToVoid<dynamic> x) {}
-  /*error:INVALID_OVERRIDE*/void set h(int x) {}
+  void set /*error:INVALID_OVERRIDE*/g(ToVoid<dynamic> x) {}
+  void set /*error:INVALID_OVERRIDE*/h(int x) {}
   void set i(dynamic x) {}
 }
  ''');
@@ -4111,7 +4103,7 @@ abstract class Base {
 
 class Child extends Base {
   void set f1(A value) {}
-  /*error:INVALID_OVERRIDE*/void set f2(C value) {}
+  void set /*error:INVALID_OVERRIDE*/f2(C value) {}
   void set f3(value) {}
   void set f4(dynamic value) {}
   set f5(B value) {}
@@ -4135,7 +4127,7 @@ void main() {
     addFile(r'''
 dynamic dyn;
 void main() {
-  [.../*info:DYNAMIC_CAST*/dyn];
+  [...dyn];
 }
 ''');
     await check();
@@ -4157,7 +4149,7 @@ void main() {
     addFile(r'''
 dynamic dyn;
 void main() {
-  <dynamic, dynamic>{.../*info:DYNAMIC_CAST*/dyn};
+  <dynamic, dynamic>{...dyn};
 }
 ''');
     await check();
@@ -4179,7 +4171,7 @@ void main() {
     addFile(r'''
 dynamic dyn;
 void main() {
-  <dynamic>{.../*info:DYNAMIC_CAST*/dyn};
+  <dynamic>{...dyn};
 }
 ''');
     await check();
@@ -4199,7 +4191,7 @@ void main() {
     addFile(r'''
 Iterable<num> i;
 void main() {
-  <int>[.../*info:DOWN_CAST_IMPLICIT*/i];
+  <int>[...i];
 }
 ''');
     await check();
@@ -4219,7 +4211,7 @@ void main() {
     addFile(r'''
 Map<num, dynamic> map;
 void main() {
-  <int, dynamic>{1: 2, .../*info:DOWN_CAST_IMPLICIT*/map};
+  <int, dynamic>{1: 2, ...map};
 }
 ''');
     await check();
@@ -4239,7 +4231,7 @@ void main() {
     addFile(r'''
 Map<dynamic, num> map;
 void main() {
-  <dynamic, int>{1: 2, .../*info:DOWN_CAST_IMPLICIT*/map};
+  <dynamic, int>{1: 2, ...map};
 }
 ''');
     await check();
@@ -4259,72 +4251,10 @@ void main() {
     addFile(r'''
 Iterable<num> i;
 void main() {
-  <int>{.../*info:DOWN_CAST_IMPLICIT*/i};
+  <int>{...i};
 }
 ''');
     await check();
-  }
-
-  test_strictInference_collectionLiterals() async {
-    addFile(r'''
-main() {
-  var emptyList = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/[];
-  var emptyMap = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/{};
-  final finalEmptyList = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/[];
-  final finalEmptyMap = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/{};
-  const constEmptyList = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/[];
-  const constEmptyMap = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/{};
-
-  void listFunction(
-      [list = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/const []]) => print(list);
-  void mapFunction(
-      [map = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/const {}]) => print(map);
-
-  var conditionalEmptyList =
-      "a" == "b" ? [1, 2, 3] : /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/[];
-
-  dynamic returnsList1() => /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/[];
-  Object returnsList2() => [];
-  void returnsList3() => [];
-
-  var onlyInnermostEmptyCollections = {
-    /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/[]:
-        /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/{}
-  };
-
-  // Inference has enough info in all of the cases below.
-  var upwardsInfersDynamicList = [42 as dynamic];
-  var upwardsInfersDynamicList2 = [42 as dynamic, 43 as dynamic];
-  var upwardsInfersDynamicList3 = [42 , 43.0];
-  var upwardsInfersDynamicSet = {42 as dynamic};
-
-  // Upwards inference provides correct types.
-  dynamic d;
-  var upwardsInfersDynamicMap1 = {d: 2};
-  var upwardsInfersDynamicMap2 = {4: d};
-  var upwardsInfersDynamicMap3 = {d: d};
-  var listWithElements = [1, 2, 3];
-
-  // The type of the right side of `??` is inferred from the left.
-  var nullAwareEmptyList = [1, 2, 3] ?? [];
-
-  // Type arguments provide types.
-  var typeArgList = <dynamic>[];
-  var typeArgSet = <dynamic>{};
-  var typeArgMap = <dynamic, dynamic>{};
-
-  // Downwards inference provides correct types.
-  Set<dynamic> downwardsInfersDynamicSet = {};
-  Map<dynamic, dynamic> downwardsInfersDynamicDynamicMap = {};
-  List<int> downwardsInfersIntList = [];
-  Set<int> downwardsInfersIntSet = {};
-
-  // The type of `set` is `Set<dynamic>`.
-  int setLength(Set set) => set.length;
-  setLength({});
-}
-    ''');
-    await check(strictInference: true);
   }
 
   test_strictInference_instanceCreation() async {
@@ -4343,236 +4273,12 @@ main() {
   var explicitDynamicIsOK = C<dynamic>(42);
 
   var rawConstructorCall = /*info:INFERENCE_FAILURE_ON_INSTANCE_CREATION*/C();
-  var upwardsInfersDynamic = /*info:INFERENCE_FAILURE_ON_INSTANCE_CREATION*/C(42 as dynamic);
-  var namedConstructor = /*info:INFERENCE_FAILURE_ON_INSTANCE_CREATION*/C.of(42 as dynamic);
   var factoryConstructor = /*info:INFERENCE_FAILURE_ON_INSTANCE_CREATION*/C.from(42);
-}
-    ''');
-    await check(strictInference: true);
-  }
-
-  test_strictInference_instanceCreation_optionalTypeArgs() async {
-    addMetaPackage();
-    addFile(r'''
-import 'package:meta/meta.dart';
-@optionalTypeArgs
-class C<T> {
-  C([T t]);
-  C.of(T t);
-  factory C.from(Object e) => C();
-}
-
-main() {
-  var rawConstructorCall = C();
   var upwardsInfersDynamic = C(42 as dynamic);
   var namedConstructor = C.of(42 as dynamic);
-  var factoryConstructor = C.from(42);
 }
     ''');
     await check(strictInference: true);
-  }
-
-  test_strictRawTypes_classes() async {
-    addFile(r'''
-class C<T> {
-  C([T t]);
-}
-
-class M<T> {}
-
-class ExtendRawType extends /*info:STRICT_RAW_TYPE*/C {}
-class MixinRawType extends Object with /*info:STRICT_RAW_TYPE*/M {}
-class ImplementRawType implements /*info:STRICT_RAW_TYPE*/C {}
-class MixinApplicationRawType = Object with /*info:STRICT_RAW_TYPE*/M;
-
-class ClassWithNumBound<T extends num> {}
-class ClassWithObjectBound<T extends Object> {}
-class ClassWithDynamicBound<T extends dynamic> {}
-
-class ClassWithRawTypeBound<T extends /*info:STRICT_RAW_TYPE*/List> {}
-
-/*info:STRICT_RAW_TYPE*/C topLevelField;
-/*info:STRICT_RAW_TYPE*/C get topLevelGetter => null;
-set topLevelSetter(/*info:STRICT_RAW_TYPE*/C c) {}
-
-/*info:STRICT_RAW_TYPE*/C returnType() => null;
-parameterType(/*info:STRICT_RAW_TYPE*/C c) {}
-
-C<int> explicitTypeArgsAreOK;
-
-main() {
-  {
-    ClassWithNumBound classWithNumBoundOK;
-    ClassWithObjectBound classWithObjectBoundOK;
-    /*info:STRICT_RAW_TYPE*/ClassWithDynamicBound classWithDynamicBound;
-    /*info:STRICT_RAW_TYPE*/C rawConstructorCallFromType = C();
-  }
-
-  {
-    // These should be allowed:
-    List<int> downwardsInferenceIsOK = [];
-    List<dynamic> downwardsInferenceDynamicIsOK = [];
-    var upwardsInferNonDynamicIsOK = [42];
-    var explicitDynamicIsOK = <dynamic>[42];
-
-    var rawListOfLists = </*info:STRICT_RAW_TYPE*/List>[];
-    /*info:STRICT_RAW_TYPE*/List rawListFromType = [];
-  }
-
-  {
-    // These should be allowed:
-    List<int> downwardsInferenceIsOK = [];
-    List<dynamic> downwardsInferenceDynamicIsOK = [];
-    var upwardsInferNonDynamicIsOK = [42];
-    var explicitDynamicIsOK = <dynamic>[42];
-
-    var rawListOfLists = </*info:STRICT_RAW_TYPE*/List>[];
-    /*info:STRICT_RAW_TYPE*/List rawListFromType = [];
-  }
-
-  {
-    // These should be allowed:
-    Set<int> downwardsInferenceIsOK = {};
-    Set<dynamic> downwardsInferenceDynamicIsOK = {};
-    var upwardsInferNonDynamicIsOK = {42};
-    var explicitDynamicIsOK = <dynamic>{42};
-
-    var rawSetOfSets = </*info:STRICT_RAW_TYPE*/Set>{};
-    /*info:STRICT_RAW_TYPE*/Set rawSetFromType = {};
-  }
-
-  {
-    // These should be allowed:
-    Map<int, int> downwardsInferenceIsOK = {};
-    Map<dynamic, int> downwardsInferenceDynamicIsOK1 = {};
-    Map<int, dynamic> downwardsInferenceDynamicIsOK2 = {};
-    Map<dynamic, dynamic> downwardsInferenceDynamicIsOK3 = {};
-
-    var upwardsInferNonDynamicIsOK = {4: 2};
-    var explicitDynamicIsOK = <dynamic, dynamic>{4: 2};
-
-    var rawMapOfMaps = </*info:STRICT_RAW_TYPE*/Map>{};
-    /*info:STRICT_RAW_TYPE*/Map rawMapFromType = {};
-  }
-
-  {
-    Object isCheck;
-    if (isCheck is /*info:STRICT_RAW_TYPE_IN_IS*/List) {}
-    if (isCheck is List</*info:STRICT_RAW_TYPE_IN_IS*/List>) {}
-    if (isCheck is /*info:STRICT_RAW_TYPE_IN_IS*/C) {}
-
-    if (isCheck is List<dynamic>) {}
-    if (isCheck is List<int>) {}
-    if (isCheck is C<dynamic>) {}
-    if (isCheck is C<int>) {}
-  }
-
-  {
-    Object asCheck;
-    var asList = asCheck as /*info:STRICT_RAW_TYPE_IN_AS*/List;
-    var asMap = asCheck as Map<dynamic, /*info:STRICT_RAW_TYPE_IN_AS*/List>;
-    var asC = asCheck as /*info:STRICT_RAW_TYPE_IN_AS*/C;
-  }
-}
-    ''');
-    await check(strictRawTypes: true);
-  }
-
-  test_strictRawTypes_classes_optionalTypeArgs() async {
-    addMetaPackage();
-    addFile(r'''
-import 'package:meta/meta.dart';
-@optionalTypeArgs
-class C<T> {
-  C([T t]);
-}
-
-@optionalTypeArgs
-class M<T> {}
-
-class ExtendRawType extends C {}
-class MixinRawType extends Object with M {}
-class ImplementRawType implements C {}
-class MixinApplicationRawType = Object with M;
-
-C topLevelField;
-C get topLevelGetter => null;
-set topLevelSetter(C c) {}
-
-C returnType() => null;
-parameterType(C c) {}
-
-C<int> explicitTypeArgsAreOK;
-
-main() {
-  // These should be allowed:
-  C<int> downwardsInferenceIsOK = C();
-  C<dynamic> downwardsInferenceDynamicIsOK = C();
-  var inferredFromConstructorParameterIsOK = C(42);
-  var explicitDynamicIsOK = C<dynamic>(42);
-
-  var rawConstructorCall = C();
-  C rawConstructorCallFromType = C();
-  var upwardsInfersDynamic = C(42 as dynamic);
-
-  Object isChecksAreAllowed;
-  if (isChecksAreAllowed is C) {}
-}
-    ''');
-
-    await check(strictRawTypes: true);
-  }
-
-  test_strictRawTypes_typedefs() async {
-    addFile(r'''
-typedef T F1<T>(T _);
-typedef F2<T> = T Function(T);
-typedef G1<T> = S Function<S>(T);
-typedef G2<T> = S Function<S>(S); // right side does not use `T`
-
-typedef G3 = T Function<T>(T); // typedef has no type params.
-
-testTypedefs() {
-  /*info:STRICT_RAW_TYPE*/F1 rawTypedefDart1Syntax;
-  /*info:STRICT_RAW_TYPE*/F2 rawTypedefDart2Syntax;
-  /*info:STRICT_RAW_TYPE*/G1 rawTypedefGenericFunction;
-  /*info:STRICT_RAW_TYPE*/G2 rawTypedefGenericFunction2;
-  {
-    F1<dynamic> explicitTypedefDart1SyntaxIsOK;
-    F2<dynamic> explicitTypedefDart2SyntaxIsOK;
-    G1<dynamic> explicitTypedefGenericFunctionIsOK;
-    G2<dynamic> explicitTypedefGenericFunction2IsOK;
-    G3 typedefWithoutTypeParamsIsOK;
-  }
-  {
-    F1<int> explicitTypedefDart1SyntaxIsOK;
-    F2<int> explicitTypedefDart2SyntaxIsOK;
-    G1<int> explicitTypedefGenericFunctionIsOK;
-    G2<int> explicitTypedefGenericFunction2IsOK;
-  }
-}
-    ''');
-    await check(strictRawTypes: true);
-  }
-
-  test_strictRawTypes_typedefs_optionalTypeArgs() async {
-    addMetaPackage();
-    addFile(r'''
-import 'package:meta/meta.dart';
-
-@optionalTypeArgs typedef T F1<T>(T _);
-@optionalTypeArgs typedef F2<T> = T Function(T);
-@optionalTypeArgs typedef G1<T> = S Function<S>(T);
-@optionalTypeArgs typedef G2<T> = S Function<S>(S);
-
-testTypedefs() {
-  F1 rawTypedefDart1Syntax;
-  F2 rawTypedefDart2Syntax;
-  G1 rawTypedefGenericFunction;
-  G2 rawTypedefGenericFunction2;
-}
-    ''');
-    await check(strictRawTypes: true);
   }
 
   test_superCallPlacement() async {
@@ -4802,14 +4508,14 @@ class SplayTreeMap<K, V> {
   // define that since it doesn't implement Comparable.
   SplayTreeMap([int compare(K key1, K key2),
                 bool isValidKey(potentialKey)])
-    : _comparator = /*info:DOWN_CAST_COMPOSITE*/(compare == null) ? Comparable.compare : compare,
-      _validKey = (isValidKey != null) ? isValidKey : (/*info:INFERRED_TYPE_CLOSURE*/(v) => true) {
+    : _comparator = (compare == null) ? Comparable.compare : compare,
+      _validKey = (isValidKey != null) ? isValidKey : ((v) => true) {
 
     _Predicate<Object> v = (isValidKey != null)
-        ? isValidKey : (/*info:INFERRED_TYPE_CLOSURE*/(_) => true);
+        ? isValidKey : ((_) => true);
 
     v = (isValidKey != null)
-         ? v : (/*info:INFERRED_TYPE_CLOSURE*/(_) => true);
+         ? v : ((_) => true);
   }
 }
 void main() {
@@ -4819,8 +4525,8 @@ void main() {
 
   // Check the boolean conversion of the condition.
   print(/*error:NON_BOOL_CONDITION*/i ? false : true);
-  print((/*info:DOWN_CAST_IMPLICIT*/obj) ? false : true);
-  print((/*info:DYNAMIC_CAST*/dyn) ? false : true);
+  print((obj) ? false : true);
+  print((dyn) ? false : true);
 }
 ''');
   }
@@ -4834,8 +4540,8 @@ test() {
   {
      List<int> l = <int>[i];
      l = <int>[/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/s];
-     l = <int>[/*info:DOWN_CAST_IMPLICIT*/n];
-     l = <int>[i, /*info:DOWN_CAST_IMPLICIT*/n, /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/s];
+     l = <int>[n];
+     l = <int>[i, n, /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/s];
   }
   {
      List l = [i];
@@ -4846,21 +4552,21 @@ test() {
   {
      Map<String, int> m = <String, int>{s: i};
      m = <String, int>{s: /*error:MAP_VALUE_TYPE_NOT_ASSIGNABLE*/s};
-     m = <String, int>{s: /*info:DOWN_CAST_IMPLICIT*/n};
+     m = <String, int>{s: n};
      m = <String, int>{s: i,
-                       s: /*info:DOWN_CAST_IMPLICIT*/n,
+                       s: n,
                        s: /*error:MAP_VALUE_TYPE_NOT_ASSIGNABLE*/s};
   }
  // TODO(leafp): We can't currently test for key errors since the
  // error marker binds to the entire entry.
   {
-     Map m = /*info:INFERRED_TYPE_LITERAL*/{s: i};
-     m = /*info:INFERRED_TYPE_LITERAL*/{s: s};
-     m = /*info:INFERRED_TYPE_LITERAL*/{s: n};
-     m = /*info:INFERRED_TYPE_LITERAL*/{s: i,
+     Map m = {s: i};
+     m = {s: s};
+     m = {s: n};
+     m = {s: i,
           s: n,
           s: s};
-     m = /*info:INFERRED_TYPE_LITERAL*/{i: s,
+     m = {i: s,
           n: s,
           s: s};
   }
@@ -4897,20 +4603,20 @@ void f<T>(T object) {
 }
 void g<T extends num>(T object) {
   if (object is int) print(object.isEven);
-  if (object is String) print(/*info:DYNAMIC_INVOKE*/object./*error:UNDEFINED_METHOD*/substring(1));
+  if (object is String) print(object./*error:UNDEFINED_METHOD*/substring(1));
 }
-class Clonable<T> {}
-class SubClonable<T> extends Clonable<T> {
+class Cloneable<T> {}
+class SubCloneable<T> extends Cloneable<T> {
   T m(T t) => t;
 }
-void takesSubClonable<A>(SubClonable<A> t) {}
+void takesSubCloneable<A>(SubCloneable<A> t) {}
 
-void h<T extends Clonable<T>>(T object) {
-  if (/*info:NON_GROUND_TYPE_CHECK_INFO*/object is SubClonable<T>) {
+void h<T extends Cloneable<T>>(T object) {
+  if (object is SubCloneable<T>) {
     print(object.m(object));
 
-    SubClonable<T> s = object;
-    takesSubClonable<T>(object);
+    SubCloneable<T> s = object;
+    takesSubCloneable<T>(object);
     // Issue #35799: According to the language team, this should work, but both
     // analyzer and CFE currently reject it, likely due to a strange
     // representation of promoted type variables.
@@ -4926,18 +4632,18 @@ void h<T extends Clonable<T>>(T object) {
     await checkFile(r'''
 void f<T extends num>(T x, T y) {
   var z = x;
-  var f = /*info:INFERRED_TYPE_CLOSURE*/() => x;
-  f = /*info:INFERRED_TYPE_CLOSURE*/() => y;
+  var f = () => x;
+  f = () => y;
   if (x is int) {
-    /*info:DYNAMIC_INVOKE*/z./*error:UNDEFINED_GETTER*/isEven;
+    z./*error:UNDEFINED_GETTER*/isEven;
     var q = x;
-    q = /*info:DOWN_CAST_COMPOSITE*/z;
-    /*info:DYNAMIC_INVOKE*/f()./*error:UNDEFINED_GETTER*/isEven;
+    q = z;
+    f()./*error:UNDEFINED_GETTER*/isEven;
 
     // This captures the type `T extends int`.
-    var g = /*info:INFERRED_TYPE_CLOSURE*/() => x;
-    g = /*info:DOWN_CAST_COMPOSITE*/f;
-    g().isEven;
+    var g = () => x;
+    g = f;
+    g()./*error:UNDEFINED_GETTER*/isEven;
     q = g();
     int r = x;
   }
@@ -4964,7 +4670,7 @@ void main() {
    d = /*error:INVALID_ASSIGNMENT*/a;
    n = /*error:INVALID_ASSIGNMENT*/a;
    a = a;
-   b = /*info:DOWN_CAST_IMPLICIT*/a;
+   b = a;
 }
 ''');
   }
@@ -5010,11 +4716,11 @@ void main() {
    A a;
    B b;
    o = y;
-   i = /*info:DYNAMIC_CAST*/y;
-   d = /*info:DYNAMIC_CAST*/y;
-   n = /*info:DYNAMIC_CAST*/y;
-   a = /*info:DYNAMIC_CAST*/y;
-   b = /*info:DYNAMIC_CAST*/y;
+   i = y;
+   d = y;
+   n = y;
+   a = y;
+   b = y;
 }
 ''');
   }
@@ -5061,21 +4767,21 @@ void main() {
      top = bot;
    }
    {
-     left = /*info:DOWN_CAST_IMPLICIT*/top;
+     left = top;
      left = left;
      left = /*error:INVALID_ASSIGNMENT*/right;
      left = bot;
    }
    {
-     right = /*info:DOWN_CAST_IMPLICIT*/top;
+     right = top;
      right = /*error:INVALID_ASSIGNMENT*/left;
      right = right;
      right = bot;
    }
    {
-     bot = /*info:DOWN_CAST_IMPLICIT*/top;
-     bot = /*info:DOWN_CAST_IMPLICIT*/left;
-     bot = /*info:DOWN_CAST_IMPLICIT*/right;
+     bot = top;
+     bot = left;
+     bot = right;
      bot = bot;
    }
 }
@@ -5102,34 +4808,34 @@ test() {
   dynamic d;
 
   ~a;
-  (/*info:DYNAMIC_INVOKE*/~d);
+  (~d);
 
   !/*error:NON_BOOL_NEGATION_EXPRESSION*/a;
-  !/*info:DYNAMIC_CAST*/d;
+  !d;
 
   -a;
-  (/*info:DYNAMIC_INVOKE*/-d);
+  (-d);
 
   ++a;
   --a;
-  (/*info:DYNAMIC_INVOKE*/++d);
-  (/*info:DYNAMIC_INVOKE*/--d);
+  (++d);
+  (--d);
 
   a++;
   a--;
-  (/*info:DYNAMIC_INVOKE*/d++);
-  (/*info:DYNAMIC_INVOKE*/d--);
+  (d++);
+  (d--);
 
-  ++/*info:DOWN_CAST_IMPLICIT_ASSIGN*/b;
-  --/*info:DOWN_CAST_IMPLICIT_ASSIGN*/b;
-  /*info:DOWN_CAST_IMPLICIT_ASSIGN*/b++;
-  /*info:DOWN_CAST_IMPLICIT_ASSIGN*/b--;
+  ++b;
+  --b;
+  b++;
+  b--;
 
-  takesC/*info:INFERRED_TYPE_CLOSURE*/(C c) => null;
-  takesC(/*info:DOWN_CAST_IMPLICIT*/++/*info:DOWN_CAST_IMPLICIT_ASSIGN*/b);
-  takesC(/*info:DOWN_CAST_IMPLICIT*/--/*info:DOWN_CAST_IMPLICIT_ASSIGN*/b);
-  takesC(/*info:DOWN_CAST_IMPLICIT,info:DOWN_CAST_IMPLICIT_ASSIGN*/b++);
-  takesC(/*info:DOWN_CAST_IMPLICIT,info:DOWN_CAST_IMPLICIT_ASSIGN*/b--);
+  takesC(C c) => null;
+  takesC(++b);
+  takesC(--b);
+  takesC(b++);
+  takesC(b--);
 }''');
   }
 
@@ -5174,7 +4880,7 @@ class A {
 }
 
 class B extends A {
-  /*error:INVALID_OVERRIDE*/T method<T>(T x) => x;
+  T /*error:INVALID_OVERRIDE*/method<T>(T x) => x;
 }
     ''');
   }

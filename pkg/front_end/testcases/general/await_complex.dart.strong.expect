@@ -1,0 +1,250 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+import "dart:async";
+
+class C extends core::Object {
+  static field core::int* staticField = 1;
+  field core::int* field = 1;
+  synthetic constructor •() → self::C*
+    : super core::Object::•()
+    ;
+  static get staticGetter() → core::int*
+    return self::C::staticField;
+  static set staticSetter(dynamic val) → void {
+    self::C::staticField = val as{TypeError,ForDynamic} core::int*;
+  }
+  static method staticFoo(core::int* param) → core::int*
+    return param;
+  get getter() → core::int*
+    return this.{self::C::field};
+  set setter(dynamic val) → void {
+    this.{self::C::field} = val as{TypeError,ForDynamic} core::int*;
+  }
+  method foo(core::int* param) → core::int*
+    return param;
+}
+static field core::int* globalVariable = 1;
+static final field core::bool* assertStatementsEnabled = (() → core::bool* {
+  try {
+    assert(false);
+    return false;
+  }
+  on dynamic catch(final dynamic _) {
+    return true;
+  }
+}).call();
+static method topLevelFoo(core::int* param) → core::int*
+  return 1;
+static get topLevelGetter() → core::int*
+  return self::globalVariable;
+static set topLevelSetter(dynamic val) → void {
+  self::globalVariable = val as{TypeError,ForDynamic} core::int*;
+}
+static method dummy() → dynamic
+  return 1;
+static method staticMembers() → dynamic async {
+  core::num* a = self::C::staticField.{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num*);
+  self::expect(2, a);
+  core::num* f = (self::C::staticField = 1).{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num*);
+  self::expect(2, f);
+  core::num* b = self::C::staticGetter.{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num*);
+  self::expect(2, b);
+  core::num* c = (self::C::staticSetter = 1).{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num*);
+  self::expect(2, c);
+  core::num* d = self::C::staticFoo(2).{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num*);
+  self::expect(3, d);
+  core::num* e = self::C::staticField.{core::num::+}(self::C::staticGetter).{core::num::+}(self::C::staticSetter = 1).{core::num::+}(self::C::staticFoo(1)).{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num*);
+  self::expect(5, e);
+}
+static method topLevelMembers() → dynamic async {
+  core::num* a = self::globalVariable.{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num*);
+  self::expect(2, a);
+  core::num* b = self::topLevelGetter.{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num*);
+  self::expect(2, b);
+  core::num* c = (self::topLevelSetter = 1).{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num*);
+  self::expect(2, c);
+  core::num* d = self::topLevelFoo(1).{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num*);
+  self::expect(2, d);
+  core::num* e = self::globalVariable.{core::num::+}(self::topLevelGetter).{core::num::+}(self::topLevelSetter = 1).{core::num::+}(self::topLevelFoo(1)).{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num*);
+  self::expect(5, e);
+}
+static method instanceMembers() → dynamic async {
+  self::C* inst = new self::C::•();
+  core::num* a = inst.{self::C::field}.{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num*);
+  self::expect(2, a);
+  core::num* b = inst.{self::C::getter}.{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num*);
+  self::expect(2, b);
+  core::num* c = (inst.{self::C::setter} = 1).{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num*);
+  self::expect(2, c);
+  core::num* d = inst.{self::C::foo}(1).{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num*);
+  self::expect(2, d);
+  core::num* e = inst.{self::C::field}.{core::num::+}(inst.{self::C::getter}).{core::num::+}(inst.{self::C::setter} = 1).{core::num::+}(inst.{self::C::foo}(1)).{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num*);
+  self::expect(5, e);
+}
+static method others() → dynamic async {
+  core::String* a = "${self::globalVariable} ${await self::dummy()} ".{core::String::+}(await "someString");
+  self::expect("1 1 someString", a);
+  self::C* c = new self::C::•();
+  core::num* d = c.{self::C::field}.{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num*);
+  core::int* cnt = 2;
+  core::List<core::int*>* b = <core::int*>[1, 2, 3];
+  b.{core::List::[]=}(cnt, await self::dummy() as{TypeError,ForDynamic} core::int*);
+  self::expect(1, b.{core::List::[]}(cnt));
+  core::num* e = b.{core::List::[]}(0).{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num*);
+  self::expect(2, e);
+}
+static method conditionals() → dynamic async {
+  core::bool* a = false;
+  core::bool* b = true;
+  core::bool* c = a || b || await self::dummy() as{TypeError,ForDynamic} core::bool*;
+  self::expect(true, c);
+  dynamic d = a || b ?{dynamic} a : await self::dummy();
+  self::expect(false, d);
+  dynamic e = a is core::int* ?{dynamic} await self::dummy() : 2;
+  self::expect(2, e);
+  try {
+    dynamic f = a is core::int* ?{dynamic} await self::dummy() : 2;
+  }
+  on dynamic catch(final dynamic e) {
+  }
+}
+static method asserts() → dynamic async {
+  for (final core::Function* #t1 in <core::Function*>[#C1, #C2]) {
+    final <T extends core::Object* = dynamic>(T*) →* asy::FutureOr<T*>* func = #t1 as{TypeError} <T extends core::Object* = dynamic>(T*) →* asy::FutureOr<T*>*;
+    assert(await func.call<core::bool*>(true));
+    assert(self::id<core::bool*>(true) as{TypeError} core::bool*, await func.call<core::String*>("message"));
+    assert(await func.call<core::bool*>(true), await func.call<core::String*>("message"));
+    try {
+      assert(await func.call<core::bool*>(false), await func.call<core::String*>("message"));
+      if(self::assertStatementsEnabled)
+        throw "Didn't throw";
+    }
+    on core::AssertionError* catch(final core::AssertionError* e) {
+      self::expect("message", e.{core::AssertionError::message});
+    }
+  }
+}
+static method controlFlow() → dynamic async {
+  for (final core::Function* #t2 in <core::Function*>[#C1, #C2]) {
+    final <T extends core::Object* = dynamic>(T*) →* asy::FutureOr<T*>* func = #t2 as{TypeError} <T extends core::Object* = dynamic>(T*) →* asy::FutureOr<T*>*;
+    core::int* c = 0;
+    for (core::int* i = await func.call<core::int*>(0); await func.call<core::bool*>(i.{core::num::<}(5)); await func.call<core::int*>(let final core::int* #t3 = i in let final core::int* #t4 = i = #t3.{core::num::+}(1) in #t3)) {
+      c = c.{core::num::+}(1);
+    }
+    self::expect(5, c);
+    c = 0;
+    while (await func.call<core::bool*>(c.{core::num::<}(5)))
+      c = c.{core::num::+}(1);
+    self::expect(5, c);
+    c = 0;
+    do {
+      c = c.{core::num::+}(1);
+    }
+    while (await func.call<core::bool*>(c.{core::num::<}(5)))
+    self::expect(5, c);
+    if(await func.call<core::bool*>(c.{core::num::==}(5))) {
+      self::expect(5, c);
+    }
+    else {
+      throw "unreachable";
+    }
+    try {
+      throw await func.call<core::String*>("string");
+    }
+    on core::String* catch(no-exception-var) {
+    }
+    try {
+      await throw "string";
+    }
+    on core::String* catch(no-exception-var) {
+    }
+    try
+      try {
+        try
+          try {
+            throw "string";
+          }
+          on dynamic catch(final dynamic e) {
+            self::expect("string", e);
+            self::expect(0, await func.call<core::int*>(0));
+            rethrow;
+          }
+        finally {
+          self::expect(0, await func.call<core::int*>(0));
+        }
+      }
+      on dynamic catch(final dynamic e) {
+        self::expect(0, await func.call<core::int*>(0));
+        self::expect("string", e);
+      }
+    finally {
+      self::expect(0, await func.call<core::int*>(0));
+    }
+    #L1:
+    switch(await func.call<core::int*>(2)) {
+      #L2:
+      case #C3:
+        {
+          break #L1;
+        }
+      #L3:
+      default:
+        {
+          throw "unreachable";
+        }
+    }
+    self::expect(42, await(() → asy::Future<dynamic>* async {
+      return await func.call<dynamic>(42);
+    }).call());
+    self::expect(42, await(() → asy::Future<dynamic>* async {
+      return func.call<dynamic>(42);
+    }).call());
+    function testStream1() → asy::Stream<core::int*>* async* {
+      yield await func.call<core::int*>(42);
+    }
+    self::expectList(<dynamic>[42], await testStream1.call().{asy::Stream::toList}());
+    function testStream2() → asy::Stream<core::int*>* async* {
+      yield* await func.call<asy::Stream<core::int*>*>(self::intStream());
+    }
+    self::expectList(<dynamic>[42], await testStream2.call().{asy::Stream::toList}());
+  }
+}
+static method future<T extends core::Object* = dynamic>(self::future::T* value) → asy::FutureOr<self::future::T*>* async 
+  return value;
+static method id<T extends core::Object* = dynamic>(self::id::T* value) → asy::FutureOr<self::id::T*>*
+  return value;
+static method intStream() → asy::Stream<core::int*>* async* {
+  yield 42;
+}
+static method main() → dynamic async {
+  for (core::int* i = 0; i.{core::num::<}(11); i = i.{core::num::+}(1)) {
+    await self::staticMembers();
+    await self::topLevelMembers();
+    await self::instanceMembers();
+    await self::conditionals();
+    await self::others();
+    await self::asserts();
+    await self::controlFlow();
+  }
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!expected.{core::Object::==}(actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+static method expectList(core::List<dynamic>* expected, core::List<dynamic>* actual) → dynamic {
+  if(!expected.{core::List::length}.{core::num::==}(actual.{core::List::length})) {
+    throw "Expected ${expected}, actual ${actual}";
+  }
+  for (core::int* i = 0; i.{core::num::<}(expected.{core::List::length}); i = i.{core::num::+}(1)) {
+    self::expect(expected.{core::List::[]}(i), actual.{core::List::[]}(i));
+  }
+}
+
+constants  {
+  #C1 = tearoff self::id
+  #C2 = tearoff self::future
+  #C3 = 2
+}

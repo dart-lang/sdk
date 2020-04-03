@@ -4,27 +4,29 @@
  */
 import 'dart:io';
 
+import 'package:_fe_analyzer_shared/src/scanner/characters.dart'
+    show $MINUS, $_;
 import 'package:analysis_tool/tools.dart';
-import 'package:front_end/src/fasta/scanner/characters.dart' show $MINUS, $_;
-import 'package:front_end/src/testing/package_root.dart' as pkgRoot;
 import 'package:path/path.dart';
 import 'package:yaml/yaml.dart' show YamlMap, loadYaml;
 
+import '../../test/utils/package_root.dart' as pkg_root;
+
 main() async {
   await GeneratedContent.generateAll(
-      normalize(join(pkgRoot.packageRoot, 'analyzer')), allTargets);
+      normalize(join(pkg_root.packageRoot, 'analyzer')), allTargets);
 }
 
 List<GeneratedContent> get allTargets {
-  Map<dynamic, dynamic> experimentsYaml = loadYaml(new File(join(
-          normalize(join(pkgRoot.packageRoot, '../tools')),
+  Map<dynamic, dynamic> experimentsYaml = loadYaml(File(join(
+          normalize(join(pkg_root.packageRoot, '../tools')),
           'experimental_features.yaml'))
       .readAsStringSync());
 
   return <GeneratedContent>[
-    new GeneratedFile('lib/src/dart/analysis/experiments.g.dart',
+    GeneratedFile('lib/src/dart/analysis/experiments.g.dart',
         (String pkgPath) async {
-      var generator = new _ExperimentsGenerator(experimentsYaml);
+      var generator = _ExperimentsGenerator(experimentsYaml);
       generator.generateFormatCode();
       return generator.out.toString();
     }),
@@ -48,7 +50,7 @@ class _ExperimentsGenerator {
 
   List<String> keysSorted;
 
-  final out = new StringBuffer('''
+  final out = StringBuffer('''
 //
 // THIS FILE IS GENERATED. DO NOT EDIT.
 //
@@ -60,8 +62,11 @@ part of 'experiments.dart';
 
   _ExperimentsGenerator(this.experimentsYaml);
 
+  Map get features => experimentsYaml['features'];
+
   void generateFormatCode() {
-    keysSorted = experimentsYaml.keys.cast<String>().toList()..sort();
+    keysSorted = features.keys.cast<String>().toList()..sort();
+    generateSection_CurrentVersion();
     generateSection_KnownFeatures();
     generateSection_BuildExperimentalFlagsArray();
     generateSection_EnableString();
@@ -78,7 +83,7 @@ List<bool> _buildExperimentalFlagsArray() => <bool>[
 ''');
     for (var key in keysSorted) {
       var id = keyToIdentifier(key);
-      var entry = experimentsYaml[key] as YamlMap;
+      var entry = features[key] as YamlMap;
       bool shipped = entry['enabledIn'] != null;
       bool expired = entry['expired'];
       if (shipped || expired == true) {
@@ -121,6 +126,16 @@ mixin _CurrentState {
 }''');
   }
 
+  void generateSection_CurrentVersion() {
+    var version = _versionNumberAsString(experimentsYaml['current-version']);
+    out.write('''
+
+/// The current version of the Dart language (or, for non-stable releases, the
+/// version of the language currently in the process of being developed).
+const _currentVersion = '$version';
+    ''');
+  }
+
   void generateSection_EnableString() {
     out.write('''
 
@@ -155,11 +170,11 @@ class ExperimentalFeatures {
     int index = 0;
     for (var key in keysSorted) {
       var id = keyToIdentifier(key);
-      var help = (experimentsYaml[key] as YamlMap)['help'] ?? '';
-      var enabledIn = (experimentsYaml[key] as YamlMap)['enabledIn'];
+      var help = (features[key] as YamlMap)['help'] ?? '';
+      var enabledIn = (features[key] as YamlMap)['enabledIn'];
       out.write('''
 
-      static const $id = const ExperimentalFeature(
+      static const $id = ExperimentalFeature(
       $index,
       EnableString.$id,
       IsEnabledByDefault.$id,
@@ -167,9 +182,7 @@ class ExperimentalFeatures {
       '$help'
     ''');
       if (enabledIn != null) {
-        if (enabledIn is double) {
-          enabledIn = '$enabledIn.0';
-        }
+        enabledIn = _versionNumberAsString(enabledIn);
         out.write(",firstSupportedVersion: '$enabledIn'");
       }
       out.writeln(');');
@@ -179,7 +192,7 @@ class ExperimentalFeatures {
     out.write('''
 
       @deprecated
-      static const bogus_disabled = const ExperimentalFeature(
+      static const bogus_disabled = ExperimentalFeature(
         $index,
         // ignore: deprecated_member_use_from_same_package
         EnableString.bogus_disabled,
@@ -188,7 +201,7 @@ class ExperimentalFeatures {
         null);
 
       @deprecated
-      static const bogus_enabled = const ExperimentalFeature(
+      static const bogus_enabled = ExperimentalFeature(
         ${index + 1},
         // ignore: deprecated_member_use_from_same_package
         EnableString.bogus_enabled,
@@ -207,7 +220,7 @@ class ExperimentalFeatures {
 class IsEnabledByDefault {
 ''');
     for (var key in keysSorted) {
-      var entry = experimentsYaml[key] as YamlMap;
+      var entry = features[key] as YamlMap;
       bool shipped = entry['enabledIn'] != null;
       out.write('''
       /// Default state of the experiment "$key"
@@ -236,7 +249,7 @@ class IsEnabledByDefault {
 class IsExpired {
 ''');
     for (var key in keysSorted) {
-      var entry = experimentsYaml[key] as YamlMap;
+      var entry = features[key] as YamlMap;
       bool shipped = entry['enabledIn'] != null;
       bool expired = entry['expired'];
       out.write('''
@@ -279,5 +292,13 @@ const _knownFeatures = <String, ExperimentalFeature>{
   EnableString.bogus_enabled: ExperimentalFeatures.bogus_enabled,
 };
 ''');
+  }
+
+  String _versionNumberAsString(dynamic enabledIn) {
+    if (enabledIn is double) {
+      return '$enabledIn.0';
+    } else {
+      return enabledIn.toString();
+    }
   }
 }

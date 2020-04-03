@@ -1,0 +1,78 @@
+main = <No Member>;
+library from "org-dartlang-test:///libA.dart" as libA {
+
+  import "org-dartlang-test:///main.dart";
+
+  @#C1
+  static method whatever(main::Foo* foo) → dynamic {
+    dart.core::print(foo);
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///libA.dart";
+
+  @#C1
+  class Bar extends dart.core::Object {
+    @#C1
+    constructor •(@#C1 dart.core::int* x) → main::Bar*
+      : super dart.core::Object::•() {}
+  }
+  @#C1
+  class Foo extends main::Bar {
+    @#C1
+    final field dynamic message;
+    @#C1
+    constructor •(@#C1 dynamic message) → main::Foo*
+      : main::Foo::message = message, super main::Bar::•(42)
+      ;
+    @#C2
+    method toString() → dart.core::String* {
+      return "${this.{main::Foo::message}}";
+    }
+  }
+  @#C1
+  class CompilationStrategy extends dart.core::Object /*isEnum*/  {
+    final field dart.core::int* index;
+    final field dart.core::String* _name;
+    static const field dart.core::List<main::CompilationStrategy*>* values = #C15;
+    @#C1
+    static const field main::CompilationStrategy* direct = #C5;
+    @#C1
+    static const field main::CompilationStrategy* toKernel = #C8;
+    @#C1
+    static const field main::CompilationStrategy* toData = #C11;
+    @#C1
+    static const field main::CompilationStrategy* fromData = #C14;
+    const constructor •(dart.core::int* index, dart.core::String* _name) → main::CompilationStrategy*
+      : main::CompilationStrategy::index = index, main::CompilationStrategy::_name = _name, super dart.core::Object::•()
+      ;
+    method toString() → dart.core::String*
+      return this.{=main::CompilationStrategy::_name};
+  }
+  static const field dart.core::String* useMeAsAnnotation = #C1;
+  @#C1
+  static method main() → dynamic {
+    @#C1 main::Foo* foo = new main::Foo::•("hello");
+    libA::whatever(foo);
+    @#C1 main::CompilationStrategy* compilationStrategy = #C5;
+    dart.core::print(compilationStrategy);
+  }
+}
+constants  {
+  #C1 = "hello"
+  #C2 = dart.core::_Override {}
+  #C3 = 0
+  #C4 = "CompilationStrategy.direct"
+  #C5 = main::CompilationStrategy {index:#C3, _name:#C4}
+  #C6 = 1
+  #C7 = "CompilationStrategy.toKernel"
+  #C8 = main::CompilationStrategy {index:#C6, _name:#C7}
+  #C9 = 2
+  #C10 = "CompilationStrategy.toData"
+  #C11 = main::CompilationStrategy {index:#C9, _name:#C10}
+  #C12 = 3
+  #C13 = "CompilationStrategy.fromData"
+  #C14 = main::CompilationStrategy {index:#C12, _name:#C13}
+  #C15 = <main::CompilationStrategy*>[#C5, #C8, #C11, #C14]
+}

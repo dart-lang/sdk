@@ -1,0 +1,18 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Fisk extends core::Object {
+  constructor •(core::int* x) → self::Fisk*
+    ;
+  constructor named(core::int* x) → self::Fisk*
+    ;
+  method method(core::int* x) → void
+    ;
+  static method staticMethod(core::int* x) → void
+    ;
+}
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;

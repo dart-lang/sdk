@@ -5,7 +5,6 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
-import 'resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,20 +14,17 @@ main() {
 
 @reflectiveTest
 class InstanceMemberInferenceMixinDriverResolutionTest
-    extends DriverResolutionTest with InstanceMemberInferenceMixinMixin {}
-
-mixin InstanceMemberInferenceMixinMixin implements ResolutionTest {
+    extends DriverResolutionTest {
   test_invalid_inheritanceCycle() async {
-    addTestFile('''
+    await resolveTestCode('''
 mixin A on C {}
 mixin B on A {}
 mixin C on B {}
 ''');
-    await resolveTestFile();
   }
 
   test_method_parameter_multiple_different() async {
-    addTestFile('''
+    await resolveTestCode('''
 class A {
   foo(int p) => 0;
 }
@@ -39,14 +35,12 @@ mixin M on A, B {
   foo(p) => 0;
 }
 ''');
-    await resolveTestFile();
-
     var p = findElement.method('foo', of: 'M').parameters[0];
-    assertElementTypeDynamic(p.type);
+    assertTypeDynamic(p.type);
   }
 
   test_method_parameter_multiple_named_different() async {
-    addTestFile('''
+    await resolveTestCode('''
 class A {
   foo({int p}) => 0;
 }
@@ -57,14 +51,12 @@ mixin M on A, B {
   foo({p}) => 0;
 }
 ''');
-    await resolveTestFile();
-
     var p = findElement.method('foo', of: 'M').parameters[0];
-    assertElementTypeDynamic(p.type);
+    assertTypeDynamic(p.type);
   }
 
   test_method_parameter_multiple_named_same() async {
-    addTestFile('''
+    await resolveTestCode('''
 class A {
   foo({int p}) => 0;
 }
@@ -75,14 +67,12 @@ mixin M on A, B {
   foo({p}) => 0;
 }
 ''');
-    await resolveTestFile();
-
     var p = findElement.method('foo', of: 'M').parameters[0];
-    assertElementTypeString(p.type, 'int');
+    assertType(p.type, 'int');
   }
 
   test_method_parameter_multiple_namedAndRequired() async {
-    addTestFile('''
+    await resolveTestCode('''
 class A {
   foo({int p}) => 0;
 }
@@ -93,14 +83,12 @@ mixin M on A, B {
   foo(p) => 0;
 }
 ''');
-    await resolveTestFile();
-
     var p = findElement.method('foo', of: 'M').parameters[0];
-    assertElementTypeDynamic(p.type);
+    assertTypeDynamic(p.type);
   }
 
   test_method_parameter_multiple_optionalAndRequired() async {
-    addTestFile('''
+    await resolveTestCode('''
 class A {
   foo(int p) => 0;
 }
@@ -111,14 +99,12 @@ mixin M on A, B {
   foo(p) => 0;
 }
 ''');
-    await resolveTestFile();
-
     var p = findElement.method('foo', of: 'M').parameters[0];
-    assertElementTypeString(p.type, 'int');
+    assertType(p.type, 'int');
   }
 
   test_method_parameter_single_generic() async {
-    addTestFile('''
+    await resolveTestCode('''
 class A<E> {
   foo(E p) => 0;
 }
@@ -126,14 +112,12 @@ mixin M<T> on A<T> {
   foo(p) => 0;
 }
 ''');
-    await resolveTestFile();
-
     var p = findElement.method('foo', of: 'M').parameters[0];
-    assertElementTypeString(p.type, 'T');
+    assertType(p.type, 'T');
   }
 
   test_method_return_multiple_different() async {
-    addTestFile('''
+    await resolveTestCode('''
 class A {
   int foo() => 0;
 }
@@ -144,14 +128,12 @@ mixin M on A, B {
   foo() => 0;
 }
 ''');
-    await resolveTestFile();
-
     var foo = findElement.method('foo', of: 'M');
-    assertElementTypeDynamic(foo.returnType);
+    assertTypeDynamic(foo.returnType);
   }
 
   test_method_return_multiple_different_generic() async {
-    addTestFile('''
+    await resolveTestCode('''
 class A<E> {
   E foo() => null;
 }
@@ -162,14 +144,12 @@ mixin M on A<int>, B<double> {
   foo() => null;
 }
 ''');
-    await resolveTestFile();
-
     var foo = findElement.method('foo', of: 'M');
-    assertElementTypeDynamic(foo.returnType);
+    assertTypeDynamic(foo.returnType);
   }
 
   test_method_return_multiple_different_void() async {
-    addTestFile('''
+    await resolveTestCode('''
 class A {
   int foo() => 0;
 }
@@ -180,14 +160,12 @@ mixin M on A, B {
   foo() => 0;
 }
 ''');
-    await resolveTestFile();
-
     var foo = findElement.method('foo', of: 'M');
-    assertElementTypeDynamic(foo.returnType);
+    assertTypeDynamic(foo.returnType);
   }
 
   test_method_return_multiple_dynamic() async {
-    addTestFile('''
+    await resolveTestCode('''
 class A {
   int foo() => 0;
 }
@@ -198,14 +176,12 @@ mixin M on A, B {
   foo() => 0;
 }
 ''');
-    await resolveTestFile();
-
     var foo = findElement.method('foo', of: 'M');
-    assertElementTypeDynamic(foo.returnType);
+    assertTypeDynamic(foo.returnType);
   }
 
   test_method_return_multiple_same_generic() async {
-    addTestFile('''
+    await resolveTestCode('''
 class A<E> {
   E foo() => 0;
 }
@@ -216,14 +192,12 @@ mixin M<T> on A<T>, B<T> {
   foo() => 0;
 }
 ''');
-    await resolveTestFile();
-
     var foo = findElement.method('foo', of: 'M');
-    assertElementTypeString(foo.returnType, 'T');
+    assertType(foo.returnType, 'T');
   }
 
   test_method_return_multiple_same_nonVoid() async {
-    addTestFile('''
+    await resolveTestCode('''
 class A {
   int foo() => 0;
 }
@@ -234,14 +208,12 @@ mixin M on A, B {
   foo() => 0;
 }
 ''');
-    await resolveTestFile();
-
     var foo = findElement.method('foo', of: 'M');
-    assertElementTypeString(foo.returnType, 'int');
+    assertType(foo.returnType, 'int');
   }
 
   test_method_return_multiple_same_void() async {
-    addTestFile('''
+    await resolveTestCode('''
 class A {
   void foo() {};
 }
@@ -252,14 +224,12 @@ mixin M on A, B {
   foo() {};
 }
 ''');
-    await resolveTestFile();
-
     var foo = findElement.method('foo', of: 'M');
-    assertElementTypeString(foo.returnType, 'void');
+    assertType(foo.returnType, 'void');
   }
 
   test_method_return_single() async {
-    addTestFile('''
+    await resolveTestCode('''
 class A {
   int foo() => 0;
 }
@@ -267,14 +237,12 @@ mixin M on A {
   foo() => 0;
 }
 ''');
-    await resolveTestFile();
-
     var foo = findElement.method('foo', of: 'M');
-    assertElementTypeString(foo.returnType, 'int');
+    assertType(foo.returnType, 'int');
   }
 
   test_method_return_single_generic() async {
-    addTestFile('''
+    await resolveTestCode('''
 class A<E> {
   E foo() => 0;
 }
@@ -282,9 +250,7 @@ mixin M<T> on A<T> {
   foo() => 0;
 }
 ''');
-    await resolveTestFile();
-
     var foo = findElement.method('foo', of: 'M');
-    assertElementTypeString(foo.returnType, 'T');
+    assertType(foo.returnType, 'T');
   }
 }

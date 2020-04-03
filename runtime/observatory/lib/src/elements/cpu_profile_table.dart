@@ -120,7 +120,7 @@ class CpuProfileTableElement extends CustomElement implements Renderable {
         (new NavRefreshElement(queue: _r.queue)..onRefresh.listen(_refresh))
             .element,
         (new NavRefreshElement(label: 'Clear', queue: _r.queue)
-              ..onRefresh.listen(_clearCpuProfile))
+              ..onRefresh.listen(_clearCpuSamples))
             .element,
         new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
@@ -152,7 +152,10 @@ class CpuProfileTableElement extends CustomElement implements Renderable {
             createHeader: _createFunctionHeader,
             search: _searchFunction,
             queue: _r.queue);
-    _functions.items = _progress.profile.functions.toList()
+    // If there's no samples, don't populate the function list.
+    _functions.items = (_progress.profile.sampleCount != 0)
+        ? _progress.profile.functions.toList()
+        : []
       ..sort(_createSorter(_Table.functions));
     _functions.takeIntoView(_selected);
     _callers = _callers ??
@@ -428,7 +431,7 @@ class CpuProfileTableElement extends CustomElement implements Renderable {
     }
   }
 
-  Future _clearCpuProfile(RefreshEvent e) async {
+  Future _clearCpuSamples(RefreshEvent e) async {
     e.element.disabled = true;
     await _request(clear: true);
     e.element.disabled = false;
@@ -461,12 +464,12 @@ class CpuProfileTableElement extends CustomElement implements Renderable {
     }
     switch (_sortingDirection[table]) {
       case _SortingDirection.ascending:
-        int sort(M.ProfileFunction a, M.ProfileFunction b) {
+        int sort(a, b) {
           return getter(a).compareTo(getter(b));
         }
         return sort;
       case _SortingDirection.descending:
-        int sort(M.ProfileFunction a, M.ProfileFunction b) {
+        int sort(a, b) {
           return getter(b).compareTo(getter(a));
         }
         return sort;

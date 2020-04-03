@@ -5,6 +5,7 @@
 library kernel.deferred_load_data;
 
 import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/type_environment.dart' as ir;
 
 import '../common_elements.dart';
 import '../compiler.dart' show Compiler;
@@ -47,13 +48,6 @@ class KernelDeferredLoadTask extends DeferredLoadTask {
   }
 
   @override
-  Iterable<ImportEntity> typedefImportsTo(
-      TypedefEntity element, LibraryEntity library) {
-    ir.Typedef node = _elementMap.getTypedefNode(element);
-    return _findImportsTo(node, node.name, node.enclosingLibrary, library);
-  }
-
-  @override
   Iterable<ImportEntity> memberImportsTo(
       Entity element, LibraryEntity library) {
     ir.Member node = _elementMap.getMemberNode(element);
@@ -83,7 +77,8 @@ class KernelDeferredLoadTask extends DeferredLoadTask {
     // Fetch the internal node in order to skip annotations on the member.
     // TODO(sigmund): replace this pattern when the kernel-ast provides a better
     // way to skip annotations (issue 31565).
-    var visitor = new ConstantCollector(_elementMap, dependencies);
+    var visitor = new ConstantCollector(
+        _elementMap, _elementMap.getStaticTypeContext(element), dependencies);
     if (node is ir.Field) {
       node.initializer?.accept(visitor);
       return;
@@ -119,14 +114,15 @@ bool _isVisible(List<ir.Combinator> combinators, String name) {
 class ConstantCollector extends ir.RecursiveVisitor {
   final KernelToElementMap elementMap;
   final Dependencies dependencies;
+  final ir.StaticTypeContext staticTypeContext;
 
-  ConstantCollector(this.elementMap, this.dependencies);
+  ConstantCollector(this.elementMap, this.staticTypeContext, this.dependencies);
 
   CommonElements get commonElements => elementMap.commonElements;
 
   void add(ir.Expression node, {bool required: true}) {
-    ConstantValue constant =
-        elementMap.getConstantValue(node, requireConstant: required);
+    ConstantValue constant = elementMap
+        .getConstantValue(staticTypeContext, node, requireConstant: required);
     if (constant != null) {
       dependencies.addConstant(
           constant, elementMap.getImport(getDeferredImport(node)));

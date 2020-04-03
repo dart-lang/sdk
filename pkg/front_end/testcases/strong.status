@@ -2,36 +2,47 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE.md file.
 
-# Status file for the strong_test.dart test suite. This is testing generating
+# Status file for the strong_tester.dart test suite. This is testing generating
 # Kernel ASTs directly, that is, code in pkg/fasta/lib/src/kernel/ with
 # strong-mode enabled.
 
+extensions/call_methods: TypeCheckError
+extensions/extension_setter_error: TypeCheckError
+extensions/instance_access_of_static: RuntimeError
+extensions/invalid_explicit_access: RuntimeError
+extensions/issue40713: TypeCheckError
+extensions/static_access_of_instance: RuntimeError
 general/abstract_members: TypeCheckError
 general/accessors: RuntimeError
 general/ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
-general/argument_mismatch: InstrumentationMismatch # Test assumes Dart 1.0 semantics
 general/await_in_non_async: RuntimeError # Expected.
 general/bug21938: TypeCheckError
 general/bug30695: TypeCheckError
 general/bug31124: RuntimeError # Test has no main method (and we shouldn't add one).
-general/bug32629: InstrumentationMismatch # Test has an intentional error
 general/call: TypeCheckError
+general/candidate_found: TypeCheckError
 general/cascade: RuntimeError
 general/constructor_initializer_invalid: RuntimeError # Fails execution after recovery
 general/covariant_generic: RuntimeError
 general/duplicated_declarations: TypeCheckError
 general/duplicated_field_initializer: RuntimeError
-general/dynamic_and_void: InstrumentationMismatch # Test assumes Dart 1.0 semantics
+general/error_locations/error_location_01: RuntimeError
+general/error_locations/error_location_02: RuntimeError
+general/error_locations/error_location_03: RuntimeError
+general/error_locations/error_location_05: RuntimeError
+general/error_locations/error_location_06: RuntimeError
 general/expressions: RuntimeError
-general/extension_methods: RuntimeError
 general/external_import: RuntimeError # The native extension to import doesn't exist. This is ok.
-general/fallthrough: ExpectationFileMismatch
-general/ignore_function: TypeCheckError
 general/incomplete_field_formal_parameter: RuntimeError
-general/invalid_type: TypeCheckError
+general/infer_field_from_multiple: TypeCheckError
+general/invalid_operator: TypeCheckError
 general/invocations: RuntimeError
-general/issue34899: TypeCheckError
 general/issue37776: RuntimeError
+general/issue38938: RuntimeError # no main and compile time errors.
+general/issue38944: RuntimeError # no main and compile time errors.
+general/issue38961: RuntimeError # no main and compile time errors.
+general/issue41210a: TypeCheckError
+general/issue41210b/issue41210: TypeCheckError
 general/micro: RuntimeError
 general/mixin_application_override: ExpectationFileMismatch # Too many errors.
 general/mixin_application_override: TypeCheckError
@@ -44,37 +55,72 @@ general/override_check_accessor_with_covariant_modifier: TypeCheckError # Issue 
 general/override_check_after_inference: TypeCheckError # Issue #31620
 general/override_check_basic: TypeCheckError # Issue #31620
 general/override_check_with_covariant_modifier: TypeCheckError # Issue #31620
+general/override_setter_with_field: TypeCheckError
 general/reject_generic_function_types_in_bounds: RuntimeError # Expected
 general/spread_collection: RuntimeError
 general/statements: Crash
 general/type_parameter_type_named_int: RuntimeError # Expected
 general/type_variable_as_super: RuntimeError
-general/unsound_promotion: RuntimeError
-general/void_methods: ExpectationFileMismatch
-general/warn_unresolved_sends: InstrumentationMismatch # Test assumes Dart 1.0 semantics
-inference/abstract_class_instantiation: InstrumentationMismatch # Issue #30040
-inference/conflicting_fields: TypeCheckError
-inference/conflicts_can_happen2: TypeCheckError
-inference/conflicts_can_happen: TypeCheckError
+general/type_variable_bound_access: TypeCheckError
+general/unsound_promotion: TypeCheckError
+general/void_methods: RuntimeError
+general_nnbd_opt_out/abstract_members: TypeCheckError
+general_nnbd_opt_out/accessors: RuntimeError
+general_nnbd_opt_out/ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
+general_nnbd_opt_out/await_in_non_async: RuntimeError # Expected.
+general_nnbd_opt_out/bug21938: TypeCheckError
+general_nnbd_opt_out/bug30695: TypeCheckError
+general_nnbd_opt_out/bug31124: RuntimeError # Test has no main method (and we shouldn't add one).
+general_nnbd_opt_out/call: TypeCheckError
+general_nnbd_opt_out/candidate_found: TypeCheckError
+general_nnbd_opt_out/cascade: RuntimeError
+general_nnbd_opt_out/constructor_initializer_invalid: RuntimeError # Fails execution after recovery
+general_nnbd_opt_out/covariant_generic: RuntimeError
+general_nnbd_opt_out/duplicated_declarations: TypeCheckError
+general_nnbd_opt_out/duplicated_field_initializer: RuntimeError
+general_nnbd_opt_out/error_locations/error_location_01: RuntimeError
+general_nnbd_opt_out/error_locations/error_location_02: RuntimeError
+general_nnbd_opt_out/error_locations/error_location_03: RuntimeError
+general_nnbd_opt_out/error_locations/error_location_05: RuntimeError
+general_nnbd_opt_out/error_locations/error_location_06: RuntimeError
+general_nnbd_opt_out/expressions: RuntimeError
+general_nnbd_opt_out/external_import: RuntimeError # The native extension to import doesn't exist. This is ok.
+general_nnbd_opt_out/incomplete_field_formal_parameter: RuntimeError
+general_nnbd_opt_out/invocations: RuntimeError
+general_nnbd_opt_out/issue37776: RuntimeError
+general_nnbd_opt_out/issue38938: RuntimeError # no main and compile time errors.
+general_nnbd_opt_out/issue38944: RuntimeError # no main and compile time errors.
+general_nnbd_opt_out/issue38961: RuntimeError # no main and compile time errors.
+general_nnbd_opt_out/micro: RuntimeError
+general_nnbd_opt_out/mixin_application_override: ExpectationFileMismatch # Too many errors.
+general_nnbd_opt_out/mixin_application_override: TypeCheckError
+general_nnbd_opt_out/mixin_constructors_with_default_values: RuntimeError # Expected
+general_nnbd_opt_out/operator_method_not_found: RuntimeError # Expected
+general_nnbd_opt_out/optional: TypeCheckError
+general_nnbd_opt_out/override_check_accessor_after_inference: TypeCheckError # Issue #31620
+general_nnbd_opt_out/override_check_accessor_basic: TypeCheckError # Issue #31620
+general_nnbd_opt_out/override_check_accessor_with_covariant_modifier: TypeCheckError # Issue #31620
+general_nnbd_opt_out/override_check_after_inference: TypeCheckError # Issue #31620
+general_nnbd_opt_out/override_check_basic: TypeCheckError # Issue #31620
+general_nnbd_opt_out/override_check_with_covariant_modifier: TypeCheckError # Issue #31620
+general_nnbd_opt_out/override_setter_with_field: TypeCheckError
+general_nnbd_opt_out/reject_generic_function_types_in_bounds: RuntimeError # Expected
+general_nnbd_opt_out/spread_collection: RuntimeError
+general_nnbd_opt_out/statements: Crash
+general_nnbd_opt_out/type_parameter_type_named_int: RuntimeError # Expected
+general_nnbd_opt_out/type_variable_as_super: RuntimeError
+general_nnbd_opt_out/type_variable_bound_access: TypeCheckError
+general_nnbd_opt_out/unsound_promotion: TypeCheckError
+general_nnbd_opt_out/void_methods: RuntimeError
 inference/constructors_infer_from_arguments_argument_not_assignable: TypeCheckError
-inference/constructors_too_many_positional_arguments: InstrumentationMismatch # Issue #30040
 inference/do_not_infer_overridden_fields_that_explicitly_say_dynamic_infer: TypeCheckError
-inference/downwards_inference_annotations_type_variable: InstrumentationMismatch # Issue 28981
 inference/downwards_inference_for_each: RuntimeError # Issue #36382
-inference/downwards_inference_on_function_of_t_using_the_t: InstrumentationMismatch # Issue #29798
 inference/downwards_inference_on_list_literals_infer_downwards: RuntimeError
-inference/future_then_explicit_future: InstrumentationMismatch # Issue #30040
 inference/future_then_upwards: RuntimeError
 inference/future_then_upwards_2: RuntimeError
-inference/generic_functions_return_typedef: InstrumentationMismatch # Issue #29798
 inference/generic_methods_correctly_recognize_generic_upper_bound: TypeCheckError
 inference/generic_methods_do_not_infer_invalid_override_of_generic_method: TypeCheckError
 inference/generic_methods_handle_override_of_non_generic_with_generic: TypeCheckError
-inference/generic_methods_infer_js_builtin: InstrumentationMismatch # Issue #30029
-inference/inconsistent_overrides: TypeCheckError
-inference/infer_field_override_multiple: TypeCheckError
-inference/infer_from_complex_expressions_if_outer_most_value_is_precise: TypeCheckError # Issue #35630
-inference/infer_method_missing_params: ExpectationFileMismatch # Not supposed to be able to infer types if supertypes disagree on number of parameters. An error may be missing as C.f and B.f are not compatible at all.
 inference/infer_method_missing_params: TypeCheckError
 inference/infer_type_regardless_of_declaration_order_or_cycles: RuntimeError
 inference/infer_types_on_generic_instantiations_4: RuntimeError
@@ -86,21 +132,20 @@ inference/mixin_inference_outwards_4: TypeCheckError
 inference/mixin_inference_unification_1: TypeCheckError
 inference/mixin_inference_unification_2: TypeCheckError
 inference/override_equals: RuntimeError
-inference/unresolved_super: TypeCheckError
-inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr1: InstrumentationMismatch # Issue #25824
-inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr1: InstrumentationMismatch # Issue #25824
-inference_new/dependency_only_if_overloaded: TypeCheckError
 inference_new/infer_assign_to_index_super_upwards: TypeCheckError
 inference_new/infer_assign_to_index_this_upwards: TypeCheckError
 inference_new/infer_assign_to_index_upwards: TypeCheckError
 inference_new/infer_assign_to_property_custom: TypeCheckError
-inference_new/infer_field_getter_setter_mismatch: TypeCheckError
-inference_new/infer_field_override_accessors: TypeCheckError
-inference_new/infer_field_override_getter_overrides_setter: TypeCheckError
 inference_new/invalid_assignment_during_toplevel_inference: TypeCheckError
 instantiate_to_bound/non_simple_class_parametrized_typedef_cycle: RuntimeError # Expected
 instantiate_to_bound/non_simple_generic_function_in_bound_regress: RuntimeError # Expected
-nnbd/nullable_param: RuntimeError
+nnbd/inheritance_from_opt_in: TypeCheckError
+nnbd/issue41180: RuntimeError # Strong mode runtime checking fails due to mixed strong mode.
+nnbd/issue41210a/issue41210: TypeCheckError
+nnbd/issue41210b: TypeCheckError
+nnbd/messages_with_types_opt_in: TypeCheckError
+nnbd/messages_with_types_opt_out: TypeCheckError
+nnbd/never_opt_out: TypeCheckError
 rasta/abstract_constructor: RuntimeError
 rasta/bad_constructor_redirection: RuntimeError
 rasta/bad_continue: RuntimeError
@@ -140,8 +185,8 @@ rasta/super: TypeCheckError
 rasta/super_initializer: RuntimeError
 rasta/super_mixin: TypeCheckError
 rasta/super_operator: TypeCheckError
-rasta/type_literals: Crash
-rasta/typedef: Crash
+rasta/type_literals: RuntimeError
+rasta/typedef: RuntimeError
 rasta/unresolved: RuntimeError
 rasta/unresolved_constructor: RuntimeError
 rasta/unresolved_for_in: RuntimeError
@@ -164,6 +209,9 @@ regress/issue_36647: RuntimeError # Expected
 regress/issue_36647_2: RuntimeError # Expected
 regress/issue_36669: RuntimeError
 regress/issue_37285: RuntimeError
+regress/issue_39035.crash: RuntimeError
+regress/issue_39091_1: RuntimeError
+regress/issue_39091_2: RuntimeError
 runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast: RuntimeError
 runtime_checks_new/mixin_forwarding_stub_field: TypeCheckError
 runtime_checks_new/mixin_forwarding_stub_getter: TypeCheckError

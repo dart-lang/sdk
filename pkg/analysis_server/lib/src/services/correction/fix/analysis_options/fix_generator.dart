@@ -6,7 +6,7 @@ import 'dart:math' as math;
 
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/correction/strings.dart';
+import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analysis_server/src/utilities/yaml_node_locator.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -14,8 +14,6 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/analysis_options/error/option_codes.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart'
-    show SourceChange;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:yaml/yaml.dart';
@@ -41,7 +39,7 @@ class AnalysisOptionsFixGenerator {
   AnalysisOptionsFixGenerator(this.error, this.content, this.options)
       : errorOffset = error.offset,
         errorLength = error.length,
-        lineInfo = new LineInfo.fromContent(content);
+        lineInfo = LineInfo.fromContent(content);
 
   /// Return the absolute, normalized path to the file in which the error was
   /// reported.
@@ -49,14 +47,14 @@ class AnalysisOptionsFixGenerator {
 
   /// Return the list of fixes that apply to the error being fixed.
   Future<List<Fix>> computeFixes() async {
-    YamlNodeLocator locator = new YamlNodeLocator(
-        start: errorOffset, end: errorOffset + errorLength - 1);
+    var locator =
+        YamlNodeLocator(start: errorOffset, end: errorOffset + errorLength - 1);
     coveringNodePath = locator.searchWithin(options);
     if (coveringNodePath.isEmpty) {
       return fixes;
     }
 
-    ErrorCode errorCode = error.errorCode;
+    var errorCode = error.errorCode;
 //    if (errorCode == AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR) {
 //    } else if (errorCode == AnalysisOptionsErrorCode.PARSE_ERROR) {
 //    } else if (errorCode ==
@@ -92,22 +90,22 @@ class AnalysisOptionsFixGenerator {
   void _addFix_removeSetting() async {
     if (coveringNodePath[0] is YamlScalar) {
       SourceRange deletionRange;
-      int index = 1;
+      var index = 1;
       while (index < coveringNodePath.length) {
-        YamlNode parent = coveringNodePath[index];
+        var parent = coveringNodePath[index];
         if (parent is YamlList) {
           if (parent.nodes.length > 1) {
-            YamlNode nodeToDelete = coveringNodePath[index - 1];
+            var nodeToDelete = coveringNodePath[index - 1];
             deletionRange = _lines(
                 nodeToDelete.span.start.offset, nodeToDelete.span.end.offset);
             break;
           }
         } else if (parent is YamlMap) {
-          Map<dynamic, YamlNode> nodes = parent.nodes;
+          var nodes = parent.nodes;
           if (nodes.length > 1) {
             YamlNode key;
             YamlNode value;
-            YamlNode child = coveringNodePath[index - 1];
+            var child = coveringNodePath[index - 1];
             if (nodes.containsKey(child)) {
               key = child;
               value = nodes[child];
@@ -133,10 +131,10 @@ class AnalysisOptionsFixGenerator {
         }
         index++;
       }
-      YamlNode nodeToDelete = coveringNodePath[index - 1];
+      var nodeToDelete = coveringNodePath[index - 1];
       deletionRange ??=
           _lines(nodeToDelete.span.start.offset, nodeToDelete.span.end.offset);
-      ChangeBuilder builder = new ChangeBuilder();
+      var builder = ChangeBuilder();
       await builder.addFileEdit(file, (builder) {
         builder.addDeletion(deletionRange);
       });
@@ -148,14 +146,13 @@ class AnalysisOptionsFixGenerator {
   /// Add a fix whose edits were built by the [builder] that has the given
   /// [kind]. If [args] are provided, they will be used to fill in the message
   /// for the fix.
-  void _addFixFromBuilder(ChangeBuilder builder, FixKind kind,
-      {List args = null}) {
-    SourceChange change = builder.sourceChange;
+  void _addFixFromBuilder(ChangeBuilder builder, FixKind kind, {List args}) {
+    var change = builder.sourceChange;
     if (change.edits.isEmpty) {
       return;
     }
     change.message = formatList(kind.message, args);
-    fixes.add(new Fix(kind, change));
+    fixes.add(Fix(kind, change));
   }
 
   int _firstNonWhitespaceBefore(int offset) {
@@ -167,10 +164,10 @@ class AnalysisOptionsFixGenerator {
 
   SourceRange _lines(int start, int end) {
     CharacterLocation startLocation = lineInfo.getLocation(start);
-    int startOffset = lineInfo.getOffsetOfLine(startLocation.lineNumber - 1);
+    var startOffset = lineInfo.getOffsetOfLine(startLocation.lineNumber - 1);
     CharacterLocation endLocation = lineInfo.getLocation(end);
-    int endOffset = lineInfo.getOffsetOfLine(
+    var endOffset = lineInfo.getOffsetOfLine(
         math.min(endLocation.lineNumber, lineInfo.lineCount - 1));
-    return new SourceRange(startOffset, endOffset - startOffset);
+    return SourceRange(startOffset, endOffset - startOffset);
   }
 }

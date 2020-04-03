@@ -2,119 +2,119 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:13:7: Error: Found unsupported uses of 'T' in supertype 'A'.
+// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:13:7: Error: Can't use implicitly 'out' variable 'T' in an 'in' position in supertype 'A'.
 // class B<T> extends A<Function(T)> {}
 //       ^
 //
-// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:15:7: Error: Found unsupported uses of 'T' in supertype 'A'.
+// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:15:7: Error: Can't use implicitly 'out' variable 'T' in an 'in' position in supertype 'A'.
 // class Bc<T> extends A<ContravariantUse<T>> {}
 //       ^
 //
-// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:17:7: Error: Found unsupported uses of 'T' in supertype 'A'.
+// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:17:7: Error: Can't use implicitly 'out' variable 'T' in an 'inout' position in supertype 'A'.
 // class Bi<T> extends A<InvariantUse<T>> {}
 //       ^
 //
-// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:19:7: Error: Found unsupported uses of 'T' in supertype 'A'.
+// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:19:7: Error: Can't use implicitly 'out' variable 'T' in an 'in' position in supertype 'A'.
 // class C<T> implements A<Function(T)> {}
 //       ^
 //
-// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:21:7: Error: Found unsupported uses of 'T' in supertype 'A'.
+// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:21:7: Error: Can't use implicitly 'out' variable 'T' in an 'in' position in supertype 'A'.
 // class Cc<T> implements A<ContravariantUse<T>> {}
 //       ^
 //
-// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:23:7: Error: Found unsupported uses of 'T' in supertype 'A'.
+// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:23:7: Error: Can't use implicitly 'out' variable 'T' in an 'inout' position in supertype 'A'.
 // class Ci<T> implements A<InvariantUse<T>> {}
 //       ^
 //
-// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:25:7: Error: Found unsupported uses of 'T' in supertype 'A'.
+// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:25:7: Error: Can't use implicitly 'out' variable 'T' in an 'in' position in supertype 'A'.
 // class D<T> = Object with A<Function(T)>;
 //       ^
 //
-// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:27:7: Error: Found unsupported uses of 'T' in supertype 'A'.
+// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:27:7: Error: Can't use implicitly 'out' variable 'T' in an 'in' position in supertype 'A'.
 // class Dc<T> = Object with A<ContravariantUse<T>>;
 //       ^
 //
-// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:29:7: Error: Found unsupported uses of 'T' in supertype 'A'.
+// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:29:7: Error: Can't use implicitly 'out' variable 'T' in an 'inout' position in supertype 'A'.
 // class Di<T> = Object with A<InvariantUse<T>>;
 //       ^
 //
-// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:31:7: Error: Found unsupported uses of 'T' in supertype 'A'.
+// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:31:7: Error: Can't use implicitly 'out' variable 'T' in an 'in' position in supertype 'A'.
 // class E<T> = A<Function(T)> with Empty;
 //       ^
 //
-// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:33:7: Error: Found unsupported uses of 'T' in supertype 'A'.
+// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:33:7: Error: Can't use implicitly 'out' variable 'T' in an 'in' position in supertype 'A'.
 // class Ec<T> = A<ContravariantUse<T>> with Empty;
 //       ^
 //
-// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:35:7: Error: Found unsupported uses of 'T' in supertype 'A'.
+// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:35:7: Error: Can't use implicitly 'out' variable 'T' in an 'inout' position in supertype 'A'.
 // class Ei<T> = A<InvariantUse<T>> with Empty;
 //       ^
 //
-// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:37:7: Error: Found unsupported uses of 'T' in supertype 'A'.
+// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:37:7: Error: Can't use implicitly 'out' variable 'T' in an 'in' position in supertype 'A'.
 // class F<T> extends Object with A<Function(T)> {}
 //       ^
 //
-// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:39:7: Error: Found unsupported uses of 'T' in supertype 'A'.
+// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:39:7: Error: Can't use implicitly 'out' variable 'T' in an 'in' position in supertype 'A'.
 // class Fc<T> extends Object with A<ContravariantUse<T>> {}
 //       ^
 //
-// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:41:7: Error: Found unsupported uses of 'T' in supertype 'A'.
+// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:41:7: Error: Can't use implicitly 'out' variable 'T' in an 'inout' position in supertype 'A'.
 // class Fi<T> extends Object with A<InvariantUse<T>> {}
 //       ^
 //
-// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:43:7: Error: Found unsupported uses of 'T' in supertype 'A'.
+// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:43:7: Error: Can't use implicitly 'out' variable 'T' in an 'in' position in supertype 'A'.
 // class G<T> extends A<Function(T)> with Empty {}
 //       ^
 //
-// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:45:7: Error: Found unsupported uses of 'T' in supertype 'A'.
+// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:45:7: Error: Can't use implicitly 'out' variable 'T' in an 'in' position in supertype 'A'.
 // class Gc<T> extends A<ContravariantUse<T>> with Empty {}
 //       ^
 //
-// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:47:7: Error: Found unsupported uses of 'T' in supertype 'A'.
+// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:47:7: Error: Can't use implicitly 'out' variable 'T' in an 'inout' position in supertype 'A'.
 // class Gi<T> extends A<InvariantUse<T>> with Empty {}
 //       ^
 //
-// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:57:7: Error: Found unsupported uses of 'T' in supertype 'A'.
+// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:57:7: Error: Can't use implicitly 'out' variable 'T' in an 'inout' position in supertype 'A'.
 // class Hii<T> extends A<InvariantUse<InvariantUse<T>>> {}
 //       ^
 //
-// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:71:7: Error: Found unsupported uses of 'T' in supertype 'A'.
+// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:71:7: Error: Can't use implicitly 'out' variable 'T' in an 'in' position in supertype 'A'.
 // class Jfff<T> extends A<Function(Function(Function(T)))> {}
 //       ^
 //
-// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:73:7: Error: Found unsupported uses of 'T' in supertype 'A'.
+// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:73:7: Error: Can't use implicitly 'out' variable 'T' in an 'in' position in supertype 'A'.
 // class Jffc<T> extends A<Function(Function(ContravariantUse<T>))> {}
 //       ^
 //
-// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:75:7: Error: Found unsupported uses of 'T' in supertype 'A'.
+// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:75:7: Error: Can't use implicitly 'out' variable 'T' in an 'in' position in supertype 'A'.
 // class Jfcf<T> extends A<Function(ContravariantUse<Function(T)>)> {}
 //       ^
 //
-// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:77:7: Error: Found unsupported uses of 'T' in supertype 'A'.
+// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:77:7: Error: Can't use implicitly 'out' variable 'T' in an 'in' position in supertype 'A'.
 // class Jfcc<T> extends A<Function(ContravariantUse<ContravariantUse<T>>)> {}
 //       ^
 //
-// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:79:7: Error: Found unsupported uses of 'T' in supertype 'A'.
+// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:79:7: Error: Can't use implicitly 'out' variable 'T' in an 'in' position in supertype 'A'.
 // class Jcff<T> extends A<ContravariantUse<Function(Function(T))>> {}
 //       ^
 //
-// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:81:7: Error: Found unsupported uses of 'T' in supertype 'A'.
+// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:81:7: Error: Can't use implicitly 'out' variable 'T' in an 'in' position in supertype 'A'.
 // class Jcfc<T> extends A<ContravariantUse<Function(ContravariantUse<T>)>> {}
 //       ^
 //
-// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:83:7: Error: Found unsupported uses of 'T' in supertype 'A'.
+// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:83:7: Error: Can't use implicitly 'out' variable 'T' in an 'in' position in supertype 'A'.
 // class Jccf<T> extends A<ContravariantUse<ContravariantUse<Function(T)>>> {}
 //       ^
 //
-// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:85:7: Error: Found unsupported uses of 'T' in supertype 'A'.
+// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:85:7: Error: Can't use implicitly 'out' variable 'T' in an 'in' position in supertype 'A'.
 // class Jccc<T>
 //       ^
 //
 import self as self;
 import "dart:core" as core;
 
-typedef ContravariantUse<T extends core::Object* = dynamic> = (T*) →* dynamic;
-typedef InvariantUse<T extends core::Object* = dynamic> = (T*) →* T*;
+typedef ContravariantUse<contravariant T extends core::Object* = dynamic> = (T*) →* dynamic;
+typedef InvariantUse<invariant T extends core::Object* = dynamic> = (T*) →* T*;
 class Empty extends core::Object {
   synthetic constructor •() → self::Empty*
     : super core::Object::•()
@@ -155,37 +155,37 @@ class Ci<T extends core::Object* = dynamic> extends core::Object {
     : super core::Object::•()
     ;
 }
-class D<T extends core::Object* = dynamic> extends core::Object {
+class D<T extends core::Object* = dynamic> extends core::Object /*hasConstConstructor*/  {
   const synthetic constructor •() → self::D<self::D::T*>*
     : super core::Object::•()
     ;
 }
-class Dc<T extends core::Object* = dynamic> extends core::Object {
+class Dc<T extends core::Object* = dynamic> extends core::Object /*hasConstConstructor*/  {
   const synthetic constructor •() → self::Dc<self::Dc::T*>*
     : super core::Object::•()
     ;
 }
-class Di<T extends core::Object* = dynamic> extends core::Object {
+class Di<T extends core::Object* = dynamic> extends core::Object /*hasConstConstructor*/  {
   const synthetic constructor •() → self::Di<self::Di::T*>*
     : super core::Object::•()
     ;
 }
-class E<T extends core::Object* = dynamic> extends core::Object implements self::Empty {
+class E<T extends core::Object* = dynamic> extends core::Object implements self::Empty /*isEliminatedMixin*/  {
   synthetic constructor •() → self::E<self::E::T*>*
     : super core::Object::•()
     ;
 }
-class Ec<T extends core::Object* = dynamic> extends core::Object implements self::Empty {
+class Ec<T extends core::Object* = dynamic> extends core::Object implements self::Empty /*isEliminatedMixin*/  {
   synthetic constructor •() → self::Ec<self::Ec::T*>*
     : super core::Object::•()
     ;
 }
-class Ei<T extends core::Object* = dynamic> extends core::Object implements self::Empty {
+class Ei<T extends core::Object* = dynamic> extends core::Object implements self::Empty /*isEliminatedMixin*/  {
   synthetic constructor •() → self::Ei<self::Ei::T*>*
     : super core::Object::•()
     ;
 }
-abstract class _F&Object&A<T extends core::Object* = dynamic> extends core::Object {
+abstract class _F&Object&A<T extends core::Object* = dynamic> extends core::Object /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_F&Object&A<self::_F&Object&A::T*>*
     : super core::Object::•()
     ;
@@ -195,7 +195,7 @@ class F<T extends core::Object* = dynamic> extends self::_F&Object&A<self::F::T*
     : super self::_F&Object&A::•()
     ;
 }
-abstract class _Fc&Object&A<T extends core::Object* = dynamic> extends core::Object {
+abstract class _Fc&Object&A<T extends core::Object* = dynamic> extends core::Object /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Fc&Object&A<self::_Fc&Object&A::T*>*
     : super core::Object::•()
     ;
@@ -205,7 +205,7 @@ class Fc<T extends core::Object* = dynamic> extends self::_Fc&Object&A<self::Fc:
     : super self::_Fc&Object&A::•()
     ;
 }
-abstract class _Fi&Object&A<T extends core::Object* = dynamic> extends core::Object {
+abstract class _Fi&Object&A<T extends core::Object* = dynamic> extends core::Object /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Fi&Object&A<self::_Fi&Object&A::T*>*
     : super core::Object::•()
     ;
@@ -215,7 +215,7 @@ class Fi<T extends core::Object* = dynamic> extends self::_Fi&Object&A<self::Fi:
     : super self::_Fi&Object&A::•()
     ;
 }
-abstract class _G&A&Empty<T extends core::Object* = dynamic> extends core::Object implements self::Empty {
+abstract class _G&A&Empty<T extends core::Object* = dynamic> extends core::Object implements self::Empty /*isAnonymousMixin,isEliminatedMixin*/  {
   synthetic constructor •() → self::_G&A&Empty<self::_G&A&Empty::T*>*
     : super core::Object::•()
     ;
@@ -225,7 +225,7 @@ class G<T extends core::Object* = dynamic> extends self::_G&A&Empty<self::G::T*>
     : super self::_G&A&Empty::•()
     ;
 }
-abstract class _Gc&A&Empty<T extends core::Object* = dynamic> extends core::Object implements self::Empty {
+abstract class _Gc&A&Empty<T extends core::Object* = dynamic> extends core::Object implements self::Empty /*isAnonymousMixin,isEliminatedMixin*/  {
   synthetic constructor •() → self::_Gc&A&Empty<self::_Gc&A&Empty::T*>*
     : super core::Object::•()
     ;
@@ -235,7 +235,7 @@ class Gc<T extends core::Object* = dynamic> extends self::_Gc&A&Empty<self::Gc::
     : super self::_Gc&A&Empty::•()
     ;
 }
-abstract class _Gi&A&Empty<T extends core::Object* = dynamic> extends core::Object implements self::Empty {
+abstract class _Gi&A&Empty<T extends core::Object* = dynamic> extends core::Object implements self::Empty /*isAnonymousMixin,isEliminatedMixin*/  {
   synthetic constructor •() → self::_Gi&A&Empty<self::_Gi&A&Empty::T*>*
     : super core::Object::•()
     ;

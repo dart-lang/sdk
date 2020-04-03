@@ -2,133 +2,40 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == dart2js ]
-23264_test: RuntimeError
-bound_closure_interceptor_type_test: RuntimeError
-bounds_check4a_test: RuntimeError # Issue 32741
-bounds_check4b_test: RuntimeError # Issue 32741
-class_test: Fail
-closure_capture2_test: RuntimeError
-constant_javascript_semantics4_test: Fail, OK
-constant_javascript_semantics_test/03: CompileTimeError
-constant_javascript_semantics_test/04: CompileTimeError
-constant_javascript_semantics_test/none: CompileTimeError
-generic_class_is_test: Fail # Issue 32004
-jsinterop_test/01: MissingCompileTimeError # Issue 34174
-jsinterop_test/02: MissingCompileTimeError # Issue 34174
-jsinterop_test/03: MissingCompileTimeError # Issue 34174
-jsinterop_test/04: MissingCompileTimeError # Issue 34174
-jsinterop_test/34: MissingCompileTimeError # Issue 33834
-jsinterop_test/35: MissingCompileTimeError # Issue 33834
-jsinterop_test/36: MissingCompileTimeError # Issue 33834
-jsinterop_test/37: MissingCompileTimeError # Issue 33834
-jsinterop_test/38: MissingCompileTimeError # Issue 34174
-jsinterop_test/42: MissingCompileTimeError # Issue 34174
-jsinterop_test/43: MissingCompileTimeError # Issue 34345
-jsinterop_test/44: MissingCompileTimeError # Issue 34345
-jsinterop_test/45: MissingCompileTimeError # Issue 34345
-jsinterop_test/46: MissingCompileTimeError # Issue 34174
-jsinterop_test/51: MissingCompileTimeError # Issue 34174
-jsinterop_test/52: MissingCompileTimeError # Issue 34345
-jsinterop_test/53: MissingCompileTimeError # Issue 34345
-jsinterop_test/54: MissingCompileTimeError # Issue 34345
-many_instantiations_test/01: Crash # Issue 33819
-no_such_method_test: Fail # Wrong Invocation.memberName.
-non_jsinterop_test/01: MissingCompileTimeError # Issue 34174
-non_jsinterop_test/02: MissingCompileTimeError # Issue 34174
-non_jsinterop_test/03: MissingCompileTimeError # Issue 34174
-non_jsinterop_test/04: MissingCompileTimeError # Issue 34174
-non_jsinterop_test/34: MissingCompileTimeError # Issue 33834
-non_jsinterop_test/35: MissingCompileTimeError # Issue 33834
-non_jsinterop_test/36: MissingCompileTimeError # Issue 33834
-non_jsinterop_test/37: MissingCompileTimeError # Issue 33834
-non_jsinterop_test/38: MissingCompileTimeError # Issue 34174
-non_jsinterop_test/42: MissingCompileTimeError # Issue 34174
-non_jsinterop_test/43: MissingCompileTimeError # Issue 34345
-non_jsinterop_test/44: MissingCompileTimeError # Issue 34345
-non_jsinterop_test/45: MissingCompileTimeError # Issue 34345
-non_jsinterop_test/46: MissingCompileTimeError # Issue 34174
-non_jsinterop_test/51: MissingCompileTimeError # Issue 34174
-non_jsinterop_test/52: MissingCompileTimeError # Issue 34345
-non_jsinterop_test/53: MissingCompileTimeError # Issue 34345
-non_jsinterop_test/54: MissingCompileTimeError # Issue 34345
-private_symbol_literal_test/01: MissingCompileTimeError
-private_symbol_literal_test/02: MissingCompileTimeError
-private_symbol_literal_test/03: MissingCompileTimeError
-private_symbol_literal_test/04: MissingCompileTimeError
-private_symbol_literal_test/05: MissingCompileTimeError
-private_symbol_literal_test/06: MissingCompileTimeError
-regress/4562_test/none: CompileTimeError
-round_constant_folding_test: CompileTimeError
-statements_test: Fail
-type_constant_switch_test/01: MissingCompileTimeError
-typed_locals_test: Pass, Fail
-
 [ $compiler != dart2js ]
 dummy_compiler_test: SkipByDesign # Issue 30773. Test should be migrated as a unit test of dart2js, is only intended to test self-hosting.
 
 [ $runtime == jsshell ]
 deferred/load_in_correct_order_test: SkipByDesign # jsshell preamble does not support this test.
-timer_test: Fail # Issue 7728.
-
-[ $runtime == none ]
-timer_negative_test: Fail, OK # A negative runtime test.
 
 [ $compiler == dart2js && $mode == debug ]
 operator_test: Skip
 string_interpolation_test: Skip
 
 [ $compiler == dart2js && $runtime == chrome && $system == windows ]
-class_test: Pass, Slow # Issue 25940
-closure_capture3_test: Pass, Slow # Issue 25940
-closure_capture5_test: Pass, Slow # Issue 25940
-conditional_test: Pass, Slow # Issue 25940
-consistent_codeUnitAt_error_test: Pass, Slow # Issue 25940
-constant_javascript_semantics2_test: Pass, Slow # Issue 25940
-deferred_split_test: Pass, Slow # Issue 25940
+class_test: Slow, Pass # Issue 25940
+closure_capture3_test: Slow, Pass # Issue 25940
+closure_capture5_test: Slow, Pass # Issue 25940
+conditional_test: Slow, Pass # Issue 25940
+consistent_codeUnitAt_error_test: Slow, Pass # Issue 25940
+constant_javascript_semantics2_test: Slow, Pass # Issue 25940
+deferred_split_test: Slow, Pass # Issue 25940
 
 [ $compiler == dart2js && $runtime == chrome && $csp ]
 deferred/load_in_correct_order_test: SkipByDesign # Purposely uses `eval`
 
-[ $compiler == dart2js && $runtime == d8 ]
-deferred_fail_and_retry_test: RuntimeError # Uses XHR in dart:html
-deferred_with_csp_nonce_test: RuntimeError # Uses dart:html
-
 [ $compiler == dart2js && $runtime == ff && $system == windows ]
-consistent_index_error_string_test: Pass, Slow # Issue 25940
-
-[ $compiler == dart2js && $runtime == none ]
-*: Fail, Pass # TODO(ahe): Triage these tests.
-
-[ $compiler == dart2js && $checked ]
-dummy_compiler_test: Crash
-local_signature_test: Crash
-minus_zero_test/01: MissingCompileTimeError
+consistent_index_error_string_test: Slow, Pass # Issue 25940
 
 [ $compiler == dart2js && $csp ]
 deferred_custom_loader_test: SkipByDesign # Issue 25683
 deferred_fail_and_retry_test: SkipByDesign # Uses eval to simulate failed loading.
-js_interop_optional_arg_test: RuntimeError # Issue 31082
-js_interop_test: RuntimeError # Issue 31082
 
 [ $compiler == dart2js && !$host_checked ]
-dummy_compiler_test: RuntimeError, Slow # Issue 32439. self-hosting doesn't work with CFE yet.
+dummy_compiler_test: Slow, Pass # Issue 32439. self-hosting doesn't work with CFE yet.
 
 [ $compiler == dart2js && $minified ]
-closure_capture2_test: Pass # Passes for the wrong reason
 code_motion_exception_test: Skip # Requires unminified operator names.
-deferred/reflect_multiple_annotations_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
-deferred/reflect_multiple_annotations_test: Fail
-deferred/reflect_multiple_default_arg_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
-deferred/reflect_multiple_default_arg_test: Fail
-mirrors_used_warning_test/minif: Fail, OK # Tests warning that minified code will be broken.
-runtime_type_test: Fail, OK # Tests extected output of Type.toString().
-to_string_test: Fail # Issue 7179.
-type_literal_test: Fail, OK # Tests expected output of Type.toString().
-typevariable_typedef_test: Fail, OK # Tests expected output of Type.toString().
-
-[ $compiler == dart2js && ($runtime == chrome || $runtime == chromeOnAndroid || $runtime == ff || $runtime == safari) ]
-isolate2_test/01: Fail # Issue 14458.
 
 [ $compiler == dart2js && ($runtime == ff || $runtime == jsshell || $runtime == safari) ]
 code_motion_exception_test: Skip # Required V8 specific format of JavaScript errors.
@@ -137,6 +44,5 @@ code_motion_exception_test: Skip # Required V8 specific format of JavaScript err
 dummy_compiler_test: SkipByDesign # Issue 30773. Test should be migrated as a unit test of dart2js, is only intended to test self-hosting.
 
 [ $compiler == none && $runtime == vm ]
-invalid_annotation_test/01: MissingCompileTimeError, OK # vm is lazy
 new_from_env_test: SkipByDesign # dart2js only test
 unconditional_dartio_import_test: SkipByDesign # dart2js only test

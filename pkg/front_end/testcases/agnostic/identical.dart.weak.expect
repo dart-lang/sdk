@@ -1,0 +1,13 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static const field core::List<core::int> a = #C1;
+static const field core::List<core::int?> b = #C1;
+static const field core::bool c = #C2;
+static method main() → dynamic {}
+
+constants  {
+  #C1 = <core::int*>[]
+  #C2 = true
+}

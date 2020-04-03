@@ -19,17 +19,20 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    _checkForMissingRequiredParam(
-      node.staticInvokeType,
-      node.argumentList,
-      node,
-    );
+    var type = node.staticInvokeType;
+    if (type is FunctionType) {
+      _check(
+        type.parameters,
+        node.argumentList,
+        node,
+      );
+    }
   }
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    _checkForMissingRequiredParam(
-      node.staticElement?.type,
+    _check(
+      node.staticElement?.parameters,
       node.argumentList,
       node.constructorName,
     );
@@ -37,8 +40,8 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    _checkForMissingRequiredParam(
-      node.staticInvokeType,
+    _check(
+      _executableElement(node.methodName.staticElement)?.parameters,
       node.argumentList,
       node.methodName,
     );
@@ -47,8 +50,8 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
   @override
   void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
-    _checkForMissingRequiredParam(
-      node.staticElement?.type,
+    _check(
+      _executableElement(node.staticElement)?.parameters,
       node.argumentList,
       node,
     );
@@ -56,49 +59,51 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
 
   @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-    _checkForMissingRequiredParam(
-      node.staticElement?.type,
+    _check(
+      _executableElement(node.staticElement)?.parameters,
       node.argumentList,
       node,
     );
   }
 
-  void _checkForMissingRequiredParam(
-    DartType type,
+  void _check(
+    List<ParameterElement> parameters,
     ArgumentList argumentList,
     AstNode node,
   ) {
-    if (type is FunctionType) {
-      for (ParameterElement parameter in type.parameters) {
-        if (parameter.isRequiredNamed) {
+    if (parameters == null) {
+      return;
+    }
+
+    for (ParameterElement parameter in parameters) {
+      if (parameter.isRequiredNamed) {
+        String parameterName = parameter.name;
+        if (!_containsNamedExpression(argumentList, parameterName)) {
+          _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT,
+            node,
+            [parameterName],
+          );
+        }
+      }
+      if (parameter.isOptionalNamed) {
+        ElementAnnotationImpl annotation = _requiredAnnotation(parameter);
+        if (annotation != null) {
           String parameterName = parameter.name;
           if (!_containsNamedExpression(argumentList, parameterName)) {
-            _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT,
-              node,
-              [parameterName],
-            );
-          }
-        }
-        if (parameter.isOptionalNamed) {
-          ElementAnnotationImpl annotation = _requiredAnnotation(parameter);
-          if (annotation != null) {
-            String parameterName = parameter.name;
-            if (!_containsNamedExpression(argumentList, parameterName)) {
-              String reason = _requiredReason(annotation);
-              if (reason != null) {
-                _errorReporter.reportErrorForNode(
-                  HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS,
-                  node,
-                  [parameterName, reason],
-                );
-              } else {
-                _errorReporter.reportErrorForNode(
-                  HintCode.MISSING_REQUIRED_PARAM,
-                  node,
-                  [parameterName],
-                );
-              }
+            String reason = _requiredReason(annotation);
+            if (reason != null) {
+              _errorReporter.reportErrorForNode(
+                HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS,
+                node,
+                [parameterName, reason],
+              );
+            } else {
+              _errorReporter.reportErrorForNode(
+                HintCode.MISSING_REQUIRED_PARAM,
+                node,
+                [parameterName],
+              );
             }
           }
         }
@@ -119,6 +124,14 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
     return false;
   }
 
+  static ExecutableElement _executableElement(Element element) {
+    if (element is ExecutableElement) {
+      return element;
+    } else {
+      return null;
+    }
+  }
+
   static ElementAnnotationImpl _requiredAnnotation(ParameterElement element) {
     return element.metadata.firstWhere(
       (e) => e.isRequired,
@@ -128,6 +141,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
 
   static String _requiredReason(ElementAnnotationImpl annotation) {
     DartObject constantValue = annotation.computeConstantValue();
-    return constantValue?.getField('reason')?.toStringValue();
+    String value = constantValue?.getField('reason')?.toStringValue();
+    return (value == null || value.isEmpty) ? null : value;
   }
 }

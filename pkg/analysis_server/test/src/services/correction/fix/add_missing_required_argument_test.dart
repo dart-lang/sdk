@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddMissingRequiredArgumentTest);
   });
@@ -19,7 +19,7 @@ class AddMissingRequiredArgumentTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT;
 
-  test_cons_flutter_children() async {
+  Future<void> test_cons_flutter_children() async {
     addFlutterPackage();
     addMetaPackage();
     await resolveTestUnit('''
@@ -48,7 +48,7 @@ build() {
 ''');
   }
 
-  test_cons_flutter_hasTrailingComma() async {
+  Future<void> test_cons_flutter_hasTrailingComma() async {
     addFlutterPackage();
     addMetaPackage();
     await resolveTestUnit('''
@@ -77,7 +77,7 @@ build() {
 ''');
   }
 
-  test_cons_single() async {
+  Future<void> test_cons_single() async {
     addMetaPackage();
     addSource('/home/test/lib/a.dart', r'''
 import 'package:meta/meta.dart';
@@ -104,7 +104,7 @@ main() {
 ''');
   }
 
-  test_cons_single_closure() async {
+  Future<void> test_cons_single_closure() async {
     addMetaPackage();
     addSource('/home/test/lib/a.dart', r'''
 import 'package:meta/meta.dart';
@@ -127,13 +127,13 @@ main() {
 import 'package:test/a.dart';
 
 main() {
-  A a = new A(onPressed: () {});
+  A a = new A(onPressed: () {  });
   print(a);
 }
 ''');
   }
 
-  test_cons_single_closure_2() async {
+  Future<void> test_cons_single_closure_2() async {
     addMetaPackage();
     addSource('/home/test/lib/a.dart', r'''
 import 'package:meta/meta.dart';
@@ -156,13 +156,13 @@ main() {
 import 'package:test/a.dart';
 
 main() {
-  A a = new A(callback: (e) {});
+  A a = new A(callback: (e) {  });
   print(a);
 }
 ''');
   }
 
-  test_cons_single_closure_3() async {
+  Future<void> test_cons_single_closure_3() async {
     addMetaPackage();
     addSource('/home/test/lib/a.dart', r'''
 import 'package:meta/meta.dart';
@@ -185,13 +185,13 @@ main() {
 import 'package:test/a.dart';
 
 main() {
-  A a = new A(callback: (a, b, c) {});
+  A a = new A(callback: (a, b, c) {  });
   print(a);
 }
 ''');
   }
 
-  test_cons_single_closure_4() async {
+  Future<void> test_cons_single_closure_4() async {
     addMetaPackage();
     addSource('/home/test/lib/a.dart', r'''
 import 'package:meta/meta.dart';
@@ -214,13 +214,13 @@ main() {
 import 'package:test/a.dart';
 
 main() {
-  A a = new A(callback: (int a, String b, c) {});
+  A a = new A(callback: (int a, String b, c) {  });
   print(a);
 }
 ''');
   }
 
-  test_cons_single_list() async {
+  Future<void> test_cons_single_list() async {
     addMetaPackage();
     addSource('/home/test/lib/a.dart', r'''
 import 'package:meta/meta.dart';
@@ -247,7 +247,7 @@ main() {
 ''');
   }
 
-  test_multiple() async {
+  Future<void> test_multiple() async {
     addMetaPackage();
     await resolveTestUnit('''
 import 'package:meta/meta.dart';
@@ -267,7 +267,7 @@ main() {
 ''');
   }
 
-  test_multiple_1of2() async {
+  Future<void> test_multiple_1of2() async {
     addMetaPackage();
     await resolveTestUnit('''
 import 'package:meta/meta.dart';
@@ -287,7 +287,7 @@ main() {
 ''', errorFilter: (error) => error.message.contains("'a'"));
   }
 
-  test_multiple_2of2() async {
+  Future<void> test_multiple_2of2() async {
     addMetaPackage();
     await resolveTestUnit('''
 import 'package:meta/meta.dart';
@@ -307,7 +307,75 @@ main() {
 ''', errorFilter: (error) => error.message.contains("'bcd'"));
   }
 
-  test_single() async {
+  Future<void> test_param_child() async {
+    addFlutterPackage();
+    addMetaPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+import 'package:meta/meta.dart';
+
+class MyWidget extends Widget {
+  MyWidget({@required String foo, @required Widget child});
+}
+
+build() {
+  return new MyWidget(
+    child: null,
+  );
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/widgets.dart';
+import 'package:meta/meta.dart';
+
+class MyWidget extends Widget {
+  MyWidget({@required String foo, @required Widget child});
+}
+
+build() {
+  return new MyWidget(
+    foo: null,
+    child: null,
+  );
+}
+''');
+  }
+
+  Future<void> test_param_children() async {
+    addFlutterPackage();
+    addMetaPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+import 'package:meta/meta.dart';
+
+class MyWidget extends Widget {
+  MyWidget({@required String foo, @required List<Widget> children});
+}
+
+build() {
+  return new MyWidget(
+    children: null,
+  );
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/widgets.dart';
+import 'package:meta/meta.dart';
+
+class MyWidget extends Widget {
+  MyWidget({@required String foo, @required List<Widget> children});
+}
+
+build() {
+  return new MyWidget(
+    foo: null,
+    children: null,
+  );
+}
+''');
+  }
+
+  Future<void> test_single() async {
     addMetaPackage();
     await resolveTestUnit('''
 import 'package:meta/meta.dart';
@@ -328,7 +396,7 @@ main() {
     assertLinkedGroup(change.linkedEditGroups[0], ['null);']);
   }
 
-  test_single_normal() async {
+  Future<void> test_single_normal() async {
     addMetaPackage();
     await resolveTestUnit('''
 import 'package:meta/meta.dart';
@@ -348,7 +416,7 @@ main() {
 ''');
   }
 
-  test_single_with_details() async {
+  Future<void> test_single_with_details() async {
     addMetaPackage();
     await resolveTestUnit('''
 import 'package:meta/meta.dart';

@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OrganizeDirectivesTest);
   });
@@ -17,9 +15,9 @@ main() {
 
 @reflectiveTest
 class OrganizeDirectivesTest extends AbstractAnalysisServerIntegrationTest {
-  test_organize_directives() async {
-    String pathname = sourcePath('test.dart');
-    String text = r'''
+  Future<void> test_organize_directives() async {
+    var pathname = sourcePath('test.dart');
+    var text = r'''
 import 'dart:math';
 import 'dart:async';
 
@@ -29,17 +27,16 @@ int minified(int x, int y) => min(x, y);
     writeFile(pathname, text);
     standardAnalysisSetup();
 
-    EditOrganizeDirectivesResult result =
-        await sendEditOrganizeDirectives(pathname);
-    SourceFileEdit edit = result.edit;
+    var result = await sendEditOrganizeDirectives(pathname);
+    var edit = result.edit;
     expect(edit.edits, hasLength(1));
     expect(edit.edits.first.replacement,
         "import 'dart:async';\nimport 'dart:math");
   }
 
-  test_organize_directives_no_changes() async {
-    String pathname = sourcePath('test.dart');
-    String text = r'''
+  Future<void> test_organize_directives_no_changes() async {
+    var pathname = sourcePath('test.dart');
+    var text = r'''
 import 'dart:async';
 import 'dart:math';
 
@@ -49,15 +46,14 @@ int minified(int x, int y) => min(x, y);
     writeFile(pathname, text);
     standardAnalysisSetup();
 
-    EditOrganizeDirectivesResult result =
-        await sendEditOrganizeDirectives(pathname);
-    SourceFileEdit edit = result.edit;
+    var result = await sendEditOrganizeDirectives(pathname);
+    var edit = result.edit;
     expect(edit.edits, isEmpty);
   }
 
-  test_organize_directives_with_errors() async {
-    String pathname = sourcePath('test.dart');
-    String text = r'''
+  Future<void> test_organize_directives_with_errors() async {
+    var pathname = sourcePath('test.dart');
+    var text = r'''
 import 'dart:async'
 import 'dart:math';
 

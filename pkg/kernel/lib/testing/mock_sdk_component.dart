@@ -17,7 +17,7 @@ Component createMockSdkComponent() {
   }
 
   var objectClass = addClass(coreLib, new Class(name: 'Object'));
-  var objectType = objectClass.rawType;
+  var objectType = new InterfaceType(objectClass, coreLib.nonNullable);
 
   TypeParameter typeParam(String name, [DartType bound]) {
     return new TypeParameter(name, bound ?? objectType);
@@ -47,7 +47,9 @@ Component createMockSdkComponent() {
         class_('List', typeParameters: [
           T
         ], implementedTypes: [
-          new Supertype(iterable, [new TypeParameterType(T)])
+          new Supertype(iterable, [
+            new TypeParameterType.withDefaultNullabilityForLibrary(T, coreLib)
+          ])
         ]));
   }
   addClass(
@@ -59,7 +61,7 @@ Component createMockSdkComponent() {
   addClass(coreLib, class_('Type'));
   addClass(coreLib, class_('Function'));
   addClass(coreLib, class_('Invocation'));
-  addClass(asyncLib, class_('Future', typeParameters: [typeParam('T')]));
+  addClass(coreLib, class_('Future', typeParameters: [typeParam('T')]));
   addClass(asyncLib, class_('FutureOr', typeParameters: [typeParam('T')]));
   addClass(asyncLib, class_('Stream', typeParameters: [typeParam('T')]));
   addClass(internalLib, class_('Symbol'));

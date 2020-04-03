@@ -26,11 +26,6 @@ class BytecodeMetadataHelper : public MetadataHelper {
 
   void ParseBytecodeFunction(ParsedFunction* parsed_function);
 
-  // Reads members associated with given [node_offset] and fills in [cls].
-  // Discards fields if [discard_fields] is true.
-  // Returns true if class members are loaded.
-  bool ReadMembers(intptr_t node_offset, const Class& cls, bool discard_fields);
-
   // Read all library declarations.
   bool ReadLibraries();
 
@@ -87,6 +82,7 @@ class BytecodeReaderHelper : public ValueObject {
   RawLibrary* ReadMain();
 
   RawArray* ReadBytecodeComponent(intptr_t md_offset);
+  void ResetObjects();
 
   // Fills in [is_covariant] and [is_generic_covariant_impl] vectors
   // according to covariance attributes of [function] parameters.
@@ -116,7 +112,11 @@ class BytecodeReaderHelper : public ValueObject {
   static const int kFlagBit1 = 1 << 6;
   static const int kFlagBit2 = 1 << 7;
   static const int kFlagBit3 = 1 << 8;
-  static const int kFlagsMask = (kFlagBit0 | kFlagBit1 | kFlagBit2 | kFlagBit3);
+  static const int kFlagBit4 = 1 << 9;
+  static const int kFlagBit5 = 1 << 10;
+  static const int kTagMask = (kFlagBit0 | kFlagBit1 | kFlagBit2 | kFlagBit3);
+  static const int kNullabilityMask = (kFlagBit4 | kFlagBit5);
+  static const int kFlagsMask = (kTagMask | kNullabilityMask);
 
   // Code flags, must be in sync with Code constants in
   // pkg/vm/lib/bytecode/declarations.dart.
@@ -194,7 +194,8 @@ class BytecodeReaderHelper : public ValueObject {
                                  bool has_optional_positional_params,
                                  bool has_optional_named_params,
                                  bool has_type_params,
-                                 bool has_positional_param_names);
+                                 bool has_positional_param_names,
+                                 Nullability nullability);
   void ReadTypeParametersDeclaration(const Class& parameterized_class,
                                      const Function& parameterized_function);
 
@@ -215,10 +216,11 @@ class BytecodeReaderHelper : public ValueObject {
 
   RawObject* ReadObjectContents(uint32_t header);
   RawObject* ReadConstObject(intptr_t tag);
-  RawObject* ReadType(intptr_t tag);
+  RawObject* ReadType(intptr_t tag, Nullability nullability);
   RawString* ReadString(bool is_canonical = true);
   RawScript* ReadSourceFile(const String& uri, intptr_t offset);
   RawTypeArguments* ReadTypeArguments();
+  void ReadAttributes(const Object& key);
   RawPatchClass* GetPatchClass(const Class& cls, const Script& script);
   void ParseForwarderFunction(ParsedFunction* parsed_function,
                               const Function& function,
@@ -229,12 +231,16 @@ class BytecodeReaderHelper : public ValueObject {
            expression_evaluation_library_->raw() == library.raw();
   }
 
+  // Similar to cls.EnsureClassDeclaration, but may be more efficient if
+  // class is from the current kernel binary.
+  void LoadReferencedClass(const Class& cls);
+
   Reader reader_;
   TranslationHelper& translation_helper_;
   ActiveClass* const active_class_;
   Thread* const thread_;
   Zone* const zone_;
-  BytecodeComponentData* const bytecode_component_;
+  BytecodeComponentData* bytecode_component_;
   Array* closures_ = nullptr;
   const TypeArguments* function_type_type_parameters_ = nullptr;
   GrowableObjectArray* pending_recursive_types_ = nullptr;
@@ -257,6 +263,8 @@ class BytecodeComponentData : ValueObject {
     kVersion,
     kStringsHeaderOffset,
     kStringsContentsOffset,
+    kObjectOffsetsOffset,
+    kNumObjects,
     kObjectsContentsOffset,
     kMainOffset,
     kNumLibraries,
@@ -282,6 +290,8 @@ class BytecodeComponentData : ValueObject {
   intptr_t GetVersion() const;
   intptr_t GetStringsHeaderOffset() const;
   intptr_t GetStringsContentsOffset() const;
+  intptr_t GetObjectOffsetsOffset() const;
+  intptr_t GetNumObjects() const;
   intptr_t GetObjectsContentsOffset() const;
   intptr_t GetMainOffset() const;
   intptr_t GetNumLibraries() const;
@@ -307,6 +317,7 @@ class BytecodeComponentData : ValueObject {
                        intptr_t num_objects,
                        intptr_t strings_header_offset,
                        intptr_t strings_contents_offset,
+                       intptr_t object_offsets_offset,
                        intptr_t objects_contents_offset,
                        intptr_t main_offset,
                        intptr_t num_libraries,
@@ -341,6 +352,8 @@ class BytecodeReader : public AllStatic {
   static RawArray* ReadExtendedAnnotations(const Field& annotation_field,
                                            intptr_t count);
 
+  static void ResetObjectTable(const KernelProgramInfo& info);
+
   // Read declaration of the given library.
   static void LoadLibraryDeclaration(const Library& library);
 
@@ -349,6 +362,9 @@ class BytecodeReader : public AllStatic {
 
   // Read members of the given class.
   static void FinishClassLoading(const Class& cls);
+
+  // Value of attribute [name] of Function/Field [key].
+  static RawObject* GetBytecodeAttribute(const Object& key, const String& name);
 
 #if !defined(PRODUCT)
   // Compute local variable descriptors for [function] with [bytecode].
@@ -359,10 +375,31 @@ class BytecodeReader : public AllStatic {
 #endif
 };
 
+class InferredTypeBytecodeAttribute : public AllStatic {
+ public:
+  // Number of array elements per entry in InferredType bytecode
+  // attribute (PC, type, flags).
+  static constexpr intptr_t kNumElements = 3;
+
+  // Field type is the first entry with PC = -1.
+  static constexpr intptr_t kFieldTypePC = -1;
+
+  // Returns PC at given index.
+  static intptr_t GetPCAt(const Array& attr, intptr_t index) {
+    return Smi::Value(Smi::RawCast(attr.At(index)));
+  }
+
+  // Returns InferredType metadata at given index.
+  static InferredTypeMetadata GetInferredTypeAt(Zone* zone,
+                                                const Array& attr,
+                                                intptr_t index);
+};
+
 class BytecodeSourcePositionsIterator : ValueObject {
  public:
-  // This constant should match corresponding constant in class SourcePositions
-  // (pkg/vm/lib/bytecode/source_positions.dart).
+  // These constants should match corresponding constants in class
+  // SourcePositions (pkg/vm/lib/bytecode/source_positions.dart).
+  static const intptr_t kSyntheticCodeMarker = -1;
   static const intptr_t kYieldPointMarker = -2;
 
   BytecodeSourcePositionsIterator(Zone* zone, const Bytecode& bytecode)
@@ -392,7 +429,11 @@ class BytecodeSourcePositionsIterator : ValueObject {
 
   uword PcOffset() const { return cur_bci_; }
 
-  TokenPosition TokenPos() const { return TokenPosition(cur_token_pos_); }
+  TokenPosition TokenPos() const {
+    return (cur_token_pos_ == kSyntheticCodeMarker)
+               ? TokenPosition::kNoSource
+               : TokenPosition(cur_token_pos_);
+  }
 
   bool IsYieldPoint() const { return is_yield_point_; }
 
@@ -404,7 +445,6 @@ class BytecodeSourcePositionsIterator : ValueObject {
   bool is_yield_point_ = false;
 };
 
-#if !defined(PRODUCT)
 class BytecodeLocalVariablesIterator : ValueObject {
  public:
   // These constants should match corresponding constants in
@@ -429,10 +469,11 @@ class BytecodeLocalVariablesIterator : ValueObject {
   }
 
   bool MoveNext() {
-    if (entries_remaining_ == 0) {
+    if (entries_remaining_ <= 0) {
+      // Finished looking at the last entry, now we're done.
+      entries_remaining_ = -1;
       return false;
     }
-    ASSERT(entries_remaining_ > 0);
     --entries_remaining_;
     cur_kind_and_flags_ = reader_.ReadByte();
     cur_start_pc_ += reader_.ReadSLEB128();
@@ -456,6 +497,10 @@ class BytecodeLocalVariablesIterator : ValueObject {
     }
     return true;
   }
+
+  // Returns true after iterator moved past the last entry and
+  // MoveNext() returned false.
+  bool IsDone() const { return entries_remaining_ < 0; }
 
   intptr_t Kind() const { return cur_kind_and_flags_ & kKindMask; }
   bool IsScope() const { return Kind() == kScope; }
@@ -514,7 +559,22 @@ class BytecodeLocalVariablesIterator : ValueObject {
   TokenPosition cur_declaration_token_pos_ = TokenPosition::kNoSource;
   TokenPosition cur_end_token_pos_ = TokenPosition::kNoSource;
 };
-#endif  // !defined(PRODUCT)
+
+class BytecodeAttributesMapTraits {
+ public:
+  static const char* Name() { return "BytecodeAttributesMapTraits"; }
+  static bool ReportStats() { return false; }
+
+  static bool IsMatch(const Object& a, const Object& b) {
+    return a.raw() == b.raw();
+  }
+
+  static uword Hash(const Object& key) {
+    return String::HashRawSymbol(key.IsFunction() ? Function::Cast(key).name()
+                                                  : Field::Cast(key).name());
+  }
+};
+typedef UnorderedHashMap<BytecodeAttributesMapTraits> BytecodeAttributesMap;
 
 bool IsStaticFieldGetterGeneratedAsInitializer(const Function& function,
                                                Zone* zone);

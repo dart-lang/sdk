@@ -8,15 +8,17 @@ library front_end.tool.fasta_perf;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:_fe_analyzer_shared/src/parser/parser.dart';
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
+import 'package:_fe_analyzer_shared/src/scanner/io.dart'
+    show readBytesFromFileSync;
+
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/fasta/ast_builder.dart';
 import 'package:args/args.dart';
 
 import 'package:front_end/src/api_prototype/front_end.dart';
 import 'package:front_end/src/base/processed_options.dart';
-import 'package:front_end/src/fasta/parser.dart';
-import 'package:front_end/src/fasta/scanner.dart';
-import 'package:front_end/src/fasta/scanner/io.dart' show readBytesFromFileSync;
 import 'package:front_end/src/fasta/source/directive_listener.dart';
 import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
 
@@ -36,11 +38,10 @@ main(List<String> args) async {
     print(argParser.usage);
     exit(1);
   }
-  bool legacyMode = options['legacy'];
   var bench = options.rest[0];
   var entryUri = Uri.base.resolve(options.rest[1]);
 
-  await setup(entryUri, legacyMode: legacyMode);
+  await setup(entryUri);
 
   Map<Uri, List<int>> files = await scanReachableFiles(entryUri);
   var handlers = {
@@ -48,10 +49,10 @@ main(List<String> args) async {
     // TODO(sigmund): enable when we can run the ast-builder standalone.
     // 'parse': () async => parseFiles(files),
     'kernel_gen_e2e': () async {
-      await generateKernel(entryUri, legacyMode: legacyMode);
+      await generateKernel(entryUri);
     },
     'kernel_gen_e2e_sum': () async {
-      await generateKernel(entryUri, compileSdk: false, legacyMode: legacyMode);
+      await generateKernel(entryUri, compileSdk: false);
     },
   };
 
@@ -90,15 +91,15 @@ UriTranslator uriResolver;
 
 /// Preliminary set up to be able to correctly resolve URIs on the given
 /// program.
-Future setup(Uri entryUri, {bool legacyMode: false}) async {
+Future setup(Uri entryUri) async {
   var options = new CompilerOptions()
     ..sdkRoot = sdkRoot
     // Because this is only used to create a uriResolver, we don't allow any
     // whitelisting of error messages in the error handler.
-    ..onDiagnostic = onDiagnosticMessageHandler(legacyMode: true)
+    ..onDiagnostic = onDiagnosticMessageHandler()
     ..compileSdk = true
     ..packagesFileUri = Uri.base.resolve('.packages')
-    ..target = createTarget(isFlutter: false, legacyMode: legacyMode);
+    ..target = createTarget(isFlutter: false);
   uriResolver = await new ProcessedOptions(options: options).getUriTranslator();
 }
 
@@ -218,15 +219,10 @@ parseFull(Uri uri, List<int> source) {
 class _PartialAstBuilder extends AstBuilder {
   _PartialAstBuilder(Uri uri)
       : super(null, null, true, FeatureSet.fromEnableFlags([]), uri);
-
-  // Note: this method converts the body to kernel, so we skip that here.
-  @override
-  finishFunction(formals, asyncModifier, body) {}
 }
 
 // Invoke the fasta kernel generator for the program starting in [entryUri]
-generateKernel(Uri entryUri,
-    {bool compileSdk: true, bool legacyMode: false}) async {
+generateKernel(Uri entryUri, {bool compileSdk: true}) async {
   // TODO(sigmund): this is here only to compute the input size,
   // we should extract the input size from the frontend instead.
   await scanReachableFiles(entryUri);
@@ -234,9 +230,8 @@ generateKernel(Uri entryUri,
   var timer = new Stopwatch()..start();
   var options = new CompilerOptions()
     ..sdkRoot = sdkRoot
-    ..onDiagnostic = onDiagnosticMessageHandler(legacyMode: legacyMode)
-    ..legacyMode = legacyMode
-    ..target = createTarget(isFlutter: false, legacyMode: legacyMode)
+    ..onDiagnostic = onDiagnosticMessageHandler()
+    ..target = createTarget(isFlutter: false)
     ..packagesFileUri = Uri.base.resolve('.packages')
     ..compileSdk = compileSdk
     ..environmentDefines = const {};
@@ -267,6 +262,8 @@ void report(String name, int time) {
 }
 
 ArgParser argParser = new ArgParser()
+  // TODO(johnniwinther): Remove legacy option. Legacy mode is no longer
+  //  supported.
   ..addFlag('legacy',
       help: 'run the compiler in legacy-mode',
       defaultsTo: false,

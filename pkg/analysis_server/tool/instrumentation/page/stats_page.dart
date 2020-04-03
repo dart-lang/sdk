@@ -5,57 +5,41 @@
 import '../log/log.dart';
 import 'page_writer.dart';
 
-/**
- * A page writer that will produce the page containing statistics about an
- * instrumentation log.
- */
+/// A page writer that will produce the page containing statistics about an
+/// instrumentation log.
 class StatsPage extends PageWriter {
-  /**
-   * The instrumentation log to be written.
-   */
+  /// The instrumentation log to be written.
   final InstrumentationLog log;
 
-  /**
-   * A table mapping the kinds of entries in the log to the number of each kind.
-   */
+  /// A table mapping the kinds of entries in the log to the number of each
+  /// kind.
   final Map<String, int> entryCounts = <String, int>{};
 
-  /**
-   * The number of responses that returned an error.
-   */
+  /// The number of responses that returned an error.
   int errorCount = 0;
 
-  /**
-   * The number of responses from each plugin that returned an error.
-   */
+  /// The number of responses from each plugin that returned an error.
   Map<String, int> pluginErrorCount = <String, int>{};
 
-  /**
-   * A table mapping request method names to a list of the latencies associated
-   * with those requests, where the latency is defined to be the time between
-   * when the request was sent by the client and when the server started
-   * processing the request.
-   */
+  /// A table mapping request method names to a list of the latencies associated
+  /// with those requests, where the latency is defined to be the time between
+  /// when the request was sent by the client and when the server started
+  /// processing the request.
   final Map<String, List<int>> latencyData = <String, List<int>>{};
 
-  /**
-   * A table mapping request method names to a list of the latencies associated
-   * with those requests, where the latency is defined to be the time between
-   * when the request was sent by the server and when the plugin sent a response.
-   */
+  /// A table mapping request method names to a list of the latencies associated
+  /// with those requests, where the latency is defined to be the time between
+  /// when the request was sent by the server and when the plugin sent a
+  /// response.
   final Map<String, Map<String, List<int>>> pluginResponseData =
       <String, Map<String, List<int>>>{};
 
-  /**
-   * A list of the number of milliseconds between a completion request and the
-   * first event for that request.
-   */
+  /// A list of the number of milliseconds between a completion request and the
+  /// first event for that request.
   final List<int> completionResponseTimes = <int>[];
 
-  /**
-   * Initialize a newly created page writer to write information about the given
-   * instrumentation [log].
-   */
+  /// Initialize a newly created page writer to write information about the
+  /// given instrumentation [log].
   StatsPage(this.log) {
     _processEntries(log.logEntries);
   }
@@ -67,49 +51,44 @@ class StatsPage extends PageWriter {
         sink, 'leftColumn', _writeLeftColumn, 'rightColumn', _writeRightColumn);
   }
 
-  /**
-   * Write the content of the style sheet (without the 'script' tag) for the
-   * page to the given [sink].
-   */
+  /// Write the content of the style sheet (without the 'script' tag) for the
+  /// page to the given [sink].
+  @override
   void writeStyleSheet(StringSink sink) {
     super.writeStyleSheet(sink);
     writeTwoColumnStyles(sink, 'leftColumn', 'rightColumn');
   }
 
-  /**
-   * Return the mean of the values in the given list of [values].
-   */
+  /// Return the mean of the values in the given list of [values].
   int _mean(List<int> values) {
-    int sum = values.fold(0, (int sum, int latency) => sum + latency);
+    var sum = values.fold(0, (int sum, int latency) => sum + latency);
     return sum ~/ values.length;
   }
 
-  /**
-   * Return a table mapping the kinds of the given [entries] to the number of
-   * each kind.
-   */
+  /// Return a table mapping the kinds of the given [entries] to the number of
+  /// each kind.
   void _processEntries(List<LogEntry> entries) {
     void increment<K>(Map<K, int> map, K key) {
       map[key] = (map[key] ?? 0) + 1;
     }
 
-    for (LogEntry entry in entries) {
-      String kind = entry.kind;
+    for (var entry in entries) {
+      var kind = entry.kind;
       increment(entryCounts, kind);
       if (entry is ResponseEntry) {
         if (entry.result('error') != null) {
           errorCount++;
         }
       } else if (entry is RequestEntry) {
-        String method = entry.method;
-        int latency = entry.timeStamp - entry.clientRequestTime;
-        latencyData.putIfAbsent(method, () => new List<int>()).add(latency);
+        var method = entry.method;
+        var latency = entry.timeStamp - entry.clientRequestTime;
+        latencyData.putIfAbsent(method, () => <int>[]).add(latency);
         if (method == 'completion.getSuggestions') {
-          ResponseEntry response = log.responseFor(entry);
+          var response = log.responseFor(entry);
           if (response != null) {
             String id = response.result('id');
             if (id != null) {
-              List<NotificationEntry> events = log.completionEventsWithId(id);
+              var events = log.completionEventsWithId(id);
               if (events != null && events.isNotEmpty) {
                 completionResponseTimes
                     .add(events[0].timeStamp - entry.timeStamp);
@@ -119,28 +98,26 @@ class StatsPage extends PageWriter {
         }
       } else if (entry is PluginResponseEntry) {
         if (entry.result('error') != null) {
-          int count = pluginErrorCount[entry.pluginId] ?? 0;
+          var count = pluginErrorCount[entry.pluginId] ?? 0;
           pluginErrorCount[entry.pluginId] = count + 1;
         }
       } else if (entry is PluginRequestEntry) {
-        PluginResponseEntry response = log.pluginResponseFor(entry);
-        int responseTime = response.timeStamp - entry.timeStamp;
+        var response = log.pluginResponseFor(entry);
+        var responseTime = response.timeStamp - entry.timeStamp;
         var pluginData = pluginResponseData.putIfAbsent(
             entry.pluginId, () => <String, List<int>>{});
-        pluginData
-            .putIfAbsent(entry.method, () => new List<int>())
-            .add(responseTime);
+        pluginData.putIfAbsent(entry.method, () => <int>[]).add(responseTime);
       }
     }
   }
 
   void _writeLeftColumn(StringSink sink) {
-    List<String> filePaths = log.logFilePaths;
-    List<LogEntry> entries = log.logEntries;
-    DateTime startDate = entries[0].toTime;
-    DateTime endDate = entries[entries.length - 1].toTime;
-    Duration duration = endDate.difference(startDate);
-    List<String> entryKinds = entryCounts.keys.toList()..sort();
+    var filePaths = log.logFilePaths;
+    var entries = log.logEntries;
+    var startDate = entries[0].toTime;
+    var endDate = entries[entries.length - 1].toTime;
+    var duration = endDate.difference(startDate);
+    var entryKinds = entryCounts.keys.toList()..sort();
 
     sink.writeln('<h3>General</h3>');
     sink.writeln('<p>');
@@ -149,8 +126,8 @@ class StatsPage extends PageWriter {
       sink.write(filePaths[0]);
     } else {
       sink.write('<span class="label">Log files:</span> ');
-      bool needsSeparator = false;
-      for (String path in filePaths) {
+      var needsSeparator = false;
+      for (var path in filePaths) {
         if (needsSeparator) {
           sink.write(', ');
         } else {
@@ -187,7 +164,7 @@ class StatsPage extends PageWriter {
     });
     sink.writeln('<table>');
     sink.writeln('<tr><th>count</th><th>kind</th></tr>');
-    for (String kind in entryKinds) {
+    for (var kind in entryKinds) {
       sink.write('<tr><td class="int">');
       sink.write(entryCounts[kind]);
       sink.write('</td><td>');
@@ -210,9 +187,9 @@ class StatsPage extends PageWriter {
     sink.writeln('<table>');
     sink.writeln(
         '<tr><th>min</th><th>mean</th><th>max</th><th>method</th></tr>');
-    List<String> methodNames = latencyData.keys.toList()..sort();
-    for (String method in methodNames) {
-      List<int> latencies = latencyData[method]..sort();
+    var methodNames = latencyData.keys.toList()..sort();
+    for (var method in methodNames) {
+      var latencies = latencyData[method]..sort();
       // TODO(brianwilkerson) Add a spark-line distribution graph.
       sink.write('<tr><td class="int">');
       sink.write(latencies[0]);
@@ -244,9 +221,9 @@ class StatsPage extends PageWriter {
         sink.write(pluginId);
         sink.writeln('</p>');
         sink.writeln('<table>');
-        List<String> methodNames = responseData.keys.toList()..sort();
-        for (String method in methodNames) {
-          List<int> responseTimes = responseData[method]..sort();
+        var methodNames = responseData.keys.toList()..sort();
+        for (var method in methodNames) {
+          var responseTimes = responseData[method]..sort();
           // TODO(brianwilkerson) Add a spark-line distribution graph.
           sink.write('<tr><td class="int">');
           sink.write(responseTimes[0]);

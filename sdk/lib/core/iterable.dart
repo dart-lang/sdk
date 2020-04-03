@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.core;
 
 /**
@@ -635,7 +637,7 @@ abstract class Iterable<E> {
    *
    * May iterate through the elements in iteration order, ignoring the
    * first [index] elements and then returning the next.
-   * Some iterables may have more a efficient way to find the element.
+   * Some iterables may have a more efficient way to find the element.
    */
   E elementAt(int index) {
     ArgumentError.checkNotNull(index, "index");

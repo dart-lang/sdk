@@ -12,7 +12,6 @@ import '../common/backend_api.dart' show ImpactTransformer;
 import '../common/codegen.dart' show CodegenImpact;
 import '../common/resolution.dart' show ResolutionImpact;
 import '../common_elements.dart' show ElementEnvironment;
-import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
@@ -58,6 +57,8 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       this._rtiNeedBuilder,
       this._classHierarchyBuilder,
       this._annotationsData);
+
+  DartTypes get _dartTypes => _commonElements.dartTypes;
 
   @override
   WorldImpact transformResolutionImpact(ResolutionImpact worldImpact) {
@@ -156,6 +157,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
         case TypeUseKind.NATIVE_INSTANTIATION:
           break;
         case TypeUseKind.IS_CHECK:
+        case TypeUseKind.CATCH_TYPE:
           onIsCheck(type, transformed);
           break;
         case TypeUseKind.AS_CAST:
@@ -174,20 +176,19 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           }
           break;
         case TypeUseKind.PARAMETER_CHECK:
+        case TypeUseKind.TYPE_VARIABLE_BOUND_CHECK:
           if (_annotationsData
               .getParameterCheckPolicy(worldImpact.member)
               .isEmitted) {
             onIsCheck(type, transformed);
           }
           break;
-        case TypeUseKind.CATCH_TYPE:
-          onIsCheck(type, transformed);
-          break;
         case TypeUseKind.TYPE_LITERAL:
           _customElementsResolutionAnalysis.registerTypeLiteral(type);
-          if (type.isTypeVariable) {
-            TypeVariableType typeVariable = type;
-            Entity typeDeclaration = typeVariable.element.typeDeclaration;
+          var typeWithoutNullability = type.withoutNullability;
+          if (typeWithoutNullability is TypeVariableType) {
+            Entity typeDeclaration =
+                typeWithoutNullability.element.typeDeclaration;
             if (typeDeclaration is ClassEntity) {
               _rtiNeedBuilder
                   .registerClassUsingTypeVariableLiteral(typeDeclaration);
@@ -276,21 +277,21 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       }
     }
 
-    for (ConstantExpression constant in worldImpact.constantLiterals) {
+    for (ConstantValue constant in worldImpact.constantLiterals) {
       switch (constant.kind) {
-        case ConstantExpressionKind.NULL:
+        case ConstantValueKind.NULL:
           registerImpact(_impacts.nullLiteral);
           break;
-        case ConstantExpressionKind.BOOL:
+        case ConstantValueKind.BOOL:
           registerImpact(_impacts.boolLiteral);
           break;
-        case ConstantExpressionKind.INT:
+        case ConstantValueKind.INT:
           registerImpact(_impacts.intLiteral);
           break;
-        case ConstantExpressionKind.DOUBLE:
+        case ConstantValueKind.DOUBLE:
           registerImpact(_impacts.doubleLiteral);
           break;
-        case ConstantExpressionKind.STRING:
+        case ConstantValueKind.STRING:
           registerImpact(_impacts.stringLiteral);
           break;
         default:
@@ -329,22 +330,25 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       _backendUsageBuilder.processBackendImpact(impact);
     }
 
-    type = _elementEnvironment.getUnaliasedType(type);
     registerImpact(_impacts.typeCheck);
 
-    if (!type.treatAsRaw || type.containsTypeVariables || type.isFunctionType) {
+    var typeWithoutNullability = type.withoutNullability;
+    if (!_dartTypes.treatAsRawType(typeWithoutNullability) ||
+        typeWithoutNullability.containsTypeVariables ||
+        typeWithoutNullability is FunctionType) {
       registerImpact(_impacts.genericTypeCheck);
-      if (type.isTypeVariable) {
+      if (typeWithoutNullability is TypeVariableType) {
         registerImpact(_impacts.typeVariableTypeCheck);
       }
     }
-    if (type is FunctionType) {
+    if (typeWithoutNullability is FunctionType) {
       registerImpact(_impacts.functionTypeCheck);
     }
-    if (type is InterfaceType && _nativeBasicData.isNativeClass(type.element)) {
+    if (typeWithoutNullability is InterfaceType &&
+        _nativeBasicData.isNativeClass(typeWithoutNullability.element)) {
       registerImpact(_impacts.nativeTypeCheck);
     }
-    if (type is FutureOrType) {
+    if (typeWithoutNullability is FutureOrType) {
       registerImpact(_impacts.futureOrTypeCheck);
     }
   }
@@ -353,7 +357,6 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
 class CodegenImpactTransformer {
   final JClosedWorld _closedWorld;
   final ElementEnvironment _elementEnvironment;
-  final CommonElements _commonElements;
   final BackendImpacts _impacts;
   final NativeData _nativeData;
   final BackendUsage _backendUsage;
@@ -367,7 +370,6 @@ class CodegenImpactTransformer {
   CodegenImpactTransformer(
       this._closedWorld,
       this._elementEnvironment,
-      this._commonElements,
       this._impacts,
       this._nativeData,
       this._backendUsage,
@@ -378,16 +380,20 @@ class CodegenImpactTransformer {
       this._rtiChecksBuilder,
       this._nativeEmitter);
 
+  DartTypes get _dartTypes => _closedWorld.dartTypes;
+
   void onIsCheckForCodegen(DartType type, TransformedWorldImpact transformed) {
-    if (type.isDynamic) return;
-    if (type.isVoid) return;
-    type = type.unaliased;
+    if (_dartTypes.isTopType(type)) return;
+
     _impacts.typeCheck.registerImpact(transformed, _elementEnvironment);
 
-    if (!type.treatAsRaw || type.containsTypeVariables) {
+    var typeWithoutNullability = type.withoutNullability;
+    if (!_dartTypes.treatAsRawType(typeWithoutNullability) ||
+        typeWithoutNullability.containsTypeVariables) {
       _impacts.genericIsCheck.registerImpact(transformed, _elementEnvironment);
     }
-    if (type is InterfaceType && _nativeData.isNativeClass(type.element)) {
+    if (typeWithoutNullability is InterfaceType &&
+        _nativeData.isNativeClass(typeWithoutNullability.element)) {
       // We will neeed to add the "$is" and "$as" properties on the
       // JavaScript object prototype, so we make sure
       // [:defineProperty:] is compiled.

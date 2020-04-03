@@ -5,99 +5,124 @@
 import 'dart:core' hide Type;
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/core_types.dart';
+import 'package:kernel/testing/mock_sdk_component.dart';
 import 'package:test/test.dart';
 import 'package:vm/transformations/type_flow/types.dart';
 
-class TestTypeHierarchy implements TypeHierarchy {
-  final Map<DartType, List<DartType>> subtypes;
-  final Map<DartType, Type> specializations;
+class TestTypeHierarchy extends TypeHierarchy {
+  final Map<Class, TFClass> classes = <Class, TFClass>{};
+  final Map<Class, List<Class>> subtypes;
+  final Map<Class, Type> specializations;
+  int classIdCounter = 0;
 
-  TestTypeHierarchy(this.subtypes, this.specializations);
+  TestTypeHierarchy(CoreTypes coreTypes, this.subtypes, this.specializations)
+      : super(coreTypes, /*nullSafety=*/ false);
 
   @override
-  bool isSubtype(DartType subType, DartType superType) {
-    return subtypes[superType].contains(subType);
+  bool isSubtype(Class sub, Class sup) {
+    return subtypes[sup].contains(sub);
   }
 
   @override
-  Type specializeTypeCone(DartType base) {
-    Type result = specializations[base];
+  Type specializeTypeCone(TFClass base) {
+    Type result = specializations[base.classNode];
     expect(result, isNotNull,
         reason: "specializeTypeCone($base) is not defined");
     return result;
   }
 
+  @override
+  TFClass getTFClass(Class c) =>
+      classes[c] ??= new TFClass(++classIdCounter, c);
+
+  @override
   List<DartType> flattenedTypeArgumentsFor(Class klass) =>
       throw "flattenedTypeArgumentsFor is not supported in the types test.";
 
+  @override
   int genericInterfaceOffsetFor(Class klass, Class iface) =>
       throw "genericInterfaceOffsetFor is not supported in the types test.";
 
+  @override
   List<Type> flattenedTypeArgumentsForNonGeneric(Class klass) =>
       throw "flattenedTypeArgumentsFor is not supported in the types test.";
-
-  Class get futureOrClass =>
-      throw "futureOrClass not supported in the types test.";
-  Class get futureClass => throw "futureClass not supported in the types test.";
-  Class get functionClass =>
-      throw "functionClass not supported in the types test.";
 }
 
 main() {
-  test('factory-constructors', () {
-    Class c1 = new Class(name: 'C1');
-    Class c2 = new Class(name: 'C2', typeParameters: [new TypeParameter('E')]);
-    InterfaceType t1 = new InterfaceType(c1);
-    InterfaceType t2Raw = new InterfaceType(c2);
-    InterfaceType t2Generic = new InterfaceType(c2, [t1]);
-    FunctionType f1 = new FunctionType([t1], const VoidType());
+  final Component component = createMockSdkComponent();
+  final CoreTypes coreTypes = new CoreTypes(component);
 
-    expect(new Type.empty(), equals(const EmptyType()));
+  test('types-builder', () {
+    final Class c1 = new Class(name: 'C1');
+    final Class c2 =
+        new Class(name: 'C2', typeParameters: [new TypeParameter('E')]);
 
-    expect(new Type.cone(const DynamicType()), equals(const AnyType()));
-    expect(new Type.cone(t1), equals(new ConeType(t1)));
-    expect(new Type.cone(t2Raw), equals(new ConeType(t2Raw)));
-    expect(new Type.cone(t2Generic), equals(new ConeType(t2Raw)));
-    expect(new Type.cone(f1), equals(const AnyType()));
+    final TypesBuilder tb = new TestTypeHierarchy(coreTypes, {}, {});
+    final tfc1 = tb.getTFClass(c1);
+    final tfc2 = tb.getTFClass(c2);
 
-    expect(new Type.nullable(new Type.empty()),
-        equals(new NullableType(new EmptyType())));
-    expect(new Type.nullable(new Type.cone(t1)),
-        equals(new NullableType(new ConeType(t1))));
+    final InterfaceType t1 = new InterfaceType(c1, Nullability.legacy);
+    final InterfaceType t2Raw = new InterfaceType(c2, Nullability.legacy);
+    final InterfaceType t2Generic =
+        new InterfaceType(c2, Nullability.legacy, [t1]);
+    final InterfaceType t3 =
+        new InterfaceType(coreTypes.nullClass, Nullability.nullable);
+    final FunctionType f1 =
+        new FunctionType([t1], const VoidType(), Nullability.legacy);
+
+    expect(tb.fromStaticType(const NeverType(Nullability.nonNullable), false),
+        equals(const EmptyType()));
+    expect(tb.fromStaticType(const BottomType(), true),
+        equals(new NullableType(const EmptyType())));
+    expect(tb.fromStaticType(const DynamicType(), true),
+        equals(new NullableType(const AnyType())));
+    expect(tb.fromStaticType(const VoidType(), true),
+        equals(new NullableType(const AnyType())));
+
+    expect(tb.fromStaticType(t1, false), equals(new ConeType(tfc1)));
+    expect(tb.fromStaticType(t2Raw, false), equals(new ConeType(tfc2)));
+    expect(tb.fromStaticType(t2Generic, false), equals(new ConeType(tfc2)));
+    expect(tb.fromStaticType(t3, false), equals(new EmptyType()));
+    expect(tb.fromStaticType(f1, false), equals(const AnyType()));
+
+    expect(tb.fromStaticType(t1, true),
+        equals(new NullableType(new ConeType(tfc1))));
+    expect(tb.fromStaticType(t2Raw, true),
+        equals(new NullableType(new ConeType(tfc2))));
+    expect(tb.fromStaticType(t2Generic, true),
+        equals(new NullableType(new ConeType(tfc2))));
+    expect(
+        tb.fromStaticType(t3, true), equals(new NullableType(new EmptyType())));
+    expect(
+        tb.fromStaticType(f1, true), equals(new NullableType(const AnyType())));
 
     expect(new Type.nullableAny(), equals(new NullableType(new AnyType())));
-
-    expect(new Type.fromStatic(const DynamicType()),
-        equals(new NullableType(new AnyType())));
-    expect(new Type.fromStatic(const DynamicType()),
-        equals(new Type.nullableAny()));
-    expect(new Type.fromStatic(const BottomType()),
-        equals(new NullableType(new EmptyType())));
-    expect(new Type.fromStatic(t1), equals(new NullableType(new ConeType(t1))));
-    expect(new Type.fromStatic(t2Raw),
-        equals(new NullableType(new ConeType(t2Raw))));
-    expect(new Type.fromStatic(t2Generic),
-        equals(new NullableType(new ConeType(t2Raw))));
   });
 
   test('union-intersection', () {
     // T1 <: T3, T2 <: T3
 
-    InterfaceType t1 = new InterfaceType(new Class(name: 'T1'));
-    InterfaceType t2 = new InterfaceType(new Class(name: 'T2'));
-    InterfaceType t3 = new InterfaceType(new Class(name: 'T3'));
-    InterfaceType t4 = new InterfaceType(new Class(name: 'T4'));
+    final c1 = new Class(name: 'T1');
+    final c2 = new Class(name: 'T2');
+    final c3 = new Class(name: 'T3');
+    final c4 = new Class(name: 'T4');
+
+    final tfc1 = new TFClass(1, c1);
+    final tfc2 = new TFClass(2, c2);
+    final tfc3 = new TFClass(3, c3);
+    final tfc4 = new TFClass(4, c4);
 
     final empty = new EmptyType();
     final any = new AnyType();
-    final concreteT1 = new ConcreteType(const IntClassId(1), t1.classNode);
-    final concreteT2 = new ConcreteType(const IntClassId(2), t2.classNode);
-    final concreteT3 = new ConcreteType(const IntClassId(3), t3.classNode);
-    final concreteT4 = new ConcreteType(const IntClassId(4), t4.classNode);
-    final coneT1 = new ConeType(t1);
-    final coneT2 = new ConeType(t2);
-    final coneT3 = new ConeType(t3);
-    final coneT4 = new ConeType(t4);
+    final concreteT1 = new ConcreteType(tfc1);
+    final concreteT2 = new ConcreteType(tfc2);
+    final concreteT3 = new ConcreteType(tfc3);
+    final concreteT4 = new ConcreteType(tfc4);
+    final coneT1 = new ConeType(tfc1);
+    final coneT2 = new ConeType(tfc2);
+    final coneT3 = new ConeType(tfc3);
+    final coneT4 = new ConeType(tfc4);
     final setT12 = new SetType([concreteT1, concreteT2]);
     final setT14 = new SetType([concreteT1, concreteT4]);
     final setT23 = new SetType([concreteT2, concreteT3]);
@@ -235,20 +260,20 @@ main() {
       [nullableSetT12, nullableSetT34, nullableSetT1234, nullableEmpty],
     ];
 
-    final hierarchy = new TestTypeHierarchy(
+    final hierarchy = new TestTypeHierarchy(coreTypes,
         // subtypes
         {
-          t1: [t1],
-          t2: [t2],
-          t3: [t1, t2, t3],
-          t4: [t4],
+          c1: [c1],
+          c2: [c2],
+          c3: [c1, c2, c3],
+          c4: [c4],
         },
         // specializations
         {
-          t1: concreteT1,
-          t2: concreteT2,
-          t3: setT123,
-          t4: concreteT4
+          c1: concreteT1,
+          c2: concreteT2,
+          c3: setT123,
+          c4: concreteT4
         });
 
     for (List testCase in testCases) {
@@ -273,16 +298,13 @@ main() {
     final c2 = new Class(name: 'C2');
     final c3 = new Class(name: 'C3');
 
-    final t1a = new InterfaceType(c1);
-    final t1b = new InterfaceType(c1);
-    final t2 = new InterfaceType(c2);
-    final f1a = new FunctionType([t1a], const VoidType());
-    final f1b = new FunctionType([t1b], const VoidType());
-    final f2 = new FunctionType([t1a, t1a], const VoidType());
+    final tfc1 = new TFClass(1, c1);
+    final tfc2 = new TFClass(2, c2);
+    final tfc3 = new TFClass(3, c3);
 
-    final cid1 = const IntClassId(1);
-    final cid2 = const IntClassId(2);
-    final cid3 = const IntClassId(3);
+    final t1a = new InterfaceType(c1, Nullability.legacy);
+    final t1b = new InterfaceType(c1, Nullability.legacy);
+    final t2 = new InterfaceType(c2, Nullability.legacy);
 
     void eq(dynamic a, dynamic b) {
       expect(a == b, isTrue, reason: "Test case: $a == $b");
@@ -300,68 +322,61 @@ main() {
 
     eq(t1a, t1b);
     ne(t1a, t2);
-    eq(f1a, f1b);
-    ne(f1a, f2);
-    ne(t1a, f1a);
 
     eq(new EmptyType(), new EmptyType());
     ne(new EmptyType(), new AnyType());
-    ne(new EmptyType(), new ConcreteType(cid1, c1));
-    ne(new EmptyType(), new ConeType(t1a));
+    ne(new EmptyType(), new ConcreteType(tfc1));
+    ne(new EmptyType(), new ConeType(tfc1));
     ne(new EmptyType(),
-        new SetType([new ConcreteType(cid1, c1), new ConcreteType(cid2, c2)]));
+        new SetType([new ConcreteType(tfc1), new ConcreteType(tfc2)]));
     ne(new EmptyType(), new NullableType(new EmptyType()));
 
     eq(new AnyType(), new AnyType());
-    ne(new AnyType(), new ConcreteType(cid1, c1));
-    ne(new AnyType(), new ConeType(t1a));
+    ne(new AnyType(), new ConcreteType(tfc1));
+    ne(new AnyType(), new ConeType(tfc1));
     ne(new AnyType(),
-        new SetType([new ConcreteType(cid1, c1), new ConcreteType(cid2, c2)]));
+        new SetType([new ConcreteType(tfc1), new ConcreteType(tfc2)]));
     ne(new AnyType(), new NullableType(new EmptyType()));
 
-    eq(new ConcreteType(cid1, c1), new ConcreteType(cid1, c1));
-    ne(new ConcreteType(cid1, c1), new ConcreteType(cid2, c2));
-    ne(new ConcreteType(cid1, c1), new ConeType(t1a));
-    ne(new ConcreteType(cid1, c1), new ConeType(t2));
-    ne(new ConcreteType(cid1, c1),
-        new SetType([new ConcreteType(cid1, c1), new ConcreteType(cid2, c2)]));
-    ne(new ConcreteType(cid1, c1),
-        new NullableType(new ConcreteType(cid1, c1)));
+    eq(new ConcreteType(tfc1), new ConcreteType(tfc1));
+    ne(new ConcreteType(tfc1), new ConcreteType(tfc2));
+    ne(new ConcreteType(tfc1), new ConeType(tfc1));
+    ne(new ConcreteType(tfc1), new ConeType(tfc2));
+    ne(new ConcreteType(tfc1),
+        new SetType([new ConcreteType(tfc1), new ConcreteType(tfc2)]));
+    ne(new ConcreteType(tfc1), new NullableType(new ConcreteType(tfc1)));
 
-    eq(new ConeType(t1a), new ConeType(t1b));
-    eq(new ConeType(f1a), new ConeType(f1b));
-    ne(new ConeType(t1a), new ConeType(t2));
-    ne(new ConeType(f1a), new ConeType(f2));
-    ne(new ConeType(t1a), new ConeType(f1a));
-    ne(new ConeType(t1a),
-        new SetType([new ConcreteType(cid1, c1), new ConcreteType(cid2, c2)]));
-    ne(new ConeType(t1a), new NullableType(new ConeType(t1a)));
+    eq(new ConeType(tfc1), new ConeType(tfc1));
+    ne(new ConeType(tfc1), new ConeType(tfc2));
+    ne(new ConeType(tfc1),
+        new SetType([new ConcreteType(tfc1), new ConcreteType(tfc2)]));
+    ne(new ConeType(tfc1), new NullableType(new ConeType(tfc1)));
 
-    eq(new SetType([new ConcreteType(cid1, c1), new ConcreteType(cid2, c2)]),
-        new SetType([new ConcreteType(cid1, c1), new ConcreteType(cid2, c2)]));
+    eq(new SetType([new ConcreteType(tfc1), new ConcreteType(tfc2)]),
+        new SetType([new ConcreteType(tfc1), new ConcreteType(tfc2)]));
     eq(
         new SetType([
-          new ConcreteType(cid1, c1),
-          new ConcreteType(cid2, c2),
-          new ConcreteType(cid3, c3)
+          new ConcreteType(tfc1),
+          new ConcreteType(tfc2),
+          new ConcreteType(tfc3)
         ]),
         new SetType([
-          new ConcreteType(cid1, c1),
-          new ConcreteType(cid2, c2),
-          new ConcreteType(cid3, c3)
+          new ConcreteType(tfc1),
+          new ConcreteType(tfc2),
+          new ConcreteType(tfc3)
         ]));
     ne(
-        new SetType([new ConcreteType(cid1, c1), new ConcreteType(cid2, c2)]),
+        new SetType([new ConcreteType(tfc1), new ConcreteType(tfc2)]),
         new SetType([
-          new ConcreteType(cid1, c1),
-          new ConcreteType(cid2, c2),
-          new ConcreteType(cid3, c3)
+          new ConcreteType(tfc1),
+          new ConcreteType(tfc2),
+          new ConcreteType(tfc3)
         ]));
-    ne(new SetType([new ConcreteType(cid1, c1), new ConcreteType(cid2, c2)]),
-        new SetType([new ConcreteType(cid1, c1), new ConcreteType(cid3, c3)]));
+    ne(new SetType([new ConcreteType(tfc1), new ConcreteType(tfc2)]),
+        new SetType([new ConcreteType(tfc1), new ConcreteType(tfc3)]));
     ne(
-        new SetType([new ConcreteType(cid1, c1), new ConcreteType(cid2, c2)]),
-        new NullableType(new SetType(
-            [new ConcreteType(cid1, c1), new ConcreteType(cid2, c2)])));
+        new SetType([new ConcreteType(tfc1), new ConcreteType(tfc2)]),
+        new NullableType(
+            new SetType([new ConcreteType(tfc1), new ConcreteType(tfc2)])));
   });
 }

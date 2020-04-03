@@ -170,7 +170,9 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
     }
     if (callOperator != null) {
       sb.write("{ ");
-      callOperator.function.functionType.accept1(this, sb);
+      callOperator.function
+          .computeFunctionType(cls.enclosingLibrary.nonNullable)
+          .accept1(this, sb);
       sb.write(" }");
     } else {
       sb.write(";");
@@ -196,6 +198,23 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
     }
     names.moveNext();
     return nodeNames[node] = name;
+  }
+
+  void writeNullability(Nullability nullability, StringBuffer sb) {
+    switch (nullability) {
+      case Nullability.nullable:
+        sb.write("?");
+        break;
+      case Nullability.legacy:
+        sb.write("*");
+        break;
+      case Nullability.undetermined:
+        sb.write("%");
+        break;
+      case Nullability.nonNullable:
+      default:
+        break;
+    }
   }
 
   @override
@@ -228,8 +247,15 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
   }
 
   @override
+  void visitNeverType(NeverType node, StringBuffer sb) {
+    sb.write("Never");
+    writeNullability(node.nullability, sb);
+  }
+
+  @override
   void visitInterfaceType(InterfaceType node, StringBuffer sb) {
-    sb.write(computeName(node.classNode));
+    Class cls = node.classNode;
+    sb.write(computeName(cls));
     if (node.typeArguments.isNotEmpty) {
       sb.write("<");
       bool first = true;
@@ -239,6 +265,13 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
         first = false;
       }
       sb.write(">");
+    }
+    Uri clsImportUri = cls.enclosingLibrary.importUri;
+    bool isNull = cls.name == "Null" &&
+        clsImportUri.scheme == "dart" &&
+        clsImportUri.path == "core";
+    if (!isNull) {
+      writeNullability(node.nullability, sb);
     }
   }
 
@@ -280,7 +313,9 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
       sb.write("}");
       first = false;
     }
-    sb.write(") -> ");
+    sb.write(") ->");
+    writeNullability(node.nullability, sb);
+    sb.write(" ");
     node.returnType.accept1(this, sb);
   }
 

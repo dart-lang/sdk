@@ -114,8 +114,10 @@ bool VmService::Setup(const char* server_ip,
                       intptr_t server_port,
                       bool dev_mode_server,
                       bool auth_codes_disabled,
+                      const char* write_service_info_filename,
                       bool trace_loading,
-                      bool deterministic) {
+                      bool deterministic,
+                      bool enable_service_port_fallback) {
   Dart_Isolate isolate = Dart_CurrentIsolate();
   ASSERT(isolate != NULL);
   SetServerAddress("");
@@ -176,6 +178,16 @@ bool VmService::Setup(const char* server_ip,
                          Dart_NewBoolean(auth_codes_disabled));
   SHUTDOWN_ON_ERROR(result);
 
+  result =
+      Dart_SetField(library, DartUtils::NewString("_enableServicePortFallback"),
+                    Dart_NewBoolean(enable_service_port_fallback));
+  SHUTDOWN_ON_ERROR(result);
+
+  if (write_service_info_filename != nullptr) {
+    result = DartUtils::SetStringField(library, "_serviceInfoFilename",
+                                       write_service_info_filename);
+    SHUTDOWN_ON_ERROR(result);
+  }
 // Are we running on Windows?
 #if defined(HOST_OS_WINDOWS)
   Dart_Handle is_windows = Dart_True();
@@ -195,12 +207,6 @@ bool VmService::Setup(const char* server_ip,
   result =
       Dart_SetField(library, DartUtils::NewString("_isFuchsia"), is_fuchsia);
   SHUTDOWN_ON_ERROR(result);
-
-  if (deterministic) {
-    result = Dart_SetField(library, DartUtils::NewString("_deterministic"),
-                           Dart_True());
-    SHUTDOWN_ON_ERROR(result);
-  }
 
   // Get _getWatchSignalInternal from dart:io.
   Dart_Handle dart_io_str = Dart_NewStringFromCString(DartUtils::kIOLibURL);

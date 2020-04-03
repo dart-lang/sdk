@@ -4,40 +4,30 @@
 
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 
-/**
- * An object that manages the subscriptions for analysis results.
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// An object that manages the subscriptions for analysis results.
+///
+/// Clients may not extend, implement or mix-in this class.
 class SubscriptionManager {
-  /**
-   * The current set of subscriptions.
-   */
+  /// The current set of subscriptions.
   Map<AnalysisService, List<String>> _subscriptions;
 
-  /**
-   * Initialize a newly created subscription manager to have no subscriptions.
-   */
+  /// Initialize a newly created subscription manager to have no subscriptions.
   SubscriptionManager();
 
-  /**
-   * Return `true` if the file with the given [filePath] has a subscription for
-   * the given [service].
-   */
+  /// Return `true` if the file with the given [filePath] has a subscription for
+  /// the given [service].
   bool hasSubscriptionForFile(String filePath, AnalysisService service) {
     if (_subscriptions == null) {
       return false;
     }
-    List<String> files = _subscriptions[service];
+    var files = _subscriptions[service];
     return files != null && files.contains(filePath);
   }
 
-  /**
-   * Return a list of the services for which the file with the given [filePath]
-   * has been subscribed.
-   */
+  /// Return a list of the services for which the file with the given [filePath]
+  /// has been subscribed.
   List<AnalysisService> servicesForFile(String filePath) {
-    List<AnalysisService> services = <AnalysisService>[];
+    var services = <AnalysisService>[];
     if (_subscriptions != null) {
       _subscriptions.forEach((AnalysisService service, List<String> files) {
         if (files.contains(filePath)) {
@@ -48,23 +38,20 @@ class SubscriptionManager {
     return services;
   }
 
-  /**
-   * Set the current set of subscriptions to those described by the given map of
-   * [subscriptions]. Return a map representing the subset of the subscriptions
-   * that are new. These are the subscriptions for which a notification should
-   * be sent. The returned map is keyed by the path of each file for which
-   * notifications should be send and has values representing the list of
-   * services that were added for that file.
-   */
+  /// Set the current set of subscriptions to those described by the given map
+  /// of [subscriptions]. Return a map representing the subset of the
+  /// subscriptions that are new. These are the subscriptions for which a
+  /// notification should be sent. The returned map is keyed by the path of each
+  /// file for which notifications should be send and has values representing
+  /// the list of services that were added for that file.
   Map<String, List<AnalysisService>> setSubscriptions(
       Map<AnalysisService, List<String>> subscriptions) {
-    Map<String, List<AnalysisService>> newSubscriptions =
-        <String, List<AnalysisService>>{};
+    var newSubscriptions = <String, List<AnalysisService>>{};
     if (_subscriptions == null) {
       // This is the first time subscriptions have been set, so all of the
       // subscriptions are new.
       subscriptions.forEach((AnalysisService service, List<String> paths) {
-        for (String path in paths) {
+        for (var path in paths) {
           newSubscriptions
               .putIfAbsent(path, () => <AnalysisService>[])
               .add(service);
@@ -74,8 +61,8 @@ class SubscriptionManager {
       // The subscriptions have been changed, to we need to compute the
       // difference.
       subscriptions.forEach((AnalysisService service, List<String> paths) {
-        List<String> oldPaths = _subscriptions[service];
-        for (String path in paths) {
+        var oldPaths = _subscriptions[service];
+        for (var path in paths) {
           if (!oldPaths.contains(path)) {
             newSubscriptions
                 .putIfAbsent(path, () => <AnalysisService>[])

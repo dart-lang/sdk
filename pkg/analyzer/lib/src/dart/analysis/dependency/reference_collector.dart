@@ -29,7 +29,7 @@ class ReferenceCollector {
   /// The list of names that are referenced using an import prefix.
   ///
   /// It is filled by [addImportPrefix] and shared across all nodes.
-  List<_ReferencedImportPrefixedNames> _importPrefixedReferences = [];
+  final List<_ReferencedImportPrefixedNames> _importPrefixedReferences = [];
 
   /// The list of names that are referenced with `super`.
   _NameSet _superReferences = _NameSet();
@@ -164,7 +164,17 @@ class ReferenceCollector {
     return null;
   }
 
-  void _recordClassMemberReference(DartType targetType, String name) {
+  void _recordClassMemberReference(
+      {Expression target, DartType targetType, String name}) {
+    if (target is Identifier) {
+      var element = target.staticElement;
+      if (element is ClassElement) {
+        _memberReferences.add(element, name);
+        return;
+      }
+    }
+    targetType ??= target.staticType;
+
     if (targetType is InterfaceType) {
       _memberReferences.add(targetType.element, name);
     }
@@ -203,8 +213,8 @@ class ReferenceCollector {
         assignmentType != TokenType.QUESTION_QUESTION_EQ) {
       var operatorType = operatorFromCompoundAssignment(assignmentType);
       _recordClassMemberReference(
-        node.leftHandSide.staticType,
-        operatorType.lexeme,
+        targetType: node.leftHandSide.staticType,
+        name: operatorType.lexeme,
       );
     }
   }
@@ -216,7 +226,10 @@ class ReferenceCollector {
       _superReferences.add(operatorName);
     } else {
       _visitExpression(leftOperand);
-      _recordClassMemberReference(leftOperand.staticType, operatorName);
+      _recordClassMemberReference(
+        targetType: leftOperand.staticType,
+        name: operatorName,
+      );
     }
     _visitExpression(node.rightOperand);
   }
@@ -263,9 +276,9 @@ class ReferenceCollector {
     _visitTypeAnnotation(type);
 
     if (name != null) {
-      _recordClassMemberReference(type.type, name.name);
+      _recordClassMemberReference(targetType: type.type, name: name.name);
     } else {
-      _recordClassMemberReference(type.type, '');
+      _recordClassMemberReference(targetType: type.type, name: '');
     }
   }
 
@@ -301,7 +314,7 @@ class ReferenceCollector {
     _visitConstructor(node.type, node.name);
   }
 
-  void _visitExpression(Expression node, {bool get: true, bool set: false}) {
+  void _visitExpression(Expression node, {bool get = true, bool set = false}) {
     if (node == null) return;
 
     if (node is AdjacentStrings) {
@@ -518,10 +531,10 @@ class ReferenceCollector {
       _visitExpression(target);
       var targetType = target.staticType;
       if (get) {
-        _recordClassMemberReference(targetType, '[]');
+        _recordClassMemberReference(targetType: targetType, name: '[]');
       }
       if (set) {
-        _recordClassMemberReference(targetType, '[]=');
+        _recordClassMemberReference(targetType: targetType, name: '[]=');
       }
     }
 
@@ -551,9 +564,7 @@ class ReferenceCollector {
     } else {
       _visitExpression(node.target);
       _recordClassMemberReference(
-        realTarget.staticType,
-        node.methodName.name,
-      );
+          target: realTarget, name: node.methodName.name);
     }
     _visitTypeArguments(node.typeArguments);
     _visitArgumentList(node.argumentList);
@@ -564,9 +575,15 @@ class ReferenceCollector {
 
     var operator = node.operator.type;
     if (operator == TokenType.MINUS_MINUS) {
-      _recordClassMemberReference(node.operand.staticType, '-');
+      _recordClassMemberReference(
+        targetType: node.operand.staticType,
+        name: '-',
+      );
     } else if (operator == TokenType.PLUS_PLUS) {
-      _recordClassMemberReference(node.operand.staticType, '+');
+      _recordClassMemberReference(
+        targetType: node.operand.staticType,
+        name: '+',
+      );
     } else {
       throw UnimplementedError('$operator');
     }
@@ -581,7 +598,7 @@ class ReferenceCollector {
       importPrefix.add(node.identifier.name);
     } else {
       _visitExpression(prefix);
-      _recordClassMemberReference(prefix.staticType, node.identifier.name);
+      _recordClassMemberReference(target: prefix, name: node.identifier.name);
     }
   }
 
@@ -591,7 +608,10 @@ class ReferenceCollector {
     var operatorName = node.operator.lexeme;
     if (operatorName == '-') operatorName = 'unary-';
 
-    _recordClassMemberReference(node.operand.staticType, operatorName);
+    _recordClassMemberReference(
+      targetType: node.operand.staticType,
+      name: operatorName,
+    );
   }
 
   void _visitPropertyAccess(PropertyAccess node,
@@ -609,10 +629,10 @@ class ReferenceCollector {
     } else {
       _visitExpression(node.target);
       if (get) {
-        _recordClassMemberReference(realTarget.staticType, name);
+        _recordClassMemberReference(target: realTarget, name: name);
       }
       if (set) {
-        _recordClassMemberReference(realTarget.staticType, '$name=');
+        _recordClassMemberReference(target: realTarget, name: '$name=');
       }
     }
   }

@@ -1,8 +1,0 @@
-library test;
-import self as self;
-
-static method main() → dynamic {
-  dynamic v = <dynamic>[() → dynamic {
-    return 1;
-  }];
-}

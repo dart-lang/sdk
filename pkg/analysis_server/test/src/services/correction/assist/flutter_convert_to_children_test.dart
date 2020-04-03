@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FlutterConvertToChildrenTest);
   });
@@ -19,7 +19,7 @@ class FlutterConvertToChildrenTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.FLUTTER_CONVERT_TO_CHILDREN;
 
-  test_childUnresolved() async {
+  Future<void> test_childUnresolved() async {
     addFlutterPackage();
     verifyNoTestUnitErrors = false;
     await resolveTestUnit('''
@@ -33,7 +33,7 @@ build() {
     await assertNoAssist();
   }
 
-  test_multiLine() async {
+  Future<void> test_multiLine() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
@@ -54,7 +54,7 @@ import 'package:flutter/material.dart';
 build() {
   return Scaffold(
     body: Center(
-      children: <Widget>[
+      children: [
         Container(
           width: 200.0,
           height: 300.0,
@@ -67,7 +67,7 @@ build() {
 ''');
   }
 
-  test_newlineChild() async {
+  Future<void> test_newlineChild() async {
     // This case could occur with deeply nested constructors, common in Flutter.
     addFlutterPackage();
     await resolveTestUnit('''
@@ -90,7 +90,7 @@ import 'package:flutter/material.dart';
 build() {
   return Scaffold(
     body: Center(
-      children: <Widget>[
+      children: [
         Container(
           width: 200.0,
           height: 300.0,
@@ -103,7 +103,7 @@ build() {
 ''');
   }
 
-  test_notOnChild() async {
+  Future<void> test_notOnChild() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
@@ -118,7 +118,7 @@ build() {
     await assertNoAssist();
   }
 
-  test_singleLine() async {
+  Future<void> test_singleLine() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
@@ -136,7 +136,7 @@ import 'package:flutter/material.dart';
 build() {
   return Scaffold(
     body: Center(
-      children: <Widget>[GestureDetector()],
+      children: [GestureDetector()],
       key: null,
     ),
   );

@@ -159,7 +159,7 @@ void testHttpServerZone() {
 void testHttpServerZoneError() {
   asyncStart();
   Expect.equals(Zone.root, Zone.current);
-  runZoned(() {
+  runZonedGuarded(() {
     Expect.notEquals(Zone.root, Zone.current);
     HttpServer.bind("127.0.0.1", 0).then((server) {
       Expect.notEquals(Zone.root, Zone.current);
@@ -178,14 +178,14 @@ void testHttpServerZoneError() {
         socket.listen(null);
       });
     });
-  }, onError: (e) {
+  }, (e, s) {
     asyncEnd();
   });
 }
 
 void testHttpServerClientClose() {
   HttpServer.bind("127.0.0.1", 0).then((server) {
-    runZoned(() {
+    runZonedGuarded(() {
       server.listen((request) {
         request.response.bufferOutput = false;
         request.response.add(new Uint8List(64 * 1024));
@@ -195,7 +195,7 @@ void testHttpServerClientClose() {
           });
         });
       });
-    }, onError: (e, s) {
+    }, (e, s) {
       Expect.fail("Unexpected error: $e(${e.hashCode})\n$s");
     });
     var client = new HttpClient();

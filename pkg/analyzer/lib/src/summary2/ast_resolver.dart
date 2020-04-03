@@ -5,50 +5,75 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/resolver/ast_rewrite.dart';
+import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
+import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary2/link.dart';
 
 /// Used to resolve some AST nodes - variable initializers, and annotations.
 class AstResolver {
   final Linker _linker;
-  final LibraryElement _library;
+  final CompilationUnitElement _unitElement;
   final Scope _nameScope;
 
-  AstResolver(this._linker, this._library, this._nameScope);
+  AstResolver(this._linker, this._unitElement, this._nameScope);
 
   void resolve(
-    AstNode node, {
+    AstNode node,
+    AstNode Function() getNode, {
+    bool buildElements = true,
+    bool isTopLevelVariableInitializer = false,
     ClassElement enclosingClassElement,
     ExecutableElement enclosingExecutableElement,
     FunctionBody enclosingFunctionBody,
   }) {
     var featureSet = node.thisOrAncestorOfType<CompilationUnit>().featureSet;
-    var source = _FakeSource();
     var errorListener = AnalysisErrorListener.NULL_LISTENER;
 
-    var typeResolverVisitor = new TypeResolverVisitor(
-        _library, source, _linker.typeProvider, errorListener,
-        featureSet: featureSet, nameScope: _nameScope);
-    node.accept(typeResolverVisitor);
+    if (buildElements) {
+      node.accept(
+        ResolutionVisitor(
+          unitElement: _unitElement,
+          featureSet: featureSet,
+          nameScope: _nameScope,
+          errorListener: errorListener,
+        ),
+      );
+      node = getNode();
 
-    var variableResolverVisitor = new VariableResolverVisitor(
-        _library, source, _linker.typeProvider, errorListener,
-        nameScope: _nameScope, localVariableInfo: LocalVariableInfo());
-    node.accept(variableResolverVisitor);
-
-//    if (_linker.getAst != null) {
-//      expression.accept(_partialResolverVisitor);
-//    }
-
-    var resolverVisitor = new ResolverVisitor(_linker.inheritance, _library,
-        source, _linker.typeProvider, errorListener,
-        featureSet: featureSet,
+      var variableResolverVisitor = VariableResolverVisitor(
+        _unitElement.library,
+        _unitElement.source,
+        _unitElement.library.typeProvider,
+        errorListener,
         nameScope: _nameScope,
-        propagateTypes: false,
-        reportConstEvaluationErrors: false);
+      );
+      node.accept(variableResolverVisitor);
+    }
+
+    FlowAnalysisHelper flowAnalysis;
+    if (isTopLevelVariableInitializer) {
+      if (_unitElement.library.isNonNullableByDefault) {
+        flowAnalysis = FlowAnalysisHelper(
+          _unitElement.library.typeSystem,
+          false,
+        );
+        flowAnalysis.topLevelDeclaration_enter(node.parent, null, null);
+      }
+    }
+
+    var resolverVisitor = ResolverVisitor(
+      _linker.inheritance,
+      _unitElement.library,
+      _unitElement.source,
+      _unitElement.library.typeProvider,
+      errorListener,
+      featureSet: featureSet,
+      nameScope: _nameScope,
+      propagateTypes: false,
+      reportConstEvaluationErrors: false,
+      flowAnalysisHelper: flowAnalysis,
+    );
     resolverVisitor.prepareEnclosingDeclarations(
       enclosingClassElement: enclosingClassElement,
       enclosingExecutableElement: enclosingExecutableElement,
@@ -58,23 +83,9 @@ class AstResolver {
     }
 
     node.accept(resolverVisitor);
+
+    if (isTopLevelVariableInitializer) {
+      flowAnalysis?.topLevelDeclaration_exit();
+    }
   }
-
-  void rewriteAst(AstNode node) {
-    var source = _FakeSource();
-    var errorListener = AnalysisErrorListener.NULL_LISTENER;
-
-    var astRewriteVisitor = new AstRewriteVisitor(_linker.typeSystem, _library,
-        source, _linker.typeProvider, errorListener,
-        nameScope: _nameScope);
-    node.accept(astRewriteVisitor);
-  }
-}
-
-class _FakeSource implements Source {
-  @override
-  String get fullName => '/package/lib/test.dart';
-
-  @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

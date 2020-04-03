@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // VMOptions=--serialize_flow_graphs_to=il_tmp.txt
+// VMOptions=--serialize_flow_graphs_to=il_tmp.txt --populate_llvm_constant_pool
 // VMOptions=--serialize_flow_graphs_to=il_tmp.txt --no_serialize_flow_graph_types
 // VMOptions=--serialize_flow_graphs_to=il_tmp.txt --verbose_flow_graph_serialization
 // VMOptions=--serialize_flow_graphs_to=il_tmp.txt --no_serialize_flow_graph_types --verbose_flow_graph_serialization

@@ -1,0 +1,22 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Mixin extends core::Object {
+  synthetic constructor •() → self::Mixin*
+    ;
+}
+class Super extends core::Object {
+  field core::int* field;
+  constructor •(core::int* field) → self::Super*
+    ;
+}
+class Class = self::Super with self::Mixin {
+  synthetic constructor •(core::int* field) → self::Class*
+    : super self::Super::•(field)
+    ;
+}
+static method main() → dynamic
+  ;
+static method error() → dynamic
+  ;

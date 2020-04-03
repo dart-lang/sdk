@@ -14,30 +14,22 @@ import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 
-/**
- * An abstract implementation of a request handler.
- */
+/// An abstract implementation of a request handler.
 abstract class AbstractRequestHandler implements RequestHandler {
-  /**
-   * The analysis server that is using this handler to process requests.
-   */
+  /// The analysis server that is using this handler to process requests.
   final AnalysisServer server;
 
-  /**
-   * Initialize a newly created request handler to be associated with the given
-   * analysis [server].
-   */
+  /// Initialize a newly created request handler to be associated with the given
+  /// analysis [server].
   AbstractRequestHandler(this.server);
 
-  /**
-   * Given a mapping from plugins to futures that will complete when the plugin
-   * has responded to a request, wait for a finite amount of time for each of
-   * the plugins to respond. Return a list of the responses from each of the
-   * plugins. If a plugin fails to return a response, notify the plugin manager
-   * associated with the server so that non-responsive plugins can be killed or
-   * restarted. The [timeout] is the maximum amount of time that will be spent
-   * waiting for plugins to respond.
-   */
+  /// Given a mapping from plugins to futures that will complete when the plugin
+  /// has responded to a request, wait for a finite amount of time for each of
+  /// the plugins to respond. Return a list of the responses from each of the
+  /// plugins. If a plugin fails to return a response, notify the plugin manager
+  /// associated with the server so that non-responsive plugins can be killed or
+  /// restarted. The [timeout] is the maximum amount of time that will be spent
+  /// waiting for plugins to respond.
   Future<List<plugin.Response>> waitForResponses(
       Map<PluginInfo, Future<plugin.Response>> futures,
       {plugin.RequestParams requestParameters,
@@ -45,14 +37,14 @@ abstract class AbstractRequestHandler implements RequestHandler {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     // TODO(brianwilkerson) requestParameters might need to be required.
-    int endTime = new DateTime.now().millisecondsSinceEpoch + timeout;
-    List<plugin.Response> responses = <plugin.Response>[];
-    for (PluginInfo pluginInfo in futures.keys) {
-      Future<plugin.Response> future = futures[pluginInfo];
+    var endTime = DateTime.now().millisecondsSinceEpoch + timeout;
+    var responses = <plugin.Response>[];
+    for (var pluginInfo in futures.keys) {
+      var future = futures[pluginInfo];
       try {
-        int startTime = new DateTime.now().millisecondsSinceEpoch;
-        plugin.Response response = await future.timeout(
-            new Duration(milliseconds: math.max(endTime - startTime, 0)));
+        var startTime = DateTime.now().millisecondsSinceEpoch;
+        var response = await future
+            .timeout(Duration(milliseconds: math.max(endTime - startTime, 0)));
         if (response.error != null) {
           // TODO(brianwilkerson) Report the error to the plugin manager.
           server.instrumentationService.logPluginError(
@@ -67,7 +59,7 @@ abstract class AbstractRequestHandler implements RequestHandler {
         // TODO(brianwilkerson) Report the timeout to the plugin manager.
         server.instrumentationService.logPluginTimeout(
             pluginInfo.data,
-            new JsonEncoder()
+            JsonEncoder()
                 .convert(requestParameters?.toRequest('-')?.toJson() ?? {}));
       } catch (exception, stackTrace) {
         // TODO(brianwilkerson) Report the exception to the plugin manager.

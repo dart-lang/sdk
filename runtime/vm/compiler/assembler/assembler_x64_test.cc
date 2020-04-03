@@ -6,6 +6,7 @@
 #if defined(TARGET_ARCH_X64)
 
 #include "vm/compiler/assembler/assembler.h"
+#include "vm/cpu.h"
 #include "vm/os.h"
 #include "vm/unit_test.h"
 #include "vm/virtual_memory.h"
@@ -552,7 +553,7 @@ ASSEMBLER_TEST_RUN(Testb, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(Testb2, assembler) {
-  Label done, ok1, ok2, ok3, ok4, ok5, ok6;
+  Label done, ok1, ok2, ok3, ok4, ok5, ok6, ok7;
 
   __ movq(RAX, Immediate(0xffffefff));
   __ bsrq(RCX, RAX);
@@ -592,6 +593,13 @@ ASSEMBLER_TEST_GENERATE(Testb2, assembler) {
   __ j(EQUAL, &ok6);
   __ int3();
   __ Bind(&ok6);
+
+  __ movq(RAX, Immediate(0x0fffeff0));
+  __ bsfq(RCX, RAX);
+  __ cmpq(RCX, Immediate(4));
+  __ j(EQUAL, &ok7);
+  __ int3();
+  __ Bind(&ok7);
 
   __ movq(RAX, Immediate(42));
   __ ret();
@@ -634,6 +642,12 @@ ASSEMBLER_TEST_RUN(Testb2, test) {
       "jz 0x................\n"
       "int3\n"
 
+      "movl rax,0x........\n"
+      "bsfq rcx,rax\n"
+      "cmpq rcx,4\n"
+      "jz 0x................\n"
+      "int3\n"
+
       "movl rax,0x2a\n"
       "ret\n");
 }
@@ -667,6 +681,54 @@ ASSEMBLER_TEST_RUN(Testb3, test) {
       "ret\n"
       "movl rax,0\n"
       "pop rcx\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(Popcnt, assembler) {
+  __ movq(RCX, Immediate(-1));
+  __ popcntq(RAX, RCX);
+  __ movq(RCX, Immediate(0xf));
+  __ popcntq(RCX, RCX);
+  __ addq(RAX, RCX);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Popcnt, test) {
+  if (!HostCPUFeatures::popcnt_supported()) {
+    return;
+  }
+  typedef int64_t (*PopcntCode)();
+  EXPECT_EQ(68, reinterpret_cast<PopcntCode>(test->entry())());
+  EXPECT_DISASSEMBLY(
+      "movq rcx,-1\n"
+      "popcntq rax,rcx\n"
+      "movl rcx,0xf\n"
+      "popcntq rcx,rcx\n"
+      "addq rax,rcx\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(Lzcnt, assembler) {
+  __ movq(RCX, Immediate(0x0f00));
+  __ lzcntq(RAX, RCX);
+  __ movq(RCX, Immediate(0x00f0));
+  __ lzcntq(RCX, RCX);
+  __ addq(RAX, RCX);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Lzcnt, test) {
+  if (!HostCPUFeatures::abm_supported()) {
+    return;
+  }
+  typedef int64_t (*LzcntCode)();
+  EXPECT_EQ(108, reinterpret_cast<LzcntCode>(test->entry())());
+  EXPECT_DISASSEMBLY(
+      "movl rcx,0x...\n"
+      "lzcntq rax,rcx\n"
+      "movl rcx,0xf0\n"
+      "lzcntq rcx,rcx\n"
+      "addq rax,rcx\n"
       "ret\n");
 }
 
@@ -852,6 +914,25 @@ ASSEMBLER_TEST_RUN(UnsignedMultiply, test) {
       "movl rcx,0x10\n"
       "mull (rax,rdx),rcx\n"
       "movq rax,rdx\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(SignedMultiply64Implicit, assembler) {
+  __ movq(RAX, Immediate(7));
+  __ movq(RDX, Immediate(-3));
+  __ imulq(RDX);  // // RDX:RAX = -21
+  __ addq(RAX, RDX);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(SignedMultiply64Implicit, test) {
+  typedef int (*SignedMultiply64Implicit)();
+  EXPECT_EQ(-22, reinterpret_cast<SignedMultiply64Implicit>(test->entry())());
+  EXPECT_DISASSEMBLY(
+      "movl rax,7\n"
+      "movq rdx,-3\n"
+      "imulq (rax,rdx),rdx\n"
+      "addq rax,rdx\n"
       "ret\n");
 }
 

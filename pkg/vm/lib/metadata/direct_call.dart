@@ -26,8 +26,10 @@ class DirectCallMetadata {
 /// Repository for [DirectCallMetadata].
 class DirectCallMetadataRepository
     extends MetadataRepository<DirectCallMetadata> {
+  static const repositoryTag = 'vm.direct-call.metadata';
+
   @override
-  final String tag = 'vm.direct-call.metadata';
+  String get tag => repositoryTag;
 
   @override
   final Map<TreeNode, DirectCallMetadata> mapping =

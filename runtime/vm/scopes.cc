@@ -207,6 +207,42 @@ VariableIndex LocalScope::AllocateVariables(VariableIndex first_parameter_index,
   int pos = 0;                              // Current variable position.
   VariableIndex next_index =
       first_parameter_index;  // Current free frame index.
+
+  LocalVariable* await_jump_var = nullptr;
+  LocalVariable* async_completer = nullptr;
+  LocalVariable* controller = nullptr;
+  for (intptr_t i = 0; i < num_variables(); i++) {
+    LocalVariable* variable = VariableAt(i);
+    if (variable->owner() == this) {
+      if (variable->is_captured()) {
+        if (variable->name().Equals(Symbols::AwaitJumpVar())) {
+          await_jump_var = variable;
+        } else if (variable->name().Equals(Symbols::AsyncCompleter())) {
+          async_completer = variable;
+        } else if (variable->name().Equals(Symbols::Controller())) {
+          controller = variable;
+        }
+      }
+    }
+  }
+  // If we are in an async/async* function, force :await_jump_var and
+  // :async_completer_var to be at fixed locations in the slot.
+  if (await_jump_var != nullptr) {
+    AllocateContextVariable(await_jump_var, &context_owner);
+    *found_captured_variables = true;
+    ASSERT(await_jump_var->index().value() == Context::kAwaitJumpVarIndex);
+  }
+  if (async_completer != nullptr) {
+    AllocateContextVariable(async_completer, &context_owner);
+    *found_captured_variables = true;
+    ASSERT(async_completer->index().value() == Context::kAsyncCompleterIndex);
+  }
+  if (controller != nullptr) {
+    AllocateContextVariable(controller, &context_owner);
+    *found_captured_variables = true;
+    ASSERT(controller->index().value() == Context::kControllerIndex);
+  }
+
   while (pos < num_parameters) {
     LocalVariable* parameter = VariableAt(pos);
     pos++;
@@ -234,8 +270,12 @@ VariableIndex LocalScope::AllocateVariables(VariableIndex first_parameter_index,
     LocalVariable* variable = VariableAt(pos);
     if (variable->owner() == this) {
       if (variable->is_captured()) {
-        AllocateContextVariable(variable, &context_owner);
-        *found_captured_variables = true;
+        // Skip the two variables already pre-allocated above.
+        if (variable != await_jump_var && variable != async_completer &&
+            variable != controller) {
+          AllocateContextVariable(variable, &context_owner);
+          *found_captured_variables = true;
+        }
       } else {
         variable->set_index(next_index);
         next_index = VariableIndex(next_index.value() - 1);
@@ -558,7 +598,13 @@ RawContextScope* LocalScope::PreserveOuterScope(
       context_scope.SetDeclarationTokenIndexAt(
           captured_idx, variable->declaration_token_pos());
       context_scope.SetNameAt(captured_idx, variable->name());
+      context_scope.ClearFlagsAt(captured_idx);
       context_scope.SetIsFinalAt(captured_idx, variable->is_final());
+      context_scope.SetIsLateAt(captured_idx, variable->is_late());
+      if (variable->is_late()) {
+        context_scope.SetLateInitOffsetAt(captured_idx,
+                                          variable->late_init_offset());
+      }
       context_scope.SetIsConstAt(captured_idx, variable->IsConst());
       if (variable->IsConst()) {
         context_scope.SetConstValueAt(captured_idx, *variable->ConstValue());
@@ -604,6 +650,10 @@ LocalScope* LocalScope::RestoreOuterScope(const ContextScope& context_scope) {
     variable->set_index(VariableIndex(context_scope.ContextIndexAt(i)));
     if (context_scope.IsFinalAt(i)) {
       variable->set_is_final();
+    }
+    if (context_scope.IsLateAt(i)) {
+      variable->set_is_late();
+      variable->set_late_init_offset(context_scope.LateInitOffsetAt(i));
     }
     // Create a fake owner scope describing the index and context level of the
     // variable. Function level and loop level are unused (set to 0), since
@@ -651,6 +701,7 @@ RawContextScope* LocalScope::CreateImplicitClosureScope(const Function& func) {
   context_scope.SetTokenIndexAt(0, func.token_pos());
   context_scope.SetDeclarationTokenIndexAt(0, func.token_pos());
   context_scope.SetNameAt(0, Symbols::This());
+  context_scope.ClearFlagsAt(0);
   context_scope.SetIsFinalAt(0, true);
   context_scope.SetIsConstAt(0, false);
   const AbstractType& type = AbstractType::Handle(func.ParameterTypeAt(0));

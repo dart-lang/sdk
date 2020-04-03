@@ -2,260 +2,225 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:ffi' as ffi;
+import 'dart:ffi';
+import 'package:ffi/ffi.dart';
 
-main(List<String> arguments) {
+main() {
   print('start main');
 
   {
-    // basic operation: allocate, get, set, and free
-    ffi.Pointer<ffi.Int64> p = ffi.allocate();
-    p.store(42);
-    int pValue = p.load();
+    // Basic operation: allocate, get, set, and free.
+    Pointer<Int64> p = allocate();
+    p.value = 42;
+    int pValue = p.value;
     print('${p.runtimeType} value: ${pValue}');
-    p.free();
+    free(p);
   }
 
   {
-    // undefined behavior before set
-    ffi.Pointer<ffi.Int64> p = ffi.allocate();
-    int pValue = p.load();
+    // Undefined behavior before set.
+    Pointer<Int64> p = allocate();
+    int pValue = p.value;
     print('If not set, returns garbage: ${pValue}');
-    p.free();
+    free(p);
   }
 
   {
-    // pointers can be created from an address
-    ffi.Pointer<ffi.Int64> pHelper = ffi.allocate();
-    pHelper.store(1337);
+    // Pointers can be created from an address.
+    Pointer<Int64> pHelper = allocate();
+    pHelper.value = 1337;
 
     int address = pHelper.address;
     print('Address: ${address}');
 
-    ffi.Pointer<ffi.Int64> p = ffi.fromAddress(address);
-    print('${p.runtimeType} value: ${p.load<int>()}');
+    Pointer<Int64> p = Pointer.fromAddress(address);
+    print('${p.runtimeType} value: ${p.value}');
 
-    pHelper.free();
+    free(pHelper);
   }
 
   {
-    // address is zeroed out after free
-    ffi.Pointer<ffi.Int64> p = ffi.allocate();
-    p.free();
+    // Address is zeroed out after free.
+    Pointer<Int64> p = allocate();
+    free(p);
     print('After free, address is zero: ${p.address}');
   }
 
   {
-    // pointer arithmetic can be done with element offsets or bytes
-    ffi.Pointer<ffi.Int64> p1 = ffi.allocate<ffi.Int64>(count: 2);
-    print('p1 address: ${p1.address}');
-
-    ffi.Pointer<ffi.Int64> p2 = p1.elementAt(1);
-    print('p1.elementAt(1) address: ${p2.address}');
-    p2.store(100);
-
-    ffi.Pointer<ffi.Int64> p3 = p1.offsetBy(8);
-    print('p1.offsetBy(8) address: ${p3.address}');
-    print('p1.offsetBy(8) value: ${p3.load<int>()}');
-    p1.free();
-  }
-
-  {
-    // allocating too much throws an exception
+    // Allocating too much throws an exception.
     try {
       int maxMint = 9223372036854775807; // 2^63 - 1
-      ffi.allocate<ffi.Int64>(count: maxMint);
-    } on RangeError {
+      allocate<Int64>(count: maxMint);
+    } on Error {
       print('Expected exception on allocating too much');
     }
     try {
       int maxInt1_8 = 1152921504606846975; // 2^60 -1
-      ffi.allocate<ffi.Int64>(count: maxInt1_8);
-    } on ArgumentError {
+      allocate<Int64>(count: maxInt1_8);
+    } on Error {
       print('Expected exception on allocating too much');
     }
   }
 
   {
-    // pointers can be cast into another type
-    // resulting in the corresponding bits read
-    ffi.Pointer<ffi.Int64> p1 = ffi.allocate();
-    p1.store(9223372036854775807); // 2^63 - 1
+    // Pointers can be cast into another type,
+    // resulting in the corresponding bits read.
+    Pointer<Int64> p1 = allocate();
+    p1.value = 9223372036854775807; // 2^63 - 1
 
-    ffi.Pointer<ffi.Int32> p2 = p1.cast();
-    print('${p2.runtimeType} value: ${p2.load<int>()}'); // -1
+    Pointer<Int32> p2 = p1.cast();
+    print('${p2.runtimeType} value: ${p2.value}'); // -1
 
-    ffi.Pointer<ffi.Int32> p3 = p2.elementAt(1);
-    print('${p3.runtimeType} value: ${p3.load<int>()}'); // 2^31 - 1
+    Pointer<Int32> p3 = p2.elementAt(1);
+    print('${p3.runtimeType} value: ${p3.value}'); // 2^31 - 1
 
-    p1.free();
+    free(p1);
   }
 
   {
-    // data can be tightly packed in memory
-    ffi.Pointer<ffi.Int8> p = ffi.allocate(count: 8);
+    // Data can be tightly packed in memory.
+    Pointer<Int8> p = allocate(count: 8);
     for (var i in [0, 1, 2, 3, 4, 5, 6, 7]) {
-      p.elementAt(i).store(i * 3);
+      p.elementAt(i).value = i * 3;
     }
     for (var i in [0, 1, 2, 3, 4, 5, 6, 7]) {
-      print('p.elementAt($i) value: ${p.elementAt(i).load<int>()}');
+      print('p.elementAt($i) value: ${p.elementAt(i).value}');
     }
-    p.free();
+    free(p);
   }
 
   {
-    // exception on storing a value that does not fit
-    ffi.Pointer<ffi.Int32> p11 = ffi.allocate();
+    // Values that don't fit are truncated.
+    Pointer<Int32> p11 = allocate();
 
-    try {
-      p11.store(9223372036854775807);
-    } on ArgumentError {
-      print('Expected exception on calling set with a value that does not fit');
-    }
+    p11.value = 9223372036854775807;
 
-    p11.free();
+    print(p11);
+
+    free(p11);
   }
 
   {
-    // doubles
-    ffi.Pointer<ffi.Double> p = ffi.allocate();
-    p.store(3.14159265359);
-    print('${p.runtimeType} value: ${p.load<double>()}');
-    p.store(3.14);
-    print('${p.runtimeType} value: ${p.load<double>()}');
-    p.free();
+    // Doubles.
+    Pointer<Double> p = allocate();
+    p.value = 3.14159265359;
+    print('${p.runtimeType} value: ${p.value}');
+    p.value = 3.14;
+    print('${p.runtimeType} value: ${p.value}');
+    free(p);
   }
 
   {
-    // floats
-    ffi.Pointer<ffi.Float> p = ffi.allocate();
-    p.store(3.14159265359);
-    print('${p.runtimeType} value: ${p.load<double>()}');
-    p.store(3.14);
-    print('${p.runtimeType} value: ${p.load<double>()}');
-    p.free();
+    // Floats.
+    Pointer<Float> p = allocate();
+    p.value = 3.14159265359;
+    print('${p.runtimeType} value: ${p.value}');
+    p.value = 3.14;
+    print('${p.runtimeType} value: ${p.value}');
+    free(p);
   }
 
   {
-    // ffi.IntPtr varies in size based on whether the platform is 32 or 64 bit
-    // addresses of pointers fit in this size
-    ffi.Pointer<ffi.IntPtr> p = ffi.allocate();
+    // IntPtr varies in size based on whether the platform is 32 or 64 bit.
+    // Addresses of pointers fit in this size.
+    Pointer<IntPtr> p = allocate();
     int p14addr = p.address;
-    p.store(p14addr);
-    int pValue = p.load();
+    p.value = p14addr;
+    int pValue = p.value;
     print('${p.runtimeType} value: ${pValue}');
-    p.free();
+    free(p);
   }
 
   {
-    // void pointers are unsized
-    // the size of the element it is pointing to is undefined
-    // this means they cannot be ffi.allocated, read, or written
-    // this would would fail to compile:
-    // ffi.allocate<ffi.Void>();
+    // Void pointers are unsized.
+    // The size of the element it is pointing to is undefined,
+    // they cannot be allocated, read, or written.
 
-    ffi.Pointer<ffi.IntPtr> p1 = ffi.allocate();
-    ffi.Pointer<ffi.Void> p2 = p1.cast();
+    Pointer<IntPtr> p1 = allocate();
+    Pointer<Void> p2 = p1.cast();
     print('${p2.runtimeType} address: ${p2.address}');
 
-    // this fails to compile, we cannot read something unsized
-    // p2.load<int>();
-
-    // this fails to compile, we cannot write something unsized
-    // p2.store(1234);
-
-    p1.free();
+    free(p1);
   }
 
   {
-    // pointer to a pointer to something
-    ffi.Pointer<ffi.Int16> pHelper = ffi.allocate();
-    pHelper.store(17);
+    // Pointer to a pointer to something.
+    Pointer<Int16> pHelper = allocate();
+    pHelper.value = 17;
 
-    ffi.Pointer<ffi.Pointer<ffi.Int16>> p = ffi.allocate();
+    Pointer<Pointer<Int16>> p = allocate();
 
-    // storing into a pointer pointer automatically unboxes
-    p.store(pHelper);
+    // Storing into a pointer pointer automatically unboxes.
+    p.value = pHelper;
 
-    // reading from a pointer pointer automatically boxes
-    ffi.Pointer<ffi.Int16> pHelper2 = p.load();
-    print('${pHelper2.runtimeType} value: ${pHelper2.load<int>()}');
+    // Reading from a pointer pointer automatically boxes.
+    Pointer<Int16> pHelper2 = p.value;
+    print('${pHelper2.runtimeType} value: ${pHelper2.value}');
 
-    int pValue = p.load<ffi.Pointer<ffi.Int16>>().load();
+    int pValue = p.value.value;
     print('${p.runtimeType} value\'s value: ${pValue}');
 
-    p.free();
-    pHelper.free();
+    free(p);
+    free(pHelper);
   }
 
   {
-    // the pointer to pointer types must match up
-    ffi.Pointer<ffi.Int8> pHelper = ffi.allocate();
-    pHelper.store(123);
+    // The pointer to pointer types must match up.
+    Pointer<Int8> pHelper = allocate();
+    pHelper.value = 123;
 
-    ffi.Pointer<ffi.Pointer<ffi.Int16>> p = ffi.allocate();
+    Pointer<Pointer<Int16>> p = allocate();
 
-    // this fails to compile due to type mismatch
-    // p.store(pHelper);
+    // Trying to store `pHelper` into `p.val` would result in a type mismatch.
 
-    pHelper.free();
-    p.free();
+    free(pHelper);
+    free(p);
   }
 
   {
-    // null pointer in Dart points to address 0 in c++
-    ffi.Pointer<ffi.Pointer<ffi.Int8>> pointerToPointer = ffi.allocate();
-    ffi.Pointer<ffi.Int8> value = null;
-    pointerToPointer.store(value);
-    value = pointerToPointer.load();
+    // `nullptr` points to address 0 in c++.
+    Pointer<Pointer<Int8>> pointerToPointer = allocate();
+    Pointer<Int8> value = nullptr;
+    pointerToPointer.value = value;
+    value = pointerToPointer.value;
     print("Loading a pointer to the 0 address is null: ${value}");
-    pointerToPointer.free();
+    free(pointerToPointer);
   }
 
   {
-    // sizeof returns element size in bytes
-    print('sizeOf<ffi.Double>(): ${ffi.sizeOf<ffi.Double>()}');
-    print('sizeOf<ffi.Int16>(): ${ffi.sizeOf<ffi.Int16>()}');
-    print('sizeOf<ffi.IntPtr>(): ${ffi.sizeOf<ffi.IntPtr>()}');
+    // The toplevel function sizeOf returns element size in bytes.
+    print('sizeOf<Double>(): ${sizeOf<Double>()}');
+    print('sizeOf<Int16>(): ${sizeOf<Int16>()}');
+    print('sizeOf<IntPtr>(): ${sizeOf<IntPtr>()}');
   }
 
   {
-    // only concrete sub types of NativeType can be ffi.allocated
-    // this would fail to compile:
-    // ffi.allocate();
-  }
-
-  {
-    // only concrete sub types of NativeType can be asked for size
-    // this would fail to compile:
-    // ffi.sizeOf();
-  }
-
-  {
-    // with ffi.IntPtr pointers, one can manually setup aribtrary data
+    // With IntPtr pointers, one could manually setup aribtrary data
     // structres in C memory.
+    //
+    // However, it is advised to use Pointer<Pointer<...>> for that.
 
-    void createChain(ffi.Pointer<ffi.IntPtr> head, int length, int value) {
+    void createChain(Pointer<IntPtr> head, int length, int value) {
       if (length == 0) {
-        head.store(value);
+        head.value = value;
         return;
       }
-      ffi.Pointer<ffi.IntPtr> next = ffi.allocate<ffi.IntPtr>();
-      head.store(next.address);
+      Pointer<IntPtr> next = allocate<IntPtr>();
+      head.value = next.address;
       createChain(next, length - 1, value);
     }
 
-    int getChainValue(ffi.Pointer<ffi.IntPtr> head, int length) {
+    int getChainValue(Pointer<IntPtr> head, int length) {
       if (length == 0) {
-        return head.load();
+        return head.value;
       }
-      ffi.Pointer<ffi.IntPtr> next = ffi.fromAddress(head.load());
+      Pointer<IntPtr> next = Pointer.fromAddress(head.value);
       return getChainValue(next, length - 1);
     }
 
-    void freeChain(ffi.Pointer<ffi.IntPtr> head, int length) {
-      ffi.Pointer<ffi.IntPtr> next = ffi.fromAddress(head.load());
-      head.free();
+    void freeChain(Pointer<IntPtr> head, int length) {
+      Pointer<IntPtr> next = Pointer.fromAddress(head.value);
+      free(head);
       if (length == 0) {
         return;
       }
@@ -263,7 +228,7 @@ main(List<String> arguments) {
     }
 
     int length = 10;
-    ffi.Pointer<ffi.IntPtr> head = ffi.allocate();
+    Pointer<IntPtr> head = allocate();
     createChain(head, length, 512);
     int tailValue = getChainValue(head, length);
     print('tailValue: ${tailValue}');

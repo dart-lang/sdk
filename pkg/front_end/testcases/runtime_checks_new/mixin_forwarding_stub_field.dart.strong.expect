@@ -2,17 +2,16 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/runtime_checks_new/mixin_forwarding_stub_field.dart:48:7: Error: The return type of the method 'M.y' is 'int', which does not match the return type, 'Object', of the overridden method, 'I.y'.
+// pkg/front_end/testcases/runtime_checks_new/mixin_forwarding_stub_field.dart:51:7: Error: The mixin application class 'C' introduces an erroneous override of 'y'.
+// class C = B with M implements I<int>;
+//       ^
+// pkg/front_end/testcases/runtime_checks_new/mixin_forwarding_stub_field.dart:48:7: Context: The field 'M.y' has type 'int', which does not match the corresponding type, 'Object', in the overridden setter, 'I.y'.
 //  - 'Object' is from 'dart:core'.
-// Change to a subtype of 'Object'.
 //   int y;
 //       ^
 // pkg/front_end/testcases/runtime_checks_new/mixin_forwarding_stub_field.dart:43:12: Context: This is the overridden method ('y').
 //   void set y(covariant Object value);
 //            ^
-// pkg/front_end/testcases/runtime_checks_new/mixin_forwarding_stub_field.dart:51:7: Context: Override was introduced in the mixin application class 'C'.
-// class C = B with M implements I<int>;
-//       ^
 //
 import self as self;
 import "dart:core" as core;
@@ -54,10 +53,10 @@ class C = self::B with self::M implements self::I<core::int*> {
   synthetic constructor •() → self::C*
     : super self::B::•()
     ;
-  forwarding-stub set y(covariant core::Object* value) → void
-    return super.{self::B::y} = value;
   forwarding-stub set x(generic-covariant-impl core::int* _) → void
     return super.{self::B::x} = _;
+  forwarding-stub set y(covariant core::Object* value) → void
+    return super.{self::B::y} = value;
 }
 static method expectTypeError(() →* void callback) → void {
   try {
@@ -73,12 +72,12 @@ static method expect(core::Object* value, core::Object* expected) → void {
   }
 }
 static method test(self::I<core::Object*>* i) → void {
-  self::expectTypeError(() → core::Null* {
+  self::expectTypeError(() → core::Null? {
     i.{self::I::x} = "hello";
   });
   i.{self::I::x} = 1;
   self::expect(i.{self::I::x}, 1);
-  self::expectTypeError(() → core::Null* {
+  self::expectTypeError(() → core::Null? {
     i.{self::I::y} = "hello";
   });
   i.{self::I::y} = 2;

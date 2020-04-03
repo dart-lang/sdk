@@ -1,0 +1,43 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/invalid_assignment.dart:13:7: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+//   i = s;
+//       ^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/invalid_assignment.dart:15:9: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+//   i ??= s;
+//         ^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/invalid_assignment.dart:17:5: Error: A value of type 'String' can't be assigned to a variable of type 'A'.
+//  - 'A' is from 'pkg/front_end/testcases/general_nnbd_opt_out/invalid_assignment.dart'.
+//   a += 1;
+//     ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+  operator +(core::int* i) → core::String*
+    return "";
+}
+static method test(core::int* i, core::String* s, self::A* a) → dynamic {
+  i = 1;
+  i = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/invalid_assignment.dart:13:7: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+  i = s;
+      ^" in s as{TypeError} core::int*;
+  i.{core::num::==}(null) ?{core::int*} i = 1 : null;
+  i.{core::num::==}(null) ?{core::Object*} i = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/invalid_assignment.dart:15:9: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+  i ??= s;
+        ^" in s as{TypeError} core::int* : null;
+  a = new self::A::•();
+  a = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/invalid_assignment.dart:17:5: Error: A value of type 'String' can't be assigned to a variable of type 'A'.
+ - 'A' is from 'pkg/front_end/testcases/general_nnbd_opt_out/invalid_assignment.dart'.
+  a += 1;
+    ^" in a.{self::A::+}(1) as{TypeError} self::A*;
+}
+static method main() → dynamic {}

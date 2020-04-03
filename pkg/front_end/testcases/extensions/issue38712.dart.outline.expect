@@ -1,0 +1,18 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/issue38712.dart:5:11: Error: Expected 'on' after this.
+// extension C {
+//           ^
+//
+// pkg/front_end/testcases/extensions/issue38712.dart:5:13: Error: Expected a type, but got '{'.
+// extension C {
+//             ^
+//
+import self as self;
+
+extension C on invalid-type {
+}
+static method main() → void
+  ;

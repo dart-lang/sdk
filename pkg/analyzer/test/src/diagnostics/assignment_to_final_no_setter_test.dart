@@ -15,6 +15,19 @@ main() {
 
 @reflectiveTest
 class AssignmentToFinalNoSetterTest extends DriverResolutionTest {
+  test_instance_undefined_hasGetter() async {
+    await assertErrorsInCode('''
+extension E on int {
+  int get foo => 0;
+}
+f() {
+  0.foo = 1;
+}
+''', [
+      error(StaticWarningCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 53, 3),
+    ]);
+  }
+
   test_prefixedIdentifier() async {
     await assertErrorsInCode('''
 class A {

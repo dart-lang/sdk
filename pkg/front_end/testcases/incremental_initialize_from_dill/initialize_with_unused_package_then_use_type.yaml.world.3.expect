@@ -1,0 +1,21 @@
+main = <No Member>;
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "package:mypackage/foo.dart";
+
+  static method main() → dynamic {
+    foo::Foo* foo = new foo::Foo::•();
+    foo.{foo::Foo::foo}();
+  }
+}
+library from "package:mypackage/foo.dart" as foo {
+
+  class Foo extends dart.core::Object {
+    synthetic constructor •() → foo::Foo*
+      : super dart.core::Object::•()
+      ;
+    method foo() → dynamic {
+      dart.core::print("Foo!");
+    }
+  }
+}

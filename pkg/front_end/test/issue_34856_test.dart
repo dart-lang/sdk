@@ -85,7 +85,7 @@ Future<void> test() async {
 
   options = new CompilerOptions()
     ..fileSystem = fs
-    ..linkedDependencies = <Uri>[base.resolve("lib.dart.dill")]
+    ..additionalDills = <Uri>[base.resolve("lib.dart.dill")]
     ..sdkSummary = platformDill;
 
   List<Uri> inputs = <Uri>[base.resolve("repro.dart")];

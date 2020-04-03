@@ -1,0 +1,54 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/static_access_of_instance.dart:14:13: Error: Method not found: 'Extension.instanceMethod'.
+//   Extension.instanceMethod();
+//             ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/static_access_of_instance.dart:15:13: Error: Getter not found: 'instanceMethod'.
+//   Extension.instanceMethod;
+//             ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/static_access_of_instance.dart:16:13: Error: Getter not found: 'instanceProperty'.
+//   Extension.instanceProperty;
+//             ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/static_access_of_instance.dart:17:13: Error: Setter not found: 'instanceProperty'.
+//   Extension.instanceProperty = 42;
+//             ^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class*
+    : super core::Object::•()
+    ;
+}
+extension Extension on self::Class* {
+  method instanceMethod = self::Extension|instanceMethod;
+  tearoff instanceMethod = self::Extension|get#instanceMethod;
+  get instanceProperty = self::Extension|get#instanceProperty;
+  set instanceProperty = self::Extension|set#instanceProperty;
+}
+static method Extension|instanceMethod(final self::Class* #this) → dynamic {}
+static method Extension|get#instanceMethod(final self::Class* #this) → () →* dynamic
+  return () → dynamic => self::Extension|instanceMethod(#this);
+static method Extension|get#instanceProperty(final self::Class* #this) → dynamic
+  return 42;
+static method Extension|set#instanceProperty(final self::Class* #this, dynamic value) → void {}
+static method main() → dynamic {
+  invalid-expression "pkg/front_end/testcases/extensions/static_access_of_instance.dart:14:13: Error: Method not found: 'Extension.instanceMethod'.
+  Extension.instanceMethod();
+            ^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/extensions/static_access_of_instance.dart:15:13: Error: Getter not found: 'instanceMethod'.
+  Extension.instanceMethod;
+            ^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/extensions/static_access_of_instance.dart:16:13: Error: Getter not found: 'instanceProperty'.
+  Extension.instanceProperty;
+            ^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/extensions/static_access_of_instance.dart:17:13: Error: Setter not found: 'instanceProperty'.
+  Extension.instanceProperty = 42;
+            ^^^^^^^^^^^^^^^^";
+}

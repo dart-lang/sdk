@@ -38,9 +38,7 @@ template("file_template") {
     script = "//build/android/gyp/jinja_template.py"
     depfile = "$target_gen_dir/$target_name.d"
 
-    sources = [
-      invoker.input,
-    ]
+    sources = [ invoker.input ]
     outputs = [
       invoker.output,
       depfile,

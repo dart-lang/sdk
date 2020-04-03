@@ -11,18 +11,13 @@ import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ExtensionDeclaresAbstractMethodTest);
-    defineReflectiveTests(ExtensionDeclaresAbstractMethodWithNNBDTest);
+    defineReflectiveTests(ExtensionOverrideArgumentNotAssignableTest);
+    defineReflectiveTests(ExtensionOverrideArgumentNotAssignableWithNNBDTest);
   });
 }
 
 @reflectiveTest
-class ExtensionDeclaresAbstractMethodTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
-
+class ExtensionOverrideArgumentNotAssignableTest extends DriverResolutionTest {
   test_subtype() async {
     await assertNoErrorsInCode('''
 class A {}
@@ -68,12 +63,12 @@ void f(B b) {
 }
 
 @reflectiveTest
-class ExtensionDeclaresAbstractMethodWithNNBDTest extends DriverResolutionTest {
+class ExtensionOverrideArgumentNotAssignableWithNNBDTest
+    extends DriverResolutionTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
-        sdkVersion: '2.3.0',
-        additionalFeatures: [Feature.extension_methods, Feature.non_nullable]);
+    ..contextFeatures = FeatureSet.forTesting(
+        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
 
   test_override_onNonNullable() async {
     await assertErrorsInCode(r'''

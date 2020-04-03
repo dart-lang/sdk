@@ -11,20 +11,19 @@ import 'package:analyzer/src/generated/java_io.dart' show JavaFile;
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/source_io.dart' show FileBasedSource;
 import 'package:analyzer/src/task/api/model.dart';
-import 'package:package_config/packages.dart';
 import 'package:path/path.dart' as pathos;
 
 export 'package:analyzer/source/line_info.dart' show LineInfo;
 export 'package:analyzer/source/source_range.dart';
 
-/**
- * A function that is used to visit [ContentCache] entries.
- */
-typedef void ContentCacheVisitor(String fullPath, int stamp, String contents);
+/// A function that is used to visit [ContentCache] entries.
+typedef ContentCacheVisitor = void Function(
+    String fullPath, int stamp, String contents);
 
 /// Base class providing implementations for the methods in [Source] that don't
 /// require filesystem access.
 abstract class BasicSource extends Source {
+  @override
   final Uri uri;
 
   BasicSource(this.uri);
@@ -33,7 +32,7 @@ abstract class BasicSource extends Source {
   String get encoding => uri.toString();
 
   @override
-  String get fullName => encoding;
+  String get fullName => '$uri';
 
   @override
   int get hashCode => uri.hashCode;
@@ -50,20 +49,18 @@ abstract class BasicSource extends Source {
 
 /**
  * A cache used to override the default content of a [Source].
+ *
+ * TODO(scheglov) Remove it.
  */
 class ContentCache {
-  /**
-   * A table mapping the full path of sources to the contents of those sources.
-   * This is used to override the default contents of a source.
-   */
-  Map<String, String> _contentMap = new HashMap<String, String>();
+  /// A table mapping the full path of sources to the contents of those sources.
+  /// This is used to override the default contents of a source.
+  final Map<String, String> _contentMap = HashMap<String, String>();
 
-  /**
-   * A table mapping the full path of sources to the modification stamps of
-   * those sources. This is used when the default contents of a source has been
-   * overridden.
-   */
-  Map<String, int> _stampMap = new HashMap<String, int>();
+  /// A table mapping the full path of sources to the modification stamps of
+  /// those sources. This is used when the default contents of a source has been
+  /// overridden.
+  final Map<String, int> _stampMap = HashMap<String, int>();
 
   int _nextStamp = 0;
 
@@ -145,11 +142,11 @@ class CustomUriResolver extends UriResolver {
     String mapping = _urlMappings[uri.toString()];
     if (mapping == null) return null;
 
-    Uri fileUri = new Uri.file(mapping);
+    Uri fileUri = Uri.file(mapping);
     if (!fileUri.isAbsolute) return null;
 
-    JavaFile javaFile = new JavaFile.fromUri(fileUri);
-    return new FileBasedSource(javaFile, actualUri ?? uri);
+    JavaFile javaFile = JavaFile.fromUri(fileUri);
+    return FileBasedSource(javaFile, actualUri ?? uri);
   }
 }
 
@@ -162,22 +159,17 @@ class DartUriResolver extends UriResolver {
    */
   static String DART_SCHEME = "dart";
 
-  /**
-   * The prefix of a URI using the dart-ext scheme to reference a native code library.
-   */
-  static String _DART_EXT_SCHEME = "dart-ext:";
+  /// The prefix of a URI using the dart-ext scheme to reference a native code
+  /// library.
+  static const String _DART_EXT_SCHEME = "dart-ext:";
 
   /**
    * The Dart SDK against which URI's are to be resolved.
    */
   final DartSdk _sdk;
 
-  /**
-   * Initialize a newly created resolver to resolve Dart URI's against the given platform within the
-   * given Dart SDK.
-   *
-   * @param sdk the Dart SDK against which URI's are to be resolved
-   */
+  /// Initialize a newly created resolver to resolve Dart URI's against the
+  /// given platform within the given Dart SDK.
   DartUriResolver(this._sdk);
 
   /**
@@ -246,56 +238,10 @@ class LineInfo_Location {
 }
 
 /**
- * Instances of interface `LocalSourcePredicate` are used to determine if the given
- * [Source] is "local" in some sense, so can be updated.
- */
-abstract class LocalSourcePredicate {
-  /**
-   * Instance of [LocalSourcePredicate] that always returns `false`.
-   */
-  static final LocalSourcePredicate FALSE = new LocalSourcePredicate_FALSE();
-
-  /**
-   * Instance of [LocalSourcePredicate] that always returns `true`.
-   */
-  static final LocalSourcePredicate TRUE = new LocalSourcePredicate_TRUE();
-
-  /**
-   * Instance of [LocalSourcePredicate] that returns `true` for all [Source]s
-   * except of SDK.
-   */
-  static final LocalSourcePredicate NOT_SDK =
-      new LocalSourcePredicate_NOT_SDK();
-
-  /**
-   * Determines if the given [Source] is local.
-   *
-   * @param source the [Source] to analyze
-   * @return `true` if the given [Source] is local
-   */
-  bool isLocal(Source source);
-}
-
-class LocalSourcePredicate_FALSE implements LocalSourcePredicate {
-  @override
-  bool isLocal(Source source) => false;
-}
-
-class LocalSourcePredicate_NOT_SDK implements LocalSourcePredicate {
-  @override
-  bool isLocal(Source source) => source.uriKind != UriKind.DART_URI;
-}
-
-class LocalSourcePredicate_TRUE implements LocalSourcePredicate {
-  @override
-  bool isLocal(Source source) => true;
-}
-
-/**
  * An implementation of an non-existing [Source].
  */
 class NonExistingSource extends Source {
-  static final unknown = new NonExistingSource(
+  static final unknown = NonExistingSource(
       '/unknown.dart', pathos.toUri('/unknown.dart'), UriKind.FILE_URI);
 
   @override
@@ -311,7 +257,7 @@ class NonExistingSource extends Source {
 
   @override
   TimestampedData<String> get contents {
-    throw new UnsupportedError('$fullName does not exist.');
+    throw UnsupportedError('$fullName does not exist.');
   }
 
   @override
@@ -388,6 +334,7 @@ abstract class Source implements AnalysisTarget {
    * @return an encoded representation of this source
    * See [SourceFactory.fromEncoding].
    */
+  @deprecated
   String get encoding;
 
   /**
@@ -489,54 +436,15 @@ abstract class Source implements AnalysisTarget {
 }
 
 /**
- * The interface `ContentReceiver` defines the behavior of objects that can receive the
- * content of a source.
- */
-abstract class Source_ContentReceiver {
-  /**
-   * Accept the contents of a source.
-   *
-   * @param contents the contents of the source
-   * @param modificationTime the time at which the contents were last set
-   */
-  void accept(String contents, int modificationTime);
-}
-
-/**
- * The interface `SourceContainer` is used by clients to define a collection of sources
- *
- * Source containers are not used within analysis engine, but can be used by clients to group
- * sources for the purposes of accessing composite dependency information. For example, the Eclipse
- * client uses source containers to represent Eclipse projects, which allows it to easily compute
- * project-level dependencies.
- */
-abstract class SourceContainer {
-  /**
-   * Determine if the specified source is part of the receiver's collection of sources.
-   *
-   * @param source the source in question
-   * @return `true` if the receiver contains the source, else `false`
-   */
-  bool contains(Source source);
-}
-
-/**
  * Instances of the class `SourceFactory` resolve possibly relative URI's against an existing
  * [Source].
  */
 abstract class SourceFactory {
   /**
-   * The analysis context that this source factory is associated with.
-   */
-  AnalysisContext context;
-
-  /**
    * Initialize a newly created source factory with the given absolute URI
-   * [resolvers] and optional [packages] resolution helper.
+   * [resolvers].
    */
-  factory SourceFactory(List<UriResolver> resolvers,
-      [Packages packages,
-      ResourceProvider resourceProvider]) = SourceFactoryImpl;
+  factory SourceFactory(List<UriResolver> resolvers) = SourceFactoryImpl;
 
   /**
    * Return the [DartSdk] associated with this [SourceFactory], or `null` if
@@ -547,13 +455,6 @@ abstract class SourceFactory {
    */
   DartSdk get dartSdk;
 
-  /**
-   * Sets the [LocalSourcePredicate].
-   *
-   * @param localSourcePredicate the predicate to determine is [Source] is local
-   */
-  void set localSourcePredicate(LocalSourcePredicate localSourcePredicate);
-
   /// A table mapping package names to paths of directories containing
   /// the package (or [null] if there is no registered package URI resolver).
   Map<String, List<Folder>> get packageMap;
@@ -563,12 +464,6 @@ abstract class SourceFactory {
    * and also ask each [UriResolver]s to clear its caches.
    */
   void clearCache();
-
-  /**
-   * Return a source factory that will resolve URI's in the same way that this
-   * source factory does.
-   */
-  SourceFactory clone();
 
   /**
    * Return a source object representing the given absolute URI, or `null` if
@@ -587,25 +482,6 @@ abstract class SourceFactory {
    * @return a source object representing the absolute URI
    */
   Source forUri2(Uri absoluteUri);
-
-  /**
-   * Return a source object that is equal to the source object used to obtain
-   * the given encoding.
-   *
-   * @param encoding the encoding of a source object
-   * @return a source object that is described by the given encoding
-   * @throws IllegalArgumentException if the argument is not a valid encoding
-   * See [Source.encoding].
-   */
-  Source fromEncoding(String encoding);
-
-  /**
-   * Determines if the given [Source] is local.
-   *
-   * @param source the [Source] to analyze
-   * @return `true` if the given [Source] is local
-   */
-  bool isLocalSource(Source source);
 
   /**
    * Return a source representing the URI that results from resolving the given
@@ -634,19 +510,19 @@ class SourceKind implements Comparable<SourceKind> {
   /**
    * A source containing HTML. The HTML might or might not contain Dart scripts.
    */
-  static const SourceKind HTML = const SourceKind('HTML', 0);
+  static const SourceKind HTML = SourceKind('HTML', 0);
 
   /**
    * A Dart compilation unit that is not a part of another library. Libraries
    * might or might not contain any directives, including a library directive.
    */
-  static const SourceKind LIBRARY = const SourceKind('LIBRARY', 1);
+  static const SourceKind LIBRARY = SourceKind('LIBRARY', 1);
 
   /**
    * A Dart compilation unit that is part of another library. Parts contain a
    * part-of directive.
    */
-  static const SourceKind PART = const SourceKind('PART', 2);
+  static const SourceKind PART = SourceKind('PART', 2);
 
   /**
    * An unknown kind of source. Used both when it is not possible to identify
@@ -654,9 +530,9 @@ class SourceKind implements Comparable<SourceKind> {
    * without performing a computation and the client does not want to spend the
    * time to identify the kind.
    */
-  static const SourceKind UNKNOWN = const SourceKind('UNKNOWN', 3);
+  static const SourceKind UNKNOWN = SourceKind('UNKNOWN', 3);
 
-  static const List<SourceKind> values = const [HTML, LIBRARY, PART, UNKNOWN];
+  static const List<SourceKind> values = [HTML, LIBRARY, PART, UNKNOWN];
 
   /**
    * The name of this source kind.
@@ -689,19 +565,19 @@ class UriKind implements Comparable<UriKind> {
   /**
    * A 'dart:' URI.
    */
-  static const UriKind DART_URI = const UriKind('DART_URI', 0, 0x64);
+  static const UriKind DART_URI = UriKind('DART_URI', 0, 0x64);
 
   /**
    * A 'file:' URI.
    */
-  static const UriKind FILE_URI = const UriKind('FILE_URI', 1, 0x66);
+  static const UriKind FILE_URI = UriKind('FILE_URI', 1, 0x66);
 
   /**
    * A 'package:' URI.
    */
-  static const UriKind PACKAGE_URI = const UriKind('PACKAGE_URI', 2, 0x70);
+  static const UriKind PACKAGE_URI = UriKind('PACKAGE_URI', 2, 0x70);
 
-  static const List<UriKind> values = const [DART_URI, FILE_URI, PACKAGE_URI];
+  static const List<UriKind> values = [DART_URI, FILE_URI, PACKAGE_URI];
 
   /**
    * The name of this URI kind.

@@ -9,7 +9,6 @@ namespace dart {
 
 // List of stubs created in the VM isolate, these stubs are shared by different
 // isolates running in this dart process.
-#if !defined(TARGET_ARCH_DBC)
 #define VM_STUB_CODE_LIST(V)                                                   \
   V(GetCStackPointer)                                                          \
   V(JumpToFrame)                                                               \
@@ -20,7 +19,10 @@ namespace dart {
   V(ArrayWriteBarrier)                                                         \
   V(PrintStopMessage)                                                          \
   V(AllocateArray)                                                             \
+  V(AllocateMintWithFPURegs)                                                   \
+  V(AllocateMintWithoutFPURegs)                                                \
   V(AllocateContext)                                                           \
+  V(CloneContext)                                                              \
   V(CallToRuntime)                                                             \
   V(LazyCompile)                                                               \
   V(InterpretCall)                                                             \
@@ -35,6 +37,7 @@ namespace dart {
   V(DebugStepCheck)                                                            \
   V(UnlinkedCall)                                                              \
   V(MonomorphicMiss)                                                           \
+  V(MonomorphicSmiableCheck)                                                   \
   V(SingleTargetCall)                                                          \
   V(ICCallThroughCode)                                                         \
   V(MegamorphicCall)                                                           \
@@ -62,48 +65,31 @@ namespace dart {
   V(Subtype4TestCache)                                                         \
   V(Subtype6TestCache)                                                         \
   V(DefaultTypeTest)                                                           \
+  V(DefaultNullableTypeTest)                                                   \
   V(TopTypeTypeTest)                                                           \
-  V(TypeRefTypeTest)                                                           \
   V(UnreachableTypeTest)                                                       \
   V(SlowTypeTest)                                                              \
   V(LazySpecializeTypeTest)                                                    \
+  V(LazySpecializeNullableTypeTest)                                            \
   V(CallClosureNoSuchMethod)                                                   \
   V(FrameAwaitingMaterialization)                                              \
   V(AsynchronousGapMarker)                                                     \
+  V(DispatchTableNullError)                                                    \
   V(NullErrorSharedWithFPURegs)                                                \
   V(NullErrorSharedWithoutFPURegs)                                             \
+  V(NullArgErrorSharedWithFPURegs)                                             \
+  V(NullArgErrorSharedWithoutFPURegs)                                          \
   V(StackOverflowSharedWithFPURegs)                                            \
   V(StackOverflowSharedWithoutFPURegs)                                         \
   V(OneArgCheckInlineCacheWithExactnessCheck)                                  \
   V(OneArgOptimizedCheckInlineCacheWithExactnessCheck)                         \
   V(EnterSafepoint)                                                            \
   V(ExitSafepoint)                                                             \
-  V(VerifyCallback)                                                            \
-  V(CallNativeThroughSafepoint)
-
-#else
-#define VM_STUB_CODE_LIST(V)                                                   \
-  V(LazyCompile)                                                               \
-  V(OptimizeFunction)                                                          \
-  V(CallClosureNoSuchMethod)                                                   \
-  V(RunExceptionHandler)                                                       \
-  V(DeoptForRewind)                                                            \
-  V(FixCallersTarget)                                                          \
-  V(Deoptimize)                                                                \
-  V(DeoptimizeLazyFromReturn)                                                  \
-  V(DeoptimizeLazyFromThrow)                                                   \
-  V(DefaultTypeTest)                                                           \
-  V(TopTypeTypeTest)                                                           \
-  V(TypeRefTypeTest)                                                           \
-  V(UnreachableTypeTest)                                                       \
-  V(SlowTypeTest)                                                              \
-  V(LazySpecializeTypeTest)                                                    \
-  V(FrameAwaitingMaterialization)                                              \
-  V(AsynchronousGapMarker)                                                     \
-  V(InvokeDartCodeFromBytecode)                                                \
-  V(InterpretCall)
-
-#endif  // !defined(TARGET_ARCH_DBC)
+  V(CallNativeThroughSafepoint)                                                \
+  V(InitStaticField)                                                           \
+  V(InstantiateTypeArguments)                                                  \
+  V(InstantiateTypeArgumentsMayShareInstantiatorTA)                            \
+  V(InstantiateTypeArgumentsMayShareFunctionTA)
 
 }  // namespace dart
 

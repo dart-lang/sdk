@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:kernel/ast.dart" show DartType;
+import "package:kernel/ast.dart" show DartType, Library;
 
 import "package:kernel/core_types.dart" show CoreTypes;
 
@@ -14,6 +14,8 @@ import "package:front_end/src/api_prototype/compiler_options.dart"
 import "package:front_end/src/base/processed_options.dart"
     show ProcessedOptions;
 
+import "package:front_end/src/fasta/builder/class_builder.dart";
+
 import "package:front_end/src/fasta/compiler_context.dart" show CompilerContext;
 
 import "package:front_end/src/fasta/dill/dill_loader.dart" show DillLoader;
@@ -21,7 +23,7 @@ import "package:front_end/src/fasta/dill/dill_loader.dart" show DillLoader;
 import "package:front_end/src/fasta/dill/dill_target.dart" show DillTarget;
 
 import "package:front_end/src/fasta/kernel/kernel_builder.dart"
-    show ClassHierarchyBuilder, ClassBuilder;
+    show ClassHierarchyBuilder;
 
 import "package:front_end/src/fasta/ticker.dart" show Ticker;
 
@@ -48,13 +50,13 @@ class FastaLegacyUpperBoundTest extends LegacyUpperBoundTest {
     await target.buildOutlines();
     ClassBuilder objectClass =
         loader.coreLibrary.lookupLocalMember("Object", required: true);
-    hierarchy = new ClassHierarchyBuilder(
-        objectClass, loader, new CoreTypes(component));
+    hierarchy = new ClassHierarchyBuilder(objectClass, loader, coreTypes);
   }
 
   @override
-  DartType getLegacyLeastUpperBound(DartType a, DartType b) {
-    return hierarchy.getKernelLegacyLeastUpperBound(a, b);
+  DartType getLegacyLeastUpperBound(
+      DartType a, DartType b, Library clientLibrary, CoreTypes coreTypes) {
+    return hierarchy.getKernelLegacyLeastUpperBound(a, b, clientLibrary);
   }
 }
 

@@ -89,7 +89,7 @@ main() {
   UnnamedGeneric<num> unnamedGenericNull = null;
 
   Expect.equals("unnamed generic(non-null)", unnamedGeneric.name);
-  Expect.equals("unnamed generic(null)", unnamedGeneric.name);
+  Expect.equals("unnamed generic(null)", unnamedGenericNull.name);
   Expect.type<List<num>>(unnamedGeneric.list);
   Expect.notType<List<int>>(unnamedGeneric.list);
   Expect.type<List<num>>(unnamedGenericNull.list);

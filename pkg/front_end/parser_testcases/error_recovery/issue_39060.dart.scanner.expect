@@ -1,0 +1,7 @@
+main() {
+{s A<}>
+}
+
+main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+{[BeginToken]s[StringToken] A[StringToken]<[BeginToken]}[SimpleToken]>[SimpleToken]
+}[SimpleToken][SimpleToken]

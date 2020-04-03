@@ -1,0 +1,9 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static field core::List<dynamic>* v;
+static method f<T extends core::Object* = dynamic>(() →* self::f::T* g) → core::List<self::f::T*>*
+  ;
+static method main() → dynamic
+  ;

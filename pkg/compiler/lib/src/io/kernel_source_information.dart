@@ -42,6 +42,11 @@ String computeKernelElementNameForSourceMaps(
     [CallStructure callStructure]) {
   MemberDefinition definition = elementMap.getMemberDefinition(member);
   switch (definition.kind) {
+    case MemberKind.regular:
+      ir.Member node = definition.node;
+      if (node.isExtensionMember) return _findExtensionMemberName(node);
+      return computeElementNameForSourceMaps(member, callStructure);
+
     case MemberKind.closureCall:
       ir.TreeNode node = definition.node;
       String name;
@@ -68,6 +73,32 @@ String computeKernelElementNameForSourceMaps(
     default:
       return computeElementNameForSourceMaps(member, callStructure);
   }
+}
+
+/// Extract a simple readable name for an extension member.
+String _findExtensionMemberName(ir.Member member) {
+  assert(member.isExtensionMember);
+  for (ir.Extension extension in member.enclosingLibrary.extensions) {
+    for (ir.ExtensionMemberDescriptor descriptor in extension.members) {
+      if (descriptor.member == member.reference) {
+        String extensionName;
+        // Anonymous extensions contain a # on their synthetic name.
+        if (extension.name.contains('#')) {
+          ir.DartType type = extension.onType;
+          if (type is ir.InterfaceType) {
+            extensionName = "${type.classNode.name}.<anonymous extension>";
+          } else {
+            extensionName = "<anonymous extension>";
+          }
+        } else {
+          extensionName = extension.name;
+        }
+        String memberName = descriptor.name.name;
+        return '$extensionName.$memberName';
+      }
+    }
+  }
+  throw StateError('No original name found for extension member $member.');
 }
 
 /// [SourceInformationBuilder] that generates [PositionSourceInformation] from

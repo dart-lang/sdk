@@ -10,5 +10,5 @@ class A extends core::Object {
     ;
   method m() → void {}
 }
-static field self::A* v = let final self::A* #t1 = new self::A::•() in let final dynamic #t2 = #t1.{self::A::a} = 1 in let final dynamic #t3 = #t1.{self::A::b}.{core::List::add}(2) in let final dynamic #t4 = #t1.{self::A::m}() in #t1;
+static field self::A* v = let final self::A* #t1 = new self::A::•() in let final void #t2 = #t1.{self::A::a} = 1 in let final void #t3 = #t1.{self::A::b}.{core::List::add}(2) in let final void #t4 = #t1.{self::A::m}() in #t1;
 static method main() → dynamic {}

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 class C<T> {
   /*member: C.field:Union([exact=JSString], [exact=JSUInt31])*/
   final T field;
@@ -237,19 +239,19 @@ fieldAccess2() {
 /*member: fixedFieldInvoke:[null|subclass=JSInt]*/
 fixedFieldInvoke() {
   C<int> c = new C<int>(0);
-  return c. /*invoke: [exact=C]*/ fixedFunctionField();
+  return c.fixedFunctionField /*invoke: [exact=C]*/ ();
 }
 
 /*member: fieldInvoke1:[null|subclass=JSInt]*/
 fieldInvoke1() {
   C<int> c = new C<int>(0);
-  return c. /*invoke: [exact=C]*/ functionField();
+  return c.functionField /*invoke: [exact=C]*/ ();
 }
 
 /*member: fieldInvoke2:[null|exact=JSString]*/
 fieldInvoke2() {
   C<String> c = new C<String>('');
-  return c. /*invoke: [exact=C]*/ functionField();
+  return c.functionField /*invoke: [exact=C]*/ ();
 }
 
 /*member: methodInvoke1:[exact=JSUInt31]*/
@@ -279,7 +281,7 @@ operatorInvoke2() {
 /*member: fixedGetterInvoke:[null|subclass=JSInt]*/
 fixedGetterInvoke() {
   C<int> c = new C<int>(0);
-  return c. /*invoke: [exact=C]*/ fixedFunctionGetter();
+  return c.fixedFunctionGetter /*invoke: [exact=C]*/ ();
 }
 
 /*member: getterAccess1:[exact=JSUInt31]*/
@@ -297,25 +299,25 @@ getterAccess2() {
 /*member: getterInvoke1:[null|subclass=JSInt]*/
 getterInvoke1() {
   C<int> c = new C<int>(0);
-  return c. /*invoke: [exact=C]*/ functionGetter();
+  return c.functionGetter /*invoke: [exact=C]*/ ();
 }
 
 /*member: getterInvoke2:[null|exact=JSString]*/
 getterInvoke2() {
   C<String> c = new C<String>('');
-  return c. /*invoke: [exact=C]*/ functionGetter();
+  return c.functionGetter /*invoke: [exact=C]*/ ();
 }
 
 /*member: genericFieldInvoke1:[null|exact=JSString]*/
 genericFieldInvoke1() {
   C<int> c = new C<int>(0);
-  return c. /*invoke: [exact=C]*/ genericFunctionField('');
+  return c.genericFunctionField /*invoke: [exact=C]*/ ('');
 }
 
 /*member: genericFieldInvoke2:[null|subclass=JSInt]*/
 genericFieldInvoke2() {
   C<String> c = new C<String>('');
-  return c. /*invoke: [exact=C]*/ genericFunctionField(0);
+  return c.genericFunctionField /*invoke: [exact=C]*/ (0);
 }
 
 /*member: genericMethodInvoke1:[exact=JSString]*/
@@ -333,11 +335,11 @@ genericMethodInvoke2() {
 /*member: genericGetterInvoke1:[null|exact=JSString]*/
 genericGetterInvoke1() {
   C<int> c = new C<int>(0);
-  return c. /*invoke: [exact=C]*/ genericFunctionGetter('');
+  return c.genericFunctionGetter /*invoke: [exact=C]*/ ('');
 }
 
 /*member: genericGetterInvoke2:[null|subclass=JSInt]*/
 genericGetterInvoke2() {
   C<String> c = new C<String>('');
-  return c. /*invoke: [exact=C]*/ genericFunctionGetter(0);
+  return c.genericFunctionGetter /*invoke: [exact=C]*/ (0);
 }

@@ -4,36 +4,59 @@
 
 library fasta.type_declaration_builder;
 
-import 'package:kernel/ast.dart' show DartType;
+import 'package:kernel/ast.dart' show DartType, Nullability;
 
-import 'builder.dart'
-    show Builder, LibraryBuilder, MetadataBuilder, ModifierBuilder, TypeBuilder;
+import 'builder.dart';
+import 'library_builder.dart';
+import 'metadata_builder.dart';
+import 'modifier_builder.dart';
+import 'nullability_builder.dart';
+import 'type_builder.dart';
 
-abstract class TypeDeclarationBuilder extends ModifierBuilder {
+abstract class TypeDeclarationBuilder implements ModifierBuilder {
+  bool get isNamedMixinApplication;
+
+  void set parent(Builder value);
+
+  List<MetadataBuilder> get metadata;
+
+  int get typeVariablesCount => 0;
+
+  DartType buildType(LibraryBuilder library,
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments,
+      [bool notInstanceContext]);
+
+  /// [arguments] have already been built.
+  DartType buildTypesWithBuiltArguments(LibraryBuilder library,
+      Nullability nullability, List<DartType> arguments);
+}
+
+abstract class TypeDeclarationBuilderImpl extends ModifierBuilderImpl
+    implements TypeDeclarationBuilder {
+  @override
   final List<MetadataBuilder> metadata;
 
+  @override
   final int modifiers;
 
+  @override
   final String name;
 
-  Builder parent;
-
-  TypeDeclarationBuilder(
-      this.metadata, this.modifiers, this.name, this.parent, int charOffset,
+  TypeDeclarationBuilderImpl(
+      this.metadata, this.modifiers, this.name, Builder parent, int charOffset,
       [Uri fileUri])
       : assert(modifiers != null),
         super(parent, charOffset, fileUri);
 
+  @override
+  bool get isNamedMixinApplication => false;
+
+  @override
   bool get isTypeDeclaration => true;
 
   @override
   String get fullNameForErrors => name;
 
+  @override
   int get typeVariablesCount => 0;
-
-  DartType buildType(LibraryBuilder library, List<TypeBuilder> arguments);
-
-  /// [arguments] have already been built.
-  DartType buildTypesWithBuiltArguments(
-      LibraryBuilder library, List<DartType> arguments);
 }

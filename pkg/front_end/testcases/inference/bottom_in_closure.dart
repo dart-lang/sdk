@@ -5,7 +5,7 @@
 /*@testedFeatures=inference*/
 library test;
 
-var v = /*@ returnType=Null* */ () => null;
+var v = /*@ returnType=Null? */ () => null;
 
 main() {
   v;

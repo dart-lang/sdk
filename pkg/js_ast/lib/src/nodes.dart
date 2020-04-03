@@ -966,6 +966,8 @@ class DartYield extends Statement {
 }
 
 abstract class Expression extends Node {
+  // [precedenceLevel] must not be used before printing, as deferred nodes can
+  // have precedence depending on how the deferred node is resolved.
   int get precedenceLevel;
 
   Statement toStatement() => new ExpressionStatement(this);

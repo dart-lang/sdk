@@ -47,11 +47,10 @@ cc/CorelibIsolateStartup: Skip # OOM crash can bring down the OS.
 dart/data_uri_spawn_test: Skip # TODO(zra): package:unittest is not in the image.
 cc/Read: Fail  # TODO(zra): Investigate, ../../dart/runtime/bin/file_test.cc: 34: error: expected: !file->WriteByte(1)
 
-# Profiler is completely disabled in SIMDBC builds.
 # On the simluator stack traces produced by the Profiler do not match
 # up with the real Dart stack trace and hence we don't get correct
 # symbol names.
-[ $arch == simarm || $arch == simarmv6 || $arch == simarmv5te || $arch == simarm64 || $arch == simdbc  || $arch == simdbc64 ]
+[ $arch == simarm || $arch == simarmv6 || $arch == simarm64 ]
 cc/Service_Profile: Skip
 cc/Profiler_AllocationSampleTest: Skip
 cc/Profiler_ArrayAllocation: Skip
@@ -165,20 +164,6 @@ dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
 
 [ $runtime == vm && $mode == product ]
 cc/DartAPI_IsolateSetCheckedMode: Fail,OK  # Checked mode disabled in product mode.
-
-[ $arch == simdbc  || $arch == simdbc64 ]
-cc/RegExp_ExternalOneByteString: Skip # TODO(vegorov) These tests don't seem to work if FLAG_interpret_irregexp is switched on by default because they attempt to call regexp functions directly instead of going through JSSyntaxRegExp_ExecuteMatch.
-cc/RegExp_ExternalTwoByteString: Skip # TODO(vegorov) These tests don't seem to work if FLAG_interpret_irregexp is switched on by default because they attempt to call regexp functions directly instead of going through JSSyntaxRegExp_ExecuteMatch.
-cc/RegExp_OneByteString: Skip # TODO(vegorov) These tests don't seem to work if FLAG_interpret_irregexp is switched on by default because they attempt to call regexp functions directly instead of going through JSSyntaxRegExp_ExecuteMatch.
-cc/RegExp_TwoByteString: Skip # TODO(vegorov) These tests don't seem to work if FLAG_interpret_irregexp is switched on by default because they attempt to call regexp functions directly instead of going through JSSyntaxRegExp_ExecuteMatch.
-
-cc/GuardFieldConstructor2Test: Skip # TODO(vegorov) Field guards are disabled for SIMDBC
-cc/GuardFieldConstructorTest: Skip # TODO(vegorov) Field guards are disabled for SIMDBC
-cc/GuardFieldFinalListTest: Skip # TODO(vegorov) Field guards are disabled for SIMDBC
-cc/GuardFieldFinalVariableLengthListTest: Skip # TODO(vegorov) Field guards are disabled for SIMDBC
-cc/GuardFieldSimpleTest: Skip # TODO(vegorov) Field guards are disabled for SIMDBC
-
-cc/RegenerateAllocStubs: Skip # This test is meaningless for DBC as allocation stubs are not used.
 
 [ $hot_reload || $hot_reload_rollback ]
 dart/spawn_shutdown_test: Skip # We can shutdown an isolate before it reloads.

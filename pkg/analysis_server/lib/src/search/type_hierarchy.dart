@@ -12,9 +12,7 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
-/**
- * A computer for a type hierarchy of an [Element].
- */
+/// A computer for a type hierarchy of an [Element].
 class TypeHierarchyComputer {
   final SearchEngine _searchEngine;
 
@@ -28,14 +26,14 @@ class TypeHierarchyComputer {
   final List<TypeHierarchyItem> _items = <TypeHierarchyItem>[];
   final List<ClassElement> _itemClassElements = <ClassElement>[];
   final Map<Element, TypeHierarchyItem> _elementItemMap =
-      new HashMap<Element, TypeHierarchyItem>();
+      HashMap<Element, TypeHierarchyItem>();
 
   TypeHierarchyComputer(this._searchEngine, this._pivotElement) {
     _pivotLibrary = _pivotElement.library;
     _pivotKind = _pivotElement.kind;
     _pivotName = _pivotElement.name;
     // try to find enclosing ClassElement
-    Element element = _pivotElement;
+    var element = _pivotElement;
     if (_pivotElement is FieldElement) {
       _pivotFieldFinal = (_pivotElement as FieldElement).isFinal;
       element = _pivotElement.enclosingElement;
@@ -48,56 +46,45 @@ class TypeHierarchyComputer {
     }
   }
 
-  /**
-   * Returns the computed type hierarchy, maybe `null`.
-   */
+  /// Returns the computed type hierarchy, maybe `null`.
   Future<List<TypeHierarchyItem>> compute() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     if (_pivotClass != null) {
-      InterfaceType type = _pivotClass.type;
-      _createSuperItem(type);
-      await _createSubclasses(_items[0], 0, type);
+      _createSuperItem(_pivotClass, null);
+      await _createSubclasses(_items[0], 0, _pivotClass);
       return _items;
     }
     return null;
   }
 
-  /**
-   * Returns the computed super type only type hierarchy, maybe `null`.
-   */
+  /// Returns the computed super type only type hierarchy, maybe `null`.
   List<TypeHierarchyItem> computeSuper() {
     if (_pivotClass != null) {
-      InterfaceType type = _pivotClass.type;
-      _createSuperItem(type);
+      _createSuperItem(_pivotClass, null);
       return _items;
     }
     return null;
   }
 
   Future _createSubclasses(
-      TypeHierarchyItem item, int itemId, InterfaceType type) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    Set<ClassElement> subElements =
-        await getDirectSubClasses(_searchEngine, type.element);
-    List<int> subItemIds = <int>[];
-    for (ClassElement subElement in subElements) {
+      TypeHierarchyItem item, int itemId, ClassElement classElement) async {
+    var subElements = await getDirectSubClasses(_searchEngine, classElement);
+    var subItemIds = <int>[];
+    for (var subElement in subElements) {
       // check for recursion
-      TypeHierarchyItem subItem = _elementItemMap[subElement];
+      var subItem = _elementItemMap[subElement];
       if (subItem != null) {
-        int id = _items.indexOf(subItem);
+        var id = _items.indexOf(subItem);
         item.subclasses.add(id);
         continue;
       }
       // create a subclass item
-      ExecutableElement subMemberElement = _findMemberElement(subElement);
-      subItem = new TypeHierarchyItem(convertElement(subElement),
+      var subMemberElement = _findMemberElement(subElement);
+      subItem = TypeHierarchyItem(convertElement(subElement),
           memberElement: subMemberElement != null
               ? convertElement(subMemberElement)
               : null,
           superclass: itemId);
-      int subItemId = _items.length;
+      var subItemId = _items.length;
       // remember
       _elementItemMap[subElement] = subItem;
       _items.add(subItem);
@@ -107,30 +94,32 @@ class TypeHierarchyComputer {
       subItemIds.add(subItemId);
     }
     // compute subclasses of subclasses
-    for (int subItemId in subItemIds) {
-      TypeHierarchyItem subItem = _items[subItemId];
-      ClassElement subItemElement = _itemClassElements[subItemId];
-      InterfaceType subType = subItemElement.type;
-      await _createSubclasses(subItem, subItemId, subType);
+    for (var subItemId in subItemIds) {
+      var subItem = _items[subItemId];
+      var subItemElement = _itemClassElements[subItemId];
+      await _createSubclasses(subItem, subItemId, subItemElement);
     }
   }
 
-  int _createSuperItem(InterfaceType type) {
+  int _createSuperItem(
+      ClassElement classElement, List<DartType> typeArguments) {
     // check for recursion
-    TypeHierarchyItem item = _elementItemMap[type.element];
+    var item = _elementItemMap[classElement];
     if (item != null) {
       return _items.indexOf(item);
     }
     // create an empty item now
     int itemId;
     {
-      String displayName = null;
-      if (type.typeArguments.isNotEmpty) {
-        displayName = type.toString();
+      String displayName;
+      if (typeArguments != null && typeArguments.isNotEmpty) {
+        var typeArgumentsStr = typeArguments
+            .map((type) => type.getDisplayString(withNullability: false))
+            .join(', ');
+        displayName = classElement.displayName + '<' + typeArgumentsStr + '>';
       }
-      ClassElement classElement = type.element;
-      ExecutableElement memberElement = _findMemberElement(classElement);
-      item = new TypeHierarchyItem(convertElement(classElement),
+      var memberElement = _findMemberElement(classElement);
+      item = TypeHierarchyItem(convertElement(classElement),
           displayName: displayName,
           memberElement:
               memberElement != null ? convertElement(memberElement) : null);
@@ -141,19 +130,22 @@ class TypeHierarchyComputer {
     }
     // superclass
     {
-      InterfaceType superType = type.superclass;
+      var superType = classElement.supertype;
       if (superType != null) {
-        item.superclass = _createSuperItem(superType);
+        item.superclass = _createSuperItem(
+          superType.element,
+          superType.typeArguments,
+        );
       }
     }
     // mixins
-    type.mixins.forEach((InterfaceType type) {
-      int id = _createSuperItem(type);
+    classElement.mixins.forEach((InterfaceType type) {
+      var id = _createSuperItem(type.element, type.typeArguments);
       item.mixins.add(id);
     });
     // interfaces
-    type.interfaces.forEach((InterfaceType type) {
-      int id = _createSuperItem(type);
+    classElement.interfaces.forEach((InterfaceType type) {
+      var id = _createSuperItem(type.element, type.typeArguments);
       item.interfaces.add(id);
     });
     // done
@@ -179,8 +171,8 @@ class TypeHierarchyComputer {
       return result;
     }
     // try to find in the class mixin
-    for (InterfaceType mixin in clazz.mixins.reversed) {
-      ClassElement mixinElement = mixin.element;
+    for (var mixin in clazz.mixins.reversed) {
+      var mixinElement = mixin.element;
       if (_pivotKind == ElementKind.METHOD) {
         result = mixinElement.lookUpMethod(_pivotName, _pivotLibrary);
       } else if (_pivotKind == ElementKind.GETTER) {

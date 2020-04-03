@@ -4,6 +4,9 @@
 
 library fasta.problems;
 
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show Severity, severityTexts;
+
 import 'package:kernel/ast.dart' show FileUriNode, TreeNode;
 
 import 'compiler_context.dart' show CompilerContext;
@@ -18,8 +21,6 @@ import 'messages.dart'
         templateInternalProblemUnhandled,
         templateInternalProblemUnimplemented,
         templateInternalProblemUnsupported;
-
-import 'severity.dart' show Severity, severityTexts;
 
 class DebugAbort {
   final LocatedMessage message;

@@ -7,6 +7,7 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
+#include "bin/file.h"
 #include "bin/reference_counting.h"
 #include "bin/socket_base.h"
 #include "bin/thread.h"
@@ -49,6 +50,12 @@ class Socket : public ReferenceCounted<Socket> {
   explicit Socket(intptr_t fd);
 
   intptr_t fd() const { return fd_; }
+
+  // Close fd and may need to decrement the count of handle by calling
+  // release().
+  void CloseFd();
+  // Set fd_ to closed. On fuchsia and win, shared socket should not
+  // release handle but only SetClosedFd().
   void SetClosedFd();
 
   Dart_Port isolate_port() const { return isolate_port_; }
@@ -64,10 +71,13 @@ class Socket : public ReferenceCounted<Socket> {
   // Creates a socket which is bound and connected. The port to connect to is
   // specified as the port component of the passed RawAddr structure.
   static intptr_t CreateConnect(const RawAddr& addr);
+  static intptr_t CreateUnixDomainConnect(const RawAddr& addr);
   // Creates a socket which is bound and connected. The port to connect to is
   // specified as the port component of the passed RawAddr structure.
   static intptr_t CreateBindConnect(const RawAddr& addr,
                                     const RawAddr& source_addr);
+  static intptr_t CreateUnixDomainBindConnect(const RawAddr& addr,
+                                              const RawAddr& source_addr);
   // Creates a datagram socket which is bound. The port to bind
   // to is specified as the port component of the RawAddr structure.
   static intptr_t CreateBindDatagram(const RawAddr& addr,
@@ -140,6 +150,8 @@ class ServerSocket {
   static intptr_t CreateBindListen(const RawAddr& addr,
                                    intptr_t backlog,
                                    bool v6_only = false);
+  static intptr_t CreateUnixDomainBindListen(const RawAddr& addr,
+                                             intptr_t backlog);
 
   // Start accepting on a newly created listening socket. If it was unable to
   // start accepting incoming sockets, the fd is invalidated.
@@ -155,6 +167,7 @@ class ListeningSocketRegistry {
   ListeningSocketRegistry()
       : sockets_by_port_(SameIntptrValue, kInitialSocketsCount),
         sockets_by_fd_(SameIntptrValue, kInitialSocketsCount),
+        unix_domain_sockets_(nullptr),
         mutex_() {}
 
   ~ListeningSocketRegistry() {
@@ -167,6 +180,8 @@ class ListeningSocketRegistry {
 
   static void Cleanup();
 
+  // Bind `socket_object` to `addr`.
+  // Return Dart_True() if succeed.
   // This function should be called from a dart runtime call in order to create
   // a new (potentially shared) socket.
   Dart_Handle CreateBindListen(Dart_Handle socket_object,
@@ -174,6 +189,15 @@ class ListeningSocketRegistry {
                                intptr_t backlog,
                                bool v6_only,
                                bool shared);
+  // Bind unix domain socket`socket_object` to `path`.
+  // Return Dart_True() if succeed.
+  // This function should be called from a dart runtime call in order to create
+  // a new socket.
+  Dart_Handle CreateUnixDomainBindListen(Dart_Handle socket_object,
+                                         Namespace* namespc,
+                                         const char* path,
+                                         intptr_t backlog,
+                                         bool shared);
 
   // This should be called from the event handler for every kCloseEvent it gets
   // on listening sockets.
@@ -194,7 +218,11 @@ class ListeningSocketRegistry {
     bool v6_only;
     bool shared;
     int ref_count;
-    Socket* socketfd;
+    intptr_t fd;
+
+    // Only applicable to Unix domain socket, where address.addr.sa_family
+    // == AF_UNIX.
+    Namespace* namespc;
 
     // Singly linked lists of OSSocket instances which listen on the same port
     // but on different addresses.
@@ -204,14 +232,17 @@ class ListeningSocketRegistry {
              int port,
              bool v6_only,
              bool shared,
-             Socket* socketfd)
+             Socket* socketfd,
+             Namespace* namespc)
         : address(address),
           port(port),
           v6_only(v6_only),
           shared(shared),
           ref_count(0),
-          socketfd(socketfd),
-          next(NULL) {}
+          namespc(namespc),
+          next(NULL) {
+      fd = socketfd->fd();
+    }
   };
 
   static const intptr_t kInitialSocketsCount = 8;
@@ -219,6 +250,20 @@ class ListeningSocketRegistry {
   OSSocket* FindOSSocketWithAddress(OSSocket* current, const RawAddr& addr) {
     while (current != NULL) {
       if (SocketAddress::AreAddressesEqual(current->address, addr)) {
+        return current;
+      }
+      current = current->next;
+    }
+    return NULL;
+  }
+
+  OSSocket* FindOSSocketWithPath(OSSocket* current,
+                                 Namespace* namespc,
+                                 const char* path) {
+    while (current != NULL) {
+      ASSERT(current->address.addr.sa_family == AF_UNIX);
+      if (File::AreIdentical(current->namespc, current->address.un.sun_path,
+                             namespc, path) == File::kIdentical) {
         return current;
       }
       current = current->next;
@@ -246,11 +291,13 @@ class ListeningSocketRegistry {
   void InsertByFd(Socket* fd, OSSocket* socket);
   void RemoveByFd(Socket* fd);
 
-  bool CloseOneSafe(OSSocket* os_socket, bool update_hash_maps);
+  bool CloseOneSafe(OSSocket* os_socket, Socket* socket);
   void CloseAllSafe();
 
   SimpleHashMap sockets_by_port_;
   SimpleHashMap sockets_by_fd_;
+
+  OSSocket* unix_domain_sockets_;
 
   Mutex mutex_;
 

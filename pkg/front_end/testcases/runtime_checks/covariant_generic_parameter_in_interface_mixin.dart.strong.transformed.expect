@@ -20,14 +20,14 @@ class M extends core::Object {
     ;
   method f(core::int* x) → void {}
 }
-class C extends self::B implements self::I<core::int*>, self::M {
+class C extends self::B implements self::I<core::int*>, self::M /*isEliminatedMixin*/  {
   synthetic constructor •() → self::C*
     : super self::B::•()
     ;
   method f(generic-covariant-impl core::int* x) → void {}
 }
 static method g1(self::C* c) → void {
-  c.{self::M::f}(1);
+  c.{self::C::f}(1);
 }
 static method g2(self::I<core::num*>* i) → void {
   i.{self::I::f}(1.5);

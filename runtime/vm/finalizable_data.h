@@ -20,10 +20,11 @@ struct FinalizableData {
 
 class MessageFinalizableData {
  public:
-  MessageFinalizableData() : records_(0), position_(0), external_size_(0) {}
+  MessageFinalizableData()
+      : records_(0), get_position_(0), take_position_(0), external_size_(0) {}
 
   ~MessageFinalizableData() {
-    for (intptr_t i = position_; i < records_.length(); i++) {
+    for (intptr_t i = take_position_; i < records_.length(); i++) {
       records_[i].callback(nullptr, nullptr, records_[i].peer);
     }
   }
@@ -46,13 +47,22 @@ class MessageFinalizableData {
     external_size_ += external_size;
   }
 
+  // Retrieve the next FinalizableData, but still run its finalizer when |this|
+  // is destroyed.
+  FinalizableData Get() {
+    ASSERT(get_position_ < records_.length());
+    return records_[get_position_++];
+  }
+
+  // Retrieve the next FinalizableData, and skip its finalizer when |this| is
+  // destroyed.
   FinalizableData Take() {
-    ASSERT(position_ < records_.length());
-    return records_[position_++];
+    ASSERT(take_position_ < records_.length());
+    return records_[take_position_++];
   }
 
   void SerializationSucceeded() {
-    for (intptr_t i = position_; i < records_.length(); i++) {
+    for (intptr_t i = 0; i < records_.length(); i++) {
       if (records_[i].successful_write_callback != nullptr) {
         records_[i].successful_write_callback(nullptr, nullptr,
                                               records_[i].peer);
@@ -60,11 +70,19 @@ class MessageFinalizableData {
     }
   }
 
+  void DropFinalizers() {
+    records_.Clear();
+    get_position_ = 0;
+    take_position_ = 0;
+    external_size_ = 0;
+  }
+
   intptr_t external_size() const { return external_size_; }
 
  private:
   MallocGrowableArray<FinalizableData> records_;
-  intptr_t position_;
+  intptr_t get_position_;
+  intptr_t take_position_;
   intptr_t external_size_;
 
   DISALLOW_COPY_AND_ASSIGN(MessageFinalizableData);

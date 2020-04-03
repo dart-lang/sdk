@@ -20,7 +20,7 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
   @override
   Future<ErrorOr<void>> handle(List<dynamic> arguments) async {
     if (arguments == null || arguments.length != 1 || arguments[0] is! String) {
-      return ErrorOr.error(new ResponseError(
+      return ErrorOr.error(ResponseError(
         ServerErrorCodes.InvalidCommandArguments,
         '$commandName requires a single String parameter containing the path of a Dart file',
         null,
@@ -39,14 +39,14 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
       final unit = result.unit;
 
       if (hasScanParseErrors(result.errors)) {
-        return ErrorOr.error(new ResponseError(
+        return ErrorOr.error(ResponseError(
           ServerErrorCodes.FileHasErrors,
           'Unable to $commandName because the file contains parse errors',
           path,
         ));
       }
 
-      final organizer = new DirectiveOrganizer(code, unit, result.errors);
+      final organizer = DirectiveOrganizer(code, unit, result.errors);
       final edits = organizer.organize();
 
       return sendSourceEditsToClient(docIdentifier, unit, edits);

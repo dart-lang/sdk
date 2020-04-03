@@ -17,6 +17,7 @@ import '../js/js.dart' as js;
 import '../js/rewrite_async.dart';
 import '../js_backend/backend.dart' show CodegenInputs, FunctionCompiler;
 import '../js_backend/namer.dart' show ModularNamer, ModularNamerImpl;
+import '../js_backend/type_reference.dart' show TypeReference;
 import '../js_emitter/code_emitter_task.dart' show ModularEmitter;
 import '../js_emitter/startup_emitter/emitter.dart' show ModularEmitterImpl;
 import '../js_model/elements.dart';
@@ -184,21 +185,11 @@ class SsaFunctionCompiler implements FunctionCompiler {
   }
 
   List<js.Expression> _fetchItemTypeNewRti(
-      CodegenInputs codegen,
-      CommonElements commonElements,
-      CodegenRegistry registry,
-      ModularEmitter emitter,
-      DartType type) {
+      CommonElements commonElements, CodegenRegistry registry, DartType type) {
     if (type == null) return null;
-
-    FunctionEntity helperElement = commonElements.findType;
     registry.registerStaticUse(
-        new StaticUse.staticInvoke(helperElement, CallStructure.ONE_ARG));
-    js.Expression recipe = codegen.rtiRecipeEncoder
-        .encodeGroundRecipe(emitter, TypeExpressionRecipe(type));
-    js.Expression helper = emitter.staticFunctionAccess(helperElement);
-    var ast = js.js(r'#(#)', [helper, recipe]);
-    return <js.Expression>[ast];
+        StaticUse.staticInvoke(commonElements.findType, CallStructure.ONE_ARG));
+    return [TypeReference(TypeExpressionRecipe(type))];
   }
 
   AsyncRewriter _makeAsyncRewriter(
@@ -215,9 +206,8 @@ class SsaFunctionCompiler implements FunctionCompiler {
     FunctionEntity startFunction = commonElements.asyncHelperStartSync;
     FunctionEntity completerFactory = commonElements.asyncAwaitCompleterFactory;
 
-    List<js.Expression> itemTypeExpression = _options.experimentNewRti
-        ? _fetchItemTypeNewRti(
-            codegen, commonElements, registry, emitter, elementType)
+    List<js.Expression> itemTypeExpression = _options.useNewRti
+        ? _fetchItemTypeNewRti(commonElements, registry, elementType)
         : _fetchItemType(codegen, emitter, elementType);
 
     AsyncRewriter rewriter = new AsyncRewriter(_reporter, element,
@@ -253,9 +243,8 @@ class SsaFunctionCompiler implements FunctionCompiler {
       js.Expression code,
       DartType asyncTypeParameter,
       js.Name name) {
-    List<js.Expression> itemTypeExpression = _options.experimentNewRti
-        ? _fetchItemTypeNewRti(
-            codegen, commonElements, registry, emitter, asyncTypeParameter)
+    List<js.Expression> itemTypeExpression = _options.useNewRti
+        ? _fetchItemTypeNewRti(commonElements, registry, asyncTypeParameter)
         : _fetchItemType(codegen, emitter, asyncTypeParameter);
 
     SyncStarRewriter rewriter = new SyncStarRewriter(_reporter, element,
@@ -290,9 +279,8 @@ class SsaFunctionCompiler implements FunctionCompiler {
       js.Expression code,
       DartType asyncTypeParameter,
       js.Name name) {
-    List<js.Expression> itemTypeExpression = _options.experimentNewRti
-        ? _fetchItemTypeNewRti(
-            codegen, commonElements, registry, emitter, asyncTypeParameter)
+    List<js.Expression> itemTypeExpression = _options.useNewRti
+        ? _fetchItemTypeNewRti(commonElements, registry, asyncTypeParameter)
         : _fetchItemType(codegen, emitter, asyncTypeParameter);
 
     AsyncStarRewriter rewriter = new AsyncStarRewriter(_reporter, element,

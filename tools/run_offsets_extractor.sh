@@ -16,27 +16,54 @@ fi
 
 # We're regenerating the file, but we want to keep all the comments etc at the
 # top of the file. So just delete everything after the first "#if defined".
-LINE=$(grep "#if defined" "$FILE" -n | head -n 1 | sed "s/^\([0-9]*\):.*/\1/")
+LINE=$(grep "#if " "$FILE" -n | head -n 1 | sed "s/^\([0-9]*\):.*/\1/")
 TEMP="${FILE}.temp"
-head -n $(expr $LINE - 1) "$FILE" >"$TEMP"
+TEMP_HEADER="${FILE}.header.temp"
+TEMP_JIT="${FILE}.jit.temp"
+TEMP_AOT="${FILE}.aot.temp"
+head -n $(expr $LINE - 1) "$FILE" >"$TEMP_HEADER"
 
 # Run offsets_extractor for every architecture and append the results.
 run() {
-  echo "" >>"$TEMP"
-  tools/gn.py --mode=release --arch=$1
-  tools/build.py --mode=release --arch=$1 offsets_extractor
-  out/$2/offsets_extractor >>"$TEMP"
+  tools/gn.py --mode=$1 --arch=$2
+  tools/build.py --mode=$1 --arch=$2 offsets_extractor offsets_extractor_precompiled_runtime
+  echo "" >>"$TEMP_JIT"
+  out/$3/offsets_extractor >>"$TEMP_JIT"
+  echo "" >>"$TEMP_AOT"
+  out/$3/offsets_extractor_precompiled_runtime >>"$TEMP_AOT"
 }
-run simarm ReleaseSIMARM
-run x64 ReleaseX64
-run ia32 ReleaseIA32
-run simarm64 ReleaseSIMARM64
-run simdbc64 ReleaseSIMDBC64
-run simdbc ReleaseSIMDBC
+echo "" >>"$TEMP_JIT"
+echo "" >>"$TEMP_AOT"
+echo "#if !defined(PRODUCT)" >>"$TEMP_JIT"
+echo "#if !defined(PRODUCT)" >>"$TEMP_AOT"
+run release simarm ReleaseSIMARM
+run release x64 ReleaseX64
+run release ia32 ReleaseIA32
+run release simarm64 ReleaseSIMARM64
+echo "" >>"$TEMP_JIT"
+echo "" >>"$TEMP_AOT"
+echo "#else  // !defined(PRODUCT)" >>"$TEMP_JIT"
+echo "#else  // !defined(PRODUCT)" >>"$TEMP_AOT"
+run product simarm ProductSIMARM
+run product x64 ProductX64
+run product ia32 ProductIA32
+run product simarm64 ProductSIMARM64
+echo "" >>"$TEMP_JIT"
+echo "" >>"$TEMP_AOT"
+echo "#endif  // !defined(PRODUCT)" >>"$TEMP_JIT"
+echo "#endif  // !defined(PRODUCT)" >>"$TEMP_AOT"
 
-# Cleanup.
+cat $TEMP_HEADER >>"$TEMP"
+cat $TEMP_JIT >>"$TEMP"
+cat $TEMP_AOT >>"$TEMP"
+
 echo "" >>"$TEMP"
 echo "#endif  // RUNTIME_VM_COMPILER_RUNTIME_OFFSETS_EXTRACTED_H_" >>"$TEMP"
 mv "$TEMP" "$FILE"
+
+# Cleanup.
 git cl format "$FILE"
+rm "$TEMP_HEADER"
+rm "$TEMP_JIT"
+rm "$TEMP_AOT"
 echo -e "\n\nSuccessfully generated $FILE :)"

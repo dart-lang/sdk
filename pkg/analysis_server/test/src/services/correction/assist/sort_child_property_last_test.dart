@@ -3,12 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/assist.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SortChildPropertyLastTest);
   });
@@ -19,7 +20,7 @@ class SortChildPropertyLastTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.SORT_CHILD_PROPERTY_LAST;
 
-  test_already_sorted() async {
+  Future<void> test_already_sorted() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
@@ -37,7 +38,7 @@ main() {
     await assertNoAssist();
   }
 
-  test_already_sorted_one_prop() async {
+  Future<void> test_already_sorted_one_prop() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
@@ -54,7 +55,7 @@ main() {
     await assertNoAssist();
   }
 
-  test_no_children() async {
+  Future<void> test_no_children() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
@@ -67,7 +68,7 @@ main() {
     await assertNoAssist();
   }
 
-  test_sort() async {
+  Future<void> test_sort() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
@@ -95,6 +96,26 @@ main() {
   );
 }
 ''');
-    assertExitPosition(after: "],");
+    assertExitPosition(after: '],');
+  }
+
+  Future<void> test_sort_noAssistWithLint() async {
+    addFlutterPackage();
+    createAnalysisOptionsFile(lints: [LintNames.sort_child_properties_last]);
+    verifyNoTestUnitErrors = false;
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+main() {
+  Column(
+    /*caret*/children: <Widget>[
+      Text('aaa'),
+      Text('bbbbbb'),
+      Text('ccccccccc'),
+    ],
+    crossAxisAlignment: CrossAxisAlignment.center,
+  );
+}
+''');
+    await assertNoAssist();
   }
 }

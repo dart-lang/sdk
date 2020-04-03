@@ -42,11 +42,6 @@ class AsmIntrinsifier : public AllStatic {
   static void enum_name(Assembler* assembler, Label* normal_ir_body);
   ALL_INTRINSICS_LIST(DECLARE_FUNCTION)
 
-  // On DBC all intrinsics are handled the same way.
-#if defined(TARGET_ARCH_DBC)
-  GRAPH_INTRINSICS_LIST(DECLARE_FUNCTION)
-#endif  // defined(TARGET_ARCH_DBC)
-
 #undef DECLARE_FUNCTION
 
   static void IntrinsifyRegExpExecuteMatch(Assembler* assembler,

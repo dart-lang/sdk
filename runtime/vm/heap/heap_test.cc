@@ -9,6 +9,7 @@
 #include "vm/globals.h"
 #include "vm/heap/become.h"
 #include "vm/heap/heap.h"
+#include "vm/object_graph.h"
 #include "vm/symbols.h"
 #include "vm/unit_test.h"
 
@@ -27,14 +28,19 @@ TEST_CASE(OldGC) {
   EXPECT(!Dart_IsNull(result));
   EXPECT(Dart_IsList(result));
   TransitionNativeToVM transition(thread);
-  Isolate* isolate = Isolate::Current();
-  Heap* heap = isolate->heap();
-  heap->CollectGarbage(Heap::kOld);
+  GCTestHelper::CollectOldSpace();
 }
 
 #if !defined(PRODUCT)
 TEST_CASE(OldGC_Unsync) {
+  // Finalize any GC in progress as it is unsafe to change FLAG_marker_tasks
+  // when incremental marking is in progress.
+  {
+    TransitionNativeToVM transition(thread);
+    GCTestHelper::CollectAllGarbage();
+  }
   FLAG_marker_tasks = 0;
+
   const char* kScriptChars =
       "main() {\n"
       "  return [1, 2, 3];\n"
@@ -47,9 +53,7 @@ TEST_CASE(OldGC_Unsync) {
   EXPECT(!Dart_IsNull(result));
   EXPECT(Dart_IsList(result));
   TransitionNativeToVM transition(thread);
-  Isolate* isolate = Isolate::Current();
-  Heap* heap = isolate->heap();
-  heap->CollectGarbage(Heap::kOld);
+  GCTestHelper::CollectOldSpace();
 }
 #endif  // !defined(PRODUCT)
 
@@ -68,31 +72,16 @@ TEST_CASE(LargeSweep) {
   EXPECT(Dart_IsList(result));
   {
     TransitionNativeToVM transition(thread);
-    thread->heap()->CollectGarbage(Heap::kOld);
+    GCTestHelper::CollectOldSpace();
   }
   Dart_ExitScope();
   {
     TransitionNativeToVM transition(thread);
-    thread->heap()->CollectGarbage(Heap::kOld);
+    GCTestHelper::CollectOldSpace();
   }
 }
 
 #ifndef PRODUCT
-class ClassHeapStatsTestHelper {
- public:
-  static ClassHeapStats* GetHeapStatsForCid(ClassTable* class_table,
-                                            intptr_t cid) {
-    return class_table->PreliminaryStatsAt(cid);
-  }
-
-  static void DumpClassHeapStats(ClassHeapStats* stats) {
-    OS::PrintErr("%" Pd " ", stats->recent.new_count);
-    OS::PrintErr("%" Pd " ", stats->post_gc.new_count);
-    OS::PrintErr("%" Pd " ", stats->pre_gc.new_count);
-    OS::PrintErr("\n");
-  }
-};
-
 static RawClass* GetClass(const Library& lib, const char* name) {
   const Class& cls = Class::Handle(
       lib.LookupClass(String::Handle(Symbols::New(Thread::Current(), name))));
@@ -111,17 +100,14 @@ TEST_CASE(ClassHeapStats) {
       "  var x = new A();\n"
       "  return new A();\n"
       "}\n";
-  bool saved_concurrent_sweep_mode = FLAG_concurrent_sweep;
-  FLAG_concurrent_sweep = false;
   Dart_Handle h_lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Isolate* isolate = Isolate::Current();
   ClassTable* class_table = isolate->class_table();
-  Heap* heap = isolate->heap();
   Dart_EnterScope();
   Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
   EXPECT(!Dart_IsNull(result));
-  ClassHeapStats* class_stats;
+  intptr_t cid;
   {
     TransitionNativeToVM transition(thread);
     Library& lib = Library::Handle();
@@ -129,112 +115,86 @@ TEST_CASE(ClassHeapStats) {
     EXPECT(!lib.IsNull());
     const Class& cls = Class::Handle(GetClass(lib, "A"));
     ASSERT(!cls.IsNull());
-    intptr_t cid = cls.id();
-    class_stats =
-        ClassHeapStatsTestHelper::GetHeapStatsForCid(class_table, cid);
-    // Verify preconditions:
-    EXPECT_EQ(0, class_stats->pre_gc.old_count);
-    EXPECT_EQ(0, class_stats->post_gc.old_count);
-    EXPECT_EQ(0, class_stats->recent.old_count);
-    EXPECT_EQ(0, class_stats->pre_gc.new_count);
-    EXPECT_EQ(0, class_stats->post_gc.new_count);
-    // Class allocated twice since GC from new space.
-    EXPECT_EQ(2, class_stats->recent.new_count);
+    cid = cls.id();
+
+    {
+      // Verify preconditions: allocated twice in new space.
+      CountObjectsVisitor visitor(thread, class_table->NumCids());
+      HeapIterationScope iter(thread);
+      iter.IterateObjects(&visitor);
+      isolate->group()->VisitWeakPersistentHandles(&visitor);
+      EXPECT_EQ(2, visitor.new_count_[cid]);
+      EXPECT_EQ(0, visitor.old_count_[cid]);
+    }
+
     // Perform GC.
-    heap->CollectGarbage(Heap::kNew);
-    // Verify postconditions:
-    EXPECT_EQ(0, class_stats->pre_gc.old_count);
-    EXPECT_EQ(0, class_stats->post_gc.old_count);
-    EXPECT_EQ(0, class_stats->recent.old_count);
-    // Total allocations before GC.
-    EXPECT_EQ(2, class_stats->pre_gc.new_count);
-    // Only one survived.
-    EXPECT_EQ(1, class_stats->post_gc.new_count);
-    EXPECT_EQ(0, class_stats->recent.new_count);
+    GCTestHelper::CollectNewSpace();
+
+    {
+      // Verify postconditions: Only one survived.
+      CountObjectsVisitor visitor(thread, class_table->NumCids());
+      HeapIterationScope iter(thread);
+      iter.IterateObjects(&visitor);
+      isolate->group()->VisitWeakPersistentHandles(&visitor);
+      EXPECT_EQ(1, visitor.new_count_[cid]);
+      EXPECT_EQ(0, visitor.old_count_[cid]);
+    }
+
     // Perform GC. The following is heavily dependent on the behaviour
     // of the GC: Retained instance of A will be promoted.
-    heap->CollectGarbage(Heap::kNew);
-    // Verify postconditions:
-    EXPECT_EQ(0, class_stats->pre_gc.old_count);
-    EXPECT_EQ(0, class_stats->post_gc.old_count);
-    // One promoted instance.
-    EXPECT_EQ(1, class_stats->promoted_count);
-    // Promotion counted as an allocation from old space.
-    EXPECT_EQ(1, class_stats->recent.old_count);
-    // There was one instance allocated before GC.
-    EXPECT_EQ(1, class_stats->pre_gc.new_count);
-    // There are no instances allocated in new space after GC.
-    EXPECT_EQ(0, class_stats->post_gc.new_count);
-    // No new allocations.
-    EXPECT_EQ(0, class_stats->recent.new_count);
+    GCTestHelper::CollectNewSpace();
+
+    {
+      // Verify postconditions: One promoted instance.
+      CountObjectsVisitor visitor(thread, class_table->NumCids());
+      HeapIterationScope iter(thread);
+      iter.IterateObjects(&visitor);
+      isolate->group()->VisitWeakPersistentHandles(&visitor);
+      EXPECT_EQ(0, visitor.new_count_[cid]);
+      EXPECT_EQ(1, visitor.old_count_[cid]);
+    }
+
     // Perform a GC on new space.
-    heap->CollectGarbage(Heap::kNew);
-    // There were no instances allocated before GC.
-    EXPECT_EQ(0, class_stats->pre_gc.new_count);
-    // There are no instances allocated in new space after GC.
-    EXPECT_EQ(0, class_stats->post_gc.new_count);
-    // No new allocations.
-    EXPECT_EQ(0, class_stats->recent.new_count);
-    // Nothing was promoted.
-    EXPECT_EQ(0, class_stats->promoted_count);
-    heap->CollectGarbage(Heap::kOld);
-    // Verify postconditions:
-    EXPECT_EQ(1, class_stats->pre_gc.old_count);
-    EXPECT_EQ(1, class_stats->post_gc.old_count);
-    EXPECT_EQ(0, class_stats->recent.old_count);
+    GCTestHelper::CollectNewSpace();
+
+    {
+      // Verify postconditions:
+      CountObjectsVisitor visitor(thread, class_table->NumCids());
+      HeapIterationScope iter(thread);
+      iter.IterateObjects(&visitor);
+      isolate->group()->VisitWeakPersistentHandles(&visitor);
+      EXPECT_EQ(0, visitor.new_count_[cid]);
+      EXPECT_EQ(1, visitor.old_count_[cid]);
+    }
+
+    GCTestHelper::CollectOldSpace();
+
+    {
+      // Verify postconditions:
+      CountObjectsVisitor visitor(thread, class_table->NumCids());
+      HeapIterationScope iter(thread);
+      iter.IterateObjects(&visitor);
+      isolate->group()->VisitWeakPersistentHandles(&visitor);
+      EXPECT_EQ(0, visitor.new_count_[cid]);
+      EXPECT_EQ(1, visitor.old_count_[cid]);
+    }
   }
   // Exit scope, freeing instance.
   Dart_ExitScope();
   {
     TransitionNativeToVM transition(thread);
     // Perform GC.
-    heap->CollectGarbage(Heap::kOld);
-    // Verify postconditions:
-    EXPECT_EQ(1, class_stats->pre_gc.old_count);
-    EXPECT_EQ(0, class_stats->post_gc.old_count);
-    EXPECT_EQ(0, class_stats->recent.old_count);
-    // Perform GC.
-    heap->CollectGarbage(Heap::kOld);
-    EXPECT_EQ(0, class_stats->pre_gc.old_count);
-    EXPECT_EQ(0, class_stats->post_gc.old_count);
-    EXPECT_EQ(0, class_stats->recent.old_count);
+    GCTestHelper::CollectOldSpace();
+    {
+      // Verify postconditions:
+      CountObjectsVisitor visitor(thread, class_table->NumCids());
+      HeapIterationScope iter(thread);
+      iter.IterateObjects(&visitor);
+      isolate->group()->VisitWeakPersistentHandles(&visitor);
+      EXPECT_EQ(0, visitor.new_count_[cid]);
+      EXPECT_EQ(0, visitor.old_count_[cid]);
+    }
   }
-  FLAG_concurrent_sweep = saved_concurrent_sweep_mode;
-}
-
-TEST_CASE(ArrayHeapStats) {
-  const char* kScriptChars =
-      "List f(int len) {\n"
-      "  return new List(len);\n"
-      "}\n"
-      ""
-      "main() {\n"
-      "  return f(1234);\n"
-      "}\n";
-  Dart_Handle h_lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  Isolate* isolate = Isolate::Current();
-  ClassTable* class_table = isolate->class_table();
-  intptr_t cid = kArrayCid;
-  ClassHeapStats* class_stats =
-      ClassHeapStatsTestHelper::GetHeapStatsForCid(class_table, cid);
-  Dart_EnterScope();
-  // Invoke 'main' twice, since initial compilation might trigger extra array
-  // allocations.
-  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
-  EXPECT(!Dart_IsNull(result));
-  intptr_t before = class_stats->recent.new_size;
-  Dart_Handle result2 = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result2);
-  EXPECT(!Dart_IsNull(result2));
-  intptr_t after = class_stats->recent.new_size;
-  const intptr_t expected_size = Array::InstanceSize(1234);
-  // Invoking the method might involve some additional tiny array allocations,
-  // so we allow slightly more than expected.
-  static const intptr_t kTolerance = 10 * kWordSize;
-  EXPECT_LE(expected_size, after - before);
-  EXPECT_GT(expected_size + kTolerance, after - before);
-  Dart_ExitScope();
 }
 #endif  // !PRODUCT
 
@@ -283,6 +243,11 @@ ISOLATE_UNIT_TEST_CASE(FindObject) {
 
 ISOLATE_UNIT_TEST_CASE(IterateReadOnly) {
   const String& obj = String::Handle(String::New("x", Heap::kOld));
+
+  // It is not safe to make the heap read-only if marking or sweeping is in
+  // progress.
+  GCTestHelper::WaitForGCTasks();
+
   Heap* heap = Thread::Current()->isolate()->heap();
   EXPECT(heap->Contains(RawObject::ToAddr(obj.raw())));
   heap->WriteProtect(true);
@@ -292,9 +257,6 @@ ISOLATE_UNIT_TEST_CASE(IterateReadOnly) {
 }
 
 void TestBecomeForward(Heap::Space before_space, Heap::Space after_space) {
-  Isolate* isolate = Isolate::Current();
-  Heap* heap = isolate->heap();
-
   const String& before_obj = String::Handle(String::New("old", before_space));
   const String& after_obj = String::Handle(String::New("new", after_space));
 
@@ -310,7 +272,7 @@ void TestBecomeForward(Heap::Space before_space, Heap::Space after_space) {
 
   EXPECT(before_obj.raw() == after_obj.raw());
 
-  heap->CollectAllGarbage();
+  GCTestHelper::CollectAllGarbage();
 
   EXPECT(before_obj.raw() == after_obj.raw());
 }
@@ -357,9 +319,6 @@ ISOLATE_UNIT_TEST_CASE(BecomeForwardPeer) {
 }
 
 ISOLATE_UNIT_TEST_CASE(BecomeForwardRememberedObject) {
-  Isolate* isolate = Isolate::Current();
-  Heap* heap = isolate->heap();
-
   const String& new_element = String::Handle(String::New("new", Heap::kNew));
   const String& old_element = String::Handle(String::New("old", Heap::kOld));
   const Array& before_obj = Array::Handle(Array::New(1, Heap::kOld));
@@ -381,7 +340,7 @@ ISOLATE_UNIT_TEST_CASE(BecomeForwardRememberedObject) {
   EXPECT(before_obj.raw() == after_obj.raw());
   EXPECT(!after_obj.raw()->IsRemembered());
 
-  heap->CollectAllGarbage();
+  GCTestHelper::CollectAllGarbage();
 
   EXPECT(before_obj.raw() == after_obj.raw());
 }
@@ -395,18 +354,11 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_DeadOldToNew) {
   intptr_t size_before =
       heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
 
-  {
-    // Prevent allocation from starting marking, otherwise the incremental write
-    // barrier will keep these objects live.
-    NoHeapGrowthControlScope force_growth;
-    EXPECT(!thread->is_marking());
-    Array& old = Array::Handle(Array::New(1, Heap::kOld));
-    Array& neu = Array::Handle(Array::New(1, Heap::kNew));
-    old.SetAt(0, neu);
-    old = Array::null();
-    neu = Array::null();
-    EXPECT(!thread->is_marking());
-  }
+  Array& old = Array::Handle(Array::New(1, Heap::kOld));
+  Array& neu = Array::Handle(Array::New(1, Heap::kNew));
+  old.SetAt(0, neu);
+  old = Array::null();
+  neu = Array::null();
 
   heap->CollectAllGarbage();
   heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
@@ -426,18 +378,11 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_DeadNewToOld) {
   intptr_t size_before =
       heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
 
-  {
-    // Prevent allocation from starting marking, otherwise the incremental write
-    // barrier will keep these objects live.
-    NoHeapGrowthControlScope force_growth;
-    EXPECT(!thread->is_marking());
-    Array& old = Array::Handle(Array::New(1, Heap::kOld));
-    Array& neu = Array::Handle(Array::New(1, Heap::kNew));
-    neu.SetAt(0, old);
-    old = Array::null();
-    neu = Array::null();
-    EXPECT(!thread->is_marking());
-  }
+  Array& old = Array::Handle(Array::New(1, Heap::kOld));
+  Array& neu = Array::Handle(Array::New(1, Heap::kNew));
+  neu.SetAt(0, old);
+  old = Array::null();
+  neu = Array::null();
 
   heap->CollectAllGarbage();
   heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
@@ -457,19 +402,12 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_DeadGenCycle) {
   intptr_t size_before =
       heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
 
-  {
-    // Prevent allocation from starting marking, otherwise the incremental write
-    // barrier will keep these objects live.
-    NoHeapGrowthControlScope force_growth;
-    EXPECT(!thread->is_marking());
-    Array& old = Array::Handle(Array::New(1, Heap::kOld));
-    Array& neu = Array::Handle(Array::New(1, Heap::kNew));
-    neu.SetAt(0, old);
-    old.SetAt(0, neu);
-    old = Array::null();
-    neu = Array::null();
-    EXPECT(!thread->is_marking());
-  }
+  Array& old = Array::Handle(Array::New(1, Heap::kOld));
+  Array& neu = Array::Handle(Array::New(1, Heap::kNew));
+  neu.SetAt(0, old);
+  old.SetAt(0, neu);
+  old = Array::null();
+  neu = Array::null();
 
   heap->CollectAllGarbage();
   heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
@@ -489,17 +427,10 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveNewToOld) {
   intptr_t size_before =
       heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
 
-  {
-    // Prevent allocation from starting marking, otherwise the incremental write
-    // barrier will keep these objects live.
-    NoHeapGrowthControlScope force_growth;
-    EXPECT(!thread->is_marking());
-    Array& old = Array::Handle(Array::New(1, Heap::kOld));
-    Array& neu = Array::Handle(Array::New(1, Heap::kNew));
-    neu.SetAt(0, old);
-    old = Array::null();
-    EXPECT(!thread->is_marking());
-  }
+  Array& old = Array::Handle(Array::New(1, Heap::kOld));
+  Array& neu = Array::Handle(Array::New(1, Heap::kNew));
+  neu.SetAt(0, old);
+  old = Array::null();
 
   heap->CollectAllGarbage();
   heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
@@ -519,17 +450,10 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveOldToNew) {
   intptr_t size_before =
       heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
 
-  {
-    // Prevent allocation from starting marking, otherwise the incremental write
-    // barrier will keep these objects live.
-    NoHeapGrowthControlScope force_growth;
-    EXPECT(!thread->is_marking());
-    Array& old = Array::Handle(Array::New(1, Heap::kOld));
-    Array& neu = Array::Handle(Array::New(1, Heap::kNew));
-    old.SetAt(0, neu);
-    neu = Array::null();
-    EXPECT(!thread->is_marking());
-  }
+  Array& old = Array::Handle(Array::New(1, Heap::kOld));
+  Array& neu = Array::Handle(Array::New(1, Heap::kNew));
+  old.SetAt(0, neu);
+  neu = Array::null();
 
   heap->CollectAllGarbage();
   heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
@@ -549,17 +473,10 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveOldDeadNew) {
   intptr_t size_before =
       heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
 
-  {
-    // Prevent allocation from starting marking, otherwise the incremental write
-    // barrier will keep these objects live.
-    NoHeapGrowthControlScope force_growth;
-    EXPECT(!thread->is_marking());
-    Array& old = Array::Handle(Array::New(1, Heap::kOld));
-    Array& neu = Array::Handle(Array::New(1, Heap::kNew));
-    neu = Array::null();
-    old.SetAt(0, old);
-    EXPECT(!thread->is_marking());
-  }
+  Array& old = Array::Handle(Array::New(1, Heap::kOld));
+  Array& neu = Array::Handle(Array::New(1, Heap::kNew));
+  neu = Array::null();
+  old.SetAt(0, old);
 
   heap->CollectAllGarbage();
   heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
@@ -579,17 +496,10 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveNewDeadOld) {
   intptr_t size_before =
       heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
 
-  {
-    // Prevent allocation from starting marking, otherwise the incremental write
-    // barrier will keep these objects live.
-    NoHeapGrowthControlScope force_growth;
-    EXPECT(!thread->is_marking());
-    Array& old = Array::Handle(Array::New(1, Heap::kOld));
-    Array& neu = Array::Handle(Array::New(1, Heap::kNew));
-    old = Array::null();
-    neu.SetAt(0, neu);
-    EXPECT(!thread->is_marking());
-  }
+  Array& old = Array::Handle(Array::New(1, Heap::kOld));
+  Array& neu = Array::Handle(Array::New(1, Heap::kNew));
+  old = Array::null();
+  neu.SetAt(0, neu);
 
   heap->CollectAllGarbage();
   heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
@@ -608,20 +518,13 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveNewToOldChain) {
   intptr_t size_before =
       heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
 
-  {
-    // Prevent allocation from starting marking, otherwise the incremental write
-    // barrier will keep these objects live.
-    NoHeapGrowthControlScope force_growth;
-    EXPECT(!thread->is_marking());
-    Array& old = Array::Handle(Array::New(1, Heap::kOld));
-    Array& old2 = Array::Handle(Array::New(1, Heap::kOld));
-    Array& neu = Array::Handle(Array::New(1, Heap::kNew));
-    old.SetAt(0, old2);
-    neu.SetAt(0, old);
-    old = Array::null();
-    old2 = Array::null();
-    EXPECT(!thread->is_marking());
-  }
+  Array& old = Array::Handle(Array::New(1, Heap::kOld));
+  Array& old2 = Array::Handle(Array::New(1, Heap::kOld));
+  Array& neu = Array::Handle(Array::New(1, Heap::kNew));
+  old.SetAt(0, old2);
+  neu.SetAt(0, old);
+  old = Array::null();
+  old2 = Array::null();
 
   heap->CollectAllGarbage();
 
@@ -639,20 +542,13 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveOldToNewChain) {
   intptr_t size_before =
       heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
 
-  {
-    // Prevent allocation from starting marking, otherwise the incremental write
-    // barrier will keep these objects live.
-    NoHeapGrowthControlScope force_growth;
-    EXPECT(!thread->is_marking());
-    Array& old = Array::Handle(Array::New(1, Heap::kOld));
-    Array& neu = Array::Handle(Array::New(1, Heap::kNew));
-    Array& neu2 = Array::Handle(Array::New(1, Heap::kOld));
-    neu.SetAt(0, neu2);
-    old.SetAt(0, neu);
-    neu = Array::null();
-    neu2 = Array::null();
-    EXPECT(!thread->is_marking());
-  }
+  Array& old = Array::Handle(Array::New(1, Heap::kOld));
+  Array& neu = Array::Handle(Array::New(1, Heap::kNew));
+  Array& neu2 = Array::Handle(Array::New(1, Heap::kOld));
+  neu.SetAt(0, neu2);
+  old.SetAt(0, neu);
+  neu = Array::null();
+  neu2 = Array::null();
 
   heap->CollectAllGarbage();
 
@@ -728,14 +624,14 @@ ISOLATE_UNIT_TEST_CASE(ExternalAllocationStats) {
       HeapTestHelper::Scavenge(thread);
     }
 
-    ClassHeapStats* stats = ClassHeapStatsTestHelper::GetHeapStatsForCid(
-        isolate->class_table(), kArrayCid);
-    EXPECT_LE(
-        stats->post_gc.old_external_size + stats->recent.old_external_size,
-        heap->old_space()->ExternalInWords() * kWordSize);
-    EXPECT_LE(
-        stats->post_gc.new_external_size + stats->recent.new_external_size,
-        heap->new_space()->ExternalInWords() * kWordSize);
+    CountObjectsVisitor visitor(thread, isolate->class_table()->NumCids());
+    HeapIterationScope iter(thread);
+    iter.IterateObjects(&visitor);
+    isolate->group()->VisitWeakPersistentHandles(&visitor);
+    EXPECT_LE(visitor.old_external_size_[kArrayCid],
+              heap->old_space()->ExternalInWords() * kWordSize);
+    EXPECT_LE(visitor.new_external_size_[kArrayCid],
+              heap->new_space()->ExternalInWords() * kWordSize);
   }
 }
 #endif  // !defined(PRODUCT)

@@ -4,7 +4,11 @@
 
 /// Test of toString on generators.
 
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
+    show Token, scanString;
+
 import 'package:expect/expect.dart' show Expect;
+import 'package:front_end/src/fasta/uri_translator.dart';
 
 import 'package:kernel/ast.dart'
     show
@@ -26,17 +30,16 @@ import 'package:kernel/ast.dart'
 
 import 'package:kernel/target/targets.dart' show NoneTarget, TargetFlags;
 
+import 'package:front_end/src/fasta/builder/type_declaration_builder.dart';
+import 'package:front_end/src/fasta/builder/prefix_builder.dart';
+import 'package:front_end/src/fasta/builder/type_variable_builder.dart';
+
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
-    show
-        TypeVariableBuilder,
-        LoadLibraryBuilder,
-        PrefixBuilder,
-        TypeDeclarationBuilder,
-        UnlinkedDeclaration;
+    show LoadLibraryBuilder;
 
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
@@ -48,8 +51,6 @@ import 'package:front_end/src/fasta/kernel/expression_generator.dart';
 
 import 'package:front_end/src/fasta/kernel/body_builder.dart' show BodyBuilder;
 
-import 'package:front_end/src/fasta/scanner.dart' show Token, scanString;
-
 import 'package:front_end/src/fasta/source/source_library_builder.dart'
     show SourceLibraryBuilder;
 
@@ -57,8 +58,8 @@ void check(String expected, Generator generator) {
   Expect.stringEquals(expected, "$generator");
 }
 
-main() {
-  CompilerContext.runWithDefaultOptions((CompilerContext c) {
+main() async {
+  await CompilerContext.runWithDefaultOptions((CompilerContext c) async {
     Token token = scanString("    myToken").tokens;
     Uri uri = Uri.parse("org-dartlang-test:my_library.dart");
 
@@ -67,15 +68,16 @@ main() {
     Expression expression =
         new VariableGet(new VariableDeclaration("expression"));
     Expression index = new VariableGet(new VariableDeclaration("index"));
+    UriTranslator uriTranslator = await c.options.getUriTranslator();
     SourceLibraryBuilder libraryBuilder = new SourceLibraryBuilder(
         uri,
         uri,
         new KernelTarget(
                 null,
                 false,
-                new DillTarget(null, null,
-                    new NoneTarget(new TargetFlags(legacyMode: true))),
-                null)
+                new DillTarget(c.options.ticker, uriTranslator,
+                    new NoneTarget(new TargetFlags())),
+                uriTranslator)
             .loader,
         null);
     LoadLibraryBuilder loadLibraryBuilder =
@@ -97,9 +99,12 @@ main() {
     VariableDeclaration variable = new VariableDeclaration(null);
 
     BodyBuilder helper = new BodyBuilder(
-        library: libraryBuilder, isDeclarationInstanceMember: false, uri: uri);
+        libraryBuilder: libraryBuilder,
+        isDeclarationInstanceMember: false,
+        uri: uri);
 
-    Generator generator = new ThisAccessGenerator(helper, token, false, false);
+    Generator generator =
+        new ThisAccessGenerator(helper, token, false, false, false);
 
     Library library = new Library(uri);
     Class cls = new Class();
@@ -116,62 +121,52 @@ main() {
         " assignmentOperator: +=)",
         new DelayedAssignment(
             helper, token, generator, expression, assignmentOperator));
-    check(
-        "DelayedPostfixIncrement(offset: 4, binaryOperator: +,"
-        " interfaceTarget: $uri::#class1::myInterfaceTarget)",
-        new DelayedPostfixIncrement(
-            helper, token, generator, binaryOperator, interfaceTarget));
+    check("DelayedPostfixIncrement(offset: 4, binaryOperator: +)",
+        new DelayedPostfixIncrement(helper, token, generator, binaryOperator));
     check(
         "VariableUseGenerator(offset: 4, variable: dynamic #t1;\n,"
         " promotedType: void)",
         new VariableUseGenerator(helper, token, variable, type));
     check(
-        "PropertyAccessGenerator(offset: 4, _receiverVariable: null,"
-        " receiver: expression, name: bar, getter: $uri::myGetter,"
-        " setter: $uri::mySetter)",
-        new PropertyAccessGenerator(
-            helper, token, expression, name, getter, setter));
-    check(
-        "ThisPropertyAccessGenerator(offset: 4, name: bar,"
-        " getter: $uri::myGetter, setter: $uri::mySetter)",
-        new ThisPropertyAccessGenerator(helper, token, name, getter, setter));
+        "PropertyAccessGenerator(offset: 4,"
+        " receiver: expression, name: bar)",
+        new PropertyAccessGenerator(helper, token, expression, name));
+    check("ThisPropertyAccessGenerator(offset: 4, name: bar)",
+        new ThisPropertyAccessGenerator(helper, token, name));
     check(
         "NullAwarePropertyAccessGenerator(offset: 4,"
         " receiver: final dynamic #t1 = expression;\n,"
-        " receiverExpression: expression, name: bar, getter: $uri::myGetter,"
-        " setter: $uri::mySetter, type: void)",
-        new NullAwarePropertyAccessGenerator(
-            helper, token, expression, name, getter, setter, type));
+        " receiverExpression: expression, name: bar)",
+        new NullAwarePropertyAccessGenerator(helper, token, expression, name));
     check(
         "SuperPropertyAccessGenerator(offset: 4, name: bar,"
         " getter: $uri::myGetter, setter: $uri::mySetter)",
         new SuperPropertyAccessGenerator(helper, token, name, getter, setter));
     check(
         "IndexedAccessGenerator(offset: 4, receiver: expression, index: index,"
-        " getter: $uri::myGetter, setter: $uri::mySetter,"
-        " receiverVariable: null, indexVariable: null)",
-        new IndexedAccessGenerator(
-            helper, token, expression, index, getter, setter));
-    check(
-        "ThisIndexedAccessGenerator(offset: 4, index: index,"
-        " getter: $uri::myGetter, setter: $uri::mySetter, indexVariable: null)",
-        new ThisIndexedAccessGenerator(helper, token, index, getter, setter));
+        " isNullAware: false)",
+        new IndexedAccessGenerator(helper, token, expression, index,
+            isNullAware: false));
+    check("ThisIndexedAccessGenerator(offset: 4, index: index)",
+        new ThisIndexedAccessGenerator(helper, token, index));
     check(
         "SuperIndexedAccessGenerator(offset: 4, index: index,"
-        " getter: $uri::myGetter, setter: $uri::mySetter, indexVariable: null)",
+        " getter: $uri::myGetter, setter: $uri::mySetter)",
         new SuperIndexedAccessGenerator(helper, token, index, getter, setter));
     check(
-        "StaticAccessGenerator(offset: 4, readTarget: $uri::myGetter,"
+        "StaticAccessGenerator(offset: 4, targetName: foo,"
+        " readTarget: $uri::myGetter,"
         " writeTarget: $uri::mySetter)",
-        new StaticAccessGenerator(helper, token, getter, setter));
+        new StaticAccessGenerator(helper, token, 'foo', getter, setter));
     check(
         "LoadLibraryGenerator(offset: 4,"
         " builder: Instance of 'LoadLibraryBuilder')",
         new LoadLibraryGenerator(helper, token, loadLibraryBuilder));
     check(
         "ThisAccessGenerator(offset: 4, isInitializer: false, "
-        "inFieldInitializer: false, isSuper: false)",
-        new ThisAccessGenerator(helper, token, false, false));
+        "inFieldInitializer: false, inLateFieldInitializer: false, "
+        "isSuper: false)",
+        new ThisAccessGenerator(helper, token, false, false, false));
     check("IncompleteErrorGenerator(offset: 4, message: Unspecified)",
         new IncompleteErrorGenerator(helper, token, message));
     check("SendAccessGenerator(offset: 4, name: bar, arguments: (\"arg\"))",
@@ -183,31 +178,31 @@ main() {
         " prefixGenerator: PrefixUseGenerator("
         "offset: 4, prefix: myPrefix, deferred: false),"
         " suffixGenerator: ThisAccessGenerator(offset: 4, isInitializer: false,"
-        " inFieldInitializer: false, isSuper: false))",
+        " inFieldInitializer: false, inLateFieldInitializer: false,"
+        " isSuper: false))",
         new DeferredAccessGenerator(
             helper, token, prefixUseGenerator, generator));
     check(
         "ReadOnlyAccessGenerator(offset: 4, expression: expression,"
-        " plainNameForRead: foo, value: null)",
-        new ReadOnlyAccessGenerator(helper, token, expression, "foo"));
+        " plainNameForRead: foo, kind: ReadOnlyAccessKind.FinalVariable)",
+        new ReadOnlyAccessGenerator(helper, token, expression, "foo",
+            ReadOnlyAccessKind.FinalVariable));
     check(
         "ParenthesizedExpressionGenerator(offset: 4, expression: expression,"
-        " plainNameForRead: null, value: null)",
+        " plainNameForRead: null, kind:"
+        " ReadOnlyAccessKind.ParenthesizedExpression)",
         new ParenthesizedExpressionGenerator(helper, token, expression));
     check("TypeUseGenerator(offset: 4, declaration: T, plainNameForRead: foo)",
         new TypeUseGenerator(helper, token, declaration, "foo"));
     check("UnresolvedNameGenerator(offset: 4, name: bar)",
         new UnresolvedNameGenerator.internal(helper, token, name));
-    check(
-        "UnlinkedGenerator(offset: 4, name: foo)",
-        new UnlinkedGenerator(
-            helper, token, new UnlinkedDeclaration("foo", false, -1, null)));
     check("PrefixUseGenerator(offset: 4, prefix: myPrefix, deferred: false)",
         prefixUseGenerator);
     check(
         "UnexpectedQualifiedUseGenerator("
         "offset: 4, prefixGenerator: , isInitializer: false,"
-        " inFieldInitializer: false, isSuper: false)",
+        " inFieldInitializer: false, inLateFieldInitializer: false,"
+        " isSuper: false)",
         new UnexpectedQualifiedUseGenerator(helper, token, generator, false));
     return Future<void>.value();
   });

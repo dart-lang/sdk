@@ -141,7 +141,7 @@ extension<T extends num> on List<T> {
   List<T> get list17 => <T>[];
 }
 
-extension <T extends Rec<T>> on T {
+extension<T extends Rec<T>> on T {
   int get e19 => 19;
   List<T> get list19 => <T>[];
 }

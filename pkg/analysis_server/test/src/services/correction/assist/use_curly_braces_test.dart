@@ -3,12 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/assist.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UseCurlyBracesTest);
   });
@@ -19,7 +20,7 @@ class UseCurlyBracesTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.USE_CURLY_BRACES;
 
-  test_do_block() async {
+  Future<void> test_do_block() async {
     await resolveTestUnit('''
 main() {
   /*caret*/do {
@@ -30,7 +31,7 @@ main() {
     await assertNoAssist();
   }
 
-  test_do_body_middle() async {
+  Future<void> test_do_body_middle() async {
     await resolveTestUnit('''
 main() {
   do print/*caret*/(0); while (true);
@@ -45,7 +46,7 @@ main() {
 ''');
   }
 
-  test_do_body_start() async {
+  Future<void> test_do_body_start() async {
     await resolveTestUnit('''
 main() {
   do /*caret*/print(0); while (true);
@@ -60,7 +61,7 @@ main() {
 ''');
   }
 
-  test_do_condition() async {
+  Future<void> test_do_condition() async {
     await resolveTestUnit('''
 main() {
   do print(0); while (/*caret*/true);
@@ -75,7 +76,7 @@ main() {
 ''');
   }
 
-  test_do_end() async {
+  Future<void> test_do_end() async {
     await resolveTestUnit('''
 main() {
   do print(0); while (true);/*caret*/
@@ -90,7 +91,7 @@ main() {
 ''');
   }
 
-  test_do_keyword_do() async {
+  Future<void> test_do_keyword_do() async {
     await resolveTestUnit('''
 main() {
   /*caret*/do print(0); while (true);
@@ -105,7 +106,7 @@ main() {
 ''');
   }
 
-  test_do_keyword_while() async {
+  Future<void> test_do_keyword_while() async {
     await resolveTestUnit('''
 main() {
   do print(0); /*caret*/while (true);
@@ -120,7 +121,7 @@ main() {
 ''');
   }
 
-  test_for_body_end() async {
+  Future<void> test_for_body_end() async {
     await resolveTestUnit('''
 main() {
   for (;;) print(0);/*caret*/
@@ -135,7 +136,7 @@ main() {
 ''');
   }
 
-  test_for_body_middle() async {
+  Future<void> test_for_body_middle() async {
     await resolveTestUnit('''
 main() {
   for (;;) print/*caret*/(0);
@@ -150,7 +151,7 @@ main() {
 ''');
   }
 
-  test_for_body_start() async {
+  Future<void> test_for_body_start() async {
     await resolveTestUnit('''
 main() {
   for (;;) /*caret*/print(0);
@@ -165,7 +166,7 @@ main() {
 ''');
   }
 
-  test_for_condition() async {
+  Future<void> test_for_condition() async {
     await resolveTestUnit('''
 main() {
   for (/*caret*/;;) print(0);
@@ -180,7 +181,7 @@ main() {
 ''');
   }
 
-  test_for_keyword() async {
+  Future<void> test_for_keyword() async {
     await resolveTestUnit('''
 main() {
   /*caret*/for (;;) print(0);
@@ -195,7 +196,7 @@ main() {
 ''');
   }
 
-  test_for_keyword_block() async {
+  Future<void> test_for_keyword_block() async {
     await resolveTestUnit('''
 main() {
   /*caret*/for (;;) {
@@ -206,7 +207,7 @@ main() {
     await assertNoAssist();
   }
 
-  test_if_else_keyword() async {
+  Future<void> test_if_else_keyword() async {
     await resolveTestUnit('''
 main(int a) {
   if (a == 0)
@@ -225,7 +226,7 @@ main(int a) {
 ''');
   }
 
-  test_if_else_statement() async {
+  Future<void> test_if_else_statement() async {
     await resolveTestUnit('''
 main(int a) {
   if (a == 0)
@@ -244,7 +245,7 @@ main(int a) {
 ''');
   }
 
-  test_if_keyword_blockBoth() async {
+  Future<void> test_if_keyword_blockBoth() async {
     await resolveTestUnit('''
 main(int a) {
   /*caret*/if (a == 0) {
@@ -257,7 +258,7 @@ main(int a) {
     await assertNoAssist();
   }
 
-  test_if_keyword_blockElse() async {
+  Future<void> test_if_keyword_blockElse() async {
     await resolveTestUnit('''
 main(int a) {
   /*caret*/if (a == 0) print(0);
@@ -277,7 +278,7 @@ main(int a) {
 ''');
   }
 
-  test_if_keyword_blockThen() async {
+  Future<void> test_if_keyword_blockThen() async {
     await resolveTestUnit('''
 main(int a) {
   /*caret*/if (a == 0) {
@@ -288,7 +289,7 @@ main(int a) {
     await assertNoAssist();
   }
 
-  test_if_keyword_withElse() async {
+  Future<void> test_if_keyword_withElse() async {
     await resolveTestUnit('''
 main(int a) {
   /*caret*/if (a == 0)
@@ -307,7 +308,7 @@ main(int a) {
 ''');
   }
 
-  test_if_keyword_withoutElse() async {
+  Future<void> test_if_keyword_withoutElse() async {
     await resolveTestUnit('''
 main(int a) {
   /*caret*/if (a == 0)
@@ -323,7 +324,7 @@ main(int a) {
 ''');
   }
 
-  test_if_then_withElse() async {
+  Future<void> test_if_then_withElse() async {
     await resolveTestUnit('''
 main(int a) {
   if (a == 0)
@@ -340,7 +341,7 @@ main(int a) {
 ''');
   }
 
-  test_if_then_withoutElse() async {
+  Future<void> test_if_then_withoutElse() async {
     await resolveTestUnit('''
 main(int a) {
   if (a == 0) /*caret*/print(0);
@@ -355,7 +356,19 @@ main(int a) {
 ''');
   }
 
-  test_while_body_end() async {
+  Future<void> test_noAssistWithLint() async {
+    createAnalysisOptionsFile(
+        lints: [LintNames.curly_braces_in_flow_control_structures]);
+    verifyNoTestUnitErrors = false;
+    await resolveTestUnit('''
+main() {
+  do print/*caret*/(0); while (true);
+}
+''');
+    await assertNoAssist();
+  }
+
+  Future<void> test_while_body_end() async {
     await resolveTestUnit('''
 main() {
   while (true) print(0);/*caret*/
@@ -370,7 +383,7 @@ main() {
 ''');
   }
 
-  test_while_body_middle() async {
+  Future<void> test_while_body_middle() async {
     await resolveTestUnit('''
 main() {
   while (true) print/*caret*/(0);
@@ -385,7 +398,7 @@ main() {
 ''');
   }
 
-  test_while_body_start() async {
+  Future<void> test_while_body_start() async {
     await resolveTestUnit('''
 main() {
   while (true) /*caret*/print(0);
@@ -400,7 +413,7 @@ main() {
 ''');
   }
 
-  test_while_condition() async {
+  Future<void> test_while_condition() async {
     await resolveTestUnit('''
 main() {
   while (/*caret*/true) print(0);
@@ -415,7 +428,7 @@ main() {
 ''');
   }
 
-  test_while_keyword() async {
+  Future<void> test_while_keyword() async {
     await resolveTestUnit('''
 main() {
   /*caret*/while (true) print(0);
@@ -430,7 +443,7 @@ main() {
 ''');
   }
 
-  test_while_keyword_block() async {
+  Future<void> test_while_keyword_block() async {
     await resolveTestUnit('''
 main() {
   /*caret*/while (true) {

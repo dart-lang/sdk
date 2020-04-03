@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include <utility>
+
 #include "vm/message_handler.h"
 #include "vm/port.h"
 #include "vm/unit_test.h"
@@ -40,18 +42,24 @@ class TestMessageHandler : public MessageHandler {
         message_count_(0),
         start_called_(false),
         end_called_(false),
-        results_(NULL) {}
+        results_(NULL),
+        monitor_() {}
 
   ~TestMessageHandler() {
     PortMap::ClosePorts(this);
     delete[] port_buffer_;
   }
 
-  void MessageNotify(Message::Priority priority) { notify_count_++; }
+  void MessageNotify(Message::Priority priority) {
+    MonitorLocker ml(&monitor_);
+    notify_count_++;
+    ml.Notify();
+  }
 
   MessageStatus HandleMessage(std::unique_ptr<Message> message) {
     // For testing purposes, keep a list of the ports
     // for all messages we receive.
+    MonitorLocker ml(&monitor_);
     AddPortToBuffer(message->dest_port());
     message_count_++;
     MessageStatus status = kOK;
@@ -59,6 +67,7 @@ class TestMessageHandler : public MessageHandler {
       status = results_[0];
       results_++;
     }
+    ml.Notify();
     return status;
   }
 
@@ -68,8 +77,10 @@ class TestMessageHandler : public MessageHandler {
   }
 
   void End() {
+    MonitorLocker ml(&monitor_);
     end_called_ = true;
     AddPortToBuffer(-2);
+    ml.Notify();
   }
 
   Dart_Port* port_buffer() const { return port_buffer_; }
@@ -79,6 +90,8 @@ class TestMessageHandler : public MessageHandler {
   bool end_called() const { return end_called_; }
 
   void set_results(MessageStatus* results) { results_ = results; }
+
+  Monitor* monitor() { return &monitor_; }
 
  private:
   void AddPortToBuffer(Dart_Port port) {
@@ -105,6 +118,7 @@ class TestMessageHandler : public MessageHandler {
   bool start_called_;
   bool end_called_;
   MessageStatus* results_;
+  Monitor monitor_;
 
   DISALLOW_COPY_AND_ASSIGN(TestMessageHandler);
 };
@@ -319,10 +333,12 @@ struct ThreadStartInfo {
   MessageHandler* handler;
   Dart_Port* ports;
   int count;
+  ThreadJoinId join_id;
 };
 
 static void SendMessages(uword param) {
   ThreadStartInfo* info = reinterpret_cast<ThreadStartInfo*>(param);
+  info->join_id = OSThread::GetCurrentThreadJoinId(OSThread::Current());
   MessageHandler* handler = info->handler;
   MessageHandlerTestPeer handler_peer(handler);
   for (int i = 0; i < info->count; i++) {
@@ -335,8 +351,6 @@ VM_UNIT_TEST_CASE(MessageHandler_Run) {
   ThreadPool pool;
   TestMessageHandler handler;
   MessageHandlerTestPeer handler_peer(&handler);
-  int sleep = 0;
-  const int kMaxSleep = 20 * 1000;  // 20 seconds.
 
   EXPECT(!handler.HasLivePorts());
   handler_peer.increment_live_ports();
@@ -347,15 +361,17 @@ VM_UNIT_TEST_CASE(MessageHandler_Run) {
   handler_peer.PostMessage(BlankMessage(port, Message::kNormalPriority));
 
   // Wait for the first message to be handled.
-  while (sleep < kMaxSleep && handler.message_count() < 1) {
-    OS::Sleep(10);
-    sleep += 10;
+  {
+    MonitorLocker ml(handler.monitor());
+    while (handler.message_count() < 1) {
+      ml.Wait();
+    }
+    EXPECT_EQ(1, handler.message_count());
+    EXPECT(handler.start_called());
+    EXPECT(!handler.end_called());
+    Dart_Port* handler_ports = handler.port_buffer();
+    EXPECT_EQ(port, handler_ports[0]);
   }
-  EXPECT_EQ(1, handler.message_count());
-  EXPECT(handler.start_called());
-  EXPECT(!handler.end_called());
-  Dart_Port* handler_ports = handler.port_buffer();
-  EXPECT_EQ(port, handler_ports[0]);
 
   // Start a thread which sends more messages.
   Dart_Port ports[10];
@@ -366,21 +382,31 @@ VM_UNIT_TEST_CASE(MessageHandler_Run) {
   info.handler = &handler;
   info.ports = ports;
   info.count = 10;
+  info.join_id = OSThread::kInvalidThreadJoinId;
   OSThread::Start("SendMessages", SendMessages, reinterpret_cast<uword>(&info));
-  while (sleep < kMaxSleep && handler.message_count() < 11) {
-    OS::Sleep(10);
-    sleep += 10;
+
+  // Wait for the messages to be handled.
+  {
+    MonitorLocker ml(handler.monitor());
+    while (handler.message_count() < 11) {
+      ml.Wait();
+    }
+    Dart_Port* handler_ports = handler.port_buffer();
+    EXPECT_EQ(11, handler.message_count());
+    EXPECT(handler.start_called());
+    EXPECT(!handler.end_called());
+    EXPECT_EQ(port, handler_ports[0]);
+    for (int i = 1; i < 11; i++) {
+      EXPECT_EQ(ports[i - 1], handler_ports[i]);
+    }
+    handler_peer.decrement_live_ports();
+    EXPECT(!handler.HasLivePorts());
   }
-  handler_ports = handler.port_buffer();
-  EXPECT_EQ(11, handler.message_count());
-  EXPECT(handler.start_called());
-  EXPECT(!handler.end_called());
-  EXPECT_EQ(port, handler_ports[0]);
-  for (int i = 1; i < 11; i++) {
-    EXPECT_EQ(ports[i - 1], handler_ports[i]);
-  }
-  handler_peer.decrement_live_ports();
-  EXPECT(!handler.HasLivePorts());
+
+  // Must join the thread or the VM shutdown is racing with any VM state the
+  // thread touched.
+  ASSERT(info.join_id != OSThread::kInvalidThreadJoinId);
+  OSThread::Join(info.join_id);
 }
 
 }  // namespace dart

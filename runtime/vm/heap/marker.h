@@ -14,12 +14,13 @@ namespace dart {
 // Forward declarations.
 class HandleVisitor;
 class Heap;
-class Isolate;
+class IsolateGroup;
 class ObjectPointerVisitor;
 class PageSpace;
 class RawWeakProperty;
 template <bool sync>
 class MarkingVisitorBase;
+class Thread;
 
 // The class GCMarker is used to mark reachable old generation objects as part
 // of the mark-sweep collection. The marking bit used is defined in RawObject.
@@ -29,7 +30,7 @@ class MarkingVisitorBase;
 // is exited during concurrent marking.
 class GCMarker {
  public:
-  GCMarker(Isolate* isolate, Heap* heap);
+  GCMarker(IsolateGroup* isolate_group, Heap* heap);
   ~GCMarker();
 
   // Mark roots synchronously, then spawn tasks to concurrently drain the
@@ -47,27 +48,28 @@ class GCMarker {
  private:
   void Prologue();
   void Epilogue();
-  void ResetRootSlices();
+  void ResetSlices();
   void IterateRoots(ObjectPointerVisitor* visitor);
-  void IterateWeakRoots(HandleVisitor* visitor);
-  template <class MarkingVisitorType>
-  void IterateWeakReferences(MarkingVisitorType* visitor);
-  void ProcessWeakTables(PageSpace* page_space);
-  void ProcessObjectIdTable();
+  void IterateWeakRoots(Thread* thread);
+  void ProcessWeakHandles(Thread* thread);
+  void ProcessWeakTables(Thread* thread);
+  void ProcessRememberedSet(Thread* thread);
+  void ProcessObjectIdTable(Thread* thread);
 
   // Called by anyone: finalize and accumulate stats from 'visitor'.
   template <class MarkingVisitorType>
   void FinalizeResultsFrom(MarkingVisitorType* visitor);
 
-  Isolate* const isolate_;
+  IsolateGroup* const isolate_group_;
   Heap* const heap_;
   MarkingStack marking_stack_;
   MarkingStack deferred_marking_stack_;
   MarkingVisitorBase<true>** visitors_;
 
   Monitor root_slices_monitor_;
-  intptr_t root_slices_not_started_;
-  intptr_t root_slices_not_finished_;
+  RelaxedAtomic<intptr_t> root_slices_started_;
+  intptr_t root_slices_finished_;
+  RelaxedAtomic<intptr_t> weak_slices_started_;
 
   Mutex stats_mutex_;
   uintptr_t marked_bytes_;

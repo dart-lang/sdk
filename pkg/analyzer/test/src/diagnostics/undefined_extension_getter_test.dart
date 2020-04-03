@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
@@ -17,12 +15,7 @@ main() {
 
 @reflectiveTest
 class UndefinedExtensionGetterTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
-
-  test_defined() async {
+  test_override_defined() async {
     await assertNoErrorsInCode('''
 extension E on String {
   int get g => 0;
@@ -33,7 +26,7 @@ f() {
 ''');
   }
 
-  test_undefined() async {
+  test_override_undefined() async {
     await assertErrorsInCode('''
 extension E on String {}
 f() {
@@ -44,16 +37,49 @@ f() {
     ]);
   }
 
-  test_undefined_withSetter() async {
+  test_override_undefined_hasSetter() async {
     await assertErrorsInCode('''
-extension E on String {
-  void set s(int x) {}
+extension E on int {
+  set foo(int _) {}
 }
 f() {
-  E('a').s += 1;
+  E(0).foo;
 }
 ''', [
-      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER, 64, 1),
+      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER, 56, 3),
+    ]);
+  }
+
+  test_override_undefined_hasSetter_plusEq() async {
+    await assertErrorsInCode('''
+extension E on int {
+  set foo(int _) {}
+}
+f() {
+  E(0).foo += 1;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER, 56, 3),
+    ]);
+  }
+
+  test_static_withInference() async {
+    await assertErrorsInCode('''
+extension E on Object {}
+var a = E.v;
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER, 35, 1),
+    ]);
+  }
+
+  test_static_withoutInference() async {
+    await assertErrorsInCode('''
+extension E on Object {}
+void f() {
+  E.v;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER, 40, 1),
     ]);
   }
 }

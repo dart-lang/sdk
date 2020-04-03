@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 // Patch file for dart:collection classes.
 import 'dart:_foreign_helper' show JS;
 import 'dart:_js_helper'
@@ -200,16 +202,19 @@ class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
   V _remove(Object key) {
     var rest = _rest;
     if (rest == null) return null;
-    var bucket = _getBucket(rest, key);
+    var hash = _computeHashCode(key);
+    var bucket = JS('var', '#[#]', rest, hash);
     int index = _findBucketIndex(bucket, key);
     if (index < 0) return null;
-    // TODO(kasperl): Consider getting rid of the bucket list when
-    // the length reaches zero.
     _length--;
     _keys = null;
-    // Use splice to remove the two [key, value] elements at the
-    // index and return the value.
-    return JS('var', '#.splice(#, 2)[1]', bucket, index);
+    // Use splice to remove the two [key, value] elements at the index and
+    // return the value.
+    V result = JS('', '#.splice(#, 2)[1]', bucket, index);
+    if (0 == JS('int', '#.length', bucket)) {
+      _deleteTableEntry(rest, hash);
+    }
+    return result;
   }
 
   void clear() {
@@ -955,16 +960,20 @@ class _HashSet<E> extends _SetBase<E> implements HashSet<E> {
   bool _remove(Object object) {
     var rest = _rest;
     if (rest == null) return false;
-    var bucket = _getBucket(rest, object);
+    var hash = _computeHashCode(object);
+    var bucket = JS('var', '#[#]', rest, hash);
     int index = _findBucketIndex(bucket, object);
     if (index < 0) return false;
     // TODO(kasperl): Consider getting rid of the bucket list when
     // the length reaches zero.
     _length--;
     _elements = null;
-    // TODO(kasperl): It would probably be faster to move the
-    // element to the end and reduce the length of the bucket list.
+    // TODO(kasperl): It would probably be faster to move the element to the end
+    // and reduce the length of the bucket list.
     JS('void', '#.splice(#, 1)', bucket, index);
+    if (0 == JS('int', '#.length', bucket)) {
+      _deleteTableEntry(rest, hash);
+    }
     return true;
   }
 
@@ -1417,12 +1426,15 @@ class _LinkedHashSet<E> extends _SetBase<E> implements LinkedHashSet<E> {
   bool _remove(Object object) {
     var rest = _rest;
     if (rest == null) return false;
-    var bucket = _getBucket(rest, object);
+    var hash = _computeHashCode(object);
+    var bucket = JS('var', '#[#]', rest, hash);
     int index = _findBucketIndex(bucket, object);
     if (index < 0) return false;
-    // Use splice to remove the [cell] element at the index and
-    // unlink it.
+    // Use splice to remove the [cell] element at the index and unlink it.
     _LinkedHashSetCell cell = JS('var', '#.splice(#, 1)[0]', bucket, index);
+    if (0 == JS('int', '#.length', bucket)) {
+      _deleteTableEntry(rest, hash);
+    }
     _unlinkCell(cell);
     return true;
   }

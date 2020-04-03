@@ -8,9 +8,11 @@ import 'dart:convert' show jsonEncode;
 
 import 'dart:io' show Platform, Process, ProcessResult, stderr, stdout;
 
-import '../fasta/colors.dart' show ALL_CODES, TERMINAL_CAPABILITIES;
+import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
+    show DiagnosticMessage;
 
-import 'diagnostic_message.dart' show DiagnosticMessage;
+import 'package:_fe_analyzer_shared/src/util/colors.dart'
+    show ALL_CODES, TERMINAL_CAPABILITIES;
 
 /// True if we should enable colors in output.
 ///

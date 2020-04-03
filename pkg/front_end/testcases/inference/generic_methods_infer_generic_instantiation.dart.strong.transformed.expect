@@ -3,32 +3,26 @@ library test;
 // Problems in library:
 //
 // pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:28:73: Error: The argument type 'num Function(num, num)' can't be assigned to the parameter type 'int Function(double, int)'.
-// Try changing the type of the parameter, or casting the argument to 'int Function(double, int)'.
 //       /*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ math.max);
 //                                                                         ^
 //
 // pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:30:73: Error: The argument type 'num Function(num, num)' can't be assigned to the parameter type 'double Function(int, double)'.
-// Try changing the type of the parameter, or casting the argument to 'double Function(int, double)'.
 //       /*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ math.max);
 //                                                                         ^
 //
 // pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:46:72: Error: The argument type 'num Function(num, num)' can't be assigned to the parameter type 'int Function(double, int)'.
-// Try changing the type of the parameter, or casting the argument to 'int Function(double, int)'.
 //   takeIDI(/*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ min);
 //                                                                        ^
 //
 // pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:47:72: Error: The argument type 'num Function(num, num)' can't be assigned to the parameter type 'double Function(int, double)'.
-// Try changing the type of the parameter, or casting the argument to 'double Function(int, double)'.
 //   takeDID(/*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ min);
 //                                                                        ^
 //
 // pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:86:30: Error: The argument type 'num Function(num, num)' can't be assigned to the parameter type 'int Function(double, int)'.
-// Try changing the type of the parameter, or casting the argument to 'int Function(double, int)'.
 //           . /*@target=C::m*/ m);
 //                              ^
 //
 // pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:89:30: Error: The argument type 'num Function(num, num)' can't be assigned to the parameter type 'double Function(int, double)'.
-// Try changing the type of the parameter, or casting the argument to 'double Function(int, double)'.
 //           . /*@target=C::m*/ m);
 //                              ^
 //
@@ -57,11 +51,9 @@ static method test() → dynamic {
   self::takeDDO(#C1<core::double*>);
   self::takeOOI((#C1<core::Object*>) as{TypeError} (core::Object*, core::Object*) →* core::int*);
   self::takeIDI(let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:28:73: Error: The argument type 'num Function(num, num)' can't be assigned to the parameter type 'int Function(double, int)'.
-Try changing the type of the parameter, or casting the argument to 'int Function(double, int)'.
       /*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ math.max);
                                                                         ^" in (#C1<core::num*>) as{TypeError} (core::double*, core::int*) →* core::int*);
   self::takeDID(let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:30:73: Error: The argument type 'num Function(num, num)' can't be assigned to the parameter type 'double Function(int, double)'.
-Try changing the type of the parameter, or casting the argument to 'double Function(int, double)'.
       /*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ math.max);
                                                                         ^" in (#C1<core::num*>) as{TypeError} (core::int*, core::double*) →* core::double*);
   self::takeOON((#C1<core::Object*>) as{TypeError} (core::Object*, core::Object*) →* core::num*);
@@ -77,11 +69,9 @@ Try changing the type of the parameter, or casting the argument to 'double Funct
   self::takeDDO(#C2<core::double*>);
   self::takeOOI((#C2<core::Object*>) as{TypeError} (core::Object*, core::Object*) →* core::int*);
   self::takeIDI(let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:46:72: Error: The argument type 'num Function(num, num)' can't be assigned to the parameter type 'int Function(double, int)'.
-Try changing the type of the parameter, or casting the argument to 'int Function(double, int)'.
   takeIDI(/*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ min);
                                                                        ^" in (#C2<core::num*>) as{TypeError} (core::double*, core::int*) →* core::int*);
   self::takeDID(let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:47:72: Error: The argument type 'num Function(num, num)' can't be assigned to the parameter type 'double Function(int, double)'.
-Try changing the type of the parameter, or casting the argument to 'double Function(int, double)'.
   takeDID(/*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ min);
                                                                        ^" in (#C2<core::num*>) as{TypeError} (core::int*, core::double*) →* core::double*);
   self::takeOON((#C2<core::Object*>) as{TypeError} (core::Object*, core::Object*) →* core::num*);
@@ -99,11 +89,9 @@ Try changing the type of the parameter, or casting the argument to 'double Funct
   self::takeOOO((new self::C::•().{self::C::m}<core::Object*>) as{TypeError} (core::Object*, core::Object*) →* core::num*);
   self::takeOOI((new self::C::•().{self::C::m}<core::Object*>) as{TypeError} (core::Object*, core::Object*) →* core::int*);
   self::takeIDI(let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:86:30: Error: The argument type 'num Function(num, num)' can't be assigned to the parameter type 'int Function(double, int)'.
-Try changing the type of the parameter, or casting the argument to 'int Function(double, int)'.
           . /*@target=C::m*/ m);
                              ^" in (new self::C::•().{self::C::m}<core::num*>) as{TypeError} (core::double*, core::int*) →* core::int*);
   self::takeDID(let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:89:30: Error: The argument type 'num Function(num, num)' can't be assigned to the parameter type 'double Function(int, double)'.
-Try changing the type of the parameter, or casting the argument to 'double Function(int, double)'.
           . /*@target=C::m*/ m);
                              ^" in (new self::C::•().{self::C::m}<core::num*>) as{TypeError} (core::int*, core::double*) →* core::double*);
 }

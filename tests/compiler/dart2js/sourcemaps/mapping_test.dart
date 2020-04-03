@@ -2,14 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'dart:async';
 import 'dart:io';
 
+import 'package:_fe_analyzer_shared/src/testing/annotated_code_helper.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_new.dart';
 import 'package:expect/expect.dart';
 import 'package:source_maps/source_maps.dart';
-import 'package:front_end/src/testing/annotated_code_helper.dart';
 
 import '../helpers/memory_compiler.dart';
 
@@ -138,9 +140,9 @@ Future runTest(int index, Test test,
 
   if (expectedLocations.isNotEmpty) {
     print('--Missing source locations:---------------------------------------');
-    AnnotatedCode annotatedCode = new AnnotatedCode(test.code, []);
-    expectedLocations.forEach(
-        (l) => annotatedCode.addAnnotation(l.lineNo, l.columnNo, l.methodName));
+    AnnotatedCode annotatedCode = new AnnotatedCode(test.code, test.code, []);
+    expectedLocations.forEach((l) => annotatedCode.addAnnotation(
+        l.lineNo, l.columnNo, '/*', l.methodName, '*/'));
     print(annotatedCode.toText());
     print('------------------------------------------------------------------');
     Expect.isTrue(
@@ -151,9 +153,9 @@ Future runTest(int index, Test test,
   }
   if (extraLocations.isNotEmpty) {
     print('--Extra source locations:-----------------------------------------');
-    AnnotatedCode annotatedCode = new AnnotatedCode(test.code, []);
-    extraLocations.forEach(
-        (l) => annotatedCode.addAnnotation(l.lineNo, l.columnNo, l.methodName));
+    AnnotatedCode annotatedCode = new AnnotatedCode(test.code, test.code, []);
+    extraLocations.forEach((l) => annotatedCode.addAnnotation(
+        l.lineNo, l.columnNo, '/*', l.methodName, '*/'));
     print(annotatedCode.toText());
     print('------------------------------------------------------------------');
     Expect.isTrue(

@@ -33,7 +33,7 @@ rules:
 //        - param1
 //        - param2
 
-  var config = new LintConfig.parse(src);
+  var config = LintConfig.parse(src);
 
   group('lint config', () {
     group('file', () {
@@ -51,7 +51,7 @@ rules:
       });
 
       test('config', () {
-        config = new LintConfig.parse('''
+        config = LintConfig.parse('''
 rules:
   style_guide:
     unnecessary_getters: false''');
@@ -122,9 +122,9 @@ linter:
               (RuleConfig rc1, RuleConfig rc2) => rc1.name.compareTo(rc2.name));
           expect(ruleConfigs, hasLength(2));
           expect(ruleConfigs[0].name, 'camel_case_types');
-          expect(config.ruleConfigs[0].args['enabled'], isFalse);
+          expect(ruleConfigs[0].args['enabled'], isTrue);
           expect(ruleConfigs[1].name, 'unnecessary_getters');
-          expect(config.ruleConfigs[1].args['enabled'], isTrue);
+          expect(ruleConfigs[1].args['enabled'], isFalse);
         });
       });
     });

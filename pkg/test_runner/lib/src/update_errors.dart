@@ -1,7 +1,7 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-import 'test_file.dart';
+import 'static_error.dart';
 
 /// Matches leading indentation in a string.
 final _indentationRegExp = RegExp(r"^(\s*)");
@@ -19,7 +19,7 @@ String updateErrorExpectations(String source, List<StaticError> errors,
   removeAnalyzer ??= true;
   removeCfe ??= true;
 
-  var existingErrors = ErrorExpectationParser.parse(source);
+  var existingErrors = StaticError.parseExpectations(source);
   var lines = source.split("\n");
 
   // Keep track of the indentation on any existing expectation markers. If
@@ -67,12 +67,19 @@ String updateErrorExpectations(String source, List<StaticError> errors,
   }
 
   var previousIndent = 0;
+  var codeLine = 1;
   var result = <String>[];
   for (var i = 0; i < lines.length; i++) {
     // Keep the code.
     if (lines[i] != null) {
       result.add(lines[i]);
       previousIndent = _countIndentation(lines[i]);
+
+      // Keep track of the resulting line number of the last line containing
+      // real code. We use this when outputting explicit line numbers instead
+      // the error's reported line to compensate for added or removed lines
+      // above the error.
+      codeLine = result.length;
     }
 
     // Add expectations for any errors reported on this line.
@@ -89,14 +96,16 @@ String updateErrorExpectations(String source, List<StaticError> errors,
 
       var comment = (" " * indent) + "//";
 
-      // If the error can't fit in a line comment or doesn't have a length, use
-      // an explicit location.
-      if (error.length == null) {
-        result.add("$comment [error line ${error.line}, column "
-            "${error.column}]");
-      } else if (error.column <= 2) {
-        result.add("$comment [error line ${error.line}, column "
-            "${error.column}, length ${error.length}]");
+      // If the error can't fit in a line comment, or no source location is
+      // sepcified, use an explicit location.
+      if (error.column <= 2 || error.length == 0) {
+        if (error.length == null) {
+          result.add("$comment [error line $codeLine, column "
+              "${error.column}]");
+        } else {
+          result.add("$comment [error line $codeLine, column "
+              "${error.column}, length ${error.length}]");
+        }
       } else {
         var spacing = " " * (error.column - 1 - 2 - indent);
         // A CFE-only error may not have a length, so treat it as length 1.

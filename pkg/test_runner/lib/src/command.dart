@@ -7,138 +7,19 @@ import 'dart:async';
 // CommandOutput.exitCode in subclasses of CommandOutput.
 import 'dart:io' as io;
 
-import 'package:status_file/expectation.dart';
-
 import 'command_output.dart';
 import 'configuration.dart';
 import 'path.dart';
 import 'utils.dart';
 
 /// A command executed as a step in a test case.
-class Command {
-  static Command browserTest(String url, TestConfiguration configuration,
-      {bool retry}) {
-    return BrowserTestCommand._(url, configuration, retry);
-  }
-
-  static Command compilation(
-      String displayName,
-      String outputFile,
-      List<Uri> bootstrapDependencies,
-      String executable,
-      List<String> arguments,
-      Map<String, String> environment,
-      {bool alwaysCompile = false,
-      String workingDirectory}) {
-    return CompilationCommand._(displayName, outputFile, alwaysCompile,
-        bootstrapDependencies, executable, arguments, environment,
-        workingDirectory: workingDirectory);
-  }
-
-  static Command vmKernelCompilation(
-      String outputFile,
-      bool neverSkipCompilation,
-      List<Uri> bootstrapDependencies,
-      String executable,
-      List<String> arguments,
-      Map<String, String> environment,
-      List<String> batchArgs) {
-    return VMKernelCompilationCommand._(outputFile, neverSkipCompilation,
-        bootstrapDependencies, executable, arguments, environment, batchArgs);
-  }
-
-  static Command analysis(String executable, List<String> arguments,
-      Map<String, String> environmentOverrides) {
-    return AnalysisCommand._(executable, arguments, environmentOverrides);
-  }
-
-  static Command compareAnalyzerCfe(String executable, List<String> arguments,
-      Map<String, String> environmentOverrides) {
-    return CompareAnalyzerCfeCommand._(
-        executable, arguments, environmentOverrides);
-  }
-
-  static Command specParse(String executable, List<String> arguments,
-      Map<String, String> environmentOverrides) {
-    return SpecParseCommand._(executable, arguments, environmentOverrides);
-  }
-
-  static Command vm(String executable, List<String> arguments,
-      Map<String, String> environmentOverrides) {
-    return VmCommand._(executable, arguments, environmentOverrides);
-  }
-
-  static Command vmBatch(String executable, String tester,
-      List<String> arguments, Map<String, String> environmentOverrides,
-      {bool checked = true}) {
-    return VmBatchCommand._(executable, tester, arguments, environmentOverrides,
-        checked: checked);
-  }
-
-  static Command adbPrecompiled(
-      String buildPath,
-      String processTest,
-      String testDirectory,
-      List<String> arguments,
-      bool useBlobs,
-      bool useElf,
-      List<String> extraLibs) {
-    return AdbPrecompilationCommand._(buildPath, processTest, testDirectory,
-        arguments, useBlobs, useElf, extraLibs);
-  }
-
-  static Command adbDartk(String buildPath, String processTest, String script,
-      List<String> arguments, List<String> extraLibraries) {
-    return AdbDartkCommand._(
-        buildPath, processTest, script, arguments, extraLibraries);
-  }
-
-  static Command jsCommandLine(
-      String displayName, String executable, List<String> arguments,
-      [Map<String, String> environment]) {
-    return JSCommandlineCommand._(
-        displayName, executable, arguments, environment);
-  }
-
-  static Command process(
-      String displayName, String executable, List<String> arguments,
-      [Map<String, String> environment, String workingDirectory]) {
-    return ProcessCommand._(
-        displayName, executable, arguments, environment, workingDirectory);
-  }
-
-  static Command copy(String sourceDirectory, String destinationDirectory) {
-    return CleanDirectoryCopyCommand._(sourceDirectory, destinationDirectory);
-  }
-
-  static Command makeSymlink(String link, String target) {
-    return MakeSymlinkCommand._(link, target);
-  }
-
-  static Command fasta(
-      Uri compilerLocation,
-      Uri outputFile,
-      List<Uri> bootstrapDependencies,
-      Uri executable,
-      List<String> arguments,
-      Map<String, String> environment,
-      Uri workingDirectory) {
-    return FastaCompilationCommand._(
-        compilerLocation,
-        outputFile.toFilePath(),
-        bootstrapDependencies,
-        executable.toFilePath(),
-        arguments,
-        environment,
-        workingDirectory?.toFilePath());
-  }
-
+abstract class Command {
   /// A descriptive name for this command.
   final String displayName;
 
   /// When cloning a command object to run it multiple times, we give
   /// the different copies distinct values for index.
-  int index;
+  final int index;
 
   /// Number of times this command *can* be retried.
   int get maxNumRetries => 2;
@@ -156,9 +37,13 @@ class Command {
   /// Two clones with the same index will be equal, with different indices
   /// will be distinct. Used to run tests multiple times, since identical
   /// commands are only run once by the dependency graph scheduler.
-  Command indexedCopy(int index) {
-    return Command._(displayName, index: index);
-  }
+  Command indexedCopy(int index);
+
+  CommandOutput createOutput(int exitCode, bool timedOut, List<int> stdout,
+          List<int> stderr, Duration time, bool compilationSkipped,
+          [int pid = 0]) =>
+      CommandOutput(this, exitCode, timedOut, stdout, stderr, time,
+          compilationSkipped, pid);
 
   int get hashCode {
     if (_cachedHashCode == null) {
@@ -174,7 +59,7 @@ class Command {
       (runtimeType == other.runtimeType && _equal(other as Command));
 
   void _buildHashCode(HashCodeBuilder builder) {
-    builder.addJson(displayName);
+    builder.add(displayName);
     builder.add(index);
   }
 
@@ -201,7 +86,7 @@ class ProcessCommand extends Command {
   /// Working directory for the command.
   final String workingDirectory;
 
-  ProcessCommand._(String displayName, this.executable, this.arguments,
+  ProcessCommand(String displayName, this.executable, this.arguments,
       [this.environmentOverrides, this.workingDirectory, int index = 0])
       : super._(displayName, index: index) {
     if (io.Platform.operatingSystem == 'windows') {
@@ -213,7 +98,7 @@ class ProcessCommand extends Command {
   }
 
   ProcessCommand indexedCopy(int index) {
-    return ProcessCommand._(displayName, executable, arguments,
+    return ProcessCommand(displayName, executable, arguments,
         environmentOverrides, workingDirectory, index);
   }
 
@@ -264,29 +149,45 @@ class CompilationCommand extends ProcessCommand {
   final bool _alwaysCompile;
   final List<Uri> _bootstrapDependencies;
 
-  CompilationCommand._(
+  CompilationCommand(
       String displayName,
       this.outputFile,
-      this._alwaysCompile,
       this._bootstrapDependencies,
       String executable,
       List<String> arguments,
       Map<String, String> environmentOverrides,
-      {String workingDirectory,
+      {bool alwaysCompile,
+      String workingDirectory,
       int index = 0})
-      : super._(displayName, executable, arguments, environmentOverrides,
+      : _alwaysCompile = alwaysCompile ?? false,
+        super(displayName, executable, arguments, environmentOverrides,
             workingDirectory, index);
 
-  CompilationCommand indexedCopy(int index) => CompilationCommand._(
+  CompilationCommand indexedCopy(int index) => CompilationCommand(
       displayName,
       outputFile,
-      _alwaysCompile,
       _bootstrapDependencies,
       executable,
       arguments,
       environmentOverrides,
+      alwaysCompile: _alwaysCompile,
       workingDirectory: workingDirectory,
       index: index);
+
+  CommandOutput createOutput(int exitCode, bool timedOut, List<int> stdout,
+      List<int> stderr, Duration time, bool compilationSkipped,
+      [int pid = 0]) {
+    if (displayName == 'precompiler' || displayName == 'app_jit') {
+      return VMCommandOutput(
+          this, exitCode, timedOut, stdout, stderr, time, pid);
+    } else if (displayName == 'dartdevc') {
+      return DevCompilerCommandOutput(this, exitCode, timedOut, stdout, stderr,
+          time, compilationSkipped, pid);
+    }
+
+    return CompilationCommandOutput(
+        this, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
+  }
 
   bool get outputIsUpToDate {
     if (_alwaysCompile) return false;
@@ -319,6 +220,11 @@ class CompilationCommand extends ProcessCommand {
     return true;
   }
 
+  @override
+  List<String> get batchArguments {
+    return [...arguments.where((arg) => arg.startsWith('--enable-experiment'))];
+  }
+
   void _buildHashCode(HashCodeBuilder builder) {
     super._buildHashCode(builder);
     builder.addJson(outputFile);
@@ -336,7 +242,7 @@ class CompilationCommand extends ProcessCommand {
 class FastaCompilationCommand extends CompilationCommand {
   final Uri _compilerLocation;
 
-  FastaCompilationCommand._(
+  FastaCompilationCommand(
       this._compilerLocation,
       String outputFile,
       List<Uri> bootstrapDependencies,
@@ -345,12 +251,14 @@ class FastaCompilationCommand extends CompilationCommand {
       Map<String, String> environmentOverrides,
       String workingDirectory,
       {int index = 0})
-      : super._("fasta", outputFile, true, bootstrapDependencies, executable,
-            arguments, environmentOverrides,
-            workingDirectory: workingDirectory, index: index);
+      : super("fasta", outputFile, bootstrapDependencies, executable, arguments,
+            environmentOverrides,
+            alwaysCompile: true,
+            workingDirectory: workingDirectory,
+            index: index);
 
   @override
-  FastaCompilationCommand indexedCopy(int index) => FastaCompilationCommand._(
+  FastaCompilationCommand indexedCopy(int index) => FastaCompilationCommand(
       _compilerLocation,
       outputFile,
       _bootstrapDependencies,
@@ -360,9 +268,16 @@ class FastaCompilationCommand extends CompilationCommand {
       workingDirectory,
       index: index);
 
+  FastaCommandOutput createOutput(int exitCode, bool timedOut, List<int> stdout,
+          List<int> stderr, Duration time, bool compilationSkipped,
+          [int pid = 0]) =>
+      FastaCommandOutput(
+          this, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
+
   @override
   List<String> get batchArguments {
     return <String>[
+      ...super.batchArguments,
       '--enable-asserts',
       _compilerLocation.resolve("batch.dart").toFilePath(),
     ];
@@ -378,7 +293,7 @@ class FastaCompilationCommand extends CompilationCommand {
       return escapeCommandLineArgument(argument);
     }
 
-    StringBuffer buffer = StringBuffer();
+    var buffer = StringBuffer();
     if (workingDirectory != null && !io.Platform.isWindows) {
       buffer.write("(cd ");
       buffer.write(escapeCommandLineArgument(workingDirectory));
@@ -427,29 +342,34 @@ class FastaCompilationCommand extends CompilationCommand {
 class VMKernelCompilationCommand extends CompilationCommand {
   final List<String> batchArgs;
 
-  VMKernelCompilationCommand._(
+  VMKernelCompilationCommand(
       String outputFile,
-      bool alwaysCompile,
       List<Uri> bootstrapDependencies,
       String executable,
       List<String> arguments,
       Map<String, String> environmentOverrides,
       this.batchArgs,
-      {int index = 0})
-      : super._('vm_compile_to_kernel $batchArgs', outputFile, alwaysCompile,
+      {bool alwaysCompile,
+      int index = 0})
+      : super('vm_compile_to_kernel $batchArgs', outputFile,
             bootstrapDependencies, executable, arguments, environmentOverrides,
-            index: index);
+            alwaysCompile: alwaysCompile, index: index);
 
   VMKernelCompilationCommand indexedCopy(int index) =>
-      VMKernelCompilationCommand._(
-          outputFile,
-          _alwaysCompile,
-          _bootstrapDependencies,
-          executable,
-          arguments,
-          environmentOverrides,
-          batchArgs,
-          index: index);
+      VMKernelCompilationCommand(outputFile, _bootstrapDependencies, executable,
+          arguments, environmentOverrides, batchArgs,
+          alwaysCompile: _alwaysCompile, index: index);
+
+  VMKernelCompilationCommandOutput createOutput(
+          int exitCode,
+          bool timedOut,
+          List<int> stdout,
+          List<int> stderr,
+          Duration time,
+          bool compilationSkipped,
+          [int pid = 0]) =>
+      VMKernelCompilationCommandOutput(
+          this, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
 
   int get maxNumRetries => 1;
 
@@ -474,29 +394,25 @@ class BrowserTestCommand extends Command {
   Runtime get browser => configuration.runtime;
   final String url;
   final TestConfiguration configuration;
-  final bool retry;
 
-  BrowserTestCommand._(this.url, this.configuration, this.retry,
-      {int index = 0})
+  BrowserTestCommand(this.url, this.configuration, {int index = 0})
       : super._(configuration.runtime.name, index: index);
 
   BrowserTestCommand indexedCopy(int index) =>
-      BrowserTestCommand._(url, configuration, retry, index: index);
+      BrowserTestCommand(url, configuration, index: index);
 
   void _buildHashCode(HashCodeBuilder builder) {
     super._buildHashCode(builder);
     builder.addJson(browser.name);
     builder.addJson(url);
     builder.add(configuration);
-    builder.add(retry);
   }
 
   bool _equal(BrowserTestCommand other) =>
       super._equal(other) &&
       browser == other.browser &&
       url == other.url &&
-      identical(configuration, other.configuration) &&
-      retry == other.retry;
+      identical(configuration, other.configuration);
 
   String get reproductionCommand {
     var parts = [
@@ -512,61 +428,94 @@ class BrowserTestCommand extends Command {
 }
 
 class AnalysisCommand extends ProcessCommand {
-  AnalysisCommand._(String executable, List<String> arguments,
+  AnalysisCommand(String executable, List<String> arguments,
       Map<String, String> environmentOverrides, {int index = 0})
-      : super._('dart2analyzer', executable, arguments, environmentOverrides,
+      : super('dart2analyzer', executable, arguments, environmentOverrides,
             null, index);
 
   AnalysisCommand indexedCopy(int index) =>
-      AnalysisCommand._(executable, arguments, environmentOverrides,
+      AnalysisCommand(executable, arguments, environmentOverrides,
           index: index);
+
+  CommandOutput createOutput(int exitCode, bool timedOut, List<int> stdout,
+          List<int> stderr, Duration time, bool compilationSkipped,
+          [int pid = 0]) =>
+      AnalysisCommandOutput(
+          this, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
 }
 
 class CompareAnalyzerCfeCommand extends ProcessCommand {
-  CompareAnalyzerCfeCommand._(String executable, List<String> arguments,
+  CompareAnalyzerCfeCommand(String executable, List<String> arguments,
       Map<String, String> environmentOverrides, {int index = 0})
-      : super._('compare_analyzer_cfe', executable, arguments,
+      : super('compare_analyzer_cfe', executable, arguments,
             environmentOverrides, null, index);
 
   CompareAnalyzerCfeCommand indexedCopy(int index) =>
-      CompareAnalyzerCfeCommand._(executable, arguments, environmentOverrides,
+      CompareAnalyzerCfeCommand(executable, arguments, environmentOverrides,
           index: index);
+
+  CompareAnalyzerCfeCommandOutput createOutput(
+          int exitCode,
+          bool timedOut,
+          List<int> stdout,
+          List<int> stderr,
+          Duration time,
+          bool compilationSkipped,
+          [int pid = 0]) =>
+      CompareAnalyzerCfeCommandOutput(
+          this, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
 }
 
 class SpecParseCommand extends ProcessCommand {
-  SpecParseCommand._(String executable, List<String> arguments,
+  SpecParseCommand(String executable, List<String> arguments,
       Map<String, String> environmentOverrides, {int index = 0})
-      : super._('spec_parser', executable, arguments, environmentOverrides,
-            null, index);
+      : super('spec_parser', executable, arguments, environmentOverrides, null,
+            index);
 
   SpecParseCommand indexedCopy(int index) =>
-      SpecParseCommand._(executable, arguments, environmentOverrides,
+      SpecParseCommand(executable, arguments, environmentOverrides,
           index: index);
+
+  SpecParseCommandOutput createOutput(
+          int exitCode,
+          bool timedOut,
+          List<int> stdout,
+          List<int> stderr,
+          Duration time,
+          bool compilationSkipped,
+          [int pid = 0]) =>
+      SpecParseCommandOutput(
+          this, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
 }
 
-class VmCommand extends ProcessCommand {
-  VmCommand._(String executable, List<String> arguments,
+class VMCommand extends ProcessCommand {
+  VMCommand(String executable, List<String> arguments,
       Map<String, String> environmentOverrides,
       {int index = 0})
-      : super._('vm', executable, arguments, environmentOverrides, null, index);
+      : super('vm', executable, arguments, environmentOverrides, null, index);
 
-  VmCommand indexedCopy(int index) =>
-      VmCommand._(executable, arguments, environmentOverrides, index: index);
+  VMCommand indexedCopy(int index) =>
+      VMCommand(executable, arguments, environmentOverrides, index: index);
+
+  CommandOutput createOutput(int exitCode, bool timedOut, List<int> stdout,
+          List<int> stderr, Duration time, bool compilationSkipped,
+          [int pid = 0]) =>
+      VMCommandOutput(this, exitCode, timedOut, stdout, stderr, time, pid);
 }
 
-class VmBatchCommand extends ProcessCommand implements VmCommand {
+class VMBatchCommand extends ProcessCommand implements VMCommand {
   final String dartFile;
   final bool checked;
 
-  VmBatchCommand._(String executable, String dartFile, List<String> arguments,
+  VMBatchCommand(String executable, String dartFile, List<String> arguments,
       Map<String, String> environmentOverrides,
       {this.checked = true, int index = 0})
       : dartFile = dartFile,
-        super._('vm-batch', executable, arguments, environmentOverrides, null,
+        super('vm-batch', executable, arguments, environmentOverrides, null,
             index);
 
-  VmBatchCommand indexedCopy(int index) =>
-      VmBatchCommand._(executable, dartFile, arguments, environmentOverrides,
+  VMBatchCommand indexedCopy(int index) =>
+      VMBatchCommand(executable, dartFile, arguments, environmentOverrides,
           checked: checked, index: index);
 
   @override
@@ -574,7 +523,7 @@ class VmBatchCommand extends ProcessCommand implements VmCommand {
       checked ? ['--checked', dartFile] : [dartFile];
 
   @override
-  bool _equal(VmBatchCommand other) {
+  bool _equal(VMBatchCommand other) {
     return super._equal(other) &&
         dartFile == other.dartFile &&
         checked == other.checked;
@@ -598,36 +547,38 @@ class AdbPrecompilationCommand extends Command implements AdbCommand {
   final String processTestFilename;
   final String precompiledTestDirectory;
   final List<String> arguments;
-  final bool useBlobs;
   final bool useElf;
   final List<String> extraLibraries;
 
-  AdbPrecompilationCommand._(
+  AdbPrecompilationCommand(
       this.buildPath,
       this.processTestFilename,
       this.precompiledTestDirectory,
       this.arguments,
-      this.useBlobs,
       this.useElf,
       this.extraLibraries,
       {int index = 0})
       : super._("adb_precompilation", index: index);
 
-  AdbPrecompilationCommand indexedCopy(int index) => AdbPrecompilationCommand._(
+  AdbPrecompilationCommand indexedCopy(int index) => AdbPrecompilationCommand(
       buildPath,
       processTestFilename,
       precompiledTestDirectory,
       arguments,
-      useBlobs,
       useElf,
       extraLibraries,
       index: index);
+
+  VMCommandOutput createOutput(int exitCode, bool timedOut, List<int> stdout,
+          List<int> stderr, Duration time, bool compilationSkipped,
+          [int pid = 0]) =>
+      VMCommandOutput(this, exitCode, timedOut, stdout, stderr, time, pid);
+
   _buildHashCode(HashCodeBuilder builder) {
     super._buildHashCode(builder);
     builder.add(buildPath);
     builder.add(precompiledTestDirectory);
     builder.add(arguments);
-    builder.add(useBlobs);
     builder.add(useElf);
     extraLibraries.forEach(builder.add);
   }
@@ -635,7 +586,6 @@ class AdbPrecompilationCommand extends Command implements AdbCommand {
   bool _equal(AdbPrecompilationCommand other) =>
       super._equal(other) &&
       buildPath == other.buildPath &&
-      useBlobs == other.useBlobs &&
       useElf == other.useElf &&
       arguments == other.arguments &&
       precompiledTestDirectory == other.precompiledTestDirectory &&
@@ -652,14 +602,15 @@ class AdbDartkCommand extends Command implements AdbCommand {
   final List<String> arguments;
   final List<String> extraLibraries;
 
-  AdbDartkCommand._(this.buildPath, this.processTestFilename, this.kernelFile,
+  AdbDartkCommand(this.buildPath, this.processTestFilename, this.kernelFile,
       this.arguments, this.extraLibraries,
       {int index = 0})
       : super._("adb_precompilation", index: index);
 
-  AdbDartkCommand indexedCopy(int index) => AdbDartkCommand._(
+  AdbDartkCommand indexedCopy(int index) => AdbDartkCommand(
       buildPath, processTestFilename, kernelFile, arguments, extraLibraries,
       index: index);
+
   _buildHashCode(HashCodeBuilder builder) {
     super._buildHashCode(builder);
     builder.add(buildPath);
@@ -675,19 +626,34 @@ class AdbDartkCommand extends Command implements AdbCommand {
       extraLibraries == other.extraLibraries &&
       kernelFile == other.kernelFile;
 
+  VMCommandOutput createOutput(int exitCode, bool timedOut, List<int> stdout,
+          List<int> stderr, Duration time, bool compilationSkipped,
+          [int pid = 0]) =>
+      VMCommandOutput(this, exitCode, timedOut, stdout, stderr, time, pid);
+
   String toString() => 'Steps to push Dart VM and Dill file '
       'to an attached device. Uses (and requires) adb.';
 }
 
-class JSCommandlineCommand extends ProcessCommand {
-  JSCommandlineCommand._(
+class JSCommandLineCommand extends ProcessCommand {
+  JSCommandLineCommand(
       String displayName, String executable, List<String> arguments,
       [Map<String, String> environmentOverrides, int index = 0])
-      : super._(displayName, executable, arguments, environmentOverrides, null,
+      : super(displayName, executable, arguments, environmentOverrides, null,
             index);
 
-  JSCommandlineCommand indexedCopy(int index) => JSCommandlineCommand._(
+  JSCommandLineCommand indexedCopy(int index) => JSCommandLineCommand(
       displayName, executable, arguments, environmentOverrides, index);
+
+  JSCommandLineOutput createOutput(
+          int exitCode,
+          bool timedOut,
+          List<int> stdout,
+          List<int> stderr,
+          Duration time,
+          bool compilationSkipped,
+          [int pid = 0]) =>
+      JSCommandLineOutput(this, exitCode, timedOut, stdout, stderr, time);
 }
 
 /// [ScriptCommand]s are executed by dart code.
@@ -696,98 +662,4 @@ abstract class ScriptCommand extends Command {
       : super._(displayName, index: index);
 
   Future<ScriptCommandOutput> run();
-}
-
-class CleanDirectoryCopyCommand extends ScriptCommand {
-  final String _sourceDirectory;
-  final String _destinationDirectory;
-
-  CleanDirectoryCopyCommand._(this._sourceDirectory, this._destinationDirectory,
-      {int index = 0})
-      : super._('dir_copy', index: index);
-
-  CleanDirectoryCopyCommand indexedCopy(int index) =>
-      CleanDirectoryCopyCommand._(_sourceDirectory, _destinationDirectory,
-          index: index);
-
-  String get reproductionCommand =>
-      "Copying '$_sourceDirectory' to '$_destinationDirectory'.";
-
-  Future<ScriptCommandOutput> run() {
-    var watch = Stopwatch()..start();
-
-    var destination = io.Directory(_destinationDirectory);
-
-    return destination.exists().then((bool exists) {
-      Future cleanDirectoryFuture;
-      if (exists) {
-        cleanDirectoryFuture = TestUtils.deleteDirectory(_destinationDirectory);
-      } else {
-        cleanDirectoryFuture = Future.value(null);
-      }
-      return cleanDirectoryFuture.then((_) {
-        return TestUtils.copyDirectory(_sourceDirectory, _destinationDirectory);
-      });
-    }).then((_) {
-      return ScriptCommandOutput(this, Expectation.pass, "", watch.elapsed);
-    }).catchError((error) {
-      return ScriptCommandOutput(
-          this, Expectation.fail, "An error occured: $error.", watch.elapsed);
-    });
-  }
-
-  void _buildHashCode(HashCodeBuilder builder) {
-    super._buildHashCode(builder);
-    builder.addJson(_sourceDirectory);
-    builder.addJson(_destinationDirectory);
-  }
-
-  bool _equal(CleanDirectoryCopyCommand other) =>
-      super._equal(other) &&
-      _sourceDirectory == other._sourceDirectory &&
-      _destinationDirectory == other._destinationDirectory;
-}
-
-/// Makes a symbolic link to another directory.
-class MakeSymlinkCommand extends ScriptCommand {
-  final String _link;
-  final String _target;
-
-  MakeSymlinkCommand._(this._link, this._target, {int index = 0})
-      : super._('make_symlink', index: index);
-
-  MakeSymlinkCommand indexedCopy(int index) =>
-      MakeSymlinkCommand._(_link, _target, index: index);
-
-  String get reproductionCommand =>
-      "Make symbolic link '$_link' (target: $_target)'.";
-
-  Future<ScriptCommandOutput> run() {
-    var watch = Stopwatch()..start();
-    var targetFile = io.Directory(_target);
-    return targetFile.exists().then((bool targetExists) {
-      if (!targetExists) {
-        throw Exception("Target '$_target' does not exist");
-      }
-      var link = io.Link(_link);
-
-      return link.exists().then((bool exists) {
-        if (exists) link.deleteSync();
-      }).then((_) => link.create(_target));
-    }).then((_) {
-      return ScriptCommandOutput(this, Expectation.pass, "", watch.elapsed);
-    }).catchError((error) {
-      return ScriptCommandOutput(
-          this, Expectation.fail, "An error occured: $error.", watch.elapsed);
-    });
-  }
-
-  void _buildHashCode(HashCodeBuilder builder) {
-    super._buildHashCode(builder);
-    builder.addJson(_link);
-    builder.addJson(_target);
-  }
-
-  bool _equal(MakeSymlinkCommand other) =>
-      super._equal(other) && _link == other._link && _target == other._target;
 }

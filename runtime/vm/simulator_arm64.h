@@ -170,11 +170,13 @@ class Simulator {
   inline int16_t ReadH(uword addr, Instr* instr);
   inline void WriteH(uword addr, uint16_t value, Instr* instr);
 
-  inline uint32_t ReadWU(uword addr, Instr* instr);
+  inline uint32_t ReadWU(uword addr,
+                         Instr* instr,
+                         bool must_be_aligned = false);
   inline int32_t ReadW(uword addr, Instr* instr);
   inline void WriteW(uword addr, uint32_t value, Instr* instr);
 
-  inline intptr_t ReadX(uword addr, Instr* instr);
+  inline intptr_t ReadX(uword addr, Instr* instr, bool must_be_aligned = false);
   inline void WriteX(uword addr, intptr_t value, Instr* instr);
 
   // Synchronization primitives support.

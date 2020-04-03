@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/precedence.dart';
-
 /// Defines the AST model. The AST (Abstract Syntax Tree) model describes the
 /// syntactic (as opposed to semantic) structure of Dart code. The semantic
 /// structure of the code is modeled by the
@@ -35,6 +32,8 @@ import 'package:analyzer/dart/ast/precedence.dart';
 /// When an AST is resolved, the identifiers in the AST will be associated with
 /// the elements that they refer to and every expression in the AST will have a
 /// type associated with it.
+import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -71,7 +70,7 @@ abstract class AnnotatedNode implements AstNode {
 
   /// Set the documentation comment associated with this node to the given
   /// [comment].
-  void set documentationComment(Comment comment);
+  set documentationComment(Comment comment);
 
   /// Return the first token following the comment and metadata.
   Token get firstTokenAfterCommentAndMetadata;
@@ -100,20 +99,20 @@ abstract class Annotation implements AstNode {
 
   /// Set the arguments to the constructor being invoked to the given
   /// [arguments].
-  void set arguments(ArgumentList arguments);
+  set arguments(ArgumentList arguments);
 
   /// Return the at sign that introduced the annotation.
   Token get atSign;
 
   /// Set the at sign that introduced the annotation to the given [token].
-  void set atSign(Token token);
+  set atSign(Token token);
 
   /// Return the name of the constructor being invoked, or `null` if this
   /// annotation is not the invocation of a named constructor.
   SimpleIdentifier get constructorName;
 
   /// Set the name of the constructor being invoked to the given [name].
-  void set constructorName(SimpleIdentifier name);
+  set constructorName(SimpleIdentifier name);
 
   /// Return the element associated with this annotation, or `null` if the AST
   /// structure has not been resolved or if this annotation could not be
@@ -121,7 +120,7 @@ abstract class Annotation implements AstNode {
   Element get element;
 
   /// Set the element associated with this annotation to the given [element].
-  void set element(Element element);
+  set element(Element element);
 
   /// Return the element annotation representing this annotation in the element
   /// model.
@@ -129,7 +128,7 @@ abstract class Annotation implements AstNode {
 
   /// Set the element annotation representing this annotation in the element
   /// model to the given [annotation].
-  void set elementAnnotation(ElementAnnotation annotation);
+  set elementAnnotation(ElementAnnotation annotation);
 
   /// Return the name of the class defining the constructor that is being
   /// invoked or the name of the field that is being referenced.
@@ -137,14 +136,14 @@ abstract class Annotation implements AstNode {
 
   /// Set the name of the class defining the constructor that is being invoked
   /// or the name of the field that is being referenced to the given [name].
-  void set name(Identifier name);
+  set name(Identifier name);
 
   /// Return the period before the constructor name, or `null` if this
   /// annotation is not the invocation of a named constructor.
   Token get period;
 
   /// Set the period before the constructor name to the given [token].
-  void set period(Token token);
+  set period(Token token);
 }
 
 /// A list of arguments in the invocation of an executable element (that is, a
@@ -159,38 +158,29 @@ abstract class Annotation implements AstNode {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ArgumentList implements AstNode {
-  /// Return the expressions producing the values of the arguments. Although the
-  /// language requires that positional arguments appear before named arguments,
-  /// this class allows them to be intermixed.
+  /// Return the expressions producing the values of the arguments.
+  ///
+  /// Although the language requires that positional arguments appear before
+  /// named arguments, this class allows them to be intermixed.
   NodeList<Expression> get arguments;
 
   /// Set the parameter elements corresponding to each of the arguments in this
   /// list to the given list of [parameters]. The list of parameters must be the
   /// same length as the number of arguments, but can contain `null` entries if
   /// a given argument does not correspond to a formal parameter.
-  ///
-  /// Deprecated: The analyzer no longer computes propagated type information.
-  /// Use [correspondingStaticParameters] instead.
-  @deprecated
-  void set correspondingPropagatedParameters(List<ParameterElement> parameters);
-
-  /// Set the parameter elements corresponding to each of the arguments in this
-  /// list to the given list of [parameters]. The list of parameters must be the
-  /// same length as the number of arguments, but can contain `null` entries if
-  /// a given argument does not correspond to a formal parameter.
-  void set correspondingStaticParameters(List<ParameterElement> parameters);
+  set correspondingStaticParameters(List<ParameterElement> parameters);
 
   /// Return the left parenthesis.
   Token get leftParenthesis;
 
   /// Set the left parenthesis to the given [token].
-  void set leftParenthesis(Token token);
+  set leftParenthesis(Token token);
 
   /// Return the right parenthesis.
   Token get rightParenthesis;
 
   /// Set the right parenthesis to the given [token].
-  void set rightParenthesis(Token token);
+  set rightParenthesis(Token token);
 }
 
 /// An as expression.
@@ -204,20 +194,20 @@ abstract class AsExpression implements Expression {
   Token get asOperator;
 
   /// Set the 'as' operator to the given [token].
-  void set asOperator(Token token);
+  set asOperator(Token token);
 
   /// Return the expression used to compute the value being cast.
   Expression get expression;
 
   /// Set the expression used to compute the value being cast to the given
   /// [expression].
-  void set expression(Expression expression);
+  set expression(Expression expression);
 
   /// Return the type being cast to.
   TypeAnnotation get type;
 
   /// Set the type being cast to to the given [type].
-  void set type(TypeAnnotation type);
+  set type(TypeAnnotation type);
 }
 
 /// An assert in the initializer list of a constructor.
@@ -236,7 +226,7 @@ abstract class Assertion implements AstNode {
   Token get assertKeyword;
 
   /// Set the token representing the 'assert' keyword to the given [token].
-  void set assertKeyword(Token token);
+  set assertKeyword(Token token);
 
   /// Return the comma between the [condition] and the [message], or `null` if
   /// no message was supplied.
@@ -244,20 +234,20 @@ abstract class Assertion implements AstNode {
 
   /// Set the comma between the [condition] and the [message] to the given
   /// [token].
-  void set comma(Token token);
+  set comma(Token token);
 
   /// Return the condition that is being asserted to be `true`.
   Expression get condition;
 
   /// Set the condition that is being asserted to be `true` to the given
   /// [condition].
-  void set condition(Expression condition);
+  set condition(Expression condition);
 
   /// Return the left parenthesis.
   Token get leftParenthesis;
 
   /// Set the left parenthesis to the given [token].
-  void set leftParenthesis(Token token);
+  set leftParenthesis(Token token);
 
   /// Return the message to report if the assertion fails, or `null` if no
   /// message was supplied.
@@ -265,13 +255,13 @@ abstract class Assertion implements AstNode {
 
   /// Set the message to report if the assertion fails to the given
   /// [expression].
-  void set message(Expression expression);
+  set message(Expression expression);
 
   ///  Return the right parenthesis.
   Token get rightParenthesis;
 
   ///  Set the right parenthesis to the given [token].
-  void set rightParenthesis(Token token);
+  set rightParenthesis(Token token);
 }
 
 /// An assert statement.
@@ -285,7 +275,7 @@ abstract class AssertStatement implements Assertion, Statement {
   Token get semicolon;
 
   /// Set the semicolon terminating the statement to the given [token].
-  void set semicolon(Token token);
+  set semicolon(Token token);
 }
 
 /// An assignment expression.
@@ -295,36 +285,37 @@ abstract class AssertStatement implements Assertion, Statement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class AssignmentExpression
-    implements Expression, MethodReferenceExpression {
+    implements NullShortableExpression, MethodReferenceExpression {
   /// Return the expression used to compute the left hand side.
   Expression get leftHandSide;
 
   /// Return the expression used to compute the left hand side.
-  void set leftHandSide(Expression expression);
+  set leftHandSide(Expression expression);
 
   /// Return the assignment operator being applied.
   Token get operator;
 
   /// Set the assignment operator being applied to the given [token].
-  void set operator(Token token);
+  set operator(Token token);
 
   /// Return the expression used to compute the right hand side.
   Expression get rightHandSide;
 
   /// Set the expression used to compute the left hand side to the given
   /// [expression].
-  void set rightHandSide(Expression expression);
+  set rightHandSide(Expression expression);
 }
 
 /// A node in the AST structure for a Dart program.
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class AstNode implements SyntacticEntity {
-  /// A comparator that can be used to sort AST nodes in lexical order. In other
-  /// words, `compare` will return a negative value if the offset of the first
-  /// node is less than the offset of the second node, zero (0) if the nodes
-  /// have the same offset, and a positive value if the offset of the first node
-  /// is greater than the offset of the second node.
+  /// A comparator that can be used to sort AST nodes in lexical order.
+  ///
+  /// In other words, `compare` will return a negative value if the offset of
+  /// the first node is less than the offset of the second node, zero (0) if
+  /// the nodes have the same offset, and a positive value if the offset of the
+  /// first node is greater than the offset of the second node.
   static Comparator<AstNode> LEXICAL_ORDER =
       (AstNode first, AstNode second) => first.offset - second.offset;
 
@@ -337,20 +328,23 @@ abstract class AstNode implements SyntacticEntity {
   Iterable<SyntacticEntity> get childEntities;
 
   /// Return the offset of the character immediately following the last
-  /// character of this node's source range. This is equivalent to
-  /// `node.getOffset() + node.getLength()`. For a compilation unit this will be
-  /// equal to the length of the unit's source. For synthetic nodes this will be
-  /// equivalent to the node's offset (because the length is zero (0) by
-  /// definition).
+  /// character of this node's source range.
+  ///
+  /// This is equivalent to `node.getOffset() + node.getLength()`. For a
+  /// compilation unit this will be equal to the length of the unit's source.
+  /// For synthetic nodes this will be equivalent to the node's offset (because
+  /// the length is zero (0) by definition).
   @override
   int get end;
 
   /// Return the last token included in this node's source range.
   Token get endToken;
 
-  /// Return `true` if this node is a synthetic node. A synthetic node is a node
-  /// that was introduced by the parser in order to recover from an error in the
-  /// code. Synthetic nodes always have a length of zero (`0`).
+  /// Return `true` if this node is a synthetic node.
+  ///
+  /// A synthetic node is a node that was introduced by the parser in order to
+  /// recover from an error in the code. Synthetic nodes always have a length
+  /// of zero (`0`).
   bool get isSynthetic;
 
   @override
@@ -366,13 +360,16 @@ abstract class AstNode implements SyntacticEntity {
   /// change over the lifetime of a node.
   AstNode get parent;
 
-  /// Return the node at the root of this node's AST structure. Note that this
-  /// method's performance is linear with respect to the depth of the node in
-  /// the AST structure (O(depth)).
+  /// Return the node at the root of this node's AST structure.
+  ///
+  /// Note that this method's performance is linear with respect to the depth
+  /// of the node in the AST structure (O(depth)).
   AstNode get root;
 
-  /// Use the given [visitor] to visit this node. Return the value returned by
-  /// the visitor as a result of visiting this node.
+  /// Use the given [visitor] to visit this node.
+  ///
+  /// Return the value returned by the visitor as a result of visiting this
+  /// node.
   E accept<E>(AstVisitor<E> visitor);
 
   /// Return the token before [target] or `null` if it cannot be found.
@@ -392,15 +389,18 @@ abstract class AstNode implements SyntacticEntity {
 
   /// Return either this node or the most immediate ancestor of this node that
   /// has the given type, or `null` if there is no such node.
-  T thisOrAncestorOfType<T extends AstNode>();
+  E thisOrAncestorOfType<E extends AstNode>();
 
   /// Return a textual description of this node in a form approximating valid
-  /// source. The returned string will not be valid source primarily in the case
-  /// where the node itself is not well-formed.
+  /// source.
+  ///
+  /// The returned string will not be valid source primarily in the case where
+  /// the node itself is not well-formed.
   String toSource();
 
-  /// Use the given [visitor] to visit all of the children of this node. The
-  /// children will be visited in lexical order.
+  /// Use the given [visitor] to visit all of the children of this node.
+  ///
+  /// The children will be visited in lexical order.
   void visitChildren(AstVisitor visitor);
 }
 
@@ -671,14 +671,14 @@ abstract class AwaitExpression implements Expression {
   Token get awaitKeyword;
 
   /// Set the 'await' keyword to the given [token].
-  void set awaitKeyword(Token token);
+  set awaitKeyword(Token token);
 
   /// Return the expression whose value is being waited on.
   Expression get expression;
 
   /// Set the expression whose value is being waited on to the given
   /// [expression].
-  void set expression(Expression expression);
+  set expression(Expression expression);
 }
 
 /// A binary (infix) expression.
@@ -694,27 +694,27 @@ abstract class BinaryExpression
 
   /// Set the expression used to compute the left operand to the given
   /// [expression].
-  void set leftOperand(Expression expression);
+  set leftOperand(Expression expression);
 
   /// Return the binary operator being applied.
   Token get operator;
 
   /// Set the binary operator being applied to the given [token].
-  void set operator(Token token);
+  set operator(Token token);
 
   /// Return the expression used to compute the right operand.
   Expression get rightOperand;
 
   /// Set the expression used to compute the right operand to the given
   /// [expression].
-  void set rightOperand(Expression expression);
+  set rightOperand(Expression expression);
 
   /// The function type of the invocation, or `null` if the AST structure has
   /// not been resolved, or if the invocation could not be resolved.
   FunctionType get staticInvokeType;
 
   /// Sets the function type of the invocation.
-  void set staticInvokeType(FunctionType value);
+  set staticInvokeType(FunctionType value);
 }
 
 /// A sequence of statements.
@@ -728,13 +728,13 @@ abstract class Block implements Statement {
   Token get leftBracket;
 
   /// Set the left curly bracket to the given [token].
-  void set leftBracket(Token token);
+  set leftBracket(Token token);
 
   /// Return the right curly bracket.
   Token get rightBracket;
 
   /// Set the right curly bracket to the given [token].
-  void set rightBracket(Token token);
+  set rightBracket(Token token);
 
   /// Return the statements contained in the block.
   NodeList<Statement> get statements;
@@ -751,13 +751,13 @@ abstract class BlockFunctionBody implements FunctionBody {
   Block get block;
 
   /// Set the block representing the body of the function to the given [block].
-  void set block(Block block);
+  set block(Block block);
 
   /// Set token representing the 'async' or 'sync' keyword to the given [token].
-  void set keyword(Token token);
+  set keyword(Token token);
 
   /// Set the star following the 'async' or 'sync' keyword to the given [token].
-  void set star(Token token);
+  set star(Token token);
 }
 
 /// A boolean literal expression.
@@ -771,7 +771,7 @@ abstract class BooleanLiteral implements Literal {
   Token get literal;
 
   /// Set the token representing the literal to the given [token].
-  void set literal(Token token);
+  set literal(Token token);
 
   /// Return the value of the literal.
   bool get value;
@@ -788,36 +788,38 @@ abstract class BreakStatement implements Statement {
   Token get breakKeyword;
 
   /// Set the token representing the 'break' keyword to the given [token].
-  void set breakKeyword(Token token);
+  set breakKeyword(Token token);
 
   /// Return the label associated with the statement, or `null` if there is no
   /// label.
   SimpleIdentifier get label;
 
   /// Set the label associated with the statement to the given [identifier].
-  void set label(SimpleIdentifier identifier);
+  set label(SimpleIdentifier identifier);
 
   /// Return the semicolon terminating the statement.
   Token get semicolon;
 
   /// Set the semicolon terminating the statement to the given [token].
-  void set semicolon(Token token);
+  set semicolon(Token token);
 
-  /// Return the node from which this break statement is breaking. This will be
-  /// either a [Statement] (in the case of breaking out of a loop), a
-  /// [SwitchMember] (in the case of a labeled break statement whose label
-  /// matches a label on a switch case in an enclosing switch statement), or
-  /// `null` if the AST has not yet been resolved or if the target could not be
-  /// resolved. Note that if the source code has errors, the target might be
+  /// Return the node from which this break statement is breaking.
+  ///
+  /// This will be either a [Statement] (in the case of breaking out of a
+  /// loop), a [SwitchMember] (in the case of a labeled break statement whose
+  /// label matches a label on a switch case in an enclosing switch statement),
+  /// or `null` if the AST has not yet been resolved or if the target could not
+  /// be resolved. Note that if the source code has errors, the target might be
   /// invalid (e.g. trying to break to a switch case).
   AstNode get target;
 
   /// Set the node from which this break statement is breaking to the given
   /// [node].
-  void set target(AstNode node);
+  set target(AstNode node);
 }
 
 /// A sequence of cascaded expressions: expressions that share a common target.
+///
 /// There are three kinds of expressions that can be used in a cascade
 /// expression: [IndexExpression], [MethodInvocation] and [PropertyAccess].
 ///
@@ -825,7 +827,8 @@ abstract class BreakStatement implements Statement {
 ///        [Expression] cascadeSection*
 ///
 ///    cascadeSection ::=
-///        '..'  (cascadeSelector arguments*) (assignableSelector arguments*)*
+///        ('..' | '?..') (cascadeSelector arguments*)
+///        (assignableSelector arguments*)*
 ///        (assignmentOperator expressionWithoutCascade)?
 ///
 ///    cascadeSelector ::=
@@ -833,15 +836,19 @@ abstract class BreakStatement implements Statement {
 ///      | identifier
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class CascadeExpression implements Expression {
+abstract class CascadeExpression
+    implements Expression, NullShortableExpression {
   /// Return the cascade sections sharing the common target.
   NodeList<Expression> get cascadeSections;
+
+  /// Whether this cascade is null aware (as opposed to non-null).
+  bool get isNullAware;
 
   /// Return the target of the cascade sections.
   Expression get target;
 
   /// Set the target of the cascade sections to the given [target].
-  void set target(Expression target);
+  set target(Expression target);
 }
 
 /// A catch clause within a try statement.
@@ -859,14 +866,14 @@ abstract class CatchClause implements AstNode {
   Block get body;
 
   /// Set the body of the catch block to the given [block].
-  void set body(Block block);
+  set body(Block block);
 
   /// Return the token representing the 'catch' keyword, or `null` if there is
   /// no 'catch' keyword.
   Token get catchKeyword;
 
   /// Set the token representing the 'catch' keyword to the given [token].
-  void set catchKeyword(Token token);
+  set catchKeyword(Token token);
 
   /// Return the comma separating the exception parameter from the stack trace
   /// parameter, or `null` if there is no stack trace parameter.
@@ -874,7 +881,7 @@ abstract class CatchClause implements AstNode {
 
   /// Set the comma separating the exception parameter from the stack trace
   /// parameter to the given [token].
-  void set comma(Token token);
+  set comma(Token token);
 
   /// Return the parameter whose value will be the exception that was thrown, or
   /// `null` if there is no 'catch' keyword.
@@ -882,7 +889,7 @@ abstract class CatchClause implements AstNode {
 
   /// Set the parameter whose value will be the exception that was thrown to the
   /// given [parameter].
-  void set exceptionParameter(SimpleIdentifier parameter);
+  set exceptionParameter(SimpleIdentifier parameter);
 
   /// Return the type of exceptions caught by this catch clause, or `null` if
   /// this catch clause catches every type of exception.
@@ -890,26 +897,26 @@ abstract class CatchClause implements AstNode {
 
   /// Set the type of exceptions caught by this catch clause to the given
   /// [exceptionType].
-  void set exceptionType(TypeAnnotation exceptionType);
+  set exceptionType(TypeAnnotation exceptionType);
 
   /// Return the left parenthesis, or `null` if there is no 'catch' keyword.
   Token get leftParenthesis;
 
   /// Set the left parenthesis to the given [token].
-  void set leftParenthesis(Token token);
+  set leftParenthesis(Token token);
 
   /// Return the token representing the 'on' keyword, or `null` if there is no
   /// 'on' keyword.
   Token get onKeyword;
 
   /// Set the token representing the 'on' keyword to the given [token].
-  void set onKeyword(Token token);
+  set onKeyword(Token token);
 
   /// Return the right parenthesis, or `null` if there is no 'catch' keyword.
   Token get rightParenthesis;
 
   /// Set the right parenthesis to the given [token].
-  void set rightParenthesis(Token token);
+  set rightParenthesis(Token token);
 
   /// Return the parameter whose value will be the stack trace associated with
   /// the exception, or `null` if there is no stack trace parameter.
@@ -917,7 +924,7 @@ abstract class CatchClause implements AstNode {
 
   /// Set the parameter whose value will be the stack trace associated with the
   /// exception to the given [parameter].
-  void set stackTraceParameter(SimpleIdentifier parameter);
+  set stackTraceParameter(SimpleIdentifier parameter);
 }
 
 /// The declaration of a class.
@@ -934,58 +941,56 @@ abstract class ClassDeclaration implements ClassOrMixinDeclaration {
   Token get abstractKeyword;
 
   /// Set the 'abstract' keyword to the given [token].
-  void set abstractKeyword(Token token);
+  set abstractKeyword(Token token);
 
   /// Return the token representing the 'class' keyword.
   Token get classKeyword;
 
   /// Set the token representing the 'class' keyword.
-  void set classKeyword(Token token);
-
-  @deprecated
-  @override
-  ClassElement get element;
+  set classKeyword(Token token);
 
   /// Return the extends clause for this class, or `null` if the class does not
   /// extend any other class.
   ExtendsClause get extendsClause;
 
   /// Set the extends clause for this class to the given [extendsClause].
-  void set extendsClause(ExtendsClause extendsClause);
+  set extendsClause(ExtendsClause extendsClause);
 
   /// Set the implements clause for the class to the given [implementsClause].
-  void set implementsClause(ImplementsClause implementsClause);
+  set implementsClause(ImplementsClause implementsClause);
 
   /// Return `true` if this class is declared to be an abstract class.
   bool get isAbstract;
 
   /// Set the left curly bracket to the given [token].
-  void set leftBracket(Token token);
+  set leftBracket(Token token);
 
   /// Return the native clause for this class, or `null` if the class does not
   /// have a native clause.
   NativeClause get nativeClause;
 
   /// Set the native clause for this class to the given [nativeClause].
-  void set nativeClause(NativeClause nativeClause);
+  set nativeClause(NativeClause nativeClause);
 
   /// Set the right curly bracket to the given [token].
-  void set rightBracket(Token token);
+  set rightBracket(Token token);
 
   /// Set the type parameters for the class to the given list of
   /// [typeParameters].
-  void set typeParameters(TypeParameterList typeParameters);
+  set typeParameters(TypeParameterList typeParameters);
 
   /// Return the with clause for the class, or `null` if the class does not have
   /// a with clause.
   WithClause get withClause;
 
   /// Set the with clause for the class to the given [withClause].
-  void set withClause(WithClause withClause);
+  set withClause(WithClause withClause);
 
   /// Return the constructor declared in the class with the given [name], or
-  /// `null` if there is no such constructor. If the [name] is `null` then the
-  /// default constructor will be searched for.
+  /// `null` if there is no such constructor.
+  ///
+  /// If the [name] is `null` then the default constructor will be searched
+  /// for.
   ConstructorDeclaration getConstructor(String name);
 }
 
@@ -1045,7 +1050,7 @@ abstract class ClassTypeAlias implements TypeAlias {
   Token get abstractKeyword;
 
   /// Set the token for the 'abstract' keyword to the given [token].
-  void set abstractKeyword(Token token);
+  set abstractKeyword(Token token);
 
   @override
   ClassElement get declaredElement;
@@ -1055,14 +1060,14 @@ abstract class ClassTypeAlias implements TypeAlias {
 
   /// Set the token for the '=' separating the name from the definition to the
   /// given [token].
-  void set equals(Token token);
+  set equals(Token token);
 
   /// Return the implements clause for this class, or `null` if there is no
   /// implements clause.
   ImplementsClause get implementsClause;
 
   /// Set the implements clause for this class to the given [implementsClause].
-  void set implementsClause(ImplementsClause implementsClause);
+  set implementsClause(ImplementsClause implementsClause);
 
   /// Return `true` if this class is declared to be an abstract class.
   bool get isAbstract;
@@ -1072,7 +1077,7 @@ abstract class ClassTypeAlias implements TypeAlias {
 
   /// Set the name of the superclass of the class being declared to the given
   /// [superclass] name.
-  void set superclass(TypeName superclass);
+  set superclass(TypeName superclass);
 
   /// Return the type parameters for the class, or `null` if the class does not
   /// have any type parameters.
@@ -1080,13 +1085,13 @@ abstract class ClassTypeAlias implements TypeAlias {
 
   /// Set the type parameters for the class to the given list of
   /// [typeParameters].
-  void set typeParameters(TypeParameterList typeParameters);
+  set typeParameters(TypeParameterList typeParameters);
 
   /// Return the with clause for this class.
   WithClause get withClause;
 
   /// Set the with clause for this class to the given with [withClause].
-  void set withClause(WithClause withClause);
+  set withClause(WithClause withClause);
 }
 
 /// An element in a list, map or set literal.
@@ -1115,7 +1120,7 @@ abstract class Combinator implements AstNode {
 
   /// Set the 'hide' or 'show' keyword specifying what kind of processing is
   /// to be done on the names to the given [token].
-  void set keyword(Token token);
+  set keyword(Token token);
 }
 
 /// A comment within the source code.
@@ -1164,14 +1169,14 @@ abstract class CommentReference implements AstNode {
   Identifier get identifier;
 
   /// Set the identifier being referenced to the given [identifier].
-  void set identifier(Identifier identifier);
+  set identifier(Identifier identifier);
 
   /// Return the token representing the 'new' keyword, or `null` if there was no
   /// 'new' keyword.
   Token get newKeyword;
 
   /// Set the token representing the 'new' keyword to the given [token].
-  void set newKeyword(Token token);
+  set newKeyword(Token token);
 }
 
 /// A compilation unit.
@@ -1200,7 +1205,7 @@ abstract class CommentReference implements AstNode {
 abstract class CompilationUnit implements AstNode {
   /// Set the first token included in this node's source range to the given
   /// [token].
-  void set beginToken(Token token);
+  set beginToken(Token token);
 
   /// Return the declarations contained in this compilation unit.
   NodeList<CompilationUnitMember> get declarations;
@@ -1212,18 +1217,13 @@ abstract class CompilationUnit implements AstNode {
   /// Return the directives contained in this compilation unit.
   NodeList<Directive> get directives;
 
-  /// Return the element associated with this compilation unit, or `null` if the
-  /// AST structure has not been resolved.
-  @deprecated
-  CompilationUnitElement get element;
-
   /// Set the element associated with this compilation unit to the given
   /// [element].
-  void set element(CompilationUnitElement element);
+  set element(CompilationUnitElement element);
 
   /// Set the last token included in this node's source range to the given
   /// [token].
-  void set endToken(Token token);
+  set endToken(Token token);
 
   /// The set of features available to this compilation unit, or `null` if
   /// unknown.
@@ -1233,14 +1233,18 @@ abstract class CompilationUnit implements AstNode {
   /// directive in a comment at the top of the file.
   ///
   /// Might be `null` if, for example, this [CompilationUnit] has been
-  /// resynthesized from a summary,
+  /// resynthesized from a summary.
   FeatureSet get featureSet;
+
+  /// The language version override specified for this compilation unit using a
+  /// token like '// @dart = 2.7', or `null` if no override is specified.
+  LanguageVersionToken get languageVersionToken;
 
   /// Return the line information for this compilation unit.
   LineInfo get lineInfo;
 
   /// Set the line information for this compilation unit to the given [info].
-  void set lineInfo(LineInfo info);
+  set lineInfo(LineInfo info);
 
   /// Return the script tag at the beginning of the compilation unit, or `null`
   /// if there is no script tag in this compilation unit.
@@ -1248,7 +1252,7 @@ abstract class CompilationUnit implements AstNode {
 
   /// Set the script tag at the beginning of the compilation unit to the given
   /// [scriptTag].
-  void set scriptTag(ScriptTag scriptTag);
+  set scriptTag(ScriptTag scriptTag);
 
   /// Return a list containing all of the directives and declarations in this
   /// compilation unit, sorted in lexical order.
@@ -1260,11 +1264,12 @@ abstract class CompilationUnit implements AstNode {
 ///
 ///    compilationUnitMember ::=
 ///        [ClassDeclaration]
+///      | [MixinDeclaration]
+///      | [ExtensionDeclaration]
+///      | [EnumDeclaration]
 ///      | [TypeAlias]
 ///      | [FunctionDeclaration]
-///      | [MethodDeclaration]
-///      | [VariableDeclaration]
-///      | [VariableDeclaration]
+///      | [TopLevelVariableDeclaration]
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class CompilationUnitMember implements Declaration {}
@@ -1282,7 +1287,7 @@ abstract class ConditionalExpression implements Expression {
 
   /// Set the token used to separate the then expression from the else
   /// expression to the given [token].
-  void set colon(Token token);
+  set colon(Token token);
 
   /// Return the condition used to determine which of the expressions is
   /// executed next.
@@ -1290,7 +1295,7 @@ abstract class ConditionalExpression implements Expression {
 
   /// Set the condition used to determine which of the expressions is executed
   /// next to the given [expression].
-  void set condition(Expression expression);
+  set condition(Expression expression);
 
   /// Return the expression that is executed if the condition evaluates to
   /// `false`.
@@ -1298,14 +1303,14 @@ abstract class ConditionalExpression implements Expression {
 
   /// Set the expression that is executed if the condition evaluates to `false`
   /// to the given [expression].
-  void set elseExpression(Expression expression);
+  set elseExpression(Expression expression);
 
   /// Return the token used to separate the condition from the then expression.
   Token get question;
 
   /// Set the token used to separate the condition from the then expression to
   /// the given [token].
-  void set question(Token token);
+  set question(Token token);
 
   /// Return the expression that is executed if the condition evaluates to
   /// `true`.
@@ -1313,7 +1318,7 @@ abstract class ConditionalExpression implements Expression {
 
   /// Set the expression that is executed if the condition evaluates to `true`
   /// to the given [expression].
-  void set thenExpression(Expression expression);
+  set thenExpression(Expression expression);
 }
 
 /// A configuration in either an import or export directive.
@@ -1334,19 +1339,19 @@ abstract class Configuration implements AstNode {
   Token get equalToken;
 
   /// Set the token for the equal operator to the given [token].
-  void set equalToken(Token token);
+  set equalToken(Token token);
 
   /// Return the token for the 'if' keyword.
   Token get ifKeyword;
 
   /// Set the token for the 'if' keyword to the given [token].
-  void set ifKeyword(Token token);
+  set ifKeyword(Token token);
 
   /// Return the token for the left parenthesis.
   Token get leftParenthesis;
 
   /// Set the token for the left parenthesis to the given [token].
-  void set leftParenthesis(Token token);
+  set leftParenthesis(Token token);
 
   /// Return the URI of the implementation library to be used if the condition
   /// is true.
@@ -1356,7 +1361,7 @@ abstract class Configuration implements AstNode {
   /// Set the URI of the implementation library to be used if the condition is
   /// true to the given [uri].
   @deprecated
-  void set libraryUri(StringLiteral uri);
+  set libraryUri(StringLiteral uri);
 
   /// Return the name of the declared variable whose value is being used in the
   /// condition.
@@ -1364,13 +1369,13 @@ abstract class Configuration implements AstNode {
 
   /// Set the name of the declared variable whose value is being used in the
   /// condition to the given [name].
-  void set name(DottedName name);
+  set name(DottedName name);
 
   /// Return the token for the right parenthesis.
   Token get rightParenthesis;
 
   /// Set the token for the right parenthesis to the given [token].
-  void set rightParenthesis(Token token);
+  set rightParenthesis(Token token);
 
   /// Return the URI of the implementation library to be used if the condition
   /// is true.
@@ -1378,13 +1383,13 @@ abstract class Configuration implements AstNode {
 
   /// Set the URI of the implementation library to be used if the condition is
   /// true to the given [uri].
-  void set uri(StringLiteral uri);
+  set uri(StringLiteral uri);
 
   /// Return the source to which the [uri] was resolved.
   Source get uriSource;
 
   /// Set the source to which the [uri] was resolved to the given [source].
-  void set uriSource(Source source);
+  set uriSource(Source source);
 
   /// Return the value to which the value of the declared variable will be
   /// compared, or `null` if the condition does not include an equality test.
@@ -1392,7 +1397,7 @@ abstract class Configuration implements AstNode {
 
   /// Set the value to which the value of the declared variable will be
   /// compared to the given [value].
-  void set value(StringLiteral value);
+  set value(StringLiteral value);
 }
 
 /// A constructor declaration.
@@ -1422,38 +1427,34 @@ abstract class ConstructorDeclaration implements ClassMember {
   FunctionBody get body;
 
   /// Set the body of the constructor to the given [functionBody].
-  void set body(FunctionBody functionBody);
+  set body(FunctionBody functionBody);
 
   /// Return the token for the 'const' keyword, or `null` if the constructor is
   /// not a const constructor.
   Token get constKeyword;
 
   /// Set the token for the 'const' keyword to the given [token].
-  void set constKeyword(Token token);
+  set constKeyword(Token token);
 
   @override
   ConstructorElement get declaredElement;
 
-  @override
-  @deprecated
-  ConstructorElement get element;
-
   /// Set the element associated with this constructor to the given [element].
-  void set element(ConstructorElement element);
+  set element(ConstructorElement element);
 
   /// Return the token for the 'external' keyword to the given [token].
   Token get externalKeyword;
 
   /// Set the token for the 'external' keyword, or `null` if the constructor
   /// is not external.
-  void set externalKeyword(Token token);
+  set externalKeyword(Token token);
 
   /// Return the token for the 'factory' keyword, or `null` if the constructor
   /// is not a factory constructor.
   Token get factoryKeyword;
 
   /// Set the token for the 'factory' keyword to the given [token].
-  void set factoryKeyword(Token token);
+  set factoryKeyword(Token token);
 
   /// Return the initializers associated with the constructor.
   NodeList<ConstructorInitializer> get initializers;
@@ -1463,14 +1464,14 @@ abstract class ConstructorDeclaration implements ClassMember {
   SimpleIdentifier get name;
 
   /// Set the name of the constructor to the given [identifier].
-  void set name(SimpleIdentifier identifier);
+  set name(SimpleIdentifier identifier);
 
   /// Return the parameters associated with the constructor.
   FormalParameterList get parameters;
 
   /// Set the parameters associated with the constructor to the given list of
   /// [parameters].
-  void set parameters(FormalParameterList parameters);
+  set parameters(FormalParameterList parameters);
 
   /// Return the token for the period before the constructor name, or `null` if
   /// the constructor being declared is unnamed.
@@ -1478,7 +1479,7 @@ abstract class ConstructorDeclaration implements ClassMember {
 
   /// Set the token for the period before the constructor name to the given
   /// [token].
-  void set period(Token token);
+  set period(Token token);
 
   /// Return the name of the constructor to which this constructor will be
   /// redirected, or `null` if this is not a redirecting factory constructor.
@@ -1486,15 +1487,17 @@ abstract class ConstructorDeclaration implements ClassMember {
 
   /// Set the name of the constructor to which this constructor will be
   /// redirected to the given [redirectedConstructor] name.
-  void set redirectedConstructor(ConstructorName redirectedConstructor);
+  set redirectedConstructor(ConstructorName redirectedConstructor);
 
-  /// Return the type of object being created. This can be different than the
-  /// type in which the constructor is being declared if the constructor is the
-  /// implementation of a factory constructor.
+  /// Return the type of object being created.
+  ///
+  /// This can be different than the type in which the constructor is being
+  /// declared if the constructor is the implementation of a factory
+  /// constructor.
   Identifier get returnType;
 
   /// Set the type of object being created to the given [typeName].
-  void set returnType(Identifier typeName);
+  set returnType(Identifier typeName);
 
   /// Return the token for the separator (colon or equals) before the
   /// initializer list or redirection, or `null` if there are no initializers.
@@ -1502,7 +1505,7 @@ abstract class ConstructorDeclaration implements ClassMember {
 
   /// Set the token for the separator (colon or equals) before the initializer
   /// list or redirection to the given [token].
-  void set separator(Token token);
+  set separator(Token token);
 }
 
 /// The initialization of a field within a constructor's initialization list.
@@ -1518,7 +1521,7 @@ abstract class ConstructorFieldInitializer implements ConstructorInitializer {
 
   /// Set the token for the equal sign between the field name and the
   /// expression to the given [token].
-  void set equals(Token token);
+  set equals(Token token);
 
   /// Return the expression computing the value to which the field will be
   /// initialized.
@@ -1526,13 +1529,13 @@ abstract class ConstructorFieldInitializer implements ConstructorInitializer {
 
   /// Set the expression computing the value to which the field will be
   /// initialized to the given [expression].
-  void set expression(Expression expression);
+  set expression(Expression expression);
 
   /// Return the name of the field being initialized.
   SimpleIdentifier get fieldName;
 
   /// Set the name of the field being initialized to the given [identifier].
-  void set fieldName(SimpleIdentifier identifier);
+  set fieldName(SimpleIdentifier identifier);
 
   /// Return the token for the period after the 'this' keyword, or `null` if
   /// there is no 'this' keyword.
@@ -1540,14 +1543,14 @@ abstract class ConstructorFieldInitializer implements ConstructorInitializer {
 
   /// Set the token for the period after the 'this' keyword to the given
   /// [token].
-  void set period(Token token);
+  set period(Token token);
 
   /// Return the token for the 'this' keyword, or `null` if there is no 'this'
   /// keyword.
   Token get thisKeyword;
 
   /// Set the token for the 'this' keyword to the given [token].
-  void set thisKeyword(Token token);
+  set thisKeyword(Token token);
 }
 
 /// A node that can occur in the initializer list of a constructor declaration.
@@ -1572,7 +1575,7 @@ abstract class ConstructorName implements AstNode, ConstructorReferenceNode {
   SimpleIdentifier get name;
 
   /// Set the name of the constructor to the given [name].
-  void set name(SimpleIdentifier name);
+  set name(SimpleIdentifier name);
 
   /// Return the token for the period before the constructor name, or `null` if
   /// the specified constructor is the unnamed constructor.
@@ -1580,14 +1583,14 @@ abstract class ConstructorName implements AstNode, ConstructorReferenceNode {
 
   /// Set the token for the period before the constructor name to the given
   /// [token].
-  void set period(Token token);
+  set period(Token token);
 
   /// Return the name of the type defining the constructor.
   TypeName get type;
 
   /// Set the name of the type defining the constructor to the given [type]
   /// name.
-  void set type(TypeName type);
+  set type(TypeName type);
 }
 
 /// An AST node that makes reference to a constructor.
@@ -1601,7 +1604,7 @@ abstract class ConstructorReferenceNode implements AstNode {
 
   /// Set the element associated with the referenced constructor based on static
   /// type information to the given [element].
-  void set staticElement(ConstructorElement element);
+  set staticElement(ConstructorElement element);
 }
 
 /// A continue statement.
@@ -1615,36 +1618,39 @@ abstract class ContinueStatement implements Statement {
   Token get continueKeyword;
 
   /// Set the token representing the 'continue' keyword to the given [token].
-  void set continueKeyword(Token token);
+  set continueKeyword(Token token);
 
   /// Return the label associated with the statement, or `null` if there is no
   /// label.
   SimpleIdentifier get label;
 
   /// Set the label associated with the statement to the given [identifier].
-  void set label(SimpleIdentifier identifier);
+  set label(SimpleIdentifier identifier);
 
   /// Return the semicolon terminating the statement.
   Token get semicolon;
 
   /// Set the semicolon terminating the statement to the given [token].
-  void set semicolon(Token token);
+  set semicolon(Token token);
 
-  /// Return the node to which this continue statement is continuing. This will
-  /// be either a [Statement] (in the case of continuing a loop), a
+  /// Return the node to which this continue statement is continuing.
+  ///
+  /// This will be either a [Statement] (in the case of continuing a loop), a
   /// [SwitchMember] (in the case of continuing from one switch case to
   /// another), or `null` if the AST has not yet been resolved or if the target
-  /// could not be resolved. Note that if the source code has errors, the target
-  /// might be invalid (e.g. the target may be in an enclosing function).
+  /// could not be resolved. Note that if the source code has errors, the
+  /// target might be invalid (e.g. the target may be in an enclosing
+  /// function).
   AstNode get target;
 
   /// Set the node to which this continue statement is continuing to the given
   /// [node].
-  void set target(AstNode node);
+  set target(AstNode node);
 }
 
-/// A node that represents the declaration of one or more names. Each declared
-/// name is visible within a name scope.
+/// A node that represents the declaration of one or more names.
+///
+/// Each declared name is visible within a name scope.
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class Declaration implements AnnotatedNode {
@@ -1652,12 +1658,6 @@ abstract class Declaration implements AnnotatedNode {
   /// this node corresponds to a list of declarations or if the AST structure
   /// has not been resolved.
   Element get declaredElement;
-
-  /// Return the element associated with this declaration, or `null` if either
-  /// this node corresponds to a list of declarations or if the AST structure
-  /// has not been resolved.
-  @deprecated
-  Element get element;
 }
 
 /// The declaration of a single identifier.
@@ -1670,15 +1670,11 @@ abstract class DeclaredIdentifier implements Declaration {
   @override
   LocalVariableElement get declaredElement;
 
-  @deprecated
-  @override
-  LocalVariableElement get element;
-
   /// Return the name of the variable being declared.
   SimpleIdentifier get identifier;
 
   /// Set the name of the variable being declared to the given [identifier].
-  void set identifier(SimpleIdentifier identifier);
+  set identifier(SimpleIdentifier identifier);
 
   /// Return `true` if this variable was declared with the 'const' modifier.
   bool get isConst;
@@ -1694,19 +1690,20 @@ abstract class DeclaredIdentifier implements Declaration {
 
   /// Set the token representing either the 'final', 'const' or 'var' keyword to
   /// the given [token].
-  void set keyword(Token token);
+  set keyword(Token token);
 
   /// Return the name of the declared type of the parameter, or `null` if the
   /// parameter does not have a declared type.
   TypeAnnotation get type;
 
   /// Set the declared type of the parameter to the given [type].
-  void set type(TypeAnnotation type);
+  set type(TypeAnnotation type);
 }
 
-/// A formal parameter with a default value. There are two kinds of parameters
-/// that are both represented by this class: named formal parameters and
-/// positional formal parameters.
+/// A formal parameter with a default value.
+///
+/// There are two kinds of parameters that are both represented by this class:
+/// named formal parameters and positional formal parameters.
 ///
 ///    defaultFormalParameter ::=
 ///        [NormalFormalParameter] ('=' [Expression])?
@@ -1722,17 +1719,17 @@ abstract class DefaultFormalParameter implements FormalParameter {
 
   /// Set the expression computing the default value for the parameter to the
   /// given [expression].
-  void set defaultValue(Expression expression);
+  set defaultValue(Expression expression);
 
   /// Set the kind of this parameter to the given [kind].
-  void set kind(ParameterKind kind);
+  set kind(ParameterKind kind);
 
   /// Return the formal parameter with which the default value is associated.
   NormalFormalParameter get parameter;
 
   /// Set the formal parameter with which the default value is associated to the
   /// given [formalParameter].
-  void set parameter(NormalFormalParameter formalParameter);
+  set parameter(NormalFormalParameter formalParameter);
 
   /// Return the token separating the parameter from the default value, or
   /// `null` if there is no default value.
@@ -1740,7 +1737,7 @@ abstract class DefaultFormalParameter implements FormalParameter {
 
   /// Set the token separating the parameter from the default value to the given
   /// [token].
-  void set separator(Token token);
+  set separator(Token token);
 }
 
 /// A node that represents a directive.
@@ -1760,7 +1757,7 @@ abstract class Directive implements AnnotatedNode {
   Element get element;
 
   /// Set the element associated with this directive to the given [element].
-  void set element(Element element);
+  set element(Element element);
 
   /// Return the token representing the keyword that introduces this directive
   /// ('import', 'export', 'library' or 'part').
@@ -1778,44 +1775,44 @@ abstract class DoStatement implements Statement {
   Statement get body;
 
   /// Set the body of the loop to the given [statement].
-  void set body(Statement statement);
+  set body(Statement statement);
 
   /// Return the condition that determines when the loop will terminate.
   Expression get condition;
 
   /// Set the condition that determines when the loop will terminate to the
   /// given [expression].
-  void set condition(Expression expression);
+  set condition(Expression expression);
 
   /// Return the token representing the 'do' keyword.
   Token get doKeyword;
 
   /// Set the token representing the 'do' keyword to the given [token].
-  void set doKeyword(Token token);
+  set doKeyword(Token token);
 
   /// Return the left parenthesis.
   Token get leftParenthesis;
 
   /// Set the left parenthesis to the given [token].
-  void set leftParenthesis(Token token);
+  set leftParenthesis(Token token);
 
   /// Return the right parenthesis.
   Token get rightParenthesis;
 
   /// Set the right parenthesis to the given [token].
-  void set rightParenthesis(Token token);
+  set rightParenthesis(Token token);
 
   /// Return the semicolon terminating the statement.
   Token get semicolon;
 
   /// Set the semicolon terminating the statement to the given [token].
-  void set semicolon(Token token);
+  set semicolon(Token token);
 
   /// Return the token representing the 'while' keyword.
   Token get whileKeyword;
 
   /// Set the token representing the 'while' keyword to the given [token].
-  void set whileKeyword(Token token);
+  set whileKeyword(Token token);
 }
 
 /// A dotted name, used in a configuration within an import or export directive.
@@ -1844,13 +1841,13 @@ abstract class DoubleLiteral implements Literal {
   Token get literal;
 
   /// Set the token representing the literal to the given [token].
-  void set literal(Token token);
+  set literal(Token token);
 
   /// Return the value of the literal.
   double get value;
 
   /// Set the value of the literal to the given [value].
-  void set value(double value);
+  set value(double value);
 }
 
 /// An empty function body, which can only appear in constructors or abstract
@@ -1867,7 +1864,7 @@ abstract class EmptyFunctionBody implements FunctionBody {
 
   /// Set the token representing the semicolon that marks the end of the
   /// function body to the given [token].
-  void set semicolon(Token token);
+  set semicolon(Token token);
 }
 
 /// An empty statement.
@@ -1881,7 +1878,7 @@ abstract class EmptyStatement implements Statement {
   Token get semicolon;
 
   /// Set the semicolon terminating the statement to the given [token].
-  void set semicolon(Token token);
+  set semicolon(Token token);
 }
 
 /// The declaration of an enum constant.
@@ -1892,7 +1889,7 @@ abstract class EnumConstantDeclaration implements Declaration {
   SimpleIdentifier get name;
 
   /// Set the name of the constant to the given [name].
-  void set name(SimpleIdentifier name);
+  set name(SimpleIdentifier name);
 }
 
 /// The declaration of an enumeration.
@@ -1908,27 +1905,23 @@ abstract class EnumDeclaration implements NamedCompilationUnitMember {
   @override
   ClassElement get declaredElement;
 
-  @deprecated
-  @override
-  ClassElement get element;
-
   /// Return the 'enum' keyword.
   Token get enumKeyword;
 
   /// Set the 'enum' keyword to the given [token].
-  void set enumKeyword(Token token);
+  set enumKeyword(Token token);
 
   /// Return the left curly bracket.
   Token get leftBracket;
 
   /// Set the left curly bracket to the given [token].
-  void set leftBracket(Token token);
+  set leftBracket(Token token);
 
   /// Return the right curly bracket.
   Token get rightBracket;
 
   /// Set the right curly bracket to the given [token].
-  void set rightBracket(Token token);
+  set rightBracket(Token token);
 }
 
 /// An export directive.
@@ -1948,71 +1941,16 @@ abstract class ExportDirective implements NamespaceDirective {}
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class Expression implements CollectionElement {
-  /// Return the best parameter element information available for this
-  /// expression. If type propagation was able to find a better parameter
-  /// element than static analysis, that type will be returned. Otherwise, the
-  /// result of static analysis will be returned.
-  ///
-  /// Deprecated: The analyzer no longer computes propagated type information.
-  /// Use [staticParameterElement] instead.
-  @deprecated
-  ParameterElement get bestParameterElement;
-
-  /// Return the best type information available for this expression. If type
-  /// propagation was able to find a better type than static analysis, that type
-  /// will be returned. Otherwise, the result of static analysis will be
-  /// returned. If no type analysis has been performed, then the type 'dynamic'
-  /// will be returned.
-  ///
-  /// Deprecated: The analyzer no longer computes propagated type information.
-  /// Use [staticType] instead, but be aware that [staticType] will return
-  /// `null` under some circumstances, while [bestType] did not.
-  @deprecated
-  DartType get bestType;
-
   /// Return `true` if this expression is syntactically valid for the LHS of an
   /// [AssignmentExpression].
   bool get isAssignable;
 
-  /// Return the precedence of this expression. The precedence is a positive
-  /// integer value that defines how the source code is parsed into an AST. For
-  /// example `a * b + c` is parsed as `(a * b) + c` because the precedence of
-  /// `*` is greater than the precedence of `+`.
+  /// Return the precedence of this expression.
+  ///
+  /// The precedence is a positive integer value that defines how the source
+  /// code is parsed into an AST. For example `a * b + c` is parsed as `(a * b)
+  /// + c` because the precedence of `*` is greater than the precedence of `+`.
   Precedence get precedence;
-
-  /// Return the precedence of this expression. The precedence is a positive
-  /// integer value that defines how the source code is parsed into an AST. For
-  /// example `a * b + c` is parsed as `(a * b) + c` because the precedence of
-  /// `*` is greater than the precedence of `+`.
-  @Deprecated('Use precedence')
-  Precedence get precedence2;
-
-  /// If this expression is an argument to an invocation, and the AST structure
-  /// has been resolved, and the function being invoked is known based on
-  /// propagated type information, and this expression corresponds to one of the
-  /// parameters of the function being invoked, then return the parameter
-  /// element representing the parameter to which the value of this expression
-  /// will be bound. Otherwise, return `null`.
-  ///
-  /// Deprecated: The analyzer no longer computes propagated type information.
-  /// Use [staticParameterElement] instead.
-  @deprecated
-  ParameterElement get propagatedParameterElement;
-
-  /// Return the propagated type of this expression, or `null` if type
-  /// propagation has not been performed on the AST structure.
-  ///
-  /// Deprecated: The analyzer no longer computes propagated type information.
-  /// Use [staticType] instead.
-  @deprecated
-  DartType get propagatedType;
-
-  /// Set the propagated type of this expression to the given [type].
-  ///
-  /// Deprecated: The analyzer no longer computes propagated type information.
-  /// Use [staticType] instead.
-  @deprecated
-  void set propagatedType(DartType type);
 
   /// If this expression is an argument to an invocation, and the AST structure
   /// has been resolved, and the function being invoked is known based on static
@@ -2027,7 +1965,7 @@ abstract class Expression implements CollectionElement {
   DartType get staticType;
 
   /// Set the static type of this expression to the given [type].
-  void set staticType(DartType type);
+  set staticType(DartType type);
 
   /// If this expression is a parenthesized expression, return the result of
   /// unwrapping the expression inside the parentheses. Otherwise, return this
@@ -2047,7 +1985,7 @@ abstract class ExpressionFunctionBody implements FunctionBody {
 
   /// Set the expression representing the body of the function to the given
   /// [expression].
-  void set expression(Expression expression);
+  set expression(Expression expression);
 
   /// Return the token introducing the expression that represents the body of the
   /// function.
@@ -2055,16 +1993,16 @@ abstract class ExpressionFunctionBody implements FunctionBody {
 
   /// Set the token introducing the expression that represents the body of the
   /// function to the given [token].
-  void set functionDefinition(Token token);
+  set functionDefinition(Token token);
 
   /// Set token representing the 'async' or 'sync' keyword to the given [token].
-  void set keyword(Token token);
+  set keyword(Token token);
 
   /// Return the semicolon terminating the statement.
   Token get semicolon;
 
   /// Set the semicolon terminating the statement to the given [token].
-  void set semicolon(Token token);
+  set semicolon(Token token);
 }
 
 /// An expression used as a statement.
@@ -2078,7 +2016,7 @@ abstract class ExpressionStatement implements Statement {
   Expression get expression;
 
   /// Set the expression that comprises the statement to the given [expression].
-  void set expression(Expression expression);
+  set expression(Expression expression);
 
   /// Return the semicolon terminating the statement, or `null` if the
   /// expression is a function expression and therefore isn't followed by a
@@ -2086,7 +2024,7 @@ abstract class ExpressionStatement implements Statement {
   Token get semicolon;
 
   /// Set the semicolon terminating the statement to the given [token].
-  void set semicolon(Token token);
+  set semicolon(Token token);
 }
 
 /// The "extends" clause in a class declaration.
@@ -2100,13 +2038,13 @@ abstract class ExtendsClause implements AstNode {
   Token get extendsKeyword;
 
   /// Set the token representing the 'extends' keyword to the given [token].
-  void set extendsKeyword(Token token);
+  set extendsKeyword(Token token);
 
   /// Return the name of the class that is being extended.
   TypeName get superclass;
 
   /// Set the name of the class that is being extended to the given [name].
-  void set superclass(TypeName name);
+  set superclass(TypeName name);
 }
 
 /// The declaration of an extension of a type.
@@ -2202,13 +2140,13 @@ abstract class FieldDeclaration implements ClassMember {
   Token get covariantKeyword;
 
   /// Set the token for the 'covariant' keyword to the given [token].
-  void set covariantKeyword(Token token);
+  set covariantKeyword(Token token);
 
   /// Return the fields being declared.
   VariableDeclarationList get fields;
 
   /// Set the fields being declared to the given list of [fields].
-  void set fields(VariableDeclarationList fields);
+  set fields(VariableDeclarationList fields);
 
   /// Return `true` if the fields are declared to be static.
   bool get isStatic;
@@ -2217,14 +2155,14 @@ abstract class FieldDeclaration implements ClassMember {
   Token get semicolon;
 
   /// Set the semicolon terminating the declaration to the given [token].
-  void set semicolon(Token token);
+  set semicolon(Token token);
 
   /// Return the token representing the 'static' keyword, or `null` if the
   /// fields are not static.
   Token get staticKeyword;
 
   /// Set the token representing the 'static' keyword to the given [token].
-  void set staticKeyword(Token token);
+  set staticKeyword(Token token);
 }
 
 /// A field formal parameter.
@@ -2241,7 +2179,7 @@ abstract class FieldFormalParameter implements NormalFormalParameter {
 
   /// Set the token representing either the 'final', 'const' or 'var' keyword to
   /// the given [token].
-  void set keyword(Token token);
+  set keyword(Token token);
 
   /// Return the parameters of the function-typed parameter, or `null` if this
   /// is not a function-typed field formal parameter.
@@ -2249,27 +2187,34 @@ abstract class FieldFormalParameter implements NormalFormalParameter {
 
   /// Set the parameters of the function-typed parameter to the given
   /// [parameters].
-  void set parameters(FormalParameterList parameters);
+  set parameters(FormalParameterList parameters);
 
   /// Return the token representing the period.
   Token get period;
 
   /// Set the token representing the period to the given [token].
-  void set period(Token token);
+  set period(Token token);
+
+  /// If the parameter is function-typed, and has the question mark, then its
+  /// function type is nullable. Having a nullable function type means that the
+  /// parameter can be null.
+  Token get question;
 
   /// Return the token representing the 'this' keyword.
   Token get thisKeyword;
 
   /// Set the token representing the 'this' keyword to the given [token].
-  void set thisKeyword(Token token);
+  set thisKeyword(Token token);
 
   /// Return the declared type of the parameter, or `null` if the parameter does
-  /// not have a declared type. Note that if this is a function-typed field
-  /// formal parameter this is the return type of the function.
+  /// not have a declared type.
+  ///
+  /// Note that if this is a function-typed field formal parameter this is the
+  /// return type of the function.
   TypeAnnotation get type;
 
   /// Set the declared type of the parameter to the given [type].
-  void set type(TypeAnnotation type);
+  set type(TypeAnnotation type);
 
   /// Return the type parameters associated with this method, or `null` if this
   /// method is not a generic method.
@@ -2277,7 +2222,7 @@ abstract class FieldFormalParameter implements NormalFormalParameter {
 
   /// Set the type parameters associated with this method to the given
   /// [typeParameters].
-  void set typeParameters(TypeParameterList typeParameters);
+  set typeParameters(TypeParameterList typeParameters);
 }
 
 /// The parts of a for-each loop that control the iteration.
@@ -2368,11 +2313,6 @@ abstract class FormalParameter implements AstNode {
   /// parameter has not been resolved.
   ParameterElement get declaredElement;
 
-  /// Return the element representing this parameter, or `null` if this
-  /// parameter has not been resolved.
-  @deprecated
-  ParameterElement get element;
-
   /// Return the name of the parameter being declared.
   SimpleIdentifier get identifier;
 
@@ -2380,16 +2320,19 @@ abstract class FormalParameter implements AstNode {
   bool get isConst;
 
   /// Return `true` if this parameter was declared with the 'final' modifier.
-  /// Parameters that are declared with the 'const' modifier will return `false`
-  /// even though they are implicitly final.
+  ///
+  /// Parameters that are declared with the 'const' modifier will return
+  /// `false` even though they are implicitly final.
   bool get isFinal;
 
-  /// Return `true` if this parameter is a named parameter. Named parameters can
-  /// either be required or optional.
+  /// Return `true` if this parameter is a named parameter.
+  ///
+  /// Named parameters can either be required or optional.
   bool get isNamed;
 
-  /// Return `true` if this parameter is an optional parameter. Optional
-  /// parameters can either be positional or named.
+  /// Return `true` if this parameter is an optional parameter.
+  ///
+  /// Optional parameters can either be positional or named.
   bool get isOptional;
 
   /// Return `true` if this parameter is both an optional and named parameter.
@@ -2399,12 +2342,14 @@ abstract class FormalParameter implements AstNode {
   /// parameter.
   bool get isOptionalPositional;
 
-  /// Return `true` if this parameter is a positional parameter. Positional
-  /// parameters can either be required or optional.
+  /// Return `true` if this parameter is a positional parameter.
+  ///
+  /// Positional parameters can either be required or optional.
   bool get isPositional;
 
-  /// Return `true` if this parameter is a required parameter. Required
-  /// parameters can either be positional or named.
+  /// Return `true` if this parameter is a required parameter.
+  ///
+  /// Required parameters can either be positional or named.
   ///
   /// Note: this will return `false` for a named parameter that is annotated
   /// with the `@required` annotation.
@@ -2466,17 +2411,19 @@ abstract class FormalParameterList implements AstNode {
 
   /// Set the left square bracket ('[') or left curly brace ('{') introducing
   /// the optional parameters to the given [token].
-  void set leftDelimiter(Token token);
+  set leftDelimiter(Token token);
 
   /// Return the left parenthesis.
   Token get leftParenthesis;
 
   /// Set the left parenthesis to the given [token].
-  void set leftParenthesis(Token token);
+  set leftParenthesis(Token token);
 
   /// Return a list containing the elements representing the parameters in this
-  /// list. The list will contain `null`s if the parameters in this list have
-  /// not been resolved.
+  /// list.
+  ///
+  /// The list will contain `null`s if the parameters in this list have not
+  /// been resolved.
   List<ParameterElement> get parameterElements;
 
   /// Return the parameters associated with the method.
@@ -2489,13 +2436,13 @@ abstract class FormalParameterList implements AstNode {
 
   /// Set the right square bracket (']') or right curly brace ('}') terminating
   /// the optional parameters to the given [token].
-  void set rightDelimiter(Token token);
+  set rightDelimiter(Token token);
 
   /// Return the right parenthesis.
   Token get rightParenthesis;
 
   /// Set the right parenthesis to the given [token].
-  void set rightParenthesis(Token token);
+  set rightParenthesis(Token token);
 }
 
 /// The parts of a for loop that control the iteration.
@@ -2646,23 +2593,19 @@ abstract class FunctionDeclaration implements NamedCompilationUnitMember {
   @override
   ExecutableElement get declaredElement;
 
-  @deprecated
-  @override
-  ExecutableElement get element;
-
   /// Return the token representing the 'external' keyword, or `null` if this is
   /// not an external function.
   Token get externalKeyword;
 
   /// Set the token representing the 'external' keyword to the given [token].
-  void set externalKeyword(Token token);
+  set externalKeyword(Token token);
 
   /// Return the function expression being wrapped.
   FunctionExpression get functionExpression;
 
   /// Set the function expression being wrapped to the given
   /// [functionExpression].
-  void set functionExpression(FunctionExpression functionExpression);
+  set functionExpression(FunctionExpression functionExpression);
 
   /// Return `true` if this function declares a getter.
   bool get isGetter;
@@ -2676,14 +2619,14 @@ abstract class FunctionDeclaration implements NamedCompilationUnitMember {
 
   /// Set the token representing the 'get' or 'set' keyword to the given
   /// [token].
-  void set propertyKeyword(Token token);
+  set propertyKeyword(Token token);
 
   /// Return the return type of the function, or `null` if no return type was
   /// declared.
   TypeAnnotation get returnType;
 
   /// Set the return type of the function to the given [type].
-  void set returnType(TypeAnnotation type);
+  set returnType(TypeAnnotation type);
 }
 
 /// A [FunctionDeclaration] used as a statement.
@@ -2695,7 +2638,7 @@ abstract class FunctionDeclarationStatement implements Statement {
 
   /// Set the function declaration being wrapped to the given
   /// [functionDeclaration].
-  void set functionDeclaration(FunctionDeclaration functionDeclaration);
+  set functionDeclaration(FunctionDeclaration functionDeclaration);
 }
 
 /// A function expression.
@@ -2710,19 +2653,14 @@ abstract class FunctionExpression implements Expression {
   FunctionBody get body;
 
   /// Set the body of the function to the given [functionBody].
-  void set body(FunctionBody functionBody);
+  set body(FunctionBody functionBody);
 
   /// Return the element associated with the function, or `null` if the AST
   /// structure has not been resolved.
   ExecutableElement get declaredElement;
 
-  /// Return the element associated with the function, or `null` if the AST
-  /// structure has not been resolved.
-  @deprecated
-  ExecutableElement get element;
-
   /// Set the element associated with the function to the given [element].
-  void set element(ExecutableElement element);
+  set element(ExecutableElement element);
 
   /// Return the parameters associated with the function, or `null` if the
   /// function is part of a top-level getter.
@@ -2730,7 +2668,7 @@ abstract class FunctionExpression implements Expression {
 
   /// Set the parameters associated with the function to the given list of
   /// [parameters].
-  void set parameters(FormalParameterList parameters);
+  set parameters(FormalParameterList parameters);
 
   /// Return the type parameters associated with this method, or `null` if this
   /// method is not a generic method.
@@ -2738,10 +2676,11 @@ abstract class FunctionExpression implements Expression {
 
   /// Set the type parameters associated with this method to the given
   /// [typeParameters].
-  void set typeParameters(TypeParameterList typeParameters);
+  set typeParameters(TypeParameterList typeParameters);
 }
 
 /// The invocation of a function resulting from evaluating an expression.
+///
 /// Invocations of methods and other forms of functions are represented by
 /// [MethodInvocation] nodes. Invocations of getters and setters are represented
 /// by either [PrefixedIdentifier] or [PropertyAccess] nodes.
@@ -2752,18 +2691,7 @@ abstract class FunctionExpression implements Expression {
 /// Clients may not extend, implement or mix-in this class.
 abstract class FunctionExpressionInvocation implements InvocationExpression {
   /// Set the list of arguments to the method to the given [argumentList].
-  void set argumentList(ArgumentList argumentList);
-
-  /// Return the best element available for the function being invoked. If
-  /// resolution was able to find a better element based on type propagation,
-  /// that element will be returned. Otherwise, the element found using the
-  /// result of static analysis will be returned. If resolution has not been
-  /// performed, then `null` will be returned.
-  ///
-  /// Deprecated: The analyzer no longer computes propagated type information.
-  /// Use [staticElement] instead.
-  @deprecated
-  ExecutableElement get bestElement;
+  set argumentList(ArgumentList argumentList);
 
   /// Return the expression producing the function being invoked.
   @override
@@ -2771,24 +2699,7 @@ abstract class FunctionExpressionInvocation implements InvocationExpression {
 
   /// Set the expression producing the function being invoked to the given
   /// [expression].
-  void set function(Expression expression);
-
-  /// Return the element associated with the function being invoked based on
-  /// propagated type information, or `null` if the AST structure has not been
-  /// resolved or the function could not be resolved.
-  ///
-  /// Deprecated: The analyzer no longer computes propagated type information.
-  /// Use [staticElement] instead.
-  @deprecated
-  ExecutableElement get propagatedElement;
-
-  /// Set the element associated with the function being invoked based on
-  /// propagated type information to the given [element].
-  ///
-  /// Deprecated: The analyzer no longer computes propagated type information.
-  /// Use [staticElement] instead.
-  @deprecated
-  void set propagatedElement(ExecutableElement element);
+  set function(Expression expression);
 
   /// Return the element associated with the function being invoked based on
   /// static type information, or `null` if the AST structure has not been
@@ -2797,11 +2708,11 @@ abstract class FunctionExpressionInvocation implements InvocationExpression {
 
   /// Set the element associated with the function being invoked based on static
   /// type information to the given [element].
-  void set staticElement(ExecutableElement element);
+  set staticElement(ExecutableElement element);
 
   /// Set the type arguments to be applied to the method being invoked to the
   /// given [typeArguments].
-  void set typeArguments(TypeArgumentList typeArguments);
+  set typeArguments(TypeArgumentList typeArguments);
 }
 
 /// A function type alias.
@@ -2814,12 +2725,15 @@ abstract class FunctionExpressionInvocation implements InvocationExpression {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FunctionTypeAlias implements TypeAlias {
+  @override
+  FunctionTypeAliasElement get declaredElement;
+
   /// Return the parameters associated with the function type.
   FormalParameterList get parameters;
 
   /// Set the parameters associated with the function type to the given list of
   /// [parameters].
-  void set parameters(FormalParameterList parameters);
+  set parameters(FormalParameterList parameters);
 
   /// Return the return type of the function type being defined, or `null` if no
   /// return type was given.
@@ -2827,7 +2741,7 @@ abstract class FunctionTypeAlias implements TypeAlias {
 
   /// Set the return type of the function type being defined to the given
   /// [type].
-  void set returnType(TypeAnnotation type);
+  set returnType(TypeAnnotation type);
 
   /// Return the type parameters for the function type, or `null` if the
   /// function type does not have any type parameters.
@@ -2835,7 +2749,7 @@ abstract class FunctionTypeAlias implements TypeAlias {
 
   /// Set the type parameters for the function type to the given list of
   /// [typeParameters].
-  void set typeParameters(TypeParameterList typeParameters);
+  set typeParameters(TypeParameterList typeParameters);
 }
 
 /// A function-typed formal parameter.
@@ -2851,7 +2765,7 @@ abstract class FunctionTypedFormalParameter implements NormalFormalParameter {
 
   /// Set the parameters of the function-typed parameter to the given
   /// [parameters].
-  void set parameters(FormalParameterList parameters);
+  set parameters(FormalParameterList parameters);
 
   /// Return the question mark indicating that the function type is nullable, or
   /// `null` if there is no question mark. Having a nullable function type means
@@ -2863,7 +2777,7 @@ abstract class FunctionTypedFormalParameter implements NormalFormalParameter {
   TypeAnnotation get returnType;
 
   /// Set the return type of the function to the given [type].
-  void set returnType(TypeAnnotation type);
+  set returnType(TypeAnnotation type);
 
   /// Return the type parameters associated with this function, or `null` if
   /// this function is not a generic function.
@@ -2871,7 +2785,7 @@ abstract class FunctionTypedFormalParameter implements NormalFormalParameter {
 
   /// Set the type parameters associated with this method to the given
   /// [typeParameters].
-  void set typeParameters(TypeParameterList typeParameters);
+  set typeParameters(TypeParameterList typeParameters);
 }
 
 /// An anonymous function type.
@@ -2909,25 +2823,25 @@ abstract class GenericFunctionType implements TypeAnnotation {
   Token get functionKeyword;
 
   /// Set the keyword 'Function' to the given [token].
-  void set functionKeyword(Token token);
+  set functionKeyword(Token token);
 
   /// Return the parameters associated with the function type.
   FormalParameterList get parameters;
 
   /// Set the parameters associated with the function type to the given list of
   /// [parameters].
-  void set parameters(FormalParameterList parameters);
+  set parameters(FormalParameterList parameters);
 
   /// Set the question mark indicating that the type is nullable to the given
   /// [token].
-  void set question(Token token);
+  set question(Token token);
 
   /// Return the return type of the function type being defined, or `null` if
   /// no return type was given.
   TypeAnnotation get returnType;
 
   /// Set the return type of the function type being defined to the given[type].
-  void set returnType(TypeAnnotation type);
+  set returnType(TypeAnnotation type);
 
   /// Return the type parameters for the function type, or `null` if the
   /// function type does not have any type parameters.
@@ -2935,7 +2849,7 @@ abstract class GenericFunctionType implements TypeAnnotation {
 
   /// Set the type parameters for the function type to the given list of
   /// [typeParameters].
-  void set typeParameters(TypeParameterList typeParameters);
+  set typeParameters(TypeParameterList typeParameters);
 }
 
 /// A generic type alias.
@@ -2951,14 +2865,14 @@ abstract class GenericTypeAlias implements TypeAlias {
 
   /// Set the equal sign separating the name being defined from the function
   /// type to the given [token].
-  void set equals(Token token);
+  set equals(Token token);
 
   /// Return the type of function being defined by the alias.
   GenericFunctionType get functionType;
 
   /// Set the type of function being defined by the alias to the given
   /// [functionType].
-  void set functionType(GenericFunctionType functionType);
+  set functionType(GenericFunctionType functionType);
 
   /// Return the type parameters for the function type, or `null` if the
   /// function type does not have any type parameters.
@@ -2966,7 +2880,7 @@ abstract class GenericTypeAlias implements TypeAlias {
 
   /// Set the type parameters for the function type to the given list of
   /// [typeParameters].
-  void set typeParameters(TypeParameterList typeParameters);
+  set typeParameters(TypeParameterList typeParameters);
 }
 
 /// A combinator that restricts the names being imported to those that are not
@@ -2990,40 +2904,20 @@ abstract class HideCombinator implements Combinator {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class Identifier implements Expression {
-  /// Return the best element available for this operator. If resolution was
-  /// able to find a better element based on type propagation, that element will
-  /// be returned. Otherwise, the element found using the result of static
-  /// analysis will be returned. If resolution has not been performed, then
-  /// `null` will be returned.
-  ///
-  /// Deprecated: The analyzer no longer computes propagated type information.
-  /// Use [staticElement] instead.
-  @deprecated
-  Element get bestElement;
-
   /// Return the lexical representation of the identifier.
   String get name;
 
-  /// Return the element associated with this identifier based on propagated
-  /// type information, or `null` if the AST structure has not been resolved or
-  /// if this identifier could not be resolved. One example of the latter case
-  /// is an identifier that is not defined within the scope in which it appears.
-  ///
-  /// Deprecated: The analyzer no longer computes propagated type information.
-  /// Use [staticElement] instead.
-  @deprecated
-  Element get propagatedElement;
-
   /// Return the element associated with this identifier based on static type
   /// information, or `null` if the AST structure has not been resolved or if
-  /// this identifier could not be resolved. One example of the latter case is
-  /// an identifier that is not defined within the scope in which it appears.
+  /// this identifier could not be resolved.
+  ///
+  /// One example of the latter case is an identifier that is not defined
+  /// within the scope in which it appears.
   Element get staticElement;
 
   /// Return `true` if the given [name] is visible only within the library in
   /// which it is declared.
-  static bool isPrivateName(String name) =>
-      StringUtilities.startsWithChar(name, 0x5F); // '_'
+  static bool isPrivateName(String name) => name.startsWith('_');
 }
 
 /// The basic structure of an if element.
@@ -3069,14 +2963,14 @@ abstract class IfStatement implements Statement {
 
   /// Set the condition used to determine which of the statements is executed
   /// next to the given [expression].
-  void set condition(Expression expression);
+  set condition(Expression expression);
 
   /// Return the token representing the 'else' keyword, or `null` if there is no
   /// else statement.
   Token get elseKeyword;
 
   /// Set the token representing the 'else' keyword to the given [token].
-  void set elseKeyword(Token token);
+  set elseKeyword(Token token);
 
   /// Return the statement that is executed if the condition evaluates to
   /// `false`, or `null` if there is no else statement.
@@ -3084,25 +2978,25 @@ abstract class IfStatement implements Statement {
 
   /// Set the statement that is executed if the condition evaluates to `false`
   /// to the given [statement].
-  void set elseStatement(Statement statement);
+  set elseStatement(Statement statement);
 
   /// Return the token representing the 'if' keyword.
   Token get ifKeyword;
 
   /// Set the token representing the 'if' keyword to the given [token].
-  void set ifKeyword(Token token);
+  set ifKeyword(Token token);
 
   /// Return the left parenthesis.
   Token get leftParenthesis;
 
   /// Set the left parenthesis to the given [token].
-  void set leftParenthesis(Token token);
+  set leftParenthesis(Token token);
 
   /// Return the right parenthesis.
   Token get rightParenthesis;
 
   /// Set the right parenthesis to the given [token].
-  void set rightParenthesis(Token token);
+  set rightParenthesis(Token token);
 
   /// Return the statement that is executed if the condition evaluates to
   /// `true`.
@@ -3110,7 +3004,7 @@ abstract class IfStatement implements Statement {
 
   /// Set the statement that is executed if the condition evaluates to `true` to
   /// the given [statement].
-  void set thenStatement(Statement statement);
+  set thenStatement(Statement statement);
 }
 
 /// The "implements" clause in an class declaration.
@@ -3124,7 +3018,7 @@ abstract class ImplementsClause implements AstNode {
   Token get implementsKeyword;
 
   /// Set the token representing the 'implements' keyword to the given [token].
-  void set implementsKeyword(Token token);
+  set implementsKeyword(Token token);
 
   /// Return the list of the interfaces that are being implemented.
   NodeList<TypeName> get interfaces;
@@ -3182,8 +3076,8 @@ abstract class ImportDirective implements NamespaceDirective {
     // hides and shows
     //
     NodeList<Combinator> combinators1 = import1.combinators;
-    List<String> allHides1 = new List<String>();
-    List<String> allShows1 = new List<String>();
+    List<String> allHides1 = <String>[];
+    List<String> allShows1 = <String>[];
     int length1 = combinators1.length;
     for (int i = 0; i < length1; i++) {
       Combinator combinator = combinators1[i];
@@ -3205,8 +3099,8 @@ abstract class ImportDirective implements NamespaceDirective {
       }
     }
     NodeList<Combinator> combinators2 = import2.combinators;
-    List<String> allHides2 = new List<String>();
-    List<String> allShows2 = new List<String>();
+    List<String> allHides2 = <String>[];
+    List<String> allShows2 = <String>[];
     int length2 = combinators2.length;
     for (int i = 0; i < length2; i++) {
       Combinator combinator = combinators2[i];
@@ -3249,14 +3143,14 @@ abstract class ImportDirective implements NamespaceDirective {
   Token get asKeyword;
 
   /// Set the token representing the 'as' keyword to the given [token].
-  void set asKeyword(Token token);
+  set asKeyword(Token token);
 
   /// Return the token representing the 'deferred' keyword, or `null` if the
   /// imported URI is not deferred.
   Token get deferredKeyword;
 
   /// Set the token representing the 'deferred' keyword to the given [token].
-  void set deferredKeyword(Token token);
+  set deferredKeyword(Token token);
 
   /// Return the prefix to be used with the imported names, or `null` if the
   /// imported names are not prefixed.
@@ -3264,7 +3158,7 @@ abstract class ImportDirective implements NamespaceDirective {
 
   /// Set the prefix to be used with the imported names to the given
   /// [identifier].
-  void set prefix(SimpleIdentifier identifier);
+  set prefix(SimpleIdentifier identifier);
 }
 
 /// An index expression.
@@ -3274,47 +3168,57 @@ abstract class ImportDirective implements NamespaceDirective {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class IndexExpression
-    implements Expression, MethodReferenceExpression {
+    implements NullShortableExpression, MethodReferenceExpression {
   /// Return the auxiliary elements associated with this identifier, or `null`
-  /// if this identifier is not in both a getter and setter context. The
-  /// auxiliary elements hold the static and propagated elements associated with
-  /// the getter context.
+  /// if this identifier is not in both a getter and setter context.
+  ///
+  /// The auxiliary elements hold the static and propagated elements associated
+  /// with the getter context.
   // TODO(brianwilkerson) Replace this API.
   AuxiliaryElements get auxiliaryElements;
 
   /// Set the auxiliary elements associated with this identifier to the given
   /// [elements].
   // TODO(brianwilkerson) Replace this API.
-  void set auxiliaryElements(AuxiliaryElements elements);
+  set auxiliaryElements(AuxiliaryElements elements);
 
   /// Return the expression used to compute the index.
   Expression get index;
 
   /// Set the expression used to compute the index to the given [expression].
-  void set index(Expression expression);
+  set index(Expression expression);
 
-  /// Return `true` if this expression is cascaded. If it is, then the target of
-  /// this expression is not stored locally but is stored in the nearest
-  /// ancestor that is a [CascadeExpression].
+  /// Return `true` if this expression is cascaded.
+  ///
+  /// If it is, then the target of this expression is not stored locally but is
+  /// stored in the nearest ancestor that is a [CascadeExpression].
   bool get isCascaded;
+
+  /// Whether this index expression is null aware (as opposed to non-null).
+  bool get isNullAware;
 
   /// Return the left square bracket.
   Token get leftBracket;
 
   /// Set the left square bracket to the given [token].
-  void set leftBracket(Token token);
+  set leftBracket(Token token);
 
-  /// Return the period ("..") before a cascaded index expression, or `null` if
-  /// this index expression is not part of a cascade expression.
+  /// Return the period (".." | "?..") before a cascaded index expression, or
+  /// `null` if this index expression is not part of a cascade expression.
   Token get period;
 
   /// Set the period ("..") before a cascaded index expression to the given
   /// [token].
-  void set period(Token token);
+  set period(Token token);
 
-  /// Return the expression used to compute the object being indexed. If this
-  /// index expression is not part of a cascade expression, then this is the
-  /// same as [target]. If this index expression is part of a cascade
+  /// Return the question mark before the left bracket, or `null` if there is no
+  /// question mark.
+  Token get question;
+
+  /// Return the expression used to compute the object being indexed.
+  ///
+  /// If this index expression is not part of a cascade expression, then this
+  /// is the same as [target]. If this index expression is part of a cascade
   /// expression, then the target expression stored with the cascade expression
   /// is returned.
   Expression get realTarget;
@@ -3331,7 +3235,7 @@ abstract class IndexExpression
 
   /// Set the expression used to compute the object being indexed to the given
   /// [expression].
-  void set target(Expression expression);
+  set target(Expression expression);
 
   /// Return `true` if this expression is computing a right-hand value (that is,
   /// if this expression is in a context where the operator '[]' will be
@@ -3366,13 +3270,13 @@ abstract class InstanceCreationExpression
   ArgumentList get argumentList;
 
   /// Set the list of arguments to the constructor to the given [argumentList].
-  void set argumentList(ArgumentList argumentList);
+  set argumentList(ArgumentList argumentList);
 
   /// Return the name of the constructor to be invoked.
   ConstructorName get constructorName;
 
   /// Set the name of the constructor to be invoked to the given [name].
-  void set constructorName(ConstructorName name);
+  set constructorName(ConstructorName name);
 
   /// Return `true` if this creation expression is used to invoke a constant
   /// constructor, either because the keyword `const` was explicitly provided or
@@ -3386,7 +3290,7 @@ abstract class InstanceCreationExpression
 
   /// Set the 'new' or 'const' keyword used to indicate how an object should be
   /// created to the given [token].
-  void set keyword(Token token);
+  set keyword(Token token);
 }
 
 /// An integer literal expression.
@@ -3408,13 +3312,13 @@ abstract class IntegerLiteral implements Literal {
   Token get literal;
 
   /// Set the token representing the literal to the given [token].
-  void set literal(Token token);
+  set literal(Token token);
 
   /// Return the value of the literal.
   int get value;
 
   /// Set the value of the literal to the given [value].
-  void set value(int value);
+  set value(int value);
 }
 
 /// A node within a [StringInterpolation].
@@ -3440,7 +3344,7 @@ abstract class InterpolationExpression implements InterpolationElement {
 
   /// Set the expression to be evaluated for the value to be converted into a
   /// string to the given [expression].
-  void set expression(Expression expression);
+  set expression(Expression expression);
 
   /// Return the token used to introduce the interpolation expression; either
   /// '$' if the expression is a simple identifier or '${' if the expression is
@@ -3450,14 +3354,14 @@ abstract class InterpolationExpression implements InterpolationElement {
   /// Set the token used to introduce the interpolation expression; either '$'
   /// if the expression is a simple identifier or '${' if the expression is a
   /// full expression to the given [token].
-  void set leftBracket(Token token);
+  set leftBracket(Token token);
 
   /// Return the right curly bracket, or `null` if the expression is an
   /// identifier without brackets.
   Token get rightBracket;
 
   /// Set the right curly bracket to the given [token].
-  void set rightBracket(Token token);
+  set rightBracket(Token token);
 }
 
 /// A non-empty substring of an interpolated string.
@@ -3471,7 +3375,7 @@ abstract class InterpolationString implements InterpolationElement {
   Token get contents;
 
   /// Set the characters that will be added to the string to the given [token].
-  void set contents(Token token);
+  set contents(Token token);
 
   /// Return the offset of the after-last contents character.
   int get contentsEnd;
@@ -3483,7 +3387,7 @@ abstract class InterpolationString implements InterpolationElement {
   String get value;
 
   /// Set the value of the literal to the given [value].
-  void set value(String value);
+  set value(String value);
 }
 
 /// The invocation of a function or method; either a
@@ -3504,27 +3408,6 @@ abstract class InvocationExpression implements Expression {
   /// [staticInvokeType] before applying type arguments `TArgs`.
   Expression get function;
 
-  /// Return the function type of the invocation based on the propagated type
-  /// information, or `null` if the AST structure has not been resolved, or if
-  /// the invoke could not be resolved.
-  ///
-  /// This will usually be a [FunctionType], but it can also be an
-  /// [InterfaceType] with a `call` method, `dynamic`, `Function`, or a `@proxy`
-  /// interface type that implements `Function`.
-  ///
-  /// Deprecated: The analyzer no longer computes propagated type information.
-  /// Use [staticInvokeType] instead.
-  @deprecated
-  DartType get propagatedInvokeType;
-
-  /// Sets the function type of the invocation based on the propagated type
-  /// information.
-  ///
-  /// Deprecated: The analyzer no longer computes propagated type information.
-  /// Use [staticInvokeType] instead.
-  @deprecated
-  void set propagatedInvokeType(DartType value);
-
   /// Return the function type of the invocation based on the static type
   /// information, or `null` if the AST structure has not been resolved, or if
   /// the invoke could not be resolved.
@@ -3536,7 +3419,7 @@ abstract class InvocationExpression implements Expression {
 
   /// Sets the function type of the invocation based on the static type
   /// information.
-  void set staticInvokeType(DartType value);
+  set staticInvokeType(DartType value);
 
   /// Return the type arguments to be applied to the method being invoked, or
   /// `null` if no type arguments were provided.
@@ -3565,26 +3448,26 @@ abstract class IsExpression implements Expression {
 
   /// Set the expression used to compute the value whose type is being tested to
   /// the given [expression].
-  void set expression(Expression expression);
+  set expression(Expression expression);
 
   /// Return the is operator.
   Token get isOperator;
 
   /// Set the is operator to the given [token].
-  void set isOperator(Token token);
+  set isOperator(Token token);
 
   /// Return the not operator, or `null` if the sense of the test is not
   /// negated.
   Token get notOperator;
 
   /// Set the not operator to the given [token].
-  void set notOperator(Token token);
+  set notOperator(Token token);
 
   /// Return the type being tested for.
   TypeAnnotation get type;
 
   /// Set the type being tested for to the given [type].
-  void set type(TypeAnnotation type);
+  set type(TypeAnnotation type);
 }
 
 /// A label on either a [LabeledStatement] or a [NamedExpression].
@@ -3599,13 +3482,13 @@ abstract class Label implements AstNode {
 
   /// Set the colon that separates the label from the statement to the given
   /// [token].
-  void set colon(Token token);
+  set colon(Token token);
 
   /// Return the label being associated with the statement.
   SimpleIdentifier get label;
 
   /// Set the label being associated with the statement to the given [label].
-  void set label(SimpleIdentifier label);
+  set label(SimpleIdentifier label);
 }
 
 /// A statement that has a label associated with them.
@@ -3623,7 +3506,7 @@ abstract class LabeledStatement implements Statement {
 
   /// Set the statement with which the labels are being associated to the given
   /// [statement].
-  void set statement(Statement statement);
+  set statement(Statement statement);
 }
 
 /// A library directive.
@@ -3637,19 +3520,19 @@ abstract class LibraryDirective implements Directive {
   Token get libraryKeyword;
 
   /// Set the token representing the 'library' keyword to the given [token].
-  void set libraryKeyword(Token token);
+  set libraryKeyword(Token token);
 
   /// Return the name of the library being defined.
   LibraryIdentifier get name;
 
   /// Set the name of the library being defined to the given [name].
-  void set name(LibraryIdentifier name);
+  set name(LibraryIdentifier name);
 
   /// Return the semicolon terminating the directive.
   Token get semicolon;
 
   /// Set the semicolon terminating the directive to the given [token].
-  void set semicolon(Token token);
+  set semicolon(Token token);
 }
 
 /// The identifier for a library.
@@ -3680,13 +3563,13 @@ abstract class ListLiteral implements TypedLiteral {
   Token get leftBracket;
 
   /// Set the left square bracket to the given [token].
-  void set leftBracket(Token token);
+  set leftBracket(Token token);
 
   /// Return the right square bracket.
   Token get rightBracket;
 
   /// Set the right square bracket to the given [token].
-  void set rightBracket(Token token);
+  set rightBracket(Token token);
 }
 
 /// A node that represents a literal expression.
@@ -3716,13 +3599,13 @@ abstract class MapLiteralEntry implements CollectionElement {
 
   /// Set the expression computing the key with which the value will be
   /// associated to the given [string].
-  void set key(Expression string);
+  set key(Expression string);
 
   /// Return the colon that separates the key from the value.
   Token get separator;
 
   /// Set the colon that separates the key from the value to the given [token].
-  void set separator(Token token);
+  set separator(Token token);
 
   /// Return the expression computing the value that will be associated with the
   /// key.
@@ -3730,7 +3613,7 @@ abstract class MapLiteralEntry implements CollectionElement {
 
   /// Set the expression computing the value that will be associated with the
   /// key to the given [expression].
-  void set value(Expression expression);
+  set value(Expression expression);
 }
 
 /// A method declaration.
@@ -3756,21 +3639,17 @@ abstract class MethodDeclaration implements ClassMember {
   FunctionBody get body;
 
   /// Set the body of the method to the given [functionBody].
-  void set body(FunctionBody functionBody);
+  set body(FunctionBody functionBody);
 
   @override
   ExecutableElement get declaredElement;
-
-  @deprecated
-  @override
-  ExecutableElement get element;
 
   /// Return the token for the 'external' keyword, or `null` if the constructor
   /// is not external.
   Token get externalKeyword;
 
   /// Set the token for the 'external' keyword to the given [token].
-  void set externalKeyword(Token token);
+  set externalKeyword(Token token);
 
   /// Return `true` if this method is declared to be an abstract method.
   bool get isAbstract;
@@ -3793,20 +3672,20 @@ abstract class MethodDeclaration implements ClassMember {
 
   /// Set the token representing the 'abstract' or 'static' keyword to the given
   /// [token].
-  void set modifierKeyword(Token token);
+  set modifierKeyword(Token token);
 
   /// Return the name of the method.
   SimpleIdentifier get name;
 
   /// Set the name of the method to the given [identifier].
-  void set name(SimpleIdentifier identifier);
+  set name(SimpleIdentifier identifier);
 
   /// Return the token representing the 'operator' keyword, or `null` if this
   /// method does not declare an operator.
   Token get operatorKeyword;
 
   /// Set the token representing the 'operator' keyword to the given [token].
-  void set operatorKeyword(Token token);
+  set operatorKeyword(Token token);
 
   /// Return the parameters associated with the method, or `null` if this method
   /// declares a getter.
@@ -3814,7 +3693,7 @@ abstract class MethodDeclaration implements ClassMember {
 
   /// Set the parameters associated with the method to the given list of
   /// [parameters].
-  void set parameters(FormalParameterList parameters);
+  set parameters(FormalParameterList parameters);
 
   /// Return the token representing the 'get' or 'set' keyword, or `null` if
   /// this is a method declaration rather than a property declaration.
@@ -3822,14 +3701,14 @@ abstract class MethodDeclaration implements ClassMember {
 
   /// Set the token representing the 'get' or 'set' keyword to the given
   /// [token].
-  void set propertyKeyword(Token token);
+  set propertyKeyword(Token token);
 
   /// Return the return type of the method, or `null` if no return type was
   /// declared.
   TypeAnnotation get returnType;
 
   /// Set the return type of the method to the given [type].
-  void set returnType(TypeAnnotation type);
+  set returnType(TypeAnnotation type);
 
   /// Return the type parameters associated with this method, or `null` if this
   /// method is not a generic method.
@@ -3837,47 +3716,56 @@ abstract class MethodDeclaration implements ClassMember {
 
   /// Set the type parameters associated with this method to the given
   /// [typeParameters].
-  void set typeParameters(TypeParameterList typeParameters);
+  set typeParameters(TypeParameterList typeParameters);
 }
 
-/// The invocation of either a function or a method. Invocations of functions
-/// resulting from evaluating an expression are represented by
-/// [FunctionExpressionInvocation] nodes. Invocations of getters and setters are
-/// represented by either [PrefixedIdentifier] or [PropertyAccess] nodes.
+/// The invocation of either a function or a method.
+///
+/// Invocations of functions resulting from evaluating an expression are
+/// represented by [FunctionExpressionInvocation] nodes. Invocations of getters
+/// and setters are represented by either [PrefixedIdentifier] or
+/// [PropertyAccess] nodes.
 ///
 ///    methodInvocation ::=
 ///        ([Expression] '.')? [SimpleIdentifier] [TypeArgumentList]? [ArgumentList]
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class MethodInvocation implements InvocationExpression {
+abstract class MethodInvocation
+    implements NullShortableExpression, InvocationExpression {
   /// Set the list of arguments to the method to the given [argumentList].
-  void set argumentList(ArgumentList argumentList);
+  set argumentList(ArgumentList argumentList);
 
-  /// Return `true` if this expression is cascaded. If it is, then the target of
-  /// this expression is not stored locally but is stored in the nearest
-  /// ancestor that is a [CascadeExpression].
+  /// Return `true` if this expression is cascaded.
+  ///
+  /// If it is, then the target of this expression is not stored locally but is
+  /// stored in the nearest ancestor that is a [CascadeExpression].
   bool get isCascaded;
+
+  /// Whether this method invocation is null aware (as opposed to non-null).
+  bool get isNullAware;
 
   /// Return the name of the method being invoked.
   SimpleIdentifier get methodName;
 
   /// Set the name of the method being invoked to the given [identifier].
-  void set methodName(SimpleIdentifier identifier);
+  set methodName(SimpleIdentifier identifier);
 
   /// Return the operator that separates the target from the method name, or
-  /// `null` if there is no target. In an ordinary method invocation this will
-  /// be period ('.'). In a cascade section this will be the cascade operator
-  /// ('..').
+  /// `null` if there is no target.
+  ///
+  /// In an ordinary method invocation this will be period ('.'). In a cascade
+  /// section this will be the cascade operator ('..').
   Token get operator;
 
   /// Set the operator that separates the target from the method name to the
   /// given [token].
-  void set operator(Token token);
+  set operator(Token token);
 
-  /// Return the expression used to compute the receiver of the invocation. If
-  /// this invocation is not part of a cascade expression, then this is the same
-  /// as [target]. If this invocation is part of a cascade expression, then the
-  /// target stored with the cascade expression is returned.
+  /// Return the expression used to compute the receiver of the invocation.
+  ///
+  /// If this invocation is not part of a cascade expression, then this is the
+  /// same as [target]. If this invocation is part of a cascade expression,
+  /// then the target stored with the cascade expression is returned.
   Expression get realTarget;
 
   /// Return the expression producing the object on which the method is defined,
@@ -3890,47 +3778,17 @@ abstract class MethodInvocation implements InvocationExpression {
 
   /// Set the expression producing the object on which the method is defined to
   /// the given [expression].
-  void set target(Expression expression);
+  set target(Expression expression);
 
   /// Set the type arguments to be applied to the method being invoked to the
   /// given [typeArguments].
-  void set typeArguments(TypeArgumentList typeArguments);
+  set typeArguments(TypeArgumentList typeArguments);
 }
 
 /// An expression that implicitly makes reference to a method.
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class MethodReferenceExpression implements AstNode {
-  /// Return the best element available for this expression. If resolution was
-  /// able to find a better element based on type propagation, that element will
-  /// be returned. Otherwise, the element found using the result of static
-  /// analysis will be returned. If resolution has not been performed, then
-  /// `null` will be returned.
-  ///
-  /// Deprecated: The analyzer no longer computes propagated type information.
-  /// Use [staticElement] instead.
-  @deprecated
-  MethodElement get bestElement;
-
-  /// Return the element associated with the expression based on propagated
-  /// types, or `null` if the AST structure has not been resolved, or there is
-  /// no meaningful propagated element to return (e.g. because this is a
-  /// non-compound assignment expression, or because the method referred to
-  /// could not be resolved).
-  ///
-  /// Deprecated: The analyzer no longer computes propagated type information.
-  /// Use [staticElement] instead.
-  @deprecated
-  MethodElement get propagatedElement;
-
-  /// Set the element associated with the expression based on propagated types
-  /// to the given [element].
-  ///
-  /// Deprecated: The analyzer no longer computes propagated type information.
-  /// Use [staticElement] instead.
-  @deprecated
-  void set propagatedElement(MethodElement element);
-
   /// Return the element associated with the expression based on the static
   /// types, or `null` if the AST structure has not been resolved, or there is
   /// no meaningful static element to return (e.g. because this is a
@@ -3940,7 +3798,7 @@ abstract class MethodReferenceExpression implements AstNode {
 
   /// Set the element associated with the expression based on static types to
   /// the given [element].
-  void set staticElement(MethodElement element);
+  set staticElement(MethodElement element);
 }
 
 /// The declaration of a mixin.
@@ -3967,7 +3825,7 @@ abstract class NamedCompilationUnitMember implements CompilationUnitMember {
   SimpleIdentifier get name;
 
   /// Set the name of the member being declared to the given [identifier].
-  void set name(SimpleIdentifier identifier);
+  set name(SimpleIdentifier identifier);
 }
 
 /// An expression that has a name associated with it. They are used in method
@@ -3988,13 +3846,13 @@ abstract class NamedExpression implements Expression {
 
   /// Set the expression with which the name is associated to the given
   /// [expression].
-  void set expression(Expression expression);
+  set expression(Expression expression);
 
   /// Return the name associated with the expression.
   Label get name;
 
   /// Set the name associated with the expression to the given [identifier].
-  void set name(Label identifier);
+  set name(Label identifier);
 }
 
 /// A named type, which can optionally include type arguments.
@@ -4014,14 +3872,14 @@ abstract class NamedType implements TypeAnnotation {
   Identifier get name;
 
   /// Set the name of the type to the given [identifier].
-  void set name(Identifier identifier);
+  set name(Identifier identifier);
 
   /// Set the question mark indicating that the type is nullable to the given
   /// [token].
-  void set question(Token token);
+  set question(Token token);
 
   /// Set the type being named to the given [type].
-  void set type(DartType type);
+  set type(DartType type);
 
   /// Return the type arguments associated with the type, or `null` if there are
   /// no type arguments.
@@ -4029,7 +3887,7 @@ abstract class NamedType implements TypeAnnotation {
 
   /// Set the type arguments associated with the type to the given
   /// [typeArguments].
-  void set typeArguments(TypeArgumentList typeArguments);
+  set typeArguments(TypeArgumentList typeArguments);
 }
 
 /// A node that represents a directive that impacts the namespace of a library.
@@ -4049,25 +3907,28 @@ abstract class NamespaceDirective implements UriBasedDirective {
 
   /// Set the token representing the keyword that introduces this directive
   /// ('import', 'export', 'library' or 'part') to the given [token].
-  void set keyword(Token token);
+  set keyword(Token token);
 
-  /// Return the source that was selected based on the declared variables. This
-  /// will be the source from the first configuration whose condition is true,
-  /// or the [uriSource] if either there are no configurations or if there are
-  /// no configurations whose condition is true.
+  /// Return the source that was selected based on the declared variables.
+  ///
+  /// This will be the source from the first configuration whose condition is
+  /// true, or the [uriSource] if either there are no configurations or if
+  /// there are no configurations whose condition is true.
   Source get selectedSource;
 
   /// Return the content of the URI that was selected based on the declared
-  /// variables. This will be the URI from the first configuration whose
-  /// condition is true, or the [uriContent] if either there are no
-  /// configurations or if there are no configurations whose condition is true.
+  /// variables.
+  ///
+  /// This will be the URI from the first configuration whose condition is
+  /// true, or the [uriContent] if either there are no configurations or if
+  /// there are no configurations whose condition is true.
   String get selectedUriContent;
 
   /// Return the semicolon terminating the directive.
   Token get semicolon;
 
   /// Set the semicolon terminating the directive to the given [token].
-  void set semicolon(Token token);
+  set semicolon(Token token);
 }
 
 /// The "native" clause in an class declaration.
@@ -4082,13 +3943,13 @@ abstract class NativeClause implements AstNode {
 
   /// Set the name of the native object that implements the class to the given
   /// [name].
-  void set name(StringLiteral name);
+  set name(StringLiteral name);
 
   /// Return the token representing the 'native' keyword.
   Token get nativeKeyword;
 
   /// Set the token representing the 'native' keyword to the given [token].
-  void set nativeKeyword(Token token);
+  set nativeKeyword(Token token);
 }
 
 /// A function body that consists of a native keyword followed by a string
@@ -4105,7 +3966,7 @@ abstract class NativeFunctionBody implements FunctionBody {
 
   /// Set the token representing 'native' that marks the start of the function
   /// body to the given [token].
-  void set nativeKeyword(Token token);
+  set nativeKeyword(Token token);
 
   /// Return the token representing the semicolon that marks the end of the
   /// function body.
@@ -4113,7 +3974,7 @@ abstract class NativeFunctionBody implements FunctionBody {
 
   /// Set the token representing the semicolon that marks the end of the
   /// function body to the given [token].
-  void set semicolon(Token token);
+  set semicolon(Token token);
 
   /// Return the string literal representing the string after the 'native'
   /// token.
@@ -4121,7 +3982,7 @@ abstract class NativeFunctionBody implements FunctionBody {
 
   /// Set the string literal representing the string after the 'native' token to
   /// the given [stringLiteral].
-  void set stringLiteral(StringLiteral stringLiteral);
+  set stringLiteral(StringLiteral stringLiteral);
 }
 
 /// A list of AST nodes that have a common parent.
@@ -4142,7 +4003,7 @@ abstract class NodeList<E extends AstNode> implements List<E> {
   /// Set the node that is the parent of each of the elements in the list to the
   /// given [node].
   @deprecated // Never intended for public use.
-  void set owner(AstNode node);
+  set owner(AstNode node);
 
   /// Return the node at the given [index] in the list or throw a [RangeError]
   /// if [index] is out of bounds.
@@ -4168,7 +4029,7 @@ abstract class NodeList<E extends AstNode> implements List<E> {
 /// Clients may not extend, implement or mix-in this class.
 abstract class NormalFormalParameter implements FormalParameter {
   /// Set the token for the 'covariant' keyword to the given [token].
-  void set covariantKeyword(Token token);
+  set covariantKeyword(Token token);
 
   /// Return the documentation comment associated with this parameter, or `null`
   /// if this parameter does not have a documentation comment associated with
@@ -4177,13 +4038,13 @@ abstract class NormalFormalParameter implements FormalParameter {
 
   /// Set the documentation comment associated with this parameter to the given
   /// [comment].
-  void set documentationComment(Comment comment);
+  set documentationComment(Comment comment);
 
   /// Set the name of the parameter being declared to the given [identifier].
-  void set identifier(SimpleIdentifier identifier);
+  set identifier(SimpleIdentifier identifier);
 
   /// Set the metadata associated with this node to the given [metadata].
-  void set metadata(List<Annotation> metadata);
+  set metadata(List<Annotation> metadata);
 
   /// Return a list containing the comment and annotations associated with this
   /// parameter, sorted in lexical order.
@@ -4201,7 +4062,25 @@ abstract class NullLiteral implements Literal {
   Token get literal;
 
   /// Set the token representing the literal to the given [token].
-  void set literal(Token token);
+  set literal(Token token);
+}
+
+/// Abstract interface for expressions that may participate in null-shorting.
+abstract class NullShortableExpression implements Expression {
+  /// Returns the expression that terminates any null shorting that might occur
+  /// in this expression.  This may be called regardless of whether this
+  /// expression is itself null-aware.
+  ///
+  /// For example, the statement `a?.b[c] = d;` contains the following
+  /// null-shortable subexpressions:
+  /// - `a?.b`
+  /// - `a?.b[c]`
+  /// - `a?.b[c] = d`
+  ///
+  /// Calling [nullShortingTermination] on any of these subexpressions yields
+  /// the expression `a?.b[c] = d`, indicating that the null-shorting induced by
+  /// the `?.` causes the rest of the subexpression `a?.b[c] = d` to be skipped.
+  Expression get nullShortingTermination;
 }
 
 /// The "on" clause in a mixin declaration.
@@ -4229,19 +4108,19 @@ abstract class ParenthesizedExpression implements Expression {
   Expression get expression;
 
   /// Set the expression within the parentheses to the given [expression].
-  void set expression(Expression expression);
+  set expression(Expression expression);
 
   /// Return the left parenthesis.
   Token get leftParenthesis;
 
   /// Set the left parenthesis to the given [token].
-  void set leftParenthesis(Token token);
+  set leftParenthesis(Token token);
 
   /// Return the right parenthesis.
   Token get rightParenthesis;
 
   /// Set the right parenthesis to the given [token].
-  void set rightParenthesis(Token token);
+  set rightParenthesis(Token token);
 }
 
 /// A part directive.
@@ -4255,13 +4134,13 @@ abstract class PartDirective implements UriBasedDirective {
   Token get partKeyword;
 
   /// Set the token representing the 'part' keyword to the given [token].
-  void set partKeyword(Token token);
+  set partKeyword(Token token);
 
   /// Return the semicolon terminating the directive.
   Token get semicolon;
 
   /// Set the semicolon terminating the directive to the given [token].
-  void set semicolon(Token token);
+  set semicolon(Token token);
 }
 
 /// A part-of directive.
@@ -4277,25 +4156,25 @@ abstract class PartOfDirective implements Directive {
 
   /// Set the name of the library that the containing compilation unit is part
   /// of to the given [libraryName].
-  void set libraryName(LibraryIdentifier libraryName);
+  set libraryName(LibraryIdentifier libraryName);
 
   /// Return the token representing the 'of' keyword.
   Token get ofKeyword;
 
   /// Set the token representing the 'of' keyword to the given [token].
-  void set ofKeyword(Token token);
+  set ofKeyword(Token token);
 
   /// Return the token representing the 'part' keyword.
   Token get partKeyword;
 
   /// Set the token representing the 'part' keyword to the given [token].
-  void set partKeyword(Token token);
+  set partKeyword(Token token);
 
   /// Return the semicolon terminating the directive.
   Token get semicolon;
 
   /// Set the semicolon terminating the directive to the given [token].
-  void set semicolon(Token token);
+  set semicolon(Token token);
 
   /// Return the URI of the library that the containing compilation unit is part
   /// of, or `null` if no URI was given (typically because a library name was
@@ -4305,7 +4184,7 @@ abstract class PartOfDirective implements Directive {
   /// Return the URI of the library that the containing compilation unit is part
   /// of, or `null` if no URI was given (typically because a library name was
   /// provided).
-  void set uri(StringLiteral uri);
+  set uri(StringLiteral uri);
 }
 
 /// A postfix unary expression.
@@ -4315,20 +4194,20 @@ abstract class PartOfDirective implements Directive {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class PostfixExpression
-    implements Expression, MethodReferenceExpression {
+    implements Expression, NullShortableExpression, MethodReferenceExpression {
   /// Return the expression computing the operand for the operator.
   Expression get operand;
 
   /// Set the expression computing the operand for the operator to the given
   /// [expression].
-  void set operand(Expression expression);
+  set operand(Expression expression);
 
   /// Return the postfix operator being applied to the operand.
   Token get operator;
 
   /// Set the postfix operator being applied to the operand to the given
   /// [token].
-  void set operator(Token token);
+  set operator(Token token);
 }
 
 /// An identifier that is prefixed or an access to an object property where the
@@ -4343,7 +4222,7 @@ abstract class PrefixedIdentifier implements Identifier {
   SimpleIdentifier get identifier;
 
   /// Set the identifier being prefixed to the given [identifier].
-  void set identifier(SimpleIdentifier identifier);
+  set identifier(SimpleIdentifier identifier);
 
   /// Return `true` if this type is a deferred type. If the AST structure has
   /// not been resolved, then return `false`.
@@ -4357,7 +4236,7 @@ abstract class PrefixedIdentifier implements Identifier {
 
   /// Set the period used to separate the prefix from the identifier to the
   /// given [token].
-  void set period(Token token);
+  set period(Token token);
 
   /// Return the prefix associated with the library in which the identifier is
   /// defined.
@@ -4365,7 +4244,7 @@ abstract class PrefixedIdentifier implements Identifier {
 
   /// Set the prefix associated with the library in which the identifier is
   /// defined to the given [identifier].
-  void set prefix(SimpleIdentifier identifier);
+  set prefix(SimpleIdentifier identifier);
 }
 
 /// A prefix unary expression.
@@ -4375,19 +4254,19 @@ abstract class PrefixedIdentifier implements Identifier {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class PrefixExpression
-    implements Expression, MethodReferenceExpression {
+    implements Expression, NullShortableExpression, MethodReferenceExpression {
   /// Return the expression computing the operand for the operator.
   Expression get operand;
 
   /// Set the expression computing the operand for the operator to the given
   /// [expression].
-  void set operand(Expression expression);
+  set operand(Expression expression);
 
   /// Return the prefix operator being applied to the operand.
   Token get operator;
 
   /// Set the prefix operator being applied to the operand to the given [token].
-  void set operator(Token token);
+  set operator(Token token);
 }
 
 /// The access of a property of an object.
@@ -4400,28 +4279,33 @@ abstract class PrefixExpression
 ///        [Expression] '.' [SimpleIdentifier]
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class PropertyAccess implements Expression {
-  /// Return `true` if this expression is cascaded. If it is, then the target of
-  /// this expression is not stored locally but is stored in the nearest
-  /// ancestor that is a [CascadeExpression].
+abstract class PropertyAccess implements NullShortableExpression {
+  /// Return `true` if this expression is cascaded.
+  ///
+  /// If it is, then the target of this expression is not stored locally but is
+  /// stored in the nearest ancestor that is a [CascadeExpression].
   bool get isCascaded;
+
+  /// Whether this property access is null aware (as opposed to non-null).
+  bool get isNullAware;
 
   /// Return the property access operator.
   Token get operator;
 
   /// Set the property access operator to the given [token].
-  void set operator(Token token);
+  set operator(Token token);
 
   /// Return the name of the property being accessed.
   SimpleIdentifier get propertyName;
 
   /// Set the name of the property being accessed to the given [identifier].
-  void set propertyName(SimpleIdentifier identifier);
+  set propertyName(SimpleIdentifier identifier);
 
-  /// Return the expression used to compute the receiver of the invocation. If
-  /// this invocation is not part of a cascade expression, then this is the same
-  /// as [target]. If this invocation is part of a cascade expression, then the
-  /// target stored with the cascade expression is returned.
+  /// Return the expression used to compute the receiver of the invocation.
+  ///
+  /// If this invocation is not part of a cascade expression, then this is the
+  /// same as [target]. If this invocation is part of a cascade expression,
+  /// then the target stored with the cascade expression is returned.
   Expression get realTarget;
 
   /// Return the expression computing the object defining the property being
@@ -4434,7 +4318,7 @@ abstract class PropertyAccess implements Expression {
 
   /// Set the expression computing the object defining the property being
   /// accessed to the given [expression].
-  void set target(Expression expression);
+  set target(Expression expression);
 }
 
 /// The invocation of a constructor in the same class from within a
@@ -4450,7 +4334,7 @@ abstract class RedirectingConstructorInvocation
   ArgumentList get argumentList;
 
   /// Set the list of arguments to the constructor to the given [argumentList].
-  void set argumentList(ArgumentList argumentList);
+  set argumentList(ArgumentList argumentList);
 
   /// Return the name of the constructor that is being invoked, or `null` if the
   /// unnamed constructor is being invoked.
@@ -4458,7 +4342,7 @@ abstract class RedirectingConstructorInvocation
 
   /// Set the name of the constructor that is being invoked to the given
   /// [identifier].
-  void set constructorName(SimpleIdentifier identifier);
+  set constructorName(SimpleIdentifier identifier);
 
   /// Return the token for the period before the name of the constructor that is
   /// being invoked, or `null` if the unnamed constructor is being invoked.
@@ -4466,13 +4350,13 @@ abstract class RedirectingConstructorInvocation
 
   /// Set the token for the period before the name of the constructor that is
   /// being invoked to the given [token].
-  void set period(Token token);
+  set period(Token token);
 
   /// Return the token for the 'this' keyword.
   Token get thisKeyword;
 
   /// Set the token for the 'this' keyword to the given [token].
-  void set thisKeyword(Token token);
+  set thisKeyword(Token token);
 }
 
 /// A rethrow expression.
@@ -4486,7 +4370,7 @@ abstract class RethrowExpression implements Expression {
   Token get rethrowKeyword;
 
   /// Set the token representing the 'rethrow' keyword to the given [token].
-  void set rethrowKeyword(Token token);
+  set rethrowKeyword(Token token);
 }
 
 /// A return statement.
@@ -4502,19 +4386,19 @@ abstract class ReturnStatement implements Statement {
 
   /// Set the expression computing the value to be returned to the given
   /// [expression].
-  void set expression(Expression expression);
+  set expression(Expression expression);
 
   /// Return the token representing the 'return' keyword.
   Token get returnKeyword;
 
   /// Set the token representing the 'return' keyword to the given [token].
-  void set returnKeyword(Token token);
+  set returnKeyword(Token token);
 
   /// Return the semicolon terminating the statement.
   Token get semicolon;
 
   /// Set the semicolon terminating the statement to the given [token].
-  void set semicolon(Token token);
+  set semicolon(Token token);
 }
 
 /// A script tag that can optionally occur at the beginning of a compilation
@@ -4529,7 +4413,7 @@ abstract class ScriptTag implements AstNode {
   Token get scriptTag;
 
   /// Set the token representing this script tag to the given [token].
-  void set scriptTag(Token token);
+  set scriptTag(Token token);
 }
 
 /// A set or map literal.
@@ -4620,14 +4504,14 @@ abstract class SimpleFormalParameter implements NormalFormalParameter {
 
   /// Set the token representing either the 'final', 'const' or 'var' keyword to
   /// the given [token].
-  void set keyword(Token token);
+  set keyword(Token token);
 
   /// Return the declared type of the parameter, or `null` if the parameter does
   /// not have a declared type.
   TypeAnnotation get type;
 
   /// Set the declared type of the parameter to the given [type].
-  void set type(TypeAnnotation type);
+  set type(TypeAnnotation type);
 }
 
 /// A simple identifier.
@@ -4642,32 +4526,25 @@ abstract class SimpleFormalParameter implements NormalFormalParameter {
 /// Clients may not extend, implement or mix-in this class.
 abstract class SimpleIdentifier implements Identifier {
   /// Return the auxiliary elements associated with this identifier, or `null`
-  /// if this identifier is not in both a getter and setter context. The
-  /// auxiliary elements hold the static and propagated elements associated with
-  /// the getter context.
+  /// if this identifier is not in both a getter and setter context.
+  ///
+  /// The auxiliary elements hold the static and propagated elements associated
+  /// with the getter context.
   // TODO(brianwilkerson) Replace this API.
   AuxiliaryElements get auxiliaryElements;
 
   /// Set the auxiliary elements associated with this identifier to the given
   /// [elements].
   // TODO(brianwilkerson) Replace this API.
-  void set auxiliaryElements(AuxiliaryElements elements);
+  set auxiliaryElements(AuxiliaryElements elements);
 
   /// Return `true` if this identifier is the "name" part of a prefixed
   /// identifier or a method invocation.
   bool get isQualified;
 
-  /// Set the element associated with this identifier based on propagated type
-  /// information to the given [element].
-  ///
-  /// Deprecated: The analyzer no longer computes propagated type information.
-  /// Use [staticElement] instead.
-  @deprecated
-  void set propagatedElement(Element element);
-
   /// Set the element associated with this identifier based on static type
   /// information to the given [element].
-  void set staticElement(Element element);
+  set staticElement(Element element);
 
   /// If the identifier is a tear-off, return the inferred type arguments
   /// applied to the function type of the element to produce its [staticType].
@@ -4685,7 +4562,7 @@ abstract class SimpleIdentifier implements Identifier {
   Token get token;
 
   /// Set the token representing the identifier to the given [token].
-  void set token(Token token);
+  set token(Token token);
 
   /// Return `true` if this identifier is the name being declared in a
   /// declaration.
@@ -4736,13 +4613,13 @@ abstract class SimpleStringLiteral implements SingleStringLiteral {
   Token get literal;
 
   /// Set the token representing the literal to the given [token].
-  void set literal(Token token);
+  set literal(Token token);
 
   /// Return the value of the literal.
   String get value;
 
   /// Set the value of the literal to the given [string].
-  void set value(String string);
+  set value(String string);
 }
 
 /// A single string literal expression.
@@ -4756,8 +4633,9 @@ abstract class SingleStringLiteral implements StringLiteral {
   /// Return the offset of the after-last contents character.
   int get contentsEnd;
 
-  /// Return the offset of the first contents character. If the string is
-  /// multiline, then leading whitespaces are skipped.
+  /// Return the offset of the first contents character.
+  ///
+  /// If the string is multiline, then leading whitespaces are skipped.
   int get contentsOffset;
 
   /// Return `true` if this string literal is a multi-line string.
@@ -4780,6 +4658,9 @@ abstract class SingleStringLiteral implements StringLiteral {
 abstract class SpreadElement implements CollectionElement {
   /// The expression used to compute the collection being spread.
   Expression get expression;
+
+  /// Whether this is a null-aware spread, as opposed to a non-null spread.
+  bool get isNullAware;
 
   /// The spread operator, either '...' or '...?'.
   Token get spreadOperator;
@@ -4849,7 +4730,7 @@ abstract class SuperConstructorInvocation
   ArgumentList get argumentList;
 
   /// Set the list of arguments to the constructor to the given [argumentList].
-  void set argumentList(ArgumentList argumentList);
+  set argumentList(ArgumentList argumentList);
 
   /// Return the name of the constructor that is being invoked, or `null` if the
   /// unnamed constructor is being invoked.
@@ -4857,7 +4738,7 @@ abstract class SuperConstructorInvocation
 
   /// Set the name of the constructor that is being invoked to the given
   /// [identifier].
-  void set constructorName(SimpleIdentifier identifier);
+  set constructorName(SimpleIdentifier identifier);
 
   /// Return the token for the period before the name of the constructor that is
   /// being invoked, or `null` if the unnamed constructor is being invoked.
@@ -4865,13 +4746,13 @@ abstract class SuperConstructorInvocation
 
   /// Set the token for the period before the name of the constructor that is
   /// being invoked to the given [token].
-  void set period(Token token);
+  set period(Token token);
 
   /// Return the token for the 'super' keyword.
   Token get superKeyword;
 
   /// Set the token for the 'super' keyword to the given [token].
-  void set superKeyword(Token token);
+  set superKeyword(Token token);
 }
 
 /// A super expression.
@@ -4885,7 +4766,7 @@ abstract class SuperExpression implements Expression {
   Token get superKeyword;
 
   /// Set the token representing the 'super' keyword to the given [token].
-  void set superKeyword(Token token);
+  set superKeyword(Token token);
 }
 
 /// A case in a switch statement.
@@ -4900,7 +4781,7 @@ abstract class SwitchCase implements SwitchMember {
 
   /// Set the expression controlling whether the statements will be executed to
   /// the given [expression].
-  void set expression(Expression expression);
+  set expression(Expression expression);
 }
 
 /// The default case in a switch statement.
@@ -4925,14 +4806,14 @@ abstract class SwitchMember implements AstNode {
 
   /// Set the colon separating the keyword or the expression from the
   /// statements to the given [token].
-  void set colon(Token token);
+  set colon(Token token);
 
   /// Return the token representing the 'case' or 'default' keyword.
   Token get keyword;
 
   /// Set the token representing the 'case' or 'default' keyword to the given
   /// [token].
-  void set keyword(Token token);
+  set keyword(Token token);
 
   /// Return the labels associated with the switch member.
   NodeList<Label> get labels;
@@ -4955,19 +4836,19 @@ abstract class SwitchStatement implements Statement {
 
   /// Set the expression used to determine which of the switch members will be
   /// selected to the given [expression].
-  void set expression(Expression expression);
+  set expression(Expression expression);
 
   /// Return the left curly bracket.
   Token get leftBracket;
 
   /// Set the left curly bracket to the given [token].
-  void set leftBracket(Token token);
+  set leftBracket(Token token);
 
   /// Return the left parenthesis.
   Token get leftParenthesis;
 
   /// Set the left parenthesis to the given [token].
-  void set leftParenthesis(Token token);
+  set leftParenthesis(Token token);
 
   /// Return the switch members that can be selected by the expression.
   NodeList<SwitchMember> get members;
@@ -4976,19 +4857,19 @@ abstract class SwitchStatement implements Statement {
   Token get rightBracket;
 
   /// Set the right curly bracket to the given [token].
-  void set rightBracket(Token token);
+  set rightBracket(Token token);
 
   /// Return the right parenthesis.
   Token get rightParenthesis;
 
   /// Set the right parenthesis to the given [token].
-  void set rightParenthesis(Token token);
+  set rightParenthesis(Token token);
 
   /// Return the token representing the 'switch' keyword.
   Token get switchKeyword;
 
   /// Set the token representing the 'switch' keyword to the given [token].
-  void set switchKeyword(Token token);
+  set switchKeyword(Token token);
 }
 
 /// A symbol literal expression.
@@ -5005,7 +4886,7 @@ abstract class SymbolLiteral implements Literal {
   Token get poundSign;
 
   /// Set the token introducing the literal to the given [token].
-  void set poundSign(Token token);
+  set poundSign(Token token);
 }
 
 /// A this expression.
@@ -5019,7 +4900,7 @@ abstract class ThisExpression implements Expression {
   Token get thisKeyword;
 
   /// Set the token representing the 'this' keyword to the given [token].
-  void set thisKeyword(Token token);
+  set thisKeyword(Token token);
 }
 
 /// A throw expression.
@@ -5034,13 +4915,13 @@ abstract class ThrowExpression implements Expression {
 
   /// Set the expression computing the exception to be thrown to the given
   /// [expression].
-  void set expression(Expression expression);
+  set expression(Expression expression);
 
   /// Return the token representing the 'throw' keyword.
   Token get throwKeyword;
 
   /// Set the token representing the 'throw' keyword to the given [token].
-  void set throwKeyword(Token token);
+  set throwKeyword(Token token);
 }
 
 /// The declaration of one or more top-level variables of the same type.
@@ -5055,14 +4936,14 @@ abstract class TopLevelVariableDeclaration implements CompilationUnitMember {
   Token get semicolon;
 
   /// Set the semicolon terminating the declaration to the given [token].
-  void set semicolon(Token token);
+  set semicolon(Token token);
 
   /// Return the top-level variables being declared.
   VariableDeclarationList get variables;
 
   /// Set the top-level variables being declared to the given list of
   /// [variables].
-  void set variables(VariableDeclarationList variables);
+  set variables(VariableDeclarationList variables);
 }
 
 /// A try statement.
@@ -5079,7 +4960,7 @@ abstract class TryStatement implements Statement {
   Block get body;
 
   /// Set the body of the statement to the given [block].
-  void set body(Block block);
+  set body(Block block);
 
   /// Return the catch clauses contained in the try statement.
   NodeList<CatchClause> get catchClauses;
@@ -5089,20 +4970,20 @@ abstract class TryStatement implements Statement {
   Block get finallyBlock;
 
   /// Set the finally block contained in the try statement to the given [block].
-  void set finallyBlock(Block block);
+  set finallyBlock(Block block);
 
   /// Return the token representing the 'finally' keyword, or `null` if the
   /// statement does not contain a finally clause.
   Token get finallyKeyword;
 
   /// Set the token representing the 'finally' keyword to the given [token].
-  void set finallyKeyword(Token token);
+  set finallyKeyword(Token token);
 
   /// Return the token representing the 'try' keyword.
   Token get tryKeyword;
 
   /// Set the token representing the 'try' keyword to the given [token].
-  void set tryKeyword(Token token);
+  set tryKeyword(Token token);
 }
 
 /// The declaration of a type alias.
@@ -5120,13 +5001,13 @@ abstract class TypeAlias implements NamedCompilationUnitMember {
   Token get semicolon;
 
   /// Set the semicolon terminating the declaration to the given [token].
-  void set semicolon(Token token);
+  set semicolon(Token token);
 
   /// Return the token representing the 'typedef' keyword.
   Token get typedefKeyword;
 
   /// Set the token representing the 'typedef' keyword to the given [token].
-  void set typedefKeyword(Token token);
+  set typedefKeyword(Token token);
 }
 
 /// A type annotation.
@@ -5160,13 +5041,13 @@ abstract class TypeArgumentList implements AstNode {
   Token get leftBracket;
 
   /// Set the left bracket to the given [token].
-  void set leftBracket(Token token);
+  set leftBracket(Token token);
 
   /// Return the right bracket.
   Token get rightBracket;
 
   /// Set the right bracket to the given [token].
-  void set rightBracket(Token token);
+  set rightBracket(Token token);
 }
 
 /// A literal that has a type associated with it.
@@ -5182,7 +5063,7 @@ abstract class TypedLiteral implements Literal {
   Token get constKeyword;
 
   /// Set the token representing the 'const' keyword to the given [token].
-  void set constKeyword(Token token);
+  set constKeyword(Token token);
 
   /// Return `true` if this literal is a constant expression, either because the
   /// keyword `const` was explicitly provided or because no keyword was provided
@@ -5195,7 +5076,7 @@ abstract class TypedLiteral implements Literal {
 
   /// Set the type argument associated with this literal to the given
   /// [typeArguments].
-  void set typeArguments(TypeArgumentList typeArguments);
+  set typeArguments(TypeArgumentList typeArguments);
 }
 
 /// The name of a type, which can optionally include type arguments.
@@ -5218,7 +5099,7 @@ abstract class TypeParameter implements Declaration {
   TypeAnnotation get bound;
 
   /// Set the upper bound for legal arguments to the given [type].
-  void set bound(TypeAnnotation type);
+  set bound(TypeAnnotation type);
 
   @override
   TypeParameterElement get declaredElement;
@@ -5228,13 +5109,13 @@ abstract class TypeParameter implements Declaration {
   Token get extendsKeyword;
 
   /// Set the token representing the 'extends' keyword to the given [token].
-  void set extendsKeyword(Token token);
+  set extendsKeyword(Token token);
 
   /// Return the name of the type parameter.
   SimpleIdentifier get name;
 
   /// Set the name of the type parameter to the given [identifier].
-  void set name(SimpleIdentifier identifier);
+  set name(SimpleIdentifier identifier);
 }
 
 /// Type parameters within a declaration.
@@ -5269,52 +5150,51 @@ abstract class UriBasedDirective implements Directive {
 
   /// Set the source to which the URI was resolved to the given [source].
   @deprecated
-  void set source(Source source);
+  set source(Source source);
 
   /// Return the URI referenced by this directive.
   StringLiteral get uri;
 
   /// Set the URI referenced by this directive to the given [uri].
-  void set uri(StringLiteral uri);
+  set uri(StringLiteral uri);
 
   /// Return the content of the [uri].
   String get uriContent;
 
   /// Set the content of the [uri] to the given [content].
-  void set uriContent(String content);
+  set uriContent(String content);
 
   /// Return the element associated with the [uri] of this directive, or `null`
   /// if the AST structure has not been resolved or if the URI could not be
-  /// resolved. Examples of the latter case include a directive that contains an
-  /// invalid URL or a URL that does not exist.
+  /// resolved.
+  ///
+  /// Examples of the latter case include a directive that contains an invalid
+  /// URL or a URL that does not exist.
   Element get uriElement;
 
   /// Return the source to which the [uri] was resolved.
   Source get uriSource;
 
   /// Set the source to which the [uri] was resolved to the given [source].
-  void set uriSource(Source source);
+  set uriSource(Source source);
 }
 
-/// An identifier that has an initial value associated with it. Instances of
-/// this class are always children of the class [VariableDeclarationList].
+/// An identifier that has an initial value associated with it.
+///
+/// Instances of this class are always children of the class
+/// [VariableDeclarationList].
 ///
 ///    variableDeclaration ::=
 ///        [SimpleIdentifier] ('=' [Expression])?
 ///
-/// TODO(paulberry): the grammar does not allow metadata to be associated with
-/// a VariableDeclaration, and currently we don't record comments for it either.
-/// Consider changing the class hierarchy so that [VariableDeclaration] does not
-/// extend [Declaration].
-///
 /// Clients may not extend, implement or mix-in this class.
+// TODO(paulberry): the grammar does not allow metadata to be associated with a
+// VariableDeclaration, and currently we don't record comments for it either.
+// Consider changing the class hierarchy so that [VariableDeclaration] does not
+// extend [Declaration].
 abstract class VariableDeclaration implements Declaration {
   @override
   VariableElement get declaredElement;
-
-  @deprecated
-  @override
-  VariableElement get element;
 
   /// Return the equal sign separating the variable name from the initial value,
   /// or `null` if the initial value was not specified.
@@ -5322,7 +5202,7 @@ abstract class VariableDeclaration implements Declaration {
 
   /// Set the equal sign separating the variable name from the initial value to
   /// the given [token].
-  void set equals(Token token);
+  set equals(Token token);
 
   /// Return the expression used to compute the initial value for the variable,
   /// or `null` if the initial value was not specified.
@@ -5330,12 +5210,13 @@ abstract class VariableDeclaration implements Declaration {
 
   /// Set the expression used to compute the initial value for the variable to
   /// the given [expression].
-  void set initializer(Expression expression);
+  set initializer(Expression expression);
 
   /// Return `true` if this variable was declared with the 'const' modifier.
   bool get isConst;
 
   /// Return `true` if this variable was declared with the 'final' modifier.
+  ///
   /// Variables that are declared with the 'const' modifier will return `false`
   /// even though they are implicitly final.
   bool get isFinal;
@@ -5347,7 +5228,7 @@ abstract class VariableDeclaration implements Declaration {
   SimpleIdentifier get name;
 
   /// Set the name of the variable being declared to the given [identifier].
-  void set name(SimpleIdentifier identifier);
+  set name(SimpleIdentifier identifier);
 }
 
 /// The declaration of one or more variables of the same type.
@@ -5368,9 +5249,11 @@ abstract class VariableDeclarationList implements AnnotatedNode {
   bool get isConst;
 
   /// Return `true` if the variables in this list were declared with the 'final'
-  /// modifier. Variables that are declared with the 'const' modifier will
-  /// return `false` even though they are implicitly final. (In other words,
-  /// this is a syntactic check rather than a semantic check.)
+  /// modifier.
+  ///
+  /// Variables that are declared with the 'const' modifier will return `false`
+  /// even though they are implicitly final. (In other words, this is a
+  /// syntactic check rather than a semantic check.)
   bool get isFinal;
 
   /// Return `true` if the variables in this list were declared with the 'late'
@@ -5383,7 +5266,7 @@ abstract class VariableDeclarationList implements AnnotatedNode {
 
   /// Set the token representing the 'final', 'const' or 'var' keyword to the
   /// given [token].
-  void set keyword(Token token);
+  set keyword(Token token);
 
   /// Return the token representing the 'late' keyword, or `null` if the late
   /// modifier was not included.
@@ -5394,7 +5277,7 @@ abstract class VariableDeclarationList implements AnnotatedNode {
   TypeAnnotation get type;
 
   /// Set the type of the variables being declared to the given [type].
-  void set type(TypeAnnotation type);
+  set type(TypeAnnotation type);
 
   /// Return a list containing the individual variables being declared.
   NodeList<VariableDeclaration> get variables;
@@ -5412,13 +5295,13 @@ abstract class VariableDeclarationStatement implements Statement {
   Token get semicolon;
 
   /// Set the semicolon terminating the statement to the given [token].
-  void set semicolon(Token token);
+  set semicolon(Token token);
 
   /// Return the variables being declared.
   VariableDeclarationList get variables;
 
   /// Set the variables being declared to the given list of [variables].
-  void set variables(VariableDeclarationList variables);
+  set variables(VariableDeclarationList variables);
 }
 
 /// A while statement.
@@ -5432,7 +5315,7 @@ abstract class WhileStatement implements Statement {
   Statement get body;
 
   /// Set the body of the loop to the given [statement].
-  void set body(Statement statement);
+  set body(Statement statement);
 
   /// Return the expression used to determine whether to execute the body of the
   /// loop.
@@ -5440,25 +5323,25 @@ abstract class WhileStatement implements Statement {
 
   /// Set the expression used to determine whether to execute the body of the
   /// loop to the given [expression].
-  void set condition(Expression expression);
+  set condition(Expression expression);
 
   /// Return the left parenthesis.
   Token get leftParenthesis;
 
   /// Set the left parenthesis to the given [token].
-  void set leftParenthesis(Token token);
+  set leftParenthesis(Token token);
 
   /// Return the right parenthesis.
   Token get rightParenthesis;
 
   /// Set the right parenthesis to the given [token].
-  void set rightParenthesis(Token token);
+  set rightParenthesis(Token token);
 
   /// Return the token representing the 'while' keyword.
   Token get whileKeyword;
 
   /// Set the token representing the 'while' keyword to the given [token].
-  void set whileKeyword(Token token);
+  set whileKeyword(Token token);
 }
 
 /// The with clause in a class declaration.
@@ -5475,7 +5358,7 @@ abstract class WithClause implements AstNode {
   Token get withKeyword;
 
   /// Set the token representing the 'with' keyword to the given [token].
-  void set withKeyword(Token token);
+  set withKeyword(Token token);
 }
 
 /// A yield statement.
@@ -5489,24 +5372,24 @@ abstract class YieldStatement implements Statement {
   Expression get expression;
 
   /// Set the expression whose value will be yielded to the given [expression].
-  void set expression(Expression expression);
+  set expression(Expression expression);
 
   /// Return the semicolon following the expression.
   Token get semicolon;
 
   /// Return the semicolon following the expression to the given [token].
-  void set semicolon(Token token);
+  set semicolon(Token token);
 
   /// Return the star optionally following the 'yield' keyword.
   Token get star;
 
   /// Return the star optionally following the 'yield' keyword to the given
   /// [token].
-  void set star(Token token);
+  set star(Token token);
 
   /// Return the 'yield' keyword.
   Token get yieldKeyword;
 
   /// Return the 'yield' keyword to the given [token].
-  void set yieldKeyword(Token token);
+  set yieldKeyword(Token token);
 }

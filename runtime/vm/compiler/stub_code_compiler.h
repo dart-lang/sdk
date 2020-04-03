@@ -19,7 +19,7 @@ class Assembler;
 
 class StubCodeCompiler : public AllStatic {
  public:
-#if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
+#if !defined(TARGET_ARCH_IA32)
   static void GenerateBuildMethodExtractorStub(
       Assembler* assembler,
       const Object& closure_allocation_stub,
@@ -31,12 +31,6 @@ class StubCodeCompiler : public AllStatic {
   static void Generate##name##Stub(Assembler* assembler);
   VM_STUB_CODE_LIST(STUB_CODE_GENERATE)
 #undef STUB_CODE_GENERATE
-
-  static void GenerateSharedStub(Assembler* assembler,
-                                 bool save_fpu_registers,
-                                 const RuntimeEntry* target,
-                                 intptr_t self_code_stub_offset_from_thread,
-                                 bool allow_return);
 
   static void GenerateMegamorphicMissStub(Assembler* assembler);
   static void GenerateAllocationStubForClass(Assembler* assembler,
@@ -62,9 +56,40 @@ class StubCodeCompiler : public AllStatic {
       Optimized optimized,
       CallType type,
       Exactness exactness);
+  static void GenerateNArgsCheckInlineCacheStubForEntryKind(
+      Assembler* assembler,
+      intptr_t num_args,
+      const RuntimeEntry& handle_ic_miss,
+      Token::Kind kind,
+      Optimized optimized,
+      CallType type,
+      Exactness exactness,
+      CodeEntryKind entry_kind);
   static void GenerateUsageCounterIncrement(Assembler* assembler,
                                             Register temp_reg);
   static void GenerateOptimizedUsageCounterIncrement(Assembler* assembler);
+
+#if defined(TARGET_ARCH_X64)
+  static constexpr intptr_t kNativeCallbackTrampolineSize = 10;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 217;
+  static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
+#elif defined(TARGET_ARCH_IA32)
+  static constexpr intptr_t kNativeCallbackTrampolineSize = 10;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 90;
+  static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
+#elif defined(TARGET_ARCH_ARM)
+  static constexpr intptr_t kNativeCallbackTrampolineSize = 12;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 140;
+  static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 4;
+#elif defined(TARGET_ARCH_ARM64)
+  static constexpr intptr_t kNativeCallbackTrampolineSize = 12;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 268;
+  static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
+#endif
+
+  static void GenerateJITCallbackTrampolines(Assembler* assembler,
+                                             intptr_t next_callback_id);
+
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 };
 

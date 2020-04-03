@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/kernel.dart';
-import 'package:kernel/binary/limited_ast_to_binary.dart';
+import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -36,7 +36,8 @@ runTestCase(Uri source) async {
 
   for (Class messageClass in messageClasses) {
     expect(messageClass.enclosingLibrary.classes.contains(messageClass),
-        messageClass.name.endsWith('Keep'));
+        messageClass.name.endsWith('Keep'),
+        reason: '$messageClass');
   }
 
   final systemTempDir = Directory.systemTemp;
@@ -44,14 +45,13 @@ runTestCase(Uri source) async {
       new File('${systemTempDir.path}/${source.pathSegments.last}.dill');
   try {
     final sink = file.openWrite();
-    final printer =
-        LimitedBinaryPrinter(sink, (lib) => true, /*excludeUriToSource=*/ true);
+    final printer = BinaryPrinter(sink, includeSources: false);
 
     printer.writeComponentFile(component);
     await sink.close();
 
-    ProcessResult result =
-        Process.runSync(Platform.resolvedExecutable, [file.path]);
+    final result = Process.runSync(
+        Platform.resolvedExecutable, ['--enable-asserts', file.path]);
     expect(result.exitCode, 0, reason: '${result.stderr}\n${result.stdout}');
   } finally {
     if (file.existsSync()) {

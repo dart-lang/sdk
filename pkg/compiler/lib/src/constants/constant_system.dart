@@ -87,8 +87,12 @@ StringConstantValue createString(String string) =>
     new StringConstantValue(string);
 BoolConstantValue createBool(bool value) => new BoolConstantValue(value);
 NullConstantValue createNull() => new NullConstantValue();
-ListConstantValue createList(InterfaceType type, List<ConstantValue> values) =>
-    new ListConstantValue(type, values);
+
+ListConstantValue createList(CommonElements commonElements,
+    InterfaceType sourceType, List<ConstantValue> values) {
+  InterfaceType type = commonElements.getConstantListTypeFor(sourceType);
+  return ListConstantValue(type, values);
+}
 
 ConstantValue createType(CommonElements commonElements, DartType type) {
   InterfaceType instanceType = commonElements.typeLiteralType;
@@ -169,12 +173,12 @@ MapConstantValue createMap(
 
   bool hasProtoKey = (protoValue != null);
   InterfaceType keysType;
-  if (sourceType.treatAsRaw) {
+  if (commonElements.dartTypes.treatAsRawType(sourceType)) {
     keysType = commonElements.listType();
   } else {
     keysType = commonElements.listType(sourceType.typeArguments.first);
   }
-  ListConstantValue keysList = new ListConstantValue(keysType, keys);
+  ListConstantValue keysList = createList(commonElements, keysType, keys);
   InterfaceType type = commonElements.getConstantMapTypeFor(sourceType,
       hasProtoKey: hasProtoKey, onlyStringKeys: onlyStringKeys);
   return new JavaScriptMapConstant(
@@ -636,7 +640,7 @@ class TruncatingDivideOperation extends ArithmeticNumOperation {
   BigInt foldNums(num left, num right) {
     num ratio = left / right;
     if (ratio.isNaN || ratio.isInfinite) return null;
-    return new BigInt.from(ratio.truncate().toInt());
+    return new BigInt.from(ratio.truncateToDouble());
   }
 
   @override

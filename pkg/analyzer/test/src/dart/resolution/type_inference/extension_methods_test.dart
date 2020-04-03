@@ -19,7 +19,7 @@ main() {
 class ExtensionMethodsTest extends DriverResolutionTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
+    ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
 
   test_implicit_getter() async {
@@ -195,7 +195,7 @@ void f(A<int> a) {
     var override = findNode.extensionOverride('E<num>(a)');
     assertElement(override, findElement.extension_('E'));
     assertElementTypeStrings(override.typeArgumentTypes, ['num']);
-    assertElementTypeString(override.extendedType, 'A<num>');
+    assertType(override.extendedType, 'A<num>');
 
     var propertyAccess = findNode.propertyAccess('.foo');
     assertMember(
@@ -221,7 +221,7 @@ void f(A<int> a) {
     var override = findNode.extensionOverride('E<num>(a)');
     assertElement(override, findElement.extension_('E'));
     assertElementTypeStrings(override.typeArgumentTypes, ['num']);
-    assertElementTypeString(override.extendedType, 'A<num>');
+    assertType(override.extendedType, 'A<num>');
 
     // TODO(scheglov) We need to instantiate "foo" fully.
     var invocation = findNode.methodInvocation('foo(1.0)');
@@ -274,7 +274,7 @@ void f(A<int> a) {
     var override = findNode.extensionOverride('E<num>(a)');
     assertElement(override, findElement.extension_('E'));
     assertElementTypeStrings(override.typeArgumentTypes, ['num']);
-    assertElementTypeString(override.extendedType, 'A<num>');
+    assertType(override.extendedType, 'A<num>');
 
     var propertyAccess = findNode.propertyAccess('.foo =');
     assertMember(
@@ -298,7 +298,7 @@ f(String s) {
     ]);
     var override = findNode.extensionOverride('E(s)');
     assertElementTypeStrings(override.typeArgumentTypes, ['String']);
-    assertElementTypeString(override.extendedType, 'String');
+    assertType(override.extendedType, 'String');
   }
 
   test_override_inferTypeArguments_getter() async {
@@ -316,7 +316,7 @@ void f(A<int> a) {
     var override = findNode.extensionOverride('E(a)');
     assertElement(override, findElement.extension_('E'));
     assertElementTypeStrings(override.typeArgumentTypes, ['int']);
-    assertElementTypeString(override.extendedType, 'A<int>');
+    assertType(override.extendedType, 'A<int>');
 
     var propertyAccess = findNode.propertyAccess('.foo');
     assertMember(
@@ -342,7 +342,7 @@ void f(A<int> a) {
     var override = findNode.extensionOverride('E(a)');
     assertElement(override, findElement.extension_('E'));
     assertElementTypeStrings(override.typeArgumentTypes, ['int']);
-    assertElementTypeString(override.extendedType, 'A<int>');
+    assertType(override.extendedType, 'A<int>');
 
     // TODO(scheglov) We need to instantiate "foo" fully.
     var invocation = findNode.methodInvocation('foo(1.0)');
@@ -374,7 +374,7 @@ void f(A<int> a) {
     var override = findNode.extensionOverride('E(a)');
     assertElement(override, findElement.extension_('E'));
     assertElementTypeStrings(override.typeArgumentTypes, ['int']);
-    assertElementTypeString(override.extendedType, 'A<int>');
+    assertType(override.extendedType, 'A<int>');
 
     var propertyAccess = findNode.propertyAccess('foo;');
     assertMember(
@@ -400,7 +400,7 @@ void f(A<int> a) {
     var override = findNode.extensionOverride('E(a)');
     assertElement(override, findElement.extension_('E'));
     assertElementTypeStrings(override.typeArgumentTypes, ['int']);
-    assertElementTypeString(override.extendedType, 'A<int>');
+    assertType(override.extendedType, 'A<int>');
 
     var propertyAccess = findNode.propertyAccess('.foo =');
     assertMember(

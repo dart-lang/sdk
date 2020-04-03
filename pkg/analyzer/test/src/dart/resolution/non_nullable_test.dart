@@ -2,9 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/type_system.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
@@ -20,22 +24,22 @@ main() {
 class NonNullableTest extends DriverResolutionTest {
   // TODO(danrubel): Implement a more fine grained way to specify non-nullable.
   @override
-  AnalysisOptionsImpl get analysisOptions =>
-      AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.fromEnableFlags(
+      [EnableString.non_nullable],
+    );
 
   @override
   bool get typeToStringWithNullability => true;
 
   test_class_hierarchy() async {
-    addTestFile('''
+    await assertNoErrorsInCode('''
 class A {}
 
 class X1 extends A {} // 1
 class X2 implements A {} // 2
 class X3 with A {} // 3
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
 
     assertType(findNode.typeName('A {} // 1'), 'A');
     assertType(findNode.typeName('A {} // 2'), 'A');
@@ -43,59 +47,90 @@ class X3 with A {} // 3
   }
 
   test_classTypeAlias_hierarchy() async {
-    addTestFile('''
+    await assertNoErrorsInCode('''
 class A {}
 class B {}
 class C {}
 
 class X = A with B implements C;
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
 
     assertType(findNode.typeName('A with'), 'A');
     assertType(findNode.typeName('B implements'), 'B');
     assertType(findNode.typeName('C;'), 'C');
   }
 
+  test_field_functionTypeAlias() async {
+    await assertNoErrorsInCode('''
+typedef F = T Function<T>(int, T);
+
+class C {
+  F? f;
+}
+''');
+    assertType(findElement.field('f').type, 'T Function<T>(int, T)?');
+  }
+
+  test_library_typeProvider_typeSystem() async {
+    newFile('/test/lib/a.dart', content: r'''
+class A {}
+''');
+    await resolveTestCode(r'''
+// @dart = 2.5
+import 'a.dart';
+''');
+    var testLibrary = result.libraryElement;
+    var testTypeSystem = testLibrary.typeSystem as TypeSystemImpl;
+    assertType(testLibrary.typeProvider.intType, 'int*');
+    expect(testTypeSystem.isNonNullableByDefault, isFalse);
+
+    var aImport = findElement.importFind('package:test/a.dart');
+    var aLibrary = aImport.importedLibrary;
+    var aTypeSystem = aLibrary.typeSystem as TypeSystemImpl;
+    assertType(aLibrary.typeProvider.intType, 'int');
+    expect(aTypeSystem.isNonNullableByDefault, isTrue);
+  }
+
   test_local_getterNullAwareAccess_interfaceType() async {
-    addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 main() {
   int? x;
   return x?.isEven;
 }
 ''');
 
-    await resolveTestFile();
-    assertNoTestErrors();
     assertType(findNode.propertyAccess('x?.isEven'), 'bool?');
   }
 
   test_local_interfaceType() async {
-    addTestFile('''
+    await assertErrorsInCode('''
 main() {
   int? a = 0;
   int b = 0;
 }
-''');
-    await resolveTestFile();
-    assertNoTestErrors();
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 16, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 29, 1),
+    ]);
 
     assertType(findNode.typeName('int? a'), 'int?');
     assertType(findNode.typeName('int b'), 'int');
   }
 
   test_local_interfaceType_generic() async {
-    addTestFile('''
+    await assertErrorsInCode('''
 main() {
   List<int?>? a = [];
   List<int>? b = [];
   List<int?> c = [];
   List<int> d = [];
 }
-''');
-    await resolveTestFile();
-    assertNoTestErrors();
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 23, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 44, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 65, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 85, 1),
+    ]);
 
     assertType(findNode.typeName('List<int?>? a'), 'List<int?>?');
     assertType(findNode.typeName('List<int>? b'), 'List<int>?');
@@ -104,7 +139,7 @@ main() {
   }
 
   test_local_methodNullAwareCall_interfaceType() async {
-    await addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 class C {
   bool x() => true;
 }
@@ -115,214 +150,193 @@ main() {
 }
 ''');
 
-    await resolveTestFile();
-    assertNoTestErrors();
     assertType(findNode.methodInvocation('c?.x()'), 'bool?');
   }
 
-  test_local_nullCoalesce_nullableInt_int() async {
-    await addTestFile(r'''
-main() {
-  int? x;
-  int y = 0;
-  x ?? y;
-}
-''');
-    await resolveTestFile();
-    assertNoTestErrors();
-    assertType(findNode.binary('x ?? y'), 'int');
-  }
-
-  test_local_nullCoalesce_nullableInt_nullableInt() async {
-    await addTestFile(r'''
-main() {
-  int? x;
-  x ?? x;
-}
-''');
-    await resolveTestFile();
-    assertNoTestErrors();
-    assertType(findNode.binary('x ?? x'), 'int?');
-  }
-
   test_local_nullCoalesceAssign_nullableInt_int() async {
-    await addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 main() {
   int? x;
   int y = 0;
   x ??= y;
 }
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
     assertType(findNode.assignment('x ??= y'), 'int');
   }
 
   test_local_nullCoalesceAssign_nullableInt_nullableInt() async {
-    await addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 main() {
   int? x;
   x ??= x;
 }
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
     assertType(findNode.assignment('x ??= x'), 'int?');
   }
 
   test_local_typeParameter() async {
-    addTestFile('''
+    await assertErrorsInCode('''
 main<T>(T a) {
   T x = a;
   T? y;
 }
-''');
-    await resolveTestFile();
-    assertNoTestErrors();
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 19, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 31, 1),
+    ]);
 
     assertType(findNode.typeName('T x'), 'T');
     assertType(findNode.typeName('T? y'), 'T?');
   }
 
-  @failingTest
   test_local_variable_genericFunctionType() async {
-    addTestFile('''
+    await assertErrorsInCode('''
 main() {
   int? Function(bool, String?)? a;
 }
-''');
-    await resolveTestFile();
-    assertNoTestErrors();
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 41, 1),
+    ]);
 
     assertType(
       findNode.genericFunctionType('Function('),
-      '(bool!, String?) → int??',
+      'int? Function(bool, String?)?',
     );
   }
 
   test_localFunction_parameter_interfaceType() async {
-    addTestFile('''
+    await assertErrorsInCode('''
 main() {
   f(int? a, int b) {}
 }
-''');
-    await resolveTestFile();
-    assertNoTestErrors();
+''', [
+      error(HintCode.UNUSED_ELEMENT, 11, 1),
+    ]);
 
     assertType(findNode.typeName('int? a'), 'int?');
     assertType(findNode.typeName('int b'), 'int');
   }
 
   test_localFunction_returnType_interfaceType() async {
-    addTestFile('''
+    await assertErrorsInCode('''
 main() {
   int? f() => 0;
   int g() => 0;
 }
-''');
-    await resolveTestFile();
-    assertNoTestErrors();
+''', [
+      error(HintCode.UNUSED_ELEMENT, 16, 1),
+      error(HintCode.UNUSED_ELEMENT, 32, 1),
+    ]);
 
     assertType(findNode.typeName('int? f'), 'int?');
     assertType(findNode.typeName('int g'), 'int');
   }
 
   test_member_potentiallyNullable_called() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 m<T extends Function>() {
   List<T?> x;
   x.first();
 }
 ''');
-    await resolveTestFile();
-    // Do not assert no test errors. Deliberately invokes nullable type.
-    assertType(findNode.methodInvocation('first').methodName, 'Function?');
+// Do not assert no test errors. Deliberately invokes nullable type.
+    var invocation = findNode.functionExpressionInvocation('first()');
+    assertType(invocation.function, 'Function?');
   }
 
   test_mixin_hierarchy() async {
-    addTestFile('''
+    await assertNoErrorsInCode('''
 class A {}
 
 mixin X1 on A {} // 1
 mixin X2 implements A {} // 2
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
 
     assertType(findNode.typeName('A {} // 1'), 'A');
     assertType(findNode.typeName('A {} // 2'), 'A');
   }
 
-  test_null_assertion_operator_changes_null_to_never() async {
-    addTestFile('''
-main() {
-  Null x = null;
-  x!;
-}
+  test_parameter_functionTyped() async {
+    await assertNoErrorsInCode('''
+void f1(void p1()) {}
+void f2(void p2()?) {}
+void f3({void p3()?}) {}
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
-    assertType(findNode.postfix('x!'), 'Never');
+    assertType(findElement.parameter('p1').type, 'void Function()');
+    assertType(findElement.parameter('p2').type, 'void Function()?');
+    assertType(findElement.parameter('p3').type, 'void Function()?');
   }
 
-  test_null_assertion_operator_removes_nullability() async {
-    addTestFile('''
-main() {
-  Object? x = null;
-  x!;
+  test_parameter_functionTyped_fieldFormal() async {
+    await assertNoErrorsInCode('''
+class A {
+  var f1;
+  var f2;
+  var f3;
+  A.f1(void this.f1());
+  A.f2(void this.f2()?);
+  A.f3({void this.f3()?});
 }
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
-    assertType(findNode.postfix('x!'), 'Object');
+    assertType(findElement.parameter('f1').type, 'void Function()');
+    assertType(findElement.parameter('f2').type, 'void Function()?');
+    assertType(findElement.parameter('f3').type, 'void Function()?');
   }
 
-  @failingTest
+  test_parameter_functionTyped_local() async {
+    await assertErrorsInCode('''
+f() {
+  void f1(void p1()) {}
+  void f2(void p2()?) {}
+  void f3({void p3()?}) {}
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 13, 2),
+      error(HintCode.UNUSED_ELEMENT, 37, 2),
+      error(HintCode.UNUSED_ELEMENT, 62, 2),
+    ]);
+    assertType(findElement.parameter('p1').type, 'void Function()');
+    assertType(findElement.parameter('p2').type, 'void Function()?');
+    assertType(findElement.parameter('p3').type, 'void Function()?');
+  }
+
   test_parameter_genericFunctionType() async {
-    addTestFile('''
+    await assertNoErrorsInCode('''
 main(int? Function(bool, String?)? a) {
 }
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
 
     assertType(
       findNode.genericFunctionType('Function('),
-      '(bool!, String?) → int??',
+      'int? Function(bool, String?)?',
     );
   }
 
   test_parameter_getterNullAwareAccess_interfaceType() async {
-    addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 main(int? x) {
   return x?.isEven;
 }
 ''');
 
-    await resolveTestFile();
-    assertNoTestErrors();
     assertType(findNode.propertyAccess('x?.isEven'), 'bool?');
   }
 
   test_parameter_interfaceType() async {
-    addTestFile('''
+    await assertNoErrorsInCode('''
 main(int? a, int b) {
 }
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
 
     assertType(findNode.typeName('int? a'), 'int?');
     assertType(findNode.typeName('int b'), 'int');
   }
 
   test_parameter_interfaceType_generic() async {
-    addTestFile('''
+    await assertNoErrorsInCode('''
 main(List<int?>? a, List<int>? b, List<int?> c, List<int> d) {
 }
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
 
     assertType(findNode.typeName('List<int?>? a'), 'List<int?>?');
     assertType(findNode.typeName('List<int>? b'), 'List<int>?');
@@ -331,7 +345,7 @@ main(List<int?>? a, List<int>? b, List<int?> c, List<int> d) {
   }
 
   test_parameter_methodNullAwareCall_interfaceType() async {
-    await addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 class C {
   bool x() => true;
 }
@@ -341,97 +355,94 @@ main(C? c) {
 }
 ''');
 
-    await resolveTestFile();
-    assertNoTestErrors();
     assertType(findNode.methodInvocation('c?.x()'), 'bool?');
   }
 
-  test_parameter_nullCoalesce_nullableInt_int() async {
-    await addTestFile(r'''
-main(int? x, int y) {
-  x ?? y;
-}
-''');
-    await resolveTestFile();
-    assertNoTestErrors();
-    assertType(findNode.binary('x ?? y'), 'int');
-  }
-
-  test_parameter_nullCoalesce_nullableInt_nullableInt() async {
-    await addTestFile(r'''
-main(int? x) {
-  x ?? x;
-}
-''');
-    await resolveTestFile();
-    assertNoTestErrors();
-    assertType(findNode.binary('x ?? x'), 'int?');
-  }
-
   test_parameter_nullCoalesceAssign_nullableInt_int() async {
-    await addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 main(int? x, int y) {
   x ??= y;
 }
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
     assertType(findNode.assignment('x ??= y'), 'int');
   }
 
   test_parameter_nullCoalesceAssign_nullableInt_nullableInt() async {
-    await addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 main(int? x) {
   x ??= x;
 }
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
     assertType(findNode.assignment('x ??= x'), 'int?');
   }
 
   test_parameter_typeParameter() async {
-    addTestFile('''
+    await assertNoErrorsInCode('''
 main<T>(T a, T? b) {
 }
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
 
     assertType(findNode.typeName('T a'), 'T');
     assertType(findNode.typeName('T? b'), 'T?');
   }
 
   test_typedef_classic() async {
-    addTestFile('''
+    await assertErrorsInCode('''
 typedef int? F(bool a, String? b);
 
 main() {
   F? a;
 }
-''');
-    await resolveTestFile();
-    assertNoTestErrors();
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 50, 1),
+    ]);
 
     assertType(findNode.typeName('F? a'), 'int? Function(bool, String?)?');
   }
 
-  @failingTest
   test_typedef_function() async {
-    addTestFile('''
+    await assertErrorsInCode('''
 typedef F<T> = int? Function(bool, T, T?);
 
 main() {
   F<String>? a;
 }
-''');
-    await resolveTestFile();
-    assertNoTestErrors();
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 66, 1),
+    ]);
 
     assertType(
       findNode.typeName('F<String>'),
-      'int? Function(bool!, String!, String?)?',
+      'int? Function(bool, String, String?)?',
     );
+  }
+
+  test_typedef_function_nullable_element() async {
+    await assertNoErrorsInCode('''
+typedef F<T> = int Function(T)?;
+
+main(F<int> a, F<double>? b) {}
+''');
+
+    assertType(findNode.typeName('F<int>'), 'int Function(int)?');
+    assertType(findNode.typeName('F<double>?'), 'int Function(double)?');
+  }
+
+  test_typedef_function_nullable_local() async {
+    await assertErrorsInCode('''
+typedef F<T> = int Function(T)?;
+
+main() {
+  F<int> a;
+  F<double>? b;
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 52, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 68, 1),
+    ]);
+
+    assertType(findNode.typeName('F<int>'), 'int Function(int)?');
+    assertType(findNode.typeName('F<double>?'), 'int Function(double)?');
   }
 }
 
@@ -441,15 +452,13 @@ class NullableTest extends DriverResolutionTest {
   bool get typeToStringWithNullability => true;
 
   test_class_hierarchy() async {
-    addTestFile('''
+    await assertNoErrorsInCode('''
 class A {}
 
 class X1 extends A {} // 1
 class X2 implements A {} // 2
 class X3 with A {} // 3
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
 
     assertType(findNode.typeName('A {} // 1'), 'A*');
     assertType(findNode.typeName('A {} // 2'), 'A*');
@@ -457,15 +466,13 @@ class X3 with A {} // 3
   }
 
   test_classTypeAlias_hierarchy() async {
-    addTestFile('''
+    await assertNoErrorsInCode('''
 class A {}
 class B {}
 class C {}
 
 class X = A with B implements C;
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
 
     assertType(findNode.typeName('A with'), 'A*');
     assertType(findNode.typeName('B implements'), 'B*');
@@ -473,28 +480,28 @@ class X = A with B implements C;
   }
 
   test_local_variable_interfaceType_notMigrated() async {
-    addTestFile('''
+    await assertErrorsInCode('''
 main() {
   int? a = 0;
   int b = 0;
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([ParserErrorCode.EXPERIMENT_NOT_ENABLED]);
+''', [
+      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 14, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 16, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 29, 1),
+    ]);
 
     assertType(findNode.typeName('int? a'), 'int*');
     assertType(findNode.typeName('int b'), 'int*');
   }
 
   test_mixin_hierarchy() async {
-    addTestFile('''
+    await assertNoErrorsInCode('''
 class A {}
 
 mixin X1 on A {} // 1
 mixin X2 implements A {} // 2
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
 
     assertType(findNode.typeName('A {} // 1'), 'A*');
     assertType(findNode.typeName('A {} // 2'), 'A*');

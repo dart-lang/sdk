@@ -2,26 +2,26 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/interface_covariantInterface_from_class.dart:13:7: Error: Found unsupported uses of 'T' in supertype 'A'.
+// pkg/front_end/testcases/general/interface_covariantInterface_from_class.dart:13:7: Error: Can't use implicitly 'out' variable 'T' in an 'in' position in supertype 'A'.
 // class B<T> implements A<F<T>> {
 //       ^
 //
-// pkg/front_end/testcases/general/interface_covariantInterface_from_class.dart:17:16: Error: Found unsupported uses of 'T' in supertype 'A'.
+// pkg/front_end/testcases/general/interface_covariantInterface_from_class.dart:17:16: Error: Can't use implicitly 'out' variable 'T' in an 'in' position in supertype 'A'.
 // abstract class I<T> implements A<F<T>> {
 //                ^
 //
-// pkg/front_end/testcases/general/interface_covariantInterface_from_class.dart:21:16: Error: Found unsupported uses of 'T' in supertype 'B'.
+// pkg/front_end/testcases/general/interface_covariantInterface_from_class.dart:21:16: Error: Can't use implicitly 'out' variable 'T' in an 'in' position in supertype 'B'.
 // abstract class C<T> extends B<F<T>> implements I<F<T>> {}
 //                ^
 //
-// pkg/front_end/testcases/general/interface_covariantInterface_from_class.dart:21:16: Error: Found unsupported uses of 'T' in supertype 'I'.
+// pkg/front_end/testcases/general/interface_covariantInterface_from_class.dart:21:16: Error: Can't use implicitly 'out' variable 'T' in an 'in' position in supertype 'I'.
 // abstract class C<T> extends B<F<T>> implements I<F<T>> {}
 //                ^
 //
 import self as self;
 import "dart:core" as core;
 
-typedef F<T extends core::Object* = dynamic> = (T*) →* void;
+typedef F<contravariant T extends core::Object* = dynamic> = (T*) →* void;
 abstract class A<T extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::A<self::A::T*>*
     : super core::Object::•()

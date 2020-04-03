@@ -16,12 +16,14 @@ import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 class DefinitionHandler
     extends MessageHandler<TextDocumentPositionParams, List<Location>> {
   DefinitionHandler(LspAnalysisServer server) : super(server);
+  @override
   Method get handlesMessage => Method.textDocument_definition;
 
   @override
   LspJsonHandler<TextDocumentPositionParams> get jsonHandler =>
       TextDocumentPositionParams.jsonHandler;
 
+  @override
   Future<ErrorOr<List<Location>>> handle(
       TextDocumentPositionParams params, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
@@ -34,7 +36,7 @@ class DefinitionHandler
     final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
 
     return offset.mapResult((offset) {
-      NavigationCollectorImpl collector = new NavigationCollectorImpl();
+      var collector = NavigationCollectorImpl();
       computeDartNavigation(
           server.resourceProvider, collector, unit.result.unit, offset, 0);
 

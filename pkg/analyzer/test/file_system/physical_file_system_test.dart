@@ -13,7 +13,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'file_system_test_support.dart';
 
 main() {
-  if (!new bool.fromEnvironment('skipPhysicalResourceProviderTests')) {
+  if (!bool.fromEnvironment('skipPhysicalResourceProviderTests')) {
     defineReflectiveSuite(() {
       defineReflectiveTests(PhysicalFileTest);
       defineReflectiveTests(PhysicalFolderTest);
@@ -33,27 +33,32 @@ abstract class BaseTest extends FileSystemTestSupport {
 
   /// The absolute path to the [tempDirectory]. This path will contain a
   /// symbolic link on some operating systems.
+  @override
   String tempPath;
 
   /// A path to a folder within the [tempDirectory] that can be used by tests.
+  @override
   String defaultFolderPath;
 
   /// A path to a file within the [defaultFolderPath] that can be used by tests.
+  @override
   String defaultFilePath;
 
   /// The content used for the file at the [defaultFilePath] if it is created
   /// and no other content is provided.
+  @override
   String get defaultFileContent => 'a';
 
   /// Return the resource provider to be used by the tests.
+  @override
   PhysicalResourceProvider get provider => _provider ??= createProvider();
 
   /// Create the resource provider to be used by the tests. Subclasses can
   /// override this method to change the class of resource provider that is
   /// used.
-  PhysicalResourceProvider createProvider() =>
-      new PhysicalResourceProvider(null);
+  PhysicalResourceProvider createProvider() => PhysicalResourceProvider(null);
 
+  @override
   File getFile({@required bool exists, String content, String filePath}) {
     File file = provider.getFile(filePath ?? defaultFilePath);
     if (exists) {
@@ -63,6 +68,7 @@ abstract class BaseTest extends FileSystemTestSupport {
     return file;
   }
 
+  @override
   Folder getFolder({@required bool exists, String folderPath}) {
     Folder folder = provider.getFolder(folderPath ?? defaultFolderPath);
     if (exists) {
@@ -111,18 +117,18 @@ class PhysicalFileTest extends BaseTest with FileTestMixin {
   test_resolveSymbolicLinksSync_links_existing() {
     String pathA = join(tempPath, defaultFileContent);
     String pathB = join(pathA, 'b');
-    new io.Directory(pathB).createSync(recursive: true);
+    io.Directory(pathB).createSync(recursive: true);
     String filePath = join(pathB, 'test.txt');
-    io.File testFile = new io.File(filePath);
+    io.File testFile = io.File(filePath);
     testFile.writeAsStringSync('test');
 
     String pathC = join(tempPath, 'c');
     String pathD = join(pathC, 'd');
-    new io.Link(pathD).createSync(pathA, recursive: true);
+    io.Link(pathD).createSync(pathA, recursive: true);
 
     String pathE = join(tempPath, 'e');
     String pathF = join(pathE, 'f');
-    new io.Link(pathF).createSync(pathC, recursive: true);
+    io.Link(pathF).createSync(pathC, recursive: true);
 
     String linkPath = join(tempPath, 'e', 'f', 'd', 'b', 'test.txt');
     File file = provider.getFile(linkPath);

@@ -270,7 +270,7 @@ void JSONStream::PostReply() {
 
 const char* JSONStream::LookupParam(const char* key) const {
   for (int i = 0; i < num_params(); i++) {
-    if (!strcmp(key, param_keys_[i])) {
+    if (strcmp(key, param_keys_[i]) == 0) {
       return param_values_[i];
     }
   }
@@ -344,6 +344,11 @@ void JSONStream::PrintValue(MessageQueue* queue) {
 void JSONStream::PrintValue(Isolate* isolate, bool ref) {
   PrintCommaIfNeeded();
   isolate->PrintJSON(this, ref);
+}
+
+void JSONStream::PrintValue(IsolateGroup* isolate_group, bool ref) {
+  PrintCommaIfNeeded();
+  isolate_group->PrintJSON(this, ref);
 }
 
 void JSONStream::PrintValue(ThreadRegistry* reg) {

@@ -1,3 +1,5 @@
+// @dart = 2.6
+
 /**
  * 3D programming in the browser.
  *
@@ -32,11 +34,11 @@ class ActiveInfo extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final String name;
+  String get name native;
 
-  final int size;
+  int get size native;
 
-  final int type;
+  int get type native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -86,10 +88,10 @@ class Canvas extends Interceptor {
   }
 
   @JSName('canvas')
-  final CanvasElement canvas;
+  CanvasElement get canvas native;
 
   @JSName('canvas')
-  final OffscreenCanvas offscreenCanvas;
+  OffscreenCanvas get offscreenCanvas native;
 }
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -312,7 +314,7 @@ class ContextEvent extends Event {
   static ContextEvent _create_2(type) =>
       JS('ContextEvent', 'new WebGLContextEvent(#)', type);
 
-  final String statusMessage;
+  String get statusMessage native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -723,13 +725,13 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.WebGLRenderingContext)');
 
-  final CanvasElement canvas;
+  CanvasElement get canvas native;
 
   // From WebGLRenderingContextBase
 
-  final int drawingBufferHeight;
+  int get drawingBufferHeight native;
 
-  final int drawingBufferWidth;
+  int get drawingBufferWidth native;
 
   void activeTexture(int texture) native;
 
@@ -1360,7 +1362,7 @@ class RenderingContext2 extends Interceptor
     throw new UnsupportedError("Not supported");
   }
 
-  final Canvas canvas;
+  Canvas get canvas native;
 
   // From WebGL2RenderingContextBase
 
@@ -2299,9 +2301,9 @@ class RenderingContext2 extends Interceptor
 
   // From WebGLRenderingContextBase
 
-  final int drawingBufferHeight;
+  int get drawingBufferHeight native;
 
-  final int drawingBufferWidth;
+  int get drawingBufferWidth native;
 
   void activeTexture(int texture) native;
 
@@ -2854,11 +2856,11 @@ class ShaderPrecisionFormat extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final int precision;
+  int get precision native;
 
-  final int rangeMax;
+  int get rangeMax native;
 
-  final int rangeMin;
+  int get rangeMin native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2882,13 +2884,13 @@ class Texture extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final bool lastUploadedVideoFrameWasSkipped;
+  bool get lastUploadedVideoFrameWasSkipped native;
 
-  final int lastUploadedVideoHeight;
+  int get lastUploadedVideoHeight native;
 
-  final num lastUploadedVideoTimestamp;
+  num get lastUploadedVideoTimestamp native;
 
-  final int lastUploadedVideoWidth;
+  int get lastUploadedVideoWidth native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

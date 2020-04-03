@@ -69,7 +69,6 @@
 /// ddd //# 07: static type warning
 /// fff
 /// ```
-import "dart:async";
 import "dart:io";
 
 import "path.dart";
@@ -77,7 +76,7 @@ import "test_file.dart";
 import "utils.dart";
 
 /// Until legacy multitests are ported we need to support both /// and //#
-final _multitestMarker = RegExp(r"//[/#]");
+final multitestMarker = RegExp(r"//[/#]");
 
 final _multitestOutcomes = {
   'ok',
@@ -111,7 +110,7 @@ void _generateTestsFromMultitest(Path filePath, Map<String, String> tests,
   var lineCount = 0;
   for (var line in lines) {
     lineCount++;
-    var annotation = _Annotation.tryParse(line);
+    var annotation = Annotation.tryParse(line);
     if (annotation != null) {
       testsAsLines.putIfAbsent(
           annotation.key, () => List<String>.from(testsAsLines["none"]));
@@ -171,9 +170,9 @@ void _generateTestsFromMultitest(Path filePath, Map<String, String> tests,
 ///
 /// Writes the resulting tests to [outputDir] and returns a list of [TestFile]s
 /// for each of those generated tests.
-Future<List<TestFile>> splitMultitest(
+List<TestFile> splitMultitest(
     TestFile multitest, String outputDir, Path suiteDir,
-    {bool hotReload}) async {
+    {bool hotReload = false}) {
   // Each key in the map tests is a multitest tag or "none", and the texts of
   // the generated test is its value.
   var tests = <String, String>{};
@@ -186,7 +185,6 @@ Future<List<TestFile>> splitMultitest(
 
   // Copy all the relative imports of the multitest.
   var importsToCopy = _findAllRelativeImports(multitest.path);
-  var futureCopies = <Future>[];
   for (var relativeImport in importsToCopy) {
     var importPath = Path(relativeImport);
     // Make sure the target directory exists.
@@ -197,13 +195,10 @@ Future<List<TestFile>> splitMultitest(
 
     // Copy file. Because some test suites may be read-only, we don't
     // want to copy the permissions, so we create the copy by writing.
-    final source = File(sourceDir.join(importPath).toNativePath()).openRead();
-    final target = File(targetDir.join(importPath).toNativePath()).openWrite();
-    futureCopies.add(source.cast<List<int>>().pipe(target));
+    var contents =
+        File(sourceDir.join(importPath).toNativePath()).readAsBytesSync();
+    File(targetDir.join(importPath).toNativePath()).writeAsBytesSync(contents);
   }
-
-  // Wait until all imports are copied before scheduling test cases.
-  await Future.wait(futureCopies);
 
   var baseFilename = multitest.path.filenameWithoutExtension;
 
@@ -252,16 +247,16 @@ void _writeFile(String filePath, String content) {
 }
 
 /// A multitest annotation in the special `//#` comment.
-class _Annotation {
+class Annotation {
   /// Parses the annotation in [line] or returns `null` if the line isn't a
   /// multitest annotation.
-  static _Annotation tryParse(String line) {
+  static Annotation tryParse(String line) {
     // Do an early return with "null" if this is not a valid multitest
     // annotation.
-    if (!line.contains(_multitestMarker)) return null;
+    if (!line.contains(multitestMarker)) return null;
 
     var parts = line
-        .split(_multitestMarker)[1]
+        .split(multitestMarker)[1]
         .split(':')
         .map((s) => s.trim())
         .where((s) => s.isNotEmpty)
@@ -269,7 +264,7 @@ class _Annotation {
 
     if (parts.length <= 1) return null;
 
-    return _Annotation._(parts[0], parts[1]);
+    return Annotation._(parts[0], parts[1]);
   }
 
   final String key;
@@ -279,7 +274,7 @@ class _Annotation {
   // need to support more than a single outcome for each test.
   final List<String> outcomes = [];
 
-  _Annotation._(this.key, this.rest) {
+  Annotation._(this.key, this.rest) {
     outcomes.addAll(rest.split(',').map((s) => s.trim()));
   }
 }

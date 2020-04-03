@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'package:expect/expect.dart' deferred as expect;
 
 // Synthetic getter added by kernel.
 
-/*member: __loadLibrary_expect:[null|exact=_Future]*/
+/*member: _#loadLibrary_expect:[null|exact=_Future]*/
 
 /*member: main:[null]*/
 main() {

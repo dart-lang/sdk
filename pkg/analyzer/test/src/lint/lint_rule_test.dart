@@ -21,8 +21,8 @@ main() {
     group('error code reporting', () {
       test('reportLintForToken (custom)', () {
         final rule = TestRule();
-        final reporter = CollectingReporter(
-            GatheringErrorListener(), new _MockSource('mock'));
+        final reporter =
+            CollectingReporter(GatheringErrorListener(), _MockSource('mock'));
         rule.reporter = reporter;
 
         rule.reportLintForToken(Token.eof(0),
@@ -31,8 +31,8 @@ main() {
       });
       test('reportLintForToken (default)', () {
         final rule = TestRule();
-        final reporter = CollectingReporter(
-            GatheringErrorListener(), new _MockSource('mock'));
+        final reporter =
+            CollectingReporter(GatheringErrorListener(), _MockSource('mock'));
         rule.reporter = reporter;
 
         rule.reportLintForToken(Token.eof(0), ignoreSyntheticTokens: false);
@@ -40,23 +40,21 @@ main() {
       });
       test('reportLint (custom)', () {
         final rule = TestRule();
-        final reporter = CollectingReporter(
-            GatheringErrorListener(), new _MockSource('mock'));
+        final reporter =
+            CollectingReporter(GatheringErrorListener(), _MockSource('mock'));
         rule.reporter = reporter;
 
-        final node =
-            EmptyStatementImpl(new SimpleToken(TokenType.SEMICOLON, 0));
+        final node = EmptyStatementImpl(SimpleToken(TokenType.SEMICOLON, 0));
         rule.reportLint(node, errorCode: customCode);
         expect(reporter.code, customCode);
       });
       test('reportLint (default)', () {
         final rule = TestRule();
-        final reporter = CollectingReporter(
-            GatheringErrorListener(), new _MockSource('mock'));
+        final reporter =
+            CollectingReporter(GatheringErrorListener(), _MockSource('mock'));
         rule.reporter = reporter;
 
-        final node =
-            EmptyStatementImpl(new SimpleToken(TokenType.SEMICOLON, 0));
+        final node = EmptyStatementImpl(SimpleToken(TokenType.SEMICOLON, 0));
         rule.reportLint(node);
         expect(reporter.code, rule.lintCode);
       });
@@ -64,7 +62,7 @@ main() {
   });
 }
 
-const LintCode customCode = const LintCode(
+const LintCode customCode = LintCode(
     'hash_and_equals', 'Override `==` if overriding `hashCode`.',
     correction: 'Implement `==`.');
 
@@ -72,12 +70,15 @@ class CollectingReporter extends ErrorReporter {
   ErrorCode code;
 
   CollectingReporter(AnalysisErrorListener listener, Source source)
-      : super(listener, source);
+      : super(listener, source, isNonNullableByDefault: false);
+
+  @override
   void reportErrorForElement(ErrorCode errorCode, Element element,
       [List<Object> arguments]) {
     code = errorCode;
   }
 
+  @override
   void reportErrorForNode(ErrorCode errorCode, AstNode node,
       [List<Object> arguments]) {
     code = errorCode;
@@ -108,6 +109,6 @@ class _MockSource implements Source {
 
   @override
   noSuchMethod(Invocation invocation) {
-    throw new StateError('Unexpected invocation of ${invocation.memberName}');
+    throw StateError('Unexpected invocation of ${invocation.memberName}');
   }
 }

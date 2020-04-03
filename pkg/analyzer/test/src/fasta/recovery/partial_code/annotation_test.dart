@@ -7,7 +7,7 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'partial_code_support.dart';
 
 main() {
-  new AnnotationTest().buildAll();
+  AnnotationTest().buildAll();
 }
 
 class AnnotationTest extends PartialCodeTest {
@@ -15,7 +15,7 @@ class AnnotationTest extends PartialCodeTest {
     buildTests(
       'annotation_topLevel',
       [
-        new TestDescriptor(
+        TestDescriptor(
             'ampersand',
             '@',
             [
@@ -24,7 +24,7 @@ class AnnotationTest extends PartialCodeTest {
             ],
             '@_s_',
             expectedErrorsInValidCode: [ParserErrorCode.EXPECTED_EXECUTABLE]),
-        new TestDescriptor(
+        TestDescriptor(
             'leftParen',
             '@a(',
             [
@@ -39,7 +39,7 @@ class AnnotationTest extends PartialCodeTest {
     buildTests(
       'annotation_topLevel',
       [
-        new TestDescriptor(
+        TestDescriptor(
             'ampersand', '@', [ParserErrorCode.MISSING_IDENTIFIER], '@_s_',
             failing: [
               'typedef',
@@ -48,7 +48,7 @@ class AnnotationTest extends PartialCodeTest {
               'mixin',
               'setter'
             ]),
-        new TestDescriptor(
+        TestDescriptor(
             'leftParen', '@a(', [ScannerErrorCode.EXPECTED_TOKEN], '@a()',
             allFailing: true),
       ],
@@ -59,7 +59,7 @@ class AnnotationTest extends PartialCodeTest {
     buildTests(
       'annotation_classMember',
       [
-        new TestDescriptor(
+        TestDescriptor(
             'ampersand',
             '@',
             [
@@ -68,7 +68,7 @@ class AnnotationTest extends PartialCodeTest {
             ],
             '@_s_',
             expectedErrorsInValidCode: [ParserErrorCode.EXPECTED_CLASS_MEMBER]),
-        new TestDescriptor(
+        TestDescriptor(
             'leftParen',
             '@a(',
             [
@@ -85,10 +85,10 @@ class AnnotationTest extends PartialCodeTest {
     buildTests(
       'annotation_classMember',
       [
-        new TestDescriptor(
+        TestDescriptor(
             'ampersand', '@', [ParserErrorCode.MISSING_IDENTIFIER], '@_s_',
             failing: ['methodNonVoid', 'getter', 'setter']),
-        new TestDescriptor(
+        TestDescriptor(
             'leftParen', '@a(', [ScannerErrorCode.EXPECTED_TOKEN], '@a()',
             allFailing: true),
       ],
@@ -101,7 +101,7 @@ class AnnotationTest extends PartialCodeTest {
     buildTests(
       'annotation_local',
       [
-        new TestDescriptor(
+        TestDescriptor(
             'ampersand',
             '@',
             [
@@ -114,7 +114,7 @@ class AnnotationTest extends PartialCodeTest {
               ParserErrorCode.MISSING_IDENTIFIER,
               ParserErrorCode.EXPECTED_TOKEN
             ]),
-        new TestDescriptor(
+        TestDescriptor(
             'leftParen',
             '@a(',
             [
@@ -135,7 +135,7 @@ class AnnotationTest extends PartialCodeTest {
     // TODO(brianwilkerson) Many of the combinations produced by the following
     // produce "valid" code that is not valid. Even when we recover the
     // annotation, the following statement is not allowed to have an annotation.
-    const localAllowed = const [
+    const localAllowed = [
       'localVariable',
       'localFunctionNonVoid',
       'localFunctionVoid'
@@ -152,10 +152,10 @@ class AnnotationTest extends PartialCodeTest {
     buildTests(
       'annotation_local',
       [
-        new TestDescriptor(
+        TestDescriptor(
             'ampersand', '@', [ParserErrorCode.MISSING_IDENTIFIER], '@_s_',
             failing: ['localFunctionNonVoid']),
-        new TestDescriptor(
+        TestDescriptor(
             'leftParen', '@a(', [ParserErrorCode.MISSING_IDENTIFIER], '@a()',
             allFailing: true),
       ],
@@ -167,7 +167,7 @@ class AnnotationTest extends PartialCodeTest {
     buildTests(
       'annotation_local',
       [
-        new TestDescriptor(
+        TestDescriptor(
             'ampersand',
             '@',
             [
@@ -181,7 +181,7 @@ class AnnotationTest extends PartialCodeTest {
               ParserErrorCode.EXPECTED_TOKEN
             ],
             failing: ['labeled']),
-        new TestDescriptor(
+        TestDescriptor(
             'leftParen',
             '@a(',
             [

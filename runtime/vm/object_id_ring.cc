@@ -12,19 +12,10 @@ namespace dart {
 
 #ifndef PRODUCT
 
-void ObjectIdRing::Init(Isolate* isolate, int32_t capacity) {
-  ObjectIdRing* ring = new ObjectIdRing(isolate, capacity);
-  isolate->set_object_id_ring(ring);
-}
-
 ObjectIdRing::~ObjectIdRing() {
   ASSERT(table_ != NULL);
   free(table_);
   table_ = NULL;
-  if (isolate_ != NULL) {
-    isolate_->set_object_id_ring(NULL);
-    isolate_ = NULL;
-  }
 }
 
 int32_t ObjectIdRing::GetIdForObject(RawObject* object, IdPolicy policy) {
@@ -95,9 +86,8 @@ void ObjectIdRing::PrintJSON(JSONStream* js) {
   }
 }
 
-ObjectIdRing::ObjectIdRing(Isolate* isolate, int32_t capacity) {
+ObjectIdRing::ObjectIdRing(int32_t capacity) {
   ASSERT(capacity > 0);
-  isolate_ = isolate;
   serial_num_ = 0;
   wrapped_ = false;
   table_ = NULL;

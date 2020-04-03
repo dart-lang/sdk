@@ -23,41 +23,53 @@ const pragma AlwaysInline = const bool.fromEnvironment("enable_inlining")
 // iterations.
 const bool benchmarkMode = const bool.fromEnvironment("benchmark_mode");
 
-int expectedEntryPoint = -1;
-int expectedTearoffEntryPoint = -1;
+class TargetCalls {
+  int checked = 0;
+  int unchecked = 0;
 
-// We check that this is true at the end of the test to ensure that the
-// introspection machinery is operational.
-bool validateRan = false;
+  // Leave a little room for some cases which always use the checked entry, like
+  // lazy compile stub or interpreter warm-up.
+  static const int wiggle = 10;
 
-_validateHelper(int expected, int ep) {
-  validateRan = true;
+  void expectChecked(int iterations) {
+    print("$checked, $unchecked");
+    Expect.isTrue(checked >= iterations - wiggle && unchecked == 0);
+  }
+
+  void expectUnchecked(int iterations) {
+    print("$checked, $unchecked");
+    Expect.isTrue(checked <= wiggle && unchecked >= iterations - wiggle);
+  }
+}
+
+TargetCalls entryPoint = TargetCalls();
+TargetCalls tearoffEntryPoint = TargetCalls();
+
+_validateHelper(int ep, TargetCalls calls) {
+  calls ??= entryPoint;
+
   if (ep < 0 || ep > 2) {
     Expect.fail("ERROR: invalid entry-point ($ep) passed by VM.");
   }
-  if (expected < -1 || expected > 2) {
-    Expect.fail("ERROR: invalid expected entry-point set ($expected)");
+  if (ep == 0) {
+    calls.checked++;
+  } else {
+    calls.unchecked++;
   }
-  if (expected == -1) return;
-  Expect.equals(expected, ep);
 }
 
-void _validateFn(String _, int ep) => _validateHelper(expectedEntryPoint, ep);
+void _validateFn(String _, int ep) => _validateHelper(ep, null);
 
 // Invocation of tearoffs go through a tearoff wrapper. We want to independently
 // test which entrypoint was used for the tearoff wrapper vs. which was used for
 // actual target.
-_validateTearoffFn(String name, int entryPoint) {
+_validateTearoffFn(String name, int ep) {
   _validateHelper(
-      name.endsWith("#tearoff")
-          ? expectedTearoffEntryPoint
-          : expectedEntryPoint,
-      entryPoint);
+      ep, name.endsWith("#tearoff") ? tearoffEntryPoint : entryPoint);
 }
 
 @pragma("vm:entry-point", "get")
 const validate = benchmarkMode ? null : _validateFn;
+
 @pragma("vm:entry-point", "get")
 const validateTearoff = benchmarkMode ? null : _validateTearoffFn;
-
-void bumpUsageCounter() {}

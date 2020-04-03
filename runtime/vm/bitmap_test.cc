@@ -3,11 +3,24 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/bitmap.h"
+
 #include "platform/assert.h"
+#include "vm/code_descriptors.h"
 #include "vm/object.h"
 #include "vm/unit_test.h"
 
 namespace dart {
+
+// 0x4 is just a placeholder PC offset because no entry of a CSM should
+// have a PC offset of 0, otherwise internal assumptions break.
+static const uint32_t kTestPcOffset = 0x4;
+static const intptr_t kTestSpillSlotBitCount = 0;
+
+static RawCompressedStackMaps* MapsFromBuilder(BitmapBuilder* bmap) {
+  CompressedStackMapsBuilder builder;
+  builder.AddEntry(kTestPcOffset, bmap, kTestSpillSlotBitCount);
+  return builder.Finalize();
+}
 
 ISOLATE_UNIT_TEST_CASE(BitmapBuilder) {
   // Test basic bit map builder operations.
@@ -36,15 +49,22 @@ ISOLATE_UNIT_TEST_CASE(BitmapBuilder) {
     EXPECT_EQ(value, builder1->Get(i));
     value = !value;
   }
-  // Create a StackMap object from the builder and verify its contents.
-  const StackMap& stackmap1 = StackMap::Handle(StackMap::New(0, builder1, 0));
-  EXPECT_EQ(1024, stackmap1.Length());
-  OS::PrintErr("%s\n", stackmap1.ToCString());
+
+  // Create a CompressedStackMaps object and verify its contents.
+  const auto& maps1 = CompressedStackMaps::Handle(MapsFromBuilder(builder1));
+  CompressedStackMapsIterator it1(maps1);
+  EXPECT(it1.MoveNext());
+
+  EXPECT_EQ(kTestPcOffset, it1.pc_offset());
+  EXPECT_EQ(kTestSpillSlotBitCount, it1.SpillSlotBitCount());
+  EXPECT_EQ(1024, it1.Length());
   value = true;
   for (int32_t i = 0; i < 1024; i++) {
-    EXPECT_EQ(value, stackmap1.IsObject(i));
+    EXPECT_EQ(value, it1.IsObject(i));
     value = !value;
   }
+
+  EXPECT(!it1.MoveNext());
 
   // Test the SetRange function in the builder.
   builder1->SetRange(0, 256, false);
@@ -62,17 +82,25 @@ ISOLATE_UNIT_TEST_CASE(BitmapBuilder) {
   for (int32_t i = 1025; i <= 2048; i++) {
     EXPECT(!builder1->Get(i));
   }
-  const StackMap& stackmap2 = StackMap::Handle(StackMap::New(0, builder1, 0));
-  EXPECT_EQ(2049, stackmap2.Length());
+
+  const auto& maps2 = CompressedStackMaps::Handle(MapsFromBuilder(builder1));
+  CompressedStackMapsIterator it2(maps2);
+  EXPECT(it2.MoveNext());
+
+  EXPECT_EQ(kTestPcOffset, it2.pc_offset());
+  EXPECT_EQ(kTestSpillSlotBitCount, it2.SpillSlotBitCount());
+  EXPECT_EQ(2049, it2.Length());
   for (int32_t i = 0; i <= 256; i++) {
-    EXPECT(!stackmap2.IsObject(i));
+    EXPECT(!it2.IsObject(i));
   }
   for (int32_t i = 257; i <= 1024; i++) {
-    EXPECT(stackmap2.IsObject(i));
+    EXPECT(it2.IsObject(i));
   }
   for (int32_t i = 1025; i <= 2048; i++) {
-    EXPECT(!stackmap2.IsObject(i));
+    EXPECT(!it2.IsObject(i));
   }
+
+  EXPECT(!it2.MoveNext());
 
   // Test using SetLength to shorten the builder, followed by lengthening.
   builder1->SetLength(747);

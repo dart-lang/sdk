@@ -8,7 +8,8 @@ import 'dart:async';
 import 'dart:io' show Platform;
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/service_common.dart';
-import 'package:unittest/unittest.dart';
+import 'package:observatory/service_io.dart';
+import 'package:test/test.dart';
 
 typedef Future IsolateTest(Isolate isolate);
 typedef Future VMTest(VM vm);
@@ -240,7 +241,7 @@ IsolateTest setBreakpointAtLine(int line) {
   return (Isolate isolate) async {
     print("Setting breakpoint for line $line");
     Library lib = await isolate.rootLibrary.load();
-    Script script = lib.scripts.single;
+    Script script = lib.scripts.firstWhere((s) => s.uri == lib.uri);
 
     Breakpoint bpt = await isolate.addBreakpoint(script, line);
     print("Breakpoint is $bpt");
@@ -253,7 +254,7 @@ IsolateTest setBreakpointAtLineColumn(int line, int column) {
   return (Isolate isolate) async {
     print("Setting breakpoint for line $line column $column");
     Library lib = await isolate.rootLibrary.load();
-    Script script = lib.scripts.single;
+    Script script = lib.scripts.firstWhere((s) => s.uri == lib.uri);
 
     Breakpoint bpt = await isolate.addBreakpoint(script, line, column);
     print("Breakpoint is $bpt");
@@ -580,35 +581,4 @@ List<String> removeAdjacentDuplicates(List<String> fromList) {
   return result;
 }
 
-bool isKernel() {
-  for (String argument in Platform.executableArguments) {
-    if (argument.startsWith("--no-preview_dart_2")) return false;
-    if (argument.startsWith("--no-preview-dart-2")) return false;
-  }
-  return true;
-}
-
-E ifKernel<E>(E then, E otherwise) {
-  if (isKernel()) return then;
-  return otherwise;
-}
-
-void ifKernelExecute(Function kernelFunction, Function nonKernelFunction) {
-  if (isKernel()) {
-    kernelFunction();
-  } else {
-    nonKernelFunction();
-  }
-}
-
-void nonKernelExecute(Function nonKernelFunction) {
-  if (!isKernel()) {
-    nonKernelFunction();
-  }
-}
-
-void kernelExecute(Function kernelFunction) {
-  if (isKernel()) {
-    kernelFunction();
-  }
-}
+Future<void> waitForTargetVMExit(VM vm) async => await vm.onDisconnect;

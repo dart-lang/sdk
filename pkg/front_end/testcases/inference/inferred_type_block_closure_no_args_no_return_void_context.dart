@@ -10,5 +10,5 @@ class C {
 }
 
 main() {
-  var /*@ type=C* */ c = new C(/*@ returnType=Null* */ () {});
+  var /*@ type=C* */ c = new C(/*@ returnType=Null? */ () {});
 }

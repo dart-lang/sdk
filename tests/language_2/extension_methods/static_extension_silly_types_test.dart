@@ -77,7 +77,6 @@ mixin M {}
 
 class C = Object with M;
 
-
 extension on M {
   int get m => 1;
 }
@@ -87,8 +86,8 @@ extension on void {
   testVoid() {
     // No access on void. Static type of `this` is void!
     this //
-      .toString() //# 01: compile-time error
-    ;
+            .toString() //# 01: compile-time error
+        ;
   }
 }
 

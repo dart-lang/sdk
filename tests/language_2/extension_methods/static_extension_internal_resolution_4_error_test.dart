@@ -47,6 +47,7 @@ extension MyExt on A {
   set setterInGlobalScope(bool x) {
     checkExtensionValue(x);
   }
+
   bool methodInGlobalScope() => extensionValue;
 
   bool get fieldInInstanceScope => extensionValue;
@@ -54,6 +55,7 @@ extension MyExt on A {
   set setterInInstanceScope(bool x) {
     checkExtensionValue(x);
   }
+
   bool methodInInstanceScope() => extensionValue;
 
   bool get fieldInExtensionScope => extensionValue;
@@ -61,6 +63,7 @@ extension MyExt on A {
   set setterInExtensionScope(bool x) {
     checkExtensionValue(x);
   }
+
   bool methodInExtensionScope() => extensionValue;
 
   void testNakedIdentifiers() {
@@ -85,34 +88,29 @@ extension MyExt on A {
     {
       // No errors: see static_extension_internal_resolution_4_test.dart
     }
-
   }
 
   void testIdentifiersOnThis() {
     // Prefixed globals are ambiguous
     {
       bool t0 = this.fieldInGlobalScope;
-      //             ^^^
-      // [cfe] unspecified
       //             ^^^^^^^^^^^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
+      // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+      // [cfe] The property 'fieldInGlobalScope' is defined in multiple extensions for 'A' and neither is more specific.
       checkExtensionValue(t0);
       bool t1 = this.getterInGlobalScope;
-      //             ^^^
-      // [cfe] unspecified
       //             ^^^^^^^^^^^^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
+      // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+      // [cfe] The property 'getterInGlobalScope' is defined in multiple extensions for 'A' and neither is more specific.
       checkExtensionValue(t1);
       this.setterInGlobalScope = extensionValue;
-      //   ^^^
-      // [cfe] unspecified
       //   ^^^^^^^^^^^^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
+      // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+      // [cfe] The property 'setterInGlobalScope' is defined in multiple extensions for 'A' and neither is more specific.
       bool t2 = this.methodInGlobalScope();
-      //             ^^^
-      // [cfe] unspecified
       //             ^^^^^^^^^^^^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
+      // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+      // [cfe] The method 'methodInGlobalScope' is defined in multiple extensions for 'A' and neither is more specific.
       checkExtensionValue(t2);
     }
 
@@ -125,27 +123,23 @@ extension MyExt on A {
     // Extension members are ambigious.
     {
       bool t0 = this.fieldInExtensionScope;
-      //             ^^^
-      // [cfe] unspecified
       //             ^^^^^^^^^^^^^^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
+      // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+      // [cfe] The property 'fieldInExtensionScope' is defined in multiple extensions for 'A' and neither is more specific.
       checkExtensionValue(t0);
       bool t1 = this.getterInExtensionScope;
-      //             ^^^
-      // [cfe] unspecified
       //             ^^^^^^^^^^^^^^^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
+      // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+      // [cfe] The property 'getterInExtensionScope' is defined in multiple extensions for 'A' and neither is more specific.
       checkExtensionValue(t1);
       this.setterInExtensionScope = extensionValue;
-      //   ^^^
-      // [cfe] unspecified
       //   ^^^^^^^^^^^^^^^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
+      // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+      // [cfe] The property 'setterInExtensionScope' is defined in multiple extensions for 'A' and neither is more specific.
       bool t2 = this.methodInExtensionScope();
-      //             ^^^
-      // [cfe] unspecified
       //             ^^^^^^^^^^^^^^^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
+      // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+      // [cfe] The method 'methodInExtensionScope' is defined in multiple extensions for 'A' and neither is more specific.
       checkExtensionValue(t2);
     }
 
@@ -162,27 +156,23 @@ extension MyExt on A {
     // Prefixed globals are ambiguous
     {
       bool t0 = self.fieldInGlobalScope;
-      //             ^^^
-      // [cfe] unspecified
       //             ^^^^^^^^^^^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
+      // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+      // [cfe] The property 'fieldInGlobalScope' is defined in multiple extensions for 'A' and neither is more specific.
       checkExtensionValue(t0);
       bool t1 = self.getterInGlobalScope;
-      //             ^^^
-      // [cfe] unspecified
       //             ^^^^^^^^^^^^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
+      // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+      // [cfe] The property 'getterInGlobalScope' is defined in multiple extensions for 'A' and neither is more specific.
       checkExtensionValue(t1);
       self.setterInGlobalScope = extensionValue;
-      //   ^^^
-      // [cfe] unspecified
       //   ^^^^^^^^^^^^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
+      // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+      // [cfe] The property 'setterInGlobalScope' is defined in multiple extensions for 'A' and neither is more specific.
       bool t2 = self.methodInGlobalScope();
-      //             ^^^
-      // [cfe] unspecified
       //             ^^^^^^^^^^^^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
+      // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+      // [cfe] The method 'methodInGlobalScope' is defined in multiple extensions for 'A' and neither is more specific.
       checkExtensionValue(t2);
     }
 
@@ -195,27 +185,23 @@ extension MyExt on A {
     // Extension members are ambigious.
     {
       bool t0 = self.fieldInExtensionScope;
-      //             ^^^
-      // [cfe] unspecified
       //             ^^^^^^^^^^^^^^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
+      // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+      // [cfe] The property 'fieldInExtensionScope' is defined in multiple extensions for 'A' and neither is more specific.
       checkExtensionValue(t0);
       bool t1 = self.getterInExtensionScope;
-      //             ^^^
-      // [cfe] unspecified
       //             ^^^^^^^^^^^^^^^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
+      // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+      // [cfe] The property 'getterInExtensionScope' is defined in multiple extensions for 'A' and neither is more specific.
       checkExtensionValue(t1);
       self.setterInExtensionScope = extensionValue;
-      //   ^^^
-      // [cfe] unspecified
       //   ^^^^^^^^^^^^^^^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
+      // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+      // [cfe] The property 'setterInExtensionScope' is defined in multiple extensions for 'A' and neither is more specific.
       bool t2 = self.methodInExtensionScope();
-      //             ^^^
-      // [cfe] unspecified
       //             ^^^^^^^^^^^^^^^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
+      // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+      // [cfe] The method 'methodInExtensionScope' is defined in multiple extensions for 'A' and neither is more specific.
       checkExtensionValue(t2);
     }
 
@@ -232,7 +218,6 @@ extension MyExt on A {
     MyExt(this).testIdentifiersOnInstance();
   }
 }
-
 
 class B extends A {
   void testNakedIdentifiers() {
@@ -251,39 +236,33 @@ class B extends A {
     // Extension members are ambiguous
     {
       bool t0 = fieldInExtensionScope;
-      //        ^^^
-      // [cfe] unspecified
       //        ^^^^^^^^^^^^^^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
+      // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+      // [cfe] The property 'fieldInExtensionScope' is defined in multiple extensions for 'B' and neither is more specific.
       //        ^^^^^^^^^^^^^^^^^^^^^
       // [analyzer] STATIC_WARNING.UNDEFINED_IDENTIFIER
       checkExtensionValue(t0);
       bool t1 = getterInExtensionScope;
-      //        ^^^
-      // [cfe] unspecified
       //        ^^^^^^^^^^^^^^^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
+      // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+      // [cfe] The property 'getterInExtensionScope' is defined in multiple extensions for 'B' and neither is more specific.
       //        ^^^^^^^^^^^^^^^^^^^^^^
       // [analyzer] STATIC_WARNING.UNDEFINED_IDENTIFIER
       checkExtensionValue(t1);
       setterInExtensionScope = extensionValue;
 //    ^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
+// [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+// [cfe] The property 'setterInExtensionScope' is defined in multiple extensions for 'B' and neither is more specific.
 //    ^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] STATIC_WARNING.UNDEFINED_IDENTIFIER
-//              ^^^
-// [cfe] unspecified
       bool t2 = methodInExtensionScope();
-      //        ^^^
-      // [cfe] unspecified
       //        ^^^^^^^^^^^^^^^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
-      //        ^^^^^^^^^^^^^^^^^^^^^^
-      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_METHOD
+      // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+      // [cfe] The method 'methodInExtensionScope' is defined in multiple extensions for 'B' and neither is more specific.
       checkExtensionValue(t2);
     }
 
-   // Extension members resolve to the extension methods in the other
+    // Extension members resolve to the extension methods in the other
     // extension (unresolved identifier "id" gets turned into "this.id",
     // which is then subject to extension method lookup).
     {
@@ -302,27 +281,23 @@ void main() {
   // Global names come from both extensions and hence are ambiguous.
   {
     bool t0 = a.fieldInGlobalScope;
-    //          ^^^
-    // [cfe] unspecified
     //          ^^^^^^^^^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
+    // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+    // [cfe] The property 'fieldInGlobalScope' is defined in multiple extensions for 'A' and neither is more specific.
     checkExtensionValue(t0);
     bool t1 = a.getterInGlobalScope;
-    //          ^^^
-    // [cfe] unspecified
     //          ^^^^^^^^^^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
+    // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+    // [cfe] The property 'getterInGlobalScope' is defined in multiple extensions for 'A' and neither is more specific.
     checkExtensionValue(t1);
     a.setterInGlobalScope = extensionValue;
     //^^^^^^^^^^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
-    // ^^^
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+    // [cfe] The property 'setterInGlobalScope' is defined in multiple extensions for 'A' and neither is more specific.
     bool t2 = a.methodInGlobalScope();
-    //          ^^^
-    // [cfe] unspecified
     //          ^^^^^^^^^^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
+    // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+    // [cfe] The method 'methodInGlobalScope' is defined in multiple extensions for 'A' and neither is more specific.
     checkExtensionValue(t2);
   }
 
@@ -335,27 +310,23 @@ void main() {
   // Extension members are ambiguous
   {
     bool t0 = a.fieldInExtensionScope;
-    //          ^^^
-    // [cfe] unspecified
     //          ^^^^^^^^^^^^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
+    // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+    // [cfe] The property 'fieldInExtensionScope' is defined in multiple extensions for 'A' and neither is more specific.
     checkExtensionValue(t0);
     bool t1 = a.getterInExtensionScope;
-    //          ^^^
-    // [cfe] unspecified
     //          ^^^^^^^^^^^^^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
+    // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+    // [cfe] The property 'getterInExtensionScope' is defined in multiple extensions for 'A' and neither is more specific.
     checkExtensionValue(t1);
     a.setterInExtensionScope = extensionValue;
     //^^^^^^^^^^^^^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
-    // ^^^
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+    // [cfe] The property 'setterInExtensionScope' is defined in multiple extensions for 'A' and neither is more specific.
     bool t2 = a.methodInExtensionScope();
-    //          ^^^
-    // [cfe] unspecified
     //          ^^^^^^^^^^^^^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
+    // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+    // [cfe] The method 'methodInExtensionScope' is defined in multiple extensions for 'A' and neither is more specific.
     checkExtensionValue(t2);
   }
 
@@ -364,5 +335,4 @@ void main() {
   {
     // No errors: see static_extension_internal_resolution_4_test.dart
   }
-
 }

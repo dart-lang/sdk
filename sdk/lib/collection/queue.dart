@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.collection;
 
 /// A [Queue] is a collection that can be manipulated at both ends. One
@@ -30,7 +32,7 @@ abstract class Queue<E> implements EfficientLengthIterable<E> {
   /// ```dart
   /// Queue<SuperType> superQueue = ...;
   /// Queue<SubType> subQueue =
-  ///     new Queue<SubType>.from(superSet.whereType<SubType>());
+  ///     new Queue<SubType>.from(superQueue.whereType<SubType>());
   /// ```
   factory Queue.from(Iterable elements) = ListQueue<E>.from;
 
@@ -398,11 +400,13 @@ class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
   /// The entry object of the first element in the queue.
   ///
   /// Each element of the queue has an associated [DoubleLinkedQueueEntry].
-  /// Returns the entry object corresponding to the first element of the queue.
+  ///
+  /// Returns the entry object corresponding to the first element of the queue,
+  /// or `null` if the queue is empty.
   ///
   /// The entry objects can also be accessed using [lastEntry],
-  /// and they can be iterated using [DoubleLinkedQueueEntry.nextEntry()] and
-  /// [DoubleLinkedQueueEntry.previousEntry()].
+  /// and they can be iterated using [DoubleLinkedQueueEntry.nextEntry] and
+  /// [DoubleLinkedQueueEntry.previousEntry].
   DoubleLinkedQueueEntry<E> firstEntry() {
     return _sentinel.nextEntry();
   }
@@ -410,11 +414,13 @@ class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
   /// The entry object of the last element in the queue.
   ///
   /// Each element of the queue has an associated [DoubleLinkedQueueEntry].
-  /// Returns the entry object corresponding to the last element of the queue.
+  ///
+  /// Returns the entry object corresponding to the last element of the queue,
+  /// or `null` if the queue is empty.
   ///
   /// The entry objects can also be accessed using [firstEntry],
-  /// and they can be iterated using [DoubleLinkedQueueEntry.nextEntry()] and
-  /// [DoubleLinkedQueueEntry.previousEntry()].
+  /// and they can be iterated using [DoubleLinkedQueueEntry.nextEntry] and
+  /// [DoubleLinkedQueueEntry.previousEntry].
   DoubleLinkedQueueEntry<E> lastEntry() {
     return _sentinel.previousEntry();
   }

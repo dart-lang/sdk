@@ -8,9 +8,10 @@
 #include "vm/os.h"
 
 #include <errno.h>
-#if !defined(FUCHSIA_SDK)
-#include <fuchsia/timezone/cpp/fidl.h>
-#endif  //  !defined(FUCHSIA_SDK)
+#include <fcntl.h>
+#include <stdint.h>
+
+#include <fuchsia/deprecatedtimezone/cpp/fidl.h>
 #include <lib/sys/cpp/service_directory.h>
 #include <zircon/process.h>
 #include <zircon/syscalls.h>
@@ -21,6 +22,27 @@
 #include "vm/zone.h"
 
 namespace dart {
+
+// The data directory containing ICU timezone data files.
+static constexpr char kICUTZDataDir[] = "/config/data/tzdata/icu/44/le";
+
+// Initializes the source of timezone data if available.  Timezone data file in
+// Fuchsia is at a fixed directory path.  Returns true on success.
+bool InitializeTZData() {
+  // Try opening the path to check if present.  No need to verify that it is a
+  // directory since ICU loading will return an error if the TZ data path is
+  // wrong.
+  int fd = openat(AT_FDCWD, kICUTZDataDir, O_RDONLY);
+  if (fd < 0) {
+    return false;
+  }
+  // 0 == Not overwriting the env var if already set.
+  setenv("ICU_TIMEZONE_FILES_DIR", kICUTZDataDir, 0);
+  if (!close(fd)) {
+    return false;
+  }
+  return true;
+}
 
 #ifndef PRODUCT
 
@@ -39,20 +61,17 @@ intptr_t OS::ProcessId() {
   return static_cast<intptr_t>(getpid());
 }
 
-#if !defined(FUCHSIA_SDK)
 // TODO(FL-98): Change this to talk to fuchsia.dart to get timezone service to
 // directly get timezone.
 //
 // Putting this hack right now due to CP-120 as I need to remove
 // component:ConnectToEnvironmentServices and this is the only thing that is
 // blocking it and FL-98 will take time.
-static fuchsia::timezone::TimezoneSyncPtr tz;
-#endif  //  !defined(FUCHSIA_SDK)
+static fuchsia::deprecatedtimezone::TimezoneSyncPtr tz;
 
 static zx_status_t GetLocalAndDstOffsetInSeconds(int64_t seconds_since_epoch,
                                                  int32_t* local_offset,
                                                  int32_t* dst_offset) {
-#if !defined(FUCHSIA_SDK)
   zx_status_t status = tz->GetTimezoneOffsetMinutes(seconds_since_epoch * 1000,
                                                     local_offset, dst_offset);
   if (status != ZX_OK) {
@@ -61,13 +80,9 @@ static zx_status_t GetLocalAndDstOffsetInSeconds(int64_t seconds_since_epoch,
   *local_offset *= 60;
   *dst_offset *= 60;
   return ZX_OK;
-#else
-  return ZX_ERR_NOT_SUPPORTED;
-#endif  //  !defined(FUCHSIA_SDK)
 }
 
 const char* OS::GetTimeZoneName(int64_t seconds_since_epoch) {
-#if !defined(FUCHSIA_SDK)
   // TODO(abarth): Handle time zone changes.
   static const auto* tz_name = new std::string([] {
     std::string result;
@@ -75,9 +90,6 @@ const char* OS::GetTimeZoneName(int64_t seconds_since_epoch) {
     return result;
   }());
   return tz_name->c_str();
-#else
-  return "";
-#endif  //  !defined(FUCHSIA_SDK)}
 }
 
 int OS::GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch) {
@@ -130,13 +142,9 @@ int64_t OS::GetCurrentThreadCPUMicros() {
 // into a architecture specific file e.g: os_ia32_fuchsia.cc
 intptr_t OS::ActivationFrameAlignment() {
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
-    defined(TARGET_ARCH_ARM64) ||                                              \
-    defined(TARGET_ARCH_DBC) &&                                                \
-        (defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64) ||                  \
-         defined(HOST_ARCH_ARM64))
+    defined(TARGET_ARCH_ARM64)
   const int kMinimumAlignment = 16;
-#elif defined(TARGET_ARCH_ARM) ||                                              \
-    defined(TARGET_ARCH_DBC) && defined(HOST_ARCH_ARM)
+#elif defined(TARGET_ARCH_ARM)
   const int kMinimumAlignment = 8;
 #else
 #error Unsupported architecture.
@@ -147,25 +155,6 @@ intptr_t OS::ActivationFrameAlignment() {
   // Flags::DebugIsInt("stackalign", &alignment);
   ASSERT(Utils::IsPowerOfTwo(alignment));
   ASSERT(alignment >= kMinimumAlignment);
-  return alignment;
-}
-
-intptr_t OS::PreferredCodeAlignment() {
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
-    defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_DBC)
-  const int kMinimumAlignment = 32;
-#elif defined(TARGET_ARCH_ARM)
-  const int kMinimumAlignment = 16;
-#else
-#error Unsupported architecture.
-#endif
-  intptr_t alignment = kMinimumAlignment;
-  // TODO(5411554): Allow overriding default code alignment for
-  // testing purposes.
-  // Flags::DebugIsInt("codealign", &alignment);
-  ASSERT(Utils::IsPowerOfTwo(alignment));
-  ASSERT(alignment >= kMinimumAlignment);
-  ASSERT(alignment <= OS::kMaxPreferredCodeAlignment);
   return alignment;
 }
 
@@ -274,10 +263,9 @@ void OS::PrintErr(const char* format, ...) {
 }
 
 void OS::Init() {
-#if !defined(FUCHSIA_SDK)
+  InitializeTZData();
   auto services = sys::ServiceDirectory::CreateFromNamespace();
   services->Connect(tz.NewRequest());
-#endif  //  !defined(FUCHSIA_SDK)
 }
 
 void OS::Cleanup() {}

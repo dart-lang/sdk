@@ -95,11 +95,27 @@ uintptr_t SignalHandler::GetLinkRegister(const mcontext_t& mcontext) {
 }
 
 void SignalHandler::InstallImpl(SignalAction action) {
+  // Bionic implementation of setjmp temporary mangles SP register
+  // in place which breaks signal delivery on the thread stack - when
+  // kernel tries to deliver SIGPROF and we are in the middle of
+  // setjmp SP value is invalid - might be pointing to random memory
+  // or outside of writable space at all. In the first case we
+  // get memory corruption and in the second case kernel would send
+  // SIGSEGV to the process. See b/152210274 for details.
+  // To work around this issue we are using alternative signal stack
+  // to handle SIGPROF signals.
+  stack_t ss;
+  ss.ss_size = SIGSTKSZ;
+  ss.ss_sp = malloc(ss.ss_size);
+  ss.ss_flags = 0;
+  int r = sigaltstack(&ss, NULL);
+  ASSERT(r == 0);
+
   struct sigaction act = {};
   act.sa_sigaction = action;
   sigemptyset(&act.sa_mask);
-  act.sa_flags = SA_RESTART | SA_SIGINFO;
-  int r = sigaction(SIGPROF, &act, NULL);
+  act.sa_flags = SA_RESTART | SA_SIGINFO | SA_ONSTACK;
+  r = sigaction(SIGPROF, &act, NULL);
   ASSERT(r == 0);
 }
 
@@ -111,6 +127,13 @@ void SignalHandler::Remove() {
   sigemptyset(&act.sa_mask);
   int r = sigaction(SIGPROF, &act, NULL);
   ASSERT(r == 0);
+
+  // Disable and delete alternative signal stack.
+  stack_t ss, old_ss;
+  ss.ss_flags = SS_DISABLE;
+  r = sigaltstack(&ss, &old_ss);
+  ASSERT(r == 0);
+  free(old_ss.ss_sp);
 }
 
 }  // namespace dart

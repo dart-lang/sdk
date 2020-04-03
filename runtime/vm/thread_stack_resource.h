@@ -11,6 +11,7 @@
 namespace dart {
 
 class Isolate;
+class IsolateGroup;
 class ThreadState;
 class Thread;
 
@@ -25,6 +26,7 @@ class ThreadStackResource : public StackResource {
     return reinterpret_cast<Thread*>(StackResource::thread());
   }
   Isolate* isolate() const;
+  IsolateGroup* isolate_group() const;
 };
 
 }  // namespace dart

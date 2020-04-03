@@ -7,6 +7,7 @@ library;
 // ^
 //
 // pkg/front_end/testcases/rasta/issue_000032.dart:6:4: Error: Constructors can't have type parameters.
+// Try removing the type parameters.
 //   C<
 //    ^^...
 //
@@ -27,9 +28,9 @@ library;
 // }
 // ^
 //
-// pkg/front_end/testcases/rasta/issue_000032.dart:10:4: Error: The method '<' isn't defined for the class 'Type'.
+// pkg/front_end/testcases/rasta/issue_000032.dart:10:4: Error: The operator '<' isn't defined for the class 'Type'.
 //  - 'Type' is from 'dart:core'.
-// Try correcting the name to the name of an existing method, or defining a method named '<'.
+// Try correcting the operator to an existing operator, or defining a '<' operator.
 //   C<
 //    ^
 //
@@ -41,9 +42,9 @@ class C extends core::Object {
     : super core::Object::•() {}
 }
 static method main() → dynamic {
-  invalid-expression "pkg/front_end/testcases/rasta/issue_000032.dart:10:4: Error: The method '<' isn't defined for the class 'Type'.
+  invalid-expression "pkg/front_end/testcases/rasta/issue_000032.dart:10:4: Error: The operator '<' isn't defined for the class 'Type'.
  - 'Type' is from 'dart:core'.
-Try correcting the name to the name of an existing method, or defining a method named '<'.
+Try correcting the operator to an existing operator, or defining a '<' operator.
   C<
    ^";
 }

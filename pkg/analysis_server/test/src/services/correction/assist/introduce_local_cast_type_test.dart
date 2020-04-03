@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(IntroduceLocalCastTypeTest);
   });
@@ -20,36 +20,7 @@ class IntroduceLocalCastTypeTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.INTRODUCE_LOCAL_CAST_TYPE;
 
-  test_introduceLocalTestedType_notBlock() async {
-    await resolveTestUnit('''
-main(p) {
-  if (p is String)
-    print('not a block');
-}
-''');
-    await assertNoAssistAt('if (p');
-  }
-
-  test_introduceLocalTestedType_notIsExpression() async {
-    await resolveTestUnit('''
-main(p) {
-  if (p == null) {
-  }
-}
-''');
-    await assertNoAssistAt('if (p');
-  }
-
-  test_introduceLocalTestedType_notStatement() async {
-    await resolveTestUnit('''
-class C {
-  bool b;
-  C(v) : b = v is int;
-}''');
-    await assertNoAssistAt('is int');
-  }
-
-  test_introduceLocalTestedType_if_is() async {
+  Future<void> test_introduceLocalTestedType_if_is() async {
     await resolveTestUnit('''
 class MyTypeName {}
 main(p) {
@@ -58,7 +29,7 @@ main(p) {
   p = null;
 }
 ''');
-    String expected = '''
+    var expected = '''
 class MyTypeName {}
 main(p) {
   if (p is MyTypeName) {
@@ -77,7 +48,7 @@ main(p) {
     await assertHasAssistAt('if (p', expected);
   }
 
-  test_introduceLocalTestedType_if_isNot() async {
+  Future<void> test_introduceLocalTestedType_if_isNot() async {
     await resolveTestUnit('''
 class MyTypeName {}
 main(p) {
@@ -86,7 +57,7 @@ main(p) {
   }
 }
 ''');
-    String expected = '''
+    var expected = '''
 class MyTypeName {}
 main(p) {
   if (p is! MyTypeName) {
@@ -105,7 +76,36 @@ main(p) {
     await assertHasAssistAt('if (p', expected);
   }
 
-  test_introduceLocalTestedType_while() async {
+  Future<void> test_introduceLocalTestedType_notBlock() async {
+    await resolveTestUnit('''
+main(p) {
+  if (p is String)
+    print('not a block');
+}
+''');
+    await assertNoAssistAt('if (p');
+  }
+
+  Future<void> test_introduceLocalTestedType_notIsExpression() async {
+    await resolveTestUnit('''
+main(p) {
+  if (p == null) {
+  }
+}
+''');
+    await assertNoAssistAt('if (p');
+  }
+
+  Future<void> test_introduceLocalTestedType_notStatement() async {
+    await resolveTestUnit('''
+class C {
+  bool b;
+  C(v) : b = v is int;
+}''');
+    await assertNoAssistAt('is int');
+  }
+
+  Future<void> test_introduceLocalTestedType_while() async {
     await resolveTestUnit('''
 main(p) {
   while (p is String) {
@@ -113,7 +113,7 @@ main(p) {
   p = null;
 }
 ''');
-    String expected = '''
+    var expected = '''
 main(p) {
   while (p is String) {
     String s = p;

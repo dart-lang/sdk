@@ -4,7 +4,7 @@
 
 group("test") {
   deps = [
-    "codegen",
     "bit",
+    "codegen",
   ]
 }

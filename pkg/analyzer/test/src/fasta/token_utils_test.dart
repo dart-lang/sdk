@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/fasta/token_utils.dart';
-import 'package:front_end/src/fasta/scanner.dart';
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

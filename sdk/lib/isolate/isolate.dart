@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 /**
  * Concurrent programming using _isolates_:
  * independent workers that are similar to threads
@@ -624,8 +626,7 @@ abstract class SendPort implements Capability {
    * In the special circumstances when two isolates share the same code and are
    * running in the same process (e.g. isolates created via [Isolate.spawn]), it
    * is also possible to send object instances (which would be copied in the
-   * process). This is currently only supported by the dartvm.  For now, the
-   * dart2js compiler only supports the restricted messages described above.
+   * process). This is currently only supported by the dart vm.
    *
    * The send happens immediately and doesn't block.  The corresponding receive
    * port can receive the message as soon as its isolate's event loop is ready

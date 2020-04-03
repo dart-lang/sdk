@@ -7,8 +7,6 @@ library js_backend.backend.annotations;
 import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
-import '../common_elements.dart' show KCommonElements, KElementEnvironment;
-import '../constants/values.dart';
 import '../diagnostics/diagnostic_listener.dart';
 import '../diagnostics/messages.dart';
 import '../elements/entities.dart';
@@ -142,40 +140,6 @@ class PragmaAnnotation {
     noThrows: {noInline},
     noSideEffects: {noInline},
   };
-}
-
-List<PragmaAnnotationData> computePragmaAnnotationData(
-    KCommonElements commonElements,
-    KElementEnvironment elementEnvironment,
-    MemberEntity element) {
-  List<PragmaAnnotationData> annotations = [];
-  for (ConstantValue constantValue
-      in elementEnvironment.getMemberMetadata(element)) {
-    if (!constantValue.isConstructedObject) continue;
-    ConstructedConstantValue value = constantValue;
-    ClassEntity cls = value.type.element;
-    assert(cls != null); // Unresolved classes null.
-
-    if (cls == commonElements.metaNoInlineClass) {
-      annotations.add(const PragmaAnnotationData('noInline'));
-    } else if (cls == commonElements.metaTryInlineClass) {
-      annotations.add(const PragmaAnnotationData('tryInline'));
-    } else if (cls == commonElements.pragmaClass) {
-      ConstantValue nameValue =
-          value.fields[commonElements.pragmaClassNameField];
-      if (nameValue == null || !nameValue.isString) continue;
-      String name = (nameValue as StringConstantValue).stringValue;
-      String prefix = 'dart2js:';
-      if (!name.startsWith(prefix)) continue;
-      String suffix = name.substring(prefix.length);
-
-      ConstantValue optionsValue =
-          value.fields[commonElements.pragmaClassOptionsField];
-      annotations.add(
-          new PragmaAnnotationData(suffix, hasOptions: !optionsValue.isNull));
-    }
-  }
-  return annotations;
 }
 
 EnumSet<PragmaAnnotation> processMemberAnnotations(

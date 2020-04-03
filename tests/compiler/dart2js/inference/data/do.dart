@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /*member: main:[null]*/
 main() {
   simpleDo();
@@ -47,7 +49,7 @@ doNotNull() {
   var o = '';
   do {
     o = o. /*invoke: [exact=JSString]*/ toString();
-  } while (o != null);
+  } while (o /*invoke: [null|exact=JSString]*/ != null);
   return o;
 }
 
@@ -60,7 +62,7 @@ doNullFalse() {
   var o = '';
   do {
     o = o. /*invoke: [exact=JSString]*/ toString();
-  } while (o == null);
+  } while (o /*invoke: [null|exact=JSString]*/ == null);
   return o;
 }
 
@@ -93,10 +95,10 @@ class Class2 {
   var field;
 }
 
-/*member: _doUnion:Union([null|exact=Class1], [null|exact=Class2])*/
+/*member: _doUnion:Union(null, [exact=Class1], [exact=Class2])*/
 _doUnion(/*[exact=Class1]*/ o) {
   do {
-    o = o. /*Union([exact=Class1], [null|exact=Class2])*/ field;
+    o = o. /*Union(null, [exact=Class1], [exact=Class2])*/ field;
   } while (o != null);
   return o;
 }

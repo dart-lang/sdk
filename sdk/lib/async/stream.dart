@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.async;
 
 // -------------------------------------------------------------------
@@ -130,6 +132,7 @@ abstract class Stream<T> {
    *
    * This stream emits a single error event of [error] and [stackTrace]
    * and then completes with a done event.
+   * The [error] must not be `null`.
    *
    * Example:
    * ```dart
@@ -150,11 +153,13 @@ abstract class Stream<T> {
    * stack trace as well.
    */
   @Since("2.5")
-  factory Stream.error(Object error, [StackTrace stackTrace]) =>
-      (_AsyncStreamController<T>(null, null, null, null)
-            .._addError(error, stackTrace)
-            .._closeUnchecked())
-          .stream;
+  factory Stream.error(Object error, [StackTrace stackTrace]) {
+    ArgumentError.checkNotNull(error, "error");
+    return (_AsyncStreamController<T>(null, null, null, null)
+          .._addError(error, stackTrace ?? AsyncError.defaultStackTrace(error))
+          .._closeUnchecked())
+        .stream;
+  }
 
   /**
    * Creates a new single-subscription stream from the future.
@@ -250,6 +255,8 @@ abstract class Stream<T> {
    * every event.
    *
    * If [computation] is omitted the event values will all be `null`.
+   *
+   * [period] must a non-negative [Duration].
    */
   factory Stream.periodic(Duration period,
       [T computation(int computationCount)]) {
@@ -685,7 +692,7 @@ abstract class Stream<T> {
   }
 
   /**
-   * Applies  [streamTransformer] to this stream.
+   * Applies [streamTransformer] to this stream.
    *
    * Returns the transformed stream,
    * that is, the result of `streamTransformer.bind(this)`.
@@ -999,9 +1006,9 @@ abstract class Stream<T> {
    * Whether this stream contains any elements.
    *
    * Waits for the first element of this stream, then completes the returned
-   * future with `true`.
+   * future with `false`.
    * If this stream ends without emitting any elements, the returned future is
-   * completed with `false`.
+   * completed with `true`.
    *
    * If the first event is an error, the returned future is completed with that
    * error.
@@ -1096,9 +1103,9 @@ abstract class Stream<T> {
    * When subscribing using [drain], cancelOnError will be true. This means
    * that the future will complete with the first error on this stream and then
    * cancel the subscription.
-   * If this stream emits an error, or the call to [combine] throws,
-   * the returned future is completed with that error,
-   * and processing is stopped.
+   *
+   * If this stream emits an error, the returned future is completed with
+   * that error, and processing is stopped.
    *
    * In case of a `done` event the future completes with the given
    * [futureValue].
@@ -1653,7 +1660,7 @@ abstract class StreamSubscription<T> {
    * Returns a future that is completed once the stream has finished
    * its cleanup.
    *
-   * For historical reasons, may also return `null` if no cleanup was necessary.
+   * Historically returned `null` if no cleanup was necessary.
    * Returning `null` is deprecated and should be avoided.
    *
    * Typically, futures are returned when the stream needs to release resources.
@@ -1661,11 +1668,10 @@ abstract class StreamSubscription<T> {
    * operation). If the listener wants to delete the file after having
    * canceled the subscription, it must wait for the cleanup future to complete.
    *
-   * A returned future completes with a `null` value.
    * If the cleanup throws, which it really shouldn't, the returned future
    * completes with that error.
    */
-  Future cancel();
+  Future<void> cancel();
 
   /**
    * Replaces the data event handler of this subscription.
@@ -1806,6 +1812,8 @@ abstract class EventSink<T> implements Sink<T> {
 
   /**
    * Adds an [error] to the sink.
+   *
+   * The [error] must not be `null`.
    *
    * Must not be called on a closed sink.
    */

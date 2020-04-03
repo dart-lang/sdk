@@ -1,0 +1,12 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  synthetic constructor •() → self::C*
+    ;
+  operator [](core::int* index) → core::bool*
+    ;
+}
+static method main() → dynamic
+  ;

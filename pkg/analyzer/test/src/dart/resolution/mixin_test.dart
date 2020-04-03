@@ -2,12 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../generated/elements_types_mixin.dart';
 import 'driver_resolution.dart';
 
 main() {
@@ -17,7 +18,8 @@ main() {
 }
 
 @reflectiveTest
-class MixinDriverResolutionTest extends DriverResolutionTest {
+class MixinDriverResolutionTest extends DriverResolutionTest
+    with ElementsTypesMixin {
   test_accessor_getter() async {
     await assertNoErrorsInCode(r'''
 mixin M {
@@ -92,7 +94,7 @@ class A extends Object with M {} // A
     var mElement = findElement.mixin('M');
 
     var aElement = findElement.class_('A');
-    assertElementTypes(aElement.mixins, [mElement.type]);
+    assertElementTypes(aElement.mixins, [interfaceTypeStar(mElement)]);
 
     var mRef = findNode.typeName('M {} // A');
     assertTypeName(mRef, mElement, 'M');
@@ -107,7 +109,7 @@ class A = Object with M;
     var mElement = findElement.mixin('M');
 
     var aElement = findElement.class_('A');
-    assertElementTypes(aElement.mixins, [mElement.type]);
+    assertElementTypes(aElement.mixins, [interfaceTypeStar(mElement)]);
 
     var mRef = findNode.typeName('M;');
     assertTypeName(mRef, mElement, 'M');
@@ -126,17 +128,6 @@ mixin M {}
     assertTypeNull(aRef);
   }
 
-  test_conflictingGenericInterfaces() async {
-    await assertErrorsInCode('''
-class I<T> {}
-class A implements I<int> {}
-class B implements I<String> {}
-mixin M on A implements B {}
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 75, 28),
-    ]);
-  }
-
   test_element() async {
     await assertNoErrorsInCode(r'''
 mixin M {}
@@ -153,7 +144,8 @@ mixin M {}
     expect(element.isEnum, isFalse);
     expect(element.isMixin, isTrue);
     expect(element.isMixinApplication, isFalse);
-    expect(element.type.isObject, isFalse);
+    expect(interfaceTypeStar(element).isObject, isFalse);
+    expect(element.isDartCoreObject, isFalse);
 
     assertElementTypes(element.superclassConstraints, [objectType]);
     assertElementTypes(element.interfaces, []);
@@ -174,11 +166,16 @@ mixin M2 on A implements B, C {}
     var c = findElement.class_('C');
     assertElementTypes(
       findElement.mixin('M1').allSupertypes,
-      [a.type, b.type, objectType],
+      [interfaceTypeStar(a), interfaceTypeStar(b), objectType],
     );
     assertElementTypes(
       findElement.mixin('M2').allSupertypes,
-      [a.type, objectType, b.type, c.type],
+      [
+        interfaceTypeStar(a),
+        objectType,
+        interfaceTypeStar(b),
+        interfaceTypeStar(c)
+      ],
     );
   }
 
@@ -196,15 +193,15 @@ mixin M2 on B<String> {}
     assertElementTypes(
       findElement.mixin('M1').allSupertypes,
       [
-        a.type.instantiate([intType, doubleType]),
+        interfaceTypeStar(a, typeArguments: [intType, doubleType]),
         objectType
       ],
     );
     assertElementTypes(
       findElement.mixin('M2').allSupertypes,
       [
-        b.type.instantiate([stringType]),
-        a.type.instantiate([intType, stringType]),
+        interfaceTypeStar(b, typeArguments: [stringType]),
+        interfaceTypeStar(a, typeArguments: [intType, stringType]),
         objectType
       ],
     );
@@ -310,38 +307,6 @@ mixin M {
 ''');
   }
 
-  test_error_finalNotInitializedConstructor() async {
-    await assertErrorsInCode(r'''
-mixin M {
-  final int f;
-  M();
-}
-''', [
-      error(CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 27, 1),
-      error(StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1, 27, 1),
-    ]);
-  }
-
-  test_error_finalNotInitializedConstructor_OK() async {
-    await assertErrorsInCode(r'''
-mixin M {
-  final int f;
-  M(this.f);
-}
-''', [
-      error(CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 27, 1),
-    ]);
-
-    var element = findElement.mixin('M');
-    var constructorElement = element.constructors.single;
-
-    var fpNode = findNode.fieldFormalParameter('f);');
-    assertElement(fpNode.identifier, constructorElement.parameters[0]);
-
-    FieldFormalParameterElement fpElement = fpNode.declaredElement;
-    expect(fpElement.field, same(findElement.field('f')));
-  }
-
   test_error_implementsClause_deferredClass() async {
     await assertErrorsInCode(r'''
 import 'dart:math' deferred as math;
@@ -353,7 +318,7 @@ mixin M implements math.Random {}
     var randomElement = mathImport.importedLibrary.getType('Random');
 
     var element = findElement.mixin('M');
-    assertElementTypes(element.interfaces, [randomElement.type]);
+    assertElementTypes(element.interfaces, [interfaceTypeStar(randomElement)]);
 
     var typeRef = findNode.typeName('Random {}');
     assertTypeName(typeRef, randomElement, 'Random',
@@ -404,7 +369,7 @@ mixin M {
   int get M => 0;
 }
 ''', [
-      error(CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME, 20, 1),
+      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 20, 1),
     ]);
   }
 
@@ -414,7 +379,7 @@ mixin M {
   static int get M => 0;
 }
 ''', [
-      error(CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME, 27, 1),
+      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 27, 1),
     ]);
   }
 
@@ -424,7 +389,7 @@ mixin M {
   void set M(_) {}
 }
 ''', [
-      error(CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME, 21, 1),
+      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 21, 1),
     ]);
   }
 
@@ -434,7 +399,7 @@ mixin M {
   static void set M(_) {}
 }
 ''', [
-      error(CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME, 28, 1),
+      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 28, 1),
     ]);
   }
 
@@ -822,47 +787,16 @@ class X = C with M;
     ]);
   }
 
-  test_error_mixinDeclaresConstructor() async {
-    await assertErrorsInCode(r'''
-mixin M {
-  M(int a) {
-    a; // read
-  }
-}
-''', [
-      error(CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 1),
-    ]);
-
-    // Even though it is an error for a mixin to declare a constructor,
-    // we still build elements for constructors, and resolve them.
-
-    var element = findElement.mixin('M');
-    var constructors = element.constructors;
-    expect(constructors, hasLength(1));
-    var constructorElement = constructors[0];
-
-    var constructorNode = findNode.constructor('M(int a)');
-    assertElement(constructorNode, constructorElement);
-
-    var aElement = constructorElement.parameters[0];
-    var aNode = constructorNode.parameters.parameters[0];
-    assertElement(aNode, aElement);
-
-    var aRef = findNode.simple('a; // read');
-    assertElement(aRef, aElement);
-    assertType(aRef, 'int');
-  }
-
   test_error_mixinInstantiate_default() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin M {}
 
 main() {
   new M();
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([CompileTimeErrorCode.MIXIN_INSTANTIATE]);
+''', [
+      error(CompileTimeErrorCode.MIXIN_INSTANTIATE, 27, 1),
+    ]);
 
     var creation = findNode.instanceCreation('M();');
     var m = findElement.mixin('M');
@@ -879,7 +813,7 @@ main() {
   new M.named();
 }
 ''', [
-      error(CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 1),
+      error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 1),
       error(CompileTimeErrorCode.MIXIN_INSTANTIATE, 43, 1),
     ]);
 
@@ -916,7 +850,9 @@ mixin M on math.Random {}
     var randomElement = mathImport.importedLibrary.getType('Random');
 
     var element = findElement.mixin('M');
-    assertElementTypes(element.superclassConstraints, [randomElement.type]);
+    assertElementTypes(element.superclassConstraints, [
+      interfaceTypeStar(randomElement),
+    ]);
 
     var typeRef = findNode.typeName('Random {}');
     assertTypeName(typeRef, randomElement, 'Random',
@@ -993,7 +929,9 @@ mixin B on A {} // ref
 
     var a = findElement.mixin('A');
     var b = findElement.mixin('B');
-    assertElementTypes(b.superclassConstraints, [a.type]);
+    assertElementTypes(b.superclassConstraints, [
+      interfaceTypeStar(a),
+    ]);
   }
 
   test_error_onRepeated() async {
@@ -1071,8 +1009,14 @@ mixin M implements A, B {} // M
 
     var element = findElement.mixin('M');
     assertElementTypes(element.interfaces, [
-      findElement.interfaceType('A'),
-      findElement.interfaceType('B'),
+      findElement.class_('A').instantiate(
+        typeArguments: const [],
+        nullabilitySuffix: NullabilitySuffix.star,
+      ),
+      findElement.class_('B').instantiate(
+        typeArguments: const [],
+        nullabilitySuffix: NullabilitySuffix.star,
+      ),
     ]);
 
     var aRef = findNode.typeName('A, ');
@@ -1240,27 +1184,16 @@ mixin M on A {
 
 abstract class X extends A with U1, U2, M {}
 ''', [
-      error(StaticWarningCode.UNDEFINED_CLASS, 121, 2),
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 121, 2),
       error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 121, 2),
       error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 125, 2),
-      error(StaticWarningCode.UNDEFINED_CLASS, 125, 2),
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 125, 2),
       error(
           CompileTimeErrorCode
               .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
           129,
           1),
     ]);
-  }
-
-  test_isMoreSpecificThan() async {
-    await assertNoErrorsInCode(r'''
-mixin M {}
-''');
-
-    var element = findElement.mixin('M');
-    var type = element.type;
-    // ignore: deprecated_member_use_from_same_package
-    expect(type.isMoreSpecificThan(intType), isFalse);
   }
 
   test_lookUpMemberInInterfaces_Object() async {
@@ -1294,7 +1227,7 @@ mixin M {}
   }
 
   test_methodCallTypeInference_mixinType() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 main() {
   C<int> c = f();
 }
@@ -1304,9 +1237,11 @@ class C<T> {}
 mixin M<T> on C<T> {}
 
 M<T> f<T>() => null;
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 1),
+    ]);
     var fInvocation = findNode.methodInvocation('f()');
-    expect(fInvocation.staticInvokeType.toString(), 'M<int> Function()');
+    assertInvokeType(fInvocation, 'M<int> Function()');
   }
 
   test_onClause() async {
@@ -1319,8 +1254,14 @@ mixin M on A, B {} // M
 
     var element = findElement.mixin('M');
     assertElementTypes(element.superclassConstraints, [
-      findElement.interfaceType('A'),
-      findElement.interfaceType('B'),
+      findElement.class_('A').instantiate(
+        typeArguments: const [],
+        nullabilitySuffix: NullabilitySuffix.star,
+      ),
+      findElement.class_('B').instantiate(
+        typeArguments: const [],
+        nullabilitySuffix: NullabilitySuffix.star,
+      ),
     ]);
 
     var aRef = findNode.typeName('A, ');

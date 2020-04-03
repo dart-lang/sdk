@@ -1,0 +1,11 @@
+class C {
+
+covariant late final int x;
+}
+
+
+class[KeywordToken] C[StringToken] {[BeginToken]
+
+covariant[KeywordToken] late[KeywordToken] final[KeywordToken] int[StringToken] x[StringToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

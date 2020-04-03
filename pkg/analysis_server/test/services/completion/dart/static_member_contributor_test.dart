@@ -4,14 +4,16 @@
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/static_member_contributor.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'completion_contributor_util.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(StaticMemberContributorTest);
+    defineReflectiveTests(StaticMemberContributorWithExtensionMethodsTest);
   });
 }
 
@@ -19,10 +21,10 @@ main() {
 class StaticMemberContributorTest extends DartCompletionContributorTest {
   @override
   DartCompletionContributor createContributor() {
-    return new StaticMemberContributor();
+    return StaticMemberContributor();
   }
 
-  test_enumConst() async {
+  Future<void> test_enumConst() async {
     addTestSource('enum E { one, two } main() {E.^}');
     await computeSuggestions();
     assertNotSuggested('E');
@@ -32,7 +34,7 @@ class StaticMemberContributorTest extends DartCompletionContributorTest {
     assertSuggestField('values', 'List<E>');
   }
 
-  test_enumConst2() async {
+  Future<void> test_enumConst2() async {
     addTestSource('enum E { one, two } main() {E.o^}');
     await computeSuggestions();
     assertNotSuggested('E');
@@ -42,7 +44,7 @@ class StaticMemberContributorTest extends DartCompletionContributorTest {
     assertSuggestField('values', 'List<E>');
   }
 
-  test_enumConst3() async {
+  Future<void> test_enumConst3() async {
     addTestSource('enum E { one, two } main() {E.^ int g;}');
     await computeSuggestions();
     assertNotSuggested('E');
@@ -52,13 +54,13 @@ class StaticMemberContributorTest extends DartCompletionContributorTest {
     assertSuggestField('values', 'List<E>');
   }
 
-  test_enumConst_cascade1() async {
+  Future<void> test_enumConst_cascade1() async {
     addTestSource('enum E { one, two } main() {E..^}');
     await computeSuggestions();
     assertNoSuggestions();
   }
 
-  test_enumConst_cascade2() async {
+  Future<void> test_enumConst_cascade2() async {
     addTestSource('enum E { one, two } main() {E.^.}');
     await computeSuggestions();
     assertNotSuggested('E');
@@ -68,13 +70,13 @@ class StaticMemberContributorTest extends DartCompletionContributorTest {
     assertSuggestField('values', 'List<E>');
   }
 
-  test_enumConst_cascade3() async {
+  Future<void> test_enumConst_cascade3() async {
     addTestSource('enum E { one, two } main() {E..o^}');
     await computeSuggestions();
     assertNoSuggestions();
   }
 
-  test_enumConst_cascade4() async {
+  Future<void> test_enumConst_cascade4() async {
     addTestSource('enum E { one, two } main() {E.^.o}');
     await computeSuggestions();
     assertNotSuggested('E');
@@ -85,7 +87,7 @@ class StaticMemberContributorTest extends DartCompletionContributorTest {
   }
 
   @failingTest
-  test_enumConst_deprecated() async {
+  Future<void> test_enumConst_deprecated() async {
     addTestSource('@deprecated enum E { one, two } main() {E.^}');
     await computeSuggestions();
     assertNotSuggested('E');
@@ -97,7 +99,7 @@ class StaticMemberContributorTest extends DartCompletionContributorTest {
     assertSuggestField('values', 'List<E>', isDeprecated: true);
   }
 
-  test_implicitCreation() async {
+  Future<void> test_implicitCreation() async {
     addSource('/home/test/lib/a.dart', '''
 class A {
   A.foo();
@@ -117,13 +119,13 @@ main() {
     assertSuggestConstructor('bar', elementName: 'bar');
   }
 
-  test_keyword() async {
+  Future<void> test_keyword() async {
     addTestSource('class C { static C get instance => null; } main() {C.in^}');
     await computeSuggestions();
     assertSuggestGetter('instance', 'C');
   }
 
-  test_only_static() async {
+  Future<void> test_only_static() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('''
 class B {
@@ -144,7 +146,7 @@ void main() {C.^}''');
     assertSuggestMethod('m2', 'C', null);
   }
 
-  test_only_static2() async {
+  Future<void> test_only_static2() async {
     // SimpleIdentifier  MethodInvocation  ExpressionStatement
     addTestSource('''
 class B {
@@ -165,7 +167,7 @@ void main() {C.^ print("something");}''');
     assertSuggestMethod('m2', 'C', null);
   }
 
-  test_only_static_cascade1() async {
+  Future<void> test_only_static_cascade1() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('''
 class B {
@@ -182,7 +184,7 @@ void main() {C..^}''');
     assertNoSuggestions();
   }
 
-  test_only_static_cascade2() async {
+  Future<void> test_only_static_cascade2() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('''
 class B {
@@ -203,7 +205,7 @@ void main() {C.^.}''');
     assertSuggestMethod('m2', 'C', null);
   }
 
-  test_only_static_cascade3() async {
+  Future<void> test_only_static_cascade3() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('''
 class B {
@@ -220,7 +222,7 @@ void main() {C..m^()}''');
     assertNoSuggestions();
   }
 
-  test_only_static_cascade4() async {
+  Future<void> test_only_static_cascade4() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('''
 class B {
@@ -241,7 +243,7 @@ void main() {C.^.m()}''');
     assertSuggestMethod('m2', 'C', null);
   }
 
-  test_only_static_cascade_prefixed1() async {
+  Future<void> test_only_static_cascade_prefixed1() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('''
 import "dart:async" as async;
@@ -250,7 +252,7 @@ void main() {async.Future..w^()}''');
     assertNoSuggestions();
   }
 
-  test_only_static_cascade_prefixed2() async {
+  Future<void> test_only_static_cascade_prefixed2() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('''
 import "dart:async" as async;
@@ -259,7 +261,7 @@ void main() {async.Future.^.w()}''');
     assertSuggestMethod('wait', 'Future', 'Future<List<T>>');
   }
 
-  test_PrefixedIdentifier_class_const() async {
+  Future<void> test_PrefixedIdentifier_class_const() async {
     // SimpleIdentifier PrefixedIdentifier ExpressionStatement Block
     addSource('/home/test/lib/b.dart', '''
         lib B;
@@ -302,5 +304,34 @@ void main() {async.Future.^.w()}''');
     assertNotSuggested('w');
     assertNotSuggested('Object');
     assertNotSuggested('==');
+  }
+}
+
+@reflectiveTest
+class StaticMemberContributorWithExtensionMethodsTest
+    extends DartCompletionContributorTest {
+  @override
+  DartCompletionContributor createContributor() {
+    return StaticMemberContributor();
+  }
+
+  @override
+  void setupResourceProvider() {
+    super.setupResourceProvider();
+    createAnalysisOptionsFile(experiments: [EnableString.extension_methods]);
+  }
+
+  Future<void> test_extension() async {
+    addTestSource('''
+extension E on Object {
+  static int i;
+  static String s;
+}
+main() {E.^}
+''');
+    await computeSuggestions();
+    assertNotSuggested('E');
+    assertSuggestField('i', 'int');
+    assertSuggestField('s', 'String');
   }
 }

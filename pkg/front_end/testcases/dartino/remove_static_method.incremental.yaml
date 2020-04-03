@@ -10,11 +10,11 @@ main.dart.patch: |
     static staticMethod() {
       print('v1');
     }
-  ==== "threw"
+  ==== {"messages":[],"hasCompileTimeError":1}
   >>>>
   }
   class C {
-    m() {
+    m(dynamic o) {
       try {
         B.staticMethod();
       } catch (e) {
@@ -23,7 +23,7 @@ main.dart.patch: |
       try {
         // Ensure that noSuchMethod support is compiled. This test is not about
         // adding new classes.
-        B.missingMethod();
+        o.missingMethod();
         print('bad');
       } catch (e) {
       }
@@ -31,10 +31,9 @@ main.dart.patch: |
   }
   var instance;
   main() {
-    new B(); // TODO(ahe): Work around dart2js assertion in World.subclassesOf
     if (instance == null) {
       print('instance is null');
       instance = new C();
     }
-    instance.m();
+    instance.m(new B());
   }

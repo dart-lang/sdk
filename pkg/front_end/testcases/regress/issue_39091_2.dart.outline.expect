@@ -1,0 +1,24 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_39091_2.dart:1:1: Error: The non-ASCII space character U+FEFF can only be used in strings and comments.
+// ﻿﻿// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// ^
+//
+// pkg/front_end/testcases/regress/issue_39091_2.dart:1:2: Error: The non-ASCII space character U+FEFF can only be used in strings and comments.
+// ﻿﻿// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+//  ^
+//
+// pkg/front_end/testcases/regress/issue_39091_2.dart:13:1: Error: Expected a declaration, but got '"﻿"'.
+// "﻿";
+// ^^^
+//
+// pkg/front_end/testcases/regress/issue_39091_2.dart:13:4: Error: Unexpected token ';'.
+// "﻿";
+//    ^
+//
+import self as self;
+
+static method main() → dynamic
+  ;

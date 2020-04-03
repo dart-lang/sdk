@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 library dart._vmservice;
 
 import 'dart:async';
@@ -191,6 +193,11 @@ class VMServiceEmbedderHooks {
   static WebServerControlCallback webServerControl;
 }
 
+class _ClientResumePermissions {
+  final List<Client> clients = [];
+  int permissionsMask = 0;
+}
+
 class VMService extends MessageRouter {
   static VMService _instance;
 
@@ -200,6 +207,10 @@ class VMService extends MessageRouter {
   final NamedLookup<Client> clients =
       new NamedLookup<Client>(prologue: serviceNamespace);
   final IdGenerator _serviceRequests = new IdGenerator(prologue: 'sr');
+
+  /// Mapping of client names to all clients of that name and their resume
+  /// permissions.
+  final Map<String, _ClientResumePermissions> clientResumePermissions = {};
 
   /// Collection of currently running isolates.
   RunningIsolates runningIsolates = new RunningIsolates();
@@ -212,9 +223,107 @@ class VMService extends MessageRouter {
 
   final devfs = new DevFS();
 
+  void _clearClientName(Client client) {
+    final name = client.name;
+    client.name = null;
+    final clientsForName = clientResumePermissions[name];
+    if (clientsForName != null) {
+      clientsForName.clients.remove(client);
+      // If this was the last client with a given name, cleanup resume
+      // permissions.
+      if (clientsForName.clients.isEmpty) {
+        clientResumePermissions.remove(name);
+
+        // Check to see if we need to resume any isolates now that the last
+        // client of a given name has disconnected or changed names.
+        //
+        // An isolate will be resumed in this situation if:
+        //
+        // 1) This client required resume approvals for the current pause event
+        // associated with the isolate and all other required resume approvals
+        // have been provided by other clients.
+        //
+        // OR
+        //
+        // 2) This client required resume approvals for the current pause event
+        // associated with the isolate, no other clients require resume approvals
+        // for the current pause event, and at least one client has issued a resume
+        // request.
+        runningIsolates.isolates.forEach((_, isolate) async =>
+            await isolate.maybeResumeAfterClientChange(this, name));
+      }
+    }
+  }
+
+  /// Sets the name associated with a [Client].
+  ///
+  /// If any resume approvals were set for this client previously they will
+  /// need to be reset after a name change.
+  String _setClientName(Message message) {
+    final client = message.client;
+    if (!message.params.containsKey('name')) {
+      return encodeRpcError(message, kInvalidParams,
+          details: "setClientName: missing required parameter 'name'");
+    }
+    final name = message.params['name'];
+    if (name is! String) {
+      return encodeRpcError(message, kInvalidParams,
+          details: "setClientName: invalid 'name' parameter: $name");
+    }
+    _setClientNameHelper(client, name);
+    return encodeSuccess(message);
+  }
+
+  void _setClientNameHelper(Client client, String name) {
+    _clearClientName(client);
+    client.name = name.isEmpty ? client.defaultClientName : name;
+    clientResumePermissions.putIfAbsent(
+        client.name, () => _ClientResumePermissions());
+    clientResumePermissions[client.name].clients.add(client);
+  }
+
+  String _getClientName(Message message) => encodeResult(message, {
+        'type': 'ClientName',
+        'name': message.client.name,
+      });
+
+  String _requirePermissionToResume(Message message) {
+    bool parsePermission(String argName) {
+      final arg = message.params[argName];
+      if (arg == null) {
+        return false;
+      }
+      if (arg is! bool) {
+        throw encodeRpcError(message, kInvalidParams,
+            details: "requirePermissionToResume: invalid '$argName': $arg");
+      }
+      return arg;
+    }
+
+    final client = message.client;
+    int pauseTypeMask = 0;
+    try {
+      if (parsePermission('onPauseStart')) {
+        pauseTypeMask |= RunningIsolate.kPauseOnStartMask;
+      }
+      if (parsePermission('onPauseReload')) {
+        pauseTypeMask |= RunningIsolate.kPauseOnReloadMask;
+      }
+      if (parsePermission('onPauseExit')) {
+        pauseTypeMask |= RunningIsolate.kPauseOnExitMask;
+      }
+    } catch (rpcError) {
+      return rpcError;
+    }
+
+    clientResumePermissions[client.name].permissionsMask = pauseTypeMask;
+    return encodeSuccess(message);
+  }
+
   void _addClient(Client client) {
     assert(client.streams.isEmpty);
     assert(client.services.isEmpty);
+    _setClientNameHelper(client, client.defaultClientName);
     clients.add(client);
   }
 
@@ -226,6 +335,10 @@ class VMService extends MessageRouter {
         _vmCancelStream(streamId);
       }
     }
+
+    // Clean up client approvals state.
+    _clearClientName(client);
+
     for (var service in client.services.keys) {
       _eventMessageHandler(
           'Service',
@@ -623,6 +736,15 @@ class VMService extends MessageRouter {
       if (message.method == '_spawnUri') {
         return await _spawnUri(message);
       }
+      if (message.method == 'setClientName') {
+        return _setClientName(message);
+      }
+      if (message.method == 'getClientName') {
+        return _getClientName(message);
+      }
+      if (message.method == 'requirePermissionToResume') {
+        return _requirePermissionToResume(message);
+      }
       if (devfs.shouldHandleMessage(message)) {
         return await devfs.handleMessage(message);
       }
@@ -648,7 +770,8 @@ class VMService extends MessageRouter {
   }
 }
 
-@pragma("vm:entry-point", "call")
+@pragma("vm:entry-point",
+    const bool.fromEnvironment("dart.vm.product") ? false : "call")
 RawReceivePort boot() {
   // Return the port we expect isolate control messages on.
   return isolateControlPort;

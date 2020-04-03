@@ -4,17 +4,18 @@
 
 library fasta.metadata_builder;
 
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
+
 import 'package:kernel/ast.dart' show Annotatable, Class, Library;
 
 import '../kernel/body_builder.dart' show BodyBuilder;
 
-import '../kernel/kernel_builder.dart' show ClassBuilder, MemberBuilder;
-
-import '../scanner.dart' show Token;
-
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import '../scope.dart' show Scope;
+
+import 'class_builder.dart';
+import 'member_builder.dart';
 
 class MetadataBuilder {
   final Token beginToken;
@@ -34,14 +35,15 @@ class MetadataBuilder {
     Scope scope = parent is Library || parent is Class || classBuilder == null
         ? library.scope
         : classBuilder.scope;
-    BodyBuilder bodyBuilder = new BodyBuilder.forOutlineExpression(
-        library, classBuilder, member, scope, fileUri);
+    BodyBuilder bodyBuilder = library.loader
+        .createBodyBuilderForOutlineExpression(
+            library, classBuilder, member, scope, fileUri);
     for (int i = 0; i < metadata.length; ++i) {
       MetadataBuilder annotationBuilder = metadata[i];
       parent.addAnnotation(
           bodyBuilder.parseAnnotation(annotationBuilder.beginToken));
     }
-    bodyBuilder.inferAnnotations(parent.annotations);
+    bodyBuilder.inferAnnotations(parent, parent.annotations);
     bodyBuilder.resolveRedirectingFactoryTargets();
   }
 }

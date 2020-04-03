@@ -1,0 +1,10 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method foo([core::Map<core::int*, core::String*>* m1, core::Map<core::int*, core::String*>* m2]) → void
+  ;
+static method test() → void
+  ;
+static method main() → dynamic
+  ;

@@ -8,7 +8,7 @@ import 'flutter_correction_test.dart' as flutter_correction;
 import 'flutter_outline_computer_test.dart' as outline_computer;
 import 'flutter_outline_notification_test.dart' as outline_notification;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     flutter_correction.main();
     outline_computer.main();

@@ -368,7 +368,6 @@ ISOLATE_UNIT_TEST_CASE(NonStrictConditionUp) {
   EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
 
-#ifndef TARGET_ARCH_DBC
 ISOLATE_UNIT_TEST_CASE(NonStrictConditionUpWrap) {
   const char* script_chars =
       R"(
@@ -392,7 +391,6 @@ ISOLATE_UNIT_TEST_CASE(NonStrictConditionUpWrap) {
       "  ]\n";
   EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
-#endif
 
 ISOLATE_UNIT_TEST_CASE(NonStrictConditionDown) {
   const char* script_chars =
@@ -413,7 +411,6 @@ ISOLATE_UNIT_TEST_CASE(NonStrictConditionDown) {
   EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
 
-#ifndef TARGET_ARCH_DBC
 ISOLATE_UNIT_TEST_CASE(NonStrictConditionDownWrap) {
   const char* script_chars =
       R"(
@@ -437,8 +434,6 @@ ISOLATE_UNIT_TEST_CASE(NonStrictConditionDownWrap) {
       "  ]\n";
   EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
-
-#endif
 
 ISOLATE_UNIT_TEST_CASE(NotEqualConditionUp) {
   const char* script_chars =

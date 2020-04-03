@@ -78,7 +78,7 @@ VMTag::TagEntry VMTag::entries_[] = {
 
 VMTagScope::VMTagScope(Thread* thread, uword tag, bool conditional_set)
     : ThreadStackResource(thread) {
-  ASSERT(isolate() != NULL);
+  ASSERT(isolate_group() != NULL);
   previous_tag_ = thread->vm_tag();
   if (conditional_set) {
     thread->set_vm_tag(tag);
@@ -86,7 +86,7 @@ VMTagScope::VMTagScope(Thread* thread, uword tag, bool conditional_set)
 }
 
 VMTagScope::~VMTagScope() {
-  ASSERT(isolate() != NULL);
+  ASSERT(isolate_group() != NULL);
   thread()->set_vm_tag(previous_tag_);
 }
 
@@ -118,9 +118,6 @@ int64_t VMTagCounters::count(uword tag) {
 
 #ifndef PRODUCT
 void VMTagCounters::PrintToJSONObject(JSONObject* obj) {
-  if (!FLAG_support_service) {
-    return;
-  }
   {
     JSONArray arr(obj, "names");
     for (intptr_t i = 1; i < VMTag::kNumVMTags; i++) {

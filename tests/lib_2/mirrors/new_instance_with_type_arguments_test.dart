@@ -23,11 +23,11 @@ main() {
   ClassMirror cmB = reflectClass(B);
   ClassMirror cmC = reflectClass(C);
 
-  var a_int = new A<int>();
-  var a_dynamic = new A();
-  var b = new B();
-  var c_string = new C<String>();
-  var c_dynamic = new C();
+  dynamic a_int = new A<int>();
+  dynamic a_dynamic = new A();
+  dynamic b = new B();
+  dynamic c_string = new C<String>();
+  dynamic c_dynamic = new C();
 
   Expect.equals(int, a_int.t);
   Expect.equals(dynamic, a_dynamic.t);
@@ -38,10 +38,11 @@ main() {
   Expect.equals(String, c_string.s);
   Expect.equals(dynamic, c_dynamic.s);
 
-  var reflective_a_int = cmB.superclass.newInstance(Symbol.empty, []).reflectee;
-  var reflective_a_dynamic = cmA.newInstance(Symbol.empty, []).reflectee;
-  var reflective_b = cmB.newInstance(Symbol.empty, []).reflectee;
-  var reflective_c_dynamic = cmC.newInstance(Symbol.empty, []).reflectee;
+  dynamic reflective_a_int =
+      cmB.superclass.newInstance(Symbol.empty, []).reflectee;
+  dynamic reflective_a_dynamic = cmA.newInstance(Symbol.empty, []).reflectee;
+  dynamic reflective_b = cmB.newInstance(Symbol.empty, []).reflectee;
+  dynamic reflective_c_dynamic = cmC.newInstance(Symbol.empty, []).reflectee;
 
   Expect.equals(int, reflective_a_int.t);
   Expect.equals(dynamic, reflective_a_dynamic.t);

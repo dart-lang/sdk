@@ -13,7 +13,7 @@
 
 namespace dart {
 
-#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC)
+#if defined(DART_PRECOMPILER)
 
 // This test asserts that we are inlining accesses to typed data interfaces
 // (e.g. Uint8List) if there are no instantiated 3rd party classes.
@@ -22,9 +22,9 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_Inlining) {
       R"(
       import 'dart:typed_data';
 
-      void foo(Uint8List list, int from) {
+      foo(Uint8List list, int from) {
         if (from >= list.length) {
-          list[from];
+          return list[from];
         }
       }
       )";
@@ -445,6 +445,6 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_FunctionalIndexError) {
   }
 }
 
-#endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC)
+#endif  // defined(DART_PRECOMPILER)
 
 }  // namespace dart

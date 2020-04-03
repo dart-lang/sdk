@@ -2,13 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/matchers_lite.dart";
+import "package:expect/minitest.dart";
 
 import "package:kernel/ast.dart";
 import "package:kernel/class_hierarchy.dart";
 import "package:kernel/core_types.dart";
 import "package:kernel/testing/mock_sdk_component.dart";
 import "package:kernel/text/ast_to_text.dart";
+import "package:kernel/src/text_util.dart";
 
 main() {
   new ClosedWorldClassHierarchyTest().test_applyTreeChanges();
@@ -93,7 +94,7 @@ class ClosedWorldClassHierarchyTest {
   }
 
   ClassHierarchy createClassHierarchy(Component component) {
-    return new ClassHierarchy(component);
+    return new ClassHierarchy(component, coreTypes);
   }
 
   void test_applyTreeChanges() {
@@ -293,7 +294,7 @@ class H extends self::G implements self::C, self::A {}
 
   Class addClass(Class c) {
     if (_hierarchy != null) {
-      fail('The classs hierarchy has already been created.');
+      fail('The class hierarchy has already been created.');
     }
     library.addClass(c);
     return c;
@@ -306,10 +307,11 @@ class H extends self::G implements self::C, self::A {}
       {Supertype extends_(List<DartType> typeParameterTypes),
       List<Supertype> implements_(List<DartType> typeParameterTypes)}) {
     var typeParameters = typeParameterNames
-        .map((name) => new TypeParameter(name, objectClass.rawType))
+        .map((name) => new TypeParameter(name, coreTypes.objectLegacyRawType))
         .toList();
     var typeParameterTypes = typeParameters
-        .map((parameter) => new TypeParameterType(parameter))
+        .map(
+            (parameter) => new TypeParameterType(parameter, Nullability.legacy))
         .toList();
     var supertype =
         extends_ != null ? extends_(typeParameterTypes) : objectSuper;
@@ -521,13 +523,13 @@ class C extends self::B {
   }
 
   void test_getClassAsInstanceOf_generic_extends() {
-    var int = coreTypes.intClass.rawType;
-    var bool = coreTypes.boolClass.rawType;
+    var int = coreTypes.intLegacyRawType;
+    var bool = coreTypes.boolLegacyRawType;
 
     var a = addGenericClass('A', ['T', 'U']);
 
-    var bT = new TypeParameter('T', objectClass.rawType);
-    var bTT = new TypeParameterType(bT);
+    var bT = new TypeParameter('T', coreTypes.objectLegacyRawType);
+    var bTT = new TypeParameterType(bT, Nullability.legacy);
     var b = addClass(new Class(
         name: 'B',
         typeParameters: [bT],
@@ -549,13 +551,13 @@ class C extends self::B<core::int*> {}
   }
 
   void test_getClassAsInstanceOf_generic_implements() {
-    var int = coreTypes.intClass.rawType;
-    var bool = coreTypes.boolClass.rawType;
+    var int = coreTypes.intLegacyRawType;
+    var bool = coreTypes.boolLegacyRawType;
 
     var a = addGenericClass('A', ['T', 'U']);
 
-    var bT = new TypeParameter('T', objectClass.rawType);
-    var bTT = new TypeParameterType(bT);
+    var bT = new TypeParameter('T', coreTypes.objectLegacyRawType);
+    var bTT = new TypeParameterType(bT, Nullability.legacy);
     var b = addClass(new Class(
         name: 'B',
         typeParameters: [bT],
@@ -583,13 +585,13 @@ class C implements self::B<core::int*> {}
   }
 
   void test_getClassAsInstanceOf_generic_with() {
-    var int = coreTypes.intClass.rawType;
-    var bool = coreTypes.boolClass.rawType;
+    var int = coreTypes.intLegacyRawType;
+    var bool = coreTypes.boolLegacyRawType;
 
     var a = addGenericClass('A', ['T', 'U']);
 
-    var bT = new TypeParameter('T', objectClass.rawType);
-    var bTT = new TypeParameterType(bT);
+    var bT = new TypeParameter('T', coreTypes.objectLegacyRawType);
+    var bTT = new TypeParameterType(bT, Nullability.legacy);
     var b = addClass(new Class(
         name: 'B',
         typeParameters: [bT],
@@ -743,8 +745,8 @@ abstract class B extends self::A {}
         ]));
     expect(hierarchy.getDeclaredMembers(a, setters: true),
         unorderedEquals([setter, abstractSetter, nonFinalField]));
-    expect(hierarchy.getDeclaredMembers(b), isEmpty);
-    expect(hierarchy.getDeclaredMembers(b, setters: true), isEmpty);
+    expect(hierarchy.getDeclaredMembers(b).isEmpty, isTrue);
+    expect(hierarchy.getDeclaredMembers(b, setters: true).isEmpty, isTrue);
   }
 
   void test_getDispatchTarget() {
@@ -1195,13 +1197,13 @@ class B extends self::A {
   }
 
   void test_getTypeAsInstanceOf_generic_extends() {
-    var int = coreTypes.intClass.rawType;
-    var bool = coreTypes.boolClass.rawType;
+    var int = coreTypes.intLegacyRawType;
+    var bool = coreTypes.boolLegacyRawType;
 
     var a = addGenericClass('A', ['T', 'U']);
 
-    var bT = new TypeParameter('T', objectClass.rawType);
-    var bTT = new TypeParameterType(bT);
+    var bT = new TypeParameter('T', coreTypes.objectLegacyRawType);
+    var bTT = new TypeParameterType(bT, Nullability.legacy);
     var b = addClass(new Class(
         name: 'B',
         typeParameters: [bT],
@@ -1212,11 +1214,12 @@ class A<T*, U*> {}
 class B<T*> extends self::A<self::B::T*, core::bool*> {}
 ''');
 
-    var b_int = new InterfaceType(b, [int]);
-    expect(hierarchy.getTypeAsInstanceOf(b_int, a),
-        new InterfaceType(a, [int, bool]));
-    expect(hierarchy.getTypeAsInstanceOf(b_int, objectClass),
-        new InterfaceType(objectClass));
+    var b_int = new InterfaceType(b, Nullability.legacy, [int]);
+    expect(hierarchy.getTypeAsInstanceOf(b_int, a, library, coreTypes),
+        new InterfaceType(a, Nullability.legacy, [int, bool]));
+    expect(
+        hierarchy.getTypeAsInstanceOf(b_int, objectClass, library, coreTypes),
+        new InterfaceType(objectClass, Nullability.legacy));
   }
 
   void _assertOverridePairs(Class class_, List<String> expected) {
@@ -1224,8 +1227,12 @@ class B<T*> extends self::A<self::B::T*, core::bool*> {}
     void callback(
         Member declaredMember, Member interfaceMember, bool isSetter) {
       var suffix = isSetter ? '=' : '';
-      String declaredName = '$declaredMember$suffix';
-      String interfaceName = '$interfaceMember$suffix';
+      String declaredName =
+          '${qualifiedMemberNameToString(declaredMember, includeLibraryName: true)}'
+          '$suffix';
+      String interfaceName =
+          '${qualifiedMemberNameToString(interfaceMember, includeLibraryName: true)}'
+          '$suffix';
       var desc = '$declaredName overrides $interfaceName';
       overrideDescriptions.add(desc);
     }

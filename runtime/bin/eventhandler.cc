@@ -66,6 +66,10 @@ void EventHandler::Start() {
   shutdown_monitor = new Monitor();
   event_handler = new EventHandler();
   event_handler->delegate_.Start(event_handler);
+
+  if (!SocketBase::Initialize()) {
+    FATAL("Failed to initialize sockets");
+  }
 }
 
 void EventHandler::NotifyShutdownDone() {

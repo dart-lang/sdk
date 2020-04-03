@@ -4,14 +4,14 @@ import "dart:core" as core;
 
 import "package:expect/expect.dart";
 
-class A<N extends core::Object* = dynamic, S extends core::Object* = dynamic, U extends core::Object* = dynamic> extends core::Object {
+class A<N extends core::Object* = dynamic, S extends core::Object* = dynamic, U extends core::Object* = dynamic> extends core::Object /*hasConstConstructor*/  {
   final field core::List<self::A::U*>* field;
   constructor •(self::A::N* n, self::A::S* s) → self::A<self::A::N*, self::A::S*, self::A::U*>*
     ;
   constructor empty() → self::A<self::A::N*, self::A::S*, self::A::U*>*
     ;
   const constructor c(self::A::U* u, self::A::S* s) → self::A<self::A::N*, self::A::S*, self::A::U*>*
-    : self::A::field = const <dynamic>[null], super core::Object::•()
+    : self::A::field = const <core::Null?>[null], super core::Object::•()
     ;
   static factory f<N extends core::Object* = dynamic, S extends core::Object* = dynamic, U extends core::Object* = dynamic>(self::A::f::S* s) → self::A<self::A::f::N*, self::A::f::S*, self::A::f::U*>*
     ;

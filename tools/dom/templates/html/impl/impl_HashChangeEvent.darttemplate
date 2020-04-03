@@ -7,8 +7,8 @@
 part of $LIBRARYNAME;
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   factory $CLASSNAME(String type,
-      {bool canBubble: true, bool cancelable: true, String oldUrl,
-      String newUrl}) {
+      {bool canBubble: true, bool cancelable: true, String$NULLABLE oldUrl,
+      String$NULLABLE newUrl}) {
     var options = {
       'canBubble' : canBubble,
       'cancelable' : cancelable,

@@ -1,5 +1,79 @@
 # Changelog
 
+## 4.0.0
+- **breaking**: RPCs which can return a `Sentinel` will now throw a `SentinelException`
+  if a `Sential` is received as a response.
+- **breaking**: RPCs which can return multiple values now return
+  `Future<Response>` rather than `Future<dynamic>`.
+- `RPCError` now implements `Exception`.
+
+## 3.0.0
+- **breaking**: RPCs which have an isolateId parameter now return
+  `Future<dynamic>` as a `Sentinel` can be returned if the target isolate no
+  longer exists.
+
+## 2.3.3
+- Classes now implement their corresponding reference types to handle cases
+  where the service returns a more specific type than promised.
+
+## 2.3.2
+- Added `getClientName`, `setClientName`, and `requireResumePermission` methods.
+- Added `ClientName` class.
+
+## 2.3.1
+- Fixed issue where `dart:io` extensions were not being exported.
+
+## 2.3.0
+- Added `getHttpEnableTimelineLogging` and `setHttpEnableTimelineLogging` methods.
+- Added `HttpTimelineLoggingState` class.
+
+## 2.2.1
+- Fixed issue where `TimelineEvent.toJson` always returned an empty map.
+
+## 2.2.0
+- Added support for interacting with dart:io service extensions.
+- Bumped minimum SDK requirement to 2.6.0.
+
+## 2.1.4
+- Fixed issue where `TimelineEvent` always had no content.
+
+## 2.1.3
+- Fixed issue where exception would be thrown when attempting to parse a
+  List entry in a response which is not present. This occurs when connected to
+  a service which does not yet support the latest service protocol supported by
+  this package.
+
+## 2.1.2
+- Requests which have not yet completed when `VmService.dispose` is invoked will
+  now complete with an `RPCError` exception rather than a `String` exception.
+
+## 2.1.1
+- Added `getLineNumberFromTokenPos` and `getColumnNumberFromTokenPos` methods
+  to `Script`.
+
+## 2.1.0
+- Added `HeapSnapshotGraph` class which parses the binary events posted to the
+  `HeapSnapshot` stream after a `requestHeapSnapshot` invocation.
+- Fixed issue where listening to `EventStream.kHeapSnapshot` and calling
+  `requestHeapSnapshot` would throw an exception.
+
+## 2.0.0
+- **breaking**: VM service objects which have fields now have constructors with
+  named parameters for each field. Required fields are annotated with `@required`.
+
+## 1.2.0
+- Support service protocol version 3.27:
+  - Added `getCpuSamples` and `clearCpuSamples` methods
+  - Added `CpuSamples`, `CpuSample`, and `ProfileFunction` classes.
+
+## 1.1.2
+- Fixed issue where `closureFunction` and `closureContext` were only expected in
+  `Instance` objects rather than `InstanceRef`.
+
+## 1.1.1
+- Fixed issue serializing list arguments for certain VM service methods.
+  - Issue #37872
+
 ## 1.1.0
 - Support service protocol version 3.25:
   - Added `getInboundReferences`, `getRetainingPath` methods

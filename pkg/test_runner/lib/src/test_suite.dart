@@ -10,7 +10,6 @@
 ///   and creating [TestCase]s for those files that meet the relevant criteria.
 /// - Preparing tests, including copying files and frameworks to temporary
 ///   directories, and computing the command line and arguments to be run.
-import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
@@ -25,15 +24,11 @@ import 'path.dart';
 import 'repository.dart';
 import 'summary_report.dart';
 import 'test_case.dart';
-import 'test_configurations.dart';
 import 'test_file.dart';
 import 'testing_servers.dart';
 import 'utils.dart';
 
 typedef TestCaseEvent = void Function(TestCase testCase);
-
-/// A simple function that tests [arg] and returns `true` or `false`.
-typedef Predicate<T> = bool Function(T arg);
 
 typedef CreateTest = void Function(Path filePath, Path originTestPath,
     {bool hasSyntaxError,
@@ -43,57 +38,6 @@ typedef CreateTest = void Function(Path filePath, Path originTestPath,
     String multitestKey});
 
 typedef VoidFunction = void Function();
-
-/// Calls [function] asynchronously. Returns a future that completes with the
-/// result of the function. If the function is `null`, returns a future that
-/// completes immediately with `null`.
-Future asynchronously<T>(T function()) {
-  if (function == null) return Future<T>.value(null);
-
-  var completer = Completer<T>();
-  Timer.run(() => completer.complete(function()));
-
-  return completer.future;
-}
-
-/// A completer that waits until all added [Future]s complete.
-// TODO(rnystrom): Copied from web_components. Remove from here when it gets
-// added to dart:core. (See #6626.)
-class FutureGroup {
-  static const _finished = -1;
-  int _pending = 0;
-  final Completer<List> _completer = Completer();
-  final List<Future> futures = [];
-  bool wasCompleted = false;
-
-  /// Wait for [task] to complete (assuming this barrier has not already been
-  /// marked as completed, otherwise you'll get an exception indicating that a
-  /// future has already been completed).
-  void add(Future task) {
-    if (_pending == _finished) {
-      throw Exception("FutureFutureAlreadyCompleteException");
-    }
-    _pending++;
-    var handledTaskFuture = task.catchError((e, StackTrace s) {
-      if (!wasCompleted) {
-        _completer.completeError(e, s);
-        wasCompleted = true;
-      }
-    }).then((_) {
-      _pending--;
-      if (_pending == 0) {
-        _pending = _finished;
-        if (!wasCompleted) {
-          _completer.complete(futures);
-          wasCompleted = true;
-        }
-      }
-    });
-    futures.add(handledTaskFuture);
-  }
-
-  Future<List> get future => _completer.future;
-}
 
 /// A TestSuite represents a collection of tests.  It creates a [TestCase]
 /// object for each test to be run, and passes the test cases to a callback.
@@ -106,7 +50,6 @@ abstract class TestSuite {
   final List<String> statusFilePaths;
 
   /// This function is set by subclasses before enqueueing starts.
-  Function doTest;
   Map<String, String> _environmentOverrides;
 
   TestSuite(this.configuration, this.suiteName, this.statusFilePaths) {
@@ -139,27 +82,25 @@ abstract class TestSuite {
     return name;
   }
 
-  /// Call the callback function onTest with a [TestCase] argument for each
-  /// test in the suite.  When all tests have been processed, call [onDone].
+  /// Calls [onTest] with each [TestCase] produced by the suite for the
+  /// current configuration.
   ///
   /// The [testCache] argument provides a persistent store that can be used to
   /// cache information about the test suite, so that directories do not need
   /// to be listed each time.
-  Future forEachTest(
-      TestCaseEvent onTest, Map<String, List<TestFile>> testCache,
-      [VoidFunction onDone]);
+  void findTestCases(
+      TestCaseEvent onTest, Map<String, List<TestFile>> testCache);
 
-  /// This function is called for every TestCase of this test suite. It:
+  /// Creates a [TestCase] and passes it to [onTest] if there is a relevant
+  /// test to run for [testFile] in the current configuration.
   ///
-  /// - Handles sharding.
-  /// - Updates [SummaryReport].
-  /// - Handle skip markers.
-  /// - Tests if the selector matches.
-  ///
-  /// and enqueue the test if necessary.
-  void enqueueNewTestCase(TestFile testFile, String fullName,
-      List<Command> commands, Set<Expectation> expectations) {
+  /// This handles skips, shards, selector matching, and updating the
+  /// [SummaryReport].
+  void _addTestCase(TestFile testFile, String fullName, List<Command> commands,
+      Set<Expectation> expectations, TestCaseEvent onTest) {
     var displayName = '$suiteName/$fullName';
+
+    if (!_isRelevantTest(testFile, displayName, expectations)) return;
 
     // If the test is not going to be run at all, then a RuntimeError,
     // MissingRuntimeError or Timeout will never occur.
@@ -173,51 +114,65 @@ abstract class TestSuite {
       if (expectations.isEmpty) expectations.add(Expectation.pass);
     }
 
-    var negative = testFile != null && isNegative(testFile);
     var testCase = TestCase(displayName, commands, configuration, expectations,
         testFile: testFile);
-    if (negative &&
-        configuration.runtimeConfiguration.shouldSkipNegativeTests) {
-      return;
-    }
-
-    // Handle sharding based on the original test path (i.e. all multitests
-    // of a given original test belong to the same shard)
-    if (configuration.shardCount > 1 &&
-        testCase.hash % configuration.shardCount != configuration.shard - 1) {
-      return;
-    }
-
-    // Test if the selector includes this test.
-    var pattern = configuration.selectors[suiteName];
-    if (!pattern.hasMatch(displayName)) {
-      return;
-    }
-    if (configuration.testList != null &&
-        !configuration.testList.contains(displayName)) {
-      return;
-    }
-
-    if (configuration.hotReload || configuration.hotReloadRollback) {
-      // Handle reload special cases.
-      if (expectations.contains(Expectation.compileTimeError) ||
-          testCase.hasCompileError) {
-        // Running a test that expects a compilation error with hot reloading
-        // is redundant with a regular run of the test.
-        return;
-      }
-    }
 
     // Update Summary report.
     if (configuration.printReport) {
       summaryReport.add(testCase);
     }
 
-    // Handle skipped tests.
+    if (!_shouldSkipTest(expectations)) {
+      onTest(testCase);
+    }
+  }
+
+  /// Whether it is meaningful to run [testFile] with [expectations] under the
+  /// current configuration.
+  ///
+  /// Does not take skips into account, but does "skip" tests for other
+  /// fundamental reasons.
+  bool _isRelevantTest(
+      TestFile testFile, String displayName, Set<Expectation> expectations) {
+    // Test if the selector includes this test.
+    var pattern = configuration.selectors[suiteName];
+    if (!pattern.hasMatch(displayName)) {
+      return false;
+    }
+
+    if (configuration.testList != null &&
+        !configuration.testList.contains(displayName)) {
+      return false;
+    }
+
+    // Handle sharding based on the original test path. All multitests of a
+    // given original test belong to the same shard.
+    if (configuration.shardCount > 1 &&
+        testFile.shardHash % configuration.shardCount !=
+            configuration.shard - 1) {
+      return false;
+    }
+
+    if (configuration.hotReload || configuration.hotReloadRollback) {
+      // Handle reload special cases.
+      if (expectations.contains(Expectation.compileTimeError) ||
+          testFile.hasCompileError) {
+        // Running a test that expects a compilation error with hot reloading
+        // is redundant with a regular run of the test.
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /// Whether a test with [expectations] should be skipped under the current
+  /// configuration.
+  bool _shouldSkipTest(Set<Expectation> expectations) {
     if (expectations.contains(Expectation.skip) ||
         expectations.contains(Expectation.skipByDesign) ||
         expectations.contains(Expectation.skipSlow)) {
-      return;
+      return true;
     }
 
     if (configuration.fastTestsOnly &&
@@ -225,23 +180,19 @@ abstract class TestSuite {
             expectations.contains(Expectation.skipSlow) ||
             expectations.contains(Expectation.timeout) ||
             expectations.contains(Expectation.dartkTimeout))) {
-      return;
+      return true;
     }
 
-    doTest(testCase);
+    return false;
   }
-
-  bool isNegative(TestFile testFile) =>
-      testFile.hasCompileError ||
-      testFile.hasRuntimeError && configuration.runtime != Runtime.none;
 
   String createGeneratedTestDirectoryHelper(
       String name, String dirname, Path testPath) {
-    Path relative = testPath.relativeTo(Repository.dir);
+    var relative = testPath.relativeTo(Repository.dir);
     relative = relative.directoryPath.append(relative.filenameWithoutExtension);
-    String testUniqueName = TestUtils.getShortName(relative.toString());
+    var testUniqueName = TestUtils.getShortName(relative.toString());
 
-    Path generatedTestPath = Path(buildDir)
+    var generatedTestPath = Path(buildDir)
         .append('generated_$name')
         .append(dirname)
         .append(testUniqueName);
@@ -257,22 +208,20 @@ abstract class TestSuite {
   /// pubspec checkouts ...).
   String createOutputDirectory(Path testPath) {
     var checked = configuration.isChecked ? '-checked' : '';
-    var legacy = configuration.noPreviewDart2 ? '-legacy' : '';
     var minified = configuration.isMinified ? '-minified' : '';
     var sdk = configuration.useSdk ? '-sdk' : '';
     var dirName = "${configuration.compiler.name}-${configuration.runtime.name}"
-        "$checked$legacy$minified$sdk";
+        "$checked$minified$sdk";
     return createGeneratedTestDirectoryHelper("tests", dirName, testPath);
   }
 
   String createCompilationOutputDirectory(Path testPath) {
     var checked = configuration.isChecked ? '-checked' : '';
-    var legacy = configuration.noPreviewDart2 ? '-legacy' : '';
     var minified = configuration.isMinified ? '-minified' : '';
     var csp = configuration.isCsp ? '-csp' : '';
     var sdk = configuration.useSdk ? '-sdk' : '';
     var dirName = "${configuration.compiler.name}"
-        "$checked$legacy$minified$csp$sdk";
+        "$checked$minified$csp$sdk";
     return createGeneratedTestDirectoryHelper(
         "compilations", dirName, testPath);
   }
@@ -318,29 +267,24 @@ class VMTestSuite extends TestSuite {
     }
   }
 
-  Future<Null> forEachTest(TestCaseEvent onTest, Map testCache,
-      [VoidFunction onDone]) async {
-    doTest = onTest;
-
+  void findTestCases(TestCaseEvent onTest, Map testCache) {
     var statusFiles =
         statusFilePaths.map((statusFile) => "$dartDir/$statusFile").toList();
     var expectations = ExpectationSet.read(statusFiles, configuration);
 
     try {
-      for (VMUnitTest test in await _listTests(hostRunnerPath)) {
-        _addTest(expectations, test);
+      for (var test in _listTests(hostRunnerPath)) {
+        _addTest(expectations, test, onTest);
       }
-
-      doTest = null;
-      if (onDone != null) onDone();
     } catch (error, s) {
-      print("Fatal error occured: $error");
+      print("Fatal error occurred: $error");
       print(s);
       exit(1);
     }
   }
 
-  void _addTest(ExpectationSet testExpectations, VMUnitTest test) {
+  void _addTest(
+      ExpectationSet testExpectations, VMUnitTest test, TestCaseEvent onTest) {
     var fullName = 'cc/${test.name}';
     var expectations = testExpectations.expectations(fullName);
 
@@ -362,29 +306,26 @@ class VMTestSuite extends TestSuite {
         hasStaticWarning: false,
         hasCrash: testExpectation == Expectation.crash);
 
-    var args = configuration.standardOptions.toList();
-    if (configuration.compilerConfiguration.previewDart2) {
-      var filename = configuration.architecture == Architecture.x64
-          ? '$buildDir/gen/kernel-service.dart.snapshot'
-          : '$buildDir/gen/kernel_service.dill';
-      var dfePath = Path(filename).absolute.toNativePath();
+    var filename = configuration.architecture == Architecture.x64
+        ? '$buildDir/gen/kernel-service.dart.snapshot'
+        : '$buildDir/gen/kernel_service.dill';
+    var dfePath = Path(filename).absolute.toNativePath();
+    var args = [
+      if (expectations.contains(Expectation.crash)) '--suppress-core-dump',
       // '--dfe' has to be the first argument for run_vm_test to pick it up.
-      args.insert(0, '--dfe=$dfePath');
-      args.addAll(configuration.vmOptions);
-    }
-    if (expectations.contains(Expectation.crash)) {
-      args.insert(0, '--suppress-core-dump');
-    }
+      '--dfe=$dfePath',
+      ...configuration.standardOptions,
+      ...configuration.vmOptions,
+      test.name
+    ];
 
-    args.add(test.name);
-
-    var command = Command.process(
+    var command = ProcessCommand(
         'run_vm_unittest', targetRunnerPath, args, environmentOverrides);
-    enqueueNewTestCase(testFile, fullName, [command], expectations);
+    _addTestCase(testFile, fullName, [command], expectations, onTest);
   }
 
-  Future<Iterable<VMUnitTest>> _listTests(String runnerPath) async {
-    var result = await Process.run(runnerPath, ["--list"]);
+  Iterable<VMUnitTest> _listTests(String runnerPath) {
+    var result = Process.runSync(runnerPath, ["--list"]);
     if (result.exitCode != 0) {
       throw "Failed to list tests: '$runnerPath --list'. "
           "Process exited with ${result.exitCode}";
@@ -412,8 +353,6 @@ class VMUnitTest {
 /// directory, and creates [TestCase]s that compile and/or run them.
 class StandardTestSuite extends TestSuite {
   final Path suiteDir;
-  ExpectationSet testExpectations;
-  List<TestFile> cachedTests;
   final Path dartDir;
   final bool listRecursively;
   final List<String> extraVmOptions;
@@ -443,7 +382,7 @@ class StandardTestSuite extends TestSuite {
     // Initialize _testListPossibleFilenames.
     if (configuration.testList != null) {
       _testListPossibleFilenames = <String>{};
-      for (String s in configuration.testList) {
+      for (var s in configuration.testList) {
         if (s.startsWith("$suiteName/")) {
           s = s.substring(s.indexOf('/') + 1);
           _testListPossibleFilenames
@@ -475,8 +414,8 @@ class StandardTestSuite extends TestSuite {
     _selectorFilenameRegExp = RegExp(pattern);
   }
 
-  /// Creates a test suite whose file organization matches an expected structure.
-  /// To use this, your suite should look like:
+  /// Creates a test suite whose file organization matches an expected
+  /// structure. To use this, your suite should look like:
   ///
   ///     dart/
   ///       path/
@@ -495,10 +434,10 @@ class StandardTestSuite extends TestSuite {
   ///
   /// If you follow that convention, then you can construct one of these like:
   ///
-  /// new StandardTestSuite.forDirectory(configuration, 'path/to/mytestsuite');
+  ///     StandardTestSuite.forDirectory(configuration, 'path/to/mytestsuite');
   ///
   /// instead of having to create a custom [StandardTestSuite] subclass. In
-  /// particular, if you add 'path/to/mytestsuite' to [TEST_SUITE_DIRECTORIES]
+  /// particular, if you add 'path/to/mytestsuite' to `testSuiteDirectories`
   /// in test.dart, this will all be set up for you.
   factory StandardTestSuite.forDirectory(
       TestConfiguration configuration, Path directory) {
@@ -529,64 +468,58 @@ class StandardTestSuite extends TestSuite {
 
   List<String> additionalOptions(Path filePath) => [];
 
-  Future forEachTest(
-      TestCaseEvent onTest, Map<String, List<TestFile>> testCache,
-      [VoidFunction onDone]) async {
-    doTest = onTest;
-    testExpectations = readExpectations();
+  void findTestCases(
+      TestCaseEvent onTest, Map<String, List<TestFile>> testCache) {
+    var expectations = _readExpectations();
 
-    // Check if we have already found and generated the tests for this suite.
-    if (!testCache.containsKey(suiteName)) {
-      cachedTests = testCache[suiteName] = <TestFile>[];
-      await enqueueTests();
-    } else {
-      for (var testFile in testCache[suiteName]) {
-        enqueueTestCaseFromTestFile(testFile);
-      }
+    // Check if we have already found the test files for this suite.
+    var testFiles = testCache[suiteName];
+    if (testFiles == null) {
+      testFiles = [...findTests()];
+      testCache[suiteName] = testFiles;
     }
-    testExpectations = null;
-    cachedTests = null;
-    doTest = null;
-    if (onDone != null) onDone();
+
+    // Produce test cases for each test file.
+    for (var testFile in testFiles) {
+      _testCasesFromTestFile(testFile, expectations, onTest);
+    }
+  }
+
+  /// Walks the file system to find all test files relevant to this test suite.
+  Iterable<TestFile> findTests() {
+    var dir = Directory(suiteDir.toNativePath());
+    if (!dir.existsSync()) {
+      print('Directory containing tests missing: ${suiteDir.toNativePath()}');
+      return const [];
+    }
+
+    return _searchDirectory(dir);
   }
 
   /// Reads the status files and completes with the parsed expectations.
-  ExpectationSet readExpectations() {
-    var statusFiles = statusFilePaths.where((String statusFilePath) {
-      var file = File(dartDir.append(statusFilePath).toNativePath());
-      return file.existsSync();
-    }).map((statusFilePath) {
-      return dartDir.append(statusFilePath).toNativePath();
-    }).toList();
+  ExpectationSet _readExpectations() {
+    var statusFiles = <String>[];
+    for (var relativePath in statusFilePaths) {
+      var file = File(dartDir.append(relativePath).toNativePath());
+      if (!file.existsSync()) continue;
+      statusFiles.add(file.path);
+    }
 
     return ExpectationSet.read(statusFiles, configuration);
   }
 
-  Future enqueueTests() {
-    Directory dir = Directory(suiteDir.toNativePath());
-    return dir.exists().then((exists) {
-      if (!exists) {
-        print('Directory containing tests missing: ${suiteDir.toNativePath()}');
-        return Future.value(null);
-      } else {
-        var group = FutureGroup();
-        enqueueDirectory(dir, group);
-        return group.future;
-      }
-    });
+  /// Looks for test files in [directory].
+  Iterable<TestFile> _searchDirectory(Directory directory) sync* {
+    for (var entry in directory.listSync(recursive: listRecursively)) {
+      if (entry is File) yield* _processFile(entry.path);
+    }
   }
 
-  void enqueueDirectory(Directory dir, FutureGroup group) {
-    var lister = dir
-        .list(recursive: listRecursively)
-        .where((fse) => fse is File)
-        .forEach((FileSystemEntity entity) {
-      enqueueFile((entity as File).path, group);
-    });
-    group.add(lister);
-  }
-
-  void enqueueFile(String filePath, FutureGroup group) {
+  /// Gets the set of [TestFile]s based on the source file at [filePath].
+  ///
+  /// This may produce zero [TestFile]s if [filePath] isn't a test. It may
+  /// produce more than one if the file is a multitest.
+  Iterable<TestFile> _processFile(String filePath) sync* {
     // This is an optimization to avoid scanning and generating extra tests.
     // The definitive check against configuration.testList is performed in
     // TestSuite.enqueueNewTestCase().
@@ -603,29 +536,31 @@ class StandardTestSuite extends TestSuite {
     var testFile = TestFile.read(suiteDir, filePath);
 
     if (testFile.isMultitest) {
-      group.add(splitMultitest(testFile, buildDir, suiteDir,
-              hotReload:
-                  configuration.hotReload || configuration.hotReloadRollback)
-          .then((splitTests) {
-        for (var test in splitTests) {
-          cachedTests.add(test);
-          enqueueTestCaseFromTestFile(test);
-        }
-      }));
+      for (var test in splitMultitest(testFile, buildDir, suiteDir,
+          hotReload:
+              configuration.hotReload || configuration.hotReloadRollback)) {
+        yield test;
+      }
     } else {
-      cachedTests.add(testFile);
-      enqueueTestCaseFromTestFile(testFile);
+      yield testFile;
     }
   }
 
-  void enqueueTestCaseFromTestFile(TestFile testFile) {
-    // Static error tests are currently skipped on every implementation except
-    // analyzer and Fasta.
+  /// Calls [onTest] with every [TestCase] that should be produced from
+  /// [testFile].
+  ///
+  /// This will generally be one or no tests if the test should be skipped but
+  /// may be more if [testFile] is a browser multitest or has multiple VM
+  /// options.
+  void _testCasesFromTestFile(
+      TestFile testFile, ExpectationSet expectations, TestCaseEvent onTest) {
+    // Static error tests are skipped on every implementation except analyzer
+    // and Fasta.
     // TODO(rnystrom): Should other configurations that use CFE support static
     // error tests?
     // TODO(rnystrom): Skipping this here is a little unusual because most
-    // skips are handled in enqueueStandardTest(). However, if the configuration
-    // is running on browser, calling enqueueStandardTest() will try to create
+    // skips are handled in _addTestCase(). However, if the configuration
+    // is running on a browser, calling _addTestCase() will try to create
     // a set of commands which ultimately causes an exception in
     // DummyRuntimeConfiguration. This avoids that.
     if (testFile.isStaticErrorTest &&
@@ -634,37 +569,27 @@ class StandardTestSuite extends TestSuite {
       return;
     }
 
+    // The configuration must support everything the test needs.
+    if (!configuration.supportedFeatures.containsAll(testFile.requirements)) {
+      return;
+    }
+
+    var expectationSet = expectations.expectations(testFile.name);
     if (configuration.compilerConfiguration.hasCompiler &&
         (testFile.hasCompileError || testFile.isStaticErrorTest)) {
       // If a compile-time error is expected, and we're testing a
       // compiler, we never need to attempt to run the program (in a
       // browser or otherwise).
-      enqueueStandardTest(testFile);
+      _enqueueStandardTest(testFile, expectationSet, onTest);
     } else if (configuration.runtime.isBrowser) {
-      var expectationsMap = <String, Set<Expectation>>{};
-
-      if (testFile.isMultiHtmlTest) {
-        // A browser multi-test has multiple expectations for one test file.
-        // Find all the different sub-test expectations for one entire test
-        // file.
-        var subtestNames = testFile.subtestNames;
-        expectationsMap = <String, Set<Expectation>>{};
-        for (var subtest in subtestNames) {
-          expectationsMap[subtest] =
-              testExpectations.expectations('${testFile.name}/$subtest');
-        }
-      } else {
-        expectationsMap[testFile.name] =
-            testExpectations.expectations(testFile.name);
-      }
-
-      _enqueueBrowserTest(testFile, expectationsMap);
+      _enqueueBrowserTest(testFile, expectationSet, onTest);
     } else {
-      enqueueStandardTest(testFile);
+      _enqueueStandardTest(testFile, expectationSet, onTest);
     }
   }
 
-  void enqueueStandardTest(TestFile testFile) {
+  void _enqueueStandardTest(
+      TestFile testFile, Set<Expectation> expectations, TestCaseEvent onTest) {
     var commonArguments = _commonArgumentsFromFile(testFile);
 
     var vmOptionsList = getVmOptions(testFile);
@@ -679,7 +604,6 @@ class StandardTestSuite extends TestSuite {
         allVmOptions = vmOptions.toList()..addAll(extraVmOptions);
       }
 
-      var expectations = testExpectations.expectations(testFile.name);
       var isCrashExpected = expectations.contains(Expectation.crash);
       var commands = _makeCommands(testFile, vmOptionsVariant, allVmOptions,
           commonArguments, isCrashExpected);
@@ -688,7 +612,7 @@ class StandardTestSuite extends TestSuite {
         variantTestName = "${testFile.name}/$vmOptionsVariant";
       }
 
-      enqueueNewTestCase(testFile, variantTestName, commands, expectations);
+      _addTestCase(testFile, variantTestName, commands, expectations, onTest);
     }
   }
 
@@ -701,12 +625,7 @@ class StandardTestSuite extends TestSuite {
     String tempDir;
     if (compilerConfiguration.hasCompiler) {
       compileTimeArguments = compilerConfiguration.computeCompilerArguments(
-          vmOptions,
-          testFile.sharedOptions,
-          testFile.dartOptions,
-          testFile.dart2jsOptions,
-          testFile.ddcOptions,
-          args);
+          testFile, vmOptions, args);
       // Avoid doing this for analyzer.
       var path = testFile.path;
       if (vmOptionsVariant != 0) {
@@ -789,7 +708,7 @@ class StandardTestSuite extends TestSuite {
     return null;
   }
 
-  String _uriForBrowserTest(String pathComponent, [String subtestName]) {
+  String _uriForBrowserTest(String pathComponent) {
     // Note: If we run test.py with the "--list" option, no http servers
     // will be started. So we return a dummy url instead.
     if (configuration.listTests) {
@@ -799,9 +718,6 @@ class StandardTestSuite extends TestSuite {
     var serverPort = configuration.servers.port;
     var crossOriginPort = configuration.servers.crossOriginPort;
     var parameters = {'crossOriginPort': crossOriginPort.toString()};
-    if (subtestName != null) {
-      parameters['group'] = subtestName;
-    }
     return Uri(
             scheme: 'http',
             host: configuration.localIP,
@@ -817,12 +733,8 @@ class StandardTestSuite extends TestSuite {
   /// in a generated output directory. Any additional framework and HTML files
   /// are put there too. Then adds another [Command] the spawn the browser and
   /// run the test.
-  ///
-  /// In order to handle browser multitests, [expectations] is a map of subtest
-  /// names to expectation sets. If the test is not a multitest, the map has
-  /// a single key, `testFile.name`.
   void _enqueueBrowserTest(
-      TestFile testFile, Map<String, Set<Expectation>> expectations) {
+      TestFile testFile, Set<Expectation> expectations, TestCaseEvent onTest) {
     var tempDir = createOutputDirectory(testFile.path);
     var compilationTempDir = createCompilationOutputDirectory(testFile.path);
     var nameNoExt = testFile.path.filenameWithoutExtension;
@@ -845,8 +757,7 @@ class StandardTestSuite extends TestSuite {
             _createUrlPathFromFile(Path('$compilationTempDir/$nameNoExt.js'));
         content = dart2jsHtml(testFile.path.toNativePath(), scriptPath);
       } else {
-        var packageRoot =
-            packagesArgument(configuration.packageRoot, configuration.packages);
+        var packageRoot = packagesArgument(configuration.packages);
         packageRoot =
             packageRoot == null ? nameNoExt : packageRoot.split("=").last;
         var nameFromModuleRoot =
@@ -855,8 +766,8 @@ class StandardTestSuite extends TestSuite {
             "${nameFromModuleRoot.directoryPath}/$nameNoExt";
         var jsDir =
             Path(compilationTempDir).relativeTo(Repository.dir).toString();
-        content = dartdevcHtml(
-            nameNoExt, nameFromModuleRootNoExt, jsDir, configuration.compiler);
+        content = dartdevcHtml(nameNoExt, nameFromModuleRootNoExt, jsDir,
+            configuration.compiler, configuration.nnbdMode);
       }
     }
 
@@ -873,61 +784,40 @@ class StandardTestSuite extends TestSuite {
     };
     assert(supportedCompilers.contains(configuration.compiler));
 
-    var args = configuration.compilerConfiguration.computeCompilerArguments(
-        null,
-        testFile.sharedOptions,
-        null,
-        testFile.dart2jsOptions,
-        testFile.ddcOptions,
-        commonArguments);
+    var args = configuration.compilerConfiguration
+        .computeCompilerArguments(testFile, null, commonArguments);
     var compilation = configuration.compilerConfiguration
         .computeCompilationArtifact(outputDir, args, environmentOverrides);
     commands.addAll(compilation.commands);
 
-    if (testFile.isMultiHtmlTest) {
-      // Variables for browser multi-tests.
-      var subtestNames = testFile.subtestNames;
-      for (var subtestName in subtestNames) {
-        _enqueueSingleBrowserTest(
-            commands,
-            testFile,
-            '${testFile.name}/$subtestName',
-            subtestName,
-            expectations[subtestName],
-            htmlPath);
-      }
-    } else {
-      _enqueueSingleBrowserTest(commands, testFile, testFile.name, null,
-          expectations[testFile.name], htmlPath);
-    }
+    _enqueueSingleBrowserTest(
+        commands, testFile, testFile.name, expectations, htmlPath, onTest);
   }
 
+  // TODO: Merge with above.
   /// Enqueues a single browser test, or a single subtest of an HTML multitest.
   void _enqueueSingleBrowserTest(
       List<Command> commands,
       TestFile testFile,
       String testName,
-      String subtestName,
       Set<Expectation> expectations,
-      String htmlPath) {
+      String htmlPath,
+      TestCaseEvent onTest) {
     // Construct the command that executes the browser test.
     commands = commands.toList();
 
-    var htmlPathSubtest = _createUrlPathFromFile(Path(htmlPath));
-    var fullHtmlPath = _uriForBrowserTest(htmlPathSubtest, subtestName);
-
-    commands.add(Command.browserTest(fullHtmlPath, configuration,
-        retry: !isNegative(testFile)));
+    var fullHtmlPath =
+        _uriForBrowserTest(_createUrlPathFromFile(Path(htmlPath)));
+    commands.add(BrowserTestCommand(fullHtmlPath, configuration));
 
     var fullName = testName;
-    if (subtestName != null) fullName += "/$subtestName";
-    enqueueNewTestCase(testFile, fullName, commands, expectations);
+    _addTestCase(testFile, fullName, commands, expectations, onTest);
   }
 
   List<String> _commonArgumentsFromFile(TestFile testFile) {
     var args = configuration.standardOptions.toList();
 
-    var packages = packagesArgument(testFile.packageRoot, testFile.packages);
+    var packages = packagesArgument(testFile.packages);
     if (packages != null) {
       args.add(packages);
     }
@@ -947,25 +837,17 @@ class StandardTestSuite extends TestSuite {
     return args;
   }
 
-  String packagesArgument(String packageRoot, String packages) {
+  String packagesArgument(String packages) {
     // If this test is inside a package, we will check if there is a
     // pubspec.yaml file and if so, create a custom package root for it.
-    if (packageRoot == null && packages == null) {
-      if (configuration.packageRoot != null) {
-        packageRoot = Path(configuration.packageRoot).toNativePath();
-      }
-
-      if (configuration.packages != null) {
-        packages = Path(configuration.packages).toNativePath();
-      }
+    if (packages == null && configuration.packages != null) {
+      packages = Path(configuration.packages).toNativePath();
     }
 
-    if (packageRoot == 'none' || packages == 'none') {
+    if (packages == 'none') {
       return null;
     } else if (packages != null) {
       return '--packages=$packages';
-    } else if (packageRoot != null) {
-      return '--package-root=$packageRoot';
     } else {
       return null;
     }
@@ -991,26 +873,24 @@ class StandardTestSuite extends TestSuite {
 
 /// Used for testing packages in one-off settings, i.e., we pass in the actual
 /// directory that we want to test.
-class PKGTestSuite extends StandardTestSuite {
-  PKGTestSuite(TestConfiguration configuration, Path directoryPath)
+class PackageTestSuite extends StandardTestSuite {
+  PackageTestSuite(TestConfiguration configuration, Path directoryPath)
       : super(configuration, directoryPath.filename, directoryPath,
             ["$directoryPath/.status"],
             recursive: true);
 
   void _enqueueBrowserTest(
-      TestFile testFile, Map<String, Set<Expectation>> expectations) {
+      TestFile testFile, Set<Expectation> expectations, TestCaseEvent onTest) {
     var dir = testFile.path.directoryPath;
     var nameNoExt = testFile.path.filenameWithoutExtension;
     var customHtmlPath = dir.append('$nameNoExt.html');
     var customHtml = File(customHtmlPath.toNativePath());
     if (!customHtml.existsSync()) {
-      super._enqueueBrowserTest(testFile, expectations);
+      super._enqueueBrowserTest(testFile, expectations, onTest);
     } else {
       var fullPath = _createUrlPathFromFile(customHtmlPath);
-      var command = Command.browserTest(fullPath, configuration,
-          retry: !isNegative(testFile));
-      enqueueNewTestCase(
-          testFile, testFile.name, [command], expectations[testFile.name]);
+      var command = BrowserTestCommand(fullPath, configuration);
+      _addTestCase(testFile, testFile.name, [command], expectations, onTest);
     }
   }
 }
@@ -1030,15 +910,13 @@ class AnalyzeLibraryTestSuite extends StandardTestSuite {
   List<String> additionalOptions(Path filePath, {bool showSdkWarnings}) =>
       const ['--fatal-warnings', '--fatal-type-errors', '--sdk-warnings'];
 
-  Future enqueueTests() {
-    var group = FutureGroup();
-
+  Iterable<TestFile> findTests() {
     var dir = Directory(suiteDir.append('lib').toNativePath());
     if (dir.existsSync()) {
-      enqueueDirectory(dir, group);
+      return _searchDirectory(dir);
     }
 
-    return group.future;
+    return const [];
   }
 
   bool isTestFile(String filename) {

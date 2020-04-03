@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -156,6 +157,13 @@ var v = const <void>[42];
 ''');
   }
 
+  test_element_type_is_assignable() async {
+    await assertNoErrorsInCode(r'''
+var v1 = <int> [42];
+var v2 = const <int> [42];
+''');
+  }
+
   test_nonConst_ifElement_thenElseFalse_intDynamic() async {
     await assertNoErrorsInCode('''
 const dynamic a = 'a';
@@ -227,5 +235,7 @@ class ListElementTypeNotAssignableWithConstantsTest
     extends ListElementTypeNotAssignableTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [EnableString.constant_update_2018];
+    ..contextFeatures = FeatureSet.fromEnableFlags(
+      [EnableString.constant_update_2018],
+    );
 }

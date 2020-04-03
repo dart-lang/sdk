@@ -4,7 +4,6 @@
 
 #include "vm/kernel_isolate.h"
 
-#include "bin/dartutils.h"
 #include "include/dart_native_api.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_api_impl.h"
@@ -23,6 +22,8 @@
 #include "vm/symbols.h"
 #include "vm/thread_pool.h"
 #include "vm/timeline.h"
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 
@@ -62,7 +63,7 @@ const int KernelIsolate::kNotifyIsolateShutdown = 6;
 const char* KernelIsolate::kName = DART_KERNEL_ISOLATE_NAME;
 Dart_IsolateGroupCreateCallback KernelIsolate::create_group_callback_ = NULL;
 Monitor* KernelIsolate::monitor_ = new Monitor();
-KernelIsolate::State KernelIsolate::state_ = KernelIsolate::kStopped;
+KernelIsolate::State KernelIsolate::state_ = KernelIsolate::kNotStarted;
 Isolate* KernelIsolate::isolate_ = NULL;
 Dart_Port KernelIsolate::kernel_port_ = ILLEGAL_PORT;
 
@@ -71,7 +72,7 @@ class RunKernelTask : public ThreadPool::Task {
   virtual void Run() {
     ASSERT(Isolate::Current() == NULL);
 #ifdef SUPPORT_TIMELINE
-    TimelineDurationScope tds(Timeline::GetVMStream(), "KernelIsolateStartup");
+    TimelineBeginEndScope tbes(Timeline::GetVMStream(), "KernelIsolateStartup");
 #endif  // SUPPORT_TIMELINE
     char* error = NULL;
     Isolate* isolate = NULL;
@@ -86,12 +87,13 @@ class RunKernelTask : public ThreadPool::Task {
     Isolate::FlagsInitialize(&api_flags);
     api_flags.enable_asserts = false;
     api_flags.unsafe_trust_strong_mode_types = false;
-#if !defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC)
+#if !defined(DART_PRECOMPILER)
     api_flags.use_field_guards = true;
 #endif
 #if !defined(DART_PRECOMPILER)
     api_flags.use_osr = true;
 #endif
+    api_flags.null_safety = false;
 
     isolate = reinterpret_cast<Isolate*>(
         create_group_callback(KernelIsolate::kName, KernelIsolate::kName, NULL,
@@ -218,22 +220,37 @@ class RunKernelTask : public ThreadPool::Task {
   }
 };
 
-void KernelIsolate::Run() {
-  {
-    MonitorLocker ml(monitor_);
-    ASSERT(state_ == kStopped);
-    state_ = kStarting;
-    ml.NotifyAll();
-  }
+void KernelIsolate::InitializeState() {
   // Grab the isolate create callback here to avoid race conditions with tests
   // that change this after Dart_Initialize returns.
+  if (FLAG_trace_kernel) {
+    OS::PrintErr(DART_KERNEL_ISOLATE_NAME ": InitializeState\n");
+  }
   create_group_callback_ = Isolate::CreateGroupCallback();
   if (create_group_callback_ == NULL) {
     KernelIsolate::InitializingFailed();
     return;
   }
-  bool task_started = Dart::thread_pool()->Run<RunKernelTask>();
-  ASSERT(task_started);
+}
+
+bool KernelIsolate::Start() {
+  bool start_task = false;
+  {
+    MonitorLocker ml(monitor_);
+    if (state_ == kNotStarted) {
+      if (FLAG_trace_kernel) {
+        OS::PrintErr(DART_KERNEL_ISOLATE_NAME ": Start\n");
+      }
+      start_task = true;
+      state_ = kStarting;
+      ml.NotifyAll();
+    }
+  }
+  bool task_started = true;
+  if (start_task) {
+    task_started = Dart::thread_pool()->Run<RunKernelTask>();
+  }
+  return task_started;
 }
 
 void KernelIsolate::Shutdown() {
@@ -241,7 +258,7 @@ void KernelIsolate::Shutdown() {
   while (state_ == kStarting) {
     ml.Wait();
   }
-  if (state_ == kStopped) {
+  if (state_ == kStopped || state_ == kNotStarted) {
     return;
   }
   ASSERT(state_ == kStarted);
@@ -378,7 +395,23 @@ MallocGrowableArray<char*>* KernelIsolate::experimental_flags_ =
     new MallocGrowableArray<char*>();
 
 void KernelIsolate::AddExperimentalFlag(const char* value) {
-  experimental_flags_->Add(strdup(value));
+  char* save_ptr;  // Needed for strtok_r.
+  char* temp = strdup(value);
+  char* token = strtok_r(temp, ",", &save_ptr);
+  while (token != NULL) {
+    experimental_flags_->Add(strdup(token));
+    token = strtok_r(NULL, ",", &save_ptr);
+  }
+  free(temp);
+}
+
+bool KernelIsolate::GetExperimentalFlag(const char* value) {
+  for (const char* str : *experimental_flags_) {
+    if (strcmp(str, value) == 0) {
+      return true;
+    }
+  }
+  return false;
 }
 
 DEFINE_OPTION_HANDLER(KernelIsolate::AddExperimentalFlag,
@@ -405,6 +438,27 @@ class KernelCompilationRequest : public ValueObject {
   ~KernelCompilationRequest() {
     UnregisterRequest(this);
     Dart_CloseNativePort(port_);
+  }
+
+  intptr_t setDillData(Dart_CObject** dills_array,
+                       intptr_t dill_num,
+                       const uint8_t* buffer,
+                       intptr_t buffer_size) {
+    if (buffer != nullptr) {
+      dills_array[dill_num] = new Dart_CObject;
+      dills_array[dill_num]->type = Dart_CObject_kExternalTypedData;
+      dills_array[dill_num]->value.as_external_typed_data.type =
+          Dart_TypedData_kUint8;
+      dills_array[dill_num]->value.as_external_typed_data.length = buffer_size;
+      dills_array[dill_num]->value.as_external_typed_data.data =
+          const_cast<uint8_t*>(buffer);
+      dills_array[dill_num]->value.as_external_typed_data.peer =
+          const_cast<uint8_t*>(buffer);
+      dills_array[dill_num]->value.as_external_typed_data.callback =
+          PassThroughFinalizer;
+      dill_num++;
+    }
+    return dill_num;
   }
 
   Dart_KernelCompilationResult SendAndWaitForResponse(
@@ -485,6 +539,86 @@ class KernelCompilationRequest : public ValueObject {
     isolate_id.value.as_int64 =
         isolate != NULL ? static_cast<int64_t>(isolate->main_port()) : 0;
 
+    IsolateGroupSource* source = Isolate::Current()->source();
+    intptr_t num_dills = 0;
+    if (source->kernel_buffer != nullptr) {
+      num_dills++;
+    }
+    if (source->script_kernel_buffer != nullptr) {
+      num_dills++;
+    }
+    Array& hot_reload_blobs = Array::Handle();
+    if (source->hot_reload_blobs_ != nullptr) {
+      hot_reload_blobs = source->hot_reload_blobs_;
+      WeakProperty& weak_property = WeakProperty::Handle();
+      for (intptr_t i = 0; i < hot_reload_blobs.Length(); i++) {
+        weak_property ^= hot_reload_blobs.At(i);
+        if (weak_property.key() != ExternalTypedData::null()) {
+          num_dills++;
+        }
+      }
+    }
+    // TODO(jensj): Get the platform somehow. Currently the dart side simply
+    // loads the dill from file.
+
+    Dart_CObject dills_object;
+    dills_object.type = Dart_CObject_kArray;
+    dills_object.value.as_array.length = num_dills;
+
+    Dart_CObject** dills_array = new Dart_CObject*[num_dills];
+    intptr_t dill_num = 0;
+    dill_num = setDillData(dills_array, dill_num, source->kernel_buffer,
+                           source->kernel_buffer_size);
+    dill_num = setDillData(dills_array, dill_num, source->script_kernel_buffer,
+                           source->script_kernel_size);
+    if (!hot_reload_blobs.IsNull()) {
+      WeakProperty& weak_property = WeakProperty::Handle();
+      for (intptr_t i = 0; i < hot_reload_blobs.Length(); i++) {
+        weak_property ^= hot_reload_blobs.At(i);
+        if (weak_property.key() != ExternalTypedData::null()) {
+          ExternalTypedData& externalTypedData = ExternalTypedData::Handle(
+              thread->zone(), ExternalTypedData::RawCast(weak_property.key()));
+          NoSafepointScope no_safepoint(thread);
+          const uint8_t* data = const_cast<uint8_t*>(
+              reinterpret_cast<uint8_t*>(externalTypedData.DataAddr(0)));
+          dill_num = setDillData(dills_array, dill_num, data,
+                                 externalTypedData.Length());
+        }
+      }
+    }
+    dills_object.value.as_array.values = dills_array;
+
+    Dart_CObject hot_reload_count;
+    hot_reload_count.type = Dart_CObject_kInt64;
+    hot_reload_count.value.as_int64 = source->num_hot_reloads_;
+
+    Dart_CObject suppress_warnings;
+    suppress_warnings.type = Dart_CObject_kBool;
+    suppress_warnings.value.as_bool = FLAG_suppress_fe_warnings;
+
+    Dart_CObject enable_asserts;
+    enable_asserts.type = Dart_CObject_kBool;
+    enable_asserts.value.as_bool =
+        isolate != NULL ? isolate->asserts() : FLAG_enable_asserts;
+
+    intptr_t num_experimental_flags = experimental_flags->length();
+    Dart_CObject** experimental_flags_array =
+        new Dart_CObject*[num_experimental_flags];
+    for (intptr_t i = 0; i < num_experimental_flags; ++i) {
+      experimental_flags_array[i] = new Dart_CObject;
+      experimental_flags_array[i]->type = Dart_CObject_kString;
+      experimental_flags_array[i]->value.as_string = (*experimental_flags)[i];
+    }
+    Dart_CObject experimental_flags_object;
+    experimental_flags_object.type = Dart_CObject_kArray;
+    experimental_flags_object.value.as_array.values = experimental_flags_array;
+    experimental_flags_object.value.as_array.length = num_experimental_flags;
+
+    Dart_CObject bytecode;
+    bytecode.type = Dart_CObject_kBool;
+    bytecode.value.as_bool =
+        FLAG_enable_interpreter || FLAG_use_bytecode_compiler;
+
     Dart_CObject message;
     message.type = Dart_CObject_kArray;
     Dart_CObject* message_arr[] = {&tag,
@@ -495,7 +629,13 @@ class KernelCompilationRequest : public ValueObject {
                                    &type_definitions_object,
                                    &library_uri_object,
                                    &class_object,
-                                   &is_static_object};
+                                   &is_static_object,
+                                   &dills_object,
+                                   &hot_reload_count,
+                                   &suppress_warnings,
+                                   &enable_asserts,
+                                   &experimental_flags_object,
+                                   &bytecode};
     message.value.as_array.values = message_arr;
     message.value.as_array.length = ARRAY_SIZE(message_arr);
 
@@ -522,6 +662,16 @@ class KernelCompilationRequest : public ValueObject {
       delete type_definitions_array[i];
     }
     delete[] type_definitions_array;
+
+    for (intptr_t i = 0; i < num_dills; ++i) {
+      delete dills_array[i];
+    }
+    delete[] dills_array;
+
+    for (intptr_t i = 0; i < num_experimental_flags; ++i) {
+      delete experimental_flags_array[i];
+    }
+    delete[] experimental_flags_array;
 
     return result_;
   }
@@ -581,10 +731,6 @@ class KernelCompilationRequest : public ValueObject {
     dart_incremental.type = Dart_CObject_kBool;
     dart_incremental.value.as_bool = incremental_compile;
 
-    Dart_CObject dart_strong;
-    dart_strong.type = Dart_CObject_kBool;
-    dart_strong.value.as_bool = true;
-
     // TODO(aam): Assert that isolate exists once we move CompileAndReadScript
     // compilation logic out of CreateIsolateAndSetupHelper and into
     // IsolateSetupHelper in main.cc.
@@ -612,6 +758,11 @@ class KernelCompilationRequest : public ValueObject {
     enable_asserts.value.as_bool =
         isolate != NULL ? isolate->asserts() : FLAG_enable_asserts;
 
+    Dart_CObject null_safety;
+    null_safety.type = Dart_CObject_kBool;
+    null_safety.value.as_bool =
+        isolate != NULL ? isolate->null_safety() : FLAG_null_safety;
+
     intptr_t num_experimental_flags = experimental_flags->length();
     Dart_CObject** experimental_flags_array =
         new Dart_CObject*[num_experimental_flags];
@@ -627,14 +778,8 @@ class KernelCompilationRequest : public ValueObject {
 
     Dart_CObject bytecode;
     bytecode.type = Dart_CObject_kBool;
-    // Interpreter is supported only on x64 and arm64.
-#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
     bytecode.value.as_bool =
         FLAG_enable_interpreter || FLAG_use_bytecode_compiler;
-#else
-    bytecode.value.as_bool =
-        FLAG_use_bytecode_compiler && !FLAG_enable_interpreter;
-#endif
 
     Dart_CObject package_config_uri;
     if (package_config != NULL) {
@@ -676,7 +821,7 @@ class KernelCompilationRequest : public ValueObject {
                                    &uri,
                                    &dart_platform_kernel,
                                    &dart_incremental,
-                                   &dart_strong,
+                                   &null_safety,
                                    &isolate_id,
                                    &files,
                                    &suppress_warnings,
@@ -825,6 +970,14 @@ Dart_KernelCompilationResult KernelIsolate::CompileToKernel(
     const char* package_config,
     const char* multiroot_filepaths,
     const char* multiroot_scheme) {
+  // Start the kernel Isolate if it is not already running.
+  if (!Start()) {
+    Dart_KernelCompilationResult result = {};
+    result.status = Dart_KernelCompilationStatus_Unknown;
+    result.error = strdup("Error while starting Kernel isolate task");
+    return result;
+  }
+
   // This must be the main script to be loaded. Wait for Kernel isolate
   // to finish initialization.
   Dart_Port kernel_port = WaitForKernelPort();
@@ -945,3 +1098,5 @@ void KernelIsolate::NotifyAboutIsolateShutdown(const Isolate* isolate) {
 }
 
 }  // namespace dart
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)

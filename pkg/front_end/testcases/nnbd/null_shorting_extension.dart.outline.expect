@@ -1,0 +1,105 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class1 extends core::Object {
+  synthetic constructor •() → self::Class1
+    ;
+  get property() → self::Class1?
+    ;
+  set property(self::Class1? value) → void
+    ;
+  get property1() → self::Class1
+    ;
+  get property2() → self::Class2
+    ;
+}
+class Class2 extends core::Object {
+  synthetic constructor •() → self::Class2
+    ;
+  get property() → self::Class2
+    ;
+  set property(self::Class2 value) → void
+    ;
+}
+class Class3 extends core::Object {
+  synthetic constructor •() → self::Class3
+    ;
+  get property() → self::Class2?
+    ;
+}
+extension Extension1 on self::Class1 {
+  get nullable1 = self::Extension1|get#nullable1;
+  method nonNullable1Method = self::Extension1|nonNullable1Method;
+  tearoff nonNullable1Method = self::Extension1|get#nonNullable1Method;
+  operator [] = self::Extension1|[];
+  operator []= = self::Extension1|[]=;
+  operator + = self::Extension1|+;
+  operator unary- = self::Extension1|unary-;
+  get nonNullable1 = self::Extension1|get#nonNullable1;
+  get nonNullable2 = self::Extension1|get#nonNullable2;
+  set nullable1 = self::Extension1|set#nullable1;
+}
+extension Extension2 on self::Class2 {
+  method nonNullable2Method = self::Extension2|nonNullable2Method;
+  tearoff nonNullable2Method = self::Extension2|get#nonNullable2Method;
+  operator [] = self::Extension2|[];
+  operator []= = self::Extension2|[]=;
+  operator + = self::Extension2|+;
+  operator unary- = self::Extension2|unary-;
+  get nonNullable2 = self::Extension2|get#nonNullable2;
+  set nonNullable2 = self::Extension2|set#nonNullable2;
+}
+extension Extension3 on self::Class3 {
+  operator [] = self::Extension3|[];
+}
+static method Extension1|get#nullable1(final self::Class1 #this) → self::Class1?
+  ;
+static method Extension1|set#nullable1(final self::Class1 #this, self::Class1? value) → void
+  ;
+static method Extension1|nonNullable1Method(final self::Class1 #this) → self::Class1
+  ;
+static method Extension1|get#nonNullable1Method(final self::Class1 #this) → () → self::Class1
+  return () → self::Class1 => self::Extension1|nonNullable1Method(#this);
+static method Extension1|[](final self::Class1 #this, self::Class1? key) → self::Class1?
+  ;
+static method Extension1|[]=(final self::Class1 #this, self::Class1? key, self::Class1? value) → void
+  ;
+static method Extension1|+(final self::Class1 #this, core::int value) → self::Class1?
+  ;
+static method Extension1|unary-(final self::Class1 #this) → self::Class1?
+  ;
+static method Extension1|get#nonNullable1(final self::Class1 #this) → self::Class1
+  ;
+static method Extension1|get#nonNullable2(final self::Class1 #this) → self::Class2
+  ;
+static method Extension2|nonNullable2Method(final self::Class2 #this) → self::Class2
+  ;
+static method Extension2|get#nonNullable2Method(final self::Class2 #this) → () → self::Class2
+  return () → self::Class2 => self::Extension2|nonNullable2Method(#this);
+static method Extension2|[](final self::Class2 #this, self::Class2? key) → self::Class2
+  ;
+static method Extension2|[]=(final self::Class2 #this, self::Class2? key, self::Class2? value) → void
+  ;
+static method Extension2|+(final self::Class2 #this, core::int value) → self::Class2
+  ;
+static method Extension2|unary-(final self::Class2 #this) → self::Class2
+  ;
+static method Extension2|get#nonNullable2(final self::Class2 #this) → self::Class2
+  ;
+static method Extension2|set#nonNullable2(final self::Class2 #this, self::Class2 value) → void
+  ;
+static method Extension3|[](final self::Class3 #this, self::Class3? key) → self::Class2?
+  ;
+static method main() → dynamic
+  ;
+static method propertyAccess(self::Class1? n1) → void
+  ;
+static method indexAccess(self::Class1? n1, self::Class2? n2, self::Class3? n3) → void
+  ;
+static method operatorAccess(self::Class1? n1, self::Class2? n2) → void
+  ;
+static method ifNull(self::Class1? n1) → void
+  ;
+static method throws(() → void f) → void
+  ;

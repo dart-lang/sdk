@@ -4,26 +4,31 @@
 
 import 'dart:io';
 
+import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
+import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
-import 'package:front_end/src/testing/id.dart' show ActualData, Id;
-import 'package:front_end/src/testing/id_testing.dart';
 
 import '../util/id_testing_helper.dart';
 
 main(List<String> args) async {
-  Directory dataDir = new Directory.fromUri(Platform.script.resolve(
-      '../../../front_end/test/flow_analysis/definite_assignment/data'));
-  await runTests(dataDir,
-      args: args,
-      supportedMarkers: sharedMarkers,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      runTest: runTestFor(
-          const _DefiniteAssignmentDataComputer(), [analyzerNnbdConfig]));
+  Directory dataDir = Directory.fromUri(Platform.script.resolve(
+      '../../../_fe_analyzer_shared/test/flow_analysis/definite_assignment/'
+      'data'));
+  await NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
+    return runTests<String>(dataDir,
+        args: args,
+        createUriForFileName: createUriForFileName,
+        onFailure: onFailure,
+        runTest: runTestFor(
+            const _DefiniteAssignmentDataComputer(), [analyzerNnbdConfig]));
+  });
 }
 
 class _DefiniteAssignmentDataComputer extends DataComputer<String> {
@@ -34,10 +39,22 @@ class _DefiniteAssignmentDataComputer extends DataComputer<String> {
       const _DefiniteAssignmentDataInterpreter();
 
   @override
+  bool get supportsErrors => true;
+
+  @override
+  String computeErrorData(TestConfig config, TestingData testingData, Id id,
+      List<AnalysisError> errors) {
+    var errorCodes = errors.map((e) => e.errorCode).where((errorCode) =>
+        errorCode !=
+        CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE);
+    return errorCodes.isNotEmpty ? errorCodes.join(',') : null;
+  }
+
+  @override
   void computeUnitData(TestingData testingData, CompilationUnit unit,
       Map<Id, ActualData<String>> actualMap) {
     var flowResult =
-        testingData.uriToFlowAnalysisResult[unit.declaredElement.source.uri];
+        testingData.uriToFlowAnalysisData[unit.declaredElement.source.uri];
     _DefiniteAssignmentDataExtractor(
             unit.declaredElement.source.uri, actualMap, flowResult)
         .run(unit);
@@ -45,7 +62,7 @@ class _DefiniteAssignmentDataComputer extends DataComputer<String> {
 }
 
 class _DefiniteAssignmentDataExtractor extends AstDataExtractor<String> {
-  final FlowAnalysisResult _flowResult;
+  final FlowAnalysisDataForTesting _flowResult;
 
   _DefiniteAssignmentDataExtractor(
       Uri uri, Map<Id, ActualData<String>> actualMap, this._flowResult)

@@ -28,8 +28,8 @@ main() {
   TypeMirror cTypeArgument = cNestedInstance.typeArguments.first;
   TypeMirror superA = bDecl.superclass;
   TypeMirror superC = bDecl.superinterfaces.single;
-  MethodMirror m = bDecl.declarations[#m];
-  VariableMirror field = bDecl.declarations[#field];
+  MethodMirror m = bDecl.declarations[#m] as MethodMirror;
+  VariableMirror field = bDecl.declarations[#field] as VariableMirror;
   TypeMirror returnTypeA = m.returnType;
   TypeMirror parameterTypeA = m.parameters.first.type;
   TypeMirror fieldTypeA = field.type;

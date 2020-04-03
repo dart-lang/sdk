@@ -3,7 +3,6 @@ library;
 // Problems in library:
 //
 // pkg/front_end/testcases/general/bug33298.dart:28:44: Error: The argument type 'T Function<T>(T)' can't be assigned to the parameter type 'dynamic Function(String)'.
-// Try changing the type of the parameter, or casting the argument to 'dynamic Function(String)'.
 //   List<String> list6 = ['a', 'b', 'c'].map(c).toList();
 //                                            ^
 //
@@ -41,8 +40,7 @@ static method test() → dynamic {
   self::C* c = new self::C::•();
   core::List<core::String*>* list5 = <core::String*>["a", "b", "c"].{core::Iterable::map}<core::String*>(c.{self::C::call}<core::String*>).{core::Iterable::toList}();
   core::List<core::String*>* list6 = <core::String*>["a", "b", "c"].{core::Iterable::map}<dynamic>(let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/general/bug33298.dart:28:44: Error: The argument type 'T Function<T>(T)' can't be assigned to the parameter type 'dynamic Function(String)'.
-Try changing the type of the parameter, or casting the argument to 'dynamic Function(String)'.
   List<String> list6 = ['a', 'b', 'c'].map(c).toList();
-                                           ^" in (let final self::C* #t4 = c in #t4.==(null) ?{<T extends core::Object* = dynamic>(self::C::call::T*) →* self::C::call::T*} null : #t4.{self::C::call}) as{TypeError} (core::String*) →* dynamic).{core::Iterable::toList}() as{TypeError} core::List<core::String*>*;
+                                           ^" in (let final self::C* #t4 = c in #t4.==(null) ?{<T extends core::Object* = dynamic>(T*) →* T*} null : #t4.{self::C::call}) as{TypeError} (core::String*) →* dynamic).{core::Iterable::toList}() as{TypeError} core::List<core::String*>*;
 }
 static method main() → dynamic {}

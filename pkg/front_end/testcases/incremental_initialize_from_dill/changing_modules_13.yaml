@@ -1,0 +1,29 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Reproduction of https://github.com/flutter/flutter/issues/40966.
+
+type: newworld
+target: None
+modules:
+  module:
+    module/a.dart: |
+      class A { }
+      class B { }
+      class C { }
+      class AB = A with B;
+    module/.packages: |
+      module:.
+worlds:
+  - entry: main.dart
+    fromComponent: true
+    sources:
+      main.dart: |
+        import "package:module/a.dart";
+        class ABC = AB with C;
+      .packages: |
+        module:module
+    modules:
+      - module
+    expectedLibraryCount: 2

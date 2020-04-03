@@ -10,31 +10,26 @@ import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
 
-/**
- * A computer for `search.findElementReferences` request results.
- */
+/// A computer for `search.findElementReferences` request results.
 class ElementReferencesComputer {
   final SearchEngine searchEngine;
 
   ElementReferencesComputer(this.searchEngine);
 
-  /**
-   * Computes [SearchResult]s for [element] references.
-   */
+  /// Computes [SearchResult]s for [element] references.
   Future<List<SearchResult>> compute(
       Element element, bool withPotential) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    List<SearchResult> results = <SearchResult>[];
+    var results = <SearchResult>[];
 
     // Add element references.
     results.addAll(await _findElementsReferences(element));
 
     // Add potential references.
     if (withPotential && _isMemberElement(element)) {
-      String name = element.displayName;
-      List<SearchMatch> matches =
-          await searchEngine.searchMemberReferences(name);
+      var name = element.displayName;
+      var matches = await searchEngine.searchMemberReferences(name);
       matches = SearchMatch.withNotNullElement(matches);
       results.addAll(matches.where((match) => !match.isResolved).map(toResult));
     }
@@ -42,43 +37,36 @@ class ElementReferencesComputer {
     return results;
   }
 
-  /**
-   * Returns a [Future] completing with a [List] of references to [element] or
-   * to the corresponding hierarchy [Element]s.
-   */
+  /// Returns a [Future] completing with a [List] of references to [element] or
+  /// to the corresponding hierarchy [Element]s.
   Future<List<SearchResult>> _findElementsReferences(Element element) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    List<SearchResult> allResults = <SearchResult>[];
-    Iterable<Element> refElements = await _getRefElements(element);
-    for (Element refElement in refElements) {
-      List<SearchResult> elementResults =
-          await _findSingleElementReferences(refElement);
+    var allResults = <SearchResult>[];
+    var refElements = await _getRefElements(element);
+    for (var refElement in refElements) {
+      var elementResults = await _findSingleElementReferences(refElement);
       allResults.addAll(elementResults);
     }
     return allResults;
   }
 
-  /**
-   * Returns a [Future] completing with a [List] of references to [element].
-   */
+  /// Returns a [Future] completing with a [List] of references to [element].
   Future<List<SearchResult>> _findSingleElementReferences(
       Element element) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    List<SearchMatch> matches = await searchEngine.searchReferences(element);
+    var matches = await searchEngine.searchReferences(element);
     matches = SearchMatch.withNotNullElement(matches);
     return matches.map(toResult).toList();
   }
 
-  /**
-   * Returns a [Future] completing with [Element]s to search references to.
-   *
-   * If a [ClassMemberElement] or a named [ParameterElement] is given, each
-   * corresponding [Element] in the hierarchy is returned.
-   *
-   * Otherwise, only references to [element] should be searched.
-   */
+  /// Returns a [Future] completing with [Element]s to search references to.
+  ///
+  /// If a [ClassMemberElement] or a named [ParameterElement] is given, each
+  /// corresponding [Element] in the hierarchy is returned.
+  ///
+  /// Otherwise, only references to [element] should be searched.
   Future<Iterable<Element>> _getRefElements(Element element) {
     if (element is ParameterElement && element.isNamed) {
       return getHierarchyNamedParameters(searchEngine, element);
@@ -86,7 +74,7 @@ class ElementReferencesComputer {
     if (element is ClassMemberElement) {
       return getHierarchyMembers(searchEngine, element);
     }
-    return new Future.value([element]);
+    return Future.value([element]);
   }
 
   static SearchResult toResult(SearchMatch match) {

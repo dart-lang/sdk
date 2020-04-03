@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/fasta/parser/parser_main.dart'
+import 'package:_fe_analyzer_shared/src/parser/parser_main.dart'
     show mainEntryPoint;
 
 main(List<String> arguments) => mainEntryPoint(arguments);

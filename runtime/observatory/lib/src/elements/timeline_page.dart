@@ -65,7 +65,7 @@ class TimelinePageElement extends CustomElement implements Renderable {
   attached() {
     super.attached();
     _r.enable();
-    _setupInitialState();
+    _updateRecorderUI();
   }
 
   @override
@@ -79,11 +79,16 @@ class TimelinePageElement extends CustomElement implements Renderable {
   DivElement _content;
 
   bool get usingVMRecorder =>
-      _recorder.name != "Fuchsia" && _recorder.name != "Systrace";
+      _recorder.name != "Fuchsia" &&
+      _recorder.name != "Systrace" &&
+      _recorder.name != "Macos";
 
   void render() {
     if (_frame == null) {
       _frame = new IFrameElement()..src = 'timeline.html';
+      _frame.onLoad.listen((event) {
+        _refresh();
+      });
     }
     if (_content == null) {
       _content = new DivElement()..classes = ['content-centered-big'];
@@ -187,8 +192,7 @@ class TimelinePageElement extends CustomElement implements Renderable {
                 "This VM is forwarding timeline events to Fuchsia's system tracing. See the ",
           new AnchorElement()
             ..text = "Fuchsia Tracing Usage Guide"
-            ..href =
-                "https://fuchsia.googlesource.com/garnet/+/master/docs/tracing_usage_guide.md",
+            ..href = "https://fuchsia.dev/fuchsia-src/development/tracing",
           new SpanElement()..text = ".",
         ];
     }
@@ -205,6 +209,22 @@ class TimelinePageElement extends CustomElement implements Renderable {
             ..text = "systrace usage guide"
             ..href =
                 "https://developer.android.com/studio/command-line/systrace",
+          new SpanElement()..text = ".",
+        ];
+    }
+
+    if (_recorder.name == "Macos") {
+      return new DivElement()
+        ..classes = ['content-centered-big']
+        ..children = <Element>[
+          new BRElement(),
+          new SpanElement()
+            ..text =
+                "This VM is forwarding timeline events to macOS's Unified Logging. "
+                    "To track these events, open 'Instruments' and add the 'os_signpost' Filter. See the ",
+          new AnchorElement()
+            ..text = "Instruments Usage Guide"
+            ..href = "https://help.apple.com/instruments",
           new SpanElement()..text = ".",
         ];
     }
@@ -232,9 +252,9 @@ class TimelinePageElement extends CustomElement implements Renderable {
   }
 
   Future _refresh() async {
-    final params =
-        new Map<String, dynamic>.from(await _repository.getIFrameParams(vm));
-    return _postMessage('refresh', params);
+    _postMessage('loading');
+    final traceData = await _repository.getTimeline(vm);
+    return _postMessage('refresh', traceData);
   }
 
   Future _clear() async {
@@ -259,11 +279,6 @@ class TimelinePageElement extends CustomElement implements Renderable {
     _frame.contentWindow
         .postMessage(json.encode(message), window.location.href);
     return null;
-  }
-
-  Future _setupInitialState() async {
-    await _updateRecorderUI();
-    await _refresh();
   }
 
   void _applyPreset(M.TimelineProfile profile) {

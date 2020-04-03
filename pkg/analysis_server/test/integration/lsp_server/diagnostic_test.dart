@@ -7,7 +7,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DiagnosticTest);
   });
@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class DiagnosticTest extends AbstractLspAnalysisServerIntegrationTest {
-  test_initialAnalysis() async {
+  Future<void> test_initialAnalysis() async {
     newFile(mainFilePath, content: 'String a = 1;');
 
     final diagnosticsUpdate = waitForDiagnostics(mainFileUri);
@@ -30,7 +30,7 @@ class DiagnosticTest extends AbstractLspAnalysisServerIntegrationTest {
     expect(diagnostic.range.end.character, equals(12));
   }
 
-  test_lints() async {
+  Future<void> test_lints() async {
     newFile(mainFilePath, content: '''main() async => await 1;''');
     newFile(analysisOptionsPath, content: '''
 linter:

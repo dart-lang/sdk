@@ -71,7 +71,6 @@ class ClassViewElement extends CustomElement implements Renderable {
   M.InboundReferencesRepository _references;
   M.RetainingPathRepository _retainingPaths;
   M.StronglyReachableInstancesRepository _stronglyReachableInstances;
-  M.TopRetainingInstancesRepository _topRetainedInstances;
   M.FieldRepository _fields;
   M.ScriptRepository _scripts;
   M.ObjectRepository _objects;
@@ -100,7 +99,6 @@ class ClassViewElement extends CustomElement implements Renderable {
       M.ObjectRepository objects,
       M.EvalRepository eval,
       M.StronglyReachableInstancesRepository stronglyReachable,
-      M.TopRetainingInstancesRepository topRetained,
       M.ClassSampleProfileRepository profiles,
       {RenderingQueue queue}) {
     assert(vm != null);
@@ -118,7 +116,6 @@ class ClassViewElement extends CustomElement implements Renderable {
     assert(objects != null);
     assert(eval != null);
     assert(stronglyReachable != null);
-    assert(topRetained != null);
     assert(profiles != null);
     ClassViewElement e = new ClassViewElement.created();
     e._r = new RenderingScheduler<ClassViewElement>(e, queue: queue);
@@ -137,7 +134,6 @@ class ClassViewElement extends CustomElement implements Renderable {
     e._objects = objects;
     e._eval = eval;
     e._stronglyReachableInstances = stronglyReachable;
-    e._topRetainedInstances = topRetained;
     e._profiles = profiles;
     return e;
   }
@@ -168,14 +164,8 @@ class ClassViewElement extends CustomElement implements Renderable {
             _references, _retainingPaths, _objects,
             queue: _r.queue);
     _classInstances = _classInstances ??
-        new ClassInstancesElement(
-            _isolate,
-            _cls,
-            _retainedSizes,
-            _reachableSizes,
-            _stronglyReachableInstances,
-            _topRetainedInstances,
-            _objects,
+        new ClassInstancesElement(_isolate, _cls, _retainedSizes,
+            _reachableSizes, _stronglyReachableInstances, _objects,
             queue: _r.queue);
     var header = '';
     if (_cls.isAbstract) {

@@ -10,11 +10,11 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
-import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 
 import 'abstract_context.dart';
@@ -44,28 +44,23 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     return findOffset(search) + search.length;
   }
 
-  /**
-   * Returns the [SimpleIdentifier] at the given search pattern.
-   */
+  /// Returns the [SimpleIdentifier] at the given search pattern.
   SimpleIdentifier findIdentifier(String search) {
     return findNodeAtString(search, (node) => node is SimpleIdentifier);
   }
 
-  /**
-   * Search the [testUnit] for the [LocalVariableElement] with the given [name].
-   * Fail if there is not exactly one such variable.
-   */
+  /// Search the [testUnit] for the [LocalVariableElement] with the given
+  /// [name]. Fail if there is not exactly one such variable.
   LocalVariableElement findLocalVariable(String name) {
-    var finder = new _ElementsByNameFinder(name);
+    var finder = _ElementsByNameFinder(name);
     testUnit.accept(finder);
-    List<Element> localVariables =
-        finder.elements.where((e) => e is LocalVariableElement).toList();
+    var localVariables = finder.elements.whereType<LocalVariableElement>();
     expect(localVariables, hasLength(1));
-    return localVariables[0];
+    return localVariables.single;
   }
 
   AstNode findNodeAtOffset(int offset, [Predicate<AstNode> predicate]) {
-    AstNode result = new NodeLocator(offset).searchWithin(testUnit);
+    var result = NodeLocator(offset).searchWithin(testUnit);
     if (result != null && predicate != null) {
       result = result.thisOrAncestorMatching(predicate);
     }
@@ -73,13 +68,13 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   }
 
   AstNode findNodeAtString(String search, [Predicate<AstNode> predicate]) {
-    int offset = findOffset(search);
+    var offset = findOffset(search);
     return findNodeAtOffset(offset, predicate);
   }
 
   Element findNodeElementAtString(String search,
       [Predicate<AstNode> predicate]) {
-    AstNode node = findNodeAtString(search, predicate);
+    var node = findNodeAtString(search, predicate);
     if (node == null) {
       return null;
     }
@@ -87,15 +82,15 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   }
 
   int findOffset(String search) {
-    int offset = testCode.indexOf(search);
+    var offset = testCode.indexOf(search);
     expect(offset, isNonNegative, reason: "Not found '$search' in\n$testCode");
     return offset;
   }
 
   int getLeadingIdentifierLength(String search) {
-    int length = 0;
+    var length = 0;
     while (length < search.length) {
-      int c = search.codeUnitAt(length);
+      var c = search.codeUnitAt(length);
       if (c >= 'a'.codeUnitAt(0) && c <= 'z'.codeUnitAt(0)) {
         length++;
         continue;
@@ -147,7 +142,7 @@ class _ElementsByNameFinder extends RecursiveAstVisitor<void> {
   _ElementsByNameFinder(this.name);
 
   @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.name == name && node.inDeclarationContext()) {
       elements.add(node.staticElement);
     }

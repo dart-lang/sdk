@@ -1,0 +1,16 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+import "dart:math";
+
+static method printInt(core::int* x) → void
+  ;
+static method printDouble(core::double* x) → void
+  ;
+static method myMax(core::num* x, core::num* y) → core::num*
+  ;
+static method f() → dynamic
+  ;
+static method main() → dynamic
+  ;

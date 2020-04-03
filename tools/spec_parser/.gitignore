@@ -3,4 +3,5 @@
 *Listener.java
 *.tokens
 *.class
+*.interp
 *.dot

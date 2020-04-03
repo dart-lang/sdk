@@ -4,15 +4,19 @@
 
 library fasta.prefix_builder;
 
-import 'builder.dart' show Builder, LibraryBuilder, Scope;
-
 import 'package:kernel/ast.dart' show LibraryDependency;
-
-import '../builder/builder.dart' show LibraryBuilder;
 
 import '../kernel/load_library_builder.dart' show LoadLibraryBuilder;
 
-class PrefixBuilder extends Builder {
+import '../fasta_codes.dart';
+
+import '../scope.dart';
+
+import 'builder.dart';
+import 'extension_builder.dart';
+import 'library_builder.dart';
+
+class PrefixBuilder extends BuilderImpl {
   final String name;
 
   final Scope exportScope = new Scope.top();
@@ -46,15 +50,24 @@ class PrefixBuilder extends Builder {
   }
 
   void addToExportScope(String name, Builder member, int charOffset) {
-    Map<String, Builder> map =
-        member.isSetter ? exportScope.setters : exportScope.local;
-    Builder existing = map[name];
+    if (deferred && member is ExtensionBuilder) {
+      parent.addProblem(templateDeferredExtensionImport.withArguments(name),
+          charOffset, noLength, fileUri);
+    }
+
+    Builder existing =
+        exportScope.lookupLocalMember(name, setter: member.isSetter);
+    Builder result;
     if (existing != null) {
-      map[name] = parent.computeAmbiguousDeclaration(
+      result = parent.computeAmbiguousDeclaration(
           name, existing, member, charOffset,
           isExport: true);
     } else {
-      map[name] = member;
+      result = member;
+    }
+    exportScope.addLocalMember(name, result, setter: member.isSetter);
+    if (result is ExtensionBuilder) {
+      exportScope.addExtension(result);
     }
   }
 

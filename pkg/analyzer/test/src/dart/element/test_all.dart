@@ -5,20 +5,40 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'element_test.dart' as element;
+import 'factor_type_test.dart' as factor_type;
+import 'flatten_type_test.dart' as flatten_type;
 import 'function_type_test.dart' as function_type;
-import 'inheritance_manager2_test.dart' as inheritance_manager2;
 import 'inheritance_manager3_test.dart' as inheritance_manager3;
 import 'least_upper_bound_helper_test.dart' as least_upper_bound_helper;
+import 'normalize_type_test.dart' as normalize_type;
+import 'nullability_eliminator_test.dart' as nullability_eliminator;
+import 'nullable_test.dart' as nullable;
+import 'runtime_type_equality_test.dart' as runtime_type_equality;
+import 'subtype_test.dart' as subtype;
+import 'top_merge_test.dart' as top_merge;
 import 'type_algebra_test.dart' as type_algebra;
+import 'type_parameter_element_test.dart' as type_parameter_element;
+import 'type_visitor_test.dart' as type_visitor;
+import 'upper_lower_bound_test.dart' as upper_bound;
 
 /// Utility for manually running all tests.
 main() {
   defineReflectiveSuite(() {
     element.main();
+    factor_type.main();
+    flatten_type.main();
     function_type.main();
-    inheritance_manager2.main();
     inheritance_manager3.main();
     least_upper_bound_helper.main();
+    normalize_type.main();
+    nullability_eliminator.main();
+    nullable.main();
+    runtime_type_equality.main();
+    subtype.main();
+    top_merge.main();
     type_algebra.main();
+    type_parameter_element.main();
+    type_visitor.main();
+    upper_bound.main();
   }, name: 'element');
 }

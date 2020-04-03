@@ -19,6 +19,24 @@ main() {
 
 @reflectiveTest
 class FinalNotInitializedTest extends DriverResolutionTest {
+  test_class_instanceField_final_factoryConstructor_only() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int x;
+
+  factory A() => throw 0;
+}''');
+  }
+
+  test_extension_static() async {
+    await assertErrorsInCode('''
+extension E on String {
+  static final F;
+}''', [
+      error(StaticWarningCode.FINAL_NOT_INITIALIZED, 39, 1),
+    ]);
+  }
+
   test_instanceField_final() async {
     await assertErrorsInCode('''
 class A {
@@ -54,13 +72,23 @@ f() {
       error(StaticWarningCode.FINAL_NOT_INITIALIZED, 18, 1),
     ]);
   }
+
+  test_mixin() async {
+    await assertErrorsInCode('''
+mixin M {
+  final int x;
+}
+''', [
+      error(StaticWarningCode.FINAL_NOT_INITIALIZED, 22, 1),
+    ]);
+  }
 }
 
 @reflectiveTest
 class FinalNotInitializedWithNnbdTest extends DriverResolutionTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
+    ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
 
   test_field_noConstructor_initializer() async {
@@ -116,18 +144,22 @@ class C {
   }
 
   test_localVariable_initializer() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 f() {
   late final x = 1;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 19, 1),
+    ]);
   }
 
   test_localVariable_noInitializer() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 f() {
   late final x;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 19, 1),
+    ]);
   }
 }

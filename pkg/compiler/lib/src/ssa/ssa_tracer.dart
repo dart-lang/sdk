@@ -249,9 +249,6 @@ class HInstructionStringifier implements HVisitor<String> {
 
   @override
   String visitFieldGet(HFieldGet node) {
-    if (node.isNullCheck) {
-      return 'FieldGet: NullCheck ${temporaryId(node.receiver)}';
-    }
     String fieldName = node.element.name;
     return 'FieldGet: ${temporaryId(node.receiver)}.$fieldName';
   }
@@ -405,6 +402,20 @@ class HInstructionStringifier implements HVisitor<String> {
   }
 
   @override
+  String visitInvokeExternal(HInvokeExternal node) {
+    var target = node.element;
+    var inputs = node.inputs;
+    String targetString;
+    if (target.isInstanceMember) {
+      targetString = temporaryId(inputs.first) + '.${target.name}';
+      inputs = inputs.sublist(1);
+    } else {
+      targetString = target.name;
+    }
+    return handleGenericInvoke('InvokeExternal', targetString, inputs);
+  }
+
+  @override
   String visitForeignCode(HForeignCode node) {
     var template = node.codeTemplate;
     String code = '${template.ast}';
@@ -475,7 +486,10 @@ class HInstructionStringifier implements HVisitor<String> {
   }
 
   @override
-  String visitReturn(HReturn node) => "Return: ${temporaryId(node.inputs[0])}";
+  String visitReturn(HReturn node) {
+    if (node.inputs.isEmpty) return "Return";
+    return "Return: ${temporaryId(node.inputs.single)}";
+  }
 
   @override
   String visitShiftLeft(HShiftLeft node) =>
@@ -630,6 +644,16 @@ class HInstructionStringifier implements HVisitor<String> {
   }
 
   @override
+  String visitNullCheck(HNullCheck node) {
+    String checkedInput = temporaryId(node.checkedInput);
+    var comments = [
+      if (node.selector != null) 'for ${node.selector}',
+      if (node.field != null) 'for ${node.field}',
+    ].join(', ');
+    return "NullCheck: $checkedInput $comments";
+  }
+
+  @override
   String visitTypeKnown(HTypeKnown node) {
     assert(node.inputs.length <= 2);
     String result =
@@ -678,6 +702,12 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitIsTest(HIsTest node) {
     var inputs = node.inputs.map(temporaryId).join(', ');
     return "IsTest: $inputs";
+  }
+
+  @override
+  String visitIsTestSimple(HIsTestSimple node) {
+    var inputs = node.inputs.map(temporaryId).join(', ');
+    return "IsTestSimple: ${node.dartType} $inputs";
   }
 
   @override

@@ -2,12 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include <memory>
+#include <utility>
+
 #include "vm/class_finalizer.h"
 
 #include "vm/compiler/jit/compiler.h"
 #include "vm/flags.h"
 #include "vm/hash_table.h"
 #include "vm/heap/heap.h"
+#include "vm/interpreter.h"
 #include "vm/isolate.h"
 #include "vm/kernel_loader.h"
 #include "vm/log.h"
@@ -106,7 +110,7 @@ class InterfaceFinder {
         cids_(cids) {}
 
   void FindAllInterfaces(const Class& klass) {
-    // The class is implementing it's own interface.
+    // The class is implementing its own interface.
     cids_->Add(klass.id());
 
     ScopedHandle<Array> array(&array_handles_);
@@ -122,8 +126,7 @@ class InterfaceFinder {
         break;
       }
 
-      // The class is implementing it's directly declared implemented
-      // interfaces.
+      // The class is implementing its directly declared implemented interfaces.
       *array = klass.interfaces();
       if (!array->IsNull()) {
         for (intptr_t i = 0; i < array->Length(); ++i) {
@@ -133,7 +136,7 @@ class InterfaceFinder {
         }
       }
 
-      // The class is implementing it's super type's interfaces.
+      // The class is implementing its super type's interfaces.
       *type = current_class->super_type();
       if (type->IsNull()) break;
       *current_class = class_table_->At(type->type_class_id());
@@ -240,33 +243,33 @@ void ClassFinalizer::VerifyBootstrapClasses() {
 #if defined(DEBUG)
   // Basic checking.
   cls = object_store->object_class();
-  ASSERT(Instance::InstanceSize() == cls.instance_size());
+  ASSERT(Instance::InstanceSize() == cls.host_instance_size());
   cls = object_store->integer_implementation_class();
-  ASSERT(Integer::InstanceSize() == cls.instance_size());
+  ASSERT(Integer::InstanceSize() == cls.host_instance_size());
   cls = object_store->smi_class();
-  ASSERT(Smi::InstanceSize() == cls.instance_size());
+  ASSERT(Smi::InstanceSize() == cls.host_instance_size());
   cls = object_store->mint_class();
-  ASSERT(Mint::InstanceSize() == cls.instance_size());
+  ASSERT(Mint::InstanceSize() == cls.host_instance_size());
   cls = object_store->one_byte_string_class();
-  ASSERT(OneByteString::InstanceSize() == cls.instance_size());
+  ASSERT(OneByteString::InstanceSize() == cls.host_instance_size());
   cls = object_store->two_byte_string_class();
-  ASSERT(TwoByteString::InstanceSize() == cls.instance_size());
+  ASSERT(TwoByteString::InstanceSize() == cls.host_instance_size());
   cls = object_store->external_one_byte_string_class();
-  ASSERT(ExternalOneByteString::InstanceSize() == cls.instance_size());
+  ASSERT(ExternalOneByteString::InstanceSize() == cls.host_instance_size());
   cls = object_store->external_two_byte_string_class();
-  ASSERT(ExternalTwoByteString::InstanceSize() == cls.instance_size());
+  ASSERT(ExternalTwoByteString::InstanceSize() == cls.host_instance_size());
   cls = object_store->double_class();
-  ASSERT(Double::InstanceSize() == cls.instance_size());
+  ASSERT(Double::InstanceSize() == cls.host_instance_size());
   cls = object_store->bool_class();
-  ASSERT(Bool::InstanceSize() == cls.instance_size());
+  ASSERT(Bool::InstanceSize() == cls.host_instance_size());
   cls = object_store->array_class();
-  ASSERT(Array::InstanceSize() == cls.instance_size());
+  ASSERT(Array::InstanceSize() == cls.host_instance_size());
   cls = object_store->immutable_array_class();
-  ASSERT(ImmutableArray::InstanceSize() == cls.instance_size());
+  ASSERT(ImmutableArray::InstanceSize() == cls.host_instance_size());
   cls = object_store->weak_property_class();
-  ASSERT(WeakProperty::InstanceSize() == cls.instance_size());
+  ASSERT(WeakProperty::InstanceSize() == cls.host_instance_size());
   cls = object_store->linked_hash_map_class();
-  ASSERT(LinkedHashMap::InstanceSize() == cls.instance_size());
+  ASSERT(LinkedHashMap::InstanceSize() == cls.host_instance_size());
 #endif  // defined(DEBUG)
 
   // Remember the currently pending classes.
@@ -378,8 +381,12 @@ void ClassFinalizer::CheckRecursiveType(const Class& cls,
     if ((pending_type.raw() != type.raw()) && pending_type.IsType() &&
         (pending_type.type_class() == type_cls.raw())) {
       pending_arguments = pending_type.arguments();
-      if (!pending_arguments.IsSubvectorEquivalent(arguments, first_type_param,
-                                                   num_type_params) &&
+      // By using TypeEquality::kInSubtypeTest, we throw a wider net than
+      // using canonical or syntactical equality and may reject more
+      // problematic declarations.
+      if (!pending_arguments.IsSubvectorEquivalent(
+              arguments, first_type_param, num_type_params,
+              TypeEquality::kInSubtypeTest) &&
           !pending_arguments.IsSubvectorInstantiated(first_type_param,
                                                      num_type_params)) {
         const TypeArguments& instantiated_arguments = TypeArguments::Handle(
@@ -391,8 +398,12 @@ void ClassFinalizer::CheckRecursiveType(const Class& cls,
                                             Object::null_type_arguments(),
                                             Object::null_type_arguments(),
                                             kNoneFree, NULL, Heap::kNew));
+        // By using TypeEquality::kInSubtypeTest, we throw a wider net than
+        // using canonical or syntactical equality and may reject more
+        // problematic declarations.
         if (!instantiated_pending_arguments.IsSubvectorEquivalent(
-                instantiated_arguments, first_type_param, num_type_params)) {
+                instantiated_arguments, first_type_param, num_type_params,
+                TypeEquality::kInSubtypeTest)) {
           const String& type_name = String::Handle(zone, type.Name());
           ReportError(cls, type.token_pos(), "illegal recursive type '%s'",
                       type_name.ToCString());
@@ -423,17 +434,9 @@ intptr_t ClassFinalizer::ExpandAndFinalizeTypeArguments(
   const intptr_t num_type_parameters = type_class.NumTypeParameters();
 
   // Initialize the type argument vector.
-  // Check the number of parsed type arguments, if any.
-  // Specifying no type arguments indicates a raw type, which is not an error.
-  // However, type parameter bounds are checked below, even for a raw type.
+  // A null type argument vector indicates a raw type.
   TypeArguments& arguments = TypeArguments::Handle(zone, type.arguments());
-  if (!arguments.IsNull() && (arguments.Length() != num_type_parameters)) {
-    // Make the type raw and continue without reporting any error.
-    // A static warning should have been reported.
-    // TODO(regis): Check if this is dead code.
-    arguments = TypeArguments::null();
-    type.set_arguments(arguments);
-  }
+  ASSERT(arguments.IsNull() || (arguments.Length() == num_type_parameters));
 
   // Mark the type as being finalized in order to detect self reference and
   // postpone bound checking (if required) until after all types in the graph of
@@ -853,7 +856,6 @@ void ClassFinalizer::FinalizeSignature(const Class& cls,
   // Finalize result type.
   type = function.result_type();
   finalized_type = FinalizeType(cls, type, finalization);
-  // The result type may be malformed or malbounded.
   if (finalized_type.raw() != type.raw()) {
     function.set_result_type(finalized_type);
   }
@@ -862,7 +864,6 @@ void ClassFinalizer::FinalizeSignature(const Class& cls,
   for (intptr_t i = 0; i < num_parameters; i++) {
     type = function.ParameterTypeAt(i);
     finalized_type = FinalizeType(cls, type, finalization);
-    // The parameter type may be malformed or malbounded.
     if (type.raw() != finalized_type.raw()) {
       function.SetParameterTypeAt(i, finalized_type);
     }
@@ -909,9 +910,9 @@ static bool IsPotentialExactGeneric(const AbstractType& type) {
   // TODO(dartbug.com/34170) Investigate supporting this for fields with types
   // that depend on type parameters of the enclosing class.
   if (type.IsType() && !type.IsFunctionType() && !type.IsDartFunctionType() &&
-      type.IsInstantiated()) {
+      type.IsInstantiated() && !type.IsFutureOrType()) {
     const Class& cls = Class::Handle(type.type_class());
-    return cls.IsGeneric() && !cls.IsFutureOrClass();
+    return cls.IsGeneric();
   }
 
   return false;
@@ -1113,11 +1114,11 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   }
 
 #if defined(SUPPORT_TIMELINE)
-  TimelineDurationScope tds(thread, Timeline::GetCompilerStream(),
-                            "FinalizeClass");
-  if (tds.enabled()) {
-    tds.SetNumArguments(1);
-    tds.CopyArgument(0, "class", cls.ToCString());
+  TimelineBeginEndScope tbes(thread, Timeline::GetCompilerStream(),
+                             "FinalizeClass");
+  if (tbes.enabled()) {
+    tbes.SetNumArguments(1);
+    tbes.CopyArgument(0, "class", cls.ToCString());
   }
 #endif  // defined(SUPPORT_TIMELINE)
 
@@ -1155,12 +1156,6 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   }
   // Mark as loaded and finalized.
   cls.Finalize();
-  // Every class should have at least a constructor, unless it is a top level
-  // class or a typedef class. The Kernel frontend does not create an implicit
-  // constructor for abstract classes.
-  // Moreover, Dart 2 precompiler (TFA) can tree shake all members if unused.
-  ASSERT(FLAG_precompiled_mode || cls.IsTopLevel() || cls.IsTypedefClass() ||
-         cls.is_abstract() || (Array::Handle(cls.functions()).Length() > 0));
   FinalizeMemberTypes(cls);
   // Run additional checks after all types are finalized.
   if (FLAG_use_cha_deopt) {
@@ -1244,13 +1239,6 @@ void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
       zone, enum_cls.LookupStaticField(Symbols::_DeletedEnumSentinel()));
   ASSERT(!sentinel.IsNull());
   sentinel.SetStaticValue(enum_value, true);
-  sentinel.RecordStore(enum_value);
-
-  const GrowableObjectArray& pending_unevaluated_const_fields =
-      GrowableObjectArray::Handle(zone,
-                                  thread->isolate()
-                                      ->object_store()
-                                      ->pending_unevaluated_const_fields());
 
   ASSERT(enum_cls.is_declared_in_bytecode() || enum_cls.kernel_offset() > 0);
   Error& error = Error::Handle(zone);
@@ -1260,20 +1248,13 @@ void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
         (sentinel.raw() == field.raw())) {
       continue;
     }
-    // The eager evaluation of the enum values is required for hot-reload (see
-    // commit e3ecc87). However, while busy loading the constant table, we
-    // need to postpone this evaluation until table is done.
+    // Hot-reload expects the static const fields to be evaluated when
+    // performing a reload.
     if (!FLAG_precompiled_mode) {
       if (field.IsUninitialized()) {
-        if (pending_unevaluated_const_fields.IsNull()) {
-          // Evaluate right away.
-          error = field.Initialize();
-          if (!error.IsNull()) {
-            ReportError(error);
-          }
-        } else {
-          // Postpone evaluation until we have a constant table.
-          pending_unevaluated_const_fields.Add(field);
+        error = field.InitializeStatic();
+        if (!error.IsNull()) {
+          ReportError(error);
         }
       }
     }
@@ -1384,7 +1365,7 @@ void ClassFinalizer::VerifyImplicitFieldOffsets() {
   fields_array ^= cls.fields();
   ASSERT(fields_array.Length() == ByteBuffer::NumberOfFields());
   field ^= fields_array.At(0);
-  ASSERT(field.Offset() == ByteBuffer::data_offset());
+  ASSERT(field.HostOffset() == ByteBuffer::data_offset());
   name ^= field.name();
   expected_name ^= String::New("_data");
   ASSERT(String::EqualsIgnoringPrivateKey(name, expected_name));
@@ -1411,7 +1392,9 @@ void ClassFinalizer::SortClasses() {
 
   ClassTable* table = I->class_table();
   intptr_t num_cids = table->NumCids();
-  intptr_t* old_to_new_cid = new intptr_t[num_cids];
+
+  std::unique_ptr<intptr_t[]> old_to_new_cid(new intptr_t[num_cids]);
+
   for (intptr_t cid = 0; cid < kNumPredefinedCids; cid++) {
     old_to_new_cid[cid] = cid;  // The predefined classes cannot change cids.
   }
@@ -1472,11 +1455,13 @@ void ClassFinalizer::SortClasses() {
     }
   }
   ASSERT(next_new_cid == num_cids);
-
-  RemapClassIds(old_to_new_cid);
-  delete[] old_to_new_cid;
-  RehashTypes();  // Types use cid's as part of their hashes.
+  RemapClassIds(old_to_new_cid.get());
+  RehashTypes();         // Types use cid's as part of their hashes.
   I->RehashConstants();  // Const objects use cid's as part of their hashes.
+
+  // Ensure any newly spawned isolate will apply this permutation map right
+  // after kernel loading.
+  I->group()->source()->cid_permutation_map = std::move(old_to_new_cid);
 }
 
 class CidRewriteVisitor : public ObjectVisitor {
@@ -1525,31 +1510,45 @@ class CidRewriteVisitor : public ObjectVisitor {
 
 void ClassFinalizer::RemapClassIds(intptr_t* old_to_new_cid) {
   Thread* T = Thread::Current();
-  Isolate* I = T->isolate();
+  IsolateGroup* IG = T->isolate_group();
 
   // Code, ICData, allocation stubs have now-invalid cids.
   ClearAllCode();
 
   {
+    // The [HeapIterationScope] also safepoints all threads.
     HeapIterationScope his(T);
-    I->set_remapping_cids(true);
 
-    // Update the class table. Do it before rewriting cids in headers, as the
-    // heap walkers load an object's size *after* calling the visitor.
-    I->class_table()->Remap(old_to_new_cid);
+    IG->class_table()->Remap(old_to_new_cid);
+    IG->ForEachIsolate(
+        [&](Isolate* I) {
+          I->set_remapping_cids(true);
+
+          // Update the class table. Do it before rewriting cids in headers, as
+          // the heap walkers load an object's size *after* calling the visitor.
+          I->class_table()->Remap(old_to_new_cid);
+        },
+        /*is_at_safepoint=*/true);
 
     // Rewrite cids in headers and cids in Classes, Fields, Types and
     // TypeParameters.
     {
       CidRewriteVisitor visitor(old_to_new_cid);
-      I->heap()->VisitObjects(&visitor);
+      IG->heap()->VisitObjects(&visitor);
     }
-    I->set_remapping_cids(false);
+
+    IG->ForEachIsolate(
+        [&](Isolate* I) {
+          I->set_remapping_cids(false);
+#if defined(DEBUG)
+          I->class_table()->Validate();
+#endif
+        },
+        /*is_at_safepoint=*/true);
   }
 
 #if defined(DEBUG)
-  I->class_table()->Validate();
-  I->heap()->Verify();
+  IG->heap()->Verify();
 #endif
 }
 
@@ -1650,6 +1649,7 @@ void ClassFinalizer::RehashTypes() {
   for (intptr_t i = 0; i < types.Length(); i++) {
     type ^= types.At(i);
     bool present = types_table.Insert(type);
+    // Two recursive types with different topology (and hashes) may be equal.
     ASSERT(!present || type.IsRecursive());
   }
   object_store->set_canonical_types(types_table.Release());
@@ -1681,18 +1681,48 @@ void ClassFinalizer::RehashTypes() {
   for (intptr_t i = 0; i < typeargs.Length(); i++) {
     typearg ^= typeargs.At(i);
     bool present = typeargs_table.Insert(typearg);
+    // Two recursive types with different topology (and hashes) may be equal.
     ASSERT(!present || typearg.IsRecursive());
   }
   object_store->set_canonical_type_arguments(typeargs_table.Release());
 }
 
 void ClassFinalizer::ClearAllCode(bool including_nonchanging_cids) {
+#ifdef DART_PRECOMPILED_RUNTIME
+  UNREACHABLE();
+#else
+  Thread* mutator_thread = Isolate::Current()->mutator_thread();
+  if (mutator_thread != nullptr) {
+    Interpreter* interpreter = mutator_thread->interpreter();
+    if (interpreter != nullptr) {
+      interpreter->ClearLookupCache();
+    }
+  }
+
   class ClearCodeFunctionVisitor : public FunctionVisitor {
     void Visit(const Function& function) {
-      function.ClearBytecode();
+      bytecode_ = function.bytecode();
+      if (!bytecode_.IsNull()) {
+        pool_ = bytecode_.object_pool();
+        for (intptr_t i = 0; i < pool_.Length(); i++) {
+          ObjectPool::EntryType entry_type = pool_.TypeAt(i);
+          if (entry_type != ObjectPool::EntryType::kTaggedObject) {
+            continue;
+          }
+          entry_ = pool_.ObjectAt(i);
+          if (entry_.IsSubtypeTestCache()) {
+            SubtypeTestCache::Cast(entry_).Reset();
+          }
+        }
+      }
+
       function.ClearCode();
       function.ClearICDataArray();
     }
+
+    Bytecode& bytecode_ = Bytecode::Handle();
+    ObjectPool& pool_ = ObjectPool::Handle();
+    Object& entry_ = Object::Handle();
   };
   ClearCodeFunctionVisitor function_visitor;
   ProgramVisitor::VisitFunctions(&function_visitor);
@@ -1726,6 +1756,7 @@ void ClassFinalizer::ClearAllCode(bool including_nonchanging_cids) {
     miss_function.ClearCode();
     object_store->SetMegamorphicMissHandler(null_code, miss_function);
   }
+#endif  // !DART_PRECOMPILED_RUNTIME
 }
 
 }  // namespace dart

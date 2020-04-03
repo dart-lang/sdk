@@ -35,7 +35,7 @@ class TopLevelDeclaration {
 /// Kind of a top-level declaration.
 ///
 /// We don't need it to be precise, just enough to support quick fixes.
-enum TopLevelDeclarationKind { type, function, variable }
+enum TopLevelDeclarationKind { type, extension, function, variable }
 
 class TopLevelDeclarationsProvider {
   final DeclarationsTracker tracker;
@@ -75,6 +75,8 @@ class TopLevelDeclarationsProvider {
     }
 
     var declarationsContext = tracker.getContext(analysisContext);
+    if (declarationsContext == null) return const [];
+
     var libraries = declarationsContext.getLibraries(path);
     libraries.context.forEach(addDeclarations);
     libraries.dependencies.forEach(addDeclarations);
@@ -91,6 +93,9 @@ class TopLevelDeclarationsProvider {
       case DeclarationKind.FUNCTION_TYPE_ALIAS:
       case DeclarationKind.MIXIN:
         return TopLevelDeclarationKind.type;
+        break;
+      case DeclarationKind.EXTENSION:
+        return TopLevelDeclarationKind.extension;
         break;
       case DeclarationKind.FUNCTION:
         return TopLevelDeclarationKind.function;

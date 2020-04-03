@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 
 /// AST visitor that prints tokens into their original positions.
 class AstTextPrinter extends ThrowingAstVisitor<void> {
@@ -333,6 +334,26 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
+    _compilationUnitMember(node);
+    _token(node.extensionKeyword);
+    node.name?.accept(this);
+    node.typeParameters?.accept(this);
+    _token(node.onKeyword);
+    node.extendedType.accept(this);
+    _token(node.leftBracket);
+    node.members.accept(this);
+    _token(node.rightBracket);
+  }
+
+  @override
+  void visitExtensionOverride(ExtensionOverride node) {
+    node.extensionName.accept(this);
+    node.typeArguments.accept(this);
+    node.argumentList.accept(this);
+  }
+
+  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     _classMember(node);
     _token(node.staticKeyword);
@@ -551,6 +572,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   void visitIndexExpression(IndexExpression node) {
     node.target?.accept(this);
     _token(node.period);
+    _token(node.question);
     _token(node.leftBracket);
     node.index.accept(this);
     _token(node.rightBracket);
@@ -911,6 +933,9 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   @override
   void visitTypeParameter(TypeParameter node) {
     _declaration(node);
+    // TODO (kallentu) : Clean up TypeParameterImpl casting once variance is
+    // added to the interface.
+    _token((node as TypeParameterImpl).varianceKeyword);
     node.name?.accept(this);
     _token(node.extendsKeyword);
     node.bound?.accept(this);

@@ -43,7 +43,7 @@ import 'types.dart';
 /// An inferencing engine that computes a call graph of [TypeInformation] nodes
 /// by visiting the AST of the application, and then does the inferencing on the
 /// graph.
-abstract class InferrerEngine {
+class InferrerEngine {
   /// A set of selector names that [List] implements, that we know return their
   /// element type.
   final Set<Selector> returnsListElementTypeSet =
@@ -58,11 +58,45 @@ abstract class InferrerEngine {
     new Selector.call(const PublicName('removeLast'), CallStructure.NO_ARGS)
   ]);
 
-  CompilerOptions get options;
-
   /// The [JClosedWorld] on which inference reasoning is based.
-  JClosedWorld get closedWorld;
-  DiagnosticReporter get reporter;
+  final JsClosedWorld closedWorld;
+
+  final TypeSystem types;
+  final Map<ir.TreeNode, TypeInformation> concreteTypes = {};
+  final InferredDataBuilder inferredDataBuilder;
+
+  final FunctionEntity mainElement;
+
+  final Map<Local, TypeInformation> _defaultTypeOfParameter =
+      new Map<Local, TypeInformation>();
+
+  final WorkQueue _workQueue = new WorkQueue();
+
+  final Set<MemberEntity> _analyzedElements = new Set<MemberEntity>();
+
+  /// The maximum number of times we allow a node in the graph to
+  /// change types. If a node reaches that limit, we give up
+  /// inferencing on it and give it the dynamic type.
+  final int _MAX_CHANGE_COUNT = 6;
+
+  int _overallRefineCount = 0;
+  int _addedInGraph = 0;
+
+  final CompilerOptions _options;
+  final Progress _progress;
+  final DiagnosticReporter _reporter;
+  final CompilerOutput _compilerOutput;
+
+  final Set<ConstructorEntity> _generativeConstructorsExposingThis =
+      new Set<ConstructorEntity>();
+
+  /// Data computed internally within elements, like the type-mask of a send a
+  /// list allocation, or a for-in loop.
+  final Map<MemberEntity, GlobalTypeInferenceElementData> _memberData =
+      new Map<MemberEntity, GlobalTypeInferenceElementData>();
+
+  ElementEnvironment get _elementEnvironment => closedWorld.elementEnvironment;
+
   AbstractValueDomain get abstractValueDomain =>
       closedWorld.abstractValueDomain;
   CommonElements get commonElements => closedWorld.commonElements;
@@ -71,244 +105,19 @@ abstract class InferrerEngine {
   // [ClosureWorldRefiner].
   NoSuchMethodData get noSuchMethodData => closedWorld.noSuchMethodData;
 
-  TypeSystem get types;
-  Map<ir.TreeNode, TypeInformation> get concreteTypes;
-  InferredDataBuilder get inferredDataBuilder;
-
-  FunctionEntity get mainElement;
-
-  void runOverAllElements();
-
-  void analyze(MemberEntity member);
-  void analyzeListAndEnqueue(ListTypeInformation info);
-  void analyzeSetAndEnqueue(SetTypeInformation info);
-  void analyzeMapAndEnqueue(MapTypeInformation info);
-
-  /// Notifies to the inferrer that [analyzedElement] can have return type
-  /// [newType]. [currentType] is the type the inference has currently found.
-  ///
-  /// Returns the new type for [analyzedElement].
-  TypeInformation addReturnTypeForMethod(
-      FunctionEntity element, TypeInformation unused, TypeInformation newType);
-
-  /// Applies [f] to all elements in the universe that match [selector] and
-  /// [mask]. If [f] returns false, aborts the iteration.
-  void forEachElementMatching(
-      Selector selector, AbstractValue mask, bool f(MemberEntity element));
-
-  /// Returns the [TypeInformation] node for the default value of a parameter.
-  /// If this is queried before it is set by [setDefaultTypeOfParameter], a
-  /// [PlaceholderTypeInformation] is returned, which will later be replaced
-  /// by the actual node when [setDefaultTypeOfParameter] is called.
-  ///
-  /// Invariant: After graph construction, no [PlaceholderTypeInformation] nodes
-  /// should be present and a default type for each parameter should exist.
-  TypeInformation getDefaultTypeOfParameter(Local parameter);
-
-  /// This helper breaks abstractions but is currently required to work around
-  /// the wrong modeling of default values of optional parameters of
-  /// synthetic constructors.
-  ///
-  /// TODO(johnniwinther): Remove once default values of synthetic parameters
-  /// are fixed.
-  bool hasAlreadyComputedTypeOfParameterDefault(Local parameter);
-
-  /// Sets the type of a parameter's default value to [type]. If the global
-  /// mapping in [defaultTypeOfParameter] already contains a type, it must be
-  /// a [PlaceholderTypeInformation], which will be replaced. All its uses are
-  /// updated.
-  void setDefaultTypeOfParameter(Local parameter, TypeInformation type,
-      {bool isInstanceMember});
-
-  Iterable<MemberEntity> getCallersOfForTesting(MemberEntity element);
-
-  // TODO(johnniwinther): Make this private again.
-  GlobalTypeInferenceElementData dataOfMember(MemberEntity element);
-
-  bool checkIfExposesThis(ConstructorEntity element);
-
-  void recordExposesThis(ConstructorEntity element, bool exposesThis);
-
-  /// Records that the return type [element] is of type [type].
-  void recordReturnType(FunctionEntity element, TypeInformation type);
-
-  /// Records that [element] is of type [type].
-  void recordTypeOfField(FieldEntity element, TypeInformation type);
-
-  /// Registers a call to await with an expression of type [argumentType] as
-  /// argument.
-  TypeInformation registerAwait(ir.Node node, TypeInformation argument);
-
-  /// Registers a call to yield with an expression of type [argumentType] as
-  /// argument.
-  TypeInformation registerYield(ir.Node node, TypeInformation argument);
-
-  /// Registers that [caller] calls [closure] with [arguments].
-  ///
-  /// [sideEffectsBuilder] will be updated to incorporate the potential callees'
-  /// side effects.
-  ///
-  /// [inLoop] tells whether the call happens in a loop.
-  TypeInformation registerCalledClosure(
-      ir.Node node,
-      Selector selector,
-      AbstractValue mask,
-      TypeInformation closure,
-      MemberEntity caller,
-      ArgumentsTypes arguments,
-      SideEffectsBuilder sideEffectsBuilder,
-      {bool inLoop});
-
-  /// Registers that [caller] calls [callee] at location [node], with
-  /// [selector], and [arguments]. Note that [selector] is null for forwarding
-  /// constructors.
-  ///
-  /// [sideEffectsBuilder] will be updated to incorporate [callee]'s side
-  /// effects.
-  ///
-  /// [inLoop] tells whether the call happens in a loop.
-  TypeInformation registerCalledMember(
-      Object node,
-      Selector selector,
-      AbstractValue mask,
-      MemberEntity caller,
-      MemberEntity callee,
-      ArgumentsTypes arguments,
-      SideEffectsBuilder sideEffectsBuilder,
-      bool inLoop);
-
-  /// Registers that [caller] calls [selector] with [receiverType] as receiver,
-  /// and [arguments].
-  ///
-  /// [sideEffectsBuilder] will be updated to incorporate the potential callees'
-  /// side effects.
-  ///
-  /// [inLoop] tells whether the call happens in a loop.
-  TypeInformation registerCalledSelector(
-      CallType callType,
-      ir.Node node,
-      Selector selector,
-      AbstractValue mask,
-      TypeInformation receiverType,
-      MemberEntity caller,
-      ArgumentsTypes arguments,
-      SideEffectsBuilder sideEffectsBuilder,
-      {bool inLoop,
-      bool isConditional});
-
-  /// Update the assignments to parameters in the graph. [remove] tells whether
-  /// assignments must be added or removed. If [init] is false, parameters are
-  /// added to the work queue.
-  void updateParameterAssignments(TypeInformation caller, MemberEntity callee,
-      ArgumentsTypes arguments, Selector selector, AbstractValue mask,
-      {bool remove, bool addToQueue: true});
-
-  void updateSelectorInMember(MemberEntity owner, CallType callType,
-      ir.Node node, Selector selector, AbstractValue mask);
-
-  /// Returns the return type of [element].
-  TypeInformation returnTypeOfMember(MemberEntity element);
-
-  /// Returns the type of [element] when being called with [selector].
-  TypeInformation typeOfMemberWithSelector(
-      MemberEntity element, Selector selector);
-
-  /// Returns the type of [element].
-  TypeInformation typeOfMember(MemberEntity element);
-
-  /// Returns the type of [element].
-  TypeInformation typeOfParameter(Local element);
-
-  /// Returns the type for [nativeBehavior]. See documentation on
-  /// [NativeBehavior].
-  TypeInformation typeOfNativeBehavior(NativeBehavior nativeBehavior);
-
-  bool returnsListElementType(Selector selector, AbstractValue mask);
-
-  bool returnsMapValueType(Selector selector, AbstractValue mask);
-
-  void close();
-
-  void clear();
-
-  /// Returns true if global optimizations such as type inferencing can apply to
-  /// the field [element].
-  ///
-  /// One category of elements that do not apply is runtime helpers that the
-  /// backend calls, but the optimizations don't see those calls.
-  bool canFieldBeUsedForGlobalOptimizations(FieldEntity element);
-
-  /// Returns true if global optimizations such as type inferencing can apply to
-  /// the parameter [element].
-  ///
-  /// One category of elements that do not apply is runtime helpers that the
-  /// backend calls, but the optimizations don't see those calls.
-  bool canFunctionParametersBeUsedForGlobalOptimizations(
-      FunctionEntity function);
-
-  /// Returns `true` if inference of parameter types is disabled for [member].
-  bool assumeDynamic(MemberEntity member);
-}
-
-class InferrerEngineImpl extends InferrerEngine {
-  final Map<Local, TypeInformation> defaultTypeOfParameter =
-      new Map<Local, TypeInformation>();
-  final WorkQueue workQueue = new WorkQueue();
-  @override
-  final FunctionEntity mainElement;
-  final Set<MemberEntity> analyzedElements = new Set<MemberEntity>();
-
-  /// The maximum number of times we allow a node in the graph to
-  /// change types. If a node reaches that limit, we give up
-  /// inferencing on it and give it the dynamic type.
-  final int MAX_CHANGE_COUNT = 6;
-
-  int overallRefineCount = 0;
-  int addedInGraph = 0;
-
-  @override
-  final CompilerOptions options;
-  final Progress progress;
-  @override
-  final DiagnosticReporter reporter;
-  final CompilerOutput _compilerOutput;
-
-  @override
-  final JsClosedWorld closedWorld;
-  @override
-  final InferredDataBuilder inferredDataBuilder;
-
-  @override
-  final TypeSystem types;
-  @override
-  final Map<ir.TreeNode, TypeInformation> concreteTypes =
-      new Map<ir.TreeNode, TypeInformation>();
-
-  final Set<ConstructorEntity> generativeConstructorsExposingThis =
-      new Set<ConstructorEntity>();
-
-  /// Data computed internally within elements, like the type-mask of a send a
-  /// list allocation, or a for-in loop.
-  final Map<MemberEntity, GlobalTypeInferenceElementData> _memberData =
-      new Map<MemberEntity, GlobalTypeInferenceElementData>();
-
-  final NoSuchMethodRegistry noSuchMethodRegistry;
-
-  InferrerEngineImpl(
-      this.options,
-      this.progress,
-      this.reporter,
+  InferrerEngine(
+      this._options,
+      this._progress,
+      this._reporter,
       this._compilerOutput,
       this.closedWorld,
-      this.noSuchMethodRegistry,
       this.mainElement,
       this.inferredDataBuilder)
       : this.types = new TypeSystem(
             closedWorld, new KernelTypeSystemStrategy(closedWorld));
 
-  ElementEnvironment get _elementEnvironment => closedWorld.elementEnvironment;
-
-  @override
+  /// Applies [f] to all elements in the universe that match [selector] and
+  /// [mask]. If [f] returns false, aborts the iteration.
   void forEachElementMatching(
       Selector selector, AbstractValue mask, bool f(MemberEntity element)) {
     Iterable<MemberEntity> elements = closedWorld.locateMembers(selector, mask);
@@ -318,13 +127,12 @@ class InferrerEngineImpl extends InferrerEngine {
   }
 
   // TODO(johnniwinther): Make this private again.
-  @override
   GlobalTypeInferenceElementData dataOfMember(MemberEntity element) =>
       _memberData[element] ??= new KernelGlobalTypeInferenceElementData();
 
   /// Update [sideEffects] with the side effects of [callee] being
   /// called with [selector].
-  void updateSideEffects(SideEffectsBuilder sideEffectsBuilder,
+  void _updateSideEffects(SideEffectsBuilder sideEffectsBuilder,
       Selector selector, MemberEntity callee) {
     if (callee.isField) {
       if (callee.isInstanceMember) {
@@ -352,7 +160,8 @@ class InferrerEngineImpl extends InferrerEngine {
     }
   }
 
-  @override
+  /// Returns the type for [nativeBehavior]. See documentation on
+  /// [NativeBehavior].
   TypeInformation typeOfNativeBehavior(NativeBehavior nativeBehavior) {
     if (nativeBehavior == null) return types.dynamicType;
     List typesReturned = nativeBehavior.typesReturned;
@@ -376,11 +185,11 @@ class InferrerEngineImpl extends InferrerEngine {
         mappedType = types.boolType;
       } else if (type == commonElements.nullType) {
         mappedType = types.nullType;
-      } else if (type.isVoid) {
+      } else if (type is VoidType) {
         mappedType = types.nullType;
-      } else if (type.isDynamic) {
+      } else if (type is DynamicType) {
         return types.dynamicType;
-      } else if (type.isInterfaceType) {
+      } else if (type is InterfaceType) {
         mappedType = types.nonNullSubtype(type.element);
       } else {
         mappedType = types.dynamicType;
@@ -393,14 +202,16 @@ class InferrerEngineImpl extends InferrerEngine {
     return returnType;
   }
 
-  @override
   void updateSelectorInMember(MemberEntity owner, CallType callType,
       ir.Node node, Selector selector, AbstractValue mask) {
     KernelGlobalTypeInferenceElementData data = dataOfMember(owner);
-    assert(validCallType(callType, node));
+    assert(validCallType(callType, node, selector));
     switch (callType) {
       case CallType.access:
-        data.setTypeMask(node, mask);
+        data.setReceiverTypeMask(node, mask);
+        break;
+      case CallType.indirectAccess:
+        // indirect access is not diretly recorded in the result data.
         break;
       case CallType.forIn:
         if (selector == Selectors.iterator) {
@@ -415,31 +226,26 @@ class InferrerEngineImpl extends InferrerEngine {
     }
   }
 
-  @override
   bool checkIfExposesThis(ConstructorEntity element) {
-    return generativeConstructorsExposingThis.contains(element);
+    return _generativeConstructorsExposingThis.contains(element);
   }
 
-  @override
   void recordExposesThis(ConstructorEntity element, bool exposesThis) {
     if (exposesThis) {
-      generativeConstructorsExposingThis.add(element);
+      _generativeConstructorsExposingThis.add(element);
     }
   }
 
-  @override
   bool returnsListElementType(Selector selector, AbstractValue mask) {
     return mask != null &&
         abstractValueDomain.isContainer(mask) &&
         returnsListElementTypeSet.contains(selector);
   }
 
-  @override
   bool returnsMapValueType(Selector selector, AbstractValue mask) {
     return mask != null && abstractValueDomain.isMap(mask) && selector.isIndex;
   }
 
-  @override
   void analyzeListAndEnqueue(ListTypeInformation info) {
     if (info.analyzed) return;
     info.analyzed = true;
@@ -454,13 +260,12 @@ class InferrerEngineImpl extends InferrerEngine {
         info.originalType, abstractValueDomain.fixedListType)) {
       info.checksGrowable = tracer.callsGrowableMethod;
     }
-    tracer.assignments.forEach(info.elementType.addAssignment);
+    tracer.inputs.forEach(info.elementType.addInput);
     // Enqueue the list for later refinement
-    workQueue.add(info);
-    workQueue.add(info.elementType);
+    _workQueue.add(info);
+    _workQueue.add(info.elementType);
   }
 
-  @override
   void analyzeSetAndEnqueue(SetTypeInformation info) {
     if (info.analyzed) return;
     info.analyzed = true;
@@ -472,13 +277,12 @@ class InferrerEngineImpl extends InferrerEngine {
     info.bailedOut = false;
     info.elementType.inferred = true;
 
-    tracer.assignments.forEach(info.elementType.addAssignment);
+    tracer.inputs.forEach(info.elementType.addInput);
     // Enqueue the set for later refinement.
-    workQueue.add(info);
-    workQueue.add(info.elementType);
+    _workQueue.add(info);
+    _workQueue.add(info.elementType);
   }
 
-  @override
   void analyzeMapAndEnqueue(MapTypeInformation info) {
     if (info.analyzed) return;
     info.analyzed = true;
@@ -488,31 +292,30 @@ class InferrerEngineImpl extends InferrerEngine {
     if (!succeeded) return;
 
     info.bailedOut = false;
-    for (int i = 0; i < tracer.keyAssignments.length; ++i) {
-      TypeInformation newType = info.addEntryAssignment(abstractValueDomain,
-          tracer.keyAssignments[i], tracer.valueAssignments[i]);
-      if (newType != null) workQueue.add(newType);
+    for (int i = 0; i < tracer.keyInputs.length; ++i) {
+      TypeInformation newType = info.addEntryInput(
+          abstractValueDomain, tracer.keyInputs[i], tracer.valueInputs[i]);
+      if (newType != null) _workQueue.add(newType);
     }
-    for (TypeInformation map in tracer.mapAssignments) {
-      workQueue.addAll(info.addMapAssignment(abstractValueDomain, map));
+    for (TypeInformation map in tracer.mapInputs) {
+      _workQueue.addAll(info.addMapInput(abstractValueDomain, map));
     }
 
     info.markAsInferred();
-    workQueue.add(info.keyType);
-    workQueue.add(info.valueType);
-    workQueue.addAll(info.typeInfoMap.values);
-    workQueue.add(info);
+    _workQueue.add(info.keyType);
+    _workQueue.add(info.valueType);
+    _workQueue.addAll(info.typeInfoMap.values);
+    _workQueue.add(info);
   }
 
-  @override
   void runOverAllElements() {
-    analyzeAllElements();
+    _analyzeAllElements();
     TypeGraphDump dump =
         debug.PRINT_GRAPH ? new TypeGraphDump(_compilerOutput, this) : null;
 
     dump?.beforeAnalysis();
-    buildWorkQueue();
-    refine();
+    _buildWorkQueue();
+    _refine();
 
     // Try to infer element types of lists and compute their escape information.
     types.allocatedLists.values.forEach((TypeInformation info) {
@@ -546,7 +349,7 @@ class InferrerEngineImpl extends InferrerEngine {
             types.strategy.forEachParameter(element, (Local parameter) {
               types
                   .getInferredTypeOfParameter(parameter)
-                  .giveUp(this, clearAssignments: false);
+                  .giveUp(this, clearInputs: false);
             });
           });
           bailedOutOn.addAll(elements);
@@ -559,7 +362,7 @@ class InferrerEngineImpl extends InferrerEngine {
             ParameterTypeInformation info =
                 types.getInferredTypeOfParameter(parameter);
             info.maybeResume();
-            workQueue.add(info);
+            _workQueue.add(info);
           });
           if (tracer.tracedType.mightBePassedToFunctionApply) {
             inferredDataBuilder.registerMightBePassedToApply(element);
@@ -584,7 +387,7 @@ class InferrerEngineImpl extends InferrerEngine {
           assert(calledElement is ConstructorEntity &&
               calledElement.isGenerativeConstructor);
           ClassEntity cls = calledElement.enclosingClass;
-          FunctionEntity callMethod = lookupCallMethod(cls);
+          FunctionEntity callMethod = _lookupCallMethod(cls);
           assert(callMethod != null, failedAt(cls));
           Iterable<FunctionEntity> elements = [callMethod];
           trace(elements, new ClosureTracerVisitor(elements, info, this));
@@ -611,17 +414,17 @@ class InferrerEngineImpl extends InferrerEngine {
     // as nodes that use elements fetched from these lists/maps. The
     // workset for a new run of the analysis will be these nodes.
     Set<TypeInformation> seenTypes = new Set<TypeInformation>();
-    while (!workQueue.isEmpty) {
-      TypeInformation info = workQueue.remove();
+    while (!_workQueue.isEmpty) {
+      TypeInformation info = _workQueue.remove();
       if (seenTypes.contains(info)) continue;
       // If the node cannot be reset, we do not need to update its users either.
       if (!info.reset(this)) continue;
       seenTypes.add(info);
-      workQueue.addAll(info.users);
+      _workQueue.addAll(info.users);
     }
 
-    workQueue.addAll(seenTypes);
-    refine();
+    _workQueue.addAll(seenTypes);
+    _refine();
 
     if (debug.PRINT_SUMMARY) {
       types.allocatedLists.values.forEach((_info) {
@@ -667,42 +470,42 @@ class InferrerEngineImpl extends InferrerEngine {
           }
         } else if (info is StaticCallSiteTypeInformation) {
           ClassEntity cls = info.calledElement.enclosingClass;
-          FunctionEntity callMethod = lookupCallMethod(cls);
+          FunctionEntity callMethod = _lookupCallMethod(cls);
           print('${types.getInferredSignatureOfMethod(callMethod)} for ${cls}');
         } else {
           print('${info.type} for some unknown kind of closure');
         }
       });
-      analyzedElements.forEach((MemberEntity elem) {
+      _analyzedElements.forEach((MemberEntity elem) {
         TypeInformation type = types.getInferredTypeOfMember(elem);
-        print('${elem} :: ${type} from ${type.assignments} ');
+        print('${elem} :: ${type} from ${type.inputs} ');
       });
     }
     dump?.afterAnalysis();
 
-    reporter.log('Inferred $overallRefineCount types.');
+    _reporter.log('Inferred $_overallRefineCount types.');
 
-    processLoopInformation();
+    _processLoopInformation();
   }
 
   /// Call [analyze] for all live members.
-  void analyzeAllElements() {
+  void _analyzeAllElements() {
     Iterable<MemberEntity> processedMembers = closedWorld.processedMembers
         .where((MemberEntity member) => !member.isAbstract);
 
-    progress.startPhase();
+    _progress.startPhase();
     processedMembers.forEach((MemberEntity member) {
-      progress.showProgress(
-          'Added ', addedInGraph, ' elements in inferencing graph.');
+      _progress.showProgress(
+          'Added ', _addedInGraph, ' elements in inferencing graph.');
       // This also forces the creation of the [ElementTypeInformation] to ensure
       // it is in the graph.
       types.withMember(member, () => analyze(member));
     });
-    reporter.log('Added $addedInGraph elements in inferencing graph.');
+    _reporter.log('Added $_addedInGraph elements in inferencing graph.');
   }
 
   /// Returns the body node for [member].
-  ir.Node computeMemberBody(MemberEntity member) {
+  ir.Node _computeMemberBody(MemberEntity member) {
     MemberDefinition definition =
         closedWorld.elementMap.getMemberDefinition(member);
     switch (definition.kind) {
@@ -738,7 +541,7 @@ class InferrerEngineImpl extends InferrerEngine {
 
   /// Returns the `call` method on [cls] or the `noSuchMethod` if [cls] doesn't
   /// implement `call`.
-  FunctionEntity lookupCallMethod(ClassEntity cls) {
+  FunctionEntity _lookupCallMethod(ClassEntity cls) {
     FunctionEntity function =
         _elementEnvironment.lookupClassMember(cls, Identifiers.call);
     if (function == null || function.isAbstract) {
@@ -748,18 +551,17 @@ class InferrerEngineImpl extends InferrerEngine {
     return function;
   }
 
-  @override
   void analyze(MemberEntity element) {
-    if (analyzedElements.contains(element)) return;
-    analyzedElements.add(element);
+    if (_analyzedElements.contains(element)) return;
+    _analyzedElements.add(element);
 
-    ir.Node body = computeMemberBody(element);
+    ir.Node body = _computeMemberBody(element);
 
     TypeInformation type;
-    reporter.withCurrentElement(element, () {
-      type = computeMemberTypeInformation(element, body);
+    _reporter.withCurrentElement(element, () {
+      type = _computeMemberTypeInformation(element, body);
     });
-    addedInGraph++;
+    _addedInGraph++;
 
     if (element.isField) {
       FieldEntity field = element;
@@ -770,7 +572,7 @@ class InferrerEngineImpl extends InferrerEngine {
           if (type is! ListTypeInformation && type is! MapTypeInformation) {
             // For non-container types, the constant handler does
             // constant folding that could give more precise results.
-            ConstantValue value = getFieldConstant(field);
+            ConstantValue value = _getFieldConstant(field);
             if (value != null) {
               if (value.isFunction) {
                 FunctionConstantValue functionConstant = value;
@@ -804,7 +606,7 @@ class InferrerEngineImpl extends InferrerEngine {
       if ((element.isStatic || element.isTopLevel) &&
           body != null &&
           !element.isConst) {
-        if (isFieldInitializerPotentiallyNull(element, body)) {
+        if (_isFieldInitializerPotentiallyNull(element, body)) {
           recordTypeOfField(field, types.nullType);
         }
       }
@@ -815,10 +617,10 @@ class InferrerEngineImpl extends InferrerEngine {
   }
 
   /// Visits [body] to compute the [TypeInformation] node for [member].
-  TypeInformation computeMemberTypeInformation(
+  TypeInformation _computeMemberTypeInformation(
       MemberEntity member, ir.Node body) {
     KernelTypeGraphBuilder visitor = new KernelTypeGraphBuilder(
-        options,
+        _options,
         closedWorld,
         this,
         member,
@@ -830,7 +632,7 @@ class InferrerEngineImpl extends InferrerEngine {
 
   /// Returns `true` if the [initializer] of the non-const static or top-level
   /// [field] is potentially `null`.
-  bool isFieldInitializerPotentiallyNull(
+  bool _isFieldInitializerPotentiallyNull(
       FieldEntity field, ir.Node initializer) {
     // TODO(13429): We could do better here by using the
     // constant handler to figure out if it's a lazy field or not.
@@ -852,18 +654,18 @@ class InferrerEngineImpl extends InferrerEngine {
 
   /// Returns the [ConstantValue] for the initial value of [field], or
   /// `null` if the initializer is not a constant value.
-  ConstantValue getFieldConstant(FieldEntity field) {
+  ConstantValue _getFieldConstant(FieldEntity field) {
     return closedWorld.fieldAnalysis.getFieldData(field).initialValue;
   }
 
   /// Returns `true` if [cls] has a 'call' method.
-  bool hasCallType(ClassEntity cls) {
+  bool _hasCallType(ClassEntity cls) {
     return closedWorld.elementMap.types
             .getCallType(closedWorld.elementEnvironment.getThisType(cls)) !=
         null;
   }
 
-  void processLoopInformation() {
+  void _processLoopInformation() {
     types.allocatedCalls.forEach((CallSiteTypeInformation info) {
       if (!info.inLoop) return;
       // We can't compute the callees of closures, no new information to add.
@@ -873,7 +675,8 @@ class InferrerEngineImpl extends InferrerEngine {
       if (info is StaticCallSiteTypeInformation) {
         MemberEntity member = info.calledElement;
         inferredDataBuilder.addFunctionCalledInLoop(member);
-      } else if (info.mask != null &&
+      } else if (info is DynamicCallSiteTypeInformation &&
+          info.mask != null &&
           abstractValueDomain.containsAll(info.mask).isDefinitelyFalse) {
         // For instance methods, we only register a selector called in a
         // loop if it is a typed selector, to avoid marking too many
@@ -886,20 +689,20 @@ class InferrerEngineImpl extends InferrerEngine {
     });
   }
 
-  void refine() {
-    progress.startPhase();
-    while (!workQueue.isEmpty) {
-      progress.showProgress('Inferred ', overallRefineCount, ' types.');
-      TypeInformation info = workQueue.remove();
+  void _refine() {
+    _progress.startPhase();
+    while (!_workQueue.isEmpty) {
+      _progress.showProgress('Inferred ', _overallRefineCount, ' types.');
+      TypeInformation info = _workQueue.remove();
       AbstractValue oldType = info.type;
       AbstractValue newType = info.refine(this);
       // Check that refinement has not accidentally changed the type.
       assert(oldType == info.type);
       if (info.abandonInferencing) info.doNotEnqueue = true;
       if ((info.type = newType) != oldType) {
-        overallRefineCount++;
+        _overallRefineCount++;
         info.refineCount++;
-        if (info.refineCount > MAX_CHANGE_COUNT) {
+        if (info.refineCount > _MAX_CHANGE_COUNT) {
           if (debug.ANOMALY_WARN) {
             print("ANOMALY WARNING: max refinement reached for $info");
           }
@@ -907,7 +710,7 @@ class InferrerEngineImpl extends InferrerEngine {
           info.type = info.refine(this);
           info.doNotEnqueue = true;
         }
-        workQueue.addAll(info.users);
+        _workQueue.addAll(info.users);
         if (info.hasStableType(this)) {
           info.stabilize(this);
         }
@@ -915,27 +718,29 @@ class InferrerEngineImpl extends InferrerEngine {
     }
   }
 
-  void buildWorkQueue() {
-    workQueue.addAll(types.orderedTypeInformations);
-    workQueue.addAll(types.allocatedTypes);
-    workQueue.addAll(types.allocatedClosures);
-    workQueue.addAll(types.allocatedCalls);
+  void _buildWorkQueue() {
+    _workQueue.addAll(types.orderedTypeInformations);
+    _workQueue.addAll(types.allocatedTypes);
+    _workQueue.addAll(types.allocatedClosures);
+    _workQueue.addAll(types.allocatedCalls);
   }
 
-  @override
-  void updateParameterAssignments(TypeInformation caller, MemberEntity callee,
-      ArgumentsTypes arguments, Selector selector, AbstractValue mask,
+  /// Update the inputs to parameters in the graph. [remove] tells whether
+  /// inputs must be added or removed. If [init] is false, parameters are
+  /// added to the work queue.
+  void updateParameterInputs(TypeInformation caller, MemberEntity callee,
+      ArgumentsTypes arguments, Selector selector,
       {bool remove, bool addToQueue: true}) {
     if (callee.name == Identifiers.noSuchMethod_) return;
     if (callee.isField) {
       if (selector.isSetter) {
         ElementTypeInformation info = types.getInferredTypeOfMember(callee);
         if (remove) {
-          info.removeAssignment(arguments.positional[0]);
+          info.removeInput(arguments.positional[0]);
         } else {
-          info.addAssignment(arguments.positional[0]);
+          info.addInput(arguments.positional[0]);
         }
-        if (addToQueue) workQueue.add(info);
+        if (addToQueue) _workQueue.add(info);
       }
     } else if (callee.isGetter) {
       return;
@@ -958,7 +763,7 @@ class InferrerEngineImpl extends InferrerEngine {
           ParameterTypeInformation info =
               types.getInferredTypeOfParameter(parameter);
           info.tagAsTearOffClosureParameter(this);
-          if (addToQueue) workQueue.add(info);
+          if (addToQueue) _workQueue.add(info);
         });
       }
     } else {
@@ -977,34 +782,37 @@ class InferrerEngineImpl extends InferrerEngine {
         if (type == null) type = getDefaultTypeOfParameter(parameter);
         TypeInformation info = types.getInferredTypeOfParameter(parameter);
         if (remove) {
-          info.removeAssignment(type);
+          info.removeInput(type);
         } else {
-          info.addAssignment(type);
+          info.addInput(type);
         }
         parameterIndex++;
-        if (addToQueue) workQueue.add(info);
+        if (addToQueue) _workQueue.add(info);
       });
     }
   }
 
-  @override
+  /// Sets the type of a parameter's default value to [type]. If the global
+  /// mapping in `_defaultTypeOfParameter` already contains a type, it must be
+  /// a [PlaceholderTypeInformation], which will be replaced. All its uses are
+  /// updated.
   void setDefaultTypeOfParameter(Local parameter, TypeInformation type,
       {bool isInstanceMember}) {
     assert(
         type != null, failedAt(parameter, "No default type for $parameter."));
-    TypeInformation existing = defaultTypeOfParameter[parameter];
-    defaultTypeOfParameter[parameter] = type;
+    TypeInformation existing = _defaultTypeOfParameter[parameter];
+    _defaultTypeOfParameter[parameter] = type;
     TypeInformation info = types.getInferredTypeOfParameter(parameter);
     if (existing != null && existing is PlaceholderTypeInformation) {
       // Replace references to [existing] to use [type] instead.
       if (isInstanceMember) {
-        ParameterAssignments assignments = info.assignments;
-        assignments.replace(existing, type);
+        ParameterInputs inputs = info.inputs;
+        inputs.replace(existing, type);
       } else {
-        List<TypeInformation> assignments = info.assignments;
-        for (int i = 0; i < assignments.length; i++) {
-          if (assignments[i] == existing) {
-            assignments[i] = type;
+        List<TypeInformation> inputs = info.inputs;
+        for (int i = 0; i < inputs.length; i++) {
+          if (inputs[i] == existing) {
+            inputs[i] = type;
           }
         }
       }
@@ -1015,56 +823,59 @@ class InferrerEngineImpl extends InferrerEngine {
     }
   }
 
-  @override
+  /// Returns the [TypeInformation] node for the default value of a parameter.
+  /// If this is queried before it is set by [setDefaultTypeOfParameter], a
+  /// [PlaceholderTypeInformation] is returned, which will later be replaced
+  /// by the actual node when [setDefaultTypeOfParameter] is called.
+  ///
+  /// Invariant: After graph construction, no [PlaceholderTypeInformation] nodes
+  /// should be present and a default type for each parameter should exist.
   TypeInformation getDefaultTypeOfParameter(Local parameter) {
-    return defaultTypeOfParameter.putIfAbsent(parameter, () {
+    return _defaultTypeOfParameter.putIfAbsent(parameter, () {
       return new PlaceholderTypeInformation(
           abstractValueDomain, types.currentMember);
     });
   }
 
-  @override
-  bool hasAlreadyComputedTypeOfParameterDefault(Local parameter) {
-    TypeInformation seen = defaultTypeOfParameter[parameter];
-    return (seen != null && seen is! PlaceholderTypeInformation);
-  }
-
-  @override
+  /// Returns the type of [element].
   TypeInformation typeOfParameter(Local element) {
     return types.getInferredTypeOfParameter(element);
   }
 
-  @override
+  /// Returns the type of [element].
   TypeInformation typeOfMember(MemberEntity element) {
     if (element is FunctionEntity) return types.functionType;
     return types.getInferredTypeOfMember(element);
   }
 
-  @override
+  /// Returns the return type of [element].
   TypeInformation returnTypeOfMember(MemberEntity element) {
     if (element is! FunctionEntity) return types.dynamicType;
     return types.getInferredTypeOfMember(element);
   }
 
-  @override
+  /// Records that [element] is of type [type].
   void recordTypeOfField(FieldEntity element, TypeInformation type) {
-    types.getInferredTypeOfMember(element).addAssignment(type);
+    types.getInferredTypeOfMember(element).addInput(type);
   }
 
-  @override
+  /// Records that the return type [element] is of type [type].
   void recordReturnType(FunctionEntity element, TypeInformation type) {
     TypeInformation info = types.getInferredTypeOfMember(element);
     if (element.name == '==') {
       // Even if x.== doesn't return a bool, 'x == null' evaluates to 'false'.
-      info.addAssignment(types.boolType);
+      info.addInput(types.boolType);
     }
     // TODO(ngeoffray): Clean up. We do these checks because
     // [SimpleTypesInferrer] deals with two different inferrers.
     if (type == null) return;
-    if (info.assignments.isEmpty) info.addAssignment(type);
+    if (info.inputs.isEmpty) info.addInput(type);
   }
 
-  @override
+  /// Notifies to the inferrer that [analyzedElement] can have return type
+  /// [newType]. [currentType] is the type the inference has currently found.
+  ///
+  /// Returns the new type for [analyzedElement].
   TypeInformation addReturnTypeForMethod(
       FunctionEntity element, TypeInformation unused, TypeInformation newType) {
     TypeInformation type = types.getInferredTypeOfMember(element);
@@ -1073,15 +884,21 @@ class InferrerEngineImpl extends InferrerEngine {
     if (element is ConstructorEntity && element.isGenerativeConstructor) {
       return type;
     }
-    type.addAssignment(newType);
+    type.addInput(newType);
     return type;
   }
 
-  @override
+  /// Registers that [caller] calls [callee] at location [node], with
+  /// [selector], and [arguments]. Note that [selector] is null for forwarding
+  /// constructors.
+  ///
+  /// [sideEffectsBuilder] will be updated to incorporate [callee]'s side
+  /// effects.
+  ///
+  /// [inLoop] tells whether the call happens in a loop.
   TypeInformation registerCalledMember(
       Object node,
       Selector selector,
-      AbstractValue mask,
       MemberEntity caller,
       MemberEntity callee,
       ArgumentsTypes arguments,
@@ -1094,7 +911,6 @@ class InferrerEngineImpl extends InferrerEngine {
         caller,
         callee,
         selector,
-        mask,
         arguments,
         inLoop);
     // If this class has a 'call' method then we have essentially created a
@@ -1107,17 +923,23 @@ class InferrerEngineImpl extends InferrerEngine {
         callee is ConstructorEntity &&
         callee.isGenerativeConstructor) {
       ClassEntity cls = callee.enclosingClass;
-      if (hasCallType(cls)) {
+      if (_hasCallType(cls)) {
         types.allocatedClosures.add(info);
       }
     }
     info.addToGraph(this);
     types.allocatedCalls.add(info);
-    updateSideEffects(sideEffectsBuilder, selector, callee);
+    _updateSideEffects(sideEffectsBuilder, selector, callee);
     return info;
   }
 
-  @override
+  /// Registers that [caller] calls [selector] with [receiverType] as receiver,
+  /// and [arguments].
+  ///
+  /// [sideEffectsBuilder] will be updated to incorporate the potential callees'
+  /// side effects.
+  ///
+  /// [inLoop] tells whether the call happens in a loop.
   TypeInformation registerCalledSelector(
       CallType callType,
       ir.Node node,
@@ -1130,16 +952,17 @@ class InferrerEngineImpl extends InferrerEngine {
       {bool inLoop,
       bool isConditional}) {
     if (selector.isClosureCall) {
-      return registerCalledClosure(node, selector, mask, receiverType, caller,
-          arguments, sideEffectsBuilder,
+      return registerCalledClosure(
+          node, selector, receiverType, caller, arguments, sideEffectsBuilder,
           inLoop: inLoop);
     }
 
     if (closedWorld.includesClosureCall(selector, mask)) {
       sideEffectsBuilder.setAllSideEffectsAndDependsOnSomething();
     }
+
     closedWorld.locateMembers(selector, mask).forEach((callee) {
-      updateSideEffects(sideEffectsBuilder, selector, callee);
+      _updateSideEffects(sideEffectsBuilder, selector, callee);
     });
 
     CallSiteTypeInformation info = new DynamicCallSiteTypeInformation(
@@ -1154,35 +977,40 @@ class InferrerEngineImpl extends InferrerEngine {
         arguments,
         inLoop,
         isConditional);
-
     info.addToGraph(this);
     types.allocatedCalls.add(info);
     return info;
   }
 
-  @override
+  /// Registers a call to await with an expression of type [argumentType] as
+  /// argument.
   TypeInformation registerAwait(ir.Node node, TypeInformation argument) {
     AwaitTypeInformation info = new AwaitTypeInformation(
         abstractValueDomain, types.currentMember, node);
-    info.addAssignment(argument);
+    info.addInput(argument);
     types.allocatedTypes.add(info);
     return info;
   }
 
-  @override
+  /// Registers a call to yield with an expression of type [argumentType] as
+  /// argument.
   TypeInformation registerYield(ir.Node node, TypeInformation argument) {
     YieldTypeInformation info = new YieldTypeInformation(
         abstractValueDomain, types.currentMember, node);
-    info.addAssignment(argument);
+    info.addInput(argument);
     types.allocatedTypes.add(info);
     return info;
   }
 
-  @override
+  /// Registers that [caller] calls [closure] with [arguments].
+  ///
+  /// [sideEffectsBuilder] will be updated to incorporate the potential callees'
+  /// side effects.
+  ///
+  /// [inLoop] tells whether the call happens in a loop.
   TypeInformation registerCalledClosure(
       ir.Node node,
       Selector selector,
-      AbstractValue mask,
       TypeInformation closure,
       MemberEntity caller,
       ArgumentsTypes arguments,
@@ -1195,7 +1023,6 @@ class InferrerEngineImpl extends InferrerEngine {
         node,
         caller,
         selector,
-        mask,
         closure,
         arguments,
         inLoop);
@@ -1204,7 +1031,6 @@ class InferrerEngineImpl extends InferrerEngine {
     return info;
   }
 
-  @override
   void close() {
     for (MemberTypeInformation typeInformation
         in types.memberTypeInformations.values) {
@@ -1212,7 +1038,6 @@ class InferrerEngineImpl extends InferrerEngine {
     }
   }
 
-  @override
   void clear() {
     if (retainDataForTesting) return;
 
@@ -1223,7 +1048,7 @@ class InferrerEngineImpl extends InferrerEngine {
     types.allocatedCalls.forEach(cleanup);
     types.allocatedCalls.clear();
 
-    defaultTypeOfParameter.clear();
+    _defaultTypeOfParameter.clear();
 
     types.parameterTypeInformations.values.forEach(cleanup);
     types.memberTypeInformations.values.forEach(cleanup);
@@ -1236,8 +1061,8 @@ class InferrerEngineImpl extends InferrerEngine {
     types.allocatedClosures.forEach(cleanup);
     types.allocatedClosures.clear();
 
-    analyzedElements.clear();
-    generativeConstructorsExposingThis.clear();
+    _analyzedElements.clear();
+    _generativeConstructorsExposingThis.clear();
 
     types.allocatedMaps.values.forEach(cleanup);
     types.allocatedSets.values.forEach(cleanup);
@@ -1246,13 +1071,12 @@ class InferrerEngineImpl extends InferrerEngine {
     _memberData.clear();
   }
 
-  @override
   Iterable<MemberEntity> getCallersOfForTesting(MemberEntity element) {
     MemberTypeInformation info = types.getInferredTypeOfMember(element);
     return info.callersForTesting;
   }
 
-  @override
+  /// Returns the type of [element] when being called with [selector].
   TypeInformation typeOfMemberWithSelector(
       MemberEntity element, Selector selector) {
     if (element.name == Identifiers.noSuchMethod_ &&
@@ -1282,7 +1106,62 @@ class InferrerEngineImpl extends InferrerEngine {
     }
   }
 
-  @override
+  /// Indirect calls share the same dynamic call site information node. This
+  /// cache holds that shared dynamic call node for a given selector.
+  Map<Selector, DynamicCallSiteTypeInformation> _sharedCalls = {};
+
+  /// For a given selector, return a shared dynamic call site that will be used
+  /// to combine the results of multiple dynamic calls in the program via
+  /// [IndirectDynamicCallSiteTypeInformation].
+  ///
+  /// This is used only for scalability reasons: if there are too many targets
+  /// and call sites, we may have a quadratic number of edges in the graph, so
+  /// we add a level of indirection to merge the information and keep the graph
+  /// smaller.
+  // TODO(sigmund): start using or delete indirection logic.
+  // ignore: unused_element
+  DynamicCallSiteTypeInformation _typeOfSharedDynamicCall(
+      Selector selector, CallStructure structure) {
+    DynamicCallSiteTypeInformation info = _sharedCalls[selector];
+    if (info != null) return info;
+
+    TypeInformation receiverType =
+        new IndirectParameterTypeInformation(abstractValueDomain, 'receiver');
+    List<TypeInformation> positional = [];
+    for (int i = 0; i < structure.positionalArgumentCount; i++) {
+      positional
+          .add(new IndirectParameterTypeInformation(abstractValueDomain, '$i'));
+    }
+    Map<String, TypeInformation> named = {};
+    if (structure.namedArgumentCount > 0) {
+      for (var name in structure.namedArguments) {
+        named[name] =
+            new IndirectParameterTypeInformation(abstractValueDomain, name);
+      }
+    }
+
+    info = _sharedCalls[selector] = new DynamicCallSiteTypeInformation(
+        abstractValueDomain,
+        null,
+        CallType.indirectAccess,
+        null,
+        null,
+        selector,
+        null,
+        receiverType,
+        ArgumentsTypes(positional, named),
+        false,
+        false);
+    info.addToGraph(this);
+    types.allocatedCalls.add(info);
+    return info;
+  }
+
+  /// Returns true if global optimizations such as type inferencing can apply to
+  /// the field [element].
+  ///
+  /// One category of elements that do not apply is runtime helpers that the
+  /// backend calls, but the optimizations don't see those calls.
   bool canFieldBeUsedForGlobalOptimizations(FieldEntity element) {
     if (closedWorld.backendUsage.isFieldUsedByBackend(element)) {
       return false;
@@ -1293,13 +1172,17 @@ class InferrerEngineImpl extends InferrerEngine {
     return true;
   }
 
-  @override
+  /// Returns true if global optimizations such as type inferencing can apply to
+  /// the parameter [element].
+  ///
+  /// One category of elements that do not apply is runtime helpers that the
+  /// backend calls, but the optimizations don't see those calls.
   bool canFunctionParametersBeUsedForGlobalOptimizations(
       FunctionEntity function) {
     return !closedWorld.backendUsage.isFunctionUsedByBackend(function);
   }
 
-  @override
+  /// Returns `true` if inference of parameter types is disabled for [member].
   bool assumeDynamic(MemberEntity member) {
     return closedWorld.annotationsData.hasAssumeDynamic(member);
   }
@@ -1374,7 +1257,7 @@ class KernelTypeSystemStrategy implements TypeSystemStrategy {
           parameter,
           type,
           member,
-          new ParameterAssignments());
+          new ParameterInputs());
     } else {
       return new ParameterTypeInformation.static(
           abstractValueDomain, memberTypeInformation, parameter, type, member);
@@ -1419,8 +1302,7 @@ class KernelGlobalTypeInferenceElementData
   /// objects in a debugging data stream.
   static const String tag = 'global-type-inference-element-data';
 
-  // TODO(johnniwinther): Rename this together with [typeOfSend].
-  Map<ir.TreeNode, AbstractValue> _sendMap;
+  Map<ir.TreeNode, AbstractValue> _receiverMap;
 
   Map<ir.ForInStatement, AbstractValue> _iteratorMap;
   Map<ir.ForInStatement, AbstractValue> _currentMap;
@@ -1428,8 +1310,8 @@ class KernelGlobalTypeInferenceElementData
 
   KernelGlobalTypeInferenceElementData();
 
-  KernelGlobalTypeInferenceElementData.internal(
-      this._sendMap, this._iteratorMap, this._currentMap, this._moveNextMap);
+  KernelGlobalTypeInferenceElementData.internal(this._receiverMap,
+      this._iteratorMap, this._currentMap, this._moveNextMap);
 
   /// Deserializes a [GlobalTypeInferenceElementData] object from [source].
   factory KernelGlobalTypeInferenceElementData.readFromDataSource(
@@ -1465,7 +1347,7 @@ class KernelGlobalTypeInferenceElementData
     sink.inMemberContext(context, () {
       sink.begin(tag);
       sink.writeTreeNodeMapInContext(
-          _sendMap,
+          _receiverMap,
           (AbstractValue value) =>
               abstractValueDomain.writeAbstractValueToDataSink(sink, value),
           allowNull: true);
@@ -1490,10 +1372,10 @@ class KernelGlobalTypeInferenceElementData
 
   @override
   GlobalTypeInferenceElementData compress() {
-    if (_sendMap != null) {
-      _sendMap.removeWhere(_mapsToNull);
-      if (_sendMap.isEmpty) {
-        _sendMap = null;
+    if (_receiverMap != null) {
+      _receiverMap.removeWhere(_mapsToNull);
+      if (_receiverMap.isEmpty) {
+        _receiverMap = null;
       }
     }
     if (_iteratorMap != null) {
@@ -1514,7 +1396,7 @@ class KernelGlobalTypeInferenceElementData
         _moveNextMap = null;
       }
     }
-    if (_sendMap == null &&
+    if (_receiverMap == null &&
         _iteratorMap == null &&
         _currentMap == null &&
         _moveNextMap == null) {
@@ -1524,9 +1406,9 @@ class KernelGlobalTypeInferenceElementData
   }
 
   @override
-  AbstractValue typeOfSend(ir.TreeNode node) {
-    if (_sendMap == null) return null;
-    return _sendMap[node];
+  AbstractValue typeOfReceiver(ir.TreeNode node) {
+    if (_receiverMap == null) return null;
+    return _receiverMap[node];
   }
 
   void setCurrentTypeMask(ir.ForInStatement node, AbstractValue mask) {
@@ -1562,15 +1444,9 @@ class KernelGlobalTypeInferenceElementData
     return _iteratorMap[node];
   }
 
-  void setTypeMask(ir.TreeNode node, AbstractValue mask) {
-    _sendMap ??= <ir.TreeNode, AbstractValue>{};
-    _sendMap[node] = mask;
-  }
-
-  @override
-  AbstractValue typeOfGetter(ir.TreeNode node) {
-    if (_sendMap == null) return null;
-    return _sendMap[node];
+  void setReceiverTypeMask(ir.TreeNode node, AbstractValue mask) {
+    _receiverMap ??= <ir.TreeNode, AbstractValue>{};
+    _receiverMap[node] = mask;
   }
 }
 

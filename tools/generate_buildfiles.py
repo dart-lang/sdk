@@ -53,7 +53,7 @@ def RunCrossGn(options):
         '-m',
         'all',
         '-a',
-        'arm,armsimdbc,arm64,armsimdbc64',
+        'arm,arm64',
     ]
     if options.verbose:
         gn_command.append('-v')

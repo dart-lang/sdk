@@ -7,11 +7,3 @@ mirrors_runtime_cc_files = [
   "mirrors.cc",
   "mirrors.h",
 ]
-
-mirrors_runtime_dart_files = [
-  # mirrors_patch.dart needs to be the first dart file because it contains
-  # imports.
-  "mirrors_patch.dart",
-  "mirrors_impl.dart",
-  "mirror_reference.dart",
-]

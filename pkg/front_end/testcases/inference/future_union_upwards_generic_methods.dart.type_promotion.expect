@@ -1,3 +1,0 @@
-pkg/front_end/testcases/inference/future_union_upwards_generic_methods.dart:18:8: Context: Write to list@717
-  list = result2;
-       ^

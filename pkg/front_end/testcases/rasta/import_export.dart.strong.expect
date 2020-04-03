@@ -13,7 +13,6 @@ import self as self2;
 import "foo.dart" as foo;
 additionalExports = (foo::foo)
 
-
 export "org-dartlang-testcase:///foo.dart";
 
 

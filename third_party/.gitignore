@@ -12,5 +12,6 @@
 !clang.tar.gz.sha1
 !unittest.tar.gz.sha1
 !update.sh
+!/wasmer
 # but ignore a subfolder of tcmalloc (some client ignores /tcmalloc/.gitignore)
 /tcmalloc/gperftools

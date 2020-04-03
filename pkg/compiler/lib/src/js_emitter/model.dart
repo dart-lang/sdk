@@ -4,6 +4,7 @@
 
 library dart2js.new_js_emitter.model;
 
+import '../common_elements.dart';
 import '../constants/values.dart' show ConstantValue;
 import '../deferred_load.dart' show OutputUnit;
 import '../elements/entities.dart';
@@ -181,7 +182,7 @@ class Constant {
 
   @override
   String toString() {
-    return 'Constant(name=${name.key},value=${value.toStructuredText()})';
+    return 'Constant(name=${name.key},value=${value.toStructuredText(null)})';
   }
 }
 
@@ -314,6 +315,10 @@ class Class implements FieldContainer {
   }
 
   bool get isSimpleMixinApplication => false;
+
+  bool isTriviallyChecked(CommonElements commonElements) =>
+      classChecksNewRti.checks.every((TypeCheck check) =>
+          check.cls == commonElements.objectClass || check.cls == element);
 
   Class get superclass => _superclass;
 

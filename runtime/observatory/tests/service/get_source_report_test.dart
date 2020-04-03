@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 import 'service_test_common.dart';
 import 'dart:developer';
@@ -73,12 +73,12 @@ var tests = <IsolateTest>[
 
     var expectedRange = {
       'scriptIndex': 0,
-      'startPos': ifKernel(432, 40),
-      'endPos': ifKernel(576, 89),
+      'startPos': 432,
+      'endPos': 576,
       'compiled': true,
       'coverage': {
-        'hits': ifKernel([432, 482, 533, 562], [40, 55, 73, 83]),
-        'misses': ifKernel([495], [61])
+        'hits': [432, 482, 533, 562],
+        'misses': [495],
       }
     };
 

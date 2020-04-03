@@ -24,16 +24,14 @@ typedef void AcceptField(FieldEntity member, js.Name name, js.Name accessorName,
     bool needsGetter, bool needsSetter, bool needsCheckedSetter);
 
 class FieldVisitor {
-  final CompilerOptions _options;
   final JElementEnvironment _elementEnvironment;
-  final JCommonElements _commonElements;
   final CodegenWorld _codegenWorld;
   final NativeData _nativeData;
   final Namer _namer;
   final JClosedWorld _closedWorld;
 
-  FieldVisitor(this._options, this._elementEnvironment, this._commonElements,
-      this._codegenWorld, this._nativeData, this._namer, this._closedWorld);
+  FieldVisitor(this._elementEnvironment, this._codegenWorld, this._nativeData,
+      this._namer, this._closedWorld);
 
   /// Invokes [f] for each of the fields of [element].
   ///
@@ -160,6 +158,6 @@ class FieldVisitor {
     // We never generate accessors for top-level/static fields.
     if (!member.isInstanceMember) return true;
     DartType type = _elementEnvironment.getFieldType(member);
-    return type.treatAsDynamic || type == _commonElements.objectType;
+    return _closedWorld.dartTypes.isTopType(type);
   }
 }

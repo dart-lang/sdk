@@ -4,22 +4,33 @@
 
 library fasta.verifier;
 
+import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+
 import 'package:kernel/ast.dart'
     show
         AsExpression,
+        BottomType,
         Class,
         Component,
+        DartType,
+        DynamicType,
         ExpressionStatement,
         Field,
-        Let,
+        FunctionType,
+        InterfaceType,
+        InvalidType,
         Library,
         Member,
+        NeverType,
+        Nullability,
         Procedure,
         StaticInvocation,
         SuperMethodInvocation,
         SuperPropertyGet,
         SuperPropertySet,
-        TreeNode;
+        TreeNode,
+        TypeParameter,
+        VoidType;
 
 import 'package:kernel/transformations/flags.dart' show TransformerFlag;
 
@@ -30,33 +41,28 @@ import '../compiler_context.dart' show CompilerContext;
 import '../fasta_codes.dart'
     show LocatedMessage, noLength, templateInternalProblemVerificationError;
 
-import '../severity.dart' show Severity;
-
-import '../type_inference/type_schema.dart' show TypeSchemaVisitor, UnknownType;
-
-import 'kernel_shadow_ast.dart' show SyntheticExpressionJudgment;
+import '../type_inference/type_schema.dart' show UnknownType;
 
 import 'redirecting_factory_body.dart'
     show RedirectingFactoryBody, getRedirectingFactoryBody;
 
 List<LocatedMessage> verifyComponent(Component component,
-    {bool isOutline: false, bool skipPlatform: false}) {
+    {bool isOutline, bool afterConst, bool skipPlatform: false}) {
   FastaVerifyingVisitor verifier =
-      new FastaVerifyingVisitor(isOutline, skipPlatform);
+      new FastaVerifyingVisitor(isOutline, afterConst, skipPlatform);
   component.accept(verifier);
   return verifier.errors;
 }
 
-class FastaVerifyingVisitor extends VerifyingVisitor
-    implements TypeSchemaVisitor<void> {
+class FastaVerifyingVisitor extends VerifyingVisitor {
   final List<LocatedMessage> errors = <LocatedMessage>[];
+  Library currentLibrary = null;
 
   Uri fileUri;
   final bool skipPlatform;
 
-  FastaVerifyingVisitor(bool isOutline, this.skipPlatform) {
-    this.isOutline = isOutline;
-  }
+  FastaVerifyingVisitor(bool isOutline, bool afterConst, this.skipPlatform)
+      : super(isOutline: isOutline, afterConst: afterConst);
 
   Uri checkLocation(TreeNode node, String name, Uri fileUri) {
     if (name == null || name.contains("#")) {
@@ -83,7 +89,7 @@ class FastaVerifyingVisitor extends VerifyingVisitor
   }
 
   void checkSuperInvocation(TreeNode node) {
-    var containingMember = getContainingMember(node);
+    Member containingMember = getContainingMember(node);
     if (containingMember == null) {
       problem(node, 'Super call outside of any member');
     } else {
@@ -138,21 +144,15 @@ class FastaVerifyingVisitor extends VerifyingVisitor
   }
 
   @override
-  visitLet(Let node) {
-    if (node is SyntheticExpressionJudgment) {
-      problem(node, "Leaking shadow node: ${node.runtimeType}");
-    }
-    super.visitLet(node);
-  }
-
-  @override
   visitLibrary(Library node) {
     // Issue(http://dartbug.com/32530)
     if (skipPlatform && node.importUri.scheme == 'dart') {
       return;
     }
     fileUri = checkLocation(node, node.name, node.fileUri);
+    currentLibrary = node;
     super.visitLibrary(node);
+    currentLibrary = null;
   }
 
   @override
@@ -173,10 +173,64 @@ class FastaVerifyingVisitor extends VerifyingVisitor
     super.visitProcedure(node);
   }
 
+  bool isNullType(DartType node) {
+    if (node is InterfaceType) {
+      Uri importUri = node.classNode.enclosingLibrary.importUri;
+      return node.classNode.name == "Null" &&
+          importUri.scheme == "dart" &&
+          importUri.path == "core";
+    }
+    return false;
+  }
+
   @override
-  visitUnknownType(UnknownType node) {
-    // Note: we can't pass [node] to [problem] because it's not a [TreeNode].
-    problem(null, "Unexpected appearance of the unknown type.");
+  defaultDartType(DartType node) {
+    if (node is UnknownType) {
+      // Note: we can't pass [node] to [problem] because it's not a [TreeNode].
+      problem(null, "Unexpected appearance of the unknown type.");
+    }
+    bool neverLegacy = isNullType(node) ||
+        node is DynamicType ||
+        node is InvalidType ||
+        node is VoidType ||
+        node is NeverType ||
+        node is BottomType;
+    bool expectedLegacy =
+        !currentLibrary.isNonNullableByDefault && !neverLegacy;
+    if (expectedLegacy && node.nullability != Nullability.legacy) {
+      problem(
+          null, "Found a non-legacy type '${node}' in an opted-out library.");
+    }
+    Nullability nodeNullability =
+        node is InvalidType ? Nullability.undetermined : node.nullability;
+    if (currentLibrary.isNonNullableByDefault &&
+        nodeNullability == Nullability.legacy) {
+      problem(null, "Found a legacy type '${node}' in an opted-in library.");
+    }
+    super.defaultDartType(node);
+  }
+
+  @override
+  visitFunctionType(FunctionType node) {
+    if (node.typeParameters.isNotEmpty) {
+      for (TypeParameter typeParameter in node.typeParameters) {
+        if (typeParameter.parent != null) {
+          problem(
+              null,
+              "Type parameters of function types shouldn't have parents: "
+              "$node.");
+        }
+      }
+    }
+    super.visitFunctionType(node);
+  }
+
+  @override
+  visitInterfaceType(InterfaceType node) {
+    if (isNullType(node) && node.nullability != Nullability.nullable) {
+      problem(null, "Found a not nullable Null type: ${node}");
+    }
+    super.visitInterfaceType(node);
   }
 
   @override

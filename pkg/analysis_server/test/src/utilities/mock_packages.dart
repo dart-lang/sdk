@@ -5,14 +5,15 @@
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:front_end/src/testing/package_root.dart' as package_root;
+
+import '../../utils/package_root.dart' as package_root;
 
 /// Helper for copying files from "tests/mock_packages" to memory file system.
 class MockPackages {
   static final MockPackages instance = MockPackages._();
 
   /// The mapping from relative Posix paths of files to the file contents.
-  Map<String, String> _cachedFiles = {};
+  final Map<String, String> _cachedFiles = {};
 
   MockPackages._() {
     _cacheFiles();
@@ -30,6 +31,11 @@ class MockPackages {
 
   Folder addUI(MemoryResourceProvider provider) {
     var packageFolder = _addFiles(provider, 'ui');
+    return packageFolder.getChildAssumingFolder('lib');
+  }
+
+  Folder addVectorMath(MemoryResourceProvider provider) {
+    var packageFolder = _addFiles(provider, 'vector_math');
     return packageFolder.getChildAssumingFolder('lib');
   }
 

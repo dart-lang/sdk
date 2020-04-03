@@ -6,6 +6,11 @@ import 'dart:async' show Future;
 
 import 'dart:io' show File;
 
+import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
+    show DiagnosticMessage, getMessageCodeObject;
+
+import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+
 import 'package:expect/expect.dart' show Expect;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
@@ -13,9 +18,6 @@ import 'package:front_end/src/api_prototype/compiler_options.dart'
 
 import "package:front_end/src/api_prototype/memory_file_system.dart"
     show MemoryFileSystem;
-
-import 'package:front_end/src/api_prototype/diagnostic_message.dart'
-    show DiagnosticMessage, getMessageCodeObject;
 
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
@@ -38,11 +40,9 @@ import 'package:front_end/src/fasta/incremental_compiler.dart'
 
 import 'package:front_end/src/fasta/kernel/utils.dart' show serializeComponent;
 
-import 'package:front_end/src/fasta/severity.dart' show Severity;
-
 import 'package:kernel/kernel.dart' show Component, Library;
 
-import 'incremental_load_from_dill_test.dart' show getOptions;
+import 'incremental_load_from_dill_suite.dart' show getOptions;
 
 Future<Null> main() async {
   Tester tester = new Tester();

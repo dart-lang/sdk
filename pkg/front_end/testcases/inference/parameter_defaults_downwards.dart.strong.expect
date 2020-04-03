@@ -7,8 +7,8 @@ static method named_toplevel({core::List<core::int*>* x = #C1}) → void {}
 static method main() → dynamic {
   function optional_local([core::List<core::int*>* x = #C1]) → void {}
   function named_local({core::List<core::int*>* x = #C1}) → void {}
-  ([core::List<core::int*>*]) →* core::Null* optional_closure = ([core::List<core::int*>* x = #C1]) → core::Null* {};
-  ({x: core::List<core::int*>*}) →* core::Null* name_closure = ({core::List<core::int*>* x = #C1}) → core::Null* {};
+  ([core::List<core::int*>*]) →* core::Null? optional_closure = ([core::List<core::int*>* x = #C1]) → core::Null? {};
+  ({x: core::List<core::int*>*}) →* core::Null? name_closure = ({core::List<core::int*>* x = #C1}) → core::Null? {};
 }
 
 constants  {

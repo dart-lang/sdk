@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:html';
 import 'dart:js' as js;
 
-import 'package:unittest/html_individual_config.dart';
-import 'package:unittest/unittest.dart';
+import 'package:async_helper/async_minitest.dart';
 
 import 'utils.dart';
 
@@ -27,21 +25,14 @@ class FooElement extends HtmlElement {
   bool get fooCreated => _proxy['fooCreated'];
 }
 
-main() {
-  var registered = false;
-  var upgrader;
-  setUp(() => customElementsReady.then((_) {
-        if (!registered) {
-          registered = true;
-          upgrader = document.createElementUpgrader(FooElement);
-          js.context['upgradeListener'] = (e) {
-            upgrader.upgrade(e);
-          };
+main() async {
+  await customElementsReady;
+  var upgrader = document.createElementUpgrader(FooElement);
+  js.context['upgradeListener'] = (e) {
+    upgrader.upgrade(e);
+  };
 
-          document
-              .registerElement2('custom-element', {'prototype': CustomElement});
-        }
-      }));
+  document.registerElement2('custom-element', {'prototype': CustomElement});
 
   test('created gets proxied', () {
     var element = document.createElement(FooElement.tag);

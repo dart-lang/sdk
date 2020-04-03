@@ -4,10 +4,10 @@
 
 /*Debugger:stepOver*/
 void main() {
-  /*bl*/ /*sl:1*/ List<int> data = [1, 2, 3];
+  /*bl*/ /*sl:1*/ var data = [1, 2, 3];
   for (
       // comment forcing formatting
-      /*sl:3*/ /*sl:5*/ /*sl:7*/ /*sl:8*/ int datapoint
+      /*sl:3*/ /*sl:5*/ /*sl:7*/ /*sl:8*/ var datapoint
       // comment forcing formatting
       in
       // comment forcing formatting
@@ -16,5 +16,5 @@ void main() {
       ) {
     /*sl:4*/ /*sl:6*/ /*sl:8*/ print(datapoint);
   }
-  /*sl:9 */ print("Done");
+  /*sl:9 */ print('Done');
 }

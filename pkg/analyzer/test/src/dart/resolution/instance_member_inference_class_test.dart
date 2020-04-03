@@ -2,33 +2,31 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
-import 'resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(InstanceMemberInferenceClassDriverResolutionTest);
+    defineReflectiveTests(InstanceMemberInferenceClassTest);
+    defineReflectiveTests(InstanceMemberInferenceClassWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class InstanceMemberInferenceClassDriverResolutionTest
-    extends DriverResolutionTest with InstanceMemberInferenceClassMixin {}
-
-mixin InstanceMemberInferenceClassMixin implements ResolutionTest {
+class InstanceMemberInferenceClassTest extends DriverResolutionTest {
   test_invalid_inheritanceCycle() async {
-    addTestFile('''
+    await resolveTestCode('''
 class A extends C {}
 class B extends A {}
 class C extends B {}
 ''');
-    await resolveTestFile();
   }
 
   test_method_parameter_multiple_different() async {
-    addTestFile('''
+    await resolveTestCode('''
 class A {
   foo(int p) => 0;
 }
@@ -39,14 +37,12 @@ class C implements A, B {
   foo(p) => 0;
 }
 ''');
-    await resolveTestFile();
-
     var p = findElement.method('foo', of: 'C').parameters[0];
-    assertElementTypeDynamic(p.type);
+    assertTypeDynamic(p.type);
   }
 
   test_method_parameter_multiple_named_different() async {
-    addTestFile('''
+    await resolveTestCode('''
 class A {
   foo({int p}) => 0;
 }
@@ -57,14 +53,12 @@ class C implements A, B {
   foo({p}) => 0;
 }
 ''');
-    await resolveTestFile();
-
     var p = findElement.method('foo', of: 'C').parameters[0];
-    assertElementTypeDynamic(p.type);
+    assertTypeDynamic(p.type);
   }
 
   test_method_parameter_multiple_named_same() async {
-    addTestFile('''
+    await resolveTestCode('''
 class A {
   foo({int p}) => 0;
 }
@@ -75,14 +69,12 @@ class C implements A, B {
   foo({p}) => 0;
 }
 ''');
-    await resolveTestFile();
-
     var p = findElement.method('foo', of: 'C').parameters[0];
-    assertElementTypeString(p.type, 'int');
+    assertType(p.type, 'int');
   }
 
   test_method_parameter_multiple_namedAndRequired() async {
-    addTestFile('''
+    await resolveTestCode('''
 class A {
   foo({int p}) => 0;
 }
@@ -93,14 +85,12 @@ class C implements A, B {
   foo(p) => 0;
 }
 ''');
-    await resolveTestFile();
-
     var p = findElement.method('foo', of: 'C').parameters[0];
-    assertElementTypeDynamic(p.type);
+    assertTypeDynamic(p.type);
   }
 
   test_method_parameter_multiple_optionalAndRequired() async {
-    addTestFile('''
+    await resolveTestCode('''
 class A {
   foo(int p) => 0;
 }
@@ -111,14 +101,12 @@ class C implements A, B {
   foo(p) => 0;
 }
 ''');
-    await resolveTestFile();
-
     var p = findElement.method('foo', of: 'C').parameters[0];
-    assertElementTypeString(p.type, 'int');
+    assertType(p.type, 'int');
   }
 
   test_method_parameter_single_generic() async {
-    addTestFile('''
+    await resolveTestCode('''
 class A<E> {
   foo(E p) => 0;
 }
@@ -126,14 +114,12 @@ class C<T> implements A<T> {
   foo(p) => 0;
 }
 ''');
-    await resolveTestFile();
-
     var p = findElement.method('foo', of: 'C').parameters[0];
-    assertElementTypeString(p.type, 'T');
+    assertType(p.type, 'T');
   }
 
   test_method_return_multiple_different() async {
-    addTestFile('''
+    await resolveTestCode('''
 class A {
   int foo() => 0;
 }
@@ -144,14 +130,12 @@ class C implements A, B {
   foo() => 0;
 }
 ''');
-    await resolveTestFile();
-
     var foo = findElement.method('foo', of: 'C');
-    assertElementTypeDynamic(foo.returnType);
+    assertTypeDynamic(foo.returnType);
   }
 
   test_method_return_multiple_different_generic() async {
-    addTestFile('''
+    await resolveTestCode('''
 class A<E> {
   E foo() => null;
 }
@@ -162,14 +146,12 @@ class C implements A<int>, B<double> {
   foo() => null;
 }
 ''');
-    await resolveTestFile();
-
     var foo = findElement.method('foo', of: 'C');
-    assertElementTypeDynamic(foo.returnType);
+    assertTypeDynamic(foo.returnType);
   }
 
   test_method_return_multiple_different_void() async {
-    addTestFile('''
+    await resolveTestCode('''
 class A {
   int foo() => 0;
 }
@@ -180,14 +162,12 @@ class C implements A, B {
   foo() => 0;
 }
 ''');
-    await resolveTestFile();
-
     var foo = findElement.method('foo', of: 'C');
-    assertElementTypeDynamic(foo.returnType);
+    assertTypeDynamic(foo.returnType);
   }
 
   test_method_return_multiple_dynamic() async {
-    addTestFile('''
+    await resolveTestCode('''
 class A {
   int foo() => 0;
 }
@@ -198,14 +178,12 @@ class C implements A, B {
   foo() => 0;
 }
 ''');
-    await resolveTestFile();
-
     var foo = findElement.method('foo', of: 'C');
-    assertElementTypeDynamic(foo.returnType);
+    assertTypeDynamic(foo.returnType);
   }
 
   test_method_return_multiple_same_generic() async {
-    addTestFile('''
+    await resolveTestCode('''
 class A<E> {
   E foo() => 0;
 }
@@ -216,14 +194,12 @@ class C<T> implements A<T>, B<T> {
   foo() => 0;
 }
 ''');
-    await resolveTestFile();
-
     var foo = findElement.method('foo', of: 'C');
-    assertElementTypeString(foo.returnType, 'T');
+    assertType(foo.returnType, 'T');
   }
 
   test_method_return_multiple_same_nonVoid() async {
-    addTestFile('''
+    await resolveTestCode('''
 class A {
   int foo() => 0;
 }
@@ -234,14 +210,12 @@ class C implements A, B {
   foo() => 0;
 }
 ''');
-    await resolveTestFile();
-
     var foo = findElement.method('foo', of: 'C');
-    assertElementTypeString(foo.returnType, 'int');
+    assertType(foo.returnType, 'int');
   }
 
   test_method_return_multiple_same_void() async {
-    addTestFile('''
+    await resolveTestCode('''
 class A {
   void foo() {};
 }
@@ -252,14 +226,12 @@ class C implements A, B {
   foo() {};
 }
 ''');
-    await resolveTestFile();
-
     var foo = findElement.method('foo', of: 'C');
-    assertElementTypeString(foo.returnType, 'void');
+    assertType(foo.returnType, 'void');
   }
 
   test_method_return_single() async {
-    addTestFile('''
+    await resolveTestCode('''
 class A {
   int foo() => 0;
 }
@@ -267,14 +239,12 @@ class B extends A {
   foo() => 0;
 }
 ''');
-    await resolveTestFile();
-
     var foo = findElement.method('foo', of: 'B');
-    assertElementTypeString(foo.returnType, 'int');
+    assertType(foo.returnType, 'int');
   }
 
   test_method_return_single_generic() async {
-    addTestFile('''
+    await resolveTestCode('''
 class A<E> {
   E foo() => 0;
 }
@@ -282,9 +252,55 @@ class B<T> extends A<T> {
   foo() => 0;
 }
 ''');
-    await resolveTestFile();
-
     var foo = findElement.method('foo', of: 'B');
-    assertElementTypeString(foo.returnType, 'T');
+    assertType(foo.returnType, 'T');
+  }
+}
+
+@reflectiveTest
+class InstanceMemberInferenceClassWithNullSafetyTest
+    extends InstanceMemberInferenceClassTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.forTesting(
+        sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
+
+  @override
+  bool get typeToStringWithNullability => true;
+
+  test_method_parameter_multiple_different_merge() async {
+    await resolveTestCode('''
+class A {
+  void foo(Object? p) {}
+}
+
+class B {
+  void foo(dynamic p) {}
+}
+
+class C implements A, B {
+  void foo(p) {}
+}
+''');
+    var p = findElement.method('foo', of: 'C').parameters[0];
+    assertType(p.type, 'Object?');
+  }
+
+  test_method_return_multiple_different_merge() async {
+    await resolveTestCode('''
+class A {
+  Object? foo() => throw 0;
+}
+
+class B {
+  dynamic foo() => throw 0;
+}
+
+class C implements A, B {
+  foo() => throw 0;
+}
+''');
+    var foo = findElement.method('foo', of: 'C');
+    assertType(foo.returnType, 'Object?');
   }
 }

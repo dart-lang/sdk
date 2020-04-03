@@ -1,0 +1,35 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/const_redirect_to_nonconst.dart:14:21: Error: A constant constructor can't call a non-constant super constructor.
+//   const B() : super.bad();
+//                     ^^^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/const_redirect_to_nonconst.dart:8:20: Error: A constant constructor can't call a non-constant constructor.
+//   const A() : this.bad();
+//                    ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::A*
+    : this self::A::bad()
+    ;
+  constructor bad() → self::A*
+    : super core::Object::•() {}
+}
+class B extends self::A /*hasConstConstructor*/  {
+  const constructor •() → self::B*
+    : super self::A::bad()
+    ;
+}
+static method test() → dynamic {
+  core::print(invalid-expression "Non-const constructor invocation.");
+  core::print(invalid-expression "Non-const constructor invocation.");
+}
+static method main() → dynamic {
+  core::print(new self::A::•());
+  core::print(new self::B::•());
+}

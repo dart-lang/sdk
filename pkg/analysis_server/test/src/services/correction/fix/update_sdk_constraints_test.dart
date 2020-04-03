@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UpdateSdkConstraintsTest);
   });
@@ -20,11 +20,11 @@ class UpdateSdkConstraintsTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.UPDATE_SDK_CONSTRAINTS;
 
-  test_any() async {
+  Future<void> test_any() async {
     await testUpdate(from: 'any', to: '^2.1.0');
   }
 
-  test_asInConstContext() async {
+  Future<void> test_asInConstContext() async {
     createAnalysisOptionsFile(experiments: [EnableString.constant_update_2018]);
     await testUpdate(content: '''
 const dynamic a = 2;
@@ -32,22 +32,22 @@ const c = a as int;
 ''', to: '^2.2.2');
   }
 
-  test_boolOperator() async {
+  Future<void> test_boolOperator() async {
     createAnalysisOptionsFile(experiments: [EnableString.constant_update_2018]);
     await testUpdate(content: '''
 const c = true & false;
 ''', to: '^2.2.2');
   }
 
-  test_caret() async {
+  Future<void> test_caret() async {
     await testUpdate(from: '^2.0.0', to: '^2.1.0');
   }
 
-  test_compound() async {
+  Future<void> test_compound() async {
     await testUpdate(from: "'>=2.0.0 <3.0.0'", to: "'>=2.1.0 <3.0.0'");
   }
 
-  test_eqEqOperatorInConstContext() async {
+  Future<void> test_eqEqOperatorInConstContext() async {
     await testUpdate(content: '''
 class A {
   const A();
@@ -57,15 +57,15 @@ const c = a == null;
 ''', to: '^2.2.2');
   }
 
-  test_gt() async {
+  Future<void> test_gt() async {
     await testUpdate(from: "'>2.0.0'", to: "'>=2.1.0'");
   }
 
-  test_gte() async {
+  Future<void> test_gte() async {
     await testUpdate(from: "'>=2.0.0'", to: "'>=2.1.0'");
   }
 
-  test_gtGtGtOperator() async {
+  Future<void> test_gtGtGtOperator() async {
     createAnalysisOptionsFile(experiments: [EnableString.triple_shift]);
     await testUpdate(content: '''
 class C {
@@ -74,7 +74,7 @@ class C {
 ''', to: '^2.2.2');
   }
 
-  test_isInConstContext() async {
+  Future<void> test_isInConstContext() async {
     createAnalysisOptionsFile(experiments: [EnableString.constant_update_2018]);
     await testUpdate(content: '''
 const a = 0;
@@ -82,13 +82,14 @@ const c = a is int;
 ''', to: '^2.2.2');
   }
 
-  test_setLiteral() async {
+  Future<void> test_setLiteral() async {
     await testUpdate(content: '''
 var s = <int>{};
 ''', to: '^2.2.0');
   }
 
-  testUpdate({String content, String from = '^2.0.0', String to}) async {
+  Future<void> testUpdate(
+      {String content, String from = '^2.0.0', String to}) async {
     updateTestPubspecFile('''
 environment:
   sdk: $from

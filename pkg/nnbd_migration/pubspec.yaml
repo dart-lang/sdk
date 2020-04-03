@@ -1,6 +1,13 @@
 name: nnbd_migration
 publish_to: none
 environment:
-  sdk: '>=2.2.2 <3.0.0'
+  sdk: '>=2.6.0 <3.0.0'
 dependencies:
+  _fe_analyzer_shared: 1.0.0
   analyzer: ^0.37.0
+  analyzer_plugin: ^0.2.2
+  path: ^1.6.2
+  yaml: any
+dev_dependencies:
+  args: ^1.5.2
+  mockito: any

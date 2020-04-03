@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /*member: method:Union([exact=JSDouble], [exact=JSUInt31])*/
 // Called via [foo] with integer then double.
 method(/*Union([exact=JSDouble], [exact=JSUInt31])*/ a) {

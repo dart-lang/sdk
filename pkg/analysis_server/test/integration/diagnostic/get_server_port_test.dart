@@ -5,13 +5,12 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetServerPortTest);
   });
@@ -19,19 +18,19 @@ main() {
 
 @reflectiveTest
 class GetServerPortTest extends AbstractAnalysisServerIntegrationTest {
-  test_connect() async {
+  Future<void> test_connect() async {
     standardAnalysisSetup();
 
-    DiagnosticGetServerPortResult result = await sendDiagnosticGetServerPort();
+    var result = await sendDiagnosticGetServerPort();
     expect(result.port, isNotNull);
     expect(result.port, isNonZero);
 
     // Connect to the server and verify that it's serving the status page.
-    HttpClient client = new HttpClient();
-    HttpClientRequest request = await client
+    var client = HttpClient();
+    var request = await client
         .getUrl(Uri.parse('http://localhost:${result.port}/status'));
-    HttpClientResponse response = await request.close();
-    String responseBody = await utf8.decodeStream(response.cast<List<int>>());
+    var response = await request.close();
+    var responseBody = await utf8.decodeStream(response.cast<List<int>>());
     expect(responseBody, contains('<title>Analysis Server</title>'));
   }
 }

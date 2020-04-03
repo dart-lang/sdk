@@ -22,10 +22,7 @@ class Thread;
 
 #if defined(TESTING) || defined(DEBUG)
 
-#if defined(TARGET_ARCH_DBC)
-// C-stack is always aligned on DBC because we don't have any native code.
-#define CHECK_STACK_ALIGNMENT
-#elif defined(USING_SIMULATOR)
+#if defined(USING_SIMULATOR)
 #define CHECK_STACK_ALIGNMENT                                                  \
   {                                                                            \
     uword current_sp = Simulator::Current()->get_register(SPREG);              \
@@ -47,10 +44,6 @@ class Thread;
 
 void VerifyOnTransition();
 
-#define VERIFY_ON_TRANSITION                                                   \
-  if (FLAG_verify_on_transition) {                                             \
-    VerifyOnTransition();                                                      \
-  }
 #define DEOPTIMIZE_ALOT                                                        \
   if (FLAG_deoptimize_alot) {                                                  \
     DeoptimizeFunctionsOnStack();                                              \
@@ -59,8 +52,6 @@ void VerifyOnTransition();
 #else
 
 #define CHECK_STACK_ALIGNMENT                                                  \
-  {}
-#define VERIFY_ON_TRANSITION                                                   \
   {}
 #define DEOPTIMIZE_ALOT                                                        \
   {}
@@ -120,7 +111,8 @@ class NativeArguments {
     if ((function_bits & (kClosureFunctionBit | kInstanceFunctionBit)) ==
         (kClosureFunctionBit | kInstanceFunctionBit)) {
       // Retrieve the receiver from the context.
-      const int closure_index = (function_bits & kGenericFunctionBit) ? 1 : 0;
+      const int closure_index =
+          (function_bits & kGenericFunctionBit) != 0 ? 1 : 0;
       const Object& closure = Object::Handle(ArgAt(closure_index));
       const Context& context =
           Context::Handle(Closure::Cast(closure).context());
@@ -242,7 +234,7 @@ class NativeArguments {
   class ReverseArgOrderBit
       : public BitField<intptr_t, bool, kReverseArgOrderBit, 1> {};
   friend class Api;
-  friend class BootstrapNatives;
+  friend class NativeEntry;
   friend class Interpreter;
   friend class Simulator;
 
@@ -268,17 +260,17 @@ class NativeArguments {
 
   // Returns true if the arguments are those of an instance function call.
   bool ToInstanceFunction() const {
-    return (FunctionBits::decode(argc_tag_) & kInstanceFunctionBit);
+    return (FunctionBits::decode(argc_tag_) & kInstanceFunctionBit) != 0;
   }
 
   // Returns true if the arguments are those of a closure function call.
   bool ToClosureFunction() const {
-    return (FunctionBits::decode(argc_tag_) & kClosureFunctionBit);
+    return (FunctionBits::decode(argc_tag_) & kClosureFunctionBit) != 0;
   }
 
   // Returns true if the arguments are those of a generic function call.
   bool ToGenericFunction() const {
-    return (FunctionBits::decode(argc_tag_) & kGenericFunctionBit);
+    return (FunctionBits::decode(argc_tag_) & kGenericFunctionBit) != 0;
   }
 
   int NumHiddenArgs(int function_bits) const {

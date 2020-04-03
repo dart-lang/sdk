@@ -96,6 +96,7 @@ class _A {
 }
 ''', [
       error(HintCode.UNUSED_ELEMENT, 6, 2),
+      error(HintCode.UNUSED_ELEMENT, 20, 12),
     ]);
   }
 
@@ -145,23 +146,111 @@ print(x) {}
     ]);
   }
 
+  test_constructor_isUsed_asRedirectee() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A._constructor();
+  factory A.b() = A._constructor;
+}
+''');
+  }
+
+  test_constructor_isUsed_asRedirectee_viaInitializer() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A._constructor();
+  A() : this._constructor();
+}
+''');
+  }
+
+  test_constructor_isUsed_asRedirectee_viaSuper() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A._constructor();
+}
+
+class B extends A {
+  B() : super._constructor();
+}
+''');
+  }
+
+  test_constructor_isUsed_explicit() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A._constructor();
+}
+A f() => A._constructor();
+''');
+  }
+
+  test_constructor_notUsed_multiple() async {
+    await assertErrorsInCode(r'''
+class A {
+  A._constructor();
+  A();
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 14, 12),
+    ]);
+  }
+
+  test_constructor_notUsed_single() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A._constructor();
+}
+''');
+  }
+
   test_enum_isUsed_fieldReference() async {
     await assertNoErrorsInCode(r'''
-enum _MyEnum {A, B, C}
+enum _MyEnum {A}
 main() {
-  print(_MyEnum.B);
+  _MyEnum.A;
 }
 ''');
   }
 
   test_enum_notUsed_noReference() async {
     await assertErrorsInCode(r'''
-enum _MyEnum {A, B, C}
-main() {
+enum _MyEnum {A, B}
+void f(d) {
+  d.A;
+  d.B;
 }
 ''', [
       error(HintCode.UNUSED_ELEMENT, 5, 7),
     ]);
+  }
+
+  test_factoryConstructor_notUsed_multiple() async {
+    await assertErrorsInCode(r'''
+class A {
+  factory A._factory() => A();
+  A();
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 22, 8),
+    ]);
+  }
+
+  test_factoryConstructor_notUsed_single() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  factory A._factory() => throw 0;
+}
+''');
+  }
+
+  test_fieldImplicitGetter_isUsed() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int _g;
+  int get g => this._g;
+}
+''');
   }
 
   test_functionLocal_isUsed_closure() async {
@@ -255,6 +344,15 @@ main() {
     ]);
   }
 
+  test_functionTop_notUsed_referenceInComment() async {
+    await assertErrorsInCode(r'''
+/// [_f] is a great function.
+_f(int p) => 7;
+''', [
+      error(HintCode.UNUSED_ELEMENT, 30, 2),
+    ]);
+  }
+
   test_functionTypeAlias_isUsed_isExpression() async {
     await assertNoErrorsInCode(r'''
 typedef _F(a, b);
@@ -303,37 +401,137 @@ main() {
     ]);
   }
 
-  test_getter_isUsed_invocation_implicitThis() async {
+  test_getter_isUsed_invocation_deepSubclass() async {
     await assertNoErrorsInCode(r'''
+abstract class A {
+  String get _debugName;
+
+  String toString() {
+    return _debugName;
+  }
+}
+
+class B extends A {
+  @override
+  String get _debugName => "B";
+}
+
+class C extends B {
+  String get _debugName => "C";
+}
+''');
+  }
+
+  test_getter_isUsed_invocation_implicitThis() async {
+    await assertErrorsInCode(r'''
 class A {
   get _g => null;
   useGetter() {
     var v = _g;
   }
 }
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 52, 1),
+    ]);
+  }
+
+  test_getter_isUsed_invocation_parameterized() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  List<int> _list = List(1);
+  int get _item => _list.first;
+  set _item(int item) => _list[0] = item;
+}
+class B<T> {
+  A<T> a;
+}
+void main() {
+  B<int> b = B();
+  b.a._item = 3;
+  print(b.a._item == 7);
+}
+''');
+  }
+
+  test_getter_isUsed_invocation_parameterized_subclass() async {
+    await assertNoErrorsInCode(r'''
+abstract class A<T> {
+  T get _defaultThing;
+  T _thing;
+
+  void main() {
+    _thing ??= _defaultThing;
+    print(_thing);
+  }
+}
+class B extends A<int> {
+  @override
+  int get _defaultThing => 7;
+}
 ''');
   }
 
   test_getter_isUsed_invocation_PrefixedIdentifier() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   get _g => null;
 }
 main(A a) {
   var v = a._g;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 48, 1),
+    ]);
   }
 
   test_getter_isUsed_invocation_PropertyAccess() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   get _g => null;
 }
 main() {
   var v = new A()._g;
 }
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 45, 1),
+    ]);
+  }
+
+  test_getter_isUsed_invocation_subclass_plusPlus() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int __a = 0;
+  int get _a => __a;
+  void set _a(int val) {
+    __a = val;
+  }
+  int b() => _a++;
+}
+class B extends A {
+  @override
+  int get _a => 3;
+}
 ''');
+  }
+
+  test_getter_notUsed_invocation_subclass() async {
+    await assertErrorsInCode(r'''
+class A {
+  int __a = 0;
+  int get _a => __a;
+  void set _a(int val) {
+    __a = val;
+  }
+  int b() => _a = 7;
+}
+class B extends A {
+  @override
+  int get _a => 3;
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 35, 2),
+      error(HintCode.UNUSED_ELEMENT, 155, 2),
+    ]);
   }
 
   test_getter_notUsed_noReference() async {
@@ -403,6 +601,32 @@ class A {
 }
 main() {
   new A()._m;
+}
+''');
+  }
+
+  test_method_isUsed_invocation_fromMixinApplication() async {
+    await assertNoErrorsInCode(r'''
+mixin A {
+  _m() {}
+}
+class C with A {
+  useMethod() {
+    _m();
+  }
+}
+''');
+  }
+
+  test_method_isUsed_invocation_fromMixinWithConstraint() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  _m() {}
+}
+mixin M on A {
+  useMethod() {
+    _m();
+  }
 }
 ''');
   }
@@ -502,6 +726,20 @@ main() {
 ''');
   }
 
+  test_method_notUsed_hasSameNameAsUsed() async {
+    await assertErrorsInCode(r'''
+class A {
+  void _m1() {}
+}
+class B {
+  void public() => _m1();
+  void _m1() {}
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 17, 3),
+    ]);
+  }
+
   test_method_notUsed_noReference() async {
     await assertErrorsInCode(r'''
 class A {
@@ -522,6 +760,102 @@ class A {
 ''', [
       error(HintCode.UNUSED_ELEMENT, 19, 2),
     ]);
+  }
+
+  test_method_notUsed_referenceInComment() async {
+    await assertErrorsInCode(r'''
+/// [A] has a method, [_f].
+class A {
+  int _f(int p) => 7;
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 44, 2),
+    ]);
+  }
+
+  test_method_notUsed_referenceInComment_outsideEnclosingClass() async {
+    await assertErrorsInCode(r'''
+class A {
+  int _f(int p) => 7;
+}
+/// This is similar to [A._f].
+int g() => 7;
+''', [
+      error(HintCode.UNUSED_ELEMENT, 16, 2),
+    ]);
+  }
+
+  test_publicStaticMethod_privateClass_isUsed() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  static void m() {}
+}
+void main() {
+  _A.m();
+}
+''');
+  }
+
+  test_publicStaticMethod_privateClass_notUsed() async {
+    await assertErrorsInCode(r'''
+class _A {
+  static void m() {}
+}
+void f(_A a) {}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 25, 1),
+    ]);
+  }
+
+  test_publicStaticMethod_privateExtension_isUsed() async {
+    await assertNoErrorsInCode(r'''
+extension _A on String {
+  static void m() {}
+}
+void main() {
+  _A.m();
+}
+''');
+  }
+
+  test_publicStaticMethod_privateExtension_notUsed() async {
+    await assertErrorsInCode(r'''
+extension _A on String {
+  static void m() {}
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 39, 1),
+    ]);
+  }
+
+  test_publicStaticMethod_privateMixin_isUsed() async {
+    await assertNoErrorsInCode(r'''
+mixin _A {
+  static void m() {}
+}
+void main() {
+  _A.m();
+}
+''');
+  }
+
+  test_publicStaticMethod_privateMixin_notUsed() async {
+    await assertErrorsInCode(r'''
+mixin _A {
+  static void m() {}
+}
+void main() {
+  _A;
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 25, 1),
+    ]);
+  }
+
+  test_publicTopLevelFunction_notUsed() async {
+    await assertNoErrorsInCode(r'''
+int get a => 1;
+''');
   }
 
   test_setter_isUsed_invocation_implicitThis() async {
@@ -608,6 +942,15 @@ main() {
 }
 ''', [
       error(HintCode.UNUSED_ELEMENT, 4, 2),
+    ]);
+  }
+
+  test_topLevelVariable_notUsed_referenceInComment() async {
+    await assertErrorsInCode(r'''
+/// [_a] is a great variable.
+int _a = 7;
+''', [
+      error(HintCode.UNUSED_ELEMENT, 34, 2),
     ]);
   }
 }

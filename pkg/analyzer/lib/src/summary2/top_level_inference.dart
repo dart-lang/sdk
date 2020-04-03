@@ -6,11 +6,10 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -21,6 +20,7 @@ import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linking_node_scope.dart';
 import 'package:analyzer/src/task/strong_mode.dart';
+import 'package:meta/meta.dart';
 
 DartType _dynamicIfNull(DartType type) {
   if (type == null || type.isBottom || type.isDartCoreNull) {
@@ -39,7 +39,9 @@ AstNode _getLinkedNode(Element element) {
 class ConstantInitializersResolver {
   final Linker linker;
 
+  CompilationUnitElement _unitElement;
   LibraryElement _library;
+  bool _enclosingClassHasConstConstructor = false;
   Scope _scope;
 
   ConstantInitializersResolver(this.linker);
@@ -47,34 +49,57 @@ class ConstantInitializersResolver {
   void perform() {
     for (var builder in linker.builders.values) {
       _library = builder.element;
-      for (var unitContext in builder.context.units) {
-        for (var unitMember in unitContext.unit.declarations) {
-          _scope = builder.scope;
-          if (unitMember is TopLevelVariableDeclaration) {
-            _variableDeclarationList(unitMember.variables);
-          } else if (unitMember is ClassOrMixinDeclaration) {
-            _scope = LinkingNodeContext.get(unitMember).scope;
-            for (var classMember in unitMember.members) {
-              if (classMember is FieldDeclaration) {
-                _variableDeclarationList(classMember.fields);
-              }
-            }
-          }
-        }
+      for (var unit in _library.units) {
+        _unitElement = unit;
+        unit.extensions.forEach(_resolveExtensionFields);
+        unit.mixins.forEach(_resolveClassFields);
+        unit.types.forEach(_resolveClassFields);
+
+        _scope = builder.scope;
+        unit.topLevelVariables.forEach(_resolveVariable);
       }
     }
   }
 
-  void _variableDeclarationList(VariableDeclarationList node) {
-    var typeNode = node.type;
-    if (node.isConst && typeNode != null) {
-      for (var variable in node.variables) {
-        if (variable.initializer != null) {
-          InferenceContext.setType(variable.initializer, typeNode.type);
-          var astResolver = AstResolver(linker, _library, _scope);
-          astResolver.rewriteAst(variable.initializer);
-          astResolver.resolve(variable.initializer);
-        }
+  void _resolveClassFields(ClassElement class_) {
+    _enclosingClassHasConstConstructor =
+        class_.constructors.any((c) => c.isConst);
+
+    var node = _getLinkedNode(class_);
+    _scope = LinkingNodeContext.get(node).scope;
+    for (var element in class_.fields) {
+      _resolveVariable(element);
+    }
+    _enclosingClassHasConstConstructor = false;
+  }
+
+  void _resolveExtensionFields(ExtensionElement extension_) {
+    var node = _getLinkedNode(extension_);
+    _scope = LinkingNodeContext.get(node).scope;
+    for (var element in extension_.fields) {
+      _resolveVariable(element);
+    }
+  }
+
+  void _resolveVariable(VariableElement element) {
+    if (element.isSynthetic) return;
+
+    VariableDeclaration variable = _getLinkedNode(element);
+    if (variable.initializer == null) return;
+
+    VariableDeclarationList declarationList = variable.parent;
+    var typeNode = declarationList.type;
+    if (typeNode != null) {
+      if (declarationList.isConst ||
+          declarationList.isFinal && _enclosingClassHasConstConstructor) {
+        var astResolver = AstResolver(linker, _unitElement, _scope);
+        astResolver.resolve(
+          variable.initializer,
+          () {
+            InferenceContext.setType(variable.initializer, typeNode.type);
+            return variable.initializer;
+          },
+        );
       }
     }
   }
@@ -95,10 +120,7 @@ class TopLevelInference {
   }
 
   void _performOverrideInference() {
-    var inferrer = new InstanceMemberInferrer(
-      linker.typeProvider,
-      linker.inheritance,
-    );
+    var inferrer = InstanceMemberInferrer(linker.inheritance);
     for (var builder in linker.builders.values) {
       for (var unit in builder.element.units) {
         inferrer.inferCompilationUnit(unit);
@@ -179,7 +201,8 @@ class _ConstructorInferenceNode extends _InferenceNode {
   }
 }
 
-class _FunctionElementForLink_Initializer implements FunctionElementImpl {
+class _FunctionElementForLink_Initializer
+    implements FunctionElementImpl, ElementImplWithFunctionType {
   final _VariableInferenceNode _node;
 
   @override
@@ -188,13 +211,18 @@ class _FunctionElementForLink_Initializer implements FunctionElementImpl {
   _FunctionElementForLink_Initializer(this._node);
 
   @override
-  DartType get returnType {
+  DartType get returnType =>
+      ElementTypeProvider.current.getExecutableReturnType(this);
+
+  @override
+  DartType get returnTypeInternal {
     if (!_node.isEvaluated) {
       _node._walker.walk(_node);
     }
     return LazyAst.getType(_node._node);
   }
 
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -203,13 +231,13 @@ class _InferenceDependenciesCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    super.visitInstanceCreationExpression(node);
-    var element = node.staticElement;
-    if (element is ConstructorMember) {
-      element = (element as ConstructorMember).baseElement;
-    }
-    if (element != null) {
-      _set.add(element);
+    var element = node.staticElement?.declaration;
+    if (element == null) return;
+
+    _set.add(element);
+
+    if (element.enclosingElement.typeParameters.isNotEmpty) {
+      node.argumentList.accept(this);
     }
   }
 
@@ -265,15 +293,15 @@ class _InitializerInference {
   final Linker _linker;
   final _InferenceWalker _walker;
 
-  LibraryElement _library;
+  CompilationUnitElement _unitElement;
   Scope _scope;
 
   _InitializerInference(this._linker) : _walker = _InferenceWalker(_linker);
 
   void createNodes() {
     for (var builder in _linker.builders.values) {
-      _library = builder.element;
-      for (var unit in _library.units) {
+      for (var unit in builder.element.units) {
+        _unitElement = unit;
         unit.extensions.forEach(_addExtensionElementFields);
         unit.mixins.forEach(_addClassElementFields);
         unit.types.forEach(_addClassConstructorFieldFormals);
@@ -330,7 +358,7 @@ class _InitializerInference {
 
     if (node.initializer != null) {
       var inferenceNode =
-          _VariableInferenceNode(_walker, _library, _scope, element, node);
+          _VariableInferenceNode(_walker, _unitElement, _scope, node);
       _walker._nodes[element] = inferenceNode;
       (element as PropertyInducingElementImpl).initializer =
           _FunctionElementForLink_Initializer(inferenceNode);
@@ -342,9 +370,8 @@ class _InitializerInference {
 
 class _VariableInferenceNode extends _InferenceNode {
   final _InferenceWalker _walker;
-  final LibraryElement _library;
+  final CompilationUnitElement _unitElement;
   final Scope _scope;
-  final PropertyInducingElementImpl _element;
   final VariableDeclaration _node;
 
   @override
@@ -352,9 +379,8 @@ class _VariableInferenceNode extends _InferenceNode {
 
   _VariableInferenceNode(
     this._walker,
-    this._library,
+    this._unitElement,
     this._scope,
-    this._element,
     this._node,
   );
 
@@ -374,8 +400,7 @@ class _VariableInferenceNode extends _InferenceNode {
 
   @override
   List<_InferenceNode> computeDependencies() {
-    _buildLocalElements();
-    _resolveInitializer();
+    _resolveInitializer(forDependencies: true);
 
     var collector = _InferenceDependenciesCollector();
     _node.initializer.accept(collector);
@@ -403,7 +428,7 @@ class _VariableInferenceNode extends _InferenceNode {
 
   @override
   void evaluate() {
-    _resolveInitializer();
+    _resolveInitializer(forDependencies: false);
 
     if (LazyAst.getType(_node) == null) {
       var initializerType = _node.initializer.staticType;
@@ -418,7 +443,7 @@ class _VariableInferenceNode extends _InferenceNode {
   void markCircular(List<_InferenceNode> cycle) {
     LazyAst.setType(_node, DynamicTypeImpl.instance);
 
-    var cycleNames = Set<String>();
+    var cycleNames = <String>{};
     for (var inferenceNode in cycle) {
       cycleNames.add(inferenceNode.displayName);
     }
@@ -434,15 +459,13 @@ class _VariableInferenceNode extends _InferenceNode {
     isEvaluated = true;
   }
 
-  void _buildLocalElements() {
-    var holder = ElementHolder();
-    _node.initializer.accept(LocalElementBuilder(holder, null));
-    _element.encloseElements(holder.functions);
-  }
-
-  void _resolveInitializer() {
-    var astResolver = AstResolver(_walker._linker, _library, _scope);
-    astResolver.rewriteAst(_node.initializer);
-    astResolver.resolve(_node.initializer);
+  void _resolveInitializer({@required bool forDependencies}) {
+    var astResolver = AstResolver(_walker._linker, _unitElement, _scope);
+    astResolver.resolve(
+      _node.initializer,
+      () => _node.initializer,
+      buildElements: forDependencies,
+      isTopLevelVariableInitializer: true,
+    );
   }
 }

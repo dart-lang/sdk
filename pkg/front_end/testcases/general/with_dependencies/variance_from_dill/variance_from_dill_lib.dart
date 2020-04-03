@@ -1,0 +1,1 @@
+typedef F<T> = Function();

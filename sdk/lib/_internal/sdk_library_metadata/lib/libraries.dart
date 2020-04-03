@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 library libraries;
 
 /**
@@ -45,8 +47,6 @@ const Map<String, LibraryInfo> libraries = const {
       categories: "Client,Server",
       maturity: Maturity.STABLE,
       dart2jsPatchPath: "_internal/js_runtime/lib/async_patch.dart"),
-  "_chrome": const LibraryInfo("_chrome/dart2js/chrome_dart2js.dart",
-      categories: "Client", documented: false),
   "collection": const LibraryInfo("collection/collection.dart",
       categories: "Client,Server,Embedded",
       maturity: Maturity.STABLE,
@@ -91,16 +91,17 @@ const Map<String, LibraryInfo> libraries = const {
       categories: "Client,Server",
       maturity: Maturity.STABLE,
       dart2jsPatchPath: "_internal/js_runtime/lib/isolate_patch.dart"),
-  "js": const LibraryInfo("js/dart2js/js_dart2js.dart",
+  "js": const LibraryInfo("js/js.dart",
       categories: "Client",
       maturity: Maturity.STABLE,
-      platforms: DART2JS_PLATFORM),
+      platforms: DART2JS_PLATFORM,
+      dart2jsPatchPath: "_internal/js_runtime/lib/js_patch.dart"),
   "_js": const LibraryInfo("js/_js.dart",
       categories: "Client",
       dart2jsPatchPath: "js/_js_client.dart",
       documented: false,
       platforms: DART2JS_PLATFORM),
-  "js_util": const LibraryInfo("js_util/dart2js/js_util_dart2js.dart",
+  "js_util": const LibraryInfo("js_util/js_util.dart",
       categories: "Client",
       maturity: Maturity.STABLE,
       platforms: DART2JS_PLATFORM),
@@ -128,12 +129,13 @@ const Map<String, LibraryInfo> libraries = const {
       documented: false,
       platforms: DART2JS_PLATFORM),
   "cli": const LibraryInfo("cli/cli.dart",
-      categories: "Server",
-      dart2jsPatchPath: "_internal/js_runtime/lib/cli_patch.dart"),
+      categories: "Server", platforms: VM_PLATFORM),
   "svg": const LibraryInfo("svg/dart2js/svg_dart2js.dart",
       categories: "Client",
       maturity: Maturity.WEB_STABLE,
       platforms: DART2JS_PLATFORM),
+  "wasm": const LibraryInfo("wasm/wasm.dart",
+      categories: "Server", maturity: Maturity.EXPERIMENTAL),
   "web_audio": const LibraryInfo("web_audio/dart2js/web_audio_dart2js.dart",
       categories: "Client",
       maturity: Maturity.WEB_STABLE,

@@ -4,29 +4,39 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/resolver.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
+import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/conditional_discard.dart';
+import 'package:nnbd_migration/src/decorated_class_hierarchy.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/edge_builder.dart';
 import 'package:nnbd_migration/src/expression_checks.dart';
 import 'package:nnbd_migration/src/node_builder.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
+import 'package:nnbd_migration/src/nullability_node_target.dart';
 import 'package:nnbd_migration/src/variables.dart';
 import 'package:test/test.dart';
 
 import 'abstract_single_unit.dart';
 
+/// A [NodeMatcher] that matches any node, and records what node it matched to.
+class AnyNodeMatcher extends _RecordingNodeMatcher {
+  @override
+  bool matches(NullabilityNode node) {
+    return true;
+  }
+}
+
 /// Mixin allowing unit tests to create decorated types easily.
 mixin DecoratedTypeTester implements DecoratedTypeTesterBase {
-  int _offset = 0;
-
-  Map<TypeParameterElement, DecoratedType> _decoratedTypeParameterBounds =
-      Map.identity();
+  int nodeId = 0;
 
   NullabilityNode get always => graph.always;
 
@@ -56,25 +66,47 @@ mixin DecoratedTypeTester implements DecoratedTypeTesterBase {
     parameters.addAll(named.entries.map((e) => ParameterElementImpl.synthetic(
         e.key, e.value.type, ParameterKind.NAMED)));
     return DecoratedType(
-        FunctionTypeImpl.synthetic(returnType.type, typeFormals, parameters),
+        FunctionTypeImpl(
+          typeFormals: typeFormals,
+          parameters: parameters,
+          returnType: returnType.type,
+          nullabilitySuffix: NullabilitySuffix.star,
+        ),
         node ?? newNode(),
-        typeFormalBounds: typeFormals
-            .map((formal) => _decoratedTypeParameterBounds[formal])
-            .toList(),
         returnType: returnType,
         positionalParameters: required.toList()..addAll(positional),
         namedParameters: named);
   }
 
+  DecoratedType future(DecoratedType parameter, {NullabilityNode node}) {
+    return DecoratedType(
+        typeProvider.futureType2(parameter.type), node ?? newNode(),
+        typeArguments: [parameter]);
+  }
+
+  DecoratedType futureOr(DecoratedType parameter, {NullabilityNode node}) {
+    return DecoratedType(
+        typeProvider.futureOrType2(parameter.type), node ?? newNode(),
+        typeArguments: [parameter]);
+  }
+
   DecoratedType int_({NullabilityNode node}) =>
       DecoratedType(typeProvider.intType, node ?? newNode());
 
-  DecoratedType list(DecoratedType elementType, {NullabilityNode node}) =>
-      DecoratedType(typeProvider.listType.instantiate([elementType.type]),
-          node ?? newNode(),
+  DecoratedType iterable(DecoratedType elementType, {NullabilityNode node}) =>
+      DecoratedType(
+          typeProvider.iterableType2(elementType.type), node ?? newNode(),
           typeArguments: [elementType]);
 
-  NullabilityNode newNode() => NullabilityNode.forTypeAnnotation(_offset++);
+  DecoratedType list(DecoratedType elementType, {NullabilityNode node}) =>
+      DecoratedType(typeProvider.listType2(elementType.type), node ?? newNode(),
+          typeArguments: [elementType]);
+
+  NullabilityNode newNode() => NullabilityNode.forTypeAnnotation(
+      NullabilityNodeTarget.text('node ${nodeId++}'));
+
+  DecoratedType num_({NullabilityNode node}) =>
+      DecoratedType(typeProvider.numType, node ?? newNode());
 
   DecoratedType object({NullabilityNode node}) =>
       DecoratedType(typeProvider.objectType, node ?? newNode());
@@ -82,30 +114,96 @@ mixin DecoratedTypeTester implements DecoratedTypeTesterBase {
   TypeParameterElement typeParameter(String name, DecoratedType bound) {
     var element = TypeParameterElementImpl.synthetic(name);
     element.bound = bound.type;
-    _decoratedTypeParameterBounds[element] = bound;
+    decoratedTypeParameterBounds.put(element, bound);
     return element;
   }
 
   DecoratedType typeParameterType(TypeParameterElement typeParameter,
-          {NullabilityNode node}) =>
-      DecoratedType(typeParameter.type, node ?? newNode());
+      {NullabilityNode node}) {
+    return DecoratedType(
+      typeParameter.instantiate(
+        nullabilitySuffix: NullabilitySuffix.star,
+      ),
+      node ?? newNode(),
+    );
+  }
 }
 
 /// Base functionality that must be implemented by classes mixing in
 /// [DecoratedTypeTester].
 abstract class DecoratedTypeTesterBase {
+  DecoratedTypeParameterBounds get decoratedTypeParameterBounds;
+
   NullabilityGraph get graph;
 
   TypeProvider get typeProvider;
 }
 
+class EdgeBuilderTestBase extends MigrationVisitorTestBase {
+  DecoratedClassHierarchy decoratedClassHierarchy;
+
+  /// Analyzes the given source code, producing constraint variables and
+  /// constraints for it.
+  @override
+  Future<CompilationUnit> analyze(String code) async {
+    var unit = await super.analyze(code);
+    decoratedClassHierarchy = DecoratedClassHierarchy(variables, graph);
+    unit.accept(EdgeBuilder(typeProvider, typeSystem, variables, graph,
+        testSource, null, decoratedClassHierarchy));
+    return unit;
+  }
+}
+
 /// Mixin allowing unit tests to check for the presence of graph edges.
 mixin EdgeTester {
+  /// Gets the set of all nodes pointed to by always, plus always itself.
+  Set<NullabilityNode> get alwaysPlus {
+    var result = <NullabilityNode>{graph.always};
+    for (var edge in getEdges(graph.always, anyNode)) {
+      if (edge.guards.isEmpty) {
+        result.add(edge.destinationNode);
+      }
+    }
+    return result;
+  }
+
+  /// Returns a [NodeMatcher] that matches any node whatsoever.
+  AnyNodeMatcher get anyNode => AnyNodeMatcher();
+
   NullabilityGraphForTesting get graph;
 
-  NullabilityEdge assertEdge(
-      NullabilityNode source, NullabilityNode destination,
-      {@required bool hard, List<NullabilityNode> guards = const []}) {
+  /// Gets the transitive closure of all nodes with hard edges pointing to
+  /// never, plus never itself.
+  Set<NullabilityNode> get neverClosure {
+    var result = <NullabilityNode>{};
+    var pending = <NullabilityNode>[graph.never];
+    while (pending.isNotEmpty) {
+      var node = pending.removeLast();
+      if (result.add(node)) {
+        for (var edge in getEdges(anyNode, node)) {
+          pending.add(edge.sourceNode);
+        }
+      }
+    }
+    return result;
+  }
+
+  /// Gets the set of nodes with hard edges pointing to never.
+  Set<NullabilityNode> get pointsToNever {
+    return {for (var edge in getEdges(anyNode, graph.never)) edge.sourceNode};
+  }
+
+  /// Asserts that an edge exists with a node matching [source] and a node
+  /// matching [destination], and with the given [hard]ness and [guards].
+  ///
+  /// [source] and [destination] are converted to [NodeMatcher] objects if they
+  /// aren't already.  In practice this means that the caller can pass in either
+  //  /// a [NodeMatcher] or a [NullabilityNode].
+  NullabilityEdge assertEdge(Object source, Object destination,
+      {@required bool hard,
+      bool checkable = true,
+      Object guards = isEmpty,
+      Object codeReference}) {
     var edges = getEdges(source, destination);
     if (edges.length == 0) {
       fail('Expected edge $source -> $destination, found none');
@@ -113,36 +211,77 @@ mixin EdgeTester {
       fail('Found multiple edges $source -> $destination');
     } else {
       var edge = edges[0];
-      expect(edge.hard, hard);
-      expect(edge.guards, unorderedEquals(guards));
+      expect(edge.isHard, hard);
+      expect(edge.isCheckable, checkable);
+      expect(edge.guards, guards);
+      if (codeReference != null) {
+        expect(edge.codeReference, codeReference);
+      }
       return edge;
     }
   }
 
-  void assertNoEdge(NullabilityNode source, NullabilityNode destination) {
+  /// Asserts that no edge exists with a node matching [source] and a node
+  /// matching [destination].
+  ///
+  /// [source] and [destination] are converted to [NodeMatcher] objects if they
+  /// aren't already.  In practice this means that the caller can pass in either
+  /// a [NodeMatcher] or a [NullabilityNode].
+  void assertNoEdge(Object source, Object destination) {
     var edges = getEdges(source, destination);
     if (edges.isNotEmpty) {
       fail('Expected no edge $source -> $destination, found ${edges.length}');
     }
   }
 
-  void assertUnion(NullabilityNode x, NullabilityNode y) {
+  /// Asserts that a union-type edge exists between nodes [x] and [y].
+  ///
+  /// [x] and [y] are converted to [NodeMatcher] objects if they aren't already.
+  /// In practice this means that the caller can pass in either a [NodeMatcher]
+  /// or a [NullabilityNode].
+  void assertUnion(Object x, Object y) {
     var edges = getEdges(x, y);
     for (var edge in edges) {
       if (edge.isUnion) {
-        expect(edge.sources, hasLength(1));
+        expect(edge.upstreamNodes, hasLength(1));
         return;
       }
     }
     fail('Expected union between $x and $y, not found');
   }
 
-  List<NullabilityEdge> getEdges(
-          NullabilityNode source, NullabilityNode destination) =>
-      graph
-          .getUpstreamEdges(destination)
-          .where((e) => e.primarySource == source)
-          .toList();
+  /// Gets a list of all edges whose source matches [source] and whose
+  /// destination matches [destination].
+  ///
+  /// [source] and [destination] are converted to [NodeMatcher] objects if they
+  /// aren't already.  In practice this means that the caller can pass in either
+  /// a [NodeMatcher] or a [NullabilityNode].
+  List<NullabilityEdge> getEdges(Object source, Object destination) {
+    var sourceMatcher = NodeMatcher(source);
+    var destinationMatcher = NodeMatcher(destination);
+    var result = <NullabilityEdge>[];
+    for (var edge in graph.getAllEdges()) {
+      if (sourceMatcher.matches(edge.sourceNode) &&
+          destinationMatcher.matches(edge.destinationNode)) {
+        sourceMatcher.matched(edge.sourceNode);
+        destinationMatcher.matched(edge.destinationNode);
+        result.add(edge);
+      }
+    }
+    return result;
+  }
+
+  /// Returns a [NodeMatcher] that matches any node in the given set.
+  NodeSetMatcher inSet(Set<NullabilityNode> nodes) => NodeSetMatcher(nodes);
+
+  /// Creates a [NodeMatcher] matching a substitution node whose inner and outer
+  /// nodes match [inner] and [outer].
+  ///
+  /// [inner] and [outer] are converted to [NodeMatcher] objects if they aren't
+  /// already.  In practice this means that the caller can pass in either a
+  /// [NodeMatcher] or a [NullabilityNode].
+  NodeMatcher substitutionNode(Object inner, Object outer) =>
+      _SubstitutionNodeMatcher(NodeMatcher(inner), NodeMatcher(outer));
 }
 
 /// Mock representation of constraint variables.
@@ -151,14 +290,15 @@ class InstrumentedVariables extends Variables {
 
   final _decoratedExpressionTypes = <Expression, DecoratedType>{};
 
-  final _expressionChecks = <Expression, ExpressionChecks>{};
+  final _expressionChecks = <Expression, ExpressionChecksOrigin>{};
 
   final _possiblyOptional = <DefaultFormalParameter, NullabilityNode>{};
 
-  InstrumentedVariables(NullabilityGraph graph) : super(graph);
+  InstrumentedVariables(NullabilityGraph graph, TypeProvider typeProvider)
+      : super(graph, typeProvider);
 
   /// Gets the [ExpressionChecks] associated with the given [expression].
-  ExpressionChecks checkExpression(Expression expression) =>
+  ExpressionChecksOrigin checkExpression(Expression expression) =>
       _expressionChecks[_normalizeExpression(expression)];
 
   /// Gets the [conditionalDiscard] associated with the given [expression].
@@ -188,9 +328,9 @@ class InstrumentedVariables extends Variables {
 
   @override
   void recordExpressionChecks(
-      Source source, Expression expression, ExpressionChecks checks) {
-    super.recordExpressionChecks(source, expression, checks);
-    _expressionChecks[_normalizeExpression(expression)] = checks;
+      Source source, Expression expression, ExpressionChecksOrigin origin) {
+    super.recordExpressionChecks(source, expression, origin);
+    _expressionChecks[_normalizeExpression(expression)] = origin;
   }
 
   @override
@@ -209,27 +349,16 @@ class InstrumentedVariables extends Variables {
   }
 }
 
-class EdgeBuilderTestBase extends MigrationVisitorTestBase {
-  /// Analyzes the given source code, producing constraint variables and
-  /// constraints for it.
-  @override
-  Future<CompilationUnit> analyze(String code) async {
-    var unit = await super.analyze(code);
-    unit.accept(EdgeBuilder(
-        typeProvider, typeSystem, variables, graph, testSource, null));
-    return unit;
-  }
-}
-
 class MigrationVisitorTestBase extends AbstractSingleUnitTest with EdgeTester {
-  final InstrumentedVariables variables;
+  InstrumentedVariables variables;
 
   final NullabilityGraphForTesting graph;
 
+  final decoratedTypeParameterBounds = DecoratedTypeParameterBounds();
+
   MigrationVisitorTestBase() : this._(NullabilityGraphForTesting());
 
-  MigrationVisitorTestBase._(this.graph)
-      : variables = InstrumentedVariables(graph);
+  MigrationVisitorTestBase._(this.graph);
 
   NullabilityNode get always => graph.always;
 
@@ -237,10 +366,12 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest with EdgeTester {
 
   TypeProvider get typeProvider => testAnalysisResult.typeProvider;
 
-  TypeSystem get typeSystem => testAnalysisResult.typeSystem;
+  TypeSystemImpl get typeSystem =>
+      testAnalysisResult.typeSystem as TypeSystemImpl;
 
   Future<CompilationUnit> analyze(String code) async {
     await resolveTestUnit(code);
+    variables = InstrumentedVariables(graph, typeProvider);
     testUnit
         .accept(NodeBuilder(variables, testSource, null, graph, typeProvider));
     return testUnit;
@@ -274,13 +405,118 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest with EdgeTester {
         testSource, findNode.typeAnnotation(text));
   }
 
+  /// Gets the [ConditionalDiscard] information associated with the collection
+  /// element whose text is [text].
+  ConditionalDiscard elementDiscard(String text) {
+    return variables.conditionalDiscard(findNode.collectionElement(text));
+  }
+
+  /// Returns a [Matcher] that matches a [CodeReference] pointing to the given
+  /// file [offset], with the given [function] name.
+  TypeMatcher<CodeReference> matchCodeRef(
+      {@required int offset, @required String function}) {
+    var location = testUnit.lineInfo.getLocation(offset);
+    return TypeMatcher<CodeReference>()
+        .having((cr) => cr.line, 'line', location.lineNumber)
+        .having((cr) => cr.column, 'column', location.columnNumber)
+        .having((cr) => cr.function, 'function', function);
+  }
+
   NullabilityNode possiblyOptionalParameter(String text) {
     return variables.possiblyOptionalParameter(findNode.defaultParameter(text));
+  }
+
+  void setUp() {
+    DecoratedTypeParameterBounds.current = decoratedTypeParameterBounds;
+    super.setUp();
   }
 
   /// Gets the [ConditionalDiscard] information associated with the statement
   /// whose text is [text].
   ConditionalDiscard statementDiscard(String text) {
     return variables.conditionalDiscard(findNode.statement(text));
+  }
+
+  void tearDown() {
+    DecoratedTypeParameterBounds.current = null;
+    super.tearDown();
+  }
+}
+
+/// Abstract base class representing a thing that can be matched against
+/// nullability nodes.
+abstract class NodeMatcher {
+  factory NodeMatcher(Object expectation) {
+    if (expectation is NodeMatcher) return expectation;
+    if (expectation is NullabilityNode) return _ExactNodeMatcher(expectation);
+    fail(
+        'Unclear how to match node expectation of type ${expectation.runtimeType}');
+  }
+
+  void matched(NullabilityNode node);
+
+  bool matches(NullabilityNode node);
+}
+
+/// A [NodeMatcher] that matches any node contained in the given set.
+class NodeSetMatcher extends _RecordingNodeMatcher {
+  final Set<NullabilityNode> _targetSet;
+
+  NodeSetMatcher(this._targetSet);
+
+  @override
+  bool matches(NullabilityNode node) => _targetSet.contains(node);
+}
+
+/// A [NodeMatcher] that matches exactly one node.
+class _ExactNodeMatcher implements NodeMatcher {
+  final NullabilityNode _expectation;
+
+  _ExactNodeMatcher(this._expectation);
+
+  @override
+  void matched(NullabilityNode node) {}
+
+  @override
+  bool matches(NullabilityNode node) => node == _expectation;
+}
+
+/// Base class for [NodeMatcher]s that remember which nodes were matched.
+abstract class _RecordingNodeMatcher implements NodeMatcher {
+  final List<NullabilityNode> _matchingNodes = [];
+
+  NullabilityNode get matchingNode => _matchingNodes.single;
+
+  @override
+  void matched(NullabilityNode node) {
+    _matchingNodes.add(node);
+  }
+}
+
+/// A [NodeMatcher] that matches a substitution node with the given inner and
+/// outer nodes.
+class _SubstitutionNodeMatcher implements NodeMatcher {
+  final NodeMatcher inner;
+  final NodeMatcher outer;
+
+  _SubstitutionNodeMatcher(this.inner, this.outer);
+
+  @override
+  void matched(NullabilityNode node) {
+    if (node is NullabilityNodeForSubstitution) {
+      inner.matched(node.innerNode);
+      outer.matched(node.outerNode);
+    } else {
+      throw StateError(
+          'matched should only be called on nodes for which matches returned '
+          'true');
+    }
+  }
+
+  @override
+  bool matches(NullabilityNode node) {
+    return node is NullabilityNodeForSubstitution &&
+        inner.matches(node.innerNode) &&
+        outer.matches(node.outerNode);
   }
 }

@@ -1,0 +1,5 @@
+NOTICE: Stream was rewritten by parser!
+
+() async ()=> a ;b < c $? >;
+
+([BeginToken])[SimpleToken] async[KeywordToken] ([SyntheticBeginToken])[SyntheticToken]=>[SimpleToken] a[StringToken] ;[SyntheticToken]b[StringToken] <[BeginToken] c[StringToken] $[StringToken]?[SimpleToken] >[SimpleToken][SyntheticStringToken];[SyntheticToken][SimpleToken]

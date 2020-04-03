@@ -20,7 +20,6 @@ TransformationInfo transformComponent(
     Component component, Map<String, String> environment, Target target,
     {@required bool collectInfo}) {
   final coreTypes = new CoreTypes(component);
-  component.computeCanonicalNames();
 
   TransformationInfo info = collectInfo ? TransformationInfo() : null;
 
@@ -30,11 +29,13 @@ TransformationInfo transformComponent(
 
 void _treeshakeProtos(Target target, Component component, CoreTypes coreTypes,
     TransformationInfo info) {
-  globalTypeFlow.transformComponent(target, coreTypes, component);
+  globalTypeFlow.transformComponent(target, coreTypes, component,
+      treeShakeSignatures: false);
 
   final collector = removeUnusedProtoReferences(component, coreTypes, info);
   if (collector != null) {
-    globalTypeFlow.transformComponent(target, coreTypes, component);
+    globalTypeFlow.transformComponent(target, coreTypes, component,
+        treeShakeSignatures: false);
     if (info != null) {
       for (Class gmSubclass in collector.gmSubclasses) {
         if (!gmSubclass.enclosingLibrary.classes.contains(gmSubclass)) {
@@ -62,6 +63,9 @@ InfoCollector removeUnusedProtoReferences(
   final gmClass = protobufLib.classes
       .where((klass) => klass.name == 'GeneratedMessage')
       .single;
+  final tagNumberClass =
+      protobufLib.classes.where((klass) => klass.name == 'TagNumber').single;
+
   final collector = InfoCollector(gmClass);
 
   final biClass =
@@ -71,8 +75,8 @@ InfoCollector removeUnusedProtoReferences(
 
   component.accept(collector);
 
-  _UnusedFieldMetadataPruner(
-          biClass, addMethod, collector.dynamicSelectors, coreTypes, info)
+  _UnusedFieldMetadataPruner(tagNumberClass, biClass, addMethod,
+          collector.dynamicSelectors, coreTypes, info)
       .removeMetadataForUnusedFields(
     collector.gmSubclasses,
     collector.gmSubclassesInvokedMethods,
@@ -85,6 +89,8 @@ InfoCollector removeUnusedProtoReferences(
 
 /// For protobuf fields which are not accessed, prune away its metadata.
 class _UnusedFieldMetadataPruner extends TreeVisitor<void> {
+  final Class tagNumberClass;
+  final Reference tagNumberField;
   // All of those methods have the dart field name as second positional
   // parameter.
   // Method names are defined in:
@@ -93,26 +99,34 @@ class _UnusedFieldMetadataPruner extends TreeVisitor<void> {
   // https://github.com/dart-lang/protobuf/blob/master/protoc_plugin/lib/protobuf_field.dart.
   static final fieldAddingMethods = Set<String>.from(const <String>[
     'a',
-    'm',
-    'pp',
-    'pc',
-    'e',
-    'pc',
+    'aOM',
     'aOS',
+    'aQM',
+    'pPS',
+    'aQS',
+    'aInt64',
     'aOB',
+    'e',
+    'p',
+    'pc',
+    'm',
   ]);
 
   final Class builderInfoClass;
   Class visitedClass;
   final names = Set<String>();
+  final usedTagNumbers = Set<int>();
 
   final dynamicNames = Set<String>();
   final CoreTypes coreTypes;
   final TransformationInfo info;
   final Member addMethod;
 
-  _UnusedFieldMetadataPruner(this.builderInfoClass, this.addMethod,
-      Set<Selector> dynamicSelectors, this.coreTypes, this.info) {
+  _UnusedFieldMetadataPruner(this.tagNumberClass, this.builderInfoClass,
+      this.addMethod, Set<Selector> dynamicSelectors, this.coreTypes, this.info)
+      : tagNumberField = tagNumberClass.fields
+            .firstWhere((f) => f.name.name == 'tagNumber')
+            .reference {
     dynamicNames.addAll(dynamicSelectors.map((sel) => sel.target.name));
   }
 
@@ -140,30 +154,58 @@ class _UnusedFieldMetadataPruner extends TreeVisitor<void> {
     names.clear();
     names.addAll(selectors.map((sel) => sel.target.name));
     visitedClass = gmSubclass;
+    _computeUsedTagNumbers(gmSubclass);
     field.initializer.accept(this);
+  }
+
+  void _computeUsedTagNumbers(Class gmSubclass) {
+    usedTagNumbers.clear();
+    for (final procedure in gmSubclass.procedures) {
+      for (final annotation in procedure.annotations) {
+        if (annotation is ConstantExpression) {
+          final constant = annotation.constant;
+          if (constant is InstanceConstant &&
+              constant.classReference == tagNumberClass.reference) {
+            final name = procedure.name.name;
+            if (dynamicNames.contains(name) || names.contains(name)) {
+              usedTagNumbers.add(
+                  (constant.fieldValues[tagNumberField] as IntConstant).value);
+            }
+          }
+        }
+      }
+    }
   }
 
   @override
   visitLet(Let node) {
+    // The BuilderInfo field `_i` is set up with a row of cascaded calls.
+    // ```
+    // static final BuilderInfo _i = BuilderInfo('MessageName')
+    //     ..a(1, 'foo', PbFieldType.OM)
+    //     ..a(2, 'bar', PbFieldType.OM)
+    // ```
+    // Each cascaded call will be represented in kernel as a let, where the
+    // initializer will be a call to a method of `builderInfo`. For example:
+    // ```
+    // {protobuf::BuilderInfo::a}<dart.core::int*>(1, "foo", #C10)
+    // ```
+    // The methods enumerated in `fieldAddingMethods` are the ones that set up
+    // fields (other methods do other things).
+    //
+    // First argument is the tag-number of the added field.
+    // Second argument is the field-name.
+    // Further arguments are specific to the method.
     final initializer = node.variable.initializer;
     if (initializer is MethodInvocation &&
         initializer.interfaceTarget?.enclosingClass == builderInfoClass &&
         fieldAddingMethods.contains(initializer.name.name)) {
-      final fieldName =
-          (initializer.arguments.positional[1] as StringLiteral).value;
-      final ucase = fieldName[0].toUpperCase() + fieldName.substring(1);
-      // The name of the related `clear` method.
-      final clearName = 'clear${ucase}';
-      // The name of the related `has` method.
-      final hasName = 'has${ucase}';
-
-      bool nameIsUsed(String name) =>
-          dynamicNames.contains(name) || names.contains(name);
-
-      if (!(nameIsUsed(fieldName) ||
-          nameIsUsed(clearName) ||
-          nameIsUsed(hasName))) {
+      final tagNumber =
+          (initializer.arguments.positional[0] as IntLiteral).value;
+      if (!usedTagNumbers.contains(tagNumber)) {
         if (info != null) {
+          final fieldName =
+              (initializer.arguments.positional[1] as StringLiteral).value;
           info.removedMessageFields.add("${visitedClass.name}.$fieldName");
         }
 
@@ -184,7 +226,9 @@ class _UnusedFieldMetadataPruner extends TreeVisitor<void> {
               NullLiteral(), // valueOf
               NullLiteral(), // enumValues
             ],
-            types: <DartType>[InterfaceType(coreTypes.nullClass)],
+            types: <DartType>[
+              InterfaceType(coreTypes.nullClass, Nullability.nullable)
+            ],
           ),
         );
       }

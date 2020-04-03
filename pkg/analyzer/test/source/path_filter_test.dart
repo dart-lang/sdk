@@ -12,37 +12,37 @@ main() {
     setUp(() {});
     tearDown(() {});
     test('test_ignoreEverything', () {
-      var filter = new PathFilter(root('/'), ['*'], context);
+      var filter = PathFilter(root('/'), ['*'], context);
       expect(filter.ignored('a'), isTrue);
     });
     test('test_ignoreFile', () {
-      var filter = new PathFilter(root('/'), ['apple'], context);
+      var filter = PathFilter(root('/'), ['apple'], context);
       expect(filter.ignored('apple'), isTrue);
       expect(filter.ignored('banana'), isFalse);
     });
     test('test_ignoreMultipleFiles', () {
-      var filter = new PathFilter(root('/'), ['apple', 'banana'], context);
+      var filter = PathFilter(root('/'), ['apple', 'banana'], context);
       expect(filter.ignored('apple'), isTrue);
       expect(filter.ignored('banana'), isTrue);
     });
     test('test_ignoreSubDir', () {
-      var filter = new PathFilter(root('/'), ['apple/*'], context);
+      var filter = PathFilter(root('/'), ['apple/*'], context);
       expect(filter.ignored('apple/banana'), isTrue);
       expect(filter.ignored('apple/banana/cantaloupe'), isFalse);
     });
     test('test_ignoreTree', () {
-      var filter = new PathFilter(root('/'), ['apple/**'], context);
+      var filter = PathFilter(root('/'), ['apple/**'], context);
       expect(filter.ignored('apple/banana'), isTrue);
       expect(filter.ignored('apple/banana/cantaloupe'), isTrue);
     });
     test('test_ignoreSdkExt', () {
-      var filter = new PathFilter(root('/'), ['sdk_ext/**'], context);
+      var filter = PathFilter(root('/'), ['sdk_ext/**'], context);
       expect(filter.ignored('sdk_ext/entry.dart'), isTrue);
       expect(filter.ignored('sdk_ext/lib/src/part.dart'), isTrue);
     });
     test('test_outsideRoot', () {
       var filter =
-          new PathFilter(root('/workspace/dart/sdk'), ['sdk_ext/**'], context);
+          PathFilter(root('/workspace/dart/sdk'), ['sdk_ext/**'], context);
       expect(filter.ignored('/'), isTrue);
       expect(filter.ignored('/workspace'), isTrue);
       expect(filter.ignored('/workspace/dart'), isTrue);
@@ -51,7 +51,7 @@ main() {
     });
     test('test_relativePaths', () {
       var filter =
-          new PathFilter(root('/workspace/dart/sdk'), ['sdk_ext/**'], context);
+          PathFilter(root('/workspace/dart/sdk'), ['sdk_ext/**'], context);
       expect(filter.ignored('../apple'), isTrue);
       expect(filter.ignored('../sdk/main.dart'), isFalse);
       expect(filter.ignored('../sdk/sdk_ext/entry.dart'), isTrue);

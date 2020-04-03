@@ -61,7 +61,7 @@ abstract class _CommandBase {
 
   // Returns a list of local subcommands which match the args.
   List<Command> _matchLocal(String argWithSpace, bool preferExact) {
-    var matches = new List<Command>();
+    var matches = <Command>[];
     var arg = argWithSpace.trimRight();
     for (var child in _children) {
       if (child.name.startsWith(arg)) {

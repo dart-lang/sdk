@@ -4,7 +4,8 @@
 
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/workspace/workspace.dart';
 
 /// A representation of a body of code and the context in which the code is to
 /// be analyzed.
@@ -43,6 +44,9 @@ abstract class AnalysisContext {
   /// Deprecated: Use `contextRoot.includedPaths`.
   @deprecated
   List<String> get includedPaths;
+
+  /// Return the workspace for containing the context root.
+  Workspace get workspace;
 
   /// Return the absolute, normalized paths of all of the files that are
   /// contained in this context. These are all of the files that are included

@@ -7,9 +7,15 @@ import 'dart:collection';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'ast.dart';
-import 'src/heap.dart';
+import 'package:kernel/src/nnbd_top_merge.dart';
+
+import 'ast.dart' hide MapEntry;
+import 'core_types.dart';
 import 'type_algebra.dart';
+import 'src/future_or.dart';
+import 'src/heap.dart';
+import 'src/legacy_erasure.dart';
+import 'src/norm.dart';
 
 typedef HandleAmbiguousSupertypes = void Function(Class, Supertype, Supertype);
 
@@ -19,7 +25,7 @@ abstract class MixinInferrer {
 
 /// Interface for answering various subclassing queries.
 abstract class ClassHierarchy {
-  factory ClassHierarchy(Component component,
+  factory ClassHierarchy(Component component, CoreTypes coreTypes,
       {HandleAmbiguousSupertypes onAmbiguousSupertypes,
       MixinInferrer mixinInferrer}) {
     onAmbiguousSupertypes ??= (Class cls, Supertype a, Supertype b) {
@@ -27,9 +33,11 @@ abstract class ClassHierarchy {
       throw "$cls can't implement both $a and $b";
     };
     return new ClosedWorldClassHierarchy._internal(
-        onAmbiguousSupertypes, mixinInferrer)
+        coreTypes, onAmbiguousSupertypes, mixinInferrer)
       .._initialize(component.libraries);
   }
+
+  void set coreTypes(CoreTypes coreTypes);
 
   void set onAmbiguousSupertypes(
       HandleAmbiguousSupertypes onAmbiguousSupertypes);
@@ -41,7 +49,7 @@ abstract class ClassHierarchy {
   /// [unordered], they are not included.
   Iterable<Class> getOrderedClasses(Iterable<Class> unordered);
 
-  // Returns the instantition of each generic supertype implemented by this
+  // Returns the instantiation of each generic supertype implemented by this
   // class (e.g. getClassAsInstanceOf applied to all superclasses and
   // interfaces).
   List<Supertype> genericSupertypesOf(Class class_);
@@ -61,8 +69,8 @@ abstract class ClassHierarchy {
   /// Dart 2 least upper bound, which has special behaviors in the case where
   /// one type is a subtype of the other, or where both types are based on the
   /// same class.
-  InterfaceType getLegacyLeastUpperBound(
-      InterfaceType type1, InterfaceType type2);
+  InterfaceType getLegacyLeastUpperBound(InterfaceType type1,
+      InterfaceType type2, Library clientLibrary, CoreTypes coreTypes);
 
   /// Returns the instantiation of [superclass] that is implemented by [class_],
   /// or `null` if [class_] does not implement [superclass] at all.
@@ -70,7 +78,14 @@ abstract class ClassHierarchy {
 
   /// Returns the instantiation of [superclass] that is implemented by [type],
   /// or `null` if [type] does not implement [superclass] at all.
-  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass);
+  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass,
+      Library clientLibrary, CoreTypes coreTypes);
+
+  /// Returns the type arguments of the instantiation of [superclass] that is
+  /// implemented by [type], or `null` if [type] does not implement [superclass]
+  /// at all.
+  List<DartType> getTypeArgumentsAsInstanceOf(
+      InterfaceType type, Class superclass);
 
   /// Returns the instantiation of [superclass] that is implemented by [type],
   /// or `null` if [type] does not implement [superclass].  [superclass] must
@@ -247,6 +262,7 @@ abstract class ClassHierarchy {
   /// Compares members by name, using the same sort order as
   /// [getDeclaredMembers] and [getInterfaceMembers].
   static int compareMembers(Member first, Member second) {
+    if (first == second) return 0;
     return compareNames(first.name, second.name);
   }
 
@@ -377,7 +393,7 @@ class _ClosedWorldClassHierarchySubtypes implements ClassHierarchySubtypes {
   @override
   Member getSingleTargetForInterfaceInvocation(Member interfaceTarget,
       {bool setter: false}) {
-    if (invalidated) throw "This datastructure has been invalidated";
+    if (invalidated) throw "This data structure has been invalidated";
     Name name = interfaceTarget.name;
     Member target = null;
     ClassSet subtypes = getSubtypesOf(interfaceTarget.enclosingClass);
@@ -398,7 +414,7 @@ class _ClosedWorldClassHierarchySubtypes implements ClassHierarchySubtypes {
 
   @override
   ClassSet getSubtypesOf(Class class_) {
-    if (invalidated) throw "This datastructure has been invalidated";
+    if (invalidated) throw "This data structure has been invalidated";
     Set<Class> result = new Set<Class>();
     Uint32List list = _infoMap[class_].subtypeIntervalList;
     for (int i = 0; i < list.length; i += 2) {
@@ -414,6 +430,7 @@ class _ClosedWorldClassHierarchySubtypes implements ClassHierarchySubtypes {
 
 /// Implementation of [ClassHierarchy] for closed world.
 class ClosedWorldClassHierarchy implements ClassHierarchy {
+  CoreTypes coreTypes;
   HandleAmbiguousSupertypes _onAmbiguousSupertypes;
   HandleAmbiguousSupertypes _onAmbiguousSupertypesNotWrapped;
   MixinInferrer mixinInferrer;
@@ -436,6 +453,14 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   /// The insert order is important.
   final Map<Class, _ClassInfo> _infoMap =
       new LinkedHashMap<Class, _ClassInfo>();
+
+  List<ForTestingClassInfo> getTestingClassInfo() {
+    List<ForTestingClassInfo> result = new List<ForTestingClassInfo>();
+    for (_ClassInfo info in _infoMap.values) {
+      result.add(new ForTestingClassInfo._(info));
+    }
+    return result;
+  }
 
   _ClassInfo infoFor(Class c) {
     _ClassInfo info = _infoMap[c];
@@ -480,7 +505,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
 
   _ClosedWorldClassHierarchySubtypes _cachedClassHierarchySubtypes;
 
-  ClosedWorldClassHierarchy._internal(
+  ClosedWorldClassHierarchy._internal(this.coreTypes,
       HandleAmbiguousSupertypes onAmbiguousSupertypes, this.mixinInferrer) {
     this.onAmbiguousSupertypes = onAmbiguousSupertypes;
   }
@@ -539,8 +564,8 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   }
 
   @override
-  InterfaceType getLegacyLeastUpperBound(
-      InterfaceType type1, InterfaceType type2) {
+  InterfaceType getLegacyLeastUpperBound(InterfaceType type1,
+      InterfaceType type2, Library clientLibrary, CoreTypes coreTypes) {
     // The algorithm is: first we compute a list of superclasses for both types,
     // ordered from greatest to least depth, and ordered by topological sort
     // index within each depth.  Due to the sort order, we can find the
@@ -560,6 +585,16 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
 
     // Compute the list of superclasses for both types, with the above
     // optimization.
+
+    // LLUB(Null, List<dynamic>*) works differently for opt-in and opt-out
+    // libraries.  In opt-out libraries the legacy behavior is preserved, so
+    // LLUB(Null, List<dynamic>*) = List<dynamic>*.  In opt-in libraries the
+    // rules imply that LLUB(Null, List<dynamic>*) = List<dynamic>?.
+    if (!clientLibrary.isNonNullableByDefault) {
+      if (type1 == coreTypes.nullType) return type2;
+      if (type2 == coreTypes.nullType) return type1;
+    }
+
     _ClassInfo info1 = infoFor(type1.classNode);
     _ClassInfo info2 = infoFor(type2.classNode);
     List<_ClassInfo> classes1;
@@ -614,20 +649,22 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       //   immediately.  Since all interface types are subtypes of Object, this
       //   ensures the loop terminates.
       if (next.classNode.typeParameters.isEmpty) {
-        candidate = next.classNode.rawType;
+        candidate = coreTypes.rawType(next.classNode,
+            uniteNullabilities(type1.nullability, type2.nullability));
         if (currentDepth == 0) return candidate;
         ++numCandidatesAtThisDepth;
       } else {
         var superType1 = identical(info1, next)
             ? type1
             : Substitution.fromInterfaceType(type1).substituteType(
-                info1.genericSuperTypes[next.classNode].first.asInterfaceType);
+                info1.genericSuperType[next.classNode].asInterfaceType);
         var superType2 = identical(info2, next)
             ? type2
             : Substitution.fromInterfaceType(type2).substituteType(
-                info2.genericSuperTypes[next.classNode].first.asInterfaceType);
+                info2.genericSuperType[next.classNode].asInterfaceType);
         if (superType1 == superType2) {
-          candidate = superType1;
+          candidate = superType1.withNullability(
+              uniteNullabilities(type1.nullability, type2.nullability));
           ++numCandidatesAtThisDepth;
         }
       }
@@ -647,29 +684,48 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     }
     if (!info.isSubtypeOf(superInfo)) return null;
     if (superclass.typeParameters.isEmpty) return superclass.asRawSupertype;
-    return info.genericSuperTypes[superclass]?.first;
+    assert(info.genericSuperType.containsKey(superclass),
+        "No canonical instance of $superclass found for $class_.");
+    return info.genericSuperType[superclass];
   }
 
   @override
-  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass) {
+  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass,
+      Library clientLibrary, CoreTypes coreTypes) {
+    List<DartType> typeArguments =
+        getTypeArgumentsAsInstanceOf(type, superclass);
+    if (typeArguments == null) return null;
+    // The return value should be a legacy type if it's computed for an
+    // opted-out library, unless the return value is Null? which is always
+    // nullable.
+    Nullability nullability = superclass == coreTypes.nullClass ||
+            clientLibrary.isNonNullableByDefault
+        ? type.nullability
+        : Nullability.legacy;
+    return new InterfaceType(superclass, nullability, typeArguments);
+  }
+
+  @override
+  List<DartType> getTypeArgumentsAsInstanceOf(
+      InterfaceType type, Class superclass) {
     Supertype castedType = getClassAsInstanceOf(type.classNode, superclass);
     if (castedType == null) return null;
+    if (superclass.typeParameters.isEmpty) return const <DartType>[];
     return Substitution.fromInterfaceType(type)
-        .substituteType(castedType.asInterfaceType);
+        .substituteSupertype(castedType)
+        .typeArguments;
   }
 
   @override
   Member getDispatchTarget(Class class_, Name name, {bool setter: false}) {
-    _ClassInfo info = infoFor(class_);
     List<Member> list =
-        setter ? info.implementedSetters : info.implementedGettersAndCalls;
+        _buildImplementedMembers(class_, infoFor(class_), setters: setter);
     return ClassHierarchy.findMemberByName(list, name);
   }
 
   @override
   List<Member> getDispatchTargets(Class class_, {bool setters: false}) {
-    _ClassInfo info = infoFor(class_);
-    return setters ? info.implementedSetters : info.implementedGettersAndCalls;
+    return _buildImplementedMembers(class_, infoFor(class_), setters: setters);
   }
 
   @override
@@ -685,8 +741,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
 
   @override
   List<Member> getDeclaredMembers(Class class_, {bool setters: false}) {
-    var info = infoFor(class_);
-    return setters ? info.declaredSetters : info.declaredGettersAndCalls;
+    return _buildDeclaredMembers(class_, infoFor(class_), setters: setters);
   }
 
   @override
@@ -698,8 +753,10 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       var superclass = supertype.classNode;
       var superGetters = getInterfaceMembers(superclass);
       var superSetters = getInterfaceMembers(superclass, setters: true);
-      _reportOverrides(info.declaredGettersAndCalls, superGetters, callback);
-      _reportOverrides(info.declaredSetters, superSetters, callback,
+      _reportOverrides(_buildDeclaredMembers(class_, info, setters: false),
+          superGetters, callback);
+      _reportOverrides(_buildDeclaredMembers(class_, info, setters: true),
+          superSetters, callback,
           isSetter: true);
     }
   }
@@ -731,11 +788,9 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
 
   @override
   List<Supertype> genericSupertypesOf(Class class_) {
-    final supertypes = infoFor(class_).genericSuperTypes;
+    final supertypes = infoFor(class_).genericSuperType;
     if (supertypes == null) return const <Supertype>[];
-    // Multiple supertypes can arise from ambiguous supertypes. The first
-    // supertype is the real one; the others are purely informational.
-    return supertypes.values.map((v) => v.first).toList();
+    return supertypes.values.toList();
   }
 
   @override
@@ -753,8 +808,13 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
         if (class_.mixedInType != null) {
           _infoMap[class_.mixedInType.classNode]?.directMixers?.remove(info);
         }
-        for (var supertype in class_.implementedTypes) {
+        for (Supertype supertype in class_.implementedTypes) {
           _infoMap[supertype.classNode]?.directImplementers?.remove(info);
+          // Remove from directMixers too as the mixin transformation will
+          // "move" the type here.
+          if (class_.isAnonymousMixin || class_.isEliminatedMixin) {
+            _infoMap[supertype.classNode]?.directMixers?.remove(info);
+          }
         }
 
         _infoMap.remove(class_);
@@ -797,6 +857,8 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     _initializeTopologicallySortedClasses(
         addedClassesSorted, expectedStartIndex);
 
+    assert(sanityChecks());
+
     return this;
   }
 
@@ -830,32 +892,60 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       }
     }
 
-    infos.sort((_ClassInfo a, _ClassInfo b) {
-      return a.topologicalIndex - b.topologicalIndex;
-    });
-
     for (_ClassInfo info in infos) {
-      Class class_ = info.classNode;
-      _buildDeclaredMembers(class_, info);
-      _buildImplementedMembers(class_, info);
-      info.interfaceSetters = null;
-      info.interfaceGettersAndCalls = null;
-      _buildInterfaceMembers(class_, info, setters: true);
-      _buildInterfaceMembers(class_, info, setters: false);
+      info.lazyDeclaredGettersAndCalls = null;
+      info.lazyDeclaredSetters = null;
+      info.lazyImplementedGettersAndCalls = null;
+      info.lazyImplementedSetters = null;
+      info.lazyInterfaceGettersAndCalls = null;
+      info.lazyInterfaceSetters = null;
     }
-
-    assert(sanityCheckAlsoKnowsParentAndLibrary());
+    assert(sanityChecks());
 
     return this;
   }
 
-  bool sanityCheckAlsoKnowsParentAndLibrary() {
+  bool sanityChecks() {
+    Map<String, List<Class>> map = {};
+    for (Class c in _infoMap.keys) {
+      String className = "${c.enclosingLibrary.importUri}::${c.name}";
+      List<Class> list = map[className];
+      if (list == null) {
+        map[className] = list = [];
+      }
+      list.add(c);
+    }
+
+    StringBuffer sb;
+    for (MapEntry<String, List<Class>> entry in map.entries) {
+      if (entry.value.length != 1) {
+        sb ??= new StringBuffer();
+        sb.writeln("Found ${entry.value.length} entries for ${entry.key}");
+      }
+    }
+    if (sb != null) throw new StateError(sb.toString());
+
     for (Class c in _infoMap.keys) {
       if (!knownLibraries.contains(c.enclosingLibrary)) {
         throw new StateError("Didn't know library of $c (from ${c.fileUri})");
       }
-      if (c.supertype != null && _infoMap[c.supertype.classNode] == null) {
-        throw new StateError("Didn't know parent of $c (from ${c.fileUri})");
+    }
+
+    for (_ClassInfo info in _infoMap.values) {
+      for (_ClassInfo subInfo in info.directExtenders) {
+        if (!_infoMap.containsKey(subInfo.classNode))
+          throw new StateError(
+              "Found $subInfo (${subInfo.classNode}) in directExtenders");
+      }
+      for (_ClassInfo subInfo in info.directMixers) {
+        if (!_infoMap.containsKey(subInfo.classNode))
+          throw new StateError(
+              "Found $subInfo (${subInfo.classNode}) in directMixers");
+      }
+      for (_ClassInfo subInfo in info.directImplementers) {
+        if (!_infoMap.containsKey(subInfo.classNode))
+          throw new StateError(
+              "Found $subInfo (${subInfo.classNode}) in directImplementers");
       }
     }
     return true;
@@ -871,8 +961,8 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     if (type.classNode == superclass) {
       return superclass.asThisSupertype;
     }
-    var map = infoFor(type.classNode)?.genericSuperTypes;
-    return map == null ? null : map[superclass]?.first;
+    var map = infoFor(type.classNode)?.genericSuperType;
+    return map == null ? null : map[superclass];
   }
 
   void _initialize(List<Library> libraries) {
@@ -920,9 +1010,6 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       for (Supertype supertype in class_.implementedTypes) {
         _recordSuperTypes(info, supertype);
       }
-
-      _buildInterfaceMembers(class_, info, setters: true);
-      _buildInterfaceMembers(class_, info, setters: false);
 
       if (info == null) {
         throw "No info for ${class_.name} from ${class_.fileUri}.";
@@ -973,8 +1060,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
           _topologicalSortVisit(supertype.classNode, beingVisited,
               orderedList: orderedList));
     }
-    _buildDeclaredMembers(classNode, info);
-    _buildImplementedMembers(classNode, info);
+
     info.topologicalIndex = _topSortIndex++;
 
     _infoMap[classNode] = info;
@@ -983,71 +1069,92 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     return info.depth = superDepth + 1;
   }
 
-  void _buildDeclaredMembers(Class classNode, _ClassInfo info) {
-    if (classNode.mixedInType != null) {
-      _ClassInfo mixedInfo = _infoMap[classNode.mixedInType.classNode];
+  List<Member> _buildImplementedMembers(Class classNode, _ClassInfo info,
+      {bool setters}) {
+    if (info == null) {
+      throw "${classNode.fileUri}: No class info for ${classNode.name}";
+    }
+    List<Member> members = setters
+        ? info.lazyImplementedSetters
+        : info.lazyImplementedGettersAndCalls;
+    if (members != null) return members;
 
-      List<Member> declaredGettersAndCalls = <Member>[];
-      for (Member mixinMember in mixedInfo.declaredGettersAndCalls) {
-        if (mixinMember is! Procedure ||
-            (mixinMember is Procedure &&
-                !mixinMember.isNoSuchMethodForwarder)) {
-          declaredGettersAndCalls.add(mixinMember);
-        }
-      }
-
-      List<Member> declaredSetters = <Member>[];
-      for (Member mixinMember in mixedInfo.declaredSetters) {
-        if (mixinMember is! Procedure ||
-            (mixinMember is Procedure &&
-                !mixinMember.isNoSuchMethodForwarder)) {
-          declaredSetters.add(mixinMember);
-        }
-      }
-
-      info.declaredGettersAndCalls = declaredGettersAndCalls;
-      info.declaredSetters = declaredSetters;
+    List<Member> inherited;
+    if (classNode.supertype == null) {
+      inherited = const <Member>[];
     } else {
-      var members = info.declaredGettersAndCalls = <Member>[];
-      var setters = info.declaredSetters = <Member>[];
+      Class superClassNode = classNode.supertype.classNode;
+      _ClassInfo superInfo = _infoMap[superClassNode];
+      inherited =
+          _buildImplementedMembers(superClassNode, superInfo, setters: setters);
+    }
+    members = _inheritMembers(
+        _buildDeclaredMembers(classNode, info, setters: setters), inherited,
+        skipAbstractMembers: true);
+    if (setters) {
+      info.lazyImplementedSetters = members;
+    } else {
+      info.lazyImplementedGettersAndCalls = members;
+    }
+    return members;
+  }
+
+  List<Member> _buildDeclaredMembers(Class classNode, _ClassInfo info,
+      {bool setters}) {
+    if (info == null) {
+      throw "${classNode.fileUri}: No class info for ${classNode.name}";
+    }
+    List<Member> members =
+        setters ? info.lazyDeclaredSetters : info.lazyDeclaredGettersAndCalls;
+    if (members != null) return members;
+
+    if (classNode.mixedInType != null) {
+      Class mixedInClassNode = classNode.mixedInType.classNode;
+      _ClassInfo mixedInInfo = _infoMap[mixedInClassNode];
+
+      members = <Member>[];
+      for (Member mixinMember in _buildDeclaredMembers(
+          mixedInClassNode, mixedInInfo,
+          setters: setters)) {
+        if (mixinMember is! Procedure ||
+            (mixinMember is Procedure &&
+                !mixinMember.isNoSuchMethodForwarder)) {
+          members.add(mixinMember);
+        }
+      }
+    } else {
+      members = new List<Member>();
       for (Procedure procedure in classNode.procedures) {
         if (procedure.isStatic) continue;
         if (procedure.kind == ProcedureKind.Setter) {
-          setters.add(procedure);
+          if (setters) {
+            members.add(procedure);
+          }
         } else {
-          members.add(procedure);
+          if (!setters) {
+            members.add(procedure);
+          }
         }
       }
       for (Field field in classNode.fields) {
         if (field.isStatic) continue;
-        if (field.hasImplicitGetter) {
+        if (!setters && field.hasImplicitGetter) {
           members.add(field);
         }
-        if (field.hasImplicitSetter) {
-          setters.add(field);
+        if (setters && field.hasImplicitSetter) {
+          members.add(field);
         }
       }
-      members.sort(ClassHierarchy.compareMembers);
-      setters.sort(ClassHierarchy.compareMembers);
-    }
-  }
 
-  void _buildImplementedMembers(Class classNode, _ClassInfo info) {
-    List<Member> inheritedMembers;
-    List<Member> inheritedSetters;
-    if (classNode.supertype == null) {
-      inheritedMembers = inheritedSetters = const <Member>[];
-    } else {
-      _ClassInfo superInfo = _infoMap[classNode.supertype.classNode];
-      inheritedMembers = superInfo.implementedGettersAndCalls;
-      inheritedSetters = superInfo.implementedSetters;
+      members.sort(ClassHierarchy.compareMembers);
     }
-    info.implementedGettersAndCalls = _inheritMembers(
-        info.declaredGettersAndCalls, inheritedMembers,
-        skipAbstractMembers: true);
-    info.implementedSetters = _inheritMembers(
-        info.declaredSetters, inheritedSetters,
-        skipAbstractMembers: true);
+
+    if (setters) {
+      info.lazyDeclaredSetters = members;
+    } else {
+      info.lazyDeclaredGettersAndCalls = members;
+    }
+    return members;
   }
 
   List<Member> _buildInterfaceMembers(Class classNode, _ClassInfo info,
@@ -1056,11 +1163,12 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       throw "${classNode.fileUri}: No class info for ${classNode.name}";
     }
     List<Member> members =
-        setters ? info.interfaceSetters : info.interfaceGettersAndCalls;
+        setters ? info.lazyInterfaceSetters : info.lazyInterfaceGettersAndCalls;
     if (members != null) return members;
     List<Member> allInheritedMembers = <Member>[];
     List<Member> declared =
-        setters ? info.declaredSetters : info.declaredGettersAndCalls;
+        _buildDeclaredMembers(classNode, info, setters: setters);
+
     void inheritFrom(Supertype type) {
       if (type == null) return;
       List<Member> inherited = _buildInterfaceMembers(
@@ -1076,9 +1184,9 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     classNode.implementedTypes.forEach(inheritFrom);
     members = _inheritMembers(declared, allInheritedMembers);
     if (setters) {
-      info.interfaceSetters = members;
+      info.lazyInterfaceSetters = members;
     } else {
-      info.interfaceGettersAndCalls = members;
+      info.lazyInterfaceGettersAndCalls = members;
     }
     return members;
   }
@@ -1174,11 +1282,11 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     if (supertype.typeArguments.isEmpty) {
       if (superInfo.genericSuperTypes == null) return;
       // Copy over the super type entries.
+      subInfo.genericSuperType ??= <Class, Supertype>{};
       subInfo.genericSuperTypes ??= <Class, List<Supertype>>{};
-      superInfo.genericSuperTypes?.forEach((Class key, List<Supertype> types) {
-        for (Supertype type in types) {
-          subInfo.recordGenericSuperType(key, type, _onAmbiguousSupertypes);
-        }
+      superInfo.genericSuperType?.forEach((Class key, Supertype type) {
+        subInfo.recordGenericSuperType(
+            coreTypes, key, type, _onAmbiguousSupertypes);
       });
     } else {
       // Copy over all transitive generic super types, and substitute the
@@ -1186,16 +1294,15 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       Class superclass = supertype.classNode;
       var substitution = Substitution.fromPairs(
           superclass.typeParameters, supertype.typeArguments);
+      subInfo.genericSuperType ??= <Class, Supertype>{};
       subInfo.genericSuperTypes ??= <Class, List<Supertype>>{};
-      superInfo.genericSuperTypes?.forEach((Class key, List<Supertype> types) {
-        for (Supertype type in types) {
-          subInfo.recordGenericSuperType(key,
-              substitution.substituteSupertype(type), _onAmbiguousSupertypes);
-        }
+      superInfo.genericSuperType?.forEach((Class key, Supertype type) {
+        subInfo.recordGenericSuperType(coreTypes, key,
+            substitution.substituteSupertype(type), _onAmbiguousSupertypes);
       });
 
       subInfo.recordGenericSuperType(
-          superclass, supertype, _onAmbiguousSupertypes);
+          coreTypes, superclass, supertype, _onAmbiguousSupertypes);
     }
   }
 
@@ -1367,6 +1474,25 @@ int _intervalListSize(Uint32List intervalList) {
   return size;
 }
 
+class ForTestingClassInfo {
+  final Class classNode;
+  final List<Member> lazyDeclaredGettersAndCalls;
+  final List<Member> lazyDeclaredSetters;
+  final List<Member> lazyImplementedGettersAndCalls;
+  final List<Member> lazyImplementedSetters;
+  final List<Member> lazyInterfaceGettersAndCalls;
+  final List<Member> lazyInterfaceSetters;
+
+  ForTestingClassInfo._(_ClassInfo c)
+      : classNode = c.classNode,
+        lazyDeclaredGettersAndCalls = c.lazyDeclaredGettersAndCalls,
+        lazyDeclaredSetters = c.lazyDeclaredSetters,
+        lazyImplementedGettersAndCalls = c.lazyImplementedGettersAndCalls,
+        lazyImplementedSetters = c.lazyImplementedSetters,
+        lazyInterfaceGettersAndCalls = c.lazyInterfaceGettersAndCalls,
+        lazyInterfaceSetters = c.lazyInterfaceSetters;
+}
+
 class _ClassInfo {
   bool used = false;
   final Class classNode;
@@ -1390,31 +1516,39 @@ class _ClassInfo {
 
   List<_ClassInfo> leastUpperBoundInfos;
 
-  /// Maps generic supertype classes to the instantiation implemented by this
+  /// Maps generic supertype classes to the instantiations implemented by this
   /// class.
   ///
   /// E.g. `List` maps to `List<String>` for a class that directly or indirectly
   /// implements `List<String>`.
   Map<Class, List<Supertype>> genericSuperTypes;
 
+  /// Maps generic supertype classes to the canonical instantiation implemented
+  /// by this class.
+  ///
+  /// E.g. `List` maps to `List<String>` for a class that directly or indirectly
+  /// implements `List<String>`.
+
+  Map<Class, Supertype> genericSuperType;
+
   /// Instance fields, getters, methods, and operators declared in this class
   /// or its mixed-in class, sorted according to [_compareMembers].
-  List<Member> declaredGettersAndCalls;
+  List<Member> lazyDeclaredGettersAndCalls;
 
   /// Non-final instance fields and setters declared in this class or its
   /// mixed-in class, sorted according to [_compareMembers].
-  List<Member> declaredSetters;
+  List<Member> lazyDeclaredSetters;
 
   /// Instance fields, getters, methods, and operators implemented by this class
   /// (declared or inherited).
-  List<Member> implementedGettersAndCalls;
+  List<Member> lazyImplementedGettersAndCalls;
 
   /// Non-final instance fields and setters implemented by this class
   /// (declared or inherited).
-  List<Member> implementedSetters;
+  List<Member> lazyImplementedSetters;
 
-  List<Member> interfaceGettersAndCalls;
-  List<Member> interfaceSetters;
+  List<Member> lazyInterfaceGettersAndCalls;
+  List<Member> lazyInterfaceSetters;
 
   _ClassInfo(this.classNode);
 
@@ -1427,15 +1561,43 @@ class _ClassInfo {
     return _intervalListContains(supertypeIntervalList, other.topologicalIndex);
   }
 
-  void recordGenericSuperType(Class cls, Supertype type,
+  void recordGenericSuperType(CoreTypes coreTypes, Class cls, Supertype type,
       HandleAmbiguousSupertypes onAmbiguousSupertypes) {
-    List<Supertype> existing = genericSuperTypes[cls];
-    if (existing == null) {
+    Supertype canonical = genericSuperType[cls];
+    if (canonical == null) {
+      if (!classNode.enclosingLibrary.isNonNullableByDefault) {
+        canonical = legacyErasureSupertype(coreTypes, type);
+      } else {
+        canonical = type;
+      }
+      assert(canonical != null,
+          "No canonical instantiation computed for $cls in $classNode.");
+      genericSuperType[cls] = canonical;
       genericSuperTypes[cls] = <Supertype>[type];
-    } else if (type != existing.first) {
-      existing.add(type);
-      onAmbiguousSupertypes(classNode, existing.first, type);
+    } else {
+      genericSuperTypes[cls].add(type);
+
+      if (classNode.enclosingLibrary.isNonNullableByDefault) {
+        Supertype result = nnbdTopMergeSupertype(
+            coreTypes,
+            normSupertype(coreTypes, type),
+            normSupertype(coreTypes, canonical));
+        if (result == null) {
+          onAmbiguousSupertypes(classNode, canonical, type);
+        } else {
+          genericSuperType[cls] = result;
+        }
+      } else {
+        type = legacyErasureSupertype(coreTypes, type);
+        if (type != canonical) {
+          onAmbiguousSupertypes(classNode, canonical, type);
+        }
+      }
     }
+    assert(genericSuperType.containsKey(cls),
+        "No canonical instantiation computed for $cls in $classNode.");
+    assert(genericSuperTypes.containsKey(cls),
+        "No instantiations computed for $cls in $classNode.");
   }
 }
 

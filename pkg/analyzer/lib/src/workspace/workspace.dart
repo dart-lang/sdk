@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
+import 'package:analyzer/src/workspace/bazel.dart';
 
 /**
  * Abstract superclass of classes that provide information about the workspace
@@ -13,15 +13,9 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
  */
 abstract class Workspace {
   /**
-   * Return `true` if this workspace defines a single "project" and that
-   * "project" depends upon flutter.
+   * Return true iff this [Workspace] is a [BazelWorkspace].
    */
-  bool get hasFlutterDependency => packageMap?.containsKey('flutter') ?? false;
-
-  /**
-   * Return a (possibly null) map of package sources.
-   */
-  Map<String, List<Folder>> get packageMap;
+  bool get isBazel => false;
 
   /**
    * The [UriResolver] that can resolve `package` URIs.
@@ -76,4 +70,16 @@ abstract class WorkspacePackage {
       return source.fullName;
     }
   }
+}
+
+/**
+ * An interface for a workspace that contains a default analysis options file.
+ * Classes that provide information of such a workspace should implement this
+ * interface.
+ */
+class WorkspaceWithDefaultAnalysisOptions {
+  /**
+   * The uri for the analysis options file.
+   */
+  static const String uri = 'package:dart.analysis_options/default.yaml';
 }

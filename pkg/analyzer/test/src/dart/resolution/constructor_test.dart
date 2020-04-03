@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/element/type.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
@@ -14,25 +15,52 @@ main() {
 
 @reflectiveTest
 class ConstructorResolutionTest extends DriverResolutionTest {
-  test_initializer_field_functionExpression_expressionBody() async {
-    addTestFile(r'''
-class C {
-  final int x;
-  C(int a) : x = (() => a + 1)();
+  test_factory_redirect_generic_instantiated() async {
+    await assertNoErrorsInCode(r'''
+class A<T> implements B<T> {
+  A(T a);
 }
+class B<U> {
+  factory B(U a) = A<U>;
+}
+
+B<int> b;
 ''');
-    await resolveTestFile();
-    assertElement(findNode.simple('a + 1'), findElement.parameter('a'));
+    var classB_constructor = findElement.class_('B').unnamedConstructor;
+    assertMember(
+      classB_constructor.redirectedConstructor,
+      findElement.unnamedConstructor('A'),
+      {'T': 'U'},
+    );
+
+    InterfaceType B_int = findElement.topVar('b').type;
+    var B_int_constructor = B_int.constructors.single;
+    var B_int_redirect = B_int_constructor.redirectedConstructor;
+    assertMember(
+      B_int_redirect,
+      findElement.unnamedConstructor('A'),
+      {'T': 'int'},
+    );
+    assertType(B_int_redirect.returnType, 'A<int>');
   }
 
   test_initializer_field_functionExpression_blockBody() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class C {
   var x;
   C(int a) : x = (() {return a + 1;})();
 }
 ''');
-    await resolveTestFile();
+    assertElement(findNode.simple('a + 1'), findElement.parameter('a'));
+  }
+
+  test_initializer_field_functionExpression_expressionBody() async {
+    await resolveTestCode(r'''
+class C {
+  final int x;
+  C(int a) : x = (() => a + 1)();
+}
+''');
     assertElement(findNode.simple('a + 1'), findElement.parameter('a'));
   }
 }

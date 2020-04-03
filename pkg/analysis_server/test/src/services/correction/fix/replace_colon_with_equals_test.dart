@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReplaceColonWithEqualsTest);
   });
@@ -23,16 +23,12 @@ class ReplaceColonWithEqualsTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.prefer_equal_for_default_values;
 
-  test_method() async {
+  Future<void> test_method() async {
     await resolveTestUnit('''
-void f1({int a}) { }    
-
-f1({a/*LINT*/: 1}) => null;
+void f({int a: 1}) => null;
 ''');
     await assertHasFix('''
-void f1({int a}) { }    
-
-f1({a/*LINT*/ = 1}) => null;
+void f({int a = 1}) => null;
 ''');
   }
 }

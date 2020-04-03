@@ -47,6 +47,7 @@ extension MyExt on A {
   set setterInGlobalScope(bool x) {
     checkExtensionValue(x);
   }
+
   bool methodInGlobalScope() => extensionValue;
 
   bool get fieldInInstanceScope => extensionValue;
@@ -54,6 +55,7 @@ extension MyExt on A {
   set setterInInstanceScope(bool x) {
     checkExtensionValue(x);
   }
+
   bool methodInInstanceScope() => extensionValue;
 
   bool get fieldInExtensionScope => extensionValue;
@@ -61,6 +63,7 @@ extension MyExt on A {
   set setterInExtensionScope(bool x) {
     checkExtensionValue(x);
   }
+
   bool methodInExtensionScope() => extensionValue;
 
   void testNakedIdentifiers() {
@@ -109,7 +112,6 @@ extension MyExt on A {
       double t2 = methodInOtherExtensionScope();
       checkOtherExtensionValue(t2);
     }
-
   }
 
   void testIdentifiersOnThis() {
@@ -193,7 +195,6 @@ extension MyExt on A {
   }
 }
 
-
 class B extends A {
   void testNakedIdentifiers() {
     // Globals should resolve to the global name space, and not to the members
@@ -225,7 +226,7 @@ class B extends A {
       // Error cases tested in static_extension_internal_resolution_4_error_test.dart
     }
 
-   // Extension members resolve to the extension methods in the other
+    // Extension members resolve to the extension methods in the other
     // extension (unresolved identifier "id" gets turned into "this.id",
     // which is then subject to extension method lookup).
     {
@@ -280,5 +281,4 @@ void main() {
     double t2 = a.methodInOtherExtensionScope();
     checkOtherExtensionValue(t2);
   }
-
 }

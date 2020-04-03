@@ -3,33 +3,28 @@
 # BSD-style license that can be found in the LICENSE file.
 
 import("../../build/dart/dart_action.gni")
-import("../../build/dart/dart_host_sdk_toolchain.gni")
 import("../../runtime/runtime_args.gni")
+import("../../sdk_args.gni")
 import("../application_snapshot.gni")
+import("../create_timestamp.gni")
 
 group("kernel-service") {
   if (create_kernel_service_snapshot) {
-    deps = [
-      # TODO(rmacnak): Link this into 'dart'.
-      ":copy_kernel-service_snapshot",
-    ]
+    deps = [ ":copy_kernel-service_snapshot" ]
   } else {
-    deps = [
-      ":kernel_service_dill",
-    ]
+    deps = [ ":kernel_service_dill" ]
   }
 }
 
-# TODO: Switch this to use kernel based app-jit snapshot
-# when we are ready to switch to the kernel based core snapshots.
 kernel_application_snapshot("kernel-service_snapshot") {
-  main_dart = "$root_gen_dir/kernel_service.dill"
-  deps = [
-    ":kernel_service_dill",
-  ]
+  main_dart = "../../pkg/vm/bin/kernel_service.dart"
   training_args = [
     "--train",
-    "file:///" + rebase_path("../../pkg/compiler/lib/src/dart2js.dart"),
+
+    # Force triple-slashes both on Windows and otherwise.
+    # Becomes e.g. file:///full/path/to/file and "file:///C:/full/path/to/file.
+    # Without the ', "/"' part, on Linux it would get four slashes.
+    "file:///" + rebase_path("../../pkg/compiler/lib/src/dart2js.dart", "/"),
   ]
   if (dart_platform_bytecode) {
     training_args += [ "--bytecode" ]
@@ -38,27 +33,34 @@ kernel_application_snapshot("kernel-service_snapshot") {
 }
 
 copy("copy_kernel-service_snapshot") {
-  deps = [
-    ":kernel-service_snapshot",
-  ]
-  sources = [
-    "$root_gen_dir/kernel-service.dart.snapshot",
-  ]
-  outputs = [
-    "$root_out_dir/kernel-service.dart.snapshot",
-  ]
+  deps = [ ":kernel-service_snapshot" ]
+  sources = [ "$root_gen_dir/kernel-service.dart.snapshot" ]
+  outputs = [ "$root_out_dir/kernel-service.dart.snapshot" ]
+}
+
+create_timestamp_file("frontend_server_files_stamp") {
+  path = rebase_path("../../pkg/frontend_server/lib")
+  output = "$target_gen_dir/frontend_server_files.stamp"
+}
+
+create_timestamp_file("ddc_files_stamp") {
+  path = rebase_path("../../pkg/dev_compiler/lib")
+  output = "$target_gen_dir/ddc_files.stamp"
 }
 
 application_snapshot("frontend_server") {
-  main_dart = "../../pkg/vm/bin/frontend_server_starter.dart"
+  main_dart = "../../pkg/frontend_server/bin/frontend_server_starter.dart"
   deps = [
-    "../../runtime/vm:kernel_platform_files($dart_host_toolchain)",
+    ":ddc_files_stamp",
+    ":frontend_server_files_stamp",
+    "../../runtime/vm:kernel_platform_files($host_toolchain)",
   ]
   sdk_root = rebase_path("$root_out_dir")
   training_args = [
     "--train",
     "--sdk-root=$sdk_root/",
     "--platform=$sdk_root/vm_platform_strong.dill",
+    rebase_path(main_dart),
   ]
   output = "$root_out_dir/frontend_server.dart.snapshot"
 }
@@ -66,7 +68,7 @@ application_snapshot("frontend_server") {
 template("kernel_service_dill") {
   prebuilt_dart_action("kernel_service" + target_name + "_dill") {
     deps = [
-      "../../runtime/vm:kernel_platform_files($dart_host_toolchain)",
+      "../../runtime/vm:kernel_platform_files($host_toolchain)",
       "../../runtime/vm:vm_platform",
     ]
     kernel_service_script = "../../pkg/vm/bin/kernel_service.dart"
@@ -78,9 +80,7 @@ template("kernel_service_dill") {
       "$root_out_dir/vm_platform_strong.dill",
     ]
     output = "$root_gen_dir/kernel_service" + invoker.target_name + ".dill"
-    outputs = [
-      output,
-    ]
+    outputs = [ output ]
 
     depfile = "$root_gen_dir/kernel_service" + invoker.target_name + "_dill.d"
     abs_depfile = rebase_path(depfile)
@@ -91,16 +91,25 @@ template("kernel_service_dill") {
     ]
 
     script = gen_kernel_script
+    scheme = "org-dartlang-kernel-service"
 
     args =
         invoker.extra_args + [
-          "--packages=" + rebase_path("../../.packages"),
+          "--packages=" + scheme + ":///.packages",
           "--platform=" + rebase_path("$root_out_dir/vm_platform_strong.dill"),
+          "--filesystem-root=" + rebase_path("../../"),
+          "--filesystem-scheme=" + scheme,
           "--no-aot",
           "--no-embed-sources",
           "--output=" + rebase_path(output),
-          rebase_path(kernel_service_script),
         ]
+    args += [ scheme + ":///pkg/vm/bin/kernel_service.dart" ]
+    if (dart_platform_bytecode) {
+      args += [
+        "--gen-bytecode",
+        "--drop-ast",
+      ]
+    }
   }
 }
 

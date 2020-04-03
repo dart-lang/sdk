@@ -30,8 +30,7 @@ then
   DIRS=$( ls "$OUT_DIR" )
   # list of possible configurations in decreasing desirability
   CONFIGS=("ReleaseX64" "ReleaseIA32" "DebugX64" "DebugIA32"
-    "ReleaseARM"    "ReleaseARM64"    "ReleaseARMV5TE"
-    "DebugARM"      "DebugARM64"      "DebugARMV5TE")
+    "ReleaseARM" "ReleaseARM64" "DebugARM" "DebugARM64")
   DART_CONFIGURATION="None"
   for CONFIG in ${CONFIGS[*]}
   do
@@ -52,7 +51,8 @@ then
   fi
 fi
 
-GEN_DIR="$OUT_DIR"/"$DART_CONFIGURATION"/gen/utils/dartdevc
+ROOT_OUT_DIR="$OUT_DIR"/"$DART_CONFIGURATION"
+GEN_DIR="$ROOT_OUT_DIR"/gen/utils/dartdevc
 
 KERNEL=false
 if [ "$1" = "-k" ]; then
@@ -65,7 +65,7 @@ LIBROOT=$(cd $( dirname "${1%.*}") && pwd)
 
 if [ "$KERNEL" = true ]; then
 
-  if [ ! -e $GEN_DIR/kernel/ddc_sdk.dill ]; then
+  if [ ! -e $ROOT_OUT_DIR/ddc_sdk.dill ]; then
     echo "DDC SDK must be built first, please run:"
     echo "    pushd $SDKDIR"
     echo "    ./tools/build.py -m release dartdevc_kernel_sdk"
@@ -75,7 +75,7 @@ if [ "$KERNEL" = true ]; then
   NODE_PATH=$GEN_DIR/kernel/common:$LIBROOT:$NODE_PATH
 
   $SDK_DIR/sdk/bin/dartdevc --kernel --modules=node \
-      --dart-sdk-summary=$GEN_DIR/ddc_sdk.sum \
+      --dart-sdk-summary=$ROOT_OUT_DIR/ddc_sdk.dill \
       -o $LIBROOT/$BASENAME.js $*
 else
 

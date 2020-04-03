@@ -23,7 +23,7 @@ class A implements B{
 class B {
   factory B() = A.name;
 }''', [
-      error(StaticWarningCode.REDIRECT_TO_MISSING_CONSTRUCTOR, 59, 6),
+      error(CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR, 59, 6),
     ]);
   }
 
@@ -35,7 +35,7 @@ class A implements B{
 class B {
   factory B() = A;
 }''', [
-      error(StaticWarningCode.REDIRECT_TO_MISSING_CONSTRUCTOR, 64, 1),
+      error(CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR, 64, 1),
     ]);
   }
 }

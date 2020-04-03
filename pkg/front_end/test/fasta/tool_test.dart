@@ -22,7 +22,6 @@ const List<String> subtools = const <String>[
   "outline",
   "parser",
   "scanner",
-  "dump-partial",
   "dump-ir",
   "testing",
   "generate-messages",
@@ -65,7 +64,6 @@ Expected -DbRoot=/absolute/path/to/other/sdk/repo
     "compile": {
       "exitCode": 1,
       "stdout": """
-Error: No input file provided to the compiler.
 Usage: compile [options] dartfile
 
 Compiles a Dart program to the Dill/Kernel IR format.
@@ -78,7 +76,6 @@ Error: No Dart file specified.
     "compile-platform": {
       "exitCode": 1,
       "stdout": """
-Error: No input file provided to the compiler.
 Usage: compile_platform [options] dart-library-uri libraries.json vm_outline_strong.dill platform.dill outline.dill
 
 Compiles Dart SDK platform to the Dill/Kernel IR format.
@@ -96,7 +93,6 @@ Error: Expected five arguments.
     "outline": {
       "exitCode": 1,
       "stdout": """
-Error: No input file provided to the compiler.
 Usage: outline [options] dartfile
 
 Creates an outline of a Dart program in the Dill/Kernel IR format.
@@ -113,12 +109,6 @@ Error: No Dart file specified.
     },
     "scanner": {
       "exitCode": 0,
-      "stderr": "",
-    },
-    "dump-partial": {
-      "exitCode": 1,
-      "stdout": "usage: pkg/front_end/tool/fasta dump_partial"
-          " partial.dill [extra1.dill] ... [extraN.dill]\n",
       "stderr": "",
     },
     "dump-ir": {

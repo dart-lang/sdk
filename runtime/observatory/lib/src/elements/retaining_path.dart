@@ -87,7 +87,7 @@ class RetainingPathElement extends CustomElement implements Renderable {
       return [new SpanElement()..text = 'Loading'];
     }
 
-    var elements = new List<Element>();
+    var elements = <Element>[];
     bool first = true;
     for (var item in _path.elements) {
       elements.add(_createItem(item, first));
@@ -103,12 +103,8 @@ class RetainingPathElement extends CustomElement implements Renderable {
     if (first) {
       // No prefix.
     } else if (item.parentField != null) {
-      content.add(new SpanElement()
-        ..children = <Element>[
-          new SpanElement()..text = 'retained by ',
-          anyRef(_isolate, item.parentField, _objects, queue: _r.queue),
-          new SpanElement()..text = ' of ',
-        ]);
+      content
+          .add(new SpanElement()..text = 'retained by ${item.parentField} of ');
     } else if (item.parentListIndex != null) {
       content.add(new SpanElement()
         ..text = 'retained by [ ${item.parentListIndex} ] of ');

@@ -13,9 +13,10 @@ import("../../sdk/lib/internal/internal_sources.gni")
 import("../../sdk/lib/isolate/isolate_sources.gni")
 import("../../sdk/lib/math/math_sources.gni")
 import("../../sdk/lib/mirrors/mirrors_sources.gni")
-import("../../sdk/lib/profiler/profiler_sources.gni")
 import("../../sdk/lib/typed_data/typed_data_sources.gni")
 import("../../sdk/lib/vmservice/vmservice_sources.gni")
+import("../../sdk/lib/wasm/wasm_sources.gni")
+import("../../sdk_args.gni")
 import("../../utils/compile_platform.gni")
 import("../bin/cli_sources.gni")
 import("../bin/io_sources.gni")
@@ -33,6 +34,7 @@ import("../lib/mirrors_sources.gni")
 import("../lib/profiler_sources.gni")
 import("../lib/typed_data_sources.gni")
 import("../lib/vmservice_sources.gni")
+import("../lib/wasm_sources.gni")
 import("../runtime_args.gni")
 import("compiler/compiler_sources.gni")
 import("heap/heap_sources.gni")
@@ -67,14 +69,17 @@ library_for_all_configs("libdart_vm") {
   extra_deps = [ "//third_party/icu" ]
   if (is_fuchsia) {
     if (using_fuchsia_sdk) {
-      extra_deps += [ "$fuchsia_sdk_root/pkg/lib/sys/cpp" ]
+      extra_deps += [
+        "$fuchsia_sdk_root/fidl:fuchsia.deprecatedtimezone",
+        "$fuchsia_sdk_root/pkg:sys_cpp",
+        "$fuchsia_sdk_root/pkg:trace-engine",
+      ]
     } else {
       extra_deps += [
         # TODO(US-399): Remove time_service specific code when it is no longer
         # necessary.
+        "//sdk/fidl/fuchsia.deprecatedtimezone",
         "//sdk/lib/sys/cpp",
-        "//sdk/fidl/fuchsia.timezone",
-
         "//zircon/public/lib/fbl",
         "//zircon/public/lib/trace-engine",
       ]
@@ -93,12 +98,17 @@ library_for_all_configs("libdart_vm") {
 library_for_all_configs("libdart_lib") {
   target_type = "source_set"
   if (is_fuchsia) {
-    if (!using_fuchsia_sdk) {
+    if (using_fuchsia_sdk) {
+      extra_deps = [ "$fuchsia_sdk_root/pkg:trace-engine" ]
+    } else {
       extra_deps = [
         "//zircon/public/lib/fbl",
         "//zircon/public/lib/trace-engine",
       ]
     }
+  }
+  if (dart_enable_wasm) {
+    defines = [ "DART_ENABLE_WASM" ]
   }
   include_dirs = [ ".." ]
   allsources = async_runtime_cc_files + collection_runtime_cc_files +
@@ -106,10 +116,9 @@ library_for_all_configs("libdart_lib") {
                internal_runtime_cc_files + isolate_runtime_cc_files +
                math_runtime_cc_files + mirrors_runtime_cc_files +
                typed_data_runtime_cc_files + vmservice_runtime_cc_files +
-               ffi_runtime_cc_files
+               ffi_runtime_cc_files + wasm_runtime_cc_files
   sources = [ "bootstrap.cc" ] + rebase_path(allsources, ".", "../lib")
   snapshot_sources = []
-  nosnapshot_sources = []
 }
 
 template("gen_vm_platform") {
@@ -123,7 +132,12 @@ template("gen_vm_platform") {
     }
     single_root_scheme = "org-dartlang-sdk"
     single_root_base = rebase_path("../../")
-    libraries_specification_uri = "org-dartlang-sdk:///sdk/lib/libraries.json"
+    if (use_nnbd) {
+      libraries_specification_uri =
+          "org-dartlang-sdk:///sdk_nnbd/lib/libraries.json"
+    } else {
+      libraries_specification_uri = "org-dartlang-sdk:///sdk/lib/libraries.json"
+    }
     outputs = [
       "$root_out_dir/vm_platform" + output_postfix + ".dill",
       "$root_out_dir/vm_outline" + output_postfix + ".dill",
@@ -136,26 +150,18 @@ template("gen_vm_platform") {
       "-Ddart.developer.causal_async_stacks=$allow_causal_async_stacks",
       "-Ddart.isVM=true",
     ]
-
+    if (use_nnbd) {
+      args += [ "--enable-experiment=non-nullable" ]
+      args += [ "--nnbd-agnostic" ]
+    }
     if (defined(invoker.exclude_source) && invoker.exclude_source) {
       args += [ "--exclude-source" ]
     }
-    if (defined(invoker.legacy) && invoker.legacy) {
-      args += [ "--legacy-mode" ]
-      outline = "vm_outline_strong.dill"
-    } else {
-      outline = "vm_outline" + output_postfix + ".dill"
-    }
-    if (dart_platform_bytecode) {
+    if (defined(invoker.bytecode) && invoker.bytecode) {
       args += [ "--bytecode" ]
     }
+    outline = "vm_outline" + output_postfix + ".dill"
   }
-}
-
-gen_vm_platform("vm_legacy_platform") {
-  exclude_source = false
-  legacy = true
-  output_postfix = ""
 }
 
 gen_vm_platform("vm_platform") {
@@ -168,11 +174,14 @@ gen_vm_platform("vm_platform_stripped") {
   add_implicit_vm_platform_dependency = false
   exclude_source = true
   output_postfix = "_strong_stripped"
+
+  if (dart_platform_bytecode) {
+    bytecode = true
+  }
 }
 
 group("kernel_platform_files") {
   public_deps = [
-    ":vm_legacy_platform",
     ":vm_platform",
     ":vm_platform_stripped",
   ]
@@ -182,10 +191,21 @@ executable("offsets_extractor") {
   configs += [
     "..:dart_arch_config",
     "..:dart_config",
+    "..:dart_maybe_product_config",
     ":libdart_vm_config",
   ]
-  sources = [
-    "compiler/offsets_extractor.cc",
+  sources = [ "compiler/offsets_extractor.cc" ]
+  include_dirs = [ ".." ]
+}
+
+executable("offsets_extractor_precompiled_runtime") {
+  configs += [
+    "..:dart_arch_config",
+    "..:dart_config",
+    "..:dart_precompiled_runtime_config",
+    "..:dart_maybe_product_config",
+    ":libdart_vm_config",
   ]
+  sources = [ "compiler/offsets_extractor.cc" ]
   include_dirs = [ ".." ]
 }

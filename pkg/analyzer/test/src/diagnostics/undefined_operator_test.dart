@@ -15,6 +15,20 @@ main() {
 
 @reflectiveTest
 class UndefinedOperatorTest extends DriverResolutionTest {
+  test_assignmentExpression_undefined() async {
+    await assertErrorsInCode(r'''
+class A {}
+class B {
+  f(A a) {
+    A a2 = new A();
+    a += a2;
+  }
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 58, 2),
+    ]);
+  }
+
   test_binaryExpression() async {
     await assertErrorsInCode(r'''
 class A {}
@@ -25,6 +39,15 @@ f(var a) {
 }
 ''', [
       error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 44, 1),
+    ]);
+  }
+
+  test_binaryExpression_enum() async {
+    await assertErrorsInCode(r'''
+enum E { A }
+f(E e) => e + 1;
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 25, 1),
     ]);
   }
 
@@ -44,103 +67,192 @@ f(var a) {
     ]);
   }
 
+  test_binaryExpression_mixin() async {
+    await assertErrorsInCode(r'''
+mixin M {}
+f(M m) => m + 1;
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 23, 1),
+    ]);
+  }
+
+  test_index_both() async {
+    await assertErrorsInCode(r'''
+class A {}
+
+f(A a) {
+  a[0]++;
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 24, 3),
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 24, 3),
+    ]);
+  }
+
+  test_index_defined() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  operator [](a) {}
+  operator []=(a, b) {}
+}
+f(A a) {
+  a[0];
+  a[0] = 1;
+}
+''');
+  }
+
+  test_index_enum() async {
+    await assertErrorsInCode(r'''
+enum E { A }
+f(E e) {
+  e[0];
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 25, 3),
+    ]);
+  }
+
+  test_index_get_extendedHasNone_extensionHasGetter() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+
+extension E on A {
+  int operator[](int index) => 0;
+}
+
+f(A a) {
+  a[0];
+}
+''');
+  }
+
+  test_index_get_extendedHasSetter_extensionHasGetter() async {
+    await assertErrorsInCode(r'''
+class A {
+  void operator[]=(int index, int value) {}
+}
+
+extension E on A {
+  int operator[](int index) => 0;
+}
+
+f(A a) {
+  a[0];
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 125, 3),
+    ]);
+  }
+
+  test_index_getter() async {
+    await assertErrorsInCode(r'''
+class A {}
+
+f(A a) {
+  a[0];
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 24, 3),
+    ]);
+  }
+
+  test_index_mixin() async {
+    await assertErrorsInCode(r'''
+mixin M {}
+f(M m) {
+  m[0];
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 23, 3),
+    ]);
+  }
+
   test_index_null() async {
     await assertErrorsInCode(r'''
-m() {
-  Null x;
+f(Null x) {
   x[0];
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 19, 3),
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 15, 3),
     ]);
   }
 
-  test_indexBoth() async {
+  test_index_set_extendedHasGetter_extensionHasSetter() async {
     await assertErrorsInCode(r'''
-class A {}
-f(var a) {
-  if (a is A) {
-    a[0]++;
-  }
+class A {
+  int operator[](int index) => 0;
+}
+
+extension E on A {
+  void operator[]=(int index, int value) {}
+}
+
+f(A a) {
+  a[0] = 1;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 43, 3),
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 43, 3),
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 125, 3),
     ]);
   }
 
-  test_indexBoth_inSubtype() async {
+  test_index_set_extendedHasNone_extensionHasSetter() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+
+extension E on A {
+  void operator[]=(int index, int value) {}
+}
+
+f(A a) {
+  a[0] = 1;
+}
+''');
+  }
+
+  test_index_setter() async {
     await assertErrorsInCode(r'''
 class A {}
-class B extends A {
-  operator [](int index) {}
-}
-f(var a) {
-  if (a is A) {
-    a[0]++;
-  }
+
+f(A a) {
+  a[0] = 1;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 93, 3),
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 93, 3),
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 24, 3),
     ]);
   }
 
-  test_indexGetter() async {
+  test_indexBoth_undefined() async {
     await assertErrorsInCode(r'''
 class A {}
-f(var a) {
-  if (a is A) {
-    a[0];
-  }
+f(A a) {
+  a[0]++;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 43, 3),
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 23, 3),
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 23, 3),
     ]);
   }
 
-  test_indexGetter_inSubtype() async {
+  test_indexGetter_undefined() async {
     await assertErrorsInCode(r'''
 class A {}
-class B extends A {
-  operator [](int index) {}
-}
-f(var a) {
-  if (a is A) {
-    a[0];
-  }
+f(A a) {
+  a[0];
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 93, 3),
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 23, 3),
     ]);
   }
 
-  test_indexSetter() async {
+  test_indexSetter_undefined() async {
     await assertErrorsInCode(r'''
 class A {}
-f(var a) {
-  if (a is A) {
-    a[0] = 1;
-  }
+f(A a) {
+  a[0] = 1;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 43, 3),
-    ]);
-  }
-
-  test_indexSetter_inSubtype() async {
-    await assertErrorsInCode(r'''
-class A {}
-class B extends A {
-  operator []=(i, v) {}
-}
-f(var a) {
-  if (a is A) {
-    a[0] = 1;
-  }
-}
-''', [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 89, 3),
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 23, 3),
     ]);
   }
 
@@ -175,6 +287,17 @@ m() {
 }
 ''', [
       error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 20, 1),
+    ]);
+  }
+
+  test_plus_undefined() async {
+    await assertErrorsInCode(r'''
+class A {}
+f(A a) {
+  a + 1;
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 24, 1),
     ]);
   }
 
@@ -227,6 +350,28 @@ f(var a) {
 ''');
   }
 
+  test_postfixExpression_mixin() async {
+    await assertErrorsInCode(r'''
+mixin M {}
+f(M m) {
+  m++;
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 23, 2),
+    ]);
+  }
+
+  test_postfixExpression_undefined() async {
+    await assertErrorsInCode(r'''
+class A {}
+f(A a) {
+  a++;
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 23, 2),
+    ]);
+  }
+
   test_postfixInc_null() async {
     await assertErrorsInCode(r'''
 m() {
@@ -276,6 +421,28 @@ f(var a) {
 ''');
   }
 
+  test_prefixExpression_mixin() async {
+    await assertErrorsInCode(r'''
+mixin M {}
+f(M m) {
+  -m;
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 22, 1),
+    ]);
+  }
+
+  test_prefixExpression_undefined() async {
+    await assertErrorsInCode(r'''
+class A {}
+f(A a) {
+  ++a;
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 22, 2),
+    ]);
+  }
+
   test_prefixInc_null() async {
     await assertErrorsInCode(r'''
 m() {
@@ -286,6 +453,13 @@ m() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
       error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 18, 2),
     ]);
+  }
+
+  test_tilde_defined() async {
+    await assertNoErrorsInCode(r'''
+const A = 3;
+const B = ~((1 << A) - 1);
+''');
   }
 
   test_unaryMinus_null() async {

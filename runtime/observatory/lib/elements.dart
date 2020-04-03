@@ -49,8 +49,6 @@ export 'package:observatory/src/elements/local_var_descriptors_ref.dart';
 export 'package:observatory/src/elements/logging.dart';
 export 'package:observatory/src/elements/megamorphiccache_ref.dart';
 export 'package:observatory/src/elements/megamorphiccache_view.dart';
-export 'package:observatory/src/elements/memory/dashboard.dart';
-export 'package:observatory/src/elements/memory/graph.dart';
 export 'package:observatory/src/elements/metric/details.dart';
 export 'package:observatory/src/elements/metric/graph.dart';
 export 'package:observatory/src/elements/metrics.dart';

@@ -18,24 +18,20 @@ template("bit_test") {
   assert(defined(invoker.tests), "tests must be defined for $target_name")
 
   action_foreach(target_name) {
-    script = "../../../build/gn_run_binary.py"
+    script = "//runtime/llvm_codegen/test/run_bit.py"
     sources = invoker.tests
 
-    deps = [
-      "../../bit",
-    ]
-    inputs = [
-      "${root_out_dir}/bit$executable_suffix",
-    ]
+    deps = [ "../../bit" ]
+    inputs = [ "${root_out_dir}/bit$executable_suffix" ]
 
     # This output is always dirty so ninja will always run this step when asked to.
-    outputs = [
-      "$target_gen_dir/{{source_name_part}}}",
-    ]
+    outputs = [ "$target_gen_dir/{{source_name_part}}}" ]
     args = [
-      "compiled_action",
+      "--bit",
       rebase_path("${root_out_dir}/bit"),
+      "--test",
       "{{source}}",
+      "--out",
       rebase_path(target_gen_dir),
     ]
   }

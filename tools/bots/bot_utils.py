@@ -43,12 +43,13 @@ ARCH_RENAMES = {
 
 
 class Channel(object):
+    BETA = 'beta'
     BLEEDING_EDGE = 'be'
     DEV = 'dev'
     STABLE = 'stable'
     TRY = 'try'
     INTEGRATION = 'integration'
-    ALL_CHANNELS = [BLEEDING_EDGE, DEV, STABLE, TRY, INTEGRATION]
+    ALL_CHANNELS = [BETA, BLEEDING_EDGE, DEV, STABLE, TRY, INTEGRATION]
 
 
 class ReleaseType(object):
@@ -71,7 +72,7 @@ class GCSNamer(object):
 
   For every (channel,revision,release-type) tuple we have a base path:
 
-    gs://dart-archive/channels/{be,dev,stable,try,integration}
+    gs://dart-archive/channels/{be,beta,dev,stable,try,integration}
                      /{raw,signed,release}/{revision,latest}/
 
   Under every base path, the following structure is used:
@@ -142,6 +143,10 @@ class GCSNamer(object):
 
     # Functions for querying gs:// directories
 
+    def base_directory(self, revision):
+        return '%s/channels/%s/%s/%s' % (self.bucket, self.channel,
+                                         self.release_type, revision)
+
     def sdk_directory(self, revision):
         return self._variant_directory('sdk', revision)
 
@@ -164,8 +169,7 @@ class GCSNamer(object):
         return self._variant_directory('misc', revision)
 
     def _variant_directory(self, name, revision):
-        return '%s/channels/%s/%s/%s/%s' % (self.bucket, self.channel,
-                                            self.release_type, revision, name)
+        return '%s/%s' % (self.base_directory(revision), name)
 
     # Functions for quering filenames
 

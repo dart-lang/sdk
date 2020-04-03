@@ -8,14 +8,15 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
+import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/socket_server.dart';
-import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analysis_server/src/utilities/mocks.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:test/test.dart';
 
-import 'mocks.dart';
-
-main() {
+void main() {
   group('SocketServer', () {
     test('createAnalysisServer_successful',
         SocketServerTest.createAnalysisServer_successful);
@@ -29,10 +30,9 @@ main() {
 
 class SocketServerTest {
   static void createAnalysisServer_alreadyStarted() {
-    SocketServer server = _createSocketServer();
-    MockServerChannel channel1 = new MockServerChannel();
-    MockServerChannel channel2 = new MockServerChannel();
-    server.createAnalysisServer(channel1);
+    var channel1 = MockServerChannel();
+    var channel2 = MockServerChannel();
+    var server = _createSocketServer(channel1);
     expect(
         channel1.notificationsReceived[0].event, SERVER_NOTIFICATION_CONNECTED);
     server.createAnalysisServer(channel2);
@@ -43,7 +43,7 @@ class SocketServerTest {
     expect(channel2.responsesReceived[0].error.code,
         equals(RequestErrorCode.SERVER_ALREADY_STARTED));
     channel2
-        .sendRequest(new ServerShutdownParams().toRequest('0'))
+        .sendRequest(ServerShutdownParams().toRequest('0'))
         .then((Response response) {
       expect(response.id, equals('0'));
       expect(response.error, isNotNull);
@@ -54,14 +54,13 @@ class SocketServerTest {
   }
 
   static Future createAnalysisServer_successful() {
-    SocketServer server = _createSocketServer();
-    MockServerChannel channel = new MockServerChannel();
-    server.createAnalysisServer(channel);
+    var channel = MockServerChannel();
+    _createSocketServer(channel);
     channel.expectMsgCount(notificationCount: 1);
     expect(
         channel.notificationsReceived[0].event, SERVER_NOTIFICATION_CONNECTED);
     return channel
-        .sendRequest(new ServerShutdownParams().toRequest('0'))
+        .sendRequest(ServerShutdownParams().toRequest('0'))
         .then((Response response) {
       expect(response.id, equals('0'));
       expect(response.error, isNull);
@@ -70,15 +69,14 @@ class SocketServerTest {
   }
 
   static Future requestHandler_exception() {
-    SocketServer server = _createSocketServer();
-    MockServerChannel channel = new MockServerChannel();
-    server.createAnalysisServer(channel);
+    var channel = MockServerChannel();
+    var server = _createSocketServer(channel);
     channel.expectMsgCount(notificationCount: 1);
     expect(
         channel.notificationsReceived[0].event, SERVER_NOTIFICATION_CONNECTED);
-    _MockRequestHandler handler = new _MockRequestHandler(false);
+    var handler = _MockRequestHandler(false);
     server.analysisServer.handlers = [handler];
-    var request = new ServerGetVersionParams().toRequest('0');
+    var request = ServerGetVersionParams().toRequest('0');
     return channel.sendRequest(request).then((Response response) {
       expect(response.id, equals('0'));
       expect(response.error, isNotNull);
@@ -91,28 +89,34 @@ class SocketServerTest {
   }
 
   static Future requestHandler_futureException() async {
-    SocketServer server = _createSocketServer();
-    MockServerChannel channel = new MockServerChannel();
-    server.createAnalysisServer(channel);
-    _MockRequestHandler handler = new _MockRequestHandler(true);
+    var channel = MockServerChannel();
+    var server = _createSocketServer(channel);
+    var handler = _MockRequestHandler(true);
     server.analysisServer.handlers = [handler];
-    var request = new ServerGetVersionParams().toRequest('0');
-    Response response = await channel.sendRequest(request, throwOnError: false);
+    var request = ServerGetVersionParams().toRequest('0');
+    var response = await channel.sendRequest(request, throwOnError: false);
     expect(response.id, equals('0'));
     expect(response.error, isNull);
     channel.expectMsgCount(responseCount: 1, notificationCount: 2);
     expect(channel.notificationsReceived[1].event, SERVER_NOTIFICATION_ERROR);
   }
 
-  static SocketServer _createSocketServer() {
-    return new SocketServer(
-        new AnalysisServerOptions(),
-        new DartSdkManager('', false),
-        InstrumentationService.NULL_SERVICE,
-        null,
+  static SocketServer _createSocketServer(MockServerChannel channel) {
+    final errorNotifier = ErrorNotifier();
+    final server = SocketServer(
+        AnalysisServerOptions(),
+        DartSdkManager('', false),
+        CrashReportingAttachmentsBuilder.empty,
+        errorNotifier,
         null,
         null,
         null);
+
+    server.createAnalysisServer(channel);
+    errorNotifier.server = server.analysisServer;
+    AnalysisEngine.instance.instrumentationService = errorNotifier;
+
+    return server;
   }
 }
 
@@ -124,8 +128,8 @@ class _MockRequestHandler implements RequestHandler {
   @override
   Response handleRequest(Request request) {
     if (futureException) {
-      new Future(throwException);
-      return new Response(request.id);
+      Future(throwException);
+      return Response(request.id);
     }
     throw 'mock request exception';
   }

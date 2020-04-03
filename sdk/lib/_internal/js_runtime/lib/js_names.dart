@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 library dart._js_names;
 
 import 'dart:_js_embedded_names'
@@ -82,7 +84,7 @@ class _LazyMangledInstanceNamesMap extends _LazyMangledNamesMap {
 }
 
 /// Implements the inverse of [_LazyMangledNamesMap]. As it would be too
-/// expensive to seach the mangled names map for a value that corresponds to
+/// expensive to search the mangled names map for a value that corresponds to
 /// the lookup key on each invocation, we compute the full mapping in demand
 /// and cache it. The cache is invalidated when the underlying [_jsMangledNames]
 /// object changes its length. This condition is sufficient as the name mapping

@@ -3,15 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 
 /// The builder for a [DartType] represented by a node.
-abstract class TypeBuilder implements DartType {
+abstract class TypeBuilder implements TypeImpl {
   /// Build the type, and set it for the corresponding node.
   /// Does nothing if the type has been already built.
   ///
   /// Return the built type.
   DartType build();
 
+  @override
   noSuchMethod(Invocation invocation) {
     return super.noSuchMethod(invocation);
   }

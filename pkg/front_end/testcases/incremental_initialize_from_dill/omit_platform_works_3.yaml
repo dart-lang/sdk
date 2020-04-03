@@ -74,6 +74,10 @@ worlds:
         main() {
           print(lib() + "!!");
         }
+      lib.dart: |
+        lib() {
+          return "hello";
+        }
     expectedLibraryCount: 2
     expectsPlatform: true
     expectInitializeFromDill: true

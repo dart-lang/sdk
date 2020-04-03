@@ -5,7 +5,7 @@
 #include "vm/compiler/frontend/bytecode_flow_graph_builder.h"
 
 #include "vm/compiler/backend/il_printer.h"
-#include "vm/compiler/ffi.h"
+#include "vm/compiler/ffi/callback.h"
 #include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/frontend/prologue_builder.h"
 #include "vm/compiler/jit/compiler.h"
@@ -153,9 +153,6 @@ void BytecodeFlowGraphBuilder::AllocateLocalVariables(
   if (is_generating_interpreter()) {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
   } else {
-    // TODO(alexmarkov): Make table of local variables in bytecode and
-    // propagate type, name and positions.
-
     ASSERT(local_vars_.is_empty());
 
     const intptr_t num_bytecode_locals = frame_size.value();
@@ -183,17 +180,17 @@ void BytecodeFlowGraphBuilder::AllocateLocalVariables(
     }
 
     local_vars_.EnsureLength(num_bytecode_locals, nullptr);
-    for (intptr_t i = num_param_locals; i < num_bytecode_locals; ++i) {
-      String& name =
-          String::ZoneHandle(Z, Symbols::NewFormatted(thread(), "var%" Pd, i));
+    intptr_t idx = num_param_locals;
+    for (; idx < num_bytecode_locals; ++idx) {
+      String& name = String::ZoneHandle(
+          Z, Symbols::NewFormatted(thread(), "var%" Pd, idx));
       LocalVariable* local = new (Z)
           LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                         name, Object::dynamic_type());
-      local->set_index(VariableIndex(-i));
-      local_vars_[i] = local;
+      local->set_index(VariableIndex(-idx));
+      local_vars_[idx] = local;
     }
 
-    intptr_t idx = num_bytecode_locals;
     if (exception_var_ != nullptr) {
       exception_var_->set_index(VariableIndex(-idx));
       ++idx;
@@ -230,9 +227,32 @@ LocalVariable* BytecodeFlowGraphBuilder::AllocateParameter(
   const AbstractType& type =
       AbstractType::ZoneHandle(Z, function().ParameterTypeAt(param_index));
 
-  LocalVariable* param_var = new (Z) LocalVariable(
-      TokenPosition::kNoSource, TokenPosition::kNoSource, name, type);
+  CompileType* param_type = nullptr;
+  if (!inferred_types_attribute_.IsNull()) {
+    // Parameter types are assigned to synthetic PCs = -N,..,-1
+    // where N is number of parameters.
+    const intptr_t pc = -function().NumParameters() + param_index;
+    // Search from the beginning as parameters may be declared in arbitrary
+    // order.
+    inferred_types_index_ = 0;
+    const InferredTypeMetadata inferred_type = GetInferredType(pc);
+    if (!inferred_type.IsTrivial()) {
+      param_type = new (Z) CompileType(inferred_type.ToCompileType(Z));
+    }
+  }
+
+  LocalVariable* param_var =
+      new (Z) LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
+                            name, type, param_type);
   param_var->set_index(var_index);
+
+  if (!function().IsNonImplicitClosureFunction() &&
+      (function().is_static() ||
+       ((function().name() != Symbols::Call().raw()) &&
+        !parsed_function()->IsCovariantParameter(param_index) &&
+        !parsed_function()->IsGenericCovariantImplParameter(param_index)))) {
+    param_var->set_type_check_mode(LocalVariable::kTypeCheckedByCaller);
+  }
 
   if (var_index.value() <= 0) {
     local_vars_[-var_index.value()] = param_var;
@@ -414,30 +434,29 @@ bool BytecodeFlowGraphBuilder::IsStackEmpty() const {
   return B->GetStackDepth() == 0;
 }
 
-ArgumentArray BytecodeFlowGraphBuilder::GetArguments(int count) {
-  ArgumentArray arguments =
-      new (Z) ZoneGrowableArray<PushArgumentInstr*>(Z, count);
-  arguments->SetLength(count);
-  for (intptr_t i = count - 1; i >= 0; --i) {
-    ASSERT(!IsStackEmpty());
-    Definition* arg_def = B->stack_->definition();
-    ASSERT(!arg_def->HasSSATemp());
-    ASSERT(arg_def->temp_index() >= i);
-
-    PushArgumentInstr* argument = new (Z) PushArgumentInstr(Pop());
-
-    if (code_.current == arg_def) {
-      code_ <<= argument;
-    } else {
-      Instruction* next = arg_def->next();
-      ASSERT(next != nullptr);
-      arg_def->LinkTo(argument);
-      argument->LinkTo(next);
+InferredTypeMetadata BytecodeFlowGraphBuilder::GetInferredType(intptr_t pc) {
+  ASSERT(!inferred_types_attribute_.IsNull());
+  intptr_t i = inferred_types_index_;
+  const intptr_t len = inferred_types_attribute_.Length();
+  for (; i < len; i += InferredTypeBytecodeAttribute::kNumElements) {
+    ASSERT(i + InferredTypeBytecodeAttribute::kNumElements <= len);
+    const intptr_t attr_pc =
+        InferredTypeBytecodeAttribute::GetPCAt(inferred_types_attribute_, i);
+    if (attr_pc == pc) {
+      const InferredTypeMetadata result =
+          InferredTypeBytecodeAttribute::GetInferredTypeAt(
+              Z, inferred_types_attribute_, i);
+      // Found. Next time, continue search at the next entry.
+      inferred_types_index_ = i + InferredTypeBytecodeAttribute::kNumElements;
+      return result;
     }
-
-    arguments->data()[i] = argument;
+    if (attr_pc > pc) {
+      break;
+    }
   }
-  return arguments;
+  // Not found. Next time, continue search at the last inspected entry.
+  inferred_types_index_ = i;
+  return InferredTypeMetadata(kDynamicCid, InferredTypeMetadata::kFlagNullable);
 }
 
 void BytecodeFlowGraphBuilder::PropagateStackState(intptr_t target_pc) {
@@ -652,7 +671,6 @@ void BytecodeFlowGraphBuilder::BuildCheckFunctionTypeArgs() {
 
   const intptr_t expected_num_type_args = DecodeOperandA().value();
   LocalVariable* type_args_var = LocalVariableAt(DecodeOperandE().value());
-  ASSERT(function().IsGeneric());
 
   if (throw_no_such_method_ == nullptr) {
     throw_no_such_method_ = B->BuildThrowNoSuchMethod();
@@ -789,7 +807,7 @@ void BytecodeFlowGraphBuilder::BuildPush() {
   LoadLocal(local_index);
 }
 
-void BytecodeFlowGraphBuilder::BuildDirectCall() {
+void BytecodeFlowGraphBuilder::BuildDirectCallCommon(bool is_unchecked_call) {
   if (is_generating_interpreter()) {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
   }
@@ -799,60 +817,108 @@ void BytecodeFlowGraphBuilder::BuildDirectCall() {
   const Function& target = Function::Cast(ConstantAt(DecodeOperandD()).value());
   const intptr_t argc = DecodeOperandF().value();
 
-  if (compiler::ffi::IsAsFunctionInternal(Z, isolate(), target)) {
-    BuildFfiAsFunction();
-    return;
-  }
-
-  // Recognize identical() call.
-  // Note: similar optimization is performed in AST flow graph builder - see
-  // StreamingFlowGraphBuilder::BuildStaticInvocation, special_case_identical.
-  // TODO(alexmarkov): find a better place for this optimization.
-  if (target.name() == Symbols::Identical().raw()) {
-    const auto& owner = Class::Handle(Z, target.Owner());
-    if (owner.IsTopLevel() && (owner.library() == Library::CoreLibrary())) {
+  switch (target.recognized_kind()) {
+    case MethodRecognizer::kFfiAsFunctionInternal:
+      BuildFfiAsFunction();
+      return;
+    case MethodRecognizer::kFfiNativeCallbackFunction:
+      if (CompilerState::Current().is_aot()) {
+        BuildFfiNativeCallbackFunction();
+        return;
+      }
+      break;
+    case MethodRecognizer::kObjectIdentical:
+      // Note: similar optimization is performed in AST flow graph builder -
+      // see StreamingFlowGraphBuilder::BuildStaticInvocation,
+      // special_case_identical.
+      // TODO(alexmarkov): find a better place for this optimization.
       ASSERT(argc == 2);
       code_ += B->StrictCompare(Token::kEQ_STRICT, /*number_check=*/true);
       return;
-    }
-  }
-
-  if (!FLAG_causal_async_stacks &&
-      target.recognized_kind() == MethodRecognizer::kAsyncStackTraceHelper) {
-    ASSERT(argc == 1);
-    // Drop the ignored parameter to _asyncStackTraceHelper(:async_op).
-    code_ += B->Drop();
-    code_ += B->NullConstant();
-    return;
-  }
-
-  if (target.recognized_kind() == MethodRecognizer::kStringBaseInterpolate) {
-    ASSERT(argc == 1);
-    code_ += B->StringInterpolate(position_);
-    return;
+    case MethodRecognizer::kAsyncStackTraceHelper:
+    case MethodRecognizer::kSetAsyncThreadStackTrace:
+      if (!FLAG_causal_async_stacks) {
+        ASSERT(argc == 1);
+        // Drop the ignored parameter to _asyncStackTraceHelper(:async_op) or
+        // _setAsyncThreadStackTrace(stackTrace).
+        code_ += B->Drop();
+        code_ += B->NullConstant();
+        return;
+      }
+      break;
+    case MethodRecognizer::kClearAsyncThreadStackTrace:
+      if (!FLAG_causal_async_stacks) {
+        ASSERT(argc == 0);
+        code_ += B->NullConstant();
+        return;
+      }
+      break;
+    case MethodRecognizer::kStringBaseInterpolate:
+      ASSERT(argc == 1);
+      code_ += B->StringInterpolate(position_);
+      return;
+    default:
+      break;
   }
 
   const Array& arg_desc_array =
       Array::Cast(ConstantAt(DecodeOperandD(), 1).value());
   const ArgumentsDescriptor arg_desc(arg_desc_array);
 
-  ArgumentArray arguments = GetArguments(argc);
+  InputsArray* arguments = B->GetArguments(argc);
 
-  // TODO(alexmarkov): pass ICData::kSuper for super calls
-  // (need to distinguish them in bytecode).
   StaticCallInstr* call = new (Z) StaticCallInstr(
       position_, target, arg_desc.TypeArgsLen(),
       Array::ZoneHandle(Z, arg_desc.GetArgumentNames()), arguments,
-      *ic_data_array_, B->GetNextDeoptId(), ICData::kStatic);
+      *ic_data_array_, B->GetNextDeoptId(),
+      target.IsDynamicFunction() ? ICData::kSuper : ICData::kStatic);
 
-  if (target.MayHaveUncheckedEntryPoint(isolate())) {
+  if (is_unchecked_call) {
     call->set_entry_kind(Code::EntryKind::kUnchecked);
   }
 
-  call->InitResultType(Z);
+  if (!call->InitResultType(Z)) {
+    if (!inferred_types_attribute_.IsNull()) {
+      const InferredTypeMetadata result_type = GetInferredType(pc_);
+      if (!result_type.IsTrivial()) {
+        call->SetResultType(Z, result_type.ToCompileType(Z));
+      }
+    }
+  }
 
   code_ <<= call;
   B->Push(call);
+}
+
+void BytecodeFlowGraphBuilder::BuildDirectCall() {
+  BuildDirectCallCommon(/* is_unchecked_call = */ false);
+}
+
+void BytecodeFlowGraphBuilder::BuildUncheckedDirectCall() {
+  BuildDirectCallCommon(/* is_unchecked_call = */ true);
+}
+
+static void ComputeTokenKindAndCheckedArguments(
+    const String& name,
+    const ArgumentsDescriptor& arg_desc,
+    Token::Kind* token_kind,
+    intptr_t* checked_argument_count) {
+  *token_kind = MethodTokenRecognizer::RecognizeTokenKind(name);
+
+  *checked_argument_count = 1;
+  if (*token_kind != Token::kILLEGAL) {
+    intptr_t argument_count = arg_desc.Count();
+    ASSERT(argument_count <= 2);
+    *checked_argument_count = (*token_kind == Token::kSET) ? 1 : argument_count;
+  } else if (Library::IsPrivateCoreLibName(name,
+                                           Symbols::_simpleInstanceOf())) {
+    ASSERT(arg_desc.Count() == 2);
+    *checked_argument_count = 2;
+    *token_kind = Token::kIS;
+  } else if (Library::IsPrivateCoreLibName(name, Symbols::_instanceOf())) {
+    ASSERT(arg_desc.Count() == 4);
+    *token_kind = Token::kIS;
+  }
 }
 
 void BytecodeFlowGraphBuilder::BuildInterfaceCallCommon(
@@ -873,31 +939,25 @@ void BytecodeFlowGraphBuilder::BuildInterfaceCallCommon(
       Array::Cast(ConstantAt(DecodeOperandD(), 1).value());
   const ArgumentsDescriptor arg_desc(arg_desc_array);
 
+  Token::Kind token_kind;
+  intptr_t checked_argument_count;
+  ComputeTokenKindAndCheckedArguments(name, arg_desc, &token_kind,
+                                      &checked_argument_count);
+
   const intptr_t argc = DecodeOperandF().value();
-  Token::Kind token_kind = MethodTokenRecognizer::RecognizeTokenKind(name);
-
-  intptr_t checked_argument_count = 1;
-  if (token_kind != Token::kILLEGAL) {
-    intptr_t argument_count = arg_desc.Count();
-    ASSERT(argument_count <= 2);
-    checked_argument_count = (token_kind == Token::kSET) ? 1 : argument_count;
-  } else if (Library::IsPrivateCoreLibName(name,
-                                           Symbols::_simpleInstanceOf())) {
-    ASSERT(arg_desc.Count() == 2);
-    checked_argument_count = 2;
-    token_kind = Token::kIS;
-  } else if (Library::IsPrivateCoreLibName(name, Symbols::_instanceOf())) {
-    token_kind = Token::kIS;
-  }
-
-  const ArgumentArray arguments = GetArguments(argc);
+  InputsArray* arguments = B->GetArguments(argc);
 
   InstanceCallInstr* call = new (Z) InstanceCallInstr(
       position_, name, token_kind, arguments, arg_desc.TypeArgsLen(),
       Array::ZoneHandle(Z, arg_desc.GetArgumentNames()), checked_argument_count,
       *ic_data_array_, B->GetNextDeoptId(), interface_target);
 
-  // TODO(alexmarkov): add type info - call->SetResultType()
+  if (!inferred_types_attribute_.IsNull()) {
+    const InferredTypeMetadata result_type = GetInferredType(pc_);
+    if (!result_type.IsTrivial()) {
+      call->SetResultType(Z, result_type.ToCompileType(Z));
+    }
+  }
 
   if (is_unchecked_call) {
     call->set_entry_kind(Code::EntryKind::kUnchecked);
@@ -951,14 +1011,21 @@ void BytecodeFlowGraphBuilder::BuildUncheckedClosureCall() {
                         /*clear_temp=*/false);
 
   code_ += B->LoadNativeField(Slot::Closure_function());
-  Value* function = Pop();
 
-  const ArgumentArray arguments = GetArguments(argc);
+  InputsArray* arguments = B->GetArguments(argc + 1);
 
   ClosureCallInstr* call = new (Z) ClosureCallInstr(
-      function, arguments, arg_desc.TypeArgsLen(),
+      arguments, arg_desc.TypeArgsLen(),
       Array::ZoneHandle(Z, arg_desc.GetArgumentNames()), position_,
       B->GetNextDeoptId(), Code::EntryKind::kUnchecked);
+
+  // TODO(alexmarkov): use inferred result type for ClosureCallInstr
+  //  if (!inferred_types_attribute_.IsNull()) {
+  //    const InferredTypeMetadata result_type = GetInferredType(pc_);
+  //    if (!result_type.IsTrivial()) {
+  //      call->SetResultType(Z, result_type.ToCompileType(Z));
+  //    }
+  //  }
 
   code_ <<= call;
   B->Push(call);
@@ -971,37 +1038,31 @@ void BytecodeFlowGraphBuilder::BuildDynamicCall() {
 
   // A DebugStepCheck is performed as part of the calling stub.
 
-  const ICData& icdata = ICData::Cast(ConstantAt(DecodeOperandD()).value());
-  const intptr_t deopt_id = icdata.deopt_id();
-  ic_data_array_->EnsureLength(deopt_id + 1, nullptr);
-  if (ic_data_array_->At(deopt_id) == nullptr) {
-    (*ic_data_array_)[deopt_id] = &icdata;
-  } else {
-    ASSERT(ic_data_array_->At(deopt_id)->Original() == icdata.raw());
-  }
-  B->reset_context_depth_for_deopt_id(deopt_id);
+  const String& name = String::Cast(ConstantAt(DecodeOperandD()).value());
+  const ArgumentsDescriptor arg_desc(
+      Array::Cast(ConstantAt(DecodeOperandD(), 1).value()));
+
+  Token::Kind token_kind;
+  intptr_t checked_argument_count;
+  ComputeTokenKindAndCheckedArguments(name, arg_desc, &token_kind,
+                                      &checked_argument_count);
 
   const intptr_t argc = DecodeOperandF().value();
-  const ArgumentsDescriptor arg_desc(
-      Array::Handle(Z, icdata.arguments_descriptor()));
-
-  const String& name = String::ZoneHandle(Z, icdata.target_name());
-  const Token::Kind token_kind =
-      MethodTokenRecognizer::RecognizeTokenKind(name);
-
-  const ArgumentArray arguments = GetArguments(argc);
+  InputsArray* arguments = B->GetArguments(argc);
 
   const Function& interface_target = Function::null_function();
 
   InstanceCallInstr* call = new (Z) InstanceCallInstr(
       position_, name, token_kind, arguments, arg_desc.TypeArgsLen(),
-      Array::ZoneHandle(Z, arg_desc.GetArgumentNames()), icdata.NumArgsTested(),
-      *ic_data_array_, icdata.deopt_id(), interface_target);
+      Array::ZoneHandle(Z, arg_desc.GetArgumentNames()), checked_argument_count,
+      *ic_data_array_, B->GetNextDeoptId(), interface_target);
 
-  ASSERT(call->ic_data() != nullptr);
-  ASSERT(call->ic_data()->Original() == icdata.raw());
-
-  // TODO(alexmarkov): add type info - call->SetResultType()
+  if (!inferred_types_attribute_.IsNull()) {
+    const InferredTypeMetadata result_type = GetInferredType(pc_);
+    if (!result_type.IsTrivial()) {
+      call->SetResultType(Z, result_type.ToCompileType(Z));
+    }
+  }
 
   code_ <<= call;
   B->Push(call);
@@ -1018,7 +1079,7 @@ void BytecodeFlowGraphBuilder::BuildNativeCall() {
   const auto& name = String::ZoneHandle(Z, function().native_name());
   const intptr_t num_args =
       function().NumParameters() + (function().IsGeneric() ? 1 : 0);
-  ArgumentArray arguments = GetArguments(num_args);
+  InputsArray* arguments = B->GetArguments(num_args);
   auto* call =
       new (Z) NativeCallInstr(&name, &function(), FLAG_link_natives_lazily,
                               function().end_token_pos(), arguments);
@@ -1033,11 +1094,7 @@ void BytecodeFlowGraphBuilder::BuildAllocate() {
 
   const Class& klass = Class::Cast(ConstantAt(DecodeOperandD()).value());
 
-  const ArgumentArray arguments =
-      new (Z) ZoneGrowableArray<PushArgumentInstr*>(Z, 0);
-
-  AllocateObjectInstr* allocate =
-      new (Z) AllocateObjectInstr(position_, klass, arguments);
+  AllocateObjectInstr* allocate = new (Z) AllocateObjectInstr(position_, klass);
 
   code_ <<= allocate;
   B->Push(allocate);
@@ -1049,10 +1106,10 @@ void BytecodeFlowGraphBuilder::BuildAllocateT() {
   }
 
   const Class& klass = Class::Cast(PopConstant().value());
-  const ArgumentArray arguments = GetArguments(1);
+  Value* type_arguments = Pop();
 
   AllocateObjectInstr* allocate =
-      new (Z) AllocateObjectInstr(position_, klass, arguments);
+      new (Z) AllocateObjectInstr(position_, klass, type_arguments);
 
   code_ <<= allocate;
   B->Push(allocate);
@@ -1094,7 +1151,7 @@ void BytecodeFlowGraphBuilder::BuildCreateArrayTOS() {
 }
 
 const Slot& ClosureSlotByField(const Field& field) {
-  const intptr_t offset = field.Offset();
+  const intptr_t offset = field.HostOffset();
   if (offset == Closure::instantiator_type_arguments_offset()) {
     return Slot::Closure_instantiator_type_arguments();
   } else if (offset == Closure::function_type_arguments_offset()) {
@@ -1121,17 +1178,19 @@ void BytecodeFlowGraphBuilder::BuildStoreFieldTOS() {
 
   const Field& field = Field::Cast(ConstantAt(cp_index, 1).value());
   ASSERT(Smi::Cast(ConstantAt(cp_index).value()).Value() * kWordSize ==
-         field.Offset());
+         field.HostOffset());
 
   if (field.Owner() == isolate()->object_store()->closure_class()) {
     // Stores to _Closure fields are lower-level.
-    code_ += B->StoreInstanceField(position_, ClosureSlotByField(field));
+    code_ +=
+        B->StoreInstanceField(position_, ClosureSlotByField(field),
+                              StoreInstanceFieldInstr::Kind::kInitializing);
   } else {
     // The rest of the StoreFieldTOS are for field initializers.
     // TODO(alexmarkov): Consider adding a flag to StoreFieldTOS or even
     // adding a separate bytecode instruction.
-    code_ += B->StoreInstanceFieldGuarded(field,
-                                          /* is_initialization_store = */ true);
+    code_ += B->StoreInstanceFieldGuarded(
+        field, StoreInstanceFieldInstr::Kind::kInitializing);
   }
 }
 
@@ -1145,7 +1204,7 @@ void BytecodeFlowGraphBuilder::BuildLoadFieldTOS() {
 
   const Field& field = Field::Cast(ConstantAt(cp_index, 1).value());
   ASSERT(Smi::Cast(ConstantAt(cp_index).value()).Value() * kWordSize ==
-         field.Offset());
+         field.HostOffset());
 
   if (field.Owner() == isolate()->object_store()->closure_class()) {
     // Loads from _Closure fields are lower-level.
@@ -1158,7 +1217,8 @@ void BytecodeFlowGraphBuilder::BuildLoadFieldTOS() {
 void BytecodeFlowGraphBuilder::BuildStoreContextParent() {
   LoadStackSlots(2);
 
-  code_ += B->StoreInstanceField(position_, Slot::Context_parent());
+  code_ += B->StoreInstanceField(position_, Slot::Context_parent(),
+                                 StoreInstanceFieldInstr::Kind::kInitializing);
 }
 
 void BytecodeFlowGraphBuilder::BuildLoadContextParent() {
@@ -1203,7 +1263,8 @@ void BytecodeFlowGraphBuilder::BuildLoadTypeArgumentsField() {
 
   LoadStackSlots(1);
   const intptr_t offset =
-      Smi::Cast(ConstantAt(DecodeOperandD()).value()).Value() * kWordSize;
+      Smi::Cast(ConstantAt(DecodeOperandD()).value()).Value() *
+      compiler::target::kWordSize;
 
   code_ += B->LoadNativeField(Slot::GetTypeArgumentsSlotAt(thread(), offset));
 }
@@ -1213,8 +1274,6 @@ void BytecodeFlowGraphBuilder::BuildStoreStaticTOS() {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
   }
 
-  BuildDebugStepCheck();
-
   LoadStackSlots(1);
   Operand cp_index = DecodeOperandD();
 
@@ -1223,33 +1282,46 @@ void BytecodeFlowGraphBuilder::BuildStoreStaticTOS() {
   code_ += B->StoreStaticField(position_, field);
 }
 
+void BytecodeFlowGraphBuilder::BuildInitLateField() {
+  if (is_generating_interpreter()) {
+    UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
+  }
+
+  LoadStackSlots(1);
+  Operand cp_index = DecodeOperandD();
+
+  const Field& field = Field::Cast(ConstantAt(cp_index, 1).value());
+  ASSERT(Smi::Cast(ConstantAt(cp_index).value()).Value() * kWordSize ==
+         field.HostOffset());
+
+  code_ += B->Constant(Object::sentinel());
+  code_ += B->StoreInstanceField(
+      field, StoreInstanceFieldInstr::Kind::kInitializing, kNoStoreBarrier);
+}
+
+void BytecodeFlowGraphBuilder::BuildPushUninitializedSentinel() {
+  code_ += B->Constant(Object::sentinel());
+}
+
+void BytecodeFlowGraphBuilder::BuildJumpIfInitialized() {
+  code_ += B->Constant(Object::sentinel());
+  BuildJumpIfStrictCompare(Token::kNE);
+}
+
 void BytecodeFlowGraphBuilder::BuildLoadStatic() {
   const Constant operand = ConstantAt(DecodeOperandD());
   const auto& field = Field::Cast(operand.value());
   // All constant expressions (including access to const fields) are evaluated
   // in bytecode. However, values of injected cid fields are only available in
   // the VM. In such case, evaluate const fields with known value here.
-  if (field.is_const() && !field.has_initializer()) {
+  if (field.is_const() && !field.has_nontrivial_initializer()) {
     const auto& value = Object::ZoneHandle(Z, field.StaticValue());
     ASSERT((value.raw() != Object::sentinel().raw()) &&
            (value.raw() != Object::transition_sentinel().raw()));
     code_ += B->Constant(value);
     return;
   }
-  PushConstant(operand);
-  code_ += B->LoadStaticField();
-}
-
-static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 19,
-              "Cleanup PushStatic bytecode instruction");
-void BytecodeFlowGraphBuilder::BuildPushStatic() {
-  // Note: Field object is both pushed into the stack and
-  // available in constant pool entry D.
-  // TODO(alexmarkov): clean this up. If we stop pushing field object
-  // explicitly, we might need the following code to get it from constant
-  // pool: PushConstant(ConstantAt(DecodeOperandD()));
-
-  code_ += B->LoadStaticField();
+  code_ += B->LoadStaticField(field);
 }
 
 void BytecodeFlowGraphBuilder::BuildStoreIndexedTOS() {
@@ -1330,6 +1402,20 @@ void BytecodeFlowGraphBuilder::BuildAssertSubtype() {
       AssertSubtypeInstr(position_, instantiator_type_args, function_type_args,
                          sub_type, super_type, dst_name, B->GetNextDeoptId());
   code_ <<= instr;
+}
+
+void BytecodeFlowGraphBuilder::BuildNullCheck() {
+  if (is_generating_interpreter()) {
+    UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
+  }
+
+  const String& selector =
+      String::CheckedZoneHandle(Z, ConstantAt(DecodeOperandD()).value().raw());
+
+  LocalVariable* receiver_temp = B->MakeTemporary();
+  code_ +=
+      B->CheckNull(position_, receiver_temp, selector, /*clear_temp=*/false);
+  code_ += B->Drop();
 }
 
 void BytecodeFlowGraphBuilder::BuildJump() {
@@ -1553,7 +1639,15 @@ void BytecodeFlowGraphBuilder::BuildReturnTOS() {
   BuildDebugStepCheck();
   LoadStackSlots(1);
   ASSERT(code_.is_open());
-  code_ += B->Return(position_);
+  intptr_t yield_index = RawPcDescriptors::kInvalidYieldIndex;
+  if (function().IsAsyncClosure() || function().IsAsyncGenClosure()) {
+    if (pc_ == last_yield_point_pc_) {
+      // The return might actually be a yield point, if so we need to attach the
+      // yield index to the return instruction.
+      yield_index = last_yield_point_index_;
+    }
+  }
+  code_ += B->Return(position_, yield_index);
   ASSERT(IsStackEmpty());
 }
 
@@ -1566,19 +1660,21 @@ void BytecodeFlowGraphBuilder::BuildThrow() {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
   }
 
-  BuildDebugStepCheck();
-
   if (DecodeOperandA().value() == 0) {
     // throw
     LoadStackSlots(1);
-    code_ += B->PushArgument();
-    code_ += B->ThrowException(position_);
+    Value* exception = Pop();
+    code_ +=
+        Fragment(new (Z) ThrowInstr(position_, B->GetNextDeoptId(), exception))
+            .closed();
   } else {
     // rethrow
     LoadStackSlots(2);
-    GetArguments(2);
+    Value* stacktrace = Pop();
+    Value* exception = Pop();
     code_ += Fragment(new (Z) ReThrowInstr(position_, kInvalidTryIndex,
-                                           B->GetNextDeoptId()))
+                                           B->GetNextDeoptId(), exception,
+                                           stacktrace))
                  .closed();
   }
 
@@ -1662,7 +1758,7 @@ void BytecodeFlowGraphBuilder::BuildPrimitiveOp(
   // A DebugStepCheck is performed as part of the calling stub.
 
   LoadStackSlots(num_args);
-  const ArgumentArray arguments = GetArguments(num_args);
+  InputsArray* arguments = B->GetArguments(num_args);
 
   InstanceCallInstr* call = new (Z) InstanceCallInstr(
       position_, name, token_kind, arguments, 0, Array::null_array(), num_args,
@@ -1817,36 +1913,47 @@ void BytecodeFlowGraphBuilder::BuildFfiAsFunction() {
   code_ += B->BuildFfiAsFunctionInternalCall(type_args);
 }
 
+// Builds graph for a call to 'dart:ffi::_nativeCallbackFunction'.
+// The call-site must look like this (guaranteed by the FE which inserts it):
+//
+//   _nativeCallbackFunction<NativeSignatureType>(target, exceptionalReturn)
+//
+// Therefore the stack shall look like:
+//
+// <exceptional return value> => ensured (by FE) to be a constant
+// <target> => closure, ensured (by FE) to be a (non-partially-instantiated)
+//             static tearoff
+// <type args> => [NativeSignatureType]
+void BytecodeFlowGraphBuilder::BuildFfiNativeCallbackFunction() {
+  const TypeArguments& type_args =
+      TypeArguments::Cast(B->Peek(/*depth=*/2)->AsConstant()->value());
+  ASSERT(type_args.IsInstantiated() && type_args.Length() == 1);
+  const Function& native_sig = Function::Handle(
+      Z, Type::CheckedHandle(Z, type_args.TypeAt(0)).signature());
+
+  const Closure& target_closure =
+      Closure::Cast(B->Peek(/*depth=*/1)->AsConstant()->value());
+  ASSERT(!target_closure.IsNull());
+  Function& target = Function::Handle(Z, target_closure.function());
+  ASSERT(!target.IsNull() && target.IsImplicitClosureFunction());
+  target = target.parent_function();
+
+  const Instance& exceptional_return =
+      Instance::Cast(B->Peek(/*depth=*/0)->AsConstant()->value());
+
+  const Function& result =
+      Function::ZoneHandle(Z, compiler::ffi::NativeCallbackFunction(
+                                  native_sig, target, exceptional_return));
+  code_ += B->Constant(result);
+  code_ += B->DropTempsPreserveTop(3);
+}
+
 void BytecodeFlowGraphBuilder::BuildDebugStepCheck() {
 #if !defined(PRODUCT)
   if (build_debug_step_checks_) {
     code_ += B->DebugStepCheck(position_);
   }
 #endif  // !defined(PRODUCT)
-}
-
-static bool IsICDataEntry(const ObjectPool& object_pool, intptr_t index) {
-  if (object_pool.TypeAt(index) != ObjectPool::EntryType::kTaggedObject) {
-    return false;
-  }
-  RawObject* entry = object_pool.ObjectAt(index);
-  return entry->IsHeapObject() && entry->IsICData();
-}
-
-// Read ICData entries in object pool, skip deopt_ids and
-// pre-populate ic_data_array_.
-void BytecodeFlowGraphBuilder::ProcessICDataInObjectPool(
-    const ObjectPool& object_pool) {
-  ASSERT(thread()->compiler_state().deopt_id() == 0);
-
-  const intptr_t pool_length = object_pool.Length();
-  for (intptr_t i = 0; i < pool_length; ++i) {
-    if (IsICDataEntry(object_pool, i)) {
-      const ICData& icdata = ICData::CheckedHandle(Z, object_pool.ObjectAt(i));
-      const intptr_t deopt_id = B->GetNextDeoptId();
-      ASSERT(icdata.deopt_id() == deopt_id);
-    }
-  }
 }
 
 intptr_t BytecodeFlowGraphBuilder::GetTryIndex(const PcDescriptors& descriptors,
@@ -1894,8 +2001,7 @@ bool BytecodeFlowGraphBuilder::RequiresScratchVar(const KBCInstr* instr) {
 
     case KernelBytecode::kNativeCall:
     case KernelBytecode::kNativeCall_Wide:
-      return MethodRecognizer::RecognizeKind(function()) ==
-             MethodRecognizer::kListFactory;
+      return function().recognized_kind() == MethodRecognizer::kListFactory;
 
     default:
       return false;
@@ -1986,10 +2092,10 @@ void BytecodeFlowGraphBuilder::CollectControlFlow(
         Array::ZoneHandle(Z, handlers.GetHandledTypes(try_index));
 
     CatchBlockEntryInstr* entry = new (Z) CatchBlockEntryInstr(
-        TokenPosition::kNoSource, handler_info.is_generated,
-        B->AllocateBlockId(), handler_info.outer_try_index, graph_entry,
-        handler_types, try_index, handler_info.needs_stacktrace,
-        B->GetNextDeoptId(), nullptr, nullptr, exception_var_, stacktrace_var_);
+        handler_info.is_generated != 0, B->AllocateBlockId(),
+        handler_info.outer_try_index, graph_entry, handler_types, try_index,
+        handler_info.needs_stacktrace != 0, B->GetNextDeoptId(), nullptr,
+        nullptr, exception_var_, stacktrace_var_);
     graph_entry->AddCatchEntry(entry);
 
     code_ = Fragment(entry);
@@ -2033,8 +2139,9 @@ void BytecodeFlowGraphBuilder::CreateParameterVariables() {
   object_pool_ = bytecode.object_pool();
   bytecode_instr_ = reinterpret_cast<const KBCInstr*>(bytecode.PayloadStart());
 
+  scratch_var_ = parsed_function_->EnsureExpressionTemp();
+
   if (KernelBytecode::IsEntryOptionalOpcode(bytecode_instr_)) {
-    scratch_var_ = parsed_function_->EnsureExpressionTemp();
     AllocateParametersAndLocalsForEntryOptional();
   } else if (KernelBytecode::IsEntryOpcode(bytecode_instr_)) {
     AllocateLocalVariables(DecodeOperandD());
@@ -2045,36 +2152,104 @@ void BytecodeFlowGraphBuilder::CreateParameterVariables() {
   } else {
     UNREACHABLE();
   }
+
+  if (function().IsGeneric()) {
+    // For recognized methods we generate the IL by hand. Yet we need to find
+    // out which [LocalVariable] is holding the function type arguments. We
+    // scan the bytecode for the CheckFunctionTypeArgs bytecode.
+    //
+    // Note that we cannot add an extra local variable for the type argument
+    // in [AllocateLocalVariables]. We sometimes reuse the same ParsedFunction
+    // multiple times. For non-recognized generic bytecode functions
+    // ParsedFunction::RawTypeArgumentsVariable() is set during flow graph
+    // construction (after local variables are allocated). So the next time,
+    // if ParsedFunction is reused, we would allocate an extra local variable.
+    // TODO(alexmarkov): revise how function type args variable is allocated
+    // and avoid looking at CheckFunctionTypeArgs bytecode.
+    const KBCInstr* instr =
+        reinterpret_cast<const KBCInstr*>(bytecode.PayloadStart());
+    const KBCInstr* end = reinterpret_cast<const KBCInstr*>(
+        bytecode.PayloadStart() + bytecode.Size());
+
+    LocalVariable* type_args_var = nullptr;
+    while (instr < end) {
+      if (KernelBytecode::IsCheckFunctionTypeArgs(instr)) {
+        const intptr_t expected_num_type_args = KernelBytecode::DecodeA(instr);
+        if (expected_num_type_args > 0) {  // Exclude weird closure case.
+          type_args_var = LocalVariableAt(KernelBytecode::DecodeE(instr));
+          break;
+        }
+      }
+      instr = KernelBytecode::Next(instr);
+    }
+
+    // Every generic function *must* have a kCheckFunctionTypeArgs bytecode.
+    ASSERT(type_args_var != nullptr);
+
+    // Normally the flow graph building code of bytecode will, as a side-effect
+    // of building the flow graph, register the function type arguments variable
+    // in the [ParsedFunction] (see [BuildCheckFunctionTypeArgs]).
+    parsed_function_->set_function_type_arguments(type_args_var);
+    parsed_function_->SetRawTypeArgumentsVariable(type_args_var);
+  }
 }
 
-#if !defined(PRODUCT)
-intptr_t BytecodeFlowGraphBuilder::UpdateContextLevel(const Bytecode& bytecode,
-                                                      intptr_t pc) {
-  ASSERT(B->is_recording_context_levels());
-
-  kernel::BytecodeLocalVariablesIterator iter(Z, bytecode);
-  intptr_t context_level = 0;
-  intptr_t next_pc = bytecode_length_;
-  while (iter.MoveNext()) {
-    if (iter.IsScope()) {
-      if (iter.StartPC() <= pc) {
-        if (pc < iter.EndPC()) {
-          // Found enclosing scope. Keep looking as we might find more
-          // scopes (the last one is the most specific).
-          context_level = iter.ContextLevel();
-          next_pc = iter.EndPC();
-        }
-      } else {
-        next_pc = Utils::Minimum(next_pc, iter.StartPC());
-        break;
-      }
+intptr_t BytecodeFlowGraphBuilder::UpdateScope(
+    BytecodeLocalVariablesIterator* iter,
+    intptr_t pc) {
+  // Leave scopes that have ended.
+  while ((current_scope_ != nullptr) && (current_scope_->end_pc_ <= pc)) {
+    for (LocalVariable* local : current_scope_->hidden_vars_) {
+      local_vars_[-local->index().value()] = local;
     }
+    current_scope_ = current_scope_->parent_;
   }
 
-  B->set_context_depth(context_level);
+  // Enter scopes that have started.
+  intptr_t next_pc = bytecode_length_;
+  while (!iter->IsDone()) {
+    if (iter->IsScope()) {
+      if (iter->StartPC() > pc) {
+        next_pc = iter->StartPC();
+        break;
+      }
+      if (iter->EndPC() > pc) {
+        // Push new scope and declare its variables.
+        current_scope_ = new (Z) BytecodeScope(
+            Z, iter->EndPC(), iter->ContextLevel(), current_scope_);
+        if (!seen_parameters_scope_) {
+          // Skip variables from the first scope as it may contain variables
+          // which were used in prologue (parameters, function type arguments).
+          // The already used variables should not be replaced with new ones.
+          seen_parameters_scope_ = true;
+          iter->MoveNext();
+          continue;
+        }
+        while (iter->MoveNext() && iter->IsVariableDeclaration()) {
+          const intptr_t index = iter->Index();
+          if (!iter->IsCaptured() && (index >= 0)) {
+            LocalVariable* local = new (Z) LocalVariable(
+                TokenPosition::kNoSource, TokenPosition::kNoSource,
+                String::ZoneHandle(Z, iter->Name()),
+                AbstractType::ZoneHandle(Z, iter->Type()));
+            local->set_index(VariableIndex(-index));
+            ASSERT(local_vars_[index]->index().value() == -index);
+            current_scope_->hidden_vars_.Add(local_vars_[index]);
+            local_vars_[index] = local;
+          }
+        }
+        continue;
+      }
+    }
+    iter->MoveNext();
+  }
+  if (current_scope_ != nullptr && next_pc > current_scope_->end_pc_) {
+    next_pc = current_scope_->end_pc_;
+  }
+  B->set_context_depth(
+      current_scope_ != nullptr ? current_scope_->context_level_ : 0);
   return next_pc;
 }
-#endif  // !defined(PRODUCT)
 
 FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
   const Bytecode& bytecode = Bytecode::Handle(Z, function().bytecode());
@@ -2082,8 +2257,6 @@ FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
   object_pool_ = bytecode.object_pool();
   raw_bytecode_ = reinterpret_cast<const KBCInstr*>(bytecode.PayloadStart());
   bytecode_length_ = bytecode.Size() / sizeof(KBCInstr);
-
-  ProcessICDataInObjectPool(object_pool_);
 
   graph_entry_ = new (Z) GraphEntryInstr(*parsed_function_, B->osr_id_);
 
@@ -2097,13 +2270,15 @@ FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
 
   CollectControlFlow(descriptors, handlers, graph_entry_);
 
+  inferred_types_attribute_ ^= BytecodeReader::GetBytecodeAttribute(
+      function(), Symbols::vm_inferred_type_metadata());
+
   kernel::BytecodeSourcePositionsIterator source_pos_iter(Z, bytecode);
   bool update_position = source_pos_iter.MoveNext();
 
-#if !defined(PRODUCT)
-  intptr_t next_pc_to_update_context_level =
-      B->is_recording_context_levels() ? 0 : bytecode_length_;
-#endif
+  kernel::BytecodeLocalVariablesIterator local_vars_iter(Z, bytecode);
+  intptr_t next_pc_to_update_scope =
+      local_vars_iter.MoveNext() ? 0 : bytecode_length_;
 
   code_ = Fragment(normal_entry);
 
@@ -2125,6 +2300,7 @@ FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
         B->stack_ = stack_state;
       }
       code_ = Fragment(join);
+      join->set_stack_depth(B->GetStackDepth());
       B->SetCurrentTryIndex(join->try_index());
     } else {
       // Unreachable bytecode is not allowed.
@@ -2134,14 +2310,16 @@ FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
     while (update_position &&
            static_cast<uword>(pc_) >= source_pos_iter.PcOffset()) {
       position_ = source_pos_iter.TokenPos();
+      if (source_pos_iter.IsYieldPoint()) {
+        last_yield_point_pc_ = source_pos_iter.PcOffset();
+        ++last_yield_point_index_;
+      }
       update_position = source_pos_iter.MoveNext();
     }
 
-#if !defined(PRODUCT)
-    if (pc_ >= next_pc_to_update_context_level) {
-      next_pc_to_update_context_level = UpdateContextLevel(bytecode, pc_);
+    if (pc_ >= next_pc_to_update_scope) {
+      next_pc_to_update_scope = UpdateScope(&local_vars_iter, pc_);
     }
-#endif
 
     BuildInstruction(KernelBytecode::DecodeOpcode(bytecode_instr_));
 

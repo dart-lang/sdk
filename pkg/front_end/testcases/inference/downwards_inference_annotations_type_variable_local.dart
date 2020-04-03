@@ -11,8 +11,8 @@ class Foo {
 
 void test() {
   void f<@Foo(/*@ typeArgs=String* */ const []) T>() {}
-  var /*@ type=<@Foo::•(const <String*>[]) T extends Object* = dynamic>() ->* Null* */ x =
-      <@Foo(/*@ typeArgs=String* */ const []) T> /*@ returnType=Null* */ () {};
+  var /*@ type=<T extends Object* = dynamic>() ->* Null? */ x =
+      <@Foo(/*@ typeArgs=String* */ const []) T> /*@ returnType=Null? */ () {};
 }
 
 main() {}

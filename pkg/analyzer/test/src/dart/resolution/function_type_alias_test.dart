@@ -17,17 +17,15 @@ main() {
 @reflectiveTest
 class FunctionTypeAliasResolutionTest extends DriverResolutionTest {
   test_type_element() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 G<int> g;
 
 typedef T G<T>();
 ''');
-    await resolveTestFile();
-
     FunctionType type = findElement.topVar('g').type;
-    assertElementTypeString(type, 'int Function()');
+    assertType(type, 'int Function()');
 
-    var typedefG = findElement.genericTypeAlias('G');
+    var typedefG = findElement.functionTypeAlias('G');
     var functionG = typedefG.function;
 
     expect(type.element, functionG);

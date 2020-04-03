@@ -39,13 +39,13 @@ class M extends core::Object {
     ;
   method foo() → dynamic {}
 }
-class N extends core::Object implements self::M {
+class N extends core::Object implements self::M /*isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::N*
     : super core::Object::•()
     ;
   method foo() → dynamic {}
 }
-abstract class _C&Object&N extends core::Object implements self::N {
+abstract class _C&Object&N extends core::Object implements self::N /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_C&Object&N*
     : super core::Object::•()
     ;
@@ -62,19 +62,19 @@ abstract class M2 extends core::Object implements self::M {
     ;
   method bar() → dynamic {}
 }
-class N2 extends core::Object implements self::M2 {
+class N2 extends core::Object implements self::M2 /*isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::N2*
     : super core::Object::•()
     ;
   method bar() → dynamic {}
 }
-abstract class N3 extends core::Object implements self::M2 {
+abstract class N3 extends core::Object implements self::M2 /*isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::N3*
     : super core::Object::•()
     ;
   method bar() → dynamic {}
 }
-abstract class _C2&Object&M2 extends core::Object implements self::M2 {
+abstract class _C2&Object&M2 extends core::Object implements self::M2 /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_C2&Object&M2*
     : super core::Object::•()
     ;
@@ -85,7 +85,7 @@ class C2 extends self::_C2&Object&M2 {
     : super self::_C2&Object&M2::•()
     ;
 }
-abstract class _C3&Object&M2 extends core::Object implements self::M2 {
+abstract class _C3&Object&M2 extends core::Object implements self::M2 /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_C3&Object&M2*
     : super core::Object::•()
     ;

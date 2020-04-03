@@ -42,7 +42,7 @@ class EvictingFileByteStore implements ByteStore {
   bool _evictionIsolateIsRunning = false;
 
   EvictingFileByteStore(this._cachePath, this._maxSizeBytes)
-      : _fileByteStore = new FileByteStore(_cachePath) {
+      : _fileByteStore = FileByteStore(_cachePath) {
     _requestCacheCleanUp();
   }
 
@@ -65,21 +65,21 @@ class EvictingFileByteStore implements ByteStore {
   Future<void> _requestCacheCleanUp() async {
     if (_cleanUpSendPortShouldBePrepared) {
       _cleanUpSendPortShouldBePrepared = false;
-      ReceivePort response = new ReceivePort();
+      ReceivePort response = ReceivePort();
       await Isolate.spawn(_cacheCleanUpFunction, response.sendPort);
       _cleanUpSendPort = await response.first as SendPort;
     } else {
       while (_cleanUpSendPort == null) {
-        await new Future.delayed(new Duration(milliseconds: 100), () {});
+        await Future.delayed(Duration(milliseconds: 100), () {});
       }
     }
 
     if (!_evictionIsolateIsRunning) {
       _evictionIsolateIsRunning = true;
       try {
-        ReceivePort response = new ReceivePort();
-        _cleanUpSendPort.send(new CacheCleanUpRequest(
-            _cachePath, _maxSizeBytes, response.sendPort));
+        ReceivePort response = ReceivePort();
+        _cleanUpSendPort.send(
+            CacheCleanUpRequest(_cachePath, _maxSizeBytes, response.sendPort));
         await response.first;
       } finally {
         _evictionIsolateIsRunning = false;
@@ -94,7 +94,7 @@ class EvictingFileByteStore implements ByteStore {
    */
   static void _cacheCleanUpFunction(message) {
     SendPort initialReplyTo = message;
-    ReceivePort port = new ReceivePort();
+    ReceivePort port = ReceivePort();
     initialReplyTo.send(port.sendPort);
     port.listen((request) {
       if (request is CacheCleanUpRequest) {
@@ -111,7 +111,7 @@ class EvictingFileByteStore implements ByteStore {
     Map<File, FileStat> fileStatMap = {};
     int currentSizeBytes = 0;
     List<FileSystemEntity> resources =
-        new Directory(cachePath).listSync(recursive: true);
+        Directory(cachePath).listSync(recursive: true);
     for (FileSystemEntity resource in resources) {
       if (resource is File) {
         try {
@@ -148,19 +148,19 @@ class EvictingFileByteStore implements ByteStore {
  * [ByteStore] that stores values as files.
  */
 class FileByteStore implements ByteStore {
-  static final FileByteStoreValidator _validator = new FileByteStoreValidator();
+  static final FileByteStoreValidator _validator = FileByteStoreValidator();
   static final _dotCodeUnit = '.'.codeUnitAt(0);
 
   final String _cachePath;
   final String _tempSuffix;
   final Map<String, List<int>> _writeInProgress = {};
-  final FuturePool _pool = new FuturePool(20);
+  final FuturePool _pool = FuturePool(20);
 
   /**
    * If the same cache path is used from more than one isolate of the same
    * process, then a unique [tempNameSuffix] must be provided for each isolate.
    */
-  FileByteStore(this._cachePath, {String tempNameSuffix: ''})
+  FileByteStore(this._cachePath, {String tempNameSuffix = ''})
       : _tempSuffix =
             '-temp-$pid${tempNameSuffix.isEmpty ? '' : '-$tempNameSuffix'}';
 
@@ -176,7 +176,7 @@ class FileByteStore implements ByteStore {
     try {
       var shardPath = _getShardPath(key);
       var path = join(shardPath, key);
-      var bytes = new File(path).readAsBytesSync();
+      var bytes = File(path).readAsBytesSync();
       return _validator.getData(bytes);
     } catch (_) {
       // ignore exceptions
@@ -195,7 +195,7 @@ class FileByteStore implements ByteStore {
     // We don't wait for the write and rename to complete.
     _pool.execute(() {
       var tempPath = join(_cachePath, '$key$_tempSuffix');
-      var tempFile = new File(tempPath);
+      var tempFile = File(tempPath);
       return tempFile.writeAsBytes(wrappedBytes).then((_) {
         var shardPath = _getShardPath(key);
         return Directory(shardPath).create(recursive: true).then((_) {
@@ -233,7 +233,7 @@ class FileByteStore implements ByteStore {
  * version and the checksum to data.
  */
 class FileByteStoreValidator {
-  static const List<int> _VERSION = const [0x01, 0x00];
+  static const List<int> _VERSION = [0x01, 0x00];
 
   /**
    * If the [rawBytes] have the valid version and checksum, extract and
@@ -269,7 +269,7 @@ class FileByteStoreValidator {
    */
   List<int> wrapData(List<int> data) {
     int len = data.length;
-    var bytes = new Uint8List(len + 4);
+    var bytes = Uint8List(len + 4);
 
     // Put the data.
     bytes.setRange(0, len, data);

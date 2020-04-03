@@ -3,15 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
-import 'resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -20,10 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class OptionalConstDriverResolutionTest extends DriverResolutionTest
-    with OptionalConstMixin {}
-
-mixin OptionalConstMixin implements ResolutionTest {
+class OptionalConstDriverResolutionTest extends DriverResolutionTest {
   Map<String, LibraryElement> libraries = {};
 
   LibraryElement get libraryA => libraries['package:test/a.dart'];
@@ -168,12 +161,8 @@ const x = p.C<int>();
   }
 
   ImportElement _importOfA() {
-    if (AnalysisDriver.useSummary2) {
-      var importOfB = findElement.import('package:test/b.dart');
-      return importOfB.importedLibrary.imports[0];
-    } else {
-      return null;
-    }
+    var importOfB = findElement.import('package:test/b.dart');
+    return importOfB.importedLibrary.imports[0];
   }
 
   Future<InstanceCreationExpression> _resolveImplicitConst(String expr,
@@ -201,21 +190,16 @@ const a = $expr;
 ''');
     }
 
-    addTestFile(r'''
+    await resolveTestCode(r'''
 import 'b.dart';
 var v = a;
 ''');
-    await resolveTestFile();
     _fillLibraries();
 
     PropertyAccessorElement vg = findNode.simple('a;').staticElement;
     var v = vg.variable as ConstVariableElement;
 
     InstanceCreationExpression creation = v.constantInitializer;
-    if (!AnalysisDriver.useSummary2) {
-      expect(creation.keyword.keyword, Keyword.CONST);
-    }
-
     return creation;
   }
 }

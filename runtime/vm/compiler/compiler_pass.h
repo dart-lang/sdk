@@ -27,6 +27,7 @@ namespace dart {
   V(Canonicalize)                                                              \
   V(ComputeSSA)                                                                \
   V(ConstantPropagation)                                                       \
+  V(DCE)                                                                       \
   V(DSE)                                                                       \
   V(EliminateDeadPhis)                                                         \
   V(EliminateEnvironments)                                                     \
@@ -40,14 +41,16 @@ namespace dart {
   V(OptimizeTypedDataAccesses)                                                 \
   V(RangeAnalysis)                                                             \
   V(ReorderBlocks)                                                             \
+  V(RoundTripSerialization)                                                    \
   V(SelectRepresentations)                                                     \
   V(SerializeGraph)                                                            \
   V(SetOuterInliningId)                                                        \
   V(TryCatchOptimization)                                                      \
   V(TryOptimizePatterns)                                                       \
   V(TypePropagation)                                                           \
+  V(UseTableDispatch)                                                          \
   V(WidenSmiToInt32)                                                           \
-  V(WriteBarrierElimination)
+  V(EliminateWriteBarriers)
 
 class AllocationSinking;
 class BlockScheduler;
@@ -65,18 +68,20 @@ struct CompilerPassState {
                     SpeculativeInliningPolicy* speculative_policy,
                     Precompiler* precompiler = NULL)
       : thread(thread),
-        flow_graph(flow_graph),
         precompiler(precompiler),
         inlining_depth(0),
         sinking(NULL),
         call_specializer(NULL),
         speculative_policy(speculative_policy),
         reorder_blocks(false),
-        sticky_flags(0) {
-  }
+        sticky_flags(0),
+        flow_graph_(flow_graph) {}
+
+  FlowGraph* flow_graph() const { return flow_graph_; }
+
+  void set_flow_graph(FlowGraph* flow_graph);
 
   Thread* const thread;
-  FlowGraph* const flow_graph;
   Precompiler* const precompiler;
   int inlining_depth;
   AllocationSinking* sinking;
@@ -96,6 +101,9 @@ struct CompilerPassState {
   bool reorder_blocks;
 
   intptr_t sticky_flags;
+
+ private:
+  FlowGraph* flow_graph_;
 };
 
 class CompilerPass {
@@ -146,11 +154,26 @@ class CompilerPass {
 
   static void RunInliningPipeline(PipelineMode mode, CompilerPassState* state);
 
-  static void RunPipeline(PipelineMode mode, CompilerPassState* state);
-
-  static void RunPipelineWithPasses(
+  // RunPipeline(WithPasses) may have the side effect of changing the FlowGraph
+  // stored in the CompilerPassState. However, existing callers may depend on
+  // the old invariant that the FlowGraph stored in the CompilerPassState was
+  // always updated, never entirely replaced.
+  //
+  // To make sure callers are updated properly, these methods also return
+  // the final FlowGraph and we add a check that callers use this result.
+  DART_WARN_UNUSED_RESULT
+  static FlowGraph* RunPipeline(PipelineMode mode, CompilerPassState* state);
+  DART_WARN_UNUSED_RESULT
+  static FlowGraph* RunPipelineWithPasses(
       CompilerPassState* state,
       std::initializer_list<CompilerPass::Id> passes);
+
+  // Pipeline which is used for "force-optimized" functions.
+  //
+  // Must not include speculative or inter-procedural optimizations.
+  DART_WARN_UNUSED_RESULT
+  static FlowGraph* RunForceOptimizedPipeline(PipelineMode mode,
+                                              CompilerPassState* state);
 
  protected:
   // This function executes the pass. If it returns true then

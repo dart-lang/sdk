@@ -3,16 +3,15 @@
 # BSD-style license that can be found in the LICENSE.md file.
 
 main.dart.patch: |
-  <<<< "error"
+  <<<< []
   ==== {"messages":[],"hasCompileTimeError":1}
   test({b}) {
     if (?b) return b;
   }
   >>>>
   main() {
-    try {
-      test(b: 2);
-    } catch (e) {
-      print("error");
-    }
+  <<<<
+  ====
+    test(b: 2);
+  >>>>
   }

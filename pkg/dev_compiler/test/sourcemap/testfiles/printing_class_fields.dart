@@ -5,7 +5,7 @@
 /*Debugger:stepOver*/
 void main() {
   /*bl*/
-  /*sl:1*/ Foo foo = Foo(1, 2);
+  /*sl:1*/ var foo = Foo(1, 2);
   /*sl:2*/ print(foo.x);
   /*sl:3*/ print(foo.y);
   /*sl:4*/ print(foo.z);
@@ -17,9 +17,9 @@ void main() {
 }
 
 class Foo {
-  var x, y, z;
+  int x, y, z;
 
-  Foo(a, b)
+  Foo(int a, int b)
       : this.x = a,
         this.y = b {
     z = a + b;

@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
-import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -17,17 +16,11 @@ main() {
 
 @reflectiveTest
 class ApiSignatureTest {
-  ApiSignature sig = new ApiSignature.unversioned();
+  ApiSignature sig = ApiSignature.unversioned();
 
   void checkBytes(List<int> bytes) {
     expect(sig.getBytes_forDebug(), bytes);
     expect(sig.toHex(), hex.encode(md5.convert(bytes).bytes));
-  }
-
-  String signUnlinkedCombinator(UnlinkedCombinatorBuilder combinator) {
-    ApiSignature sig = new ApiSignature();
-    combinator.collectApiSignature(sig);
-    return sig.toHex();
   }
 
   void test_addBool() {
@@ -68,30 +61,6 @@ class ApiSignatureTest {
     sig.addString('abc');
     sig.addString('\u00f8');
     checkBytes([3, 0, 0, 0, 0x61, 0x62, 0x63, 2, 0, 0, 0, 0xc3, 0xb8]);
-  }
-
-  void test_excludesInformative() {
-    // Verify that API signatures exclude informative data by checking that two
-    // UnlinkedCombinator instances that differ only in their offset result in
-    // the same signature.
-    UnlinkedCombinatorBuilder combinator1 =
-        new UnlinkedCombinatorBuilder(shows: ['foo'], offset: 1);
-    UnlinkedCombinatorBuilder combinator2 =
-        new UnlinkedCombinatorBuilder(shows: ['foo'], offset: 2);
-    expect(signUnlinkedCombinator(combinator1),
-        signUnlinkedCombinator(combinator2));
-  }
-
-  void test_includesSemantic() {
-    // Verify that API signatures include semantic data by checking that two
-    // UnlinkedCombinator instances that differ only in their "shows" lists
-    // result in different signatures.
-    UnlinkedCombinatorBuilder combinator1 =
-        new UnlinkedCombinatorBuilder(shows: ['foo'], offset: 1);
-    UnlinkedCombinatorBuilder combinator2 =
-        new UnlinkedCombinatorBuilder(shows: ['bar'], offset: 1);
-    expect(signUnlinkedCombinator(combinator1),
-        isNot(signUnlinkedCombinator(combinator2)));
   }
 
   void test_manyInts() {

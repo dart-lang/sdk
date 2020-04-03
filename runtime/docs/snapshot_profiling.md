@@ -6,7 +6,7 @@ The VM supports profiling the size of AOT snapshots by leveraging the object-gra
 
 To generate a snapshot profile, simply pass the `--write-v8-snapshot-profile-to=<filename>` flag to `gen_snapshot`.
 The profile will be written in JSON format to the requested file.
-Make sure to use the ".heapsnaphsot" extension for the file to open it in Chrome DevTools.
+Make sure to use the ".heapsnapshot" extension for the file to open it in Chrome DevTools.
 
 ## Examining a profile in Chrome
 

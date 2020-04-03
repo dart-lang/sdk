@@ -8,15 +8,17 @@ import 'dart:io' as io;
 class Context {
   String get workingDir => io.Directory.current.path;
 
-  bool exists(String filePath) =>
-      io.FileSystemEntity.typeSync(filePath) !=
-      io.FileSystemEntityType.notFound;
+  bool exists(String filePath) {
+    return io.FileSystemEntity.typeSync(filePath) !=
+        io.FileSystemEntityType.notFound;
+  }
 
   void exit(int code) {
     io.exit(code);
   }
 
-  bool isDirectory(String filePath) =>
-      io.FileSystemEntity.typeSync(filePath) ==
-      io.FileSystemEntityType.directory;
+  bool isDirectory(String filePath) {
+    return io.FileSystemEntity.typeSync(filePath) ==
+        io.FileSystemEntityType.directory;
+  }
 }

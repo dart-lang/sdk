@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CreateNoSuchMethodTest);
   });
@@ -19,7 +19,7 @@ class CreateNoSuchMethodTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CREATE_NO_SUCH_METHOD;
 
-  test_class() async {
+  Future<void> test_class() async {
     await resolveTestUnit('''
 abstract class A {
   m1();
@@ -44,7 +44,7 @@ class B extends A {
 ''');
   }
 
-  test_classTypeAlias() async {
+  Future<void> test_classTypeAlias() async {
     await resolveTestUnit('''
 abstract class A {
   m();

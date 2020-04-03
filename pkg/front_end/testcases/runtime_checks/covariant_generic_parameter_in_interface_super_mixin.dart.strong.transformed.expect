@@ -19,7 +19,7 @@ class M extends core::Object {
     : super core::Object::•()
     ;
 }
-class C extends self::B implements self::I<core::int*>, self::M {
+class C extends self::B implements self::I<core::int*>, self::M /*isEliminatedMixin*/  {
   synthetic constructor •() → self::C*
     : super self::B::•()
     ;
@@ -27,7 +27,7 @@ class C extends self::B implements self::I<core::int*>, self::M {
     return super.{self::B::f}(x);
 }
 static method g1(self::C* c) → void {
-  c.{self::B::f}(1);
+  c.{self::C::f}(1);
 }
 static method g2(self::I<core::num*>* i) → void {
   i.{self::I::f}(1.5);

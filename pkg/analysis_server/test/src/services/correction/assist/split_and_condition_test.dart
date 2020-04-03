@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SplitAndConditionTest);
   });
@@ -19,7 +19,7 @@ class SplitAndConditionTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.SPLIT_AND_CONDITION;
 
-  test_hasElse() async {
+  Future<void> test_hasElse() async {
     await resolveTestUnit('''
 main() {
   if (1 == 1 && 2 == 2) {
@@ -32,7 +32,7 @@ main() {
     await assertNoAssistAt('&& 2');
   }
 
-  test_innerAndExpression() async {
+  Future<void> test_innerAndExpression() async {
     await resolveTestUnit('''
 main() {
   if (1 == 1 && 2 == 2 && 3 == 3) {
@@ -51,7 +51,7 @@ main() {
 ''');
   }
 
-  test_notAnd() async {
+  Future<void> test_notAnd() async {
     await resolveTestUnit('''
 main() {
   if (1 == 1 || 2 == 2) {
@@ -62,7 +62,7 @@ main() {
     await assertNoAssistAt('|| 2');
   }
 
-  test_notOnOperator() async {
+  Future<void> test_notOnOperator() async {
     await resolveTestUnit('''
 main() {
   if (1 == 1 && 2 == 2) {
@@ -74,7 +74,7 @@ main() {
     await assertNoAssistAt('main() {');
   }
 
-  test_notPartOfIf() async {
+  Future<void> test_notPartOfIf() async {
     await resolveTestUnit('''
 main() {
   print(1 == 1 && 2 == 2);
@@ -83,7 +83,7 @@ main() {
     await assertNoAssistAt('&& 2');
   }
 
-  test_notTopLevelAnd() async {
+  Future<void> test_notTopLevelAnd() async {
     await resolveTestUnit('''
 main() {
   if (true || (1 == 1 && 2 == 2)) {
@@ -98,7 +98,7 @@ main() {
     await assertNoAssistAt('&& 4');
   }
 
-  test_selectionTooLarge() async {
+  Future<void> test_selectionTooLarge() async {
     await resolveTestUnit('''
 main() {
   if (1 == 1
@@ -115,7 +115,7 @@ main() {
     await assertNoAssist();
   }
 
-  test_thenBlock() async {
+  Future<void> test_thenBlock() async {
     await resolveTestUnit('''
 main() {
   if (true && false) {
@@ -140,7 +140,7 @@ main() {
 ''');
   }
 
-  test_thenStatement() async {
+  Future<void> test_thenStatement() async {
     await resolveTestUnit('''
 main() {
   if (true && false)

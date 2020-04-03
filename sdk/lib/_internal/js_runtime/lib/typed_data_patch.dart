@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 import 'dart:_js_helper' show patch;
 import 'dart:_native_typed_data';
 
@@ -99,12 +101,12 @@ class Uint8List {
 class Int64List {
   @patch
   factory Int64List(int length) {
-    throw new UnsupportedError("Int64List not supported by dart2js.");
+    throw UnsupportedError("Int64List not supported on the web.");
   }
 
   @patch
   factory Int64List.fromList(List<int> elements) {
-    throw new UnsupportedError("Int64List not supported by dart2js.");
+    throw UnsupportedError("Int64List not supported on the web.");
   }
 }
 
@@ -112,12 +114,12 @@ class Int64List {
 class Uint64List {
   @patch
   factory Uint64List(int length) {
-    throw new UnsupportedError("Uint64List not supported by dart2js.");
+    throw UnsupportedError("Uint64List not supported on the web.");
   }
 
   @patch
   factory Uint64List.fromList(List<int> elements) {
-    throw new UnsupportedError("Uint64List not supported by dart2js.");
+    throw UnsupportedError("Uint64List not supported on the web.");
   }
 }
 

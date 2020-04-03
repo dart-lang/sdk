@@ -12,6 +12,9 @@ class CachingFileProvider implements FileProvider {
   final Map<Uri, String> _sources = {};
   final Map<Uri, SourceFile> _files = {};
   final Map<Uri, Dart2jsMapping> _mappings = {};
+  final Logger logger;
+
+  CachingFileProvider({this.logger});
 
   String sourcesFor(Uri uri) =>
       _sources[uri] ??= new File.fromUri(uri).readAsStringSync();
@@ -19,7 +22,8 @@ class CachingFileProvider implements FileProvider {
   SourceFile fileFor(Uri uri) =>
       _files[uri] ??= new SourceFile.fromString(sourcesFor(uri));
 
-  Dart2jsMapping mappingFor(Uri uri) => _mappings[uri] ??= parseMappingFor(uri);
+  Dart2jsMapping mappingFor(Uri uri) =>
+      _mappings[uri] ??= parseMappingFor(uri, logger: logger);
 }
 
 /// A provider that converts `http:` URLs to a `file:` URI assuming that all
@@ -43,10 +47,13 @@ class DownloadedFileProvider extends CachingFileProvider {
   Dart2jsMapping mappingFor(Uri uri) => super.mappingFor(_localize(uri));
 }
 
-warn(String message) {
-  if (_seenMessages.add(message)) {
-    print(message);
+class Logger {
+  Set<String> _seenMessages = new Set<String>();
+  log(String message) {
+    if (_seenMessages.add(message)) {
+      print(message);
+    }
   }
 }
 
-Set<String> _seenMessages = new Set<String>();
+var logger = Logger();

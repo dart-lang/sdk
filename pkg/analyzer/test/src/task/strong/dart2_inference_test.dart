@@ -4,15 +4,14 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/resolver_test_case.dart';
-import '../../../generated/test_support.dart';
+import '../../dart/resolution/driver_resolution.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -24,42 +23,35 @@ void main() {
 ///
 /// https://github.com/dart-lang/sdk/issues/31638
 @reflectiveTest
-class Dart2InferenceTest extends ResolverTestCase {
-  @override
-  AnalysisOptions get defaultAnalysisOptions => new AnalysisOptionsImpl();
-
+class Dart2InferenceTest extends DriverResolutionTest {
   test_bool_assert() async {
     var code = r'''
-T f<T>() => null;
+T f<T>(int _) => null;
 
 main() {
-  assert(f()); // 1
-  assert(f(), f()); // 2
+  assert(f(1));
+  assert(f(2), f(3));
 }
 
 class C {
-  C() : assert(f()), // 3
-        assert(f(), f()); // 4
+  C() : assert(f(4)),
+        assert(f(5), f(6));
 }
 ''';
-    var source = addSource(code);
-    var analysisResult = await computeAnalysisResult(source);
-    var unit = analysisResult.unit;
-
-    String getType(String prefix) {
-      var invocation = _findMethodInvocation(unit, code, prefix);
-      return invocation.staticInvokeType.toString();
+    await resolveTestCode(code);
+    MethodInvocation invocation(String search) {
+      return findNode.methodInvocation(search);
     }
 
-    expect(getType('f()); // 1'), 'bool Function()');
+    assertInvokeType(invocation('f(1));'), 'bool Function(int)');
 
-    expect(getType('f(), '), 'bool Function()');
-    expect(getType('f()); // 2'), 'dynamic Function()');
+    assertInvokeType(invocation('f(2)'), 'bool Function(int)');
+    assertInvokeType(invocation('f(3)'), 'dynamic Function(int)');
 
-    expect(getType('f()), // 3'), 'bool Function()');
+    assertInvokeType(invocation('f(4)'), 'bool Function(int)');
 
-    expect(getType('f(), '), 'bool Function()');
-    expect(getType('f()); // 4'), 'dynamic Function()');
+    assertInvokeType(invocation('f(5)'), 'bool Function(int)');
+    assertInvokeType(invocation('f(6)'), 'dynamic Function(int)');
   }
 
   test_bool_logical() async {
@@ -74,13 +66,10 @@ main() {
   var v2 = f() && f(); // 4
 }
 ''';
-    var source = addSource(code);
-    var analysisResult = await computeAnalysisResult(source);
-    var unit = analysisResult.unit;
-
+    await resolveTestCode(code);
     void assertType(String prefix) {
-      var invocation = _findMethodInvocation(unit, code, prefix);
-      expect(invocation.staticInvokeType.toString(), 'bool Function()');
+      var invocation = findNode.methodInvocation(prefix);
+      assertInvokeType(invocation, 'bool Function()');
     }
 
     assertType('f() || f(); // 1');
@@ -105,13 +94,10 @@ main() {
   for (; f(); ) {} // 4
 }
 ''';
-    var source = addSource(code);
-    var analysisResult = await computeAnalysisResult(source);
-    var unit = analysisResult.unit;
-
+    await resolveTestCode(code);
     void assertType(String prefix) {
-      var invocation = _findMethodInvocation(unit, code, prefix);
-      expect(invocation.staticInvokeType.toString(), 'bool Function()');
+      var invocation = findNode.methodInvocation(prefix);
+      assertInvokeType(invocation, 'bool Function()');
     }
 
     assertType('f()) {} // 1');
@@ -127,12 +113,9 @@ void main() {
   g = () => 42;
 }
 ''';
-    var source = addSource(code);
-    var analysisResult = await computeAnalysisResult(source);
-    var unit = analysisResult.unit;
-
-    Expression closure = _findExpression(unit, code, '() => 42');
-    expect(closure.staticType.toString(), 'List<int> Function()');
+    await resolveTestCode(code);
+    Expression closure = findNode.expression('() => 42');
+    assertType(closure, 'List<int> Function()');
   }
 
   test_closure_downwardReturnType_block() async {
@@ -144,16 +127,13 @@ void main() {
   };
 }
 ''';
-    var source = addSource(code);
-    var analysisResult = await computeAnalysisResult(source);
-    var unit = analysisResult.unit;
-
-    Expression closure = _findExpression(unit, code, '() { // mark');
-    expect(closure.staticType.toString(), 'List<int> Function()');
+    await resolveTestCode(code);
+    Expression closure = findNode.expression('() { // mark');
+    assertType(closure, 'List<int> Function()');
   }
 
   test_compoundAssignment_index() async {
-    var code = r'''
+    await resolveTestCode(r'''
 int getInt() => 0;
 num getNum() => 0;
 double getDouble() => 0.0;
@@ -273,15 +253,12 @@ void test9(Test<double, double> t) {
   var /*@type=double*/ v10 = ++t['x'];
   var /*@type=double*/ v11 = t['x']++;
 }
-''';
-    var source = addSource(code);
-    var analysisResult = await computeAnalysisResult(source);
-    var unit = analysisResult.unit;
-    _assertTypeAnnotations(code, unit);
+''');
+    _assertTypeAnnotations();
   }
 
   test_compoundAssignment_prefixedIdentifier() async {
-    var code = r'''
+    await assertErrorsInCode(r'''
 int getInt() => 0;
 num getNum() => 0;
 double getDouble() => 0.0;
@@ -355,13 +332,59 @@ void test9(Test<double, double> t) {
   var /*@type=double*/ v10 = ++t.x;
   var /*@type=double*/ v11 = t.x++;
 }
-''';
-    var source = addSource(code);
-    var analysisResult = await computeAnalysisResult(source);
-    assertNoErrors(source);
-
-    var unit = analysisResult.unit;
-    _assertTypeAnnotations(code, unit);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 189, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 230, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 271, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 314, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 357, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 399, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 441, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 474, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 541, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 582, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 626, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 670, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 713, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 756, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 802, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 844, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 889, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 934, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 967, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1034, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1075, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1119, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1163, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1206, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1249, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1295, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1337, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1379, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1424, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1457, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1527, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1568, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1612, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1656, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1699, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1745, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1794, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1839, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1884, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1932, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1968, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2041, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2085, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2129, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2175, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2224, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2269, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2314, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2362, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2398, 3),
+    ]);
+    _assertTypeAnnotations();
   }
 
   test_compoundAssignment_propertyAccess() async {
@@ -370,7 +393,7 @@ void test9(Test<double, double> t) {
     var t5 = 'new Test<num, num>()';
     var t8 = 'new Test<double, num>()';
     var t9 = 'new Test<double, double>()';
-    var code = '''
+    await assertErrorsInCode('''
 int getInt() => 0;
 num getNum() => 0;
 double getDouble() => 0.0;
@@ -444,17 +467,63 @@ void test9() {
   var /*@type=double*/ v10 = ++$t9.x;
   var /*@type=double*/ v11 = $t9.x++;
 }
-''';
-    var source = addSource(code);
-    var analysisResult = await computeAnalysisResult(source);
-    assertNoErrors(source);
-
-    var unit = analysisResult.unit;
-    _assertTypeAnnotations(code, unit);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 173, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 233, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 293, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 355, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 417, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 478, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 539, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 591, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 661, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 721, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 784, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 847, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 909, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 971, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1036, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1097, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1161, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1225, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1277, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1347, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1407, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1470, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1533, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1595, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1657, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1722, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1783, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1844, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1908, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1960, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2030, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2093, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2159, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2225, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2290, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2358, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2429, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2496, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2563, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2633, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2691, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2764, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2833, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2902, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2973, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 3047, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 3117, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 3187, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 3260, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 3321, 3),
+    ]);
+    _assertTypeAnnotations();
   }
 
   test_compoundAssignment_simpleIdentifier() async {
-    var code = r'''
+    await assertErrorsInCode(r'''
 int getInt() => 0;
 num getNum() => 0;
 double getDouble() => 0.0;
@@ -538,17 +607,63 @@ class Test9 extends Test<double, double> {
     var /*@type=double*/ v11 = x++;
   }
 }
-''';
-    var source = addSource(code);
-    var analysisResult = await computeAnalysisResult(source);
-    assertNoErrors(source);
-
-    var unit = analysisResult.unit;
-    _assertTypeAnnotations(code, unit);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 214, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 255, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 296, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 339, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 382, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 424, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 466, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 499, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 593, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 634, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 678, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 722, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 765, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 808, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 854, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 896, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 941, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 986, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1019, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1113, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1154, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1198, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1242, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1285, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1328, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1374, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1416, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1458, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1503, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1536, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1633, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1674, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1718, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1762, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1805, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1851, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1900, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1945, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1990, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2038, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2074, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2174, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2218, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2262, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2308, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2357, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2402, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2447, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2495, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2531, 3),
+    ]);
+    _assertTypeAnnotations();
   }
 
   test_compoundAssignment_simpleIdentifier_topLevel() async {
-    var code = r'''
+    await assertErrorsInCode(r'''
 class A {}
 
 class B extends A {
@@ -562,13 +677,10 @@ void set topLevel(A value) {}
 main() {
   var /*@type=B*/ v = topLevel += 1;
 }
-''';
-    var source = addSource(code);
-    var analysisResult = await computeAnalysisResult(source);
-    assertNoErrors(source);
-
-    var unit = analysisResult.unit;
-    _assertTypeAnnotations(code, unit);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 152, 1),
+    ]);
+    _assertTypeAnnotations();
   }
 
   test_forIn_identifier() async {
@@ -592,20 +704,17 @@ class C {
     for (aTopLevelSetter in f()) {} // top setter
   }
 }''';
-    var source = addSource(code);
-    var analysisResult = await computeAnalysisResult(source);
-    var unit = analysisResult.unit;
-
-    void assertType(String prefix) {
-      var invocation = _findMethodInvocation(unit, code, prefix);
-      expect(invocation.staticType.toString(), 'Iterable<A>');
+    await resolveTestCode(code);
+    void assertInvocationType(String prefix) {
+      var invocation = findNode.methodInvocation(prefix);
+      assertType(invocation, 'Iterable<A>');
     }
 
-    assertType('f()) {} // local');
-    assertType('f()) {} // field');
-    assertType('f()) {} // setter');
-    assertType('f()) {} // top variable');
-    assertType('f()) {} // top setter');
+    assertInvocationType('f()) {} // local');
+    assertInvocationType('f()) {} // field');
+    assertInvocationType('f()) {} // setter');
+    assertInvocationType('f()) {} // top variable');
+    assertInvocationType('f()) {} // top setter');
   }
 
   test_forIn_variable() async {
@@ -618,36 +727,33 @@ void test(Iterable<num> iter) {
   for (num y in f()) {} // 3
 }
 ''';
-    var source = addSource(code);
-    var analysisResult = await computeAnalysisResult(source);
-    var unit = analysisResult.unit;
-
+    await resolveTestCode(code);
     {
-      var node = EngineTestCase.findSimpleIdentifier(unit, code, 'w in');
+      var node = findNode.simple('w in');
       VariableElement element = node.staticElement;
-      expect(node.staticType, typeProvider.dynamicType);
+      expect(node.staticType, isNull);
       expect(element.type, typeProvider.dynamicType);
 
-      var invocation = _findMethodInvocation(unit, code, 'f()) {} // 1');
-      expect(invocation.staticType.toString(), 'Iterable<dynamic>');
+      var invocation = findNode.methodInvocation('f()) {} // 1');
+      assertType(invocation, 'Iterable<dynamic>');
     }
 
     {
-      var node = EngineTestCase.findSimpleIdentifier(unit, code, 'x in');
+      var node = findNode.simple('x in');
       VariableElement element = node.staticElement;
-      expect(node.staticType, typeProvider.numType);
+      expect(node.staticType, isNull);
       expect(element.type, typeProvider.numType);
     }
 
     {
-      var node = EngineTestCase.findSimpleIdentifier(unit, code, 'y in');
+      var node = findNode.simple('y in');
       VariableElement element = node.staticElement;
 
-      expect(node.staticType, typeProvider.numType);
+      expect(node.staticType, isNull);
       expect(element.type, typeProvider.numType);
 
-      var invocation = _findMethodInvocation(unit, code, 'f()) {} // 3');
-      expect(invocation.staticType.toString(), 'Iterable<num>');
+      var invocation = findNode.methodInvocation('f()) {} // 3');
+      assertType(invocation, 'Iterable<num>');
     }
   }
 
@@ -666,17 +772,16 @@ void test(List<A> listA, List<B> listB) {
   for (B b3 in f(listB)) {} // 5
 }
 ''';
-    var source = addSource(code);
-    var analysisResult = await computeAnalysisResult(source);
-    var unit = analysisResult.unit;
-
+    await resolveTestCode(code);
     void assertTypes(
         String vSearch, String vType, String fSearch, String fType) {
-      var node = EngineTestCase.findSimpleIdentifier(unit, code, vSearch);
-      expect(node.staticType.toString(), vType);
+      var node = findNode.simple(vSearch);
 
-      var invocation = _findMethodInvocation(unit, code, fSearch);
-      expect(invocation.staticType.toString(), fType);
+      var element = node.staticElement as LocalVariableElement;
+      assertType(element.type, vType);
+
+      var invocation = findNode.methodInvocation(fSearch);
+      assertType(invocation, fType);
     }
 
     assertTypes('a1 in', 'A', 'f(listA)) {} // 1', 'List<A>');
@@ -693,11 +798,8 @@ class C {
   operator []=(int index, double value) => null;
 }
 ''';
-    var source = addSource(code);
-    var analysisResult = await computeAnalysisResult(source);
-    var unit = analysisResult.unit;
-
-    ClassElement c = unit.declaredElement.getType('C');
+    await resolveTestCode(code);
+    ClassElement c = findElement.class_('C');
 
     PropertyAccessorElement x = c.accessors[0];
     expect(x.returnType, VoidTypeImpl.instance);
@@ -717,11 +819,8 @@ class Derived extends Base {
   set x(_) {}
   operator[]=(int x, int y) {}
 }''';
-    var source = addSource(code);
-    var analysisResult = await computeAnalysisResult(source);
-    var unit = analysisResult.unit;
-
-    ClassElement c = unit.declaredElement.getType('Derived');
+    await resolveTestCode(code);
+    ClassElement c = findElement.class_('Derived');
 
     PropertyAccessorElement x = c.accessors[0];
     expect(x.returnType, VoidTypeImpl.instance);
@@ -731,36 +830,19 @@ class Derived extends Base {
     expect(operator.returnType, VoidTypeImpl.instance);
   }
 
-  test_inferObject_whenDownwardNull() async {
-    var code = r'''
-int f(void Function(Null) f2) {}
-void main() {
-  f((x) {});
-}
-''';
-    var source = addSource(code);
-    var analysisResult = await computeAnalysisResult(source);
-    var unit = analysisResult.unit;
-    var xNode = EngineTestCase.findSimpleIdentifier(unit, code, 'x) {}');
-    VariableElement xElement = xNode.staticElement;
-    expect(xNode.staticType, typeProvider.objectType);
-    expect(xElement.type, typeProvider.objectType);
-  }
-
   test_listMap_empty() async {
     var code = r'''
 var x = [];
 var y = {};
 ''';
-    var source = addSource(code);
-    var analysisResult = await computeAnalysisResult(source);
-    var unit = analysisResult.unit;
+    await resolveTestCode(code);
+    var xNode = findNode.simple('x = ');
+    var xElement = xNode.staticElement as VariableElement;
+    assertType(xElement.type, 'List<dynamic>');
 
-    SimpleIdentifier x = _findExpression(unit, code, 'x = ');
-    expect(x.staticType.toString(), 'List<dynamic>');
-
-    SimpleIdentifier y = _findExpression(unit, code, 'y = ');
-    expect(y.staticType.toString(), 'Map<dynamic, dynamic>');
+    var yNode = findNode.simple('y = ');
+    var yElement = yNode.staticElement as VariableElement;
+    assertType(yElement.type, 'Map<dynamic, dynamic>');
   }
 
   test_listMap_null() async {
@@ -768,15 +850,14 @@ var y = {};
 var x = [null];
 var y = {null: null};
 ''';
-    var source = addSource(code);
-    var analysisResult = await computeAnalysisResult(source);
-    var unit = analysisResult.unit;
+    await resolveTestCode(code);
+    var xNode = findNode.simple('x = ');
+    var xElement = xNode.staticElement as VariableElement;
+    assertType(xElement.type, 'List<Null>');
 
-    SimpleIdentifier x = _findExpression(unit, code, 'x = ');
-    expect(x.staticType.toString(), 'List<Null>');
-
-    SimpleIdentifier y = _findExpression(unit, code, 'y = ');
-    expect(y.staticType.toString(), 'Map<Null, Null>');
+    var yNode = findNode.simple('y = ');
+    var yElement = yNode.staticElement as VariableElement;
+    assertType(yElement.type, 'Map<Null, Null>');
   }
 
   test_switchExpression_asContext_forCases() async {
@@ -793,12 +874,9 @@ void test(C<int> x) {
       break;
   }
 }''';
-    var source = addSource(code);
-    var analysisResult = await computeAnalysisResult(source);
-    var unit = analysisResult.unit;
-
-    var node = _findInstanceCreation(unit, code, 'const C():');
-    expect(node.staticType.toString(), 'C<int>');
+    await resolveTestCode(code);
+    var node = findNode.instanceCreation('const C():');
+    assertType(node, 'C<int>');
   }
 
   test_voidType_method() async {
@@ -811,15 +889,14 @@ main() {
   var y = new C().m();
 }
 ''';
-    var source = addSource(code);
-    var analysisResult = await computeAnalysisResult(source);
-    var unit = analysisResult.unit;
+    await resolveTestCode(code);
+    var xNode = findNode.simple('x = ');
+    var xElement = xNode.staticElement as VariableElement;
+    expect(xElement.type, VoidTypeImpl.instance);
 
-    SimpleIdentifier x = _findExpression(unit, code, 'x = ');
-    expect(x.staticType, VoidTypeImpl.instance);
-
-    SimpleIdentifier y = _findExpression(unit, code, 'y = ');
-    expect(y.staticType, VoidTypeImpl.instance);
+    var yNode = findNode.simple('y = ');
+    var yElement = yNode.staticElement as VariableElement;
+    expect(yElement.type, VoidTypeImpl.instance);
   }
 
   test_voidType_topLevelFunction() async {
@@ -830,18 +907,20 @@ main() {
   var y = f();
 }
 ''';
-    var source = addSource(code);
-    var analysisResult = await computeAnalysisResult(source);
-    var unit = analysisResult.unit;
+    await resolveTestCode(code);
+    var xNode = findNode.simple('x = ');
+    var xElement = xNode.staticElement as VariableElement;
+    expect(xElement.type, VoidTypeImpl.instance);
 
-    SimpleIdentifier x = _findExpression(unit, code, 'x = ');
-    expect(x.staticType, VoidTypeImpl.instance);
-
-    SimpleIdentifier y = _findExpression(unit, code, 'y = ');
-    expect(y.staticType, VoidTypeImpl.instance);
+    var yNode = findNode.simple('y = ');
+    var yElement = yNode.staticElement as VariableElement;
+    expect(yElement.type, VoidTypeImpl.instance);
   }
 
-  void _assertTypeAnnotations(String code, CompilationUnit unit) {
+  void _assertTypeAnnotations() {
+    var code = result.content;
+    var unit = result.unit;
+
     var types = <int, String>{};
     {
       int lastIndex = 0;
@@ -858,43 +937,19 @@ main() {
         lastIndex = closeIndex;
       }
     }
-    unit.accept(new _TypeAnnotationsValidator(types));
-  }
 
-  Expression _findExpression(AstNode root, String code, String prefix) {
-    return EngineTestCase.findNode(root, code, prefix, (n) {
-      return n is Expression;
-    });
-  }
-
-  InstanceCreationExpression _findInstanceCreation(
-      AstNode root, String code, String prefix) {
-    return EngineTestCase.findNode(root, code, prefix, (n) {
-      return n is InstanceCreationExpression;
-    });
-  }
-
-  MethodInvocation _findMethodInvocation(
-      AstNode root, String code, String prefix) {
-    return EngineTestCase.findNode(root, code, prefix, (n) {
-      return n is MethodInvocation;
-    });
-  }
-}
-
-class _TypeAnnotationsValidator extends RecursiveAstVisitor {
-  final Map<int, String> types;
-
-  _TypeAnnotationsValidator(this.types);
-
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    Token comment = node.token.precedingComments;
-    if (comment != null) {
-      String expectedType = types[comment.offset];
-      if (expectedType != null) {
-        String actualType = node.staticType.toString();
-        expect(actualType, expectedType, reason: '@${comment.offset}');
-      }
-    }
+    unit.accept(FunctionAstVisitor(
+      simpleIdentifier: (node) {
+        Token comment = node.token.precedingComments;
+        if (comment != null) {
+          String expectedType = types[comment.offset];
+          if (expectedType != null) {
+            VariableElement element = node.staticElement;
+            String actualType = typeString(element.type);
+            expect(actualType, expectedType, reason: '@${comment.offset}');
+          }
+        }
+      },
+    ));
   }
 }

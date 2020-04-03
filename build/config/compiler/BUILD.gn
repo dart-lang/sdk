@@ -36,7 +36,7 @@ config("default_include_dirs") {
 }
 
 if (!is_win) {
-  using_sanitizer = is_asan || is_lsan || is_tsan || is_msan
+  using_sanitizer = is_asan || is_lsan || is_msan || is_tsan || is_ubsan
 }
 
 # compiler ---------------------------------------------------------------------
@@ -109,13 +109,20 @@ config("compiler") {
       cflags += [ "-fsanitize=leak" ]
       ldflags += [ "-fsanitize=leak" ]
     }
+    if (is_msan) {
+      cflags += [ "-fsanitize=memory" ]
+      ldflags += [ "-fsanitize=memory" ]
+    }
     if (is_tsan) {
       cflags += [ "-fsanitize=thread" ]
       ldflags += [ "-fsanitize=thread" ]
     }
-    if (is_msan) {
-      cflags += [ "-fsanitize=memory" ]
-      ldflags += [ "-fsanitize=memory" ]
+    if (is_ubsan) {
+      cflags += [
+        "-fsanitize=undefined",
+        "-fno-sanitize=null,alignment",
+      ]
+      ldflags += [ "-fsanitize=undefined" ]
     }
   }
 
@@ -238,7 +245,7 @@ config("compiler") {
   # 2. On Android.
   # 3. When using the sanitizers.
   # Otherwise there is a performance hit, in particular on ia32.
-  if (is_android || is_asan || is_lsan || is_msan || is_tsan ||
+  if (is_android || is_asan || is_lsan || is_msan || is_tsan || is_ubsan ||
       (is_linux && current_cpu != "x86")) {
     cflags += [ "-fPIC" ]
     ldflags += [ "-fPIC" ]
@@ -247,8 +254,6 @@ config("compiler") {
   # Linux-specific compiler flags setup.
   # ------------------------------------
   if (is_linux) {
-    cflags += [ "-pthread" ]
-    ldflags += [ "-pthread" ]
     if (is_clang) {
       if (current_cpu == "arm") {
         cflags += [ "--target=armv7-linux-gnueabihf" ]

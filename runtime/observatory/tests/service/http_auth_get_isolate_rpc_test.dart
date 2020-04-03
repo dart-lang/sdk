@@ -10,6 +10,5 @@ main(args) {
       testeeBefore: testeeBefore,
       // the testee is responsible for starting the
       // web server.
-      testeeControlsServer: true,
-      useAuthToken: true);
+      testeeControlsServer: true);
 }

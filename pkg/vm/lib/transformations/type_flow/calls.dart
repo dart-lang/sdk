@@ -38,7 +38,8 @@ abstract class Selector {
   int get hashCode => callKind.hashCode;
 
   @override
-  bool operator ==(other) => other is Selector && other.callKind == callKind;
+  bool operator ==(other) =>
+      identical(this, other) || other is Selector && other.callKind == callKind;
 
   /// Static approximation of Dart return type.
   DartType get staticReturnType {
@@ -107,6 +108,7 @@ class DirectSelector extends Selector {
 
   @override
   bool operator ==(other) =>
+      identical(this, other) ||
       other is DirectSelector && super == (other) && other.member == member;
 
   @override
@@ -125,6 +127,7 @@ class InterfaceSelector extends Selector {
 
   @override
   bool operator ==(other) =>
+      identical(this, other) ||
       other is InterfaceSelector && super == (other) && other.member == member;
 
   @override
@@ -140,7 +143,8 @@ class VirtualSelector extends InterfaceSelector {
   int get hashCode => (super.hashCode + 37) & kHashMask;
 
   @override
-  bool operator ==(other) => other is VirtualSelector && super == (other);
+  bool operator ==(other) =>
+      identical(this, other) || other is VirtualSelector && super == (other);
 
   @override
   String toString() => 'virtual ${_callKindPrefix}[$member]';
@@ -163,6 +167,7 @@ class DynamicSelector extends Selector {
 
   @override
   bool operator ==(other) =>
+      identical(this, other) ||
       other is DynamicSelector && super == (other) && other.name == name;
 
   @override
@@ -174,15 +179,21 @@ class DynamicSelector extends Selector {
 class Args<T extends TypeExpr> {
   final List<T> values;
   final List<String> names;
+
+  // Whether it is not known which optional arguments are passed or not.
+  final bool unknownArity;
+
   int _hashCode;
 
-  Args(this.values, {this.names = const <String>[]}) {
+  Args(this.values,
+      {this.names = const <String>[], this.unknownArity = false}) {
     assertx(isSorted(names));
   }
 
   Args.withReceiver(Args<T> args, T receiver)
       : values = new List.from(args.values),
-        names = args.names {
+        names = args.names,
+        unknownArity = args.unknownArity {
     values[0] = receiver;
   }
 
@@ -202,11 +213,13 @@ class Args<T extends TypeExpr> {
     for (var n in names) {
       hash = (((hash * 31) & kHashMask) + n.hashCode) & kHashMask;
     }
+    if (unknownArity) hash ^= -1;
     return hash;
   }
 
   @override
   bool operator ==(other) {
+    if (identical(this, other)) return true;
     if (other is Args<T> &&
         (this.values.length == other.values.length) &&
         (this.names.length == other.names.length)) {
@@ -220,7 +233,7 @@ class Args<T extends TypeExpr> {
           return false;
         }
       }
-      return true;
+      return unknownArity == other.unknownArity;
     }
     return false;
   }
@@ -243,7 +256,11 @@ class Args<T extends TypeExpr> {
       buf.write(': ');
       buf.write(values[positionalCount + i]);
     }
-    buf.write(")");
+    if (unknownArity) {
+      buf.write(", <unknown arity>)");
+    } else {
+      buf.write(")");
+    }
     return buf.toString();
   }
 }

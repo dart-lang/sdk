@@ -13,22 +13,24 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/type_environment.dart';
+import 'package:kernel/external_name.dart';
 
 import 'analysis.dart';
 import 'calls.dart';
 import 'summary.dart';
-import 'summary_collector.dart';
+import 'table_selector.dart';
 import 'types.dart';
+import 'unboxing_info.dart';
 import 'utils.dart';
 import '../pragma.dart';
 import '../devirtualization.dart' show Devirtualization;
 import '../../metadata/direct_call.dart';
 import '../../metadata/inferred_type.dart';
 import '../../metadata/procedure_attributes.dart';
+import '../../metadata/table_selector.dart';
+import '../../metadata/unboxing_info.dart';
 import '../../metadata/unreachable.dart';
 
-const bool kDumpAllSummaries =
-    const bool.fromEnvironment('global.type.flow.dump.all.summaries');
 const bool kDumpClassHierarchy =
     const bool.fromEnvironment('global.type.flow.dump.class.hierarchy');
 
@@ -36,21 +38,13 @@ const bool kDumpClassHierarchy =
 /// Assumes strong mode and closed world.
 Component transformComponent(
     Target target, CoreTypes coreTypes, Component component,
-    [PragmaAnnotationParser matcher]) {
+    {PragmaAnnotationParser matcher, bool treeShakeSignatures: true}) {
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
-  final hierarchy = new ClassHierarchy(component,
+  final hierarchy = new ClassHierarchy(component, coreTypes,
       onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
   final types = new TypeEnvironment(coreTypes, hierarchy);
   final libraryIndex = new LibraryIndex.all(component);
   final genericInterfacesInfo = new GenericInterfacesInfoImpl(hierarchy);
-
-  if (kDumpAllSummaries) {
-    Statistics.reset();
-    new CreateAllSummariesVisitor(
-            target, types, hierarchy, genericInterfacesInfo)
-        .visitComponent(component);
-    Statistics.print("All summaries statistics");
-  }
 
   Statistics.reset();
   final analysisStopWatch = new Stopwatch()..start();
@@ -77,12 +71,21 @@ Component transformComponent(
 
   final transformsStopWatch = new Stopwatch()..start();
 
-  new TreeShaker(component, typeFlowAnalysis).transformComponent(component);
+  final treeShaker = new TreeShaker(component, typeFlowAnalysis,
+      treeShakeSignatures: treeShakeSignatures)
+    ..transformComponent(component);
 
   new TFADevirtualization(component, typeFlowAnalysis, hierarchy)
       .visitComponent(component);
 
-  new AnnotateKernel(component, typeFlowAnalysis).visitComponent(component);
+  final unboxingInfo = new UnboxingInfoManager(typeFlowAnalysis);
+
+  _makePartition(component, typeFlowAnalysis, unboxingInfo);
+
+  new AnnotateKernel(component, typeFlowAnalysis, unboxingInfo)
+      .visitComponent(component);
+
+  treeShaker.finalizeSignatures();
 
   transformsStopWatch.stop();
 
@@ -120,26 +123,47 @@ class TFADevirtualization extends Devirtualization {
 /// Annotates kernel AST with metadata using results of type flow analysis.
 class AnnotateKernel extends RecursiveVisitor<Null> {
   final TypeFlowAnalysis _typeFlowAnalysis;
+  final DirectCallMetadataRepository _directCallMetadataRepository;
   final InferredTypeMetadataRepository _inferredTypeMetadata;
   final UnreachableNodeMetadataRepository _unreachableNodeMetadata;
   final ProcedureAttributesMetadataRepository _procedureAttributesMetadata;
-  final DartType _intType;
+  final TableSelectorMetadataRepository _tableSelectorMetadata;
+  final TableSelectorAssigner _tableSelectorAssigner;
+  final UnboxingInfoMetadataRepository _unboxingInfoMetadata;
+  final UnboxingInfoManager _unboxingInfo;
+  final Class _intClass;
+  Constant _nullConstant;
 
-  AnnotateKernel(Component component, this._typeFlowAnalysis)
-      : _inferredTypeMetadata = new InferredTypeMetadataRepository(),
+  AnnotateKernel(
+      Component component, this._typeFlowAnalysis, this._unboxingInfo)
+      : _directCallMetadataRepository =
+            component.metadata[DirectCallMetadataRepository.repositoryTag],
+        _inferredTypeMetadata = new InferredTypeMetadataRepository(),
         _unreachableNodeMetadata = new UnreachableNodeMetadataRepository(),
         _procedureAttributesMetadata =
             new ProcedureAttributesMetadataRepository(),
-        _intType = _typeFlowAnalysis.environment.intType {
+        _tableSelectorMetadata = new TableSelectorMetadataRepository(),
+        _tableSelectorAssigner = new TableSelectorAssigner(),
+        _unboxingInfoMetadata = new UnboxingInfoMetadataRepository(),
+        _intClass = _typeFlowAnalysis.environment.coreTypes.intClass {
     component.addMetadataRepository(_inferredTypeMetadata);
     component.addMetadataRepository(_unreachableNodeMetadata);
     component.addMetadataRepository(_procedureAttributesMetadata);
+    component.addMetadataRepository(_tableSelectorMetadata);
+    component.addMetadataRepository(_unboxingInfoMetadata);
   }
 
-  InferredType _convertType(Type type, {bool skipCheck: false}) {
+  // Query whether a call site was marked as a direct call by the analysis.
+  bool _callSiteUsesDirectCall(TreeNode node) {
+    return _directCallMetadataRepository.mapping.containsKey(node);
+  }
+
+  InferredType _convertType(Type type,
+      {bool skipCheck: false, bool receiverNotInt: false}) {
     assertx(type != null);
 
     Class concreteClass;
+    Constant constantValue;
     bool isInt = false;
 
     final nullable = type is NullableType;
@@ -149,11 +173,16 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
 
     if (nullable && type == const EmptyType()) {
       concreteClass = _typeFlowAnalysis.environment.coreTypes.nullClass;
+      constantValue = _nullConstant ??= new NullConstant();
     } else {
       concreteClass = type.getConcreteClass(_typeFlowAnalysis.hierarchyCache);
 
       if (concreteClass == null) {
-        isInt = type.isSubtypeOf(_typeFlowAnalysis.hierarchyCache, _intType);
+        isInt = type.isSubtypeOf(_typeFlowAnalysis.hierarchyCache, _intClass);
+      }
+
+      if (type is ConcreteType && !nullable) {
+        constantValue = type.constant;
       }
     }
 
@@ -165,16 +194,25 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
           .toList();
     }
 
-    if ((concreteClass != null) || !nullable || isInt || skipCheck) {
-      return new InferredType(concreteClass, nullable, isInt,
-          exactTypeArguments: typeArgs, skipCheck: skipCheck);
+    if (concreteClass != null ||
+        !nullable ||
+        isInt ||
+        constantValue != null ||
+        skipCheck ||
+        receiverNotInt) {
+      return new InferredType(concreteClass, nullable, isInt, constantValue,
+          exactTypeArguments: typeArgs,
+          skipCheck: skipCheck,
+          receiverNotInt: receiverNotInt);
     }
 
     return null;
   }
 
-  void _setInferredType(TreeNode node, Type type, {bool skipCheck: false}) {
-    final inferredType = _convertType(type, skipCheck: skipCheck);
+  void _setInferredType(TreeNode node, Type type,
+      {bool skipCheck: false, bool receiverNotInt: false}) {
+    final inferredType = _convertType(type,
+        skipCheck: skipCheck, receiverNotInt: receiverNotInt);
     if (inferredType != null) {
       _inferredTypeMetadata.mapping[node] = inferredType;
     }
@@ -184,27 +222,64 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
     _unreachableNodeMetadata.mapping[node] = const UnreachableNode();
   }
 
-  void _annotateCallSite(TreeNode node) {
+  void _annotateCallSite(TreeNode node, Member interfaceTarget) {
     final callSite = _typeFlowAnalysis.callSite(node);
-    if (callSite != null) {
-      if (callSite.isReachable) {
-        bool markSkipCheck = !callSite.useCheckedEntry &&
-            (node is MethodInvocation || node is PropertySet);
-        if (callSite.isResultUsed) {
-          _setInferredType(node, callSite.resultType, skipCheck: markSkipCheck);
-        } else if (markSkipCheck) {
-          // If the call is not marked as 'isResultUsed', the 'resultType' will
-          // not be observed (i.e., it will always be EmptyType). This is the
-          // case even if the result acutally might be used but is not used by
-          // the summary, e.g. if the result is an argument to a closure call.
-          // Therefore, we need to pass in 'NullableType(AnyType)' as the
-          // inferred result type here (since we don't know what it actually
-          // is).
-          _setInferredType(node, NullableType(const AnyType()),
-              skipCheck: true);
+    if (callSite == null) return;
+    if (!callSite.isReachable) {
+      _setUnreachable(node);
+      return;
+    }
+
+    final bool markSkipCheck = !callSite.useCheckedEntry &&
+        (node is MethodInvocation || node is PropertySet);
+
+    bool markReceiverNotInt = false;
+
+    if (!callSite.receiverMayBeInt) {
+      // No information is needed for static calls.
+      if (node is! StaticInvocation &&
+          node is! StaticSet &&
+          node is! StaticGet) {
+        // The compiler uses another heuristic in addition to the call-site
+        // annotation: if the call-site is non-dynamic and the interface target does
+        // not exist in the parent chain of _Smi (int is used as an approxmiation
+        // here), then the receiver cannot be _Smi. This heuristic covers most
+        // cases, so we skip these to avoid showering the AST with annotations.
+        if (interfaceTarget == null ||
+            _typeFlowAnalysis.hierarchyCache.hierarchy.isSubtypeOf(
+                _typeFlowAnalysis.hierarchyCache.coreTypes.intClass,
+                interfaceTarget.enclosingClass)) {
+          markReceiverNotInt = true;
         }
+      }
+    }
+
+    // If the call is not marked as 'isResultUsed', the 'resultType' will
+    // not be observed (i.e., it will always be EmptyType). This is the
+    // case even if the result acutally might be used but is not used by
+    // the summary, e.g. if the result is an argument to a closure call.
+    // Therefore, we need to pass in 'NullableType(AnyType)' as the
+    // inferred result type here (since we don't know what it actually
+    // is).
+    final Type resultType = callSite.isResultUsed
+        ? callSite.resultType
+        : NullableType(const AnyType());
+
+    if (markSkipCheck || markReceiverNotInt || callSite.isResultUsed) {
+      _setInferredType(node, resultType,
+          skipCheck: markSkipCheck, receiverNotInt: markReceiverNotInt);
+    }
+
+    // Tell the table selector assigner about the callsite.
+    final Selector selector = callSite.selector;
+    if (selector is InterfaceSelector && !_callSiteUsesDirectCall(node)) {
+      if (node is PropertyGet) {
+        _tableSelectorAssigner.registerGetterCall(
+            selector.member, callSite.isNullableReceiver);
       } else {
-        _setUnreachable(node);
+        assertx(node is MethodInvocation || node is PropertySet);
+        _tableSelectorAssigner.registerMethodOrSetterCall(
+            selector.member, callSite.isNullableReceiver);
       }
     }
   }
@@ -243,20 +318,56 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
               skipCheck: uncheckedParameters.contains(param));
         }
 
-        // TODO(alexmarkov): figure out how to pass receiver type.
-      }
+        final unboxingInfoMetadata =
+            _unboxingInfo.getUnboxingInfoOfMember(member);
+        if (unboxingInfoMetadata != null &&
+            !unboxingInfoMetadata.isFullyBoxed) {
+          _unboxingInfoMetadata.mapping[member] = unboxingInfoMetadata;
+        }
 
-      if (member.isInstanceMember &&
-          !(member is Procedure && member.isGetter)) {
-        final attrs = new ProcedureAttributesMetadata(
-            hasDynamicUses: _typeFlowAnalysis.isCalledDynamically(member),
-            hasThisUses: _typeFlowAnalysis.isCalledViaThis(member),
-            hasNonThisUses: _typeFlowAnalysis.isCalledNotViaThis(member),
-            hasTearOffUses: _typeFlowAnalysis.isTearOffTaken(member));
-        _procedureAttributesMetadata.mapping[member] = attrs;
+        // TODO(alexmarkov): figure out how to pass receiver type.
       }
     } else if (!member.isAbstract) {
       _setUnreachable(member);
+    } else if (member is! Field) {
+      final unboxingInfoMetadata =
+          _unboxingInfo.getUnboxingInfoOfMember(member);
+      if (unboxingInfoMetadata != null) {
+        // Check for partitions that only have abstract methods should be marked as boxed.
+        if (unboxingInfoMetadata.returnInfo ==
+            UnboxingInfoMetadata.kUnboxingCandidate) {
+          unboxingInfoMetadata.returnInfo = UnboxingInfoMetadata.kBoxed;
+        }
+        for (int i = 0; i < unboxingInfoMetadata.unboxedArgsInfo.length; i++) {
+          if (unboxingInfoMetadata.unboxedArgsInfo[i] ==
+              UnboxingInfoMetadata.kUnboxingCandidate) {
+            unboxingInfoMetadata.unboxedArgsInfo[i] =
+                UnboxingInfoMetadata.kBoxed;
+          }
+        }
+        if (!unboxingInfoMetadata.isFullyBoxed) {
+          _unboxingInfoMetadata.mapping[member] = unboxingInfoMetadata;
+        }
+      }
+    }
+
+    // We need to attach ProcedureAttributesMetadata to all members, even
+    // unreachable ones, since an unreachable member could still be used as an
+    // interface target, and table dispatch calls need selector IDs for all
+    // interface targets.
+    if (member.isInstanceMember) {
+      final attrs = new ProcedureAttributesMetadata(
+          methodOrSetterCalledDynamically:
+              _typeFlowAnalysis.isCalledDynamically(member),
+          getterCalledDynamically:
+              _typeFlowAnalysis.isGetterCalledDynamically(member),
+          hasThisUses: _typeFlowAnalysis.isCalledViaThis(member),
+          hasNonThisUses: _typeFlowAnalysis.isCalledNotViaThis(member),
+          hasTearOffUses: _typeFlowAnalysis.isTearOffTaken(member),
+          methodOrSetterSelectorId:
+              _tableSelectorAssigner.methodOrSetterSelectorId(member),
+          getterSelectorId: _tableSelectorAssigner.getterSelectorId(member));
+      _procedureAttributesMetadata.mapping[member] = attrs;
     }
   }
 
@@ -280,50 +391,150 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
 
   @override
   visitMethodInvocation(MethodInvocation node) {
-    _annotateCallSite(node);
+    _annotateCallSite(node, node.interfaceTarget);
     super.visitMethodInvocation(node);
   }
 
   @override
   visitPropertyGet(PropertyGet node) {
-    _annotateCallSite(node);
+    _annotateCallSite(node, node.interfaceTarget);
     super.visitPropertyGet(node);
   }
 
   @override
+  visitPropertySet(PropertySet node) {
+    _annotateCallSite(node, node.interfaceTarget);
+    super.visitPropertySet(node);
+  }
+
+  @override
   visitDirectMethodInvocation(DirectMethodInvocation node) {
-    _annotateCallSite(node);
+    _annotateCallSite(node, node.target);
     super.visitDirectMethodInvocation(node);
   }
 
   @override
   visitDirectPropertyGet(DirectPropertyGet node) {
-    _annotateCallSite(node);
+    _annotateCallSite(node, node.target);
     super.visitDirectPropertyGet(node);
   }
 
   @override
+  visitDirectPropertySet(DirectPropertySet node) {
+    _annotateCallSite(node, node.target);
+    super.visitDirectPropertySet(node);
+  }
+
+  @override
   visitSuperMethodInvocation(SuperMethodInvocation node) {
-    _annotateCallSite(node);
+    _annotateCallSite(node, node.interfaceTarget);
     super.visitSuperMethodInvocation(node);
   }
 
   @override
   visitSuperPropertyGet(SuperPropertyGet node) {
-    _annotateCallSite(node);
+    _annotateCallSite(node, node.interfaceTarget);
     super.visitSuperPropertyGet(node);
   }
 
   @override
+  visitSuperPropertySet(SuperPropertySet node) {
+    _annotateCallSite(node, node.interfaceTarget);
+    super.visitSuperPropertySet(node);
+  }
+
+  @override
   visitStaticInvocation(StaticInvocation node) {
-    _annotateCallSite(node);
+    _annotateCallSite(node, node.target);
     super.visitStaticInvocation(node);
   }
 
   @override
   visitStaticGet(StaticGet node) {
-    _annotateCallSite(node);
+    _annotateCallSite(node, node.target);
     super.visitStaticGet(node);
+  }
+
+  @override
+  visitStaticSet(StaticSet node) {
+    _annotateCallSite(node, node.target);
+    super.visitStaticSet(node);
+  }
+
+  @override
+  visitComponent(Component node) {
+    super.visitComponent(node);
+    _tableSelectorMetadata.mapping[node] = _tableSelectorAssigner.metadata;
+  }
+}
+
+// Partition the methods in order to idenfity parameters and return values
+// that are unboxing candidates
+void _makePartition(Component component, TypeFlowAnalysis typeFlowAnalysis,
+    UnboxingInfoManager unboxingInfo) {
+  // Traverses all the members and creates the partition graph.
+  // Currently unboxed parameters and return value are not supported for
+  // closures, therefore they do not exist in this graph
+  for (bool registering in const [true, false]) {
+    for (Library library in component.libraries) {
+      for (Class cls in library.classes) {
+        for (Member member in cls.members) {
+          if (registering) {
+            unboxingInfo.registerMember(member);
+          } else {
+            unboxingInfo.linkWithSuperClasses(member);
+          }
+        }
+      }
+      if (registering) {
+        for (Member member in library.members) {
+          unboxingInfo.registerMember(member);
+        }
+      }
+    }
+  }
+  unboxingInfo.finishGraph();
+
+  for (Library library in component.libraries) {
+    for (Class cls in library.classes) {
+      for (Member member in cls.members) {
+        _updateUnboxingInfoOfMember(member, typeFlowAnalysis, unboxingInfo);
+      }
+    }
+    for (Member member in library.members) {
+      _updateUnboxingInfoOfMember(member, typeFlowAnalysis, unboxingInfo);
+    }
+  }
+}
+
+void _updateUnboxingInfoOfMember(Member member,
+    TypeFlowAnalysis typeFlowAnalysis, UnboxingInfoManager unboxingInfo) {
+  if (typeFlowAnalysis.isMemberUsed(member) && (member is! Field)) {
+    final Args<Type> argTypes = typeFlowAnalysis.argumentTypes(member);
+    assertx(argTypes != null);
+
+    final int firstParamIndex =
+        numTypeParams(member) + (hasReceiverArg(member) ? 1 : 0);
+
+    final positionalParams = member.function.positionalParameters;
+    assertx(
+        argTypes.positionalCount == firstParamIndex + positionalParams.length);
+
+    for (int i = 0; i < positionalParams.length; i++) {
+      final inferredType = argTypes.values[firstParamIndex + i];
+      unboxingInfo.applyToArg(member, i, inferredType);
+    }
+
+    final names = argTypes.names;
+    for (int i = 0; i < names.length; i++) {
+      final inferredType =
+          argTypes.values[firstParamIndex + positionalParams.length + i];
+      unboxingInfo.applyToArg(
+          member, positionalParams.length + i, inferredType);
+    }
+
+    final Type resultType = typeFlowAnalysis.getSummary(member).resultType;
+    unboxingInfo.applyToReturn(member, resultType);
   }
 }
 
@@ -349,17 +560,22 @@ class TreeShaker {
   final Set<Class> _usedClasses = new Set<Class>();
   final Set<Class> _classesUsedInType = new Set<Class>();
   final Set<Member> _usedMembers = new Set<Member>();
+  final Set<Extension> _usedExtensions = new Set<Extension>();
   final Set<Typedef> _usedTypedefs = new Set<Typedef>();
   _TreeShakerTypeVisitor typeVisitor;
   _TreeShakerConstantVisitor constantVisitor;
   _TreeShakerPass1 _pass1;
   _TreeShakerPass2 _pass2;
+  _SignatureShaker _signatureShaker;
 
-  TreeShaker(Component component, this.typeFlowAnalysis) {
+  TreeShaker(Component component, this.typeFlowAnalysis,
+      {bool treeShakeSignatures: true}) {
     typeVisitor = new _TreeShakerTypeVisitor(this);
     constantVisitor = new _TreeShakerConstantVisitor(this, typeVisitor);
     _pass1 = new _TreeShakerPass1(this);
     _pass2 = new _TreeShakerPass2(this);
+    _signatureShaker = new _SignatureShaker(this.typeFlowAnalysis,
+        treeShakeSignatures: treeShakeSignatures);
   }
 
   transformComponent(Component component) {
@@ -367,10 +583,17 @@ class TreeShaker {
     _pass2.transform(component);
   }
 
+  finalizeSignatures() {
+    _signatureShaker.transform();
+  }
+
+  bool isClassReferencedFromNativeCode(Class c) =>
+      typeFlowAnalysis.nativeCodeOracle.isClassReferencedFromNativeCode(c);
   bool isClassUsed(Class c) => _usedClasses.contains(c);
   bool isClassUsedInType(Class c) => _classesUsedInType.contains(c);
   bool isClassAllocated(Class c) => typeFlowAnalysis.isClassAllocated(c);
   bool isMemberUsed(Member m) => _usedMembers.contains(m);
+  bool isExtensionUsed(Extension e) => _usedExtensions.contains(e);
   bool isMemberBodyReachable(Member m) => typeFlowAnalysis.isMemberUsed(m);
   bool isFieldInitializerReachable(Field f) =>
       typeFlowAnalysis.isFieldInitializerUsed(f);
@@ -432,6 +655,27 @@ class TreeShaker {
       }
 
       transformList(m.annotations, _pass1, m);
+
+      // If the member is kept alive we need to keep the extension alive.
+      if (m.isExtensionMember) {
+        // The AST should have exactly one [Extension] for [m].
+        final extension = m.enclosingLibrary.extensions.firstWhere((extension) {
+          return extension.members
+              .any((descriptor) => descriptor.member.asMember == m);
+        }, orElse: () => null);
+        assertx(extension != null);
+
+        // Ensure we retain the [Extension] itself (though members might be
+        // shaken)
+        addUsedExtension(extension);
+      }
+    }
+  }
+
+  void addUsedExtension(Extension node) {
+    if (_usedExtensions.add(node)) {
+      transformList(node.typeParameters, _pass1, node);
+      node.onType?.accept(typeVisitor);
     }
   }
 
@@ -497,9 +741,24 @@ class _TreeShakerTypeVisitor extends RecursiveVisitor<Null> {
 /// transforms unreachable calls into 'throw' expressions.
 class _TreeShakerPass1 extends Transformer {
   final TreeShaker shaker;
+  final TypeEnvironment environment;
+  final List<Initializer> additionalInitializers = [];
   Procedure _unsafeCast;
 
-  _TreeShakerPass1(this.shaker);
+  StaticTypeContext _staticTypeContext;
+  Member _currentMember;
+
+  StaticTypeContext get staticTypeContext =>
+      _staticTypeContext ??= StaticTypeContext(currentMember, environment);
+
+  Member get currentMember => _currentMember;
+  set currentMember(Member m) {
+    _currentMember = m;
+    _staticTypeContext = null;
+  }
+
+  _TreeShakerPass1(this.shaker)
+      : environment = shaker.typeFlowAnalysis.environment;
 
   void transform(Component component) {
     component.transformChildren(this);
@@ -580,8 +839,16 @@ class _TreeShakerPass1 extends Transformer {
   }
 
   @override
+  Extension visitExtension(Extension node) {
+    // The extension can be considered a weak node, we'll only retain it if
+    // normal code references any of it's members.
+    return node;
+  }
+
+  @override
   TreeNode visitClass(Class node) {
-    if (shaker.isClassAllocated(node)) {
+    if (shaker.isClassAllocated(node) ||
+        shaker.isClassReferencedFromNativeCode(node)) {
       shaker.addClassUsedInType(node);
     }
     transformList(node.constructors, this, node);
@@ -592,12 +859,27 @@ class _TreeShakerPass1 extends Transformer {
   }
 
   @override
+  Constructor visitConstructor(Constructor node) {
+    additionalInitializers.clear();
+    node = defaultMember(node);
+    if (additionalInitializers.isNotEmpty) {
+      assertx(node.initializers.last is SuperInitializer ||
+          node.initializers.last is RedirectingInitializer);
+      additionalInitializers.forEach((i) => i.parent = node);
+      node.initializers
+          .insertAll(node.initializers.length - 1, additionalInitializers);
+    }
+    return node;
+  }
+
+  @override
   TreeNode defaultMember(Member node) {
     if (shaker.isMemberBodyReachable(node)) {
       if (kPrintTrace) {
         tracePrint("Visiting $node");
       }
       shaker.addUsedMember(node);
+      currentMember = node;
       node.transformChildren(this);
     } else if (shaker.isMemberReferencedFromNativeCode(node)) {
       // Preserve members referenced from native code to satisfy lookups, even
@@ -620,7 +902,7 @@ class _TreeShakerPass1 extends Transformer {
         if (shaker.isFieldInitializerReachable(node)) {
           node.transformChildren(this);
         } else {
-          node.initializer = _makeUnreachableCall([]);
+          node.initializer = _makeUnreachableCall([])..parent = node;
         }
       }
     } else if (shaker.isMemberReferencedFromNativeCode(node)) {
@@ -712,15 +994,99 @@ class _TreeShakerPass1 extends Transformer {
     }
   }
 
+  Expression _fixArgumentEvaluationOrder(
+      Expression invocation, Arguments args) {
+    if (args.named.isEmpty) return invocation;
+
+    Expression outer = invocation;
+    int argIdx = args.named.length + args.positional.length;
+    for (int i = args.named.length - 1; i >= 0; --i) {
+      final arg = args.named[i];
+      final variable = VariableDeclaration("#arg${argIdx--}",
+          initializer: arg.value,
+          type: arg.value.getStaticType(staticTypeContext));
+      arg.value = VariableGet(variable)..parent = arg;
+      outer = Let(variable, outer);
+    }
+    for (int i = args.positional.length - 1; i >= 0; --i) {
+      final variable = VariableDeclaration("#arg${argIdx--}",
+          initializer: args.positional[i],
+          type: args.positional[i].getStaticType(staticTypeContext));
+      args.positional[i] = VariableGet(variable)..parent = args;
+      outer = Let(variable, outer);
+    }
+    return outer;
+  }
+
+  void _fixArgumentEvaluationOrderInInitializer(Arguments args) {
+    if (args.named.isEmpty) return;
+
+    int argIndex = 0;
+    for (int i = 0; i < args.positional.length; ++i) {
+      final variable = VariableDeclaration("#arg${argIndex++}",
+          initializer: args.positional[i]);
+      args.positional[i] = VariableGet(variable)..parent = args;
+      additionalInitializers.add(LocalInitializer(variable));
+    }
+    for (int i = 0; i < args.named.length; ++i) {
+      final variable = VariableDeclaration("#arg${argIndex++}",
+          initializer: args.named[i].value);
+      args.named[i].value = VariableGet(variable)..parent = args.named[i];
+      additionalInitializers.add(LocalInitializer(variable));
+    }
+  }
+
+  void _rewriteArguments(Arguments args, Member member) {
+    final alwaysPassedParams =
+        shaker.typeFlowAnalysis.alwaysPassedOptionalParameters(member);
+    final func = member.function;
+    final positional = args.positional.toList();
+    final newPositional = args.positional;
+    newPositional.removeRange(
+        func.requiredParameterCount, newPositional.length);
+
+    for (int i = func.requiredParameterCount; i < positional.length; ++i) {
+      if (alwaysPassedParams.contains(func.positionalParameters[i].name)) {
+        newPositional.add(positional[i]);
+      }
+    }
+
+    final newNamed = <NamedExpression>[];
+    final namedPositionals = <NamedExpression>[];
+    for (int i = 0; i < args.named.length; i++) {
+      final arg = args.named[i];
+      if (alwaysPassedParams.contains(arg.name)) {
+        namedPositionals.add(arg);
+      } else {
+        newNamed.add(arg);
+      }
+    }
+    args.named = newNamed;
+    namedPositionals.sort((x, y) => x.name.compareTo(y.name));
+    newPositional
+        .addAll(namedPositionals.map((expr) => expr.value..parent = args));
+
+    for (int i = func.requiredParameterCount; i < positional.length; ++i) {
+      if (!alwaysPassedParams.contains(func.positionalParameters[i].name)) {
+        newPositional.add(positional[i]);
+      }
+    }
+  }
+
   @override
   TreeNode visitStaticInvocation(StaticInvocation node) {
     node.transformChildren(this);
     if (_isUnreachable(node)) {
       return _makeUnreachableCall(_flattenArguments(node.arguments));
-    } else {
-      assertx(shaker.isMemberBodyReachable(node.target), details: node.target);
-      return node;
     }
+
+    final target = node.target;
+    assertx(shaker.isMemberBodyReachable(target), details: target);
+
+    if (!shaker._signatureShaker.isShakingSignature(target)) return node;
+    final result = _fixArgumentEvaluationOrder(node, node.arguments);
+    _rewriteArguments(node.arguments, target);
+    return result;
   }
 
   @override
@@ -800,7 +1166,10 @@ class _TreeShakerPass1 extends Transformer {
         assertx(node.isConst);
         shaker.addUsedMember(node.target);
       }
-      return node;
+      if (!shaker._signatureShaker.isShakingSignature(node.target)) return node;
+      final result = _fixArgumentEvaluationOrder(node, node.arguments);
+      _rewriteArguments(node.arguments, node.target);
+      return result;
     }
   }
 
@@ -811,6 +1180,9 @@ class _TreeShakerPass1 extends Transformer {
       return _makeUnreachableInitializer(_flattenArguments(node.arguments));
     } else {
       assertx(shaker.isMemberBodyReachable(node.target), details: node.target);
+      if (!shaker._signatureShaker.isShakingSignature(node.target)) return node;
+      _fixArgumentEvaluationOrderInInitializer(node.arguments);
+      _rewriteArguments(node.arguments, node.target);
       return node;
     }
   }
@@ -822,6 +1194,9 @@ class _TreeShakerPass1 extends Transformer {
       return _makeUnreachableInitializer(_flattenArguments(node.arguments));
     } else {
       // Can't assert that node.target is used due to partial mixin resolution.
+      if (!shaker._signatureShaker.isShakingSignature(node.target)) return node;
+      _fixArgumentEvaluationOrderInInitializer(node.arguments);
+      _rewriteArguments(node.arguments, node.target);
       return node;
     }
   }
@@ -873,7 +1248,7 @@ class _TreeShakerPass1 extends Transformer {
 
 /// The second pass of [TreeShaker]. It is called after set of used
 /// classes, members and typedefs is determined during the first pass.
-/// This pass visits classes and members and removes unused classes and member.
+/// This pass visits classes and members and removes unused classes and members.
 /// Bodies of unreachable but used members are replaced with 'throw'
 /// expressions. This pass does not dive deeper than member level.
 class _TreeShakerPass2 extends Transformer {
@@ -896,6 +1271,8 @@ class _TreeShakerPass2 extends Transformer {
         return !shaker.isClassUsed(node);
       } else if (node is Typedef) {
         return !shaker.isTypedefUsed(node);
+      } else if (node is Extension) {
+        return !shaker.isExtensionUsed(node);
       } else {
         return !shaker.isMemberUsed(node as Member);
       }
@@ -950,6 +1327,34 @@ class _TreeShakerPass2 extends Transformer {
       node.enclosingClass.isEnum;
 
   @override
+  Member visitProcedure(Procedure proc) {
+    proc = defaultMember(proc);
+    if (proc == null || !shaker._signatureShaker.isShakingSignature(proc)) {
+      return proc;
+    }
+    final optionals =
+        shaker.typeFlowAnalysis.alwaysPassedOptionalParameters(proc);
+    if (optionals.isNotEmpty) {
+      shaker._signatureShaker.defer(proc);
+    }
+    return proc;
+  }
+
+  @override
+  Member visitConstructor(Constructor ctor) {
+    ctor = defaultMember(ctor);
+    if (ctor == null || !shaker._signatureShaker.isShakingSignature(ctor)) {
+      return ctor;
+    }
+    final optionals =
+        shaker.typeFlowAnalysis.alwaysPassedOptionalParameters(ctor);
+    if (optionals.isNotEmpty) {
+      shaker._signatureShaker.defer(ctor);
+    }
+    return ctor;
+  }
+
+  @override
   Member defaultMember(Member node) {
     if (!shaker.isMemberUsed(node) && !_preserveSpecialMember(node)) {
       node.canonicalName?.unbind();
@@ -987,6 +1392,31 @@ class _TreeShakerPass2 extends Transformer {
     return node;
   }
 
+  @override
+  Extension visitExtension(Extension node) {
+    if (shaker.isExtensionUsed(node)) {
+      int writeIndex = 0;
+      for (int i = 0; i < node.members.length; ++i) {
+        final ExtensionMemberDescriptor descriptor = node.members[i];
+
+        // To avoid depending on the order in which members and extensions are
+        // visited during the transformation, we handle both cases: either the
+        // member was already removed or it will be removed later.
+        final Reference memberReference = descriptor.member;
+        final bool isBound = memberReference.node != null;
+        if (isBound && shaker.isMemberUsed(memberReference.node)) {
+          node.members[writeIndex++] = descriptor;
+        }
+      }
+      node.members.length = writeIndex;
+
+      // We only retain the extension if at least one member is retained.
+      assertx(node.members.length > 0);
+      return node;
+    }
+    return null;
+  }
+
   void _makeUnreachableBody(FunctionNode function) {
     if (function.body != null) {
       function.body = new ExpressionStatement(new Throw(new StringLiteral(
@@ -998,6 +1428,84 @@ class _TreeShakerPass2 extends Transformer {
   @override
   TreeNode defaultTreeNode(TreeNode node) {
     return node; // Do not traverse into other nodes.
+  }
+}
+
+// Transform signatures of functions to convert optional named and
+// positional parameters to required parameters if we know that all call sites
+// will pass them.
+//
+// Because the AnnotateKernel pass expects signatures to match up with the
+// corresponding summaries, we enqueue the functions which need to be transformed
+// during the _TreeShakerPass1 and delay the actual transformation until after
+// AnnotateKernel has run.
+class _SignatureShaker {
+  final TypeFlowAnalysis analysis;
+  final List<Member> deferred = [];
+  final bool treeShakeSignatures;
+  _SignatureShaker(this.analysis, {this.treeShakeSignatures});
+
+  bool isShakingSignature(Member member) {
+    if (!treeShakeSignatures) return false;
+    if (member is Procedure && member.isStatic || member is Constructor) {
+      if (getExternalName(member) != null) {
+        // This member has a native implementation which we cannot rewrite
+        // to accomodate the new signature.
+        return false;
+      }
+    } else {
+      return false;
+    }
+    final alwaysPassedParams = analysis.alwaysPassedOptionalParameters(member);
+    return alwaysPassedParams.isNotEmpty;
+  }
+
+  void defer(Member m) {
+    assertx(isShakingSignature(m));
+    deferred.add(m);
+  }
+
+  void transform() => deferred.forEach(_update);
+
+  void _update(Member member) {
+    final alwaysPassedOptionals =
+        analysis.alwaysPassedOptionalParameters(member);
+    assertx(alwaysPassedOptionals.isNotEmpty);
+
+    final func = member.function;
+    final newPositional =
+        func.positionalParameters.sublist(0, func.requiredParameterCount);
+    final optionalPositional =
+        func.positionalParameters.sublist(func.requiredParameterCount);
+
+    for (final param in optionalPositional) {
+      if (alwaysPassedOptionals.contains(param.name)) {
+        newPositional.add(param..initializer = null);
+      }
+    }
+
+    final namedPositionals = <VariableDeclaration>[];
+    final namedParameters = <VariableDeclaration>[];
+    for (final param in func.namedParameters) {
+      if (alwaysPassedOptionals.contains(param.name)) {
+        namedPositionals.add(param..initializer = null);
+      } else {
+        namedParameters.add(param);
+      }
+    }
+    namedPositionals.sort((x, y) => x.name.compareTo(y.name));
+    newPositional.addAll(namedPositionals);
+
+    func.requiredParameterCount = newPositional.length;
+
+    for (final param in optionalPositional) {
+      if (!alwaysPassedOptionals.contains(param.name)) {
+        newPositional.add(param);
+      }
+    }
+
+    func.positionalParameters = newPositional;
+    func.namedParameters = namedParameters;
   }
 }
 

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 // Patch file for dart:developer library.
 
 import 'dart:_js_helper' show patch, ForceInline, ReifyFunctionTypes;
@@ -110,25 +112,13 @@ int _getTraceClock() {
 int _clockValue = 0;
 
 @patch
-int _getThreadCpuClock() {
-  return -1;
-}
-
-@patch
-void _reportCompleteEvent(int start, int startCpu, String category, String name,
-    String argumentsAsJson) {
+void _reportFlowEvent(
+    String category, String name, int type, int id, String argumentsAsJson) {
   // TODO.
 }
 
 @patch
-void _reportFlowEvent(int start, int startCpu, String category, String name,
-    int type, int id, String argumentsAsJson) {
-  // TODO.
-}
-
-@patch
-void _reportInstantEvent(
-    int start, String category, String name, String argumentsAsJson) {
+void _reportInstantEvent(String category, String name, String argumentsAsJson) {
   // TODO.
 }
 
@@ -138,8 +128,8 @@ int _getNextAsyncId() {
 }
 
 @patch
-void _reportTaskEvent(int start, int taskId, String phase, String category,
-    String name, String argumentsAsJson) {
+void _reportTaskEvent(int taskId, String phase, String category, String name,
+    String argumentsAsJson) {
   // TODO.
 }
 

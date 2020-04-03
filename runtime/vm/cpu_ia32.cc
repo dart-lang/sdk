@@ -27,21 +27,23 @@ const char* CPU::Id() {
   return "ia32";
 }
 
+const char* HostCPUFeatures::hardware_ = nullptr;
 bool HostCPUFeatures::sse2_supported_ = false;
 bool HostCPUFeatures::sse4_1_supported_ = false;
-const char* HostCPUFeatures::hardware_ = NULL;
+bool HostCPUFeatures::popcnt_supported_ = false;
+bool HostCPUFeatures::abm_supported_ = false;
 #if defined(DEBUG)
 bool HostCPUFeatures::initialized_ = false;
 #endif
 
 void HostCPUFeatures::Init() {
   CpuInfo::Init();
-
   hardware_ = CpuInfo::GetCpuModel();
   sse2_supported_ = CpuInfo::FieldContains(kCpuInfoFeatures, "sse2");
   sse4_1_supported_ = CpuInfo::FieldContains(kCpuInfoFeatures, "sse4_1") ||
                       CpuInfo::FieldContains(kCpuInfoFeatures, "sse4.1");
-
+  popcnt_supported_ = CpuInfo::FieldContains(kCpuInfoFeatures, "popcnt");
+  abm_supported_ = CpuInfo::FieldContains(kCpuInfoFeatures, "abm");
 #if defined(DEBUG)
   initialized_ = true;
 #endif

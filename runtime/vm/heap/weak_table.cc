@@ -29,11 +29,11 @@ intptr_t WeakTable::SizeFor(intptr_t count, intptr_t size) {
   return result;
 }
 
-void WeakTable::SetValue(RawObject* key, intptr_t val) {
+void WeakTable::SetValueExclusive(RawObject* key, intptr_t val) {
   intptr_t mask = size() - 1;
   intptr_t idx = Hash(key) & mask;
   intptr_t empty_idx = -1;
-  RawObject* obj = ObjectAt(idx);
+  RawObject* obj = ObjectAtExclusive(idx);
 
   while (obj != NULL) {
     if (obj == key) {
@@ -44,7 +44,7 @@ void WeakTable::SetValue(RawObject* key, intptr_t val) {
       empty_idx = idx;  // Insert at this location if not found.
     }
     idx = (idx + 1) & mask;
-    obj = ObjectAt(idx);
+    obj = ObjectAtExclusive(idx);
   }
 
   if (val == 0) {
@@ -60,7 +60,7 @@ void WeakTable::SetValue(RawObject* key, intptr_t val) {
     idx = empty_idx;
   }
 
-  ASSERT(!IsValidEntryAt(idx));
+  ASSERT(!IsValidEntryAtExclusive(idx));
   // Set the key and value.
   SetObjectAt(idx, key);
   SetValueAt(idx, val);
@@ -87,7 +87,7 @@ void WeakTable::Forward(ObjectPointerVisitor* visitor) {
   if (used_ == 0) return;
 
   for (intptr_t i = 0; i < size_; i++) {
-    if (IsValidEntryAt(i)) {
+    if (IsValidEntryAtExclusive(i)) {
       visitor->VisitPointer(ObjectPointerAt(i));
     }
   }
@@ -107,9 +107,9 @@ void WeakTable::Rehash() {
   intptr_t mask = new_size - 1;
   set_used(0);
   for (intptr_t i = 0; i < old_size; i++) {
-    if (IsValidEntryAt(i)) {
+    if (IsValidEntryAtExclusive(i)) {
       // Find the new hash location for this entry.
-      RawObject* key = ObjectAt(i);
+      RawObject* key = ObjectAtExclusive(i);
       intptr_t idx = Hash(key) & mask;
       RawObject* obj = reinterpret_cast<RawObject*>(new_data[ObjectIndex(idx)]);
       while (obj != NULL) {
@@ -119,7 +119,7 @@ void WeakTable::Rehash() {
       }
 
       new_data[ObjectIndex(idx)] = reinterpret_cast<intptr_t>(key);
-      new_data[ValueIndex(idx)] = ValueAt(i);
+      new_data[ValueIndex(idx)] = ValueAtExclusive(i);
       set_used(used() + 1);
     }
   }
@@ -130,6 +130,14 @@ void WeakTable::Rehash() {
   size_ = new_size;
   data_ = new_data;
   free(old_data);
+}
+
+void WeakTable::MergeOtherWeakTable(WeakTable* other) {
+  for (intptr_t i = 0; i < other->size(); i++) {
+    if (other->IsValidEntryAtExclusive(i)) {
+      SetValue(other->ObjectAtExclusive(i), ValueIndex(i));
+    }
+  }
 }
 
 }  // namespace dart

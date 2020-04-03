@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/api_prototype/diagnostic_message.dart'
+import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessage, getMessageUri;
+
+import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
 import 'package:front_end/src/fasta/fasta_codes.dart'
     show DiagnosticMessageFromJson, FormattedMessage, LocatedMessage;
-
-import 'package:front_end/src/fasta/severity.dart' show Severity;
 
 /// Test that turning a message into json and back again retains the wanted
 /// information.

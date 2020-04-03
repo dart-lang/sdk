@@ -13,10 +13,12 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     return insertCell(-1);
   }
 
-  TableCellElement insertCell(int index) => _insertCell(index);
+  TableCellElement insertCell(int index) =>
+      _insertCell(index) $#NULLSAFECAST(as TableCellElement);
 
   DocumentFragment createFragment(String html,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+      {NodeValidator$NULLABLE validator,
+       NodeTreeSanitizer$NULLABLE treeSanitizer}) {
     if (Range.supportsCreateContextualFragment) {
       return super.createFragment(
           html, validator: validator, treeSanitizer: treeSanitizer);

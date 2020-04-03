@@ -8,6 +8,8 @@
 
 namespace dart {
 
+#if !defined(PRODUCT)
+
 class CounterVisitor : public ObjectGraph::Visitor {
  public:
   // Records the number of objects and total size visited, excluding 'skip'
@@ -184,12 +186,13 @@ ISOLATE_UNIT_TEST_CASE(RetainingPathGCRoot) {
   // Delete the weak persistent handle. GC root should now be local handle.
   {
     TransitionVMToNative transition(thread);
-    Dart_DeleteWeakPersistentHandle(Api::CastIsolate(thread->isolate()),
-                                    weak_persistent_handle);
+    Dart_DeleteWeakPersistentHandle(weak_persistent_handle);
     weak_persistent_handle = NULL;
   }
   result = graph.RetainingPath(&path, path);
   EXPECT_STREQ(result.gc_root_type, "local handle");
 }
+
+#endif  // !defined(PRODUCT)
 
 }  // namespace dart

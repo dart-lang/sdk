@@ -1,32 +1,4 @@
 library;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/extensions/other_kinds.dart:18:1: Error: This requires the 'extension-methods' experiment to be enabled.
-// Try enabling this experiment by adding it to the command line when compiling and running.
-// extension A2 on A1 {
-// ^^^^^^^^^
-//
-// pkg/front_end/testcases/extensions/other_kinds.dart:18:17: Error: A function declaration needs an explicit list of parameters.
-// Try adding a parameter list to the function declaration.
-// extension A2 on A1 {
-//                 ^^
-//
-// pkg/front_end/testcases/extensions/other_kinds.dart:18:17: Error: 'A1' is already declared in this scope.
-// extension A2 on A1 {
-//                 ^^
-// pkg/front_end/testcases/extensions/other_kinds.dart:5:7: Context: Previous declaration of 'A1'.
-// class A1 {
-//       ^^
-//
-// pkg/front_end/testcases/extensions/other_kinds.dart:18:1: Warning: Type 'extension' not found.
-// extension A2 on A1 {
-// ^^^^^^^^^
-//
-// pkg/front_end/testcases/extensions/other_kinds.dart:18:14: Warning: Type 'on' not found.
-// extension A2 on A1 {
-//              ^^
-//
 import self as self;
 import "dart:core" as core;
 
@@ -44,6 +16,30 @@ class A1 extends core::Object {
   static method setStaticField(core::int* value) → void
     ;
 }
-static field invalid-type A2;
+extension A2 on self::A1* {
+  get instanceProperty = self::A2|get#instanceProperty;
+  operator + = self::A2|+;
+  operator - = self::A2|-;
+  operator unary- = self::A2|unary-;
+  static field staticField = self::A2|staticField;
+  static get staticProperty = get self::A2|staticProperty;
+  set instanceProperty = self::A2|set#instanceProperty;
+  static set staticProperty = set self::A2|staticProperty;
+}
+static field core::int* A2|staticField;
+static method A2|get#instanceProperty(final self::A1* #this) → core::int*
+  ;
+static method A2|set#instanceProperty(final self::A1* #this, core::int* value) → void
+  ;
+static method A2|+(final self::A1* #this, core::int* value) → core::int*
+  ;
+static method A2|-(final self::A1* #this, core::int* value) → core::int*
+  ;
+static method A2|unary-(final self::A1* #this) → core::int*
+  ;
+static get A2|staticProperty() → core::int*
+  ;
+static set A2|staticProperty(core::int* value) → void
+  ;
 static method main() → dynamic
   ;

@@ -12,7 +12,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'utils.dart';
 
-main() {
+void main() {
   defineReflectiveTests(ErrorsReportedOnceTest);
 }
 
@@ -28,8 +28,8 @@ class ErrorsReportedOnceTest {
     savedExitHandler = exitHandler;
     savedExitCode = exitCode;
     exitHandler = (code) => exitCode = code;
-    outSink = new StringBuffer();
-    errorSink = new StringBuffer();
+    outSink = StringBuffer();
+    errorSink = StringBuffer();
   }
 
   void tearDown() {
@@ -39,24 +39,24 @@ class ErrorsReportedOnceTest {
     exitHandler = savedExitHandler;
   }
 
-  test_once() async {
-    String testDir = path.join(testDirectory, 'data', 'errors_reported_once');
-    Driver driver = new Driver(isTesting: true);
+  Future<void> test_once() async {
+    var testDir = path.join(testDirectory, 'data', 'errors_reported_once');
+    var driver = Driver(isTesting: true);
     await driver.start(
         [path.join(testDir, 'foo.dart'), path.join(testDir, 'bar.dart')]);
 
     expect(exitCode, 0);
 
     // Ensure that we only have one copy of the error.
-    final String unusedWarning = 'Unused import';
-    String output = outSink.toString();
+    final unusedWarning = 'Unused import';
+    var output = outSink.toString();
     expect(output, contains(unusedWarning));
     expect(unusedWarning.allMatches(output).toList(), hasLength(1));
   }
 
-  test_once_machine() async {
-    String testDir = path.join(testDirectory, 'data', 'errors_reported_once');
-    Driver driver = new Driver(isTesting: true);
+  Future<void> test_once_machine() async {
+    var testDir = path.join(testDirectory, 'data', 'errors_reported_once');
+    var driver = Driver(isTesting: true);
     await driver.start([
       '--format',
       'machine',
@@ -67,8 +67,8 @@ class ErrorsReportedOnceTest {
     expect(exitCode, 0);
 
     // Ensure that we only have one copy of the error.
-    final String unusedWarning = 'Unused import';
-    String output = errorSink.toString();
+    final unusedWarning = 'Unused import';
+    var output = errorSink.toString();
     expect(output, contains(unusedWarning));
     expect(unusedWarning.allMatches(output).toList(), hasLength(1));
   }

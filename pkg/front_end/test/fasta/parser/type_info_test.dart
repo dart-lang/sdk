@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/parser/parser.dart';
+import 'package:_fe_analyzer_shared/src/parser/type_info.dart';
+import 'package:_fe_analyzer_shared/src/parser/type_info_impl.dart';
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' hide scanString;
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' as scanner;
+import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:front_end/src/fasta/messages.dart';
-import 'package:front_end/src/fasta/parser.dart';
-import 'package:front_end/src/fasta/parser/type_info.dart';
-import 'package:front_end/src/fasta/parser/type_info_impl.dart';
-import 'package:front_end/src/fasta/scanner.dart' hide scanString;
-import 'package:front_end/src/fasta/scanner.dart' as scanner;
-import 'package:front_end/src/scanner/token.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -695,7 +695,7 @@ class TypeInfoTest {
       'beginTypeVariable T',
       'handleTypeVariablesDefined T 1',
       'handleNoType T',
-      'endTypeVariable > 0 null',
+      'endTypeVariable > 0 null null',
       'endTypeVariables < >',
       'beginFunctionType Function',
       'handleNoType ',
@@ -729,7 +729,7 @@ class TypeInfoTest {
       'beginTypeVariable T',
       'handleTypeVariablesDefined T 1',
       'handleNoType T',
-      'endTypeVariable > 0 null',
+      'endTypeVariable > 0 null null',
       'endTypeVariables < >',
       'beginFunctionType Function',
       'handleNoType ',
@@ -1377,7 +1377,7 @@ class TypeInfoTest {
           'beginTypeVariable T',
           'handleTypeVariablesDefined T 1',
           'handleNoType T',
-          'endTypeVariable > 0 null',
+          'endTypeVariable > 0 null null',
           'endTypeVariables < >',
           'beginFunctionType C',
           'beginTypeVariables <',
@@ -1387,7 +1387,7 @@ class TypeInfoTest {
           'beginTypeVariable T',
           'handleTypeVariablesDefined T 1',
           'handleNoType T',
-          'endTypeVariable > 0 null',
+          'endTypeVariable > 0 null null',
           'endTypeVariables < >',
           'beginFunctionType C',
           'handleIdentifier C prefixedTypeReference',
@@ -1638,7 +1638,7 @@ class SimpleTypeParamOrArgTest {
       'beginTypeVariable T',
       'handleTypeVariablesDefined T 1',
       'handleNoType T',
-      'endTypeVariable > 0 null',
+      'endTypeVariable > 0 null null',
       'endTypeVariables < >',
     ]);
     expect(listener.errors, isNull);
@@ -2023,9 +2023,9 @@ class TypeParamOrArgInfoTest {
       'beginTypeVariable T',
       'handleTypeVariablesDefined T 2',
       'handleNoType T',
-      'endTypeVariable > 1 null',
+      'endTypeVariable > 1 null null',
       'handleNoType S',
-      'endTypeVariable , 0 null',
+      'endTypeVariable , 0 null null',
       'endTypeVariables < >',
     ]);
     expectComplexTypeParam('<S extends T>',
@@ -2040,7 +2040,7 @@ class TypeParamOrArgInfoTest {
           'handleIdentifier T typeReference',
           'handleNoTypeArguments >',
           'handleType T null',
-          'endTypeVariable > 0 extends',
+          'endTypeVariable > 0 extends null',
           'endTypeVariables < >',
         ]);
     expectComplexTypeParam('<S extends List<T>>',
@@ -2059,7 +2059,7 @@ class TypeParamOrArgInfoTest {
           'handleType T null',
           'endTypeArguments 1 < >',
           'handleType List null',
-          'endTypeVariable > 0 extends',
+          'endTypeVariable > 0 extends null',
           'endTypeVariables < >',
         ]);
     expectComplexTypeParam('<R, S extends void Function()>',
@@ -2081,9 +2081,9 @@ class TypeParamOrArgInfoTest {
           'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
           'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
           'endFunctionType Function null',
-          'endTypeVariable > 1 extends',
+          'endTypeVariable > 1 extends null',
           'handleNoType R',
-          'endTypeVariable , 0 null',
+          'endTypeVariable , 0 null null',
           'endTypeVariables < >',
         ]);
     expectComplexTypeParam('<@A S,T>', typeArgumentCount: 2, expectedCalls: [
@@ -2103,9 +2103,9 @@ class TypeParamOrArgInfoTest {
       'beginTypeVariable T',
       'handleTypeVariablesDefined T 2',
       'handleNoType T',
-      'endTypeVariable > 1 null',
+      'endTypeVariable > 1 null null',
       'handleNoType S',
-      'endTypeVariable , 0 null',
+      'endTypeVariable , 0 null null',
       'endTypeVariables < >',
     ]);
     expectComplexTypeParam('<@A() S,T>', typeArgumentCount: 2, expectedCalls: [
@@ -2126,9 +2126,9 @@ class TypeParamOrArgInfoTest {
       'beginTypeVariable T',
       'handleTypeVariablesDefined T 2',
       'handleNoType T',
-      'endTypeVariable > 1 null',
+      'endTypeVariable > 1 null null',
       'handleNoType S',
-      'endTypeVariable , 0 null',
+      'endTypeVariable , 0 null null',
       'endTypeVariables < >',
     ]);
     expectComplexTypeParam('<@A() @B S,T>',
@@ -2156,9 +2156,9 @@ class TypeParamOrArgInfoTest {
           'beginTypeVariable T',
           'handleTypeVariablesDefined T 2',
           'handleNoType T',
-          'endTypeVariable > 1 null',
+          'endTypeVariable > 1 null null',
           'handleNoType S',
-          'endTypeVariable , 0 null',
+          'endTypeVariable , 0 null null',
           'endTypeVariables < >',
         ]);
   }
@@ -2179,7 +2179,7 @@ class TypeParamOrArgInfoTest {
           'handleIdentifier void typeReference',
           'handleNoTypeArguments >',
           'handleType void null',
-          'endTypeVariable > 0 extends',
+          'endTypeVariable > 0 extends null',
           'endTypeVariables < >'
         ]);
   }
@@ -2198,7 +2198,7 @@ class TypeParamOrArgInfoTest {
           'beginTypeVariable S',
           'handleTypeVariablesDefined S 1',
           'handleNoType S',
-          'endTypeVariable Function 0 null',
+          'endTypeVariable Function 0 null null',
           'endTypeVariables < >',
         ]);
     expectComplexTypeParam('<void Function()>',
@@ -2214,7 +2214,7 @@ class TypeParamOrArgInfoTest {
           'beginTypeVariable ',
           'handleTypeVariablesDefined  1',
           'handleNoType ',
-          'endTypeVariable void 0 null',
+          'endTypeVariable void 0 null null',
           'endTypeVariables < >',
         ]);
     expectComplexTypeParam('<S<T>>', typeArgumentCount: 1, expectedErrors: [
@@ -2227,7 +2227,7 @@ class TypeParamOrArgInfoTest {
       'beginTypeVariable S',
       'handleTypeVariablesDefined S 1',
       'handleNoType S',
-      'endTypeVariable < 0 null',
+      'endTypeVariable < 0 null null',
       'endTypeVariables < >',
     ]);
     expectComplexTypeParam('<S T>',
@@ -2270,7 +2270,7 @@ class TypeParamOrArgInfoTest {
           'handleType T null',
           'endTypeArguments 1 < >',
           'handleType List null',
-          'endTypeVariable fieldName 0 extends',
+          'endTypeVariable fieldName 0 extends null',
           'endTypeVariables < >',
         ]);
   }
@@ -2292,7 +2292,7 @@ class TypeParamOrArgInfoTest {
           'handleType T null',
           'endTypeArguments 1 < >',
           'handleType Comparable null',
-          'endTypeVariable > 0 extends',
+          'endTypeVariable > 0 extends null',
           'endTypeVariables < >',
         ]);
     expectComplexTypeParam('<T extends Comparable<S>, S>',
@@ -2309,7 +2309,7 @@ class TypeParamOrArgInfoTest {
           'beginTypeVariable S',
           'handleTypeVariablesDefined S 2',
           'handleNoType S',
-          'endTypeVariable > 1 null',
+          'endTypeVariable > 1 null null',
           'handleIdentifier Comparable typeReference',
           'beginTypeArguments <',
           'handleIdentifier S typeReference',
@@ -2317,7 +2317,7 @@ class TypeParamOrArgInfoTest {
           'handleType S null',
           'endTypeArguments 1 < >',
           'handleType Comparable null',
-          'endTypeVariable , 0 extends',
+          'endTypeVariable , 0 extends null',
           'endTypeVariables < >'
         ]);
     expectComplexTypeParam('<T extends Function(T)>',
@@ -2345,7 +2345,7 @@ class TypeParamOrArgInfoTest {
               'MemberKind.GeneralizedFunctionType',
           'endFormalParameters 1 ( ) MemberKind.GeneralizedFunctionType',
           'endFunctionType Function null',
-          'endTypeVariable > 0 extends',
+          'endTypeVariable > 0 extends null',
           'endTypeVariables < >'
         ]);
     expectComplexTypeParam('<T extends List<List<T>>>',
@@ -2368,7 +2368,7 @@ class TypeParamOrArgInfoTest {
           'handleType List null',
           'endTypeArguments 1 < >',
           'handleType List null',
-          'endTypeVariable > 0 extends',
+          'endTypeVariable > 0 extends null',
           'endTypeVariables < >'
         ]);
     expectComplexTypeParam('<T extends List<Map<S, T>>>',
@@ -2394,7 +2394,7 @@ class TypeParamOrArgInfoTest {
           'handleType Map null',
           'endTypeArguments 1 < >',
           'handleType List null',
-          'endTypeVariable > 0 extends',
+          'endTypeVariable > 0 extends null',
           'endTypeVariables < >'
         ]);
     expectComplexTypeParam('<T extends List<Map<S, T>>>=',
@@ -2421,7 +2421,7 @@ class TypeParamOrArgInfoTest {
           'handleType Map null',
           'endTypeArguments 1 < >',
           'handleType List null',
-          'endTypeVariable >= 0 extends',
+          'endTypeVariable >= 0 extends null',
           'endTypeVariables < >'
         ]);
   }
@@ -2441,7 +2441,7 @@ class TypeParamOrArgInfoTest {
           'beginTypeVariable S',
           'handleTypeVariablesDefined S 1',
           'handleNoType S',
-          'endTypeVariable < 0 null',
+          'endTypeVariable < 0 null null',
           'endTypeVariables < >',
         ]);
     expectComplexTypeParam('<S();> A',
@@ -2459,7 +2459,7 @@ class TypeParamOrArgInfoTest {
           'beginTypeVariable S',
           'handleTypeVariablesDefined S 1',
           'handleNoType S',
-          'endTypeVariable ( 0 null',
+          'endTypeVariable ( 0 null null',
           'endTypeVariables < >',
         ]);
   }
@@ -2842,8 +2842,9 @@ class TypeInfoListener implements Listener {
   }
 
   @override
-  void endTypeVariable(Token token, int index, Token extendsOrSuper) {
-    calls.add('endTypeVariable $token $index $extendsOrSuper');
+  void endTypeVariable(
+      Token token, int index, Token extendsOrSuper, Token variance) {
+    calls.add('endTypeVariable $token $index $extendsOrSuper $variance');
     assertTokenInStream(token);
     assertTokenInStream(extendsOrSuper);
   }
@@ -2920,6 +2921,11 @@ class TypeInfoListener implements Listener {
   @override
   void handleVoidKeyword(Token token) {
     calls.add('handleVoidKeyword $token');
+  }
+
+  @override
+  void handleVoidKeywordWithTypeArguments(Token token) {
+    calls.add('handleVoidKeywordWithTypeArguments $token');
   }
 
   noSuchMethod(Invocation invocation) {

@@ -9,7 +9,7 @@ typedef T Function2<S, T>(S x);
 
 void test() {
   {
-    Function2<int, String> l0 = /*@ returnType=Null* */ (int x) => null;
+    Function2<int, String> l0 = /*@ returnType=Null? */ (int x) => null;
     Function2<int, String> l1 = /*@ returnType=String* */ (int x) => "hello";
     Function2<int, String>
         l2 = /*error:INVALID_ASSIGNMENT*/ /*@ returnType=String* */ (String x) =>
@@ -21,7 +21,7 @@ void test() {
     };
   }
   {
-    Function2<int, String> l0 = /*@ returnType=Null* */ (/*@ type=int* */ x) => null;
+    Function2<int, String> l0 = /*@ returnType=Null? */ (/*@ type=int* */ x) => null;
     Function2<int, String> l1 = /*@ returnType=String* */ (/*@ type=int* */ x) =>
         "hello";
     Function2<int, String>
@@ -35,7 +35,7 @@ void test() {
     };
   }
   {
-    Function2<int, List<String>> l0 = /*@ returnType=Null* */ (int x) => null;
+    Function2<int, List<String>> l0 = /*@ returnType=Null? */ (int x) => null;
     Function2<int, List<String>> l1 = /*@ returnType=List<String*>* */ (int
         x) => /*@ typeArgs=String* */ ["hello"];
     Function2<int, List<String>>

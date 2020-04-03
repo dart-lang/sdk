@@ -53,8 +53,12 @@ class NativeTypeSet {
 
     // These are used natively by dart:html but also not annotated.
     _addExtensionTypesForLibrary('dart:core', ['Comparable', 'Map']);
-    _addExtensionTypesForLibrary('dart:collection', ['ListMixin']);
+    _addExtensionTypesForLibrary('dart:collection', ['ListMixin', 'MapMixin']);
     _addExtensionTypesForLibrary('dart:math', ['Rectangle']);
+
+    // TODO(39612) Validate that after this point no types from the SDK are
+    // added as native extensions (excluding types from dart:html and "friends"
+    // listed below).
 
     // Second, html types - these are only searched if we use dart:html, etc.:
     _addPendingExtensionTypes(sdk.getLibrary('dart:html'));
@@ -70,7 +74,7 @@ class NativeTypeSet {
     if (_extensibleTypes.contains(c) || _nativeTypes.contains(c)) {
       return;
     }
-    bool isNative = mustBeNative || _isNative(c);
+    var isNative = mustBeNative || _isNative(c);
     if (isNative) {
       _nativeTypes.add(c);
     } else {
@@ -132,7 +136,7 @@ class NativeTypeSet {
       if (names != null) {
         // Omit the special name "!nonleaf" and any future dart2js hacks
         // starting with "!"
-        return names.split(',').where((peer) => !peer.startsWith("!")).toList();
+        return names.split(',').where((peer) => !peer.startsWith('!')).toList();
       }
     }
     return const [];

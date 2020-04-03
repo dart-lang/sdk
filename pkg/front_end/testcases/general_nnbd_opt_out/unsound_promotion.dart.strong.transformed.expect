@@ -1,0 +1,49 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/unsound_promotion.dart:21:16: Error: Can't infer a type for 'T', it can be either 'S' or 'A'.
+//  - 'A' is from 'pkg/front_end/testcases/general_nnbd_opt_out/unsound_promotion.dart'.
+// Try adding a type argument selecting one of the options.
+//     var list = g(s);
+//                ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+}
+class B extends core::Object {
+  synthetic constructor •() → self::B*
+    : super core::Object::•()
+    ;
+}
+class C extends self::B implements self::A {
+  synthetic constructor •() → self::C*
+    : super self::B::•()
+    ;
+}
+static field core::List<self::A*>* list;
+static method g<T extends self::A* = self::A*>(self::g::T* t) → core::List<self::g::T*>* {
+  self::list = <self::g::T*>[];
+  core::print(self::list.{core::Object::runtimeType});
+  return self::list as{TypeError} core::List<self::g::T*>*;
+}
+static method f<S extends core::Object* = dynamic>(self::f::S* s) → core::List<self::f::S*>* {
+  if(s is self::A*) {
+    core::List<self::f::S* & self::A* /* '*' & '*' = '*' */>* list = self::g<self::f::S* & self::A* /* '*' & '*' = '*' */>(s{self::f::S* & self::A* /* '*' & '*' = '*' */});
+    return list;
+  }
+  return null;
+}
+static method main() → dynamic {
+  self::f<self::B*>(new self::C::•());
+  core::print(self::list.{core::Object::runtimeType});
+  core::List<self::A*>* aList;
+  aList = self::list;
+  core::Object* o = aList;
+  aList = o as{TypeError} core::List<self::A*>*;
+}

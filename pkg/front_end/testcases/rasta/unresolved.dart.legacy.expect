@@ -1,7 +1,0 @@
-library;
-import self as self;
-import "dart:core" as core;
-
-static method main() → dynamic {
-  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Missing, 32, const <dynamic>[], const <dynamic>[], core::Map::unmodifiable<dynamic, dynamic>(const <dynamic, dynamic>{})));
-}

@@ -15,6 +15,7 @@ import 'package:analysis_server/src/search/type_hierarchy.dart';
 class ImplementationHandler
     extends MessageHandler<TextDocumentPositionParams, List<Location>> {
   ImplementationHandler(LspAnalysisServer server) : super(server);
+  @override
   Method get handlesMessage => Method.textDocument_implementation;
 
   @override
@@ -39,7 +40,7 @@ class ImplementationHandler
   Future<ErrorOr<List<Location>>> _getImplementations(
       String file, int offset, CancelableToken token) async {
     final element = await server.getElementAtOffset(file, offset);
-    final computer = new TypeHierarchyComputer(server.searchEngine, element);
+    final computer = TypeHierarchyComputer(server.searchEngine, element);
     if (token.isCancellationRequested) {
       return cancelled();
     }

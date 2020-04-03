@@ -4,8 +4,8 @@
 
 /*Debugger:stepOver*/
 void main() {
-  /*bl*/ /*sl:1*/ int count = 0;
-  for (/*sl:2*/ int i = 0;
+  /*bl*/ /*sl:1*/ var count = 0;
+  for (/*sl:2*/ var i = 0;
       /*sl:3*/ /*sl:8*/ /*sl:13*/ /*sl:17*/ /*nbb:18:21*/ i < 42;
       /*sl:7*/ /*sl:12*/ /*sl:16*/ /*nbb:17:21*/ ++i) {
     /*sl:4*/ /*sl:9*/ /*sl:14*/ /*sl:18*/ /*nbb:19:21*/ if (i == 2) {

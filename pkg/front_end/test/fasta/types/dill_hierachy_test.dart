@@ -12,11 +12,15 @@ import "package:kernel/core_types.dart" show CoreTypes;
 
 import "package:kernel/target/targets.dart" show NoneTarget, TargetFlags;
 
+import 'package:kernel/testing/type_parser_environment.dart' show parseComponent;
+
 import "package:front_end/src/api_prototype/compiler_options.dart"
     show CompilerOptions;
 
 import "package:front_end/src/base/processed_options.dart"
     show ProcessedOptions;
+
+import "package:front_end/src/fasta/builder/class_builder.dart";
 
 import "package:front_end/src/fasta/compiler_context.dart" show CompilerContext;
 
@@ -25,11 +29,9 @@ import "package:front_end/src/fasta/dill/dill_loader.dart" show DillLoader;
 import "package:front_end/src/fasta/dill/dill_target.dart" show DillTarget;
 
 import "package:front_end/src/fasta/kernel/kernel_builder.dart"
-    show ClassHierarchyBuilder, ClassBuilder;
+    show ClassHierarchyBuilder;
 
 import "package:front_end/src/fasta/ticker.dart" show Ticker;
-
-import "kernel_type_parser.dart" show parseComponent;
 
 const String expectedHierarchy = """
 Object:
@@ -79,7 +81,7 @@ E:
   Longest path to Object: 4
   superclasses:
     Object
-  interfaces: D<int, double>, B<int>, A, C<double>
+  interfaces: D<int,double>, B<int>, A, C<double>
   classMembers:
   classSetters:
   interfaceMembers:
@@ -89,7 +91,7 @@ F:
   Longest path to Object: 4
   superclasses:
     Object
-  interfaces: D<int, bool>, B<int>, A, C<bool>
+  interfaces: D<int,bool>, B<int>, A, C<bool>
   classMembers:
   classSetters:
   interfaceMembers:
@@ -125,7 +127,7 @@ class F implements D<int, bool>;""",
             objectClass, loader, new CoreTypes(component));
         Library library = component.libraries.last;
         for (Class cls in library.classes) {
-          hierarchy.getNodeFromKernelClass(cls);
+          hierarchy.getNodeFromClass(cls);
         }
         Expect.stringEquals(
             expectedHierarchy, hierarchy.nodes.values.join("\n"));

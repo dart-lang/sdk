@@ -9,7 +9,6 @@
 
 #include "vm/allocation.h"
 #include "vm/growable_array.h"
-#include "vm/hash.h"
 #include "vm/hash_map.h"
 #include "vm/zone.h"
 
@@ -61,11 +60,16 @@ class SExpression : public ZoneAllocated {
   static intptr_t const kInvalidPos = -1;
 
   static SExpression* FromCString(Zone* zone, const char* cstr);
+  const char* ToCString(Zone* zone) const;
   intptr_t start() const { return start_; }
 
 #define S_EXPRESSION_TYPE_CHECK(name, value_type)                              \
-  bool Is##name() { return (As##name() != nullptr); }                          \
-  virtual SExp##name* As##name() { return nullptr; }
+  bool Is##name() const { return (As##name() != nullptr); }                    \
+  SExp##name* As##name() {                                                     \
+    auto const const_this = const_cast<const SExpression*>(this);              \
+    return const_cast<SExp##name*>(const_this->As##name());                    \
+  }                                                                            \
+  virtual const SExp##name* As##name() const { return nullptr; }
 
   FOR_EACH_S_EXPRESSION(S_EXPRESSION_TYPE_CHECK)
   FOR_EACH_ABSTRACT_S_EXPRESSION(S_EXPRESSION_TYPE_CHECK)
@@ -89,7 +93,7 @@ class SExpAtom : public SExpression {
  public:
   explicit SExpAtom(intptr_t start = kInvalidPos) : SExpression(start) {}
 
-  virtual SExpAtom* AsAtom() { return this; }
+  virtual const SExpAtom* AsAtom() const { return this; }
   // No atoms have sub-elements, so they always print to a single line.
   virtual void SerializeTo(Zone* zone,
                            TextBuffer* buffer,
@@ -103,7 +107,7 @@ class SExpAtom : public SExpression {
 };
 
 #define DEFINE_S_EXPRESSION_TYPE_CHECK(name)                                   \
-  virtual SExp##name* As##name() { return this; }                              \
+  virtual const SExp##name* As##name() const { return this; }                  \
   virtual const char* DebugName() const { return #name; }
 
 // The various concrete S-expression atom classes are thin wrappers around
@@ -115,6 +119,7 @@ class SExpAtom : public SExpression {
         : SExpAtom(start), val_(val) {}                                        \
     value_type value() const { return val_; }                                  \
     virtual bool Equals(SExpression* sexp) const;                              \
+    bool Equals(value_type val) const;                                         \
     virtual void SerializeToLine(TextBuffer* buffer) const;                    \
     DEFINE_S_EXPRESSION_TYPE_CHECK(name)                                       \
    private:                                                                    \
@@ -132,36 +137,7 @@ class SExpList : public SExpression {
   explicit SExpList(Zone* zone, intptr_t start = kInvalidPos)
       : SExpression(start), contents_(zone, 2), extra_info_(zone) {}
 
-  template <typename V>
-  class CStringPointerKeyValueTrait {
-   public:
-    typedef const char* Key;
-    typedef V Value;
-
-    struct Pair {
-      Key key;
-      Value value;
-      Pair() : key(NULL), value() {}
-      Pair(const Key key, const Value& value) : key(key), value(value) {}
-      Pair(const Pair& other) : key(other.key), value(other.value) {}
-    };
-
-    static Key KeyOf(Pair kv) { return kv.key; }
-    static Value ValueOf(Pair kv) { return kv.value; }
-    static intptr_t Hashcode(Key key) {
-      intptr_t hash = 0;
-      for (size_t i = 0; i < strlen(key); i++) {
-        hash = CombineHashes(hash, key[i]);
-      }
-      return FinalizeHash(hash, kBitsPerWord - 1);
-    }
-    static bool IsKeyEqual(Pair kv, Key key) {
-      return kv.key == key || strcmp(kv.key, key) == 0;
-    }
-  };
-
-  using ExtraInfoKeyValueTrait = CStringPointerKeyValueTrait<SExpression*>;
-  using ExtraInfoHashMap = DirectChainedHashMap<ExtraInfoKeyValueTrait>;
+  using ExtraInfoHashMap = CStringMap<SExpression*>;
 
   void Add(SExpression* sexp);
   void AddExtra(const char* label, SExpression* value);
@@ -174,8 +150,15 @@ class SExpList : public SExpression {
     return extra_info_.GetIterator();
   }
   bool ExtraHasKey(const char* cstr) const { return extra_info_.HasKey(cstr); }
-  ExtraInfoKeyValueTrait::Value ExtraLookupValue(const char* cstr) const {
+  SExpression* ExtraLookupValue(const char* cstr) const {
     return extra_info_.LookupValue(cstr);
+  }
+
+  // Shortcut for retrieving the tag from a tagged list (list that contains an
+  // initial symbol). Returns nullptr if the list is not a tagged list.
+  SExpSymbol* Tag() const {
+    if (Length() == 0 || !At(0)->IsSymbol()) return nullptr;
+    return At(0)->AsSymbol();
   }
 
   DEFINE_S_EXPRESSION_TYPE_CHECK(List)
@@ -208,7 +191,7 @@ class SExpParser : public ValueObject {
       : SExpParser(zone, cstr, strlen(cstr)) {}
   SExpParser(Zone* zone, const char* cstr, intptr_t len)
       : zone_(zone),
-        buffer_(cstr),
+        buffer_(ASSERT_NOTNULL(cstr)),
         buffer_size_(strnlen(cstr, len)),
         cur_label_(nullptr),
         cur_value_(nullptr),
@@ -245,6 +228,7 @@ class SExpParser : public ValueObject {
   intptr_t error_pos() const { return error_pos_; }
   const char* error_message() const { return error_message_; }
 
+  const char* Input() const { return buffer_; }
   SExpression* Parse();
   DART_NORETURN void ReportError() const;
 
@@ -292,7 +276,7 @@ class SExpParser : public ValueObject {
   SExpression* TokenToSExpression(Token* token);
   Token* GetNextToken();
   void Reset();
-  void StoreError(intptr_t pos, const char* format, ...);
+  void StoreError(intptr_t pos, const char* format, ...) PRINTF_ATTRIBUTE(3, 4);
 
   static bool IsSymbolContinue(char c);
 

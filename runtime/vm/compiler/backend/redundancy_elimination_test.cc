@@ -16,6 +16,7 @@
 #include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/compiler/jit/jit_call_specializer.h"
+#include "vm/flags.h"
 #include "vm/log.h"
 #include "vm/object.h"
 #include "vm/parser.h"
@@ -270,7 +271,7 @@ static void TestAliasingViaRedefinition(
       Function::ZoneHandle(GetFunction(lib, "blackhole"));
 
   using compiler::BlockBuilder;
-  CompilerState S(thread);
+  CompilerState S(thread, /*is_aot=*/false);
   FlowGraphBuilderHelper H;
 
   // We are going to build the following graph:
@@ -291,27 +292,24 @@ static void TestAliasingViaRedefinition(
   auto b1 = H.flow_graph()->graph_entry()->normal_entry();
   AllocateObjectInstr* v0;
   LoadFieldInstr* v1;
-  PushArgumentInstr* push_v1;
+  StaticCallInstr* call;
   LoadFieldInstr* v4;
   ReturnInstr* ret;
 
   {
     BlockBuilder builder(H.flow_graph(), b1);
     auto& slot = Slot::Get(field, &H.flow_graph()->parsed_function());
-    v0 = builder.AddDefinition(new AllocateObjectInstr(
-        TokenPosition::kNoSource, cls, new PushArgumentsArray(0)));
+    v0 = builder.AddDefinition(
+        new AllocateObjectInstr(TokenPosition::kNoSource, cls));
     v1 = builder.AddDefinition(
         new LoadFieldInstr(new Value(v0), slot, TokenPosition::kNoSource));
     auto v2 = builder.AddDefinition(make_redefinition(&S, H.flow_graph(), v0));
-    auto args = new PushArgumentsArray(2);
-    push_v1 = builder.AddInstruction(new PushArgumentInstr(new Value(v1)));
-    args->Add(push_v1);
+    auto args = new InputsArray(2);
+    args->Add(new Value(v1));
     if (make_it_escape) {
-      auto push_v2 =
-          builder.AddInstruction(new PushArgumentInstr(new Value(v2)));
-      args->Add(push_v2);
+      args->Add(new Value(v2));
     }
-    builder.AddInstruction(new StaticCallInstr(
+    call = builder.AddInstruction(new StaticCallInstr(
         TokenPosition::kNoSource, blackhole, 0, Array::empty_array(), args,
         S.GetNextDeoptId(), 0, ICData::RebindRule::kStatic));
     v4 = builder.AddDefinition(
@@ -332,8 +330,7 @@ static void TestAliasingViaRedefinition(
 
   // v1 should have been removed from the graph and replaced with constant_null.
   EXPECT_PROPERTY(v1, it.next() == nullptr && it.previous() == nullptr);
-  EXPECT_PROPERTY(push_v1,
-                  it.value()->definition() == H.flow_graph()->constant_null());
+  EXPECT_PROPERTY(call, it.ArgumentAt(0) == H.flow_graph()->constant_null());
 
   if (make_it_escape) {
     // v4 however should not be removed from the graph, because v0 escapes into
@@ -436,7 +433,7 @@ static void TestAliasingViaStore(
       Function::ZoneHandle(GetFunction(lib, "blackhole"));
 
   using compiler::BlockBuilder;
-  CompilerState S(thread);
+  CompilerState S(thread, /*is_aot=*/false);
   FlowGraphBuilderHelper H;
 
   // We are going to build the following graph:
@@ -466,17 +463,17 @@ static void TestAliasingViaStore(
   AllocateObjectInstr* v0;
   AllocateObjectInstr* v5;
   LoadFieldInstr* v1;
-  PushArgumentInstr* push_v1;
+  StaticCallInstr* call;
   LoadFieldInstr* v4;
   ReturnInstr* ret;
 
   {
     BlockBuilder builder(H.flow_graph(), b1);
     auto& slot = Slot::Get(field, &H.flow_graph()->parsed_function());
-    v0 = builder.AddDefinition(new AllocateObjectInstr(
-        TokenPosition::kNoSource, cls, new PushArgumentsArray(0)));
-    v5 = builder.AddDefinition(new AllocateObjectInstr(
-        TokenPosition::kNoSource, cls, new PushArgumentsArray(0)));
+    v0 = builder.AddDefinition(
+        new AllocateObjectInstr(TokenPosition::kNoSource, cls));
+    v5 = builder.AddDefinition(
+        new AllocateObjectInstr(TokenPosition::kNoSource, cls));
     if (!make_host_escape) {
       builder.AddInstruction(new StoreInstanceFieldInstr(
           slot, new Value(v5), new Value(v0), kEmitStoreBarrier,
@@ -485,22 +482,19 @@ static void TestAliasingViaStore(
     v1 = builder.AddDefinition(
         new LoadFieldInstr(new Value(v0), slot, TokenPosition::kNoSource));
     auto v2 = builder.AddDefinition(make_redefinition(&S, H.flow_graph(), v5));
-    push_v1 = builder.AddInstruction(new PushArgumentInstr(new Value(v1)));
-    auto args = new PushArgumentsArray(2);
-    args->Add(push_v1);
+    auto args = new InputsArray(2);
+    args->Add(new Value(v1));
     if (make_it_escape) {
       auto v6 = builder.AddDefinition(
           new LoadFieldInstr(new Value(v2), slot, TokenPosition::kNoSource));
-      auto push_v6 =
-          builder.AddInstruction(new PushArgumentInstr(new Value(v6)));
-      args->Add(push_v6);
+      args->Add(new Value(v6));
     } else if (make_host_escape) {
       builder.AddInstruction(new StoreInstanceFieldInstr(
           slot, new Value(v2), new Value(v0), kEmitStoreBarrier,
           TokenPosition::kNoSource));
-      args->Add(builder.AddInstruction(new PushArgumentInstr(new Value(v5))));
+      args->Add(new Value(v5));
     }
-    builder.AddInstruction(new StaticCallInstr(
+    call = builder.AddInstruction(new StaticCallInstr(
         TokenPosition::kNoSource, blackhole, 0, Array::empty_array(), args,
         S.GetNextDeoptId(), 0, ICData::RebindRule::kStatic));
     v4 = builder.AddDefinition(
@@ -527,8 +521,7 @@ static void TestAliasingViaStore(
 
   // v1 should have been removed from the graph and replaced with constant_null.
   EXPECT_PROPERTY(v1, it.next() == nullptr && it.previous() == nullptr);
-  EXPECT_PROPERTY(push_v1,
-                  it.value()->definition() == H.flow_graph()->constant_null());
+  EXPECT_PROPERTY(call, it.ArgumentAt(0) == H.flow_graph()->constant_null());
 
   if (make_it_escape || make_host_escape) {
     // v4 however should not be removed from the graph, because v0 escapes into
@@ -589,6 +582,116 @@ ISOLATE_UNIT_TEST_CASE(
     LoadOptimizer_AliasingViaStore_AssertAssignable_EscapeViaHost) {
   TestAliasingViaStore(thread, /*make_it_escape=*/false,
                        /* make_host_escape= */ true, MakeAssertAssignable);
+}
+
+// This is a regression test for
+// https://github.com/flutter/flutter/issues/48114.
+ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaTypedDataAndUntaggedTypedData) {
+  using compiler::BlockBuilder;
+  CompilerState S(thread, /*is_aot=*/false);
+  FlowGraphBuilderHelper H;
+
+  const auto& lib = Library::Handle(Library::TypedDataLibrary());
+  const Class& cls = Class::Handle(lib.LookupLocalClass(Symbols::Uint32List()));
+  const Error& err = Error::Handle(cls.EnsureIsFinalized(thread));
+  EXPECT(err.IsNull());
+
+  const Function& function = Function::ZoneHandle(
+      cls.LookupFactory(String::Handle(String::New("Uint32List."))));
+  EXPECT(!function.IsNull());
+
+  auto zone = H.flow_graph()->zone();
+
+  // We are going to build the following graph:
+  //
+  //   B0[graph_entry] {
+  //     vc0 <- Constant(0)
+  //     vc42 <- Constant(42)
+  //   }
+  //
+  //   B1[function_entry] {
+  //   }
+  //   array <- StaticCall(...) {_Uint32List}
+  //   v1 <- LoadIndexed(array)
+  //   v2 <- LoadUntagged(array)
+  //   StoreIndexed(v2, index=vc0, value=vc42)
+  //   v3 <- LoadIndexed(array)
+  //   return v3
+  // }
+
+  auto vc0 = H.flow_graph()->GetConstant(Integer::Handle(Integer::New(0)));
+  auto vc42 = H.flow_graph()->GetConstant(Integer::Handle(Integer::New(42)));
+  auto b1 = H.flow_graph()->graph_entry()->normal_entry();
+
+  StaticCallInstr* array;
+  LoadIndexedInstr* v1;
+  LoadUntaggedInstr* v2;
+  StoreIndexedInstr* store;
+  LoadIndexedInstr* v3;
+  ReturnInstr* ret;
+
+  {
+    BlockBuilder builder(H.flow_graph(), b1);
+
+    //   array <- StaticCall(...) {_Uint32List}
+    array = builder.AddDefinition(new StaticCallInstr(
+        TokenPosition::kNoSource, function, 0, Array::empty_array(),
+        new InputsArray(), DeoptId::kNone, 0, ICData::kNoRebind));
+    array->UpdateType(CompileType::FromCid(kTypedDataUint32ArrayCid));
+    array->SetResultType(zone, CompileType::FromCid(kTypedDataUint32ArrayCid));
+    array->set_is_known_list_constructor(true);
+
+    //   v1 <- LoadIndexed(array)
+    v1 = builder.AddDefinition(new LoadIndexedInstr(
+        new Value(array), new Value(vc0), /*index_unboxed=*/false, 1,
+        kTypedDataUint32ArrayCid, kAlignedAccess, DeoptId::kNone,
+        TokenPosition::kNoSource));
+
+    //   v2 <- LoadUntagged(array)
+    //   StoreIndexed(v2, index=0, value=42)
+    v2 = builder.AddDefinition(new LoadUntaggedInstr(new Value(array), 0));
+    store = builder.AddInstruction(new StoreIndexedInstr(
+        new Value(v2), new Value(vc0), new Value(vc42), kNoStoreBarrier,
+        /*index_unboxed=*/false, 1, kTypedDataUint32ArrayCid, kAlignedAccess,
+        DeoptId::kNone, TokenPosition::kNoSource));
+
+    //   v3 <- LoadIndexed(array)
+    v3 = builder.AddDefinition(new LoadIndexedInstr(
+        new Value(array), new Value(vc0), /*index_unboxed=*/false, 1,
+        kTypedDataUint32ArrayCid, kAlignedAccess, DeoptId::kNone,
+        TokenPosition::kNoSource));
+
+    //   return v3
+    ret = builder.AddInstruction(new ReturnInstr(
+        TokenPosition::kNoSource, new Value(v3), S.GetNextDeoptId()));
+  }
+  H.FinishGraph();
+
+  DominatorBasedCSE::Optimize(H.flow_graph());
+  {
+    Instruction* sc = nullptr;
+    Instruction* li = nullptr;
+    Instruction* lu = nullptr;
+    Instruction* s = nullptr;
+    Instruction* li2 = nullptr;
+    Instruction* r = nullptr;
+    ILMatcher cursor(H.flow_graph(), b1, true);
+    RELEASE_ASSERT(cursor.TryMatch({
+        kMatchAndMoveFunctionEntry,
+        {kMatchAndMoveStaticCall, &sc},
+        {kMatchAndMoveLoadIndexed, &li},
+        {kMatchAndMoveLoadUntagged, &lu},
+        {kMatchAndMoveStoreIndexed, &s},
+        {kMatchAndMoveLoadIndexed, &li2},
+        {kMatchReturn, &r},
+    }));
+    EXPECT(array == sc);
+    EXPECT(v1 == li);
+    EXPECT(v2 == lu);
+    EXPECT(store == s);
+    EXPECT(v3 == li2);
+    EXPECT(ret == r);
+  }
 }
 
 // This test verifies behavior of load forwarding when an alias for an
@@ -779,6 +882,76 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaLoadElimination_AcrossBlocks) {
   EXPECT(second_store->array()->definition() == list_factory);
   EXPECT(boxed_result->value()->definition() != double_one);
   EXPECT(boxed_result->value()->definition() == final_load);
+}
+
+static void CountLoadsStores(FlowGraph* flow_graph,
+                             intptr_t* loads,
+                             intptr_t* stores) {
+  for (BlockIterator block_it = flow_graph->reverse_postorder_iterator();
+       !block_it.Done(); block_it.Advance()) {
+    for (ForwardInstructionIterator it(block_it.Current()); !it.Done();
+         it.Advance()) {
+      if (it.Current()->IsLoadField()) {
+        (*loads)++;
+      } else if (it.Current()->IsStoreInstanceField()) {
+        (*stores)++;
+      }
+    }
+  }
+}
+
+ISOLATE_UNIT_TEST_CASE(LoadOptimizer_RedundantStoresAndLoads) {
+  const char* kScript = R"(
+    class Bar {
+      Bar() { a = null; }
+      Object a;
+    }
+
+    Bar foo() {
+      Bar bar = new Bar();
+      bar.a = null;
+      bar.a = bar;
+      bar.a = bar.a;
+      return bar.a;
+    }
+
+    main() {
+      foo();
+    }
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  Invoke(root_library, "main");
+  const auto& function = Function::Handle(GetFunction(root_library, "foo"));
+  TestPipeline pipeline(function, CompilerPass::kJIT);
+  FlowGraph* flow_graph = pipeline.RunPasses({
+      CompilerPass::kComputeSSA,
+      CompilerPass::kTypePropagation,
+      CompilerPass::kApplyICData,
+      CompilerPass::kInlining,
+      CompilerPass::kTypePropagation,
+      CompilerPass::kSelectRepresentations,
+      CompilerPass::kCanonicalize,
+      CompilerPass::kConstantPropagation,
+  });
+
+  ASSERT(flow_graph != nullptr);
+
+  // Before CSE, we have 2 loads and 4 stores.
+  intptr_t bef_loads = 0;
+  intptr_t bef_stores = 0;
+  CountLoadsStores(flow_graph, &bef_loads, &bef_stores);
+  EXPECT_EQ(2, bef_loads);
+  EXPECT_EQ(4, bef_stores);
+
+  DominatorBasedCSE::Optimize(flow_graph);
+
+  // After CSE, no load and only one store remains.
+  intptr_t aft_loads = 0;
+  intptr_t aft_stores = 0;
+  CountLoadsStores(flow_graph, &aft_loads, &aft_stores);
+  EXPECT_EQ(0, aft_loads);
+  EXPECT_EQ(1, aft_stores);
 }
 
 }  // namespace dart

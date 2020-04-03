@@ -27,7 +27,6 @@ import 'runtime_types_codegen.dart';
 import 'runtime_types_resolution.dart';
 
 typedef jsAst.Expression OnVariableCallback(TypeVariableType variable);
-typedef bool ShouldEncodeTypedefCallback(TypedefType variable);
 
 /// Interface for the needed runtime type checks.
 abstract class RuntimeTypesChecks {
@@ -133,6 +132,8 @@ abstract class RuntimeTypesSubstitutionsMixin
 
   /// Compute the required type checks and substitutions for the given
   /// instantiated and checked classes.
+  // TODO(fishythefish): Unify type checks and substitutions once old RTI is
+  // removed.
   TypeChecks _computeChecks(Map<ClassEntity, ClassUse> classUseMap) {
     // Run through the combination of instantiated and checked
     // arguments and record all combination where the element of a checked
@@ -297,9 +298,18 @@ abstract class RuntimeTypesSubstitutionsMixin
               } else {
                 // We need a non-trivial substitution function for
                 // [checkedClass].
-                checks.add(new TypeCheck(
-                    checkedClass, computeSubstitution(cls, checkedClass),
-                    needsIs: false));
+                Substitution substitution =
+                    computeSubstitution(cls, checkedClass);
+                checks.add(
+                    new TypeCheck(checkedClass, substitution, needsIs: false));
+
+                assert(substitution != null);
+                for (DartType argument in substitution.arguments) {
+                  argument = argument.withoutNullability;
+                  if (argument is InterfaceType) {
+                    computeChecks(argument.element);
+                  }
+                }
               }
             }
           } else {
@@ -312,9 +322,18 @@ abstract class RuntimeTypesSubstitutionsMixin
             } else {
               // We need a non-trivial substitution function for
               // [checkedClass].
-              checks.add(new TypeCheck(
-                  checkedClass, computeSubstitution(cls, checkedClass),
-                  needsIs: needsIs));
+              Substitution substitution =
+                  computeSubstitution(cls, checkedClass);
+              checks.add(
+                  new TypeCheck(checkedClass, substitution, needsIs: needsIs));
+
+              assert(substitution != null);
+              for (DartType argument in substitution.arguments) {
+                argument = argument.withoutNullability;
+                if (argument is InterfaceType) {
+                  computeChecks(argument.element);
+                }
+              }
             }
           }
         }
@@ -481,8 +500,7 @@ abstract class RuntimeTypesEncoder {
   /// Returns a [jsAst.Expression] representing the given [type]. Type variables
   /// are replaced by the [jsAst.Expression] returned by [onVariable].
   jsAst.Expression getTypeRepresentation(
-      ModularEmitter emitter, DartType type, OnVariableCallback onVariable,
-      [ShouldEncodeTypedefCallback shouldEncodeTypedef]);
+      ModularEmitter emitter, DartType type, OnVariableCallback onVariable);
 
   jsAst.Expression getJsInteropTypeArguments(int count);
 
@@ -714,6 +732,7 @@ class RuntimeTypesImpl
     bool isFunctionChecked = false;
 
     void processCheckedType(DartType t) {
+      t = t.withoutNullability;
       if (t is FunctionType) {
         checkedFunctionTypes.add(t);
       } else if (t is InterfaceType) {
@@ -852,10 +871,9 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
 
   @override
   jsAst.Expression getTypeRepresentation(
-      ModularEmitter emitter, DartType type, OnVariableCallback onVariable,
-      [ShouldEncodeTypedefCallback shouldEncodeTypedef]) {
+      ModularEmitter emitter, DartType type, OnVariableCallback onVariable) {
     return _representationGenerator.getTypeRepresentation(
-        emitter, type, onVariable, shouldEncodeTypedef);
+        emitter, type, onVariable);
   }
 
   String getTypeVariableName(TypeVariableType type) {
@@ -928,8 +946,6 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
 class RuntimeTypeTags {
   const RuntimeTypeTags();
 
-  String get typedefTag => r'typedef';
-
   String get functionTypeTag => r'func';
 
   String get functionTypeVoidReturnTag => r'v';
@@ -955,8 +971,6 @@ class TypeRepresentationGenerator
   final NativeBasicData _nativeData;
 
   OnVariableCallback onVariable;
-  ShouldEncodeTypedefCallback shouldEncodeTypedef;
-  Map<TypeVariableType, jsAst.Expression> typedefBindings;
   List<FunctionTypeVariable> functionTypeVariables = <FunctionTypeVariable>[];
 
   TypeRepresentationGenerator(this._rtiTags, this._nativeData);
@@ -964,17 +978,10 @@ class TypeRepresentationGenerator
   /// Creates a type representation for [type]. [onVariable] is called to
   /// provide the type representation for type variables.
   jsAst.Expression getTypeRepresentation(
-      ModularEmitter emitter,
-      DartType type,
-      OnVariableCallback onVariable,
-      ShouldEncodeTypedefCallback encodeTypedef) {
-    assert(typedefBindings == null);
+      ModularEmitter emitter, DartType type, OnVariableCallback onVariable) {
     this.onVariable = onVariable;
-    this.shouldEncodeTypedef =
-        (encodeTypedef != null) ? encodeTypedef : (TypedefType type) => false;
     jsAst.Expression representation = visit(type, emitter);
     this.onVariable = null;
-    this.shouldEncodeTypedef = null;
     assert(functionTypeVariables.isEmpty);
     return representation;
   }
@@ -989,6 +996,7 @@ class TypeRepresentationGenerator
   jsAst.Expression getVoidValue() => js('-1');
 
   jsAst.Expression getJsInteropTypeArgumentValue() => js('-2');
+
   @override
   jsAst.Expression visit(DartType type, ModularEmitter emitter) =>
       type.accept(this, emitter);
@@ -996,11 +1004,23 @@ class TypeRepresentationGenerator
   @override
   jsAst.Expression visitTypeVariableType(
       TypeVariableType type, ModularEmitter emitter) {
-    if (typedefBindings != null) {
-      assert(typedefBindings[type] != null);
-      return typedefBindings[type];
-    }
     return onVariable(type);
+  }
+
+  @override
+  jsAst.Expression visitLegacyType(LegacyType type, ModularEmitter emitter) {
+    throw UnsupportedError('Legacy RTI does not support legacy types');
+  }
+
+  @override
+  jsAst.Expression visitNullableType(
+      NullableType type, ModularEmitter emitter) {
+    throw UnsupportedError('Legacy RTI does not support nullable types');
+  }
+
+  @override
+  jsAst.Expression visitNeverType(NeverType type, ModularEmitter emitter) {
+    throw UnsupportedError('Legacy RTI does not support the Never type');
   }
 
   @override
@@ -1015,6 +1035,15 @@ class TypeRepresentationGenerator
   jsAst.Expression visitDynamicType(DynamicType type, ModularEmitter emitter) {
     return getDynamicValue();
   }
+
+  @override
+  jsAst.Expression visitErasedType(ErasedType type, ModularEmitter emitter) {
+    throw UnsupportedError('Legacy RTI does not support erased types');
+  }
+
+  @override
+  jsAst.Expression visitAnyType(AnyType type, ModularEmitter emitter) =>
+      getJsInteropTypeArgumentValue();
 
   jsAst.Expression getJsInteropTypeArguments(int count,
       {jsAst.Expression name}) {
@@ -1120,7 +1149,7 @@ class TypeRepresentationGenerator
           visitList(type.typeVariables.map((v) => v.bound).toList(), emitter));
     }
 
-    if (!type.returnType.treatAsDynamic) {
+    if (type.returnType is! DynamicType) {
       addProperty(
           _rtiTags.functionTypeReturnTypeTag, visit(type.returnType, emitter));
     }
@@ -1160,61 +1189,6 @@ class TypeRepresentationGenerator
   }
 
   @override
-  jsAst.Expression visitTypedefType(TypedefType type, ModularEmitter emitter) {
-    bool shouldEncode = shouldEncodeTypedef(type);
-    DartType unaliasedType = type.unaliased;
-
-    var oldBindings = typedefBindings;
-    if (typedefBindings == null) {
-      // First level typedef - capture arguments for re-use within typedef body.
-      //
-      // The type `Map<T, Foo<Set<T>>>` contains one type variable referenced
-      // twice, so there are two inputs into the HTypeInfoExpression
-      // instruction.
-      //
-      // If Foo is a typedef, T can be reused, e.g.
-      //
-      //     typedef E Foo<E>(E a, E b);
-      //
-      // As the typedef is expanded (to (Set<T>, Set<T>) => Set<T>) it should
-      // not consume additional types from the to-level input.  We prevent this
-      // by capturing the types and using the captured type expressions inside
-      // the typedef expansion.
-      //
-      // TODO(sra): We should make the type subexpression Foo<...> be a second
-      // HTypeInfoExpression, with Set<T> as its input (a third
-      // HTypeInfoExpression). This would share all the Set<T> subexpressions
-      // instead of duplicating them. This would require HTypeInfoExpression
-      // inputs to correspond to type variables AND typedefs.
-      typedefBindings = <TypeVariableType, jsAst.Expression>{};
-      type.forEachTypeVariable((TypeVariableType variable) {
-        typedefBindings[variable] = onVariable(variable);
-      });
-    }
-
-    jsAst.Expression finish(jsAst.Expression result) {
-      typedefBindings = oldBindings;
-      return result;
-    }
-
-    if (shouldEncode) {
-      jsAst.ObjectInitializer initializer = visit(unaliasedType, emitter);
-      // We have to encode the aliased type.
-      jsAst.Expression name = getJavaScriptClassName(type.element, emitter);
-      jsAst.Expression encodedTypedef = type.treatAsRaw
-          ? name
-          : visitList(type.typeArguments, emitter, head: name);
-
-      // Add it to the function-type object.
-      jsAst.LiteralString tag = js.string(_rtiTags.typedefTag);
-      initializer.properties.add(new jsAst.Property(tag, encodedTypedef));
-      return finish(initializer);
-    } else {
-      return finish(visit(unaliasedType, emitter));
-    }
-  }
-
-  @override
   jsAst.Expression visitFutureOrType(
       FutureOrType type, ModularEmitter emitter) {
     List<jsAst.Property> properties = <jsAst.Property>[];
@@ -1226,7 +1200,7 @@ class TypeRepresentationGenerator
     // Type representations for FutureOr have a property which is a tag marking
     // them as FutureOr types. The value is not used, so '1' is just a dummy.
     addProperty(_rtiTags.futureOrTag, js.number(1));
-    if (!type.typeArgument.treatAsDynamic) {
+    if (type.typeArgument is! DynamicType) {
       addProperty(_rtiTags.futureOrTypeTag, visit(type.typeArgument, emitter));
     }
 
@@ -1262,81 +1236,48 @@ class TypeCheckMapping implements TypeChecks {
   }
 }
 
-class ArgumentCollector extends DartTypeVisitor<dynamic, bool> {
+class ArgumentCollector extends DartTypeVisitor<void, void> {
   final Set<ClassEntity> classes = new Set<ClassEntity>();
 
   void addClass(ClassEntity cls) {
     classes.add(cls);
   }
 
-  collect(DartType type, {bool isTypeArgument: false}) {
-    visit(type, isTypeArgument);
+  void collect(DartType type) {
+    visit(type, null);
   }
 
   /// Collect all types in the list as if they were arguments of an
   /// InterfaceType.
-  collectAll(List<DartType> types, {bool isTypeArgument: false}) {
-    for (DartType type in types) {
-      visit(type, true);
-    }
+  void collectAll(List<DartType> types) => types.forEach(collect);
+
+  @override
+  void visitLegacyType(LegacyType type, _) {
+    collect(type.baseType);
   }
 
   @override
-  visitTypedefType(TypedefType type, bool isTypeArgument) {
-    collect(type.unaliased, isTypeArgument: isTypeArgument);
+  void visitNullableType(NullableType type, _) {
+    collect(type.baseType);
   }
 
   @override
-  visitInterfaceType(InterfaceType type, bool isTypeArgument) {
-    if (isTypeArgument) addClass(type.element);
-    collectAll(type.typeArguments, isTypeArgument: true);
+  void visitFutureOrType(FutureOrType type, _) {
+    collect(type.typeArgument);
   }
 
   @override
-  visitFunctionType(FunctionType type, _) {
-    collect(type.returnType, isTypeArgument: true);
-    collectAll(type.parameterTypes, isTypeArgument: true);
-    collectAll(type.optionalParameterTypes, isTypeArgument: true);
-    collectAll(type.namedParameterTypes, isTypeArgument: true);
-  }
-}
-
-class FunctionArgumentCollector extends DartTypeVisitor<dynamic, bool> {
-  final Set<ClassEntity> classes = new Set<ClassEntity>();
-
-  FunctionArgumentCollector();
-
-  collect(DartType type, {bool inFunctionType: false}) {
-    visit(type, inFunctionType);
-  }
-
-  collectAll(Iterable<DartType> types, {bool inFunctionType: false}) {
-    for (DartType type in types) {
-      visit(type, inFunctionType);
-    }
+  void visitInterfaceType(InterfaceType type, _) {
+    addClass(type.element);
+    collectAll(type.typeArguments);
   }
 
   @override
-  visitTypedefType(TypedefType type, bool inFunctionType) {
-    collect(type.unaliased, inFunctionType: inFunctionType);
-  }
-
-  @override
-  visitInterfaceType(InterfaceType type, bool inFunctionType) {
-    if (inFunctionType) {
-      classes.add(type.element);
-    }
-    collectAll(type.typeArguments, inFunctionType: inFunctionType);
-  }
-
-  @override
-  visitFunctionType(FunctionType type, _) {
-    collect(type.returnType, inFunctionType: true);
-    collectAll(type.parameterTypes, inFunctionType: true);
-    collectAll(type.optionalParameterTypes, inFunctionType: true);
-    collectAll(type.namedParameterTypes, inFunctionType: true);
-    collectAll(type.typeVariables.map((type) => type.bound),
-        inFunctionType: true);
+  void visitFunctionType(FunctionType type, _) {
+    collect(type.returnType);
+    collectAll(type.parameterTypes);
+    collectAll(type.optionalParameterTypes);
+    collectAll(type.namedParameterTypes);
   }
 }
 
@@ -1359,7 +1300,8 @@ class TypeVisitor extends DartTypeVisitor<void, TypeVisitorState> {
 
   TypeVisitor({this.onClass, this.onTypeVariable, this.onFunctionType});
 
-  visitType(DartType type, TypeVisitorState state) => type.accept(this, state);
+  void visitType(DartType type, TypeVisitorState state) =>
+      type.accept(this, state);
 
   TypeVisitorState covariantArgument(TypeVisitorState state) {
     switch (state) {
@@ -1389,11 +1331,23 @@ class TypeVisitor extends DartTypeVisitor<void, TypeVisitorState> {
     throw new UnsupportedError("Unexpected TypeVisitorState $state");
   }
 
-  visitTypes(List<DartType> types, TypeVisitorState state) {
+  void visitTypes(List<DartType> types, TypeVisitorState state) {
     for (DartType type in types) {
       visitType(type, state);
     }
   }
+
+  @override
+  void visitLegacyType(LegacyType type, TypeVisitorState state) =>
+      visitType(type.baseType, state);
+
+  @override
+  void visitNullableType(NullableType type, TypeVisitorState state) =>
+      visitType(type.baseType, state);
+
+  @override
+  void visitFutureOrType(FutureOrType type, TypeVisitorState state) =>
+      visitType(type.typeArgument, state);
 
   @override
   void visitTypeVariableType(TypeVariableType type, TypeVisitorState state) {
@@ -1422,11 +1376,6 @@ class TypeVisitor extends DartTypeVisitor<void, TypeVisitorState> {
     visitTypes(type.optionalParameterTypes, contravariantArgument(state));
     visitTypes(type.namedParameterTypes, contravariantArgument(state));
     _visitedFunctionTypeVariables.removeAll(type.typeVariables);
-  }
-
-  @override
-  visitTypedefType(TypedefType type, TypeVisitorState state) {
-    visitType(type.unaliased, state);
   }
 
   @override

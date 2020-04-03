@@ -1,0 +1,16 @@
+main = <No Member>;
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "package:foo/nonexisting.dart";
+
+}
+library from "package:foo/nonexisting.dart" as non {
+//
+// Problems in library:
+//
+// org-dartlang-test:///main.dart:1:8: Error: Not found: 'package:foo/nonexisting.dart'
+// import "package:foo/nonexisting.dart";
+//        ^
+//
+
+}

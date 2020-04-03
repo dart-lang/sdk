@@ -6,8 +6,7 @@
 /// If a test is asynchronous, it needs to notify the testing driver
 /// about this (otherwise tests may get reported as passing [after main()
 /// finished] even if the asynchronous operations fail).
-/// Tests which can't use the unittest framework should use the helper functions
-/// in this library.
+///
 /// This library provides four methods
 ///  - asyncStart(): Needs to be called before an asynchronous operation is
 ///                  scheduled.
@@ -90,6 +89,8 @@ Future<void> asyncTest(f()) {
   return f().then(asyncSuccess);
 }
 
+bool _pass(dynamic object) => true;
+
 /// Calls [f] and verifies that it throws a `T`.
 ///
 /// The optional [check] function can provide additional validation that the
@@ -103,7 +104,7 @@ Future<void> asyncTest(f()) {
 /// exception is not caught by [asyncExpectThrows]. The test is still considered
 /// failing.
 void asyncExpectThrows<T>(Future<void> f(),
-    [bool check(T error), String reason]) {
+    [bool check(T error) = _pass, String reason = ""]) {
   var type = "";
   if (T != dynamic && T != Object) type = "<$T>";
   var header = "asyncExpectThrows$type(${reason ?? ''}):";

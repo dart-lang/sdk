@@ -1,4 +1,0 @@
-analyzer:
-  strong-mode: true
-  errors:
-    duplicate_definition: ignore

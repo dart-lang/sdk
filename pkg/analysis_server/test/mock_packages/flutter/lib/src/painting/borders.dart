@@ -6,17 +6,6 @@ import 'package:flutter/foundation.dart';
 
 import 'basic_types.dart';
 
-/// The style of line to draw for a [BorderSide] in a [Border].
-enum BorderStyle {
-  /// Skip the border.
-  none,
-
-  /// Draw the border as a solid line.
-  solid,
-
-  // if you add more, think about how they will lerp
-}
-
 /// A side of a border of a box.
 ///
 /// A [Border] consists of four [BorderSide] objects: [Border.top],
@@ -55,17 +44,9 @@ enum BorderStyle {
 ///    of which are also [BorderSide] objects.
 @immutable
 class BorderSide {
-  /// Creates the side of a border.
-  ///
-  /// By default, the border is 1.0 logical pixels wide and solid black.
-  const BorderSide({
-    this.color = const Color(0xFF000000),
-    this.width = 1.0,
-    this.style = BorderStyle.solid,
-  })  : assert(color != null),
-        assert(width != null),
-        assert(width >= 0.0),
-        assert(style != null);
+  /// A hairline black border that is not rendered.
+  static const BorderSide none =
+      BorderSide(width: 0.0, style: BorderStyle.none);
 
   /// The color of this side of the border.
   final Color color;
@@ -87,9 +68,17 @@ class BorderSide {
   /// painting the border, but the border still has a [width].
   final BorderStyle style;
 
-  /// A hairline black border that is not rendered.
-  static const BorderSide none =
-      BorderSide(width: 0.0, style: BorderStyle.none);
+  /// Creates the side of a border.
+  ///
+  /// By default, the border is 1.0 logical pixels wide and solid black.
+  const BorderSide({
+    this.color = const Color(0xFF000000),
+    this.width = 1.0,
+    this.style = BorderStyle.solid,
+  })  : assert(color != null),
+        assert(width != null),
+        assert(width >= 0.0),
+        assert(style != null);
 
   /// Creates a copy of this border but with the given fields replaced with the new values.
   BorderSide copyWith({
@@ -104,6 +93,17 @@ class BorderSide {
       style: style ?? this.style,
     );
   }
+}
+
+/// The style of line to draw for a [BorderSide] in a [Border].
+enum BorderStyle {
+  /// Skip the border.
+  none,
+
+  /// Draw the border as a solid line.
+  solid,
+
+  // if you add more, think about how they will lerp
 }
 
 /// Base class for shape outlines.

@@ -9,8 +9,6 @@ class KernelNoSuchMethodResolver implements NoSuchMethodResolver {
 
   KernelNoSuchMethodResolver(this.elementMap);
 
-  ElementEnvironment get _elementEnvironment => elementMap.elementEnvironment;
-
   CommonElements get _commonElements => elementMap.commonElements;
 
   @override

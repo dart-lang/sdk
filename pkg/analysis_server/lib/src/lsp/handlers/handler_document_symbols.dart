@@ -17,7 +17,7 @@ import 'package:analyzer/source/line_info.dart';
 
 // If the client does not provide capabilities.documentSymbol.symbolKind.valueSet
 // then we must never send a kind that's not in this list.
-final defaultSupportedSymbolKinds = new HashSet<SymbolKind>.of([
+final defaultSupportedSymbolKinds = HashSet<SymbolKind>.of([
   SymbolKind.File,
   SymbolKind.Module,
   SymbolKind.Namespace,
@@ -41,12 +41,14 @@ final defaultSupportedSymbolKinds = new HashSet<SymbolKind>.of([
 class DocumentSymbolHandler extends MessageHandler<DocumentSymbolParams,
     Either2<List<DocumentSymbol>, List<SymbolInformation>>> {
   DocumentSymbolHandler(LspAnalysisServer server) : super(server);
+  @override
   Method get handlesMessage => Method.textDocument_documentSymbol;
 
   @override
   LspJsonHandler<DocumentSymbolParams> get jsonHandler =>
       DocumentSymbolParams.jsonHandler;
 
+  @override
   Future<ErrorOr<Either2<List<DocumentSymbol>, List<SymbolInformation>>>>
       handle(DocumentSymbolParams params, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
@@ -60,7 +62,7 @@ class DocumentSymbolHandler extends MessageHandler<DocumentSymbolParams,
 
     final clientSupportedSymbolKinds =
         symbolCapabilities?.symbolKind?.valueSet != null
-            ? new HashSet<SymbolKind>.of(symbolCapabilities.symbolKind.valueSet)
+            ? HashSet<SymbolKind>.of(symbolCapabilities.symbolKind.valueSet)
             : defaultSupportedSymbolKinds;
 
     final clientSupportsDocumentSymbol =
@@ -77,8 +79,8 @@ class DocumentSymbolHandler extends MessageHandler<DocumentSymbolParams,
     LineInfo lineInfo,
     Outline outline,
   ) {
-    return new DocumentSymbol(
-      outline.element.name,
+    return DocumentSymbol(
+      toElementName(outline.element),
       outline.element.parameters,
       elementKindToSymbolKind(clientSupportedSymbolKinds, outline.element.kind),
       outline.element.isDeprecated,
@@ -99,11 +101,11 @@ class DocumentSymbolHandler extends MessageHandler<DocumentSymbolParams,
     LineInfo lineInfo,
     Outline outline,
   ) {
-    return new SymbolInformation(
-      outline.element.name,
+    return SymbolInformation(
+      toElementName(outline.element),
       elementKindToSymbolKind(clientSupportedSymbolKinds, outline.element.kind),
       outline.element.isDeprecated,
-      new Location(
+      Location(
         documentUri,
         toRange(lineInfo, outline.element.location.offset,
             outline.element.location.length),
@@ -118,7 +120,7 @@ class DocumentSymbolHandler extends MessageHandler<DocumentSymbolParams,
     String path,
     ResolvedUnitResult unit,
   ) {
-    final computer = new DartUnitOutlineComputer(unit);
+    final computer = DartUnitOutlineComputer(unit);
     final outline = computer.compute();
 
     if (clientSupportsDocumentSymbol) {
@@ -135,11 +137,11 @@ class DocumentSymbolHandler extends MessageHandler<DocumentSymbolParams,
     } else {
       // Otherwise, we need to use the original flat SymbolInformation.
       final allSymbols = <SymbolInformation>[];
-      final documentUri = new Uri.file(path).toString();
+      final documentUri = Uri.file(path).toString();
 
       // Adds a symbol and it's children recursively, supplying the parent
       // name as required by SymbolInformation.
-      addSymbol(Outline outline, {String parentName}) {
+      void addSymbol(Outline outline, {String parentName}) {
         allSymbols.add(_asSymbolInformation(
           parentName,
           clientSupportedSymbolKinds,

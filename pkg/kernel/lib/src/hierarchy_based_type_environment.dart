@@ -4,7 +4,7 @@
 
 library kernel.hierarchy_based_type_environment;
 
-import '../ast.dart' show Class, InterfaceType;
+import '../ast.dart' show Class, DartType, InterfaceType, Library, Member, Name;
 
 import '../class_hierarchy.dart' show ClassHierarchy;
 
@@ -19,7 +19,27 @@ class HierarchyBasedTypeEnvironment extends TypeEnvironment {
       : super.fromSubclass(coreTypes);
 
   @override
-  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass) {
-    return hierarchy.getTypeAsInstanceOf(type, superclass);
+  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass,
+      Library clientLibrary, CoreTypes coreTypes) {
+    return hierarchy.getTypeAsInstanceOf(
+        type, superclass, clientLibrary, coreTypes);
+  }
+
+  @override
+  List<DartType> getTypeArgumentsAsInstanceOf(
+      InterfaceType type, Class superclass) {
+    Class typeClass = type.classNode;
+    if (typeClass == superclass) return type.typeArguments;
+    if (typeClass == coreTypes.nullClass) {
+      if (superclass.typeParameters.isEmpty) return const <DartType>[];
+      return new List<DartType>.filled(
+          superclass.typeParameters.length, coreTypes.nullType);
+    }
+    return hierarchy.getTypeArgumentsAsInstanceOf(type, superclass);
+  }
+
+  @override
+  Member getInterfaceMember(Class cls, Name name, {bool setter: false}) {
+    return hierarchy.getInterfaceMember(cls, name, setter: setter);
   }
 }

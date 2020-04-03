@@ -10,7 +10,7 @@ typedef F1 = () →* void;
 @#C1
 @#C2
 typedef F2 = () →* void;
-class A extends core::Object {
+class A extends core::Object /*hasConstConstructor*/  {
   const constructor •(core::int* value) → self::A*
     : super core::Object::•()
     ;

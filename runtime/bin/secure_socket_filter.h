@@ -23,6 +23,9 @@ extern unsigned int root_certificates_pem_length;
 
 class SSLFilter : public ReferenceCounted<SSLFilter> {
  public:
+  static void Init();
+  static void Cleanup();
+
   // These enums must agree with those in sdk/lib/io/secure_socket.dart.
   enum BufferIndex {
     kReadPlaintext,

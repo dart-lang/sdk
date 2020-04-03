@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisNavigationTest);
   });
@@ -17,9 +17,9 @@ main() {
 
 @reflectiveTest
 class AnalysisNavigationTest extends AbstractAnalysisServerIntegrationTest {
-  test_navigation() async {
-    String pathname1 = sourcePath('test1.dart');
-    String text1 = r'''
+  Future<void> test_navigation() async {
+    var pathname1 = sourcePath('test1.dart');
+    var text1 = r'''
 library foo;
 
 import 'dart:async';
@@ -49,8 +49,8 @@ main() {
 }
 ''';
     writeFile(pathname1, text1);
-    String pathname2 = sourcePath('test2.dart');
-    String text2 = r'''
+    var pathname2 = sourcePath('test2.dart');
+    var text2 = r'''
 part of foo;
 ''';
     writeFile(pathname2, text2);
@@ -75,10 +75,10 @@ part of foo;
     expect(currentAnalysisErrors[pathname1], hasLength(1));
     expect(currentAnalysisErrors[pathname2], isEmpty);
     NavigationTarget findTargetElement(int index) {
-      for (NavigationRegion region in regions) {
+      for (var region in regions) {
         if (region.offset <= index && index < region.offset + region.length) {
           expect(region.targets, hasLength(1));
-          int targetIndex = region.targets[0];
+          var targetIndex = region.targets[0];
           return targets[targetIndex];
         }
       }
@@ -87,9 +87,9 @@ part of foo;
 
     void checkLocal(
         String source, String expectedTarget, ElementKind expectedKind) {
-      int sourceIndex = text1.indexOf(source);
-      int targetIndex = text1.indexOf(expectedTarget);
-      NavigationTarget element = findTargetElement(sourceIndex);
+      var sourceIndex = text1.indexOf(source);
+      var targetIndex = text1.indexOf(expectedTarget);
+      var element = findTargetElement(sourceIndex);
       expect(targetFiles[element.fileIndex], equals(pathname1));
       expect(element.offset, equals(targetIndex));
       expect(element.kind, equals(expectedKind));
@@ -97,8 +97,8 @@ part of foo;
 
     void checkRemote(
         String source, String expectedTargetRegexp, ElementKind expectedKind) {
-      int sourceIndex = text1.indexOf(source);
-      NavigationTarget element = findTargetElement(sourceIndex);
+      var sourceIndex = text1.indexOf(source);
+      var element = findTargetElement(sourceIndex);
       expect(targetFiles[element.fileIndex], matches(expectedTargetRegexp));
       expect(element.kind, equals(expectedKind));
     }

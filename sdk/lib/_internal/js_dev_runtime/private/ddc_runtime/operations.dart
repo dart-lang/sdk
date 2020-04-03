@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 /// This library defines runtime operations on objects used by the code
 /// generator.
 part of dart._runtime;
@@ -94,12 +96,12 @@ gbind(f, @rest List typeArgs) {
   return fn(result, type.instantiate(typeArgs));
 }
 
-dloadRepl(obj, field) => dload(obj, replNameLookup(obj, field), false);
+dloadRepl(obj, field) => dload(obj, replNameLookup(obj, field));
 
 // Warning: dload, dput, and dsend assume they are never called on methods
 // implemented by the Object base class as those methods can always be
 // statically resolved.
-dload(obj, field, [@undefined mirrors]) {
+dload(obj, field) {
   if (JS('!', 'typeof # == "function" && # == "call"', obj, field)) {
     return obj;
   }
@@ -113,15 +115,10 @@ dload(obj, field, [@undefined mirrors]) {
     if (hasMethod(type, f)) return bind(obj, f, null);
 
     // Always allow for JS interop objects.
-    if (!JS<bool>('!', '#', mirrors) && isJsInterop(obj)) {
-      return JS('', '#[#]', obj, f);
-    }
+    if (isJsInterop(obj)) return JS('', '#[#]', obj, f);
   }
   return noSuchMethod(obj, InvocationImpl(field, JS('', '[]'), isGetter: true));
 }
-
-// Version of dload that matches legacy mirrors behavior for JS types.
-dloadMirror(obj, field) => dload(obj, field, true);
 
 _stripGenericArguments(type) {
   var genericClass = getGenericClass(type);
@@ -129,29 +126,18 @@ _stripGenericArguments(type) {
   return type;
 }
 
-// Version of dput that matches legacy Dart 1 type check rules and mirrors
-// behavior for JS types.
-// TODO(jacobr): remove the type checking rules workaround when mirrors based
-// PageLoader code can generate the correct reified generic types.
-dputMirror(obj, field, value) => dput(obj, field, value, true);
+dputRepl(obj, field, value) => dput(obj, replNameLookup(obj, field), value);
 
-dputRepl(obj, field, value) =>
-    dput(obj, replNameLookup(obj, field), value, false);
-
-dput(obj, field, value, [@undefined mirrors]) {
+dput(obj, field, value) {
   var f = _canonicalMember(obj, field);
   trackCall(obj);
   if (f != null) {
     var setterType = getSetterType(getType(obj), f);
     if (setterType != null) {
-      if (JS('!', '#', mirrors))
-        setterType = _stripGenericArguments(setterType);
-      return JS('', '#[#] = #._check(#)', obj, f, setterType, value);
+      return JS('', '#[#] = #.as(#)', obj, f, setterType, value);
     }
     // Always allow for JS interop objects.
-    if (!JS<bool>('!', '#', mirrors) && isJsInterop(obj)) {
-      return JS('', '#[#] = #', obj, f, value);
-    }
+    if (isJsInterop(obj)) return JS('', '#[#] = #', obj, f, value);
   }
   noSuchMethod(
       obj, InvocationImpl(field, JS('', '[#]', value), isSetter: true));
@@ -193,14 +179,14 @@ String _argumentErrors(FunctionType type, List actuals, namedActuals) {
   }
   // Now that we know the signature matches, we can perform type checks.
   for (var i = 0; i < requiredCount; ++i) {
-    JS('', '#[#]._check(#[#])', required, i, actuals, i);
+    JS('', '#[#].as(#[#])', required, i, actuals, i);
   }
   for (var i = 0; i < extras; ++i) {
-    JS('', '#[#]._check(#[#])', optionals, i, actuals, i + requiredCount);
+    JS('', '#[#].as(#[#])', optionals, i, actuals, i + requiredCount);
   }
   if (names != null) {
     for (var name in names) {
-      JS('', '#[#]._check(#[#])', named, name, namedActuals, name);
+      JS('', '#[#].as(#[#])', named, name, namedActuals, name);
     }
   }
   return null;
@@ -296,10 +282,6 @@ _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) =>
     return $f.apply($obj, $args);
   }
 
-  // TODO(vsm): Remove when we no longer need mirrors metadata.
-  // An array is used to encode annotations attached to the type.
-  if ($ftype instanceof Array) $ftype = $ftype[0];
-
   // Apply type arguments
   if ($ftype instanceof $GenericFunctionType) {
     let formalCount = $ftype.formalCount;
@@ -372,13 +354,6 @@ replNameLookup(object, field) => JS('', '''(() => {
   return rawField;
 })()''');
 
-// TODO(jmesserly): the debugger extension hardcodes a call to this private
-// function. Fix that.
-@Deprecated('use replNameLookup')
-_dhelperRepl(obj, field, Function(Object) callback) {
-  return callback(replNameLookup(obj, field));
-}
-
 /// Shared code for dsend, dindex, and dsetindex.
 callMethod(obj, name, typeArgs, args, named, displayName) {
   if (JS('!', 'typeof # == "function" && # == "call"', obj, name)) {
@@ -422,13 +397,13 @@ bool instanceOf(obj, type) {
 }
 
 @JSExportName('as')
-cast(obj, type, @notNull bool isImplicit) {
+cast(obj, type) {
   if (obj == null) return obj;
   var actual = getReifiedType(obj);
   if (isSubtypeOf(actual, type)) {
     return obj;
   }
-  return castError(obj, type, isImplicit);
+  return castError(obj, type);
 }
 
 bool test(bool obj) {
@@ -444,7 +419,7 @@ bool dtest(obj) {
 void _throwBooleanConversionError() => throw BooleanConversionAssertionError();
 
 void booleanConversionFailed(obj) {
-  var actual = typeName(getReifiedType(test(obj)));
+  var actual = typeName(getReifiedType(obj));
   throw TypeErrorImpl("type '$actual' is not a 'bool' in boolean expression");
 }
 
@@ -452,10 +427,12 @@ asInt(obj) {
   if (obj == null) return null;
 
   if (JS('!', 'Math.floor(#) != #', obj, obj)) {
-    castError(obj, JS('', '#', int), false);
+    castError(obj, JS('', '#', int));
   }
   return obj;
 }
+
+asNullableInt(obj) => asInt(obj);
 
 /// Checks that `x` is not null or undefined.
 //
@@ -469,6 +446,9 @@ _notNull(x) {
   if (x == null) throwNullValueError();
   return x;
 }
+
+/// No-op without null safety enabled.
+nullCast(x, type) => x;
 
 /// The global constant map table.
 final constantMaps = JS('', 'new Map()');
@@ -519,14 +499,6 @@ Set<E> constSet<E>(JSArray<E> elements) {
   result = _createImmutableSet<E>(elements);
   JS('', '#.set(#, #)', map, E, result);
   return result;
-}
-
-bool dassert(value) {
-  if (JS('!', '# != null && #[#] instanceof #', value, value, _runtimeType,
-      AbstractFunctionType)) {
-    value = dcall(value, []);
-  }
-  return dtest(value);
 }
 
 final _value = JS('', 'Symbol("_value")');
@@ -725,7 +697,7 @@ _canonicalMember(obj, name) {
 Future loadLibrary() => Future.value();
 
 /// Defines lazy statics.
-void defineLazy(to, from) {
+void defineLazy(to, from, bool checkCycles) {
   for (var name in getOwnNamesAndSymbols(from)) {
     defineLazyField(to, name, getOwnPropertyDescriptor(from, name));
   }

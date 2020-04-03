@@ -5,9 +5,11 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'linter_context_impl_test.dart' as linter_context_impl;
+import 'resolve_name_in_scope_test.dart' as resolve_name_in_scope;
 
 main() {
   defineReflectiveSuite(() {
     linter_context_impl.main();
+    resolve_name_in_scope.main();
   }, name: 'linter');
 }

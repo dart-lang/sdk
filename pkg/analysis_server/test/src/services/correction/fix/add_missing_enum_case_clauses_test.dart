@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddMissingEnumCaseClausesTest);
   });
@@ -21,7 +21,7 @@ class AddMissingEnumCaseClausesTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.ADD_MISSING_ENUM_CASE_CLAUSES;
 
   Future<void> assertHasFixWithFilter(String expected) async {
-    bool noError = true;
+    var noError = true;
     await assertHasFix(expected, errorFilter: (error) {
       if (noError &&
           error.errorCode ==
@@ -33,7 +33,7 @@ class AddMissingEnumCaseClausesTest extends FixProcessorTest {
     });
   }
 
-  test_empty() async {
+  Future<void> test_empty() async {
     await resolveTestUnit('''
 enum E {a, b, c}
 void f(E e) {
@@ -59,7 +59,7 @@ void f(E e) {
 ''');
   }
 
-  test_nonEmpty() async {
+  Future<void> test_nonEmpty() async {
     await resolveTestUnit('''
 enum E {a, b, c}
 void f(E e) {

@@ -2,13 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /// Visualization of source mappings generated and tested in
 /// 'source_mapping_test.dart'.
 
 library source_mapping.test.viewer;
 
 import 'dart:async';
-import 'package:compiler/src/filenames.dart';
+import 'package:_fe_analyzer_shared/src/util/filenames.dart';
 import 'package:compiler/src/util/util.dart';
 import 'source_mapping_tester.dart';
 import '../helpers/sourcemap_helper.dart';

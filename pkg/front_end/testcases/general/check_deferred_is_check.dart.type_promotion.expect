@@ -1,3 +1,0 @@
-pkg/front_end/testcases/general/check_deferred_is_check.dart:9:11: Context: Possible promotion of x@279
-  print(x is lib.C);
-          ^^

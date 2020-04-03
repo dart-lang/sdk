@@ -1,0 +1,7 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+static method foo(Never x, Never? y) → dynamic
+  ;
+static method main() → dynamic
+  ;

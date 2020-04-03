@@ -5,6 +5,7 @@
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/source_report.h"
 
+#include "vm/bit_vector.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/isolate.h"
 #include "vm/kernel_loader.h"
@@ -57,8 +58,7 @@ void SourceReport::Init(Thread* thread,
     // Build the profile.
     SampleFilter samplesForIsolate(thread_->isolate()->main_port(),
                                    Thread::kMutatorTask, -1, -1);
-    profile_.Build(thread, &samplesForIsolate, Profiler::sample_buffer(),
-                   Profile::kNoTags);
+    profile_.Build(thread, &samplesForIsolate, Profiler::sample_buffer());
   }
 }
 
@@ -105,7 +105,7 @@ bool SourceReport::ShouldSkipFunction(const Function& func) {
       return true;
   }
   if (func.is_abstract() || func.IsImplicitConstructor() ||
-      func.IsRedirectingFactory() || func.is_no_such_method_forwarder()) {
+      func.IsRedirectingFactory() || func.is_synthetic()) {
     return true;
   }
   // Note that context_scope() remains null for closures declared in bytecode,
@@ -218,14 +218,7 @@ void SourceReport::PrintCallSitesData(JSONObject* jsobj,
       RawPcDescriptors::kIcCall | RawPcDescriptors::kUnoptStaticCall);
   while (iter.MoveNext()) {
     HANDLESCOPE(thread());
-// TODO(zra): Remove this bailout once DBC has reliable ICData.
-#if defined(TARGET_ARCH_DBC)
-    if (iter.DeoptId() >= ic_data_array->length()) {
-      continue;
-    }
-#else
     ASSERT(iter.DeoptId() < ic_data_array->length());
-#endif
     const ICData* ic_data = (*ic_data_array)[iter.DeoptId()];
     if (ic_data != NULL) {
       const TokenPosition token_pos = iter.TokenPos();
@@ -276,14 +269,7 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
       RawPcDescriptors::kIcCall | RawPcDescriptors::kUnoptStaticCall);
   while (iter.MoveNext()) {
     HANDLESCOPE(thread());
-// TODO(zra): Remove this bailout once DBC has reliable ICData.
-#if defined(TARGET_ARCH_DBC)
-    if (iter.DeoptId() >= ic_data_array->length()) {
-      continue;
-    }
-#else
     ASSERT(iter.DeoptId() < ic_data_array->length());
-#endif
     const ICData* ic_data = (*ic_data_array)[iter.DeoptId()];
     if (ic_data != NULL) {
       const TokenPosition token_pos = iter.TokenPos();
@@ -330,11 +316,8 @@ void SourceReport::PrintPossibleBreakpointsData(JSONObject* jsobj,
   const TokenPosition begin_pos = func.token_pos();
   const TokenPosition end_pos = func.end_token_pos();
   intptr_t func_length = (end_pos.Pos() - begin_pos.Pos()) + 1;
-  GrowableArray<char> possible(func_length);
-  possible.SetLength(func_length);
-  for (int i = 0; i < func_length; i++) {
-    possible[i] = false;
-  }
+
+  BitVector possible(zone(), func_length);
 
   if (code.IsNull()) {
     const Bytecode& bytecode = Bytecode::Handle(func.bytecode());
@@ -354,7 +337,7 @@ void SourceReport::PrintPossibleBreakpointsData(JSONObject* jsobj,
           // source position range.
           if (bytecode.GetDebugCheckedOpcodeReturnAddress(
                   pc_offset, iter.PcOffset()) != 0) {
-            possible[token_offset] = true;
+            possible.Add(token_offset);
           }
           pc_offset = kUwordMax;
         }
@@ -373,7 +356,7 @@ void SourceReport::PrintPossibleBreakpointsData(JSONObject* jsobj,
     }
     if (pc_offset != kUwordMax && bytecode.GetDebugCheckedOpcodeReturnAddress(
                                       pc_offset, bytecode.Size()) != 0) {
-      possible[token_offset] = true;
+      possible.Add(token_offset);
     }
   } else {
     const uint8_t kSafepointKind =
@@ -391,13 +374,13 @@ void SourceReport::PrintPossibleBreakpointsData(JSONObject* jsobj,
         continue;
       }
       intptr_t token_offset = token_pos.Pos() - begin_pos.Pos();
-      possible[token_offset] = true;
+      possible.Add(token_offset);
     }
   }
 
   JSONArray bpts(jsobj, "possibleBreakpoints");
   for (int i = 0; i < func_length; i++) {
-    if (possible[i]) {
+    if (possible.Contains(i)) {
       // Add the token position.
       bpts.AddValue(begin_pos.Pos() + i);
     }
@@ -472,7 +455,6 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
 
   Code& code = Code::Handle(zone(), func.unoptimized_code());
   Bytecode& bytecode = Bytecode::Handle(zone());
-#if !defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_enable_interpreter && !func.HasCode() && func.HasBytecode()) {
     // When the bytecode of a function is loaded, the function code is not null,
     // but pointing to the stub to interpret the bytecode. The various Print
@@ -481,7 +463,6 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
     code = Code::null();  // Ignore installed stub to interpret bytecode.
     bytecode = func.bytecode();
   }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   if (code.IsNull() && bytecode.IsNull()) {
     if (func.HasCode() || (compile_mode_ == kForceCompile)) {
       const Error& err =
@@ -497,12 +478,10 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
         return;
       }
       code = func.unoptimized_code();
-#if !defined(DART_PRECOMPILED_RUNTIME)
       if (FLAG_enable_interpreter && !func.HasCode() && func.HasBytecode()) {
         code = Code::null();  // Ignore installed stub to interpret bytecode.
         bytecode = func.bytecode();
       }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
     } else {
       // This function has not been compiled yet.
       JSONObject range(jsarr);
@@ -540,30 +519,6 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
       if ((profile_function != NULL) &&
           (profile_function->NumSourcePositions() > 0)) {
         PrintProfileData(&range, profile_function);
-      }
-    }
-  }
-
-  // Visit the closures declared in a bytecode function by traversing its object
-  // pool, because they do not appear in the object store's list of closures.
-  // Since local functions share the object pool, only traverse the pool once,
-  // i.e. when func is the outermost function.
-  if (!bytecode.IsNull() && !func.IsLocalFunction()) {
-    const ObjectPool& pool = ObjectPool::Handle(zone(), bytecode.object_pool());
-    Object& object = Object::Handle(zone());
-    Function& closure = Function::Handle(zone());
-    for (intptr_t i = 0; i < pool.Length(); i++) {
-      ObjectPool::EntryType entry_type = pool.TypeAt(i);
-      if (entry_type != ObjectPool::EntryType::kTaggedObject) {
-        continue;
-      }
-      object = pool.ObjectAt(i);
-      if (object.IsFunction()) {
-        closure ^= object.raw();
-        if (closure.kind() == RawFunction::kClosureFunction &&
-            closure.IsLocalFunction()) {
-          VisitFunction(jsarr, closure);
-        }
       }
     }
   }
@@ -616,6 +571,13 @@ void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
     functions = cls.functions();
     for (int i = 0; i < functions.Length(); i++) {
       func ^= functions.At(i);
+      // Skip getter functions of static const field.
+      if (func.kind() == RawFunction::kImplicitStaticGetter) {
+        field ^= func.accessor_field();
+        if (field.is_const() && field.is_static()) {
+          continue;
+        }
+      }
       VisitFunction(jsarr, func);
     }
 

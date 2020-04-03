@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Detect if we're on Windows without importing `dart:io`.
-bool isWindows = new Uri.directory("C:\\").path ==
-    new Uri.directory("C:\\", windows: true).path;
+import 'package:_fe_analyzer_shared/src/util/relativize.dart';
 
 Uri resolveInputUri(String path) {
   Uri uri;

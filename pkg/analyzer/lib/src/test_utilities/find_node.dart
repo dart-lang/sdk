@@ -23,8 +23,16 @@ class FindNode {
     return _node(search, (n) => true);
   }
 
+  AsExpression as_(String search) {
+    return _node(search, (n) => n is AsExpression);
+  }
+
   AssignmentExpression assignment(String search) {
     return _node(search, (n) => n is AssignmentExpression);
+  }
+
+  AwaitExpression awaitExpression(String search) {
+    return _node(search, (n) => n is AwaitExpression);
   }
 
   BinaryExpression binary(String search) {
@@ -33,6 +41,10 @@ class FindNode {
 
   Block block(String search) {
     return _node(search, (n) => n is Block);
+  }
+
+  BooleanLiteral booleanLiteral(String search) {
+    return _node(search, (n) => n is BooleanLiteral);
   }
 
   BreakStatement breakStatement(String search) {
@@ -45,6 +57,10 @@ class FindNode {
 
   ClassDeclaration classDeclaration(String search) {
     return _node(search, (n) => n is ClassDeclaration);
+  }
+
+  CollectionElement collectionElement(String search) {
+    return _node(search, (n) => n is CollectionElement);
   }
 
   CommentReference commentReference(String search) {
@@ -73,6 +89,10 @@ class FindNode {
 
   DoStatement doStatement(String search) {
     return _node(search, (n) => n is DoStatement);
+  }
+
+  DoubleLiteral doubleLiteral(String search) {
+    return _node(search, (n) => n is DoubleLiteral);
   }
 
   ExportDirective export(String search) {
@@ -127,8 +147,16 @@ class FindNode {
     return _node(search, (n) => n is FunctionTypeAlias);
   }
 
+  FunctionTypedFormalParameter functionTypedFormalParameter(String search) {
+    return _node(search, (n) => n is FunctionTypedFormalParameter);
+  }
+
   GenericFunctionType genericFunctionType(String search) {
     return _node(search, (n) => n is GenericFunctionType);
+  }
+
+  IfElement ifElement(String search) {
+    return _node(search, (n) => n is IfElement);
   }
 
   ImportDirective import(String search) {
@@ -145,6 +173,10 @@ class FindNode {
 
   IntegerLiteral integerLiteral(String search) {
     return _node(search, (n) => n is IntegerLiteral);
+  }
+
+  Label label(String search) {
+    return _node(search, (n) => n is Label);
   }
 
   LibraryDirective library(String search) {
@@ -169,6 +201,10 @@ class FindNode {
 
   NamedExpression namedExpression(String search) {
     return _node(search, (n) => n is NamedExpression);
+  }
+
+  NullLiteral nullLiteral(String search) {
+    return _node(search, (n) => n is NullLiteral);
   }
 
   ParenthesizedExpression parenthesized(String search) {
@@ -227,8 +263,16 @@ class FindNode {
     return _node(search, (n) => n is SuperExpression);
   }
 
+  SuperConstructorInvocation superConstructorInvocation(String search) {
+    return _node(search, (n) => n is SuperConstructorInvocation);
+  }
+
   SwitchStatement switchStatement(String search) {
     return _node(search, (n) => n is SwitchStatement);
+  }
+
+  SymbolLiteral symbolLiteral(String search) {
+    return _node(search, (n) => n is SymbolLiteral);
   }
 
   ThisExpression this_(String search) {
@@ -282,22 +326,22 @@ class FindNode {
 
   AstNode _node(String search, bool Function(AstNode) predicate) {
     var index = content.indexOf(search);
-    if (content.indexOf(search, index + 1) != -1) {
-      throw new StateError('The pattern |$search| is not unique in:\n$content');
+    if (content.contains(search, index + 1)) {
+      throw StateError('The pattern |$search| is not unique in:\n$content');
     }
     if (index < 0) {
-      throw new StateError('The pattern |$search| is not found in:\n$content');
+      throw StateError('The pattern |$search| is not found in:\n$content');
     }
 
-    var node = new NodeLocator2(index).searchWithin(unit);
+    var node = NodeLocator2(index).searchWithin(unit);
     if (node == null) {
-      throw new StateError(
+      throw StateError(
           'The pattern |$search| had no corresponding node in:\n$content');
     }
 
     var result = node.thisOrAncestorMatching(predicate);
     if (result == null) {
-      throw new StateError(
+      throw StateError(
           'The node for |$search| had no matching ancestor in:\n$content');
     }
     return result;

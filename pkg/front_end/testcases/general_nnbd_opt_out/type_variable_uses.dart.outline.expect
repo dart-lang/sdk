@@ -1,0 +1,22 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/type_variable_uses.dart:9:15: Error: Can only use type variables in instance methods.
+//   static C<T> staticMethod() {
+//               ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C<T extends core::Object* = dynamic> extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::C<self::C::T*>*
+    : super core::Object::•()
+    ;
+  static method staticMethod() → self::C<dynamic>*
+    ;
+  method instanceMethod() → self::C<self::C::T*>*
+    ;
+}
+static method main() → dynamic
+  ;

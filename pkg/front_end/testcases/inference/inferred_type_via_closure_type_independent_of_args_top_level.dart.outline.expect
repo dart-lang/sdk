@@ -1,0 +1,7 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static final field (core::bool*) →* core::int* f;
+static method main() → dynamic
+  ;

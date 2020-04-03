@@ -5,13 +5,13 @@ import "dart:core" as core;
 class A extends core::Object implements self::B {
   synthetic constructor •() → self::A*
     ;
-  get x() → dynamic
+  get x() → core::int*
     ;
-  set x(dynamic value) → void
+  set x(core::int* value) → void
     ;
 }
 class B extends core::Object {
-  field dynamic x;
+  field core::int* x;
   synthetic constructor •() → self::B*
     ;
 }

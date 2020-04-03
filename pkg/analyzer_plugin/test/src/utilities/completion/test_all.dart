@@ -7,7 +7,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'completion_target_test.dart' as completion_target_test;
 import 'optype_test.dart' as optype_test;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     completion_target_test.main();
     optype_test.main();

@@ -4,19 +4,18 @@
 
 library test.initializing_formals;
 
-@MirrorsUsed(targets: "test.initializing_formals")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
 class Class<T> {
-  num numField;
-  bool boolField;
-  String stringField;
+  num numField = 0;
+  bool boolField = false;
+  String stringField = "";
   T tField;
   dynamic _privateField;
 
   Class.nongeneric(this.numField);
-  Class.named({this.boolField});
+  Class.named({this.boolField = false});
   Class.optPos([this.stringField = 'default']);
   Class.generic(this.tField);
   Class.private(this._privateField);
@@ -36,7 +35,7 @@ main() {
   MethodMirror mm;
   ParameterMirror pm;
 
-  mm = reflectClass(Class).declarations[#Class.nongeneric];
+  mm = reflectClass(Class).declarations[#Class.nongeneric] as MethodMirror;
   pm = mm.parameters.single;
   Expect.equals(#numField, pm.simpleName);
   Expect.equals(reflectClass(num), pm.type);
@@ -48,19 +47,20 @@ main() {
   Expect.isFalse(pm.isStatic);
   Expect.isFalse(pm.isTopLevel);
 
-  mm = reflectClass(Class).declarations[#Class.named];
+  mm = reflectClass(Class).declarations[#Class.named] as MethodMirror;
   pm = mm.parameters.single;
   Expect.equals(#boolField, pm.simpleName);
   Expect.equals(reflectClass(bool), pm.type);
   Expect.isTrue(pm.isNamed); // //# 01: ok
   Expect.isFalse(pm.isFinal); // //# 01: ok
   Expect.isTrue(pm.isOptional); // //# 01: ok
-  Expect.isFalse(pm.hasDefaultValue); // //# 01: ok
+  Expect.isTrue(pm.hasDefaultValue); // //# 01: ok
+  Expect.equals(false, pm.defaultValue.reflectee); // //# 01: ok
   Expect.isFalse(pm.isPrivate);
   Expect.isFalse(pm.isStatic);
   Expect.isFalse(pm.isTopLevel);
 
-  mm = reflectClass(Class).declarations[#Class.optPos];
+  mm = reflectClass(Class).declarations[#Class.optPos] as MethodMirror;
   pm = mm.parameters.single;
   Expect.equals(#stringField, pm.simpleName);
   Expect.equals(reflectClass(String), pm.type);
@@ -73,7 +73,7 @@ main() {
   Expect.isFalse(pm.isStatic);
   Expect.isFalse(pm.isTopLevel);
 
-  mm = reflectClass(Class).declarations[#Class.generic];
+  mm = reflectClass(Class).declarations[#Class.generic] as MethodMirror;
   pm = mm.parameters.single;
   Expect.equals(#tField, pm.simpleName);
   Expect.equals(reflectClass(Class).typeVariables.single, pm.type);
@@ -85,7 +85,7 @@ main() {
   Expect.isFalse(pm.isStatic);
   Expect.isFalse(pm.isTopLevel);
 
-  mm = reflectClass(Class).declarations[#Class.private];
+  mm = reflectClass(Class).declarations[#Class.private] as MethodMirror;
   pm = mm.parameters.single;
   Expect.equals(#_privateField, pm.simpleName); // //# 03: ok
   Expect.equals(currentMirrorSystem().dynamicType, pm.type);
@@ -97,7 +97,7 @@ main() {
   Expect.isFalse(pm.isStatic);
   Expect.isFalse(pm.isTopLevel);
 
-  mm = reflectClass(Class).declarations[#Class.explicitType];
+  mm = reflectClass(Class).declarations[#Class.explicitType] as MethodMirror;
   pm = mm.parameters.single;
   Expect.equals(#numField, pm.simpleName);
   Expect.equals(reflectClass(num), pm.type);
@@ -109,7 +109,7 @@ main() {
   Expect.isFalse(pm.isStatic);
   Expect.isFalse(pm.isTopLevel);
 
-  mm = reflectClass(Class).declarations[#Class.withVar];
+  mm = reflectClass(Class).declarations[#Class.withVar] as MethodMirror;
   pm = mm.parameters.single;
   Expect.equals(#numField, pm.simpleName);
   Expect.equals(reflectClass(num), pm.type);
@@ -121,7 +121,7 @@ main() {
   Expect.isFalse(pm.isStatic);
   Expect.isFalse(pm.isTopLevel);
 
-  mm = reflectClass(Class).declarations[#Class.withSubtype];
+  mm = reflectClass(Class).declarations[#Class.withSubtype] as MethodMirror;
   pm = mm.parameters.single;
   Expect.equals(#numField, pm.simpleName);
   Expect.equals(reflectClass(int), pm.type);
@@ -133,7 +133,7 @@ main() {
   Expect.isFalse(pm.isStatic);
   Expect.isFalse(pm.isTopLevel);
 
-  mm = reflectClass(Constant).declarations[#Constant];
+  mm = reflectClass(Constant).declarations[#Constant] as MethodMirror;
   pm = mm.parameters.single;
   Expect.equals(#value, pm.simpleName);
   Expect.equals(reflectClass(num), pm.type);
@@ -145,7 +145,7 @@ main() {
   Expect.isFalse(pm.isStatic);
   Expect.isFalse(pm.isTopLevel);
 
-  mm = reflectClass(Constant).declarations[#Constant.marked];
+  mm = reflectClass(Constant).declarations[#Constant.marked] as MethodMirror;
   pm = mm.parameters.single;
   Expect.equals(#value, pm.simpleName);
   Expect.equals(reflectClass(num), pm.type);

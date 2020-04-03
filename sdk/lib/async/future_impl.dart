@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.async;
 
 /** The onValue and onError handlers return either a value or a future */
@@ -17,13 +19,14 @@ abstract class _Completer<T> implements Completer<T> {
   void complete([FutureOr<T> value]);
 
   void completeError(Object error, [StackTrace stackTrace]) {
-    error = _nonNullError(error);
+    ArgumentError.checkNotNull(error, "error");
     if (!future._mayComplete) throw new StateError("Future already completed");
     AsyncError replacement = Zone.current.errorCallback(error, stackTrace);
     if (replacement != null) {
       error = _nonNullError(replacement.error);
       stackTrace = replacement.stackTrace;
     }
+    stackTrace ??= AsyncError.defaultStackTrace(error);
     _completeError(error, stackTrace);
   }
 
@@ -77,6 +80,7 @@ class _FutureListener<S, T> {
   // Which fields means what.
   final int state;
   // Used for then/whenDone callback and error test
+  @pragma("vm:entry-point")
   final Function callback;
   // Used for error callbacks.
   final Function errorCallback;
@@ -91,8 +95,8 @@ class _FutureListener<S, T> {
       this.result, _FutureOnValue<S, T> onValue, Function errorCallback)
       : callback = onValue,
         errorCallback = errorCallback,
-        state = ((errorCallback == null) ? stateThen : stateThenOnerror)
-              | stateIsAwait ;
+        state = ((errorCallback == null) ? stateThen : stateThenOnerror) |
+            stateIsAwait;
 
   _FutureListener.catchError(this.result, this.errorCallback, this.callback)
       : state = (callback == null) ? stateCatcherror : stateCatcherrorTest;
@@ -211,6 +215,7 @@ class _Future<T> implements Future<T> {
    * will complete with the same result.
    * All listeners are forwarded to the other future.
    */
+  @pragma("vm:entry-point")
   var _resultOrListeners;
 
   // This constructor is used by async/await.
@@ -225,7 +230,7 @@ class _Future<T> implements Future<T> {
     _setValue(value);
   }
 
-  _Future.immediateError(var error, [StackTrace stackTrace])
+  _Future.immediateError(var error, StackTrace stackTrace)
       : _zone = Zone.current {
     _asyncCompleteError(error, stackTrace);
   }
@@ -289,8 +294,7 @@ class _Future<T> implements Future<T> {
   /// The system created liseners are not registered in the zone,
   /// and the listener is marked as being from an `await`.
   /// This marker is used in [_continuationFunctions].
-  Future<E> _thenAwait<E>(
-      FutureOr<E> f(T value), Function onError) {
+  Future<E> _thenAwait<E>(FutureOr<E> f(T value), Function onError) {
     _Future<E> result = new _Future<E>();
     _addListener(new _FutureListener<T, E>.thenAwait(result, f, onError));
     return result;
@@ -808,5 +812,5 @@ Function _registerErrorHandler(Function errorHandler, Zone zone) {
       errorHandler,
       "onError",
       "Error handler must accept one Object or one Object and a StackTrace"
-      " as arguments, and return a a valid result");
+          " as arguments, and return a a valid result");
 }

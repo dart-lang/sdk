@@ -1,0 +1,25 @@
+# Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import("../application_snapshot.gni")
+
+dartdev_files = exec_script("../../tools/list_dart_files.py",
+                            [
+                              "absolute",
+                              rebase_path("../../pkg/dartdev"),
+                            ],
+                            "list lines")
+
+dartfix_files = exec_script("../../tools/list_dart_files.py",
+                            [
+                              "absolute",
+                              rebase_path("../../pkg/dartfix"),
+                            ],
+                            "list lines")
+
+application_snapshot("dartdev") {
+  main_dart = "../../pkg/dartdev/bin/dartdev.dart"
+  training_args = [ "--help" ]
+  inputs = dartdev_files + dartfix_files
+}

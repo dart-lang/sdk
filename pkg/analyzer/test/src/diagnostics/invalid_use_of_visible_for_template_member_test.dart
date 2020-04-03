@@ -7,6 +7,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../generated/test_support.dart';
 import '../dart/resolution/driver_resolution.dart';
 
 main() {
@@ -31,31 +32,6 @@ class _VisibleForTemplate {
 ''');
   }
 
-  test_constructor() async {
-    addAngularMetaPackage();
-    newFile('/lib1.dart', content: r'''
-import 'package:angular_meta/angular_meta.dart';
-class A {
-  int _x;
-
-  @visibleForTemplate
-  A.forTemplate(this._x);
-}
-''');
-    newFile('/lib2.dart', content: r'''
-import 'lib1.dart';
-
-void main() {
-  new A.forTemplate(0);
-}
-''');
-
-    await _resolveTestFile('/lib1.dart');
-    await _resolveTestFile('/lib2.dart');
-    assertTestErrorsWithCodes(
-        [HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER]);
-  }
-
   test_export() async {
     addAngularMetaPackage();
     newFile('/lib1.dart', content: r'''
@@ -68,9 +44,50 @@ int fn0() => 1;
 export 'lib1.dart' show fn0;
 ''');
 
-    await _resolveTestFile('/lib1.dart');
-    await _resolveTestFile('/lib2.dart');
-    assertNoTestErrors();
+    await _resolveFile('/lib1.dart');
+    await _resolveFile('/lib2.dart');
+  }
+
+  test_functionInExtension() async {
+    addAngularMetaPackage();
+    newFile('/lib1.dart', content: r'''
+import 'package:angular_meta/angular_meta.dart';
+extension E on List {
+  @visibleForTemplate
+  int m() => 1;
+}
+''');
+    newFile('/lib2.dart', content: r'''
+import 'lib1.dart';
+void main() {
+  E([]).m();
+}
+''');
+
+    await _resolveFile('/lib1.dart');
+    await _resolveFile('/lib2.dart', [
+      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 42, 1),
+    ]);
+  }
+
+  test_functionInExtension_fromTemplate() async {
+    addAngularMetaPackage();
+    newFile('/lib1.dart', content: r'''
+import 'package:angular_meta/angular_meta.dart';
+extension E on List {
+  @visibleForTemplate
+  int m() => 1;
+}
+''');
+    newFile('/lib1.template.dart', content: r'''
+import 'lib1.dart';
+void main() {
+  E([]).m();
+}
+''');
+
+    await _resolveFile('/lib1.dart');
+    await _resolveFile('/lib1.template.dart');
   }
 
   test_method() async {
@@ -90,10 +107,10 @@ class B {
 }
 ''');
 
-    await _resolveTestFile('/lib1.dart');
-    await _resolveTestFile('/lib2.dart');
-    assertTestErrorsWithCodes(
-        [HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER]);
+    await _resolveFile('/lib1.dart');
+    await _resolveFile('/lib2.dart', [
+      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 53, 1),
+    ]);
   }
 
   test_method_fromTemplate() async {
@@ -114,9 +131,35 @@ class B {
 }
 ''');
 
-    await _resolveTestFile('/lib1.dart');
-    await _resolveTestFile('/lib1.template.dart');
-    assertNoTestErrors();
+    await _resolveFile('/lib1.dart');
+    await _resolveFile('/lib1.template.dart');
+  }
+
+  test_namedConstructor() async {
+    addAngularMetaPackage();
+    newFile('/lib1.dart', content: r'''
+import 'package:angular_meta/angular_meta.dart';
+class A {
+  int _x;
+
+  @visibleForTemplate
+  A.forTemplate(this._x);
+}
+''');
+    newFile('/lib2.dart', content: r'''
+import 'lib1.dart';
+
+void main() {
+  new A.forTemplate(0);
+}
+''');
+
+    await _resolveFile('/lib1.dart', [
+      error(HintCode.UNUSED_FIELD, 65, 2),
+    ]);
+    await _resolveFile('/lib2.dart', [
+      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 41, 13),
+    ]);
   }
 
   test_propertyAccess() async {
@@ -140,11 +183,10 @@ void main() {
 }
 ''');
 
-    await _resolveTestFile('/lib1.dart');
-    await _resolveTestFile('/lib2.dart');
-    assertTestErrorsWithCodes([
-      HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER,
-      HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER
+    await _resolveFile('/lib1.dart');
+    await _resolveFile('/lib2.dart', [
+      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 45, 1),
+      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 58, 1),
     ]);
   }
 
@@ -167,9 +209,8 @@ class B extends A {
 }
 ''');
 
-    await _resolveTestFile('/lib1.dart');
-    await _resolveTestFile('/lib2.dart');
-    assertNoTestErrors();
+    await _resolveFile('/lib1.dart');
+    await _resolveFile('/lib2.dart');
   }
 
   test_protectedAndForTemplate_usedAsTemplate() async {
@@ -193,9 +234,8 @@ void main() {
 }
 ''');
 
-    await _resolveTestFile('/lib1.dart');
-    await _resolveTestFile('/lib1.template.dart');
-    assertNoTestErrors();
+    await _resolveFile('/lib1.dart');
+    await _resolveFile('/lib1.template.dart');
   }
 
   test_topLevelFunction() async {
@@ -214,16 +254,47 @@ void main() {
 }
 ''');
 
-    await _resolveTestFile('/lib1.dart');
-    await _resolveTestFile('/lib2.dart');
-    assertTestErrorsWithCodes(
-        [HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER]);
+    await _resolveFile('/lib1.dart');
+    await _resolveFile('/lib2.dart', [
+      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 37, 3),
+    ]);
   }
 
-  /// Resolve the test file at [path].
+  test_unnamedConstructor() async {
+    addAngularMetaPackage();
+    newFile('/lib1.dart', content: r'''
+import 'package:angular_meta/angular_meta.dart';
+class A {
+  int _x;
+
+  @visibleForTemplate
+  A(this._x);
+}
+''');
+    newFile('/lib2.dart', content: r'''
+import 'lib1.dart';
+
+void main() {
+  new A(0);
+}
+''');
+
+    await _resolveFile('/lib1.dart', [
+      error(HintCode.UNUSED_FIELD, 65, 2),
+    ]);
+    await _resolveFile('/lib2.dart', [
+      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 41, 1),
+    ]);
+  }
+
+  /// Resolve the file with the given [path].
   ///
   /// Similar to ResolutionTest.resolveTestFile, but a custom path is supported.
-  Future<void> _resolveTestFile(String path) async {
+  Future<void> _resolveFile(
+    String path, [
+    List<ExpectedError> expectedErrors = const [],
+  ]) async {
     result = await resolveFile(convertPath(path));
+    assertErrorsInResolvedUnit(result, expectedErrors);
   }
 }

@@ -7,7 +7,7 @@ import 'dart:io' as io;
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:path/path.dart' as pathLib;
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:watcher/watcher.dart';
@@ -15,7 +15,7 @@ import 'package:watcher/watcher.dart';
 import 'physical_file_system_test.dart' show BaseTest;
 
 main() {
-  if (!new bool.fromEnvironment('skipPhysicalResourceProviderTests')) {
+  if (!bool.fromEnvironment('skipPhysicalResourceProviderTests')) {
     defineReflectiveSuite(() {
       defineReflectiveTests(PhysicalResourceProviderWatchTest);
     });
@@ -25,10 +25,10 @@ main() {
 @reflectiveTest
 class PhysicalResourceProviderWatchTest extends BaseTest {
   test_watchFile_delete() {
-    var path = pathLib.join(tempPath, 'foo');
-    var file = new io.File(path);
+    var filePath = path.join(tempPath, 'foo');
+    var file = io.File(filePath);
     file.writeAsStringSync('contents 1');
-    return _watchingFile(path, (changesReceived) {
+    return _watchingFile(filePath, (changesReceived) {
       expect(changesReceived, hasLength(0));
       file.deleteSync();
       return _delayed(() {
@@ -43,22 +43,22 @@ class PhysicalResourceProviderWatchTest extends BaseTest {
         } else {
           expect(changesReceived[0].type, equals(ChangeType.REMOVE));
         }
-        expect(changesReceived[0].path, equals(path));
+        expect(changesReceived[0].path, equals(filePath));
       });
     });
   }
 
   test_watchFile_modify() {
-    var path = pathLib.join(tempPath, 'foo');
-    var file = new io.File(path);
+    var filePath = path.join(tempPath, 'foo');
+    var file = io.File(filePath);
     file.writeAsStringSync('contents 1');
-    return _watchingFile(path, (changesReceived) {
+    return _watchingFile(filePath, (changesReceived) {
       expect(changesReceived, hasLength(0));
       file.writeAsStringSync('contents 2');
       return _delayed(() {
         expect(changesReceived, hasLength(1));
         expect(changesReceived[0].type, equals(ChangeType.MODIFY));
-        expect(changesReceived[0].path, equals(path));
+        expect(changesReceived[0].path, equals(filePath));
       });
     });
   }
@@ -66,26 +66,26 @@ class PhysicalResourceProviderWatchTest extends BaseTest {
   test_watchFolder_createFile() {
     return _watchingFolder(tempPath, (changesReceived) {
       expect(changesReceived, hasLength(0));
-      var path = pathLib.join(tempPath, 'foo');
-      new io.File(path).writeAsStringSync('contents');
+      var filePath = path.join(tempPath, 'foo');
+      io.File(filePath).writeAsStringSync('contents');
       return _delayed(() {
         // There should be an "add" event indicating that the file was added.
         // Depending on how long it took to write the contents, it may be
         // followed by "modify" events.
         expect(changesReceived, isNotEmpty);
         expect(changesReceived[0].type, equals(ChangeType.ADD));
-        expect(changesReceived[0].path, equals(path));
+        expect(changesReceived[0].path, equals(filePath));
         for (int i = 1; i < changesReceived.length; i++) {
           expect(changesReceived[i].type, equals(ChangeType.MODIFY));
-          expect(changesReceived[i].path, equals(path));
+          expect(changesReceived[i].path, equals(filePath));
         }
       });
     });
   }
 
   test_watchFolder_deleteFile() {
-    var path = pathLib.join(tempPath, 'foo');
-    var file = new io.File(path);
+    var filePath = path.join(tempPath, 'foo');
+    var file = io.File(filePath);
     file.writeAsStringSync('contents 1');
     return _watchingFolder(tempPath, (changesReceived) {
       expect(changesReceived, hasLength(0));
@@ -93,14 +93,14 @@ class PhysicalResourceProviderWatchTest extends BaseTest {
       return _delayed(() {
         expect(changesReceived, hasLength(1));
         expect(changesReceived[0].type, equals(ChangeType.REMOVE));
-        expect(changesReceived[0].path, equals(path));
+        expect(changesReceived[0].path, equals(filePath));
       });
     });
   }
 
   test_watchFolder_modifyFile() {
-    var path = pathLib.join(tempPath, 'foo');
-    var file = new io.File(path);
+    var filePath = path.join(tempPath, 'foo');
+    var file = io.File(filePath);
     file.writeAsStringSync('contents 1');
     return _watchingFolder(tempPath, (changesReceived) {
       expect(changesReceived, hasLength(0));
@@ -108,16 +108,16 @@ class PhysicalResourceProviderWatchTest extends BaseTest {
       return _delayed(() {
         expect(changesReceived, hasLength(1));
         expect(changesReceived[0].type, equals(ChangeType.MODIFY));
-        expect(changesReceived[0].path, equals(path));
+        expect(changesReceived[0].path, equals(filePath));
       });
     });
   }
 
   test_watchFolder_modifyFile_inSubDir() {
-    var fooPath = pathLib.join(tempPath, 'foo');
-    new io.Directory(fooPath).createSync();
-    var path = pathLib.join(tempPath, 'bar');
-    var file = new io.File(path);
+    var fooPath = path.join(tempPath, 'foo');
+    io.Directory(fooPath).createSync();
+    var barPath = path.join(tempPath, 'bar');
+    var file = io.File(barPath);
     file.writeAsStringSync('contents 1');
     return _watchingFolder(tempPath, (changesReceived) {
       expect(changesReceived, hasLength(0));
@@ -125,25 +125,26 @@ class PhysicalResourceProviderWatchTest extends BaseTest {
       return _delayed(() {
         expect(changesReceived, anyOf(hasLength(1), hasLength(2)));
         expect(changesReceived[0].type, equals(ChangeType.MODIFY));
-        expect(changesReceived[0].path, equals(path));
+        expect(changesReceived[0].path, equals(barPath));
       });
     });
   }
 
-  Future _delayed(computation()) {
+  Future _delayed(Function() computation) {
     // Give the tests 1 second to detect the changes. While it may only
     // take up to a few hundred ms, a whole second gives a good margin
     // for when running tests.
-    return new Future.delayed(new Duration(seconds: 1), computation);
+    return Future.delayed(Duration(seconds: 1), computation);
   }
 
-  _watchingFile(String path, test(List<WatchEvent> changesReceived)) {
+  _watchingFile(
+      String filePath, Function(List<WatchEvent> changesReceived) test) {
     // Delay before we start watching the file.  This is necessary
     // because on MacOS, file modifications that occur just before we
     // start watching are sometimes misclassified as happening just after
     // we start watching.
     return _delayed(() {
-      File file = PhysicalResourceProvider.INSTANCE.getResource(path);
+      File file = PhysicalResourceProvider.INSTANCE.getResource(filePath);
       var changesReceived = <WatchEvent>[];
       var subscription = file.changes.listen(changesReceived.add);
       // Delay running the rest of the test to allow file.changes propagate.
@@ -153,13 +154,14 @@ class PhysicalResourceProviderWatchTest extends BaseTest {
     });
   }
 
-  _watchingFolder(String path, test(List<WatchEvent> changesReceived)) {
+  _watchingFolder(
+      String filePath, Function(List<WatchEvent> changesReceived) test) {
     // Delay before we start watching the folder.  This is necessary
     // because on MacOS, file modifications that occur just before we
     // start watching are sometimes misclassified as happening just after
     // we start watching.
     return _delayed(() {
-      Folder folder = PhysicalResourceProvider.INSTANCE.getResource(path);
+      Folder folder = PhysicalResourceProvider.INSTANCE.getResource(filePath);
       var changesReceived = <WatchEvent>[];
       var subscription = folder.changes.listen(changesReceived.add);
       // Delay running the rest of the test to allow folder.changes to

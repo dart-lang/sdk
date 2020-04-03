@@ -23,6 +23,7 @@ class RawCode;
 class RawMegamorphicCache;
 class RawString;
 class String;
+class Thread;
 
 class MegamorphicCacheTable : public AllStatic {
  public:
@@ -38,7 +39,7 @@ class MegamorphicCacheTable : public AllStatic {
       static void ReInitMissHandlerCode(Isolate* isolate,
                                         compiler::ObjectPoolBuilder* wrapper));
 
-  static RawMegamorphicCache* Lookup(Isolate* isolate,
+  static RawMegamorphicCache* Lookup(Thread* thread,
                                      const String& name,
                                      const Array& descriptor);
 

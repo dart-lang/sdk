@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 library compiler_helper;
 
 import 'dart:async';
@@ -13,7 +15,7 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
-import 'package:front_end/src/fasta/util/link.dart' show Link;
+import 'package:_fe_analyzer_shared/src/util/link.dart' show Link;
 import 'memory_compiler.dart';
 import 'output_collector.dart';
 
@@ -38,6 +40,7 @@ Future<String> compile(String code,
     bool disableTypeInference: true,
     bool omitImplicitChecks: true,
     bool newRti: false,
+    bool enableVariance: false,
     void check(String generatedEntry),
     bool returnAll: false}) async {
   OutputCollector outputCollector = returnAll ? new OutputCollector() : null;
@@ -62,6 +65,9 @@ Future<String> compile(String code,
   }
   if (newRti) {
     options.add(Flags.experimentNewRti);
+  }
+  if (enableVariance) {
+    options.add('${Flags.enableLanguageExperiments}=variance');
   }
 
   // Pretend this is a dart2js_native test to allow use of 'native' keyword

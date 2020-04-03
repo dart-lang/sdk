@@ -14,6 +14,7 @@
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/code_entry_kind.h"
+#include "vm/compiler/assembler/assembler_base.h"
 #include "vm/compiler/runtime_api.h"
 #include "vm/constants.h"
 #include "vm/cpu.h"
@@ -370,14 +371,48 @@ class Assembler : public AssemblerBase {
   void PushRegister(Register r) { Push(r); }
   void PopRegister(Register r) { Pop(r); }
 
+  // Push two registers to the stack; r0 to lower address location.
+  void PushRegisterPair(Register r0, Register r1) {
+    if ((r0 < r1) && (r0 != SP) && (r1 != SP)) {
+      RegList reg_list = (1 << r0) | (1 << r1);
+      PushList(reg_list);
+    } else {
+      PushRegister(r1);
+      PushRegister(r0);
+    }
+  }
+
+  // Pop two registers from the stack; r0 from lower address location.
+  void PopRegisterPair(Register r0, Register r1) {
+    if ((r0 < r1) && (r0 != SP) && (r1 != SP)) {
+      RegList reg_list = (1 << r0) | (1 << r1);
+      PopList(reg_list);
+    } else {
+      PopRegister(r0);
+      PopRegister(r1);
+    }
+  }
+
   void Bind(Label* label);
   void Jump(Label* label) { b(label); }
 
   void LoadField(Register dst, FieldAddress address) { ldr(dst, address); }
+  void LoadMemoryValue(Register dst, Register base, int32_t offset) {
+    LoadFromOffset(kWord, dst, base, offset, AL);
+  }
 
   void CompareWithFieldValue(Register value, FieldAddress address) {
+    CompareWithMemoryValue(value, address);
+  }
+
+  void CompareWithMemoryValue(Register value, Address address) {
     ldr(TMP, address);
     cmp(value, Operand(TMP));
+  }
+
+  void CompareTypeNullabilityWith(Register type, int8_t value) {
+    ldrb(TMP, FieldAddress(type, compiler::target::Type::nullability_offset()));
+    cmp(TMP, Operand(value));
   }
 
   // Misc. functionality
@@ -392,13 +427,11 @@ class Assembler : public AssemblerBase {
 #endif  // TESTING || DEBUG
 
   // Debugging and bringup support.
-  void Breakpoint() { bkpt(0); }
-  void Stop(const char* message) override;
-
-  static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);
+  void Breakpoint() override { bkpt(0); }
 
   // Data-processing instructions.
   void and_(Register rd, Register rn, Operand o, Condition cond = AL);
+  void ands(Register rd, Register rn, Operand o, Condition cond = AL);
 
   void eor(Register rd, Register rn, Operand o, Condition cond = AL);
 
@@ -444,6 +477,7 @@ class Assembler : public AssemblerBase {
 
   // Miscellaneous data-processing instructions.
   void clz(Register rd, Register rm, Condition cond = AL);
+  void rbit(Register rd, Register rm, Condition cond = AL);
 
   // Multiply instructions.
   void mul(Register rd, Register rn, Register rm, Condition cond = AL);
@@ -502,8 +536,7 @@ class Assembler : public AssemblerBase {
   void ldrsh(Register rd, Address ad, Condition cond = AL);
 
   // ldrd and strd actually support the full range of addressing modes, but
-  // we don't use them, and we need to split them up into two instructions for
-  // ARMv5TE, so we only support the base + offset mode.
+  // we don't use them, so we only support the base + offset mode.
   // rd must be an even register and rd2 must be rd + 1.
   void ldrd(Register rd,
             Register rd2,
@@ -535,8 +568,13 @@ class Assembler : public AssemblerBase {
   void TransitionGeneratedToNative(Register destination_address,
                                    Register exit_frame_fp,
                                    Register scratch0,
-                                   Register scratch1);
-  void TransitionNativeToGenerated(Register scratch0, Register scratch1);
+                                   Register scratch1,
+                                   bool enter_safepoint);
+  void TransitionNativeToGenerated(Register scratch0,
+                                   Register scratch1,
+                                   bool exit_safepoint);
+  void EnterSafepoint(Register scratch0, Register scratch1);
+  void ExitSafepoint(Register scratch0, Register scratch1);
 
   // Miscellaneous instructions.
   void clrex();
@@ -699,6 +737,8 @@ class Assembler : public AssemblerBase {
 
   void CallNullErrorShared(bool save_fpu_registers);
 
+  void CallNullArgErrorShared(bool save_fpu_registers);
+
   // Branch and link to an entry address. Call sequence can be patched.
   void BranchLinkPatchable(const Code& code,
                            CodeEntryKind entry_kind = CodeEntryKind::kNormal);
@@ -727,6 +767,10 @@ class Assembler : public AssemblerBase {
                             Register rn,
                             int32_t value,
                             Condition cond = AL);
+  void SubImmediate(Register rd,
+                    Register rn,
+                    int32_t value,
+                    Condition cond = AL);
   void SubImmediateSetFlags(Register rd,
                             Register rn,
                             int32_t value,
@@ -767,6 +811,7 @@ class Assembler : public AssemblerBase {
 
   void RestoreCodePointer();
   void LoadPoolPointer(Register reg = PP);
+  void SetupGlobalPoolAndDispatchTable();
 
   void LoadIsolate(Register rd);
 
@@ -1086,9 +1131,6 @@ class Assembler : public AssemblerBase {
   // allocation stats. These are separate assembler macros so we can
   // avoid a dependent load too nearby the load of the table address.
   void LoadAllocationStatsAddress(Register dest, intptr_t cid);
-  void IncrementAllocationStats(Register stats_addr, intptr_t cid);
-  void IncrementAllocationStatsWithSize(Register stats_addr_reg,
-                                        Register size_reg);
 
   Address ElementAddressForIntIndex(bool is_load,
                                     bool is_external,
@@ -1110,6 +1152,7 @@ class Assembler : public AssemblerBase {
                                     bool is_external,
                                     intptr_t cid,
                                     intptr_t index_scale,
+                                    bool index_unboxed,
                                     Register array,
                                     Register index);
 
@@ -1118,6 +1161,7 @@ class Assembler : public AssemblerBase {
                                      bool is_external,
                                      intptr_t cid,
                                      intptr_t index_scale,
+                                     bool index_unboxed,
                                      Register array,
                                      Register index);
 
@@ -1330,9 +1374,6 @@ class Assembler : public AssemblerBase {
                              Label* label,
                              CanBeSmi can_be_smi,
                              BarrierFilterMode barrier_filter_mode);
-
-  void EnterSafepointSlowly();
-  void ExitSafepointSlowly();
 
   friend class dart::FlowGraphCompiler;
   std::function<void(Condition, Register)>

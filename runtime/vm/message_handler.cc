@@ -8,6 +8,7 @@
 
 #include "vm/dart.h"
 #include "vm/heap/safepoint.h"
+#include "vm/isolate.h"
 #include "vm/lockers.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -70,7 +71,6 @@ MessageHandler::MessageHandler()
       task_running_(false),
       delete_me_(false),
       pool_(NULL),
-      idle_start_time_(0),
       start_callback_(NULL),
       end_callback_(NULL),
       callback_data_(0) {
@@ -130,7 +130,7 @@ void MessageHandler::PostMessage(std::unique_ptr<Message> message,
     MonitorLocker ml(&monitor_);
     if (FLAG_trace_isolates) {
       Isolate* source_isolate = Isolate::Current();
-      if (source_isolate) {
+      if (source_isolate != nullptr) {
         OS::PrintErr(
             "[>] Posting message:\n"
             "\tlen:        %" Pd "\n\tsource:     (%" Pd64
@@ -202,6 +202,9 @@ MessageHandler::MessageStatus MessageHandler::HandleMessages(
   StartIsolateScope start_isolate(isolate());
   ml->Enter();
 
+  auto idle_time_handler =
+      isolate() != nullptr ? isolate()->group()->idle_time_handler() : nullptr;
+
   MessageStatus max_status = kOK;
   Message::Priority min_priority =
       ((allow_normal_messages && !paused()) ? Message::kNormalPriority
@@ -224,7 +227,11 @@ MessageHandler::MessageStatus MessageHandler::HandleMessages(
     ml->Exit();
     Message::Priority saved_priority = message->priority();
     Dart_Port saved_dest_port = message->dest_port();
-    MessageStatus status = HandleMessage(std::move(message));
+    MessageStatus status = kOK;
+    {
+      DisableIdleTimerScope disable_idle_timer(idle_time_handler);
+      status = HandleMessage(std::move(message));
+    }
     if (status > max_status) {
       max_status = status;
     }
@@ -248,7 +255,9 @@ MessageHandler::MessageStatus MessageHandler::HandleMessages(
     // using Observatory doesn't trigger additional idle tasks.
     if ((FLAG_idle_timeout_micros != 0) &&
         (saved_priority == Message::kNormalPriority)) {
-      idle_start_time_ = OS::GetCurrentMonotonicMicros();
+      if (idle_time_handler != nullptr) {
+        idle_time_handler->UpdateStartIdleTime();
+      }
     }
 
     // Some callers want to process only one normal message and then quit. At
@@ -416,7 +425,7 @@ void MessageHandler::TaskCallback() {
 #endif  // !defined(PRODUCT)
 
     if (status == kOK) {
-      if (start_callback_) {
+      if (start_callback_ != nullptr) {
         // Initialize the message handler by running its start function,
         // if we have one.  For an isolate, this will run the isolate's
         // main() function.
@@ -514,44 +523,45 @@ void MessageHandler::TaskCallback() {
 }
 
 bool MessageHandler::CheckIfIdleLocked(MonitorLocker* ml) {
-  if ((isolate() == NULL) || (idle_start_time_ == 0) ||
-      (FLAG_idle_timeout_micros == 0)) {
+  if (isolate() == nullptr ||
+      !isolate()->group()->idle_time_handler()->ShouldCheckForIdle()) {
     // No idle task to schedule.
     return false;
   }
-  const int64_t now = OS::GetCurrentMonotonicMicros();
-  const int64_t idle_expirary = idle_start_time_ + FLAG_idle_timeout_micros;
-  if (idle_expirary > now) {
-    // We wait here for the scheduled idle time to expire or
-    // new messages or OOB messages to arrive.
-    paused_for_messages_ = true;
-    ml->WaitMicros(idle_expirary - now);
-    paused_for_messages_ = false;
-    // We want to loop back in order to handle the new messages
-    // or run the idle task.
+  if (!isolate()->group()->initial_spawn_successful()) {
+    // The isolate has not started running application code yet.
+    return false;
+  }
+  int64_t idle_expirary = 0;
+  if (isolate()->group()->idle_time_handler()->ShouldNotifyIdle(
+          &idle_expirary)) {
+    // We've been without a message long enough to hope we can do some
+    // cleanup before the next message arrives.
+    RunIdleTaskLocked(ml);
+    // We may have received new messages while running idle task, so return
+    // true so that the handle messages loop is run again.
     return true;
   }
-  // The idle task can be scheduled immediately.
-  RunIdleTaskLocked(ml);
-  // We may have received new messages while running idle task, so return
-  // true so that the handle messages loop is run again.
+
+  // We wait here for the scheduled idle time to expire or
+  // new messages or OOB messages to arrive.
+  paused_for_messages_ = true;
+  ml->WaitMicros(idle_expirary - OS::GetCurrentMonotonicMicros());
+  paused_for_messages_ = false;
+  // We want to loop back in order to handle the new messages
+  // or run the idle task.
   return true;
 }
 
 void MessageHandler::RunIdleTaskLocked(MonitorLocker* ml) {
-  // We've been without a message long enough to hope we can do some
-  // cleanup before the next message arrives.
-  const int64_t now = OS::GetCurrentMonotonicMicros();
-  const int64_t deadline = now + FLAG_idle_duration_micros;
   // Idle tasks may take a while: don't block other isolates sending
   // us messages.
   ml->Exit();
   {
     StartIsolateScope start_isolate(isolate());
-    isolate()->NotifyIdle(deadline);
+    isolate()->group()->idle_time_handler()->NotifyIdleUsingDefaultDeadline();
   }
   ml->Enter();
-  idle_start_time_ = 0;
 }
 
 void MessageHandler::ClosePort(Dart_Port port) {

@@ -7,21 +7,29 @@ import "dart:math" as math;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/resolver.dart';
 
 class TypeArgumentsVerifier {
   final AnalysisOptionsImpl _options;
-  final TypeSystem _typeSystem;
+  final LibraryElement _libraryElement;
   final ErrorReporter _errorReporter;
 
-  TypeArgumentsVerifier(this._options, this._typeSystem, this._errorReporter);
+  TypeArgumentsVerifier(
+    this._options,
+    this._libraryElement,
+    this._errorReporter,
+  );
 
-  TypeProvider get _typeProvider => _typeSystem.typeProvider;
+  TypeProvider get _typeProvider => _libraryElement.typeProvider;
+
+  TypeSystemImpl get _typeSystem => _libraryElement.typeSystem;
 
   void checkFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     _checkTypeArguments(node);
@@ -80,10 +88,8 @@ class TypeArgumentsVerifier {
 
   void checkTypeName(TypeName node) {
     _checkForTypeArgumentNotMatchingBounds(node);
-    if (node.parent is ConstructorName &&
-        node.parent.parent is InstanceCreationExpression) {
-      _checkForInferenceFailureOnInstanceCreation(node, node.parent.parent);
-    } else {
+    if (node.parent is! ConstructorName ||
+        node.parent.parent is! InstanceCreationExpression) {
       _checkForRawTypeName(node);
     }
   }
@@ -147,27 +153,6 @@ class TypeArgumentsVerifier {
     }
   }
 
-  /// Checks a type on an instance creation expression for an inference
-  /// failure, and reports the appropriate error if
-  /// [AnalysisOptionsImpl.strictInference] is set.
-  ///
-  /// This checks if [node] refers to a generic type and does not have explicit
-  /// or inferred type arguments. When that happens, it reports a
-  /// HintMode.INFERENCE_FAILURE_ON_INSTANCE_CREATION error.
-  void _checkForInferenceFailureOnInstanceCreation(
-      TypeName node, InstanceCreationExpression inferenceContextNode) {
-    if (!_options.strictInference || node == null) return;
-    if (node.typeArguments != null) {
-      // Type has explicit type arguments.
-      return;
-    }
-    if (_isMissingTypeArguments(
-        node, node.type, node.name.staticElement, inferenceContextNode)) {
-      _errorReporter.reportErrorForNode(
-          HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, node, [node.type]);
-    }
-  }
-
   /// Checks a type annotation for a raw generic type, and reports the
   /// appropriate error if [AnalysisOptionsImpl.strictRawTypes] is set.
   ///
@@ -194,12 +179,9 @@ class TypeArgumentsVerifier {
     if (_isMissingTypeArguments(
         node, node.type, node.name.staticElement, null)) {
       AstNode unwrappedParent = parentEscapingTypeArguments(node);
-      if (unwrappedParent is AsExpression) {
-        _errorReporter.reportErrorForNode(
-            HintCode.STRICT_RAW_TYPE_IN_AS, node, [node.type]);
-      } else if (unwrappedParent is IsExpression) {
-        _errorReporter.reportErrorForNode(
-            HintCode.STRICT_RAW_TYPE_IN_IS, node, [node.type]);
+      if (unwrappedParent is AsExpression || unwrappedParent is IsExpression) {
+        // Do not report a "Strict raw type" error in this case; too noisy.
+        // See https://github.com/dart-lang/language/blob/master/resources/type-system/strict-raw-types.md#conditions-for-a-raw-type-hint
       } else {
         _errorReporter
             .reportErrorForNode(HintCode.STRICT_RAW_TYPE, node, [node.type]);
@@ -212,77 +194,61 @@ class TypeArgumentsVerifier {
    * their bounds.
    */
   void _checkForTypeArgumentNotMatchingBounds(TypeName typeName) {
-    // prepare Type
-    DartType type = typeName.type;
-    if (type == null) {
+    var element = typeName.name.staticElement;
+    var type = typeName.type;
+
+    List<TypeParameterElement> typeParameters;
+    List<DartType> typeArguments;
+    if (type is InterfaceType) {
+      typeParameters = type.element.typeParameters;
+      typeArguments = type.typeArguments;
+    } else if (element is GenericTypeAliasElement && type is FunctionType) {
+      typeParameters = element.typeParameters;
+      typeArguments = type.typeArguments;
+    } else {
       return;
     }
-    if (type is ParameterizedType) {
-      var element = typeName.name.staticElement;
-      // prepare type parameters
-      List<TypeParameterElement> parameterElements;
-      if (element is ClassElement) {
-        parameterElements = element.typeParameters;
-      } else if (element is GenericTypeAliasElement) {
-        parameterElements = element.typeParameters;
-      } else if (element is GenericFunctionTypeElement) {
-        // TODO(paulberry): it seems like either this case or the one above
-        // should be unnecessary.
-        FunctionTypeAliasElement typedefElement = element.enclosingElement;
-        parameterElements = typedefElement.typeParameters;
-      } else if (type is FunctionType) {
-        parameterElements = type.typeFormals;
-      } else {
-        // There are no other kinds of parameterized types.
-        throw new UnimplementedError(
-            'Unexpected element associated with parameterized type: '
-            '${element.runtimeType}');
-      }
-      var parameterTypes =
-          parameterElements.map<DartType>((p) => p.type).toList();
-      List<DartType> arguments = type.typeArguments;
-      // iterate over each bounded type parameter and corresponding argument
-      NodeList<TypeAnnotation> argumentNodes =
-          typeName.typeArguments?.arguments;
-      var typeArguments = type.typeArguments;
-      int loopThroughIndex =
-          math.min(typeArguments.length, parameterElements.length);
-      bool shouldSubstitute =
-          arguments.isNotEmpty && arguments.length == parameterTypes.length;
-      for (int i = 0; i < loopThroughIndex; i++) {
-        DartType argType = typeArguments[i];
-        TypeAnnotation argumentNode =
-            argumentNodes != null && i < argumentNodes.length
-                ? argumentNodes[i]
-                : typeName;
-        if (argType is FunctionType && argType.typeFormals.isNotEmpty) {
-          _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
-            argumentNode,
-          );
-          continue;
-        }
-        DartType boundType = parameterElements[i].bound;
-        if (argType != null && boundType != null) {
-          if (shouldSubstitute) {
-            boundType = boundType.substitute2(arguments, parameterTypes);
-          }
 
-          if (!_typeSystem.isSubtypeOf(argType, boundType)) {
-            if (_shouldAllowSuperBoundedTypes(typeName)) {
-              var replacedType =
-                  (argType as TypeImpl).replaceTopAndBottom(_typeProvider);
-              if (!identical(replacedType, argType) &&
-                  _typeSystem.isSubtypeOf(replacedType, boundType)) {
-                // Bound is satisfied under super-bounded rules, so we're ok.
-                continue;
-              }
+    // iterate over each bounded type parameter and corresponding argument
+    NodeList<TypeAnnotation> argumentNodes = typeName.typeArguments?.arguments;
+    int loopThroughIndex =
+        math.min(typeArguments.length, typeParameters.length);
+    bool shouldSubstitute = typeArguments.isNotEmpty;
+    for (int i = 0; i < loopThroughIndex; i++) {
+      DartType argType = typeArguments[i];
+      TypeAnnotation argumentNode =
+          argumentNodes != null && i < argumentNodes.length
+              ? argumentNodes[i]
+              : typeName;
+      if (argType is FunctionType && argType.typeFormals.isNotEmpty) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
+          argumentNode,
+        );
+        continue;
+      }
+      DartType boundType = typeParameters[i].bound;
+      if (argType != null && boundType != null) {
+        boundType = _libraryElement.toLegacyTypeIfOptOut(boundType);
+        if (shouldSubstitute) {
+          boundType = Substitution.fromPairs(typeParameters, typeArguments)
+              .substituteType(boundType);
+        }
+
+        if (!_typeSystem.isSubtypeOf2(argType, boundType)) {
+          if (_shouldAllowSuperBoundedTypes(typeName)) {
+            var replacedType =
+                (argType as TypeImpl).replaceTopAndBottom(_typeProvider);
+            if (!identical(replacedType, argType) &&
+                _typeSystem.isSubtypeOf2(replacedType, boundType)) {
+              // Bound is satisfied under super-bounded rules, so we're ok.
+              continue;
             }
-            _errorReporter.reportTypeErrorForNode(
-                CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
-                argumentNode,
-                [argType, boundType]);
           }
+          _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+              argumentNode,
+              [argType, boundType]);
         }
       }
     }
@@ -334,8 +300,7 @@ class TypeArgumentsVerifier {
     var genericType = node.function.staticType;
     var instantiatedType = node.staticInvokeType;
     if (genericType is FunctionType && instantiatedType is FunctionType) {
-      var fnTypeParams =
-          TypeParameterTypeImpl.getTypes(genericType.typeFormals);
+      var fnTypeParams = genericType.typeFormals;
       var typeArgs = typeArgumentList.map((t) => t.type).toList();
 
       // If the amount mismatches, clean up the lists to be substitutable. The
@@ -352,7 +317,7 @@ class TypeArgumentsVerifier {
         //
         //     <TFrom, TTo extends TFrom>
         //     <TFrom, TTo extends Iterable<TFrom>>
-        //     <T extends Clonable<T>>
+        //     <T extends Cloneable<T>>
         //
         DartType argType = typeArgs[i];
 
@@ -364,10 +329,15 @@ class TypeArgumentsVerifier {
           continue;
         }
 
-        DartType bound =
-            fnTypeParams[i].bound.substitute2(typeArgs, fnTypeParams);
-        if (!_typeSystem.isSubtypeOf(argType, bound)) {
-          _errorReporter.reportTypeErrorForNode(
+        var rawBound = fnTypeParams[i].bound;
+        if (rawBound == null) {
+          continue;
+        }
+
+        var substitution = Substitution.fromPairs(fnTypeParams, typeArgs);
+        var bound = substitution.substituteType(rawBound);
+        if (!_typeSystem.isSubtypeOf2(argType, bound)) {
+          _errorReporter.reportErrorForNode(
               CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
               typeArgumentList[i],
               [argType, bound]);

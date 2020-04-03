@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 library dart._http;
 
 import 'dart:async';
@@ -126,8 +128,8 @@ part 'websocket_impl.dart';
  * about the streaming qualities of an HttpServer.
  * Pausing the subscription of the stream, pauses at the OS level.
  *
- * * The [shelf](https://pub.dartlang.org/packages/shelf)
- * package on pub.dartlang.org contains a set of high-level classes that,
+ * * The [shelf](https://pub.dev/packages/shelf)
+ * package on pub.dev contains a set of high-level classes that,
  * together with this class, makes it easy to provide content through HTTP
  * servers.
  */
@@ -670,21 +672,36 @@ abstract class HttpHeaders {
   String value(String name);
 
   /**
-   * Adds a header value. The header named [name] will have the value
-   * [value] added to its list of values. Some headers are single
-   * valued, and for these adding a value will replace the previous
-   * value. If the value is of type DateTime a HTTP date format will be
-   * applied. If the value is a [:List:] each element of the list will
-   * be added separately. For all other types the default [:toString:]
-   * method will be used.
+   * Adds a header value.
+   *
+   * The header named [name] will have a string value derived from [value]
+   * added to its list of values.
+   *
+   * Some headers are single valued, and for these, adding a value will
+   * replace a previous value. If the [value] is a [DateTime], an
+   * HTTP date format will be applied. If the value is an [Iterable],
+   * each element will be added separately. For all other
+   * types the default [Object.toString] method will be used.
+   *
+   * Header names are converted to lower-case unless
+   * [preserveHeaderCase] is set to true. If two header names are
+   * the same when converted to lower-case, they are considered to be
+   * the same header, with one set of values.
+   *
+   * The current case of the a header name is that of the name used by
+   * the last [set] or [add] call for that header.
    */
-  void add(String name, Object value);
+  void add(String name, Object value,
+      {@Since("2.8") bool preserveHeaderCase = false});
 
   /**
-   * Sets a header. The header named [name] will have all its values
-   * cleared before the value [value] is added as its value.
+   * Sets the header [name] to [value].
+   *
+   * Removes all existing values for the header named [name] and
+   * then [add]s [value] to it.
    */
-  void set(String name, Object value);
+  void set(String name, Object value,
+      {@Since("2.8") bool preserveHeaderCase = false});
 
   /**
    * Removes a specific value for a header name. Some headers have
@@ -702,11 +719,15 @@ abstract class HttpHeaders {
   void removeAll(String name);
 
   /**
-   * Enumerates the headers, applying the function [f] to each
-   * header. The header name passed in [:name:] will be all lower
-   * case.
+   * Performs the [action] on each header.
+   *
+   * The [action] function is called with each header's name and a list
+   * of the header's values. The casing of the name string is determined by
+   * the last [add] or [set] operation for that particular header,
+   * which defaults to lower-casing the header name unless explicitly
+   * set to preserve the case.
    */
-  void forEach(void f(String name, List<String> values));
+  void forEach(void action(String name, List<String> values));
 
   /**
    * Disables folding for the header named [name] when sending the HTTP
@@ -731,6 +752,11 @@ abstract class HttpHeaders {
  *
  * [HeaderValue] can be used to conveniently build and parse header
  * values on this form.
+ *
+ * Parameter values can be omitted, in which case the value is parsed as `null`.
+ * Values can be doubled quoted to allow characters outside of the RFC 7230
+ * token characters and backslash sequences can be used to represent the double
+ * quote and backslash characters themselves.
  *
  * To build an [:accepts:] header with the value
  *
@@ -758,7 +784,8 @@ abstract class HeaderValue {
   /**
    * Creates a new header value object setting the value and parameters.
    */
-  factory HeaderValue([String value = "", Map<String, String> parameters]) {
+  factory HeaderValue(
+      [String value = "", Map<String, String> parameters = const {}]) {
     return new _HeaderValue(value, parameters);
   }
 
@@ -871,7 +898,7 @@ abstract class ContentType implements HeaderValue {
    * or in `parameters`, will have its value converted to lower-case.
    */
   factory ContentType(String primaryType, String subType,
-      {String charset, Map<String, String> parameters}) {
+      {String charset, Map<String, String> parameters = const {}}) {
     return new _ContentType(primaryType, subType, charset, parameters);
   }
 
@@ -1006,7 +1033,7 @@ abstract class Cookie {
  * that contains the content of and information about an HTTP request.
  *
  * __Note__: Check out the
- * [http_server](https://pub.dartlang.org/packages/http_server)
+ * [http_server](https://pub.dev/packages/http_server)
  * package, which makes working with the low-level
  * dart:io HTTP server subsystem easier.
  *
@@ -1401,6 +1428,22 @@ abstract class HttpClient {
   static const int defaultHttpsPort = 443;
   @Deprecated("Use defaultHttpsPort instead")
   static const int DEFAULT_HTTPS_PORT = defaultHttpsPort;
+
+  /// Enable logging of HTTP requests from all [HttpClient]s to the developer
+  /// timeline.
+  ///
+  /// Default is `false`.
+  static set enableTimelineLogging(bool value) {
+    _enableTimelineLogging = value ?? false;
+  }
+
+  /// Current state of HTTP request logging from all [HttpClient]s to the
+  /// developer timeline.
+  ///
+  /// Default is `false`.
+  static bool get enableTimelineLogging => _enableTimelineLogging;
+
+  static bool _enableTimelineLogging = false;
 
   /// Gets and sets the idle timeout of non-active persistent (keep-alive)
   /// connections.

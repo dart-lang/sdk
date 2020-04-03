@@ -69,7 +69,7 @@ class FileUtils {
     if (testSnapshot != null) testSnapshot.deleteSync();
 
     // if the script did run, it created this file, so we need to delete it
-    File file = File(scriptOutputPath.toNativePath());
+    var file = File(scriptOutputPath.toNativePath());
     if (file.existsSync()) {
       file.deleteSync();
     }
@@ -151,7 +151,7 @@ Command makeCompilationCommand(String testName, FileUtils fileUtils) {
     ..add(createFileScript)
     ..add(fileUtils.scriptOutputPath.toNativePath());
   var bootstrapDeps = [Uri.parse("file://${fileUtils.testSnapshotFilePath}")];
-  return Command.compilation('dart2js', fileUtils.testJsFilePath.toNativePath(),
+  return CompilationCommand('dart2js', fileUtils.testJsFilePath.toNativePath(),
       bootstrapDeps, executable, arguments, {},
       alwaysCompile: false);
 }

@@ -4,6 +4,17 @@
 
 import 'dart:async' show Future;
 
+import 'package:_fe_analyzer_shared/src/messages/codes.dart'
+    show messageMissingMain;
+
+import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
+    show DiagnosticMessageHandler;
+
+import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
+    show ErrorToken, StringToken, Token;
+
 import 'package:kernel/kernel.dart' show Component, Statement;
 
 import 'package:kernel/ast.dart' as ir;
@@ -11,8 +22,6 @@ import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/target/targets.dart' show Target;
 
 import '../api_prototype/compiler_options.dart' show CompilerOptions;
-
-import '../api_prototype/diagnostic_message.dart' show DiagnosticMessageHandler;
 
 import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
 
@@ -24,15 +33,11 @@ import '../base/processed_options.dart' show ProcessedOptions;
 
 import '../base/libraries_specification.dart' show LibrariesSpecification;
 
+import '../base/nnbd_mode.dart' show NnbdMode;
+
 import '../fasta/compiler_context.dart' show CompilerContext;
 
-import '../fasta/fasta_codes.dart' show messageMissingMain;
-
-import '../fasta/severity.dart' show Severity;
-
 import '../kernel_generator_impl.dart' show generateKernelInternal;
-
-import '../fasta/scanner.dart' show ErrorToken, StringToken, Token;
 
 import '../fasta/kernel/redirecting_factory_body.dart' as redirecting;
 
@@ -40,10 +45,10 @@ import 'compiler_state.dart' show InitializedCompilerState;
 
 import 'util.dart' show equalLists, equalMaps;
 
-export '../api_prototype/compiler_options.dart'
-    show CompilerOptions, parseExperimentalFlags, parseExperimentalArguments;
+export 'package:_fe_analyzer_shared/src/messages/codes.dart'
+    show LocatedMessage;
 
-export '../api_prototype/diagnostic_message.dart'
+export 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show
         DiagnosticMessage,
         getMessageCharOffset,
@@ -52,28 +57,15 @@ export '../api_prototype/diagnostic_message.dart'
         getMessageRelatedInformation,
         getMessageUri;
 
-export '../api_prototype/experimental_flags.dart'
-    show defaultExperimentalFlags, ExperimentalFlag;
+export 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
-export '../api_prototype/file_system.dart'
-    show FileSystem, FileSystemEntity, FileSystemException;
+export 'package:_fe_analyzer_shared/src/parser/async_modifier.dart'
+    show AsyncModifier;
 
-export '../api_prototype/kernel_generator.dart' show kernelForProgram;
+export 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
+    show isUserDefinableOperator, isMinusOperator;
 
-export '../api_prototype/standard_file_system.dart' show DataFileSystemEntity;
-
-export '../compute_platform_binaries_location.dart'
-    show computePlatformBinariesLocation;
-
-export '../fasta/fasta_codes.dart' show LocatedMessage;
-
-export '../fasta/operator.dart' show operatorFromString;
-
-export '../fasta/parser/async_modifier.dart' show AsyncModifier;
-
-export '../fasta/scanner.dart' show isUserDefinableOperator, isMinusOperator;
-
-export '../fasta/scanner/characters.dart'
+export 'package:_fe_analyzer_shared/src/scanner/characters.dart'
     show
         $$,
         $0,
@@ -95,13 +87,39 @@ export '../fasta/scanner/characters.dart'
         $s,
         $z;
 
-export '../fasta/severity.dart' show Severity;
+export 'package:_fe_analyzer_shared/src/util/filenames.dart'
+    show nativeToUri, nativeToUriPath, uriPathToNative;
 
-export '../fasta/util/link.dart' show Link, LinkBuilder;
+export 'package:_fe_analyzer_shared/src/util/link.dart' show Link, LinkBuilder;
 
-export '../fasta/util/link_implementation.dart' show LinkEntry;
+export 'package:_fe_analyzer_shared/src/util/link_implementation.dart'
+    show LinkEntry;
 
-export '../fasta/util/relativize.dart' show relativizeUri;
+export 'package:_fe_analyzer_shared/src/util/relativize.dart'
+    show relativizeUri;
+
+export '../api_prototype/compiler_options.dart'
+    show CompilerOptions, parseExperimentalFlags, parseExperimentalArguments;
+
+export '../api_prototype/experimental_flags.dart'
+    show defaultExperimentalFlags, ExperimentalFlag;
+
+export '../api_prototype/file_system.dart'
+    show FileSystem, FileSystemEntity, FileSystemException;
+
+export '../api_prototype/kernel_generator.dart' show kernelForProgram;
+
+export '../api_prototype/standard_file_system.dart' show DataFileSystemEntity;
+
+export '../base/nnbd_mode.dart' show NnbdMode;
+
+export '../compute_platform_binaries_location.dart'
+    show computePlatformBinariesLocation;
+
+export '../fasta/kernel/redirecting_factory_body.dart'
+    show isRedirectingFactoryField;
+
+export '../fasta/operator.dart' show operatorFromString;
 
 export 'compiler_state.dart' show InitializedCompilerState;
 
@@ -115,29 +133,30 @@ InitializedCompilerState initializeCompiler(
     InitializedCompilerState oldState,
     Target target,
     Uri librariesSpecificationUri,
-    List<Uri> linkedDependencies,
+    List<Uri> additionalDills,
     Uri packagesFileUri,
     {List<Uri> dependencies,
     Map<ExperimentalFlag, bool> experimentalFlags,
-    bool verify: false}) {
-  linkedDependencies.sort((a, b) => a.toString().compareTo(b.toString()));
+    bool verify: false,
+    NnbdMode nnbdMode}) {
+  additionalDills.sort((a, b) => a.toString().compareTo(b.toString()));
 
   if (oldState != null &&
       oldState.options.packagesFileUri == packagesFileUri &&
       oldState.options.librariesSpecificationUri == librariesSpecificationUri &&
-      equalLists(oldState.options.linkedDependencies, linkedDependencies) &&
+      equalLists(oldState.options.additionalDills, additionalDills) &&
       equalMaps(oldState.options.experimentalFlags, experimentalFlags)) {
     return oldState;
   }
 
   CompilerOptions options = new CompilerOptions()
     ..target = target
-    ..legacyMode = target.legacyMode
-    ..linkedDependencies = linkedDependencies
+    ..additionalDills = additionalDills
     ..librariesSpecificationUri = librariesSpecificationUri
     ..packagesFileUri = packagesFileUri
     ..experimentalFlags = experimentalFlags
     ..verify = verify;
+  if (nnbdMode != null) options.nnbdMode = nnbdMode;
 
   ProcessedOptions processedOpts = new ProcessedOptions(options: options);
 

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /// Compares [text1] and [text2] line-by-line. If a mismatch is found, a diff
 /// of the [windowSize] lines before and after are printed and the mismatch line
 /// number is returned. If identical, nothing is printed and `null` is returned.

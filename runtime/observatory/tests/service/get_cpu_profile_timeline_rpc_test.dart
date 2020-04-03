@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:observatory/src/repositories/timeline_base.dart';
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'test_helper.dart';
 
@@ -19,13 +20,8 @@ testeeDo() {
   print("Testee did something.");
 }
 
-Future checkTimeline(Isolate isolate, Map params) async {
-  print(params);
-  var result =
-      await isolate.invokeRpcNoUpgrade('_getCpuProfileTimeline', params);
-  print(result);
-  expect(result['type'], equals('_CpuProfileTimeline'));
-
+Future checkTimeline(VM vm) async {
+  var result = await TimelineRepositoryBase().getCpuProfileTimeline(vm);
   var isString = new isInstanceOf<String>();
   var isInt = new isInstanceOf<int>();
   Map frames = result['stackFrames'];
@@ -53,24 +49,14 @@ Future checkTimeline(Isolate isolate, Map params) async {
   }
 }
 
-var tests = <IsolateTest>[
-  (Isolate i) => checkTimeline(i, {'tags': 'VMUser'}),
-  (Isolate i) => checkTimeline(i, {'tags': 'VMUser', 'code': true}),
-  (Isolate i) => checkTimeline(i, {'tags': 'VMUser', 'code': false}),
-  (Isolate i) => checkTimeline(i, {'tags': 'VMOnly'}),
-  (Isolate i) => checkTimeline(i, {'tags': 'VMOnly', 'code': true}),
-  (Isolate i) => checkTimeline(i, {'tags': 'VMOnly', 'code': false}),
-  (Isolate i) => checkTimeline(i, {'tags': 'None'}),
-  (Isolate i) => checkTimeline(i, {'tags': 'None', 'code': true}),
-  (Isolate i) => checkTimeline(i, {'tags': 'None', 'code': false}),
+var tests = <VMTest>[
+  (VM vm) => checkTimeline(vm),
 ];
 
 var vmArgs = [
   '--profiler=true',
-  '--profile-vm=false', // So this also works with DBC and KBC.
-  '--timeline_recorder=ring',
-  '--timeline_streams=Profiler'
+  '--profile-vm=false', // So this also works with KBC.
 ];
 
 main(args) async =>
-    runIsolateTests(args, tests, testeeBefore: testeeDo, extraArgs: vmArgs);
+    runVMTests(args, tests, testeeBefore: testeeDo, extraArgs: vmArgs);

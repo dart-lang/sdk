@@ -2,28 +2,14 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == compare_analyzer_cfe ]
-const_native_factory_test: Fail # Issue 29763
-deferred_global_test: Fail # Issue 34503
-generic_field_mixin2_test: Fail # Issue 34489
-generic_local_functions_test: Fail # Issue 28515
-generic_methods_generic_function_parameter_test: Fail # Issue 28515
-issue34488_test/01: Fail # Issue 34488
-issue34488_test/02: Fail # Issue 34488
-issue34488_test/03: Fail # Issue 34488
-issue34488_test/04: Fail # Issue 34488
-issue34488_test/05: Fail # Issue 34488
-issue34488_test/06: Fail # Issue 34488
-issue34488_test/none: Fail # Issue 34488
-mixin_class_from_core_library_test: Fail # Issue 34488
-nested_generic_closure_test: Fail # Issue 28515
-
 [ $compiler != dart2analyzer ]
-switch_case_warn_test: Skip # Analyzer only, see language_analyzer2.status
+switch/case_warn_test: Skip # Analyzer only, see language_analyzer2.status
+
+[ $compiler != fasta ]
+nonfunction_type_aliases/*: Skip # github.com/dart-lang/language/issues/115
 
 [ $compiler == none ]
 invalid_returns/*: Skip # https://github.com/dart-lang/sdk/issues/34013
-library_env_test/has_no_mirror_support: RuntimeError, OK
 void/*: Skip # https://github.com/dart-lang/sdk/issues/34013
 
 [ $compiler == spec_parser ]
@@ -33,109 +19,30 @@ mixin_declaration/*: Skip # See https://github.com/dart-lang/language/issues/7
 void/*: Skip # https://github.com/dart-lang/sdk/issues/34015
 
 [ $mode == debug ]
-large_class_declaration_test: Slow, Pass
+class/large_class_declaration_test: Slow, Pass
 
 [ $mode == product ]
-assertion_test: SkipByDesign # Requires checked mode.
-generic_test: SkipByDesign # Requires checked mode.
-issue13474_test: SkipByDesign # Requires checked mode.
-map_literal4_test: SkipByDesign # Requires checked mode.
-named_parameters_type_test/01: SkipByDesign # Requires checked mode.
-named_parameters_type_test/02: SkipByDesign # Requires checked mode.
-named_parameters_type_test/03: SkipByDesign # Requires checked mode.
-positional_parameters_type_test/01: SkipByDesign # Requires checked mode.
-positional_parameters_type_test/02: SkipByDesign # Requires checked mode.
-regress_29784_test/02: SkipByDesign # Requires checked mode.
-stacktrace_demangle_ctors_test: SkipByDesign # Names are not scrubbed.
-type_checks_in_factory_method_test: SkipByDesign # Requires checked mode.
-
-[ $runtime == vm ]
-spread_collections/const_error_test/05: Crash
-spread_collections/const_error_test/06: Crash
-spread_collections/const_error_test/07: Crash
-spread_collections/const_error_test/08: Crash
-
-[ $fasta ]
-partial_instantiation_static_bounds_check_test/01: MissingCompileTimeError # Issue 34327
-partial_instantiation_static_bounds_check_test/02: MissingCompileTimeError # Issue 34327
-partial_instantiation_static_bounds_check_test/03: MissingCompileTimeError # Issue 34327
-
-[ $compiler != compare_analyzer_cfe && $compiler != dart2js && $compiler != spec_parser && !$fasta ]
-compile_time_constant_static5_test/11: CompileTimeError # Issue 30546
-compile_time_constant_static5_test/16: CompileTimeError # Issue 30546
-compile_time_constant_static5_test/21: CompileTimeError # Issue 30546
-compile_time_constant_static5_test/23: CompileTimeError # Issue 30546
-type_promotion_more_specific_test/04: CompileTimeError # Issue 30906.
-
-[ $compiler != compare_analyzer_cfe && $compiler != spec_parser ]
-mixin_constructor_forwarding/const_constructor_test/none: CompileTimeError # Issue 32223
-mixin_constructor_forwarding/const_constructor_with_field_test/none: CompileTimeError # Issue 32223
-mixin_constructor_forwarding/optional_named_parameters_test/none: CompileTimeError # Issue 31543
-mixin_constructor_forwarding/optional_positional_parameters_test/none: CompileTimeError # Issue 31543
-
-# Detection of compile-time errors that are related to constants can't be fully
-# done at the front end, because constants are evaluated at back ends.  So, some
-# errors aren't detected by fasta, but reported by back ends as compile-time
-# errors.
-[ $compiler != dart2analyzer && $compiler != dart2js && $runtime != dart_precompiled && $runtime != vm && $fasta ]
-implicit_creation/implicit_const_not_default_values_test/e12: MissingCompileTimeError
-implicit_creation/implicit_const_not_default_values_test/e15: MissingCompileTimeError
-implicit_creation/implicit_const_not_default_values_test/e18: MissingCompileTimeError
-implicit_creation/implicit_const_not_default_values_test/e21: MissingCompileTimeError
-implicit_creation/implicit_const_not_default_values_test/e24: MissingCompileTimeError
-implicit_creation/implicit_const_not_default_values_test/e27: MissingCompileTimeError
-implicit_creation/implicit_const_not_default_values_test/e3: MissingCompileTimeError
-implicit_creation/implicit_const_not_default_values_test/e30: MissingCompileTimeError
-implicit_creation/implicit_const_not_default_values_test/e6: MissingCompileTimeError
-implicit_creation/implicit_const_not_default_values_test/e9: MissingCompileTimeError
+assert/assert_test: SkipByDesign # Requires checked mode.
+generic/generic_test: SkipByDesign # Requires checked mode.
+map/literal4_test: SkipByDesign # Requires checked mode.
+parameter/named_type_test/01: SkipByDesign # Requires checked mode.
+parameter/named_type_test/02: SkipByDesign # Requires checked mode.
+parameter/named_type_test/03: SkipByDesign # Requires checked mode.
+parameter/positional_type_test/01: SkipByDesign # Requires checked mode.
+parameter/positional_type_test/02: SkipByDesign # Requires checked mode.
+regress/regress13474_test: SkipByDesign # Requires checked mode.
+regress/regress29784_test/02: SkipByDesign # Requires checked mode.
+stack_trace/demangle_ctors_test: SkipByDesign # Names are not scrubbed.
+type/checks_in_factory_method_test: SkipByDesign # Requires checked mode.
 
 [ $compiler != dart2js && $compiler != dartdevc && !$checked ]
 function_type/*: Skip # Needs checked mode.
 
 [ $compiler != dartk && $compiler != dartkb && $compiler != dartkp && $mode == debug && $runtime == vm ]
-built_in_identifier_type_annotation_test/set: Crash # Not supported by legacy VM front-end.
-
-[ !$preview_dart_2 && ($runtime == dart_precompiled || $runtime == vm) ]
-*: SkipByDesign # Deprecating all Dart1 modes of execution
+identifier/built_in_type_annotation_test/set: Crash # Not supported by legacy VM front-end.
 
 [ $hot_reload || $hot_reload_rollback ]
-cha_deopt1_test: Crash # Requires deferred libraries
-cha_deopt2_test: Crash # Requires deferred libraries
-cha_deopt3_test: Crash # Requires deferred libraries
-conditional_import_string_test: Crash # Requires deferred libraries
-conditional_import_test: Crash # Requires deferred libraries
-deferred_call_empty_before_load_test: Crash # Requires deferred libraries
-deferred_closurize_load_library_test: Crash # Requires deferred libraries
-deferred_constant_list_test: Crash # Requires deferred libraries
-deferred_constraints_constants_test: Crash # Requires deferred libraries
-deferred_constraints_type_annotation_test: Crash # Requires deferred libraries
-deferred_function_type_test: Crash # Requires deferred libraries
-deferred_global_test: Crash # Requires deferred libraries
-deferred_import_core_test: Crash # Requires deferred libraries
-deferred_inheritance_constraints_test: Crash # Requires deferred libraries
-deferred_inlined_test: Crash # Requires deferred libraries
-deferred_load_constants_test: Crash # Requires deferred libraries
-deferred_load_inval_code_test: Crash # Requires deferred libraries
-deferred_load_library_wrong_args_test: Crash # Requires deferred libraries
-deferred_mixin_test: Crash # Requires deferred libraries
-deferred_no_such_method_test: Crash # Requires deferred libraries
-deferred_not_loaded_check_test: Crash # Requires deferred libraries
-deferred_only_constant_test: Crash # Requires deferred libraries
-deferred_optimized_test: Crash # Requires deferred libraries
-deferred_redirecting_factory_test: Crash # Requires deferred libraries
-deferred_regression_22995_test: Crash # Requires deferred libraries
-deferred_regression_28678_test: Crash # Requires deferred libraries
-deferred_shadow_load_library_test: Crash # Requires deferred libraries
-deferred_shared_and_unshared_classes_test: Crash # Requires deferred libraries
-deferred_static_seperate_test: Crash # Requires deferred libraries
-deferred_super_dependency_test: Pass, Crash # Requires deferred libraries
-deferred_type_dependency_test: Crash # Requires deferred libraries
-issue_1751477_test: Crash # Requires deferred libraries
-issue_22780_test/01: Pass, Crash # Issue 29094
-regress_22443_test: Crash # Requires deferred libraries
-regress_23408_test: Crash # Requires deferred libraries
-regress_28278_test: Crash # Requires deferred libraries
-static_closure_identical_test: Pass, Fail # Closure identity
-symbol_conflict_test: Pass, Timeout
-vm/optimized_stacktrace_test: Pass, Slow
-vm/regress_27201_test: Pass, Crash # Requires deferred libraries
+regress/regress22780_test/01: Crash # Issue 29094
+regress/regress23244_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+vm/optimized_guarded_field_isolates_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+vm/optimized_stacktrace_test: Slow, Pass

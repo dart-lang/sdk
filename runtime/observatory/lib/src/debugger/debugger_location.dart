@@ -10,19 +10,23 @@ class DebuggerLocation {
   DebuggerLocation.error(this.errorMessage);
 
   static RegExp sourceLocMatcher = new RegExp(r'^([^\d:][^:]+:)?(\d+)(:\d+)?');
+  static RegExp packageLocMatcher =
+      new RegExp(r'^package:([^\d:][^:]+:)?(\d+)(:\d+)?');
   static RegExp functionMatcher = new RegExp(r'^([^.]+)([.][^.]+)?');
 
   /// Parses a source location description.
   ///
   /// Formats:
-  ///   ''                -  current position
-  ///   13                -  line 13, current script
-  ///   13:20             -  line 13, col 20, current script
-  ///   script.dart:13    -  line 13, script.dart
-  ///   script.dart:13:20 -  line 13, col 20, script.dart
-  ///   main              -  function
-  ///   FormatException   -  constructor
-  ///   _SHA1._updateHash -  method
+  ///   ''                     -  current position
+  ///   13                     -  line 13, current script
+  ///   13:20                  -  line 13, col 20, current script
+  ///   script.dart:13         -  line 13, script.dart
+  ///   script.dart:13:20      -  line 13, col 20, script.dart
+  ///   package:a/b.dart:13    -  line 13, "b.dart" in package "a".
+  ///   package:a/b.dart:13:20 -  line 13, col 20, "b.dart" in package "a".
+  ///   main                   -  function
+  ///   FormatException        -  constructor
+  ///   _SHA1._updateHash      -  method
   static Future<DebuggerLocation> parse(Debugger debugger, String locDesc) {
     if (locDesc == '') {
       // Special case: '' means return current location.
@@ -33,6 +37,10 @@ class DebuggerLocation {
     var match = sourceLocMatcher.firstMatch(locDesc);
     if (match != null) {
       return _parseScriptLine(debugger, match);
+    }
+    match = packageLocMatcher.firstMatch(locDesc);
+    if (match != null) {
+      return _parseScriptLine(debugger, match, package: true);
     }
     match = functionMatcher.firstMatch(locDesc);
     if (match != null) {
@@ -64,8 +72,12 @@ class DebuggerLocation {
   }
 
   static Future<DebuggerLocation> _parseScriptLine(
-      Debugger debugger, Match match) async {
+      Debugger debugger, Match match,
+      {bool package = false}) async {
     var scriptName = match.group(1);
+    if (package) {
+      scriptName = "package:$scriptName";
+    }
     if (scriptName != null) {
       scriptName = scriptName.substring(0, scriptName.length - 1);
     }
@@ -88,11 +100,15 @@ class DebuggerLocation {
 
     if (scriptName != null) {
       // Resolve the script.
-      var scripts = await _lookupScript(debugger.isolate, scriptName);
+      Set<Script> scripts = await _lookupScript(debugger.isolate, scriptName);
+      if (scripts.length == 0) {
+        scripts =
+            await _lookupScript(debugger.isolate, scriptName, useUri: true);
+      }
       if (scripts.length == 0) {
         return new DebuggerLocation.error("Script '${scriptName}' not found");
       } else if (scripts.length == 1) {
-        return new DebuggerLocation.file(scripts[0], line, col);
+        return new DebuggerLocation.file(scripts.single, line, col);
       } else {
         // TODO(turnidge): Allow the user to disambiguate.
         return new DebuggerLocation.error(
@@ -111,8 +127,8 @@ class DebuggerLocation {
     }
   }
 
-  static Future<List<Script>> _lookupScript(Isolate isolate, String name,
-      {bool allowPrefix: false}) {
+  static Future<Set<Script>> _lookupScript(Isolate isolate, String name,
+      {bool allowPrefix: false, bool useUri: false}) {
     var pending = <Future>[];
     for (var lib in isolate.libraries) {
       if (!lib.loaded) {
@@ -120,15 +136,16 @@ class DebuggerLocation {
       }
     }
     return Future.wait(pending).then((_) {
-      var matches = <Script>[];
+      var matches = <Script>{};
       for (var lib in isolate.libraries) {
         for (var script in lib.scripts) {
+          final String haystack = useUri ? script.uri : script.name;
           if (allowPrefix) {
-            if (script.name.startsWith(name)) {
+            if (haystack.startsWith(name)) {
               matches.add(script);
             }
           } else {
-            if (name == script.name) {
+            if (name == haystack) {
               matches.add(script);
             }
           }
@@ -388,7 +405,7 @@ class DebuggerLocation {
       if (scripts.isEmpty) {
         return [];
       }
-      var script = scripts[0];
+      var script = scripts.first;
       await script.load();
       if (!lineStrComplete) {
         // Complete the line.

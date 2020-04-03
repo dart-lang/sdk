@@ -73,7 +73,7 @@ class ErrorCodeValuesTest extends ParserTestCase {
     List<String> pathComponents = _analyzerRootComponents.toList()
       ..addAll(relativeComponents);
     String filePath = path.normalize(path.joinAll(pathComponents));
-    return parseCompilationUnit(new File(filePath).readAsStringSync());
+    return parseCompilationUnit(File(filePath).readAsStringSync());
   }
 
   test_errorCodeValues() {
@@ -81,12 +81,13 @@ class ErrorCodeValuesTest extends ParserTestCase {
     List<String> missingCodes = <String>[];
     List<List<String>> declaringPaths = [
       ['lib', 'src', 'analysis_options', 'error', 'option_codes.dart'],
+      ['lib', 'src', 'dart', 'error', 'ffi_code.dart'],
       ['lib', 'src', 'dart', 'error', 'hint_codes.dart'],
       ['lib', 'src', 'dart', 'error', 'lint_codes.dart'],
       ['lib', 'src', 'dart', 'error', 'todo_codes.dart'],
       ['lib', 'src', 'dart', 'error', 'syntactic_errors.dart'],
       ['lib', 'src', 'error', 'codes.dart'],
-      ['..', 'front_end', 'lib', 'src', 'scanner', 'errors.dart']
+      ['..', '_fe_analyzer_shared', 'lib', 'src', 'scanner', 'errors.dart']
     ];
     for (List<String> path in declaringPaths) {
       for (String declaredCode in getDeclaredCodes(path)) {

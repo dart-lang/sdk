@@ -105,6 +105,7 @@ DART_EXPORT bool Dart_InvokeVMServiceMethod(uint8_t* request_json,
                                             uint8_t** response_json,
                                             intptr_t* response_json_length,
                                             char** error) {
+#if !defined(PRODUCT)
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate == nullptr || !isolate->is_service_isolate());
   IsolateLeaveScope saver(isolate);
@@ -139,14 +140,18 @@ DART_EXPORT bool Dart_InvokeVMServiceMethod(uint8_t* request_json,
   auto port =
       ::Dart_NewNativePort("service-rpc", &Utils::HandleResponse, false);
   if (port == ILLEGAL_PORT) {
-    return Api::NewError("Was unable to create native port.");
+    if (error != nullptr) {
+      *error = strdup("Was unable to create native port.");
+    }
+    return false;
   }
 
   // Before sending the message we'll lock the monitor, which the receiver
   // will later on notify once the answer has been received.
   MonitorLocker monitor(vm_service_call_monitor);
 
-  if (ServiceIsolate::SendServiceRpc(request_json, request_json_length, port)) {
+  if (ServiceIsolate::SendServiceRpc(request_json, request_json_length, port,
+                                     error)) {
     // We posted successfully and expect the vm-service to send the reply, so
     // we will wait for it now.
     auto wait_result = monitor.Wait();
@@ -170,16 +175,14 @@ DART_EXPORT bool Dart_InvokeVMServiceMethod(uint8_t* request_json,
     // We couldn't post the message and will not receive any reply. Therefore we
     // clean up the port and return an error.
     Dart_CloseNativePort(port);
-
-    if (error != nullptr) {
-      if (ServiceIsolate::Port() == ILLEGAL_PORT) {
-        *error = strdup("No service isolate port was found.");
-      } else {
-        *error = strdup("Was unable to post message to service isolate.");
-      }
-    }
     return false;
   }
+#else   // !defined(PRODUCT)
+  if (error != nullptr) {
+    *error = strdup("VM Service is not supoorted in PRODUCT mode.");
+  }
+  return false;
+#endif  // !defined(PRODUCT)
 }
 
 // --- Verification tools ---
@@ -251,26 +254,29 @@ struct RunInSafepointAndRWCodeArgs {
 DART_EXPORT void* Dart_ExecuteInternalCommand(const char* command, void* arg) {
   if (!FLAG_enable_testing_pragmas) return nullptr;
 
-  if (!strcmp(command, "gc-on-next-allocation")) {
+  if (strcmp(command, "gc-on-nth-allocation") == 0) {
     TransitionNativeToVM _(Thread::Current());
-    Isolate::Current()->heap()->CollectOnNextAllocation();
+    intptr_t argument = reinterpret_cast<intptr_t>(arg);
+    ASSERT(argument > 0);
+    Isolate::Current()->heap()->CollectOnNthAllocation(argument);
     return nullptr;
 
-  } else if (!strcmp(command, "gc-now")) {
+  } else if (strcmp(command, "gc-now") == 0) {
+    ASSERT(arg == nullptr);  // Don't pass an argument to this command.
     TransitionNativeToVM _(Thread::Current());
     Isolate::Current()->heap()->CollectAllGarbage();
     return nullptr;
 
-  } else if (!strcmp(command, "is-mutator-in-native")) {
+  } else if (strcmp(command, "is-mutator-in-native") == 0) {
     Isolate* const isolate = reinterpret_cast<Isolate*>(arg);
-    if (isolate->mutator_thread()->execution_state() ==
+    if (isolate->mutator_thread()->execution_state_cross_thread_for_testing() ==
         Thread::kThreadInNative) {
       return arg;
     } else {
       return nullptr;
     }
 
-  } else if (!strcmp(command, "run-in-safepoint-and-rw-code")) {
+  } else if (strcmp(command, "run-in-safepoint-and-rw-code") == 0) {
     const RunInSafepointAndRWCodeArgs* const args =
         reinterpret_cast<RunInSafepointAndRWCodeArgs*>(arg);
     Thread::EnterIsolateAsHelper(args->isolate, Thread::TaskKind::kUnknownTask);

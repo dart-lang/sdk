@@ -3,12 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/assist.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertToIntLiteralTest);
   });
@@ -19,7 +20,7 @@ class ConvertToIntLiteralTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.CONVERT_TO_INT_LITERAL;
 
-  test_decimal() async {
+  Future<void> test_decimal() async {
     await resolveTestUnit('''
 const double myDouble = /*caret*/42.0;
 ''');
@@ -28,14 +29,23 @@ const double myDouble = 42;
 ''');
   }
 
-  test_notDouble() async {
+  Future<void> test_decimal_noAssistWithLint() async {
+    createAnalysisOptionsFile(lints: [LintNames.prefer_int_literals]);
+    verifyNoTestUnitErrors = false;
+    await resolveTestUnit('''
+const double myDouble = /*caret*/42.0;
+''');
+    await assertNoAssist();
+  }
+
+  Future<void> test_notDouble() async {
     await resolveTestUnit('''
 const double myDouble = /*caret*/42;
 ''');
     await assertNoAssist();
   }
 
-  test_scientific() async {
+  Future<void> test_scientific() async {
     await resolveTestUnit('''
 const double myDouble = /*caret*/4.2e1;
 ''');
@@ -44,7 +54,7 @@ const double myDouble = 42;
 ''');
   }
 
-  test_tooBig() async {
+  Future<void> test_tooBig() async {
     await resolveTestUnit('''
 const double myDouble = /*caret*/4.2e99999;
 ''');

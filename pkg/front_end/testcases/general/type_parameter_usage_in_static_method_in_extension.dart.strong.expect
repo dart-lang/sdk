@@ -1,0 +1,213 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:6:10: Error: Type variables can't be used in static members.
+//   static U foo1() { return null; }
+//          ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:7:15: Error: Type variables can't be used in static members.
+//   static List<U> foo1Prime() { return null; }
+//               ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:8:20: Error: Type variables can't be used in static members.
+//   static void foo2(U x) { return null; }
+//                    ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:9:30: Error: Type variables can't be used in static members.
+//   static void foo2Prime(List<U> x) { return null; }
+//                              ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:20:10: Error: Type variables can't be used in static members.
+//   static U Function() foo8() { return null; }
+//          ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:21:15: Error: Type variables can't be used in static members.
+//   static List<U> Function() foo8Prime() { return null; }
+//               ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:22:24: Error: Type variables can't be used in static members.
+//   static void Function(U) foo9() { return null; }
+//                        ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:23:29: Error: Type variables can't be used in static members.
+//   static void Function(List<U>) foo9Prime() { return null; }
+//                             ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:24:21: Error: Type variables can't be used in static members.
+//   static void foo10(U Function()) { return null; }
+//                     ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:25:31: Error: Type variables can't be used in static members.
+//   static void foo10Prime(List<U> Function()) { return null; }
+//                               ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:28:35: Error: Type variables can't be used in static members.
+//   static void foo12(void Function(U) b) { return null; }
+//                                   ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:29:45: Error: Type variables can't be used in static members.
+//   static void foo12Prime(void Function(List<U>) b) { return null; }
+//                                             ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:31:35: Error: Type variables can't be used in static members.
+//   static void foo13(void Function(U b)) { return null; }
+//                                   ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:33:45: Error: Type variables can't be used in static members.
+//   static void foo13Prime(void Function(List<U> b)) { return null; }
+//                                             ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:34:10: Error: Type variables can't be used in static members.
+//   static U foo14 = null;
+//          ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:35:15: Error: Type variables can't be used in static members.
+//   static List<U> foo14Prime = null;
+//               ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:36:10: Error: Type variables can't be used in static members.
+//   static U Function(U) foo15 = null;
+//          ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:36:21: Error: Type variables can't be used in static members.
+//   static U Function(U) foo15 = null;
+//                     ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:37:15: Error: Type variables can't be used in static members.
+//   static List<U> Function(List<U>) foo15Prime = null;
+//               ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:37:32: Error: Type variables can't be used in static members.
+//   static List<U> Function(List<U>) foo15Prime = null;
+//                                ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:11:5: Error: Type variables can't be used in static members.
+//     U foo4;
+//     ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:12:10: Error: Type variables can't be used in static members.
+//     List<U> foo4Prime;
+//          ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:13:15: Error: Type variables can't be used in static members.
+//     void foo5(U y) => print(y);
+//               ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:14:25: Error: Type variables can't be used in static members.
+//     void foo5Prime(List<U> y) => print(y);
+//                         ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:15:5: Error: Type variables can't be used in static members.
+//     U foo6() => null;
+//     ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:16:10: Error: Type variables can't be used in static members.
+//     List<U> foo6Prime() => null;
+//          ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:17:20: Error: Type variables can't be used in static members.
+//     void Function (U y) foo7 = (U y) => y;
+//                    ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:17:33: Error: Type variables can't be used in static members.
+//     void Function (U y) foo7 = (U y) => y;
+//                                 ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:18:25: Error: Type variables can't be used in static members.
+//     void Function (List<U> y) foo7Prime = (List<U> y) => y;
+//                         ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:18:49: Error: Type variables can't be used in static members.
+//     void Function (List<U> y) foo7Prime = (List<U> y) => y;
+//                                                 ^
+//
+import self as self;
+import "dart:core" as core;
+
+extension Foo<U extends core::Object* = dynamic> on core::List<dynamic>* {
+  static method foo1 = self::Foo|foo1;
+  static method foo1Prime = self::Foo|foo1Prime;
+  static method foo2 = self::Foo|foo2;
+  static method foo2Prime = self::Foo|foo2Prime;
+  static method foo3 = self::Foo|foo3;
+  static method foo8 = self::Foo|foo8;
+  static method foo8Prime = self::Foo|foo8Prime;
+  static method foo9 = self::Foo|foo9;
+  static method foo9Prime = self::Foo|foo9Prime;
+  static method foo10 = self::Foo|foo10;
+  static method foo10Prime = self::Foo|foo10Prime;
+  static method foo11 = self::Foo|foo11;
+  static method foo12 = self::Foo|foo12;
+  static method foo12Prime = self::Foo|foo12Prime;
+  static method foo13 = self::Foo|foo13;
+  static method foo13Prime = self::Foo|foo13Prime;
+  static field foo14 = self::Foo|foo14;
+  static field foo14Prime = self::Foo|foo14Prime;
+  static field foo15 = self::Foo|foo15;
+  static field foo15Prime = self::Foo|foo15Prime;
+}
+static field invalid-type Foo|foo14 = null;
+static field core::List<invalid-type>* Foo|foo14Prime = null;
+static field (invalid-type) →* invalid-type Foo|foo15 = null;
+static field (core::List<invalid-type>*) →* core::List<invalid-type>* Foo|foo15Prime = null;
+static method Foo|foo1() → invalid-type {
+  return null;
+}
+static method Foo|foo1Prime() → core::List<invalid-type>* {
+  return null;
+}
+static method Foo|foo2(invalid-type x) → void {
+  return null;
+}
+static method Foo|foo2Prime(core::List<invalid-type>* x) → void {
+  return null;
+}
+static method Foo|foo3() → void {
+  invalid-type foo4;
+  core::List<invalid-type>* foo4Prime;
+  function foo5(invalid-type y) → void
+    return core::print(y);
+  function foo5Prime(core::List<invalid-type>* y) → void
+    return core::print(y);
+  function foo6() → invalid-type
+    return null;
+  function foo6Prime() → core::List<invalid-type>*
+    return null;
+  (invalid-type) →* invalid-type foo7 = (invalid-type y) → invalid-type => y;
+  (core::List<invalid-type>*) →* void foo7Prime = (core::List<invalid-type>* y) → core::List<invalid-type>* => y;
+}
+static method Foo|foo8() → () →* invalid-type {
+  return null;
+}
+static method Foo|foo8Prime() → () →* core::List<invalid-type>* {
+  return null;
+}
+static method Foo|foo9() → (invalid-type) →* void {
+  return null;
+}
+static method Foo|foo9Prime() → (core::List<invalid-type>*) →* void {
+  return null;
+}
+static method Foo|foo10(() →* invalid-type Function) → void {
+  return null;
+}
+static method Foo|foo10Prime(() →* core::List<invalid-type>* Function) → void {
+  return null;
+}
+static method Foo|foo11((dynamic) →* void Function) → void {
+  return null;
+}
+static method Foo|foo12((invalid-type) →* void b) → void {
+  return null;
+}
+static method Foo|foo12Prime((core::List<invalid-type>*) →* void b) → void {
+  return null;
+}
+static method Foo|foo13((invalid-type) →* void Function) → void {
+  return null;
+}
+static method Foo|foo13Prime((core::List<invalid-type>*) →* void Function) → void {
+  return null;
+}
+static method main() → dynamic {}

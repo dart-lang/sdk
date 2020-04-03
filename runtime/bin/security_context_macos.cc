@@ -9,6 +9,7 @@
 
 #include "bin/security_context.h"
 
+#include <Availability.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include <Security/SecureTransport.h>
 #include <Security/Security.h>
@@ -183,9 +184,25 @@ static int CertificateVerificationCallback(X509_STORE_CTX* ctx, void* arg) {
     return ctx->verify_cb(0, ctx);
   }
 
-  // Perform the certificate verification.
   SecTrustResultType trust_result;
+
+  // Perform the certificate verification.
+#if ((defined(__MAC_OS_X_VERSION_MIN_REQUIRED) && defined(__MAC_10_14_0) &&    \
+      __MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_10_14_0) ||                     \
+     (defined(__IPHONE_OS_VERSION_MIN_REQUIRED) && defined(__IPHONE_12_0) &&   \
+      _IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_12_0))
+  // SecTrustEvaluateWithError available as of OSX 10.14 and iOS 12.
+  // The result is ignored as we get more information from the following call to
+  // SecTrustGetTrustResult which also happens to match the information we get from calling
+  // SecTrustEvaluate.
+  bool res = SecTrustEvaluateWithError(trust.get(), NULL);
+  USE(res);
+  status = SecTrustGetTrustResult(trust.get(), &trust_result);
+#else
+  // SecTrustEvaluate is deprecated as of OSX 10.15 and iOS 13.
   status = SecTrustEvaluate(trust.get(), &trust_result);
+#endif
+
   if (status != noErr) {
     return ctx->verify_cb(0, ctx);
   }

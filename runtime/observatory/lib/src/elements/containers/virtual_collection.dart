@@ -199,7 +199,7 @@ class VirtualCollectionElement extends CustomElement implements Renderable {
       int i = top - tail_length;
       for (final HtmlElement e in _buffer.children) {
         if (0 <= i && i < _items.length) {
-          e..style.display = null;
+          e.style.display = null;
           _update(e, _items[i], i);
         } else {
           e.style.display = 'hidden';

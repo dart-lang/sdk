@@ -9,8 +9,6 @@
 
 namespace dart {
 
-#if !defined(TARGET_ARCH_DBC)
-
 #define Reg(index) (static_cast<Register>(index))
 #define Fpu(index) (static_cast<FpuRegister>(index))
 
@@ -232,7 +230,5 @@ INSTRUCTION_TEST(FixedTemp,
   EXPECT_EQ(Fpu(4), out);
   EXPECT_EQ(Fpu(3), Fpu(temp));
 }
-
-#endif  // !defined(TARGET_ARCH_DBC)
 
 }  // namespace dart

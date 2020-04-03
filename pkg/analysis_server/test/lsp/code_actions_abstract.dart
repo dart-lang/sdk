@@ -102,7 +102,7 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
         // When the server sends the edit back, just keep a copy and say we
         // applied successfully (it'll be verified below).
         editParams = edit;
-        return new ApplyWorkspaceEditResponse(true, null);
+        return ApplyWorkspaceEditResponse(true, null);
       },
     );
     // Successful edits return an empty success() response.

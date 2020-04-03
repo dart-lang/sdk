@@ -41,11 +41,11 @@ static method g(self::C* c) → void {
   c.{self::C::f}("hello");
 }
 static method test(self::C* c, self::I* i) → void {
-  self::expectTypeError(() → core::Null* {
+  self::expectTypeError(() → core::Null? {
     i.{self::I::f}("hello");
   });
   self::expect(i.{self::I::f}(1), 2);
-  self::expectTypeError(() → core::Null* {
+  self::expectTypeError(() → core::Null? {
     c.{self::C::f}("hello");
   });
   self::expect(c.{self::C::f}(1), 2);

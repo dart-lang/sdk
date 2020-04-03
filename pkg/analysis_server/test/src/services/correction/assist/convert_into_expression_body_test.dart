@@ -3,12 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/assist.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertIntoExpressionBodyTest);
   });
@@ -19,14 +20,14 @@ class ConvertIntoExpressionBodyTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.CONVERT_INTO_EXPRESSION_BODY;
 
-  test_already() async {
+  Future<void> test_already() async {
     await resolveTestUnit('''
 fff() => 42;
 ''');
     await assertNoAssistAt('fff()');
   }
 
-  test_async() async {
+  Future<void> test_async() async {
     await resolveTestUnit('''
 class A {
   mmm() async {
@@ -41,7 +42,21 @@ class A {
 ''');
   }
 
-  test_closure() async {
+  Future<void> test_async_noAssistWithLint() async {
+    createAnalysisOptionsFile(
+        lints: [LintNames.prefer_expression_function_bodies]);
+    verifyNoTestUnitErrors = false;
+    await resolveTestUnit('''
+class A {
+  mmm() async {
+    return 42;
+  }
+}
+''');
+    await assertNoAssist();
+  }
+
+  Future<void> test_closure() async {
     await resolveTestUnit('''
 setup(x) {}
 main() {
@@ -58,7 +73,7 @@ main() {
 ''');
   }
 
-  test_closure_voidExpression() async {
+  Future<void> test_closure_voidExpression() async {
     await resolveTestUnit('''
 setup(x) {}
 main() {
@@ -75,22 +90,26 @@ main() {
 ''');
   }
 
-  test_constructor() async {
+  Future<void> test_constructor() async {
     await resolveTestUnit('''
 class A {
+  A.named();
+
   factory A() {
-    return null;
+    return A.named();
   }
 }
 ''');
     await assertHasAssistAt('A()', '''
 class A {
-  factory A() => null;
+  A.named();
+
+  factory A() => A.named();
 }
 ''');
   }
 
-  test_function_onBlock() async {
+  Future<void> test_function_onBlock() async {
     await resolveTestUnit('''
 fff() {
   return 42;
@@ -101,7 +120,7 @@ fff() => 42;
 ''');
   }
 
-  test_function_onName() async {
+  Future<void> test_function_onName() async {
     await resolveTestUnit('''
 fff() {
   return 42;
@@ -112,7 +131,7 @@ fff() => 42;
 ''');
   }
 
-  test_inExpression() async {
+  Future<void> test_inExpression() async {
     await resolveTestUnit('''
 main() {
   return 42;
@@ -121,7 +140,7 @@ main() {
     await assertNoAssistAt('42;');
   }
 
-  test_method_onBlock() async {
+  Future<void> test_method_onBlock() async {
     await resolveTestUnit('''
 class A {
   m() { // marker
@@ -136,7 +155,7 @@ class A {
 ''');
   }
 
-  test_moreThanOneStatement() async {
+  Future<void> test_moreThanOneStatement() async {
     await resolveTestUnit('''
 fff() {
   var v = 42;
@@ -146,14 +165,14 @@ fff() {
     await assertNoAssistAt('fff()');
   }
 
-  test_noEnclosingFunction() async {
+  Future<void> test_noEnclosingFunction() async {
     await resolveTestUnit('''
 var V = 42;
 ''');
     await assertNoAssistAt('V = ');
   }
 
-  test_noReturn() async {
+  Future<void> test_noReturn() async {
     await resolveTestUnit('''
 fff() {
   var v = 42;
@@ -162,7 +181,7 @@ fff() {
     await assertNoAssistAt('fff()');
   }
 
-  test_noReturnValue() async {
+  Future<void> test_noReturnValue() async {
     await resolveTestUnit('''
 fff() {
   return;
@@ -171,7 +190,7 @@ fff() {
     await assertNoAssistAt('fff()');
   }
 
-  test_topFunction_onReturnStatement() async {
+  Future<void> test_topFunction_onReturnStatement() async {
     await resolveTestUnit('''
 fff() {
   return 42;

@@ -76,7 +76,7 @@ static Dart_NativeFunction native_lookup(Dart_Handle name,
   int num_entries = sizeof(BuiltinEntries) / sizeof(struct NativeEntries);
   for (int i = 0; i < num_entries; i++) {
     struct NativeEntries* entry = &(BuiltinEntries[i]);
-    if (!strcmp(function_name, entry->name_) &&
+    if ((strcmp(function_name, entry->name_) == 0) &&
         (argument_count == entry->argument_count_)) {
       return reinterpret_cast<Dart_NativeFunction>(entry->function_);
     }

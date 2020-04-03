@@ -2,14 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'dart:io';
+import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/kernel/element_map_impl.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
-import 'package:front_end/src/testing/id_testing.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
@@ -24,9 +26,7 @@ main(List<String> args) {
     Directory dataDir = new Directory.fromUri(Platform.script
         .resolve('../../../../pkg/front_end/test/id_testing/data'));
     await checkTests(dataDir, new IdTestingDataComputer(),
-        args: args,
-        testedConfigs: [sharedConfig],
-        supportedMarkers: sharedMarkers);
+        args: args, testedConfigs: [sharedConfig]);
   });
 }
 
@@ -61,7 +61,7 @@ class IdTestingDataComputer extends DataComputer<String> {
     KernelToElementMapImpl elementMap = frontendStrategy.elementMap;
     ir.Library node = elementMap.getLibraryNode(library);
     new IdTestingDataExtractor(compiler.reporter, actualMap, elementMap)
-        .computeForLibrary(node, useFileUri: true);
+        .computeForLibrary(node);
   }
 
   @override

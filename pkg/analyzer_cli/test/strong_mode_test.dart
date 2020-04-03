@@ -10,7 +10,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_test.dart';
 
-main() {
+void main() {
   defineReflectiveTests(StrongModeTest);
 }
 
@@ -23,7 +23,7 @@ main() {
 /// full analysis context.
 @reflectiveTest
 class StrongModeTest extends BaseTest {
-  test_producesStricterErrors() async {
+  Future<void> test_producesStricterErrors() async {
     await drive('data/strong_example.dart');
 
     expect(exitCode, 3);

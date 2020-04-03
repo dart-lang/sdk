@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(EncapsulateFieldTest);
   });
@@ -19,7 +19,7 @@ class EncapsulateFieldTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.ENCAPSULATE_FIELD;
 
-  test_alreadyPrivate() async {
+  Future<void> test_alreadyPrivate() async {
     await resolveTestUnit('''
 class A {
   int _test = 42;
@@ -31,7 +31,7 @@ main(A a) {
     await assertNoAssistAt('_test =');
   }
 
-  test_documentation() async {
+  Future<void> test_documentation() async {
     await resolveTestUnit('''
 class A {
   /// AAA
@@ -58,7 +58,7 @@ class A {
 ''');
   }
 
-  test_final() async {
+  Future<void> test_final() async {
     await resolveTestUnit('''
 class A {
   final int test = 42;
@@ -67,7 +67,7 @@ class A {
     await assertNoAssistAt('test =');
   }
 
-  test_hasType() async {
+  Future<void> test_hasType() async {
     await resolveTestUnit('''
 class A {
   int test = 42;
@@ -94,7 +94,7 @@ main(A a) {
 ''');
   }
 
-  test_multipleFields() async {
+  Future<void> test_multipleFields() async {
     await resolveTestUnit('''
 class A {
   int aaa, bbb, ccc;
@@ -106,7 +106,7 @@ main(A a) {
     await assertNoAssistAt('bbb, ');
   }
 
-  test_notOnName() async {
+  Future<void> test_notOnName() async {
     await resolveTestUnit('''
 class A {
   int test = 1 + 2 + 3;
@@ -115,7 +115,7 @@ class A {
     await assertNoAssistAt('+ 2');
   }
 
-  test_noType() async {
+  Future<void> test_noType() async {
     await resolveTestUnit('''
 class A {
   var test = 42;
@@ -140,7 +140,7 @@ main(A a) {
 ''');
   }
 
-  test_parseError() async {
+  Future<void> test_parseError() async {
     verifyNoTestUnitErrors = false;
     await resolveTestUnit('''
 class A {
@@ -153,7 +153,7 @@ main(A a) {
     await assertNoAssistAt('; // marker');
   }
 
-  test_static() async {
+  Future<void> test_static() async {
     await resolveTestUnit('''
 class A {
   static int test = 42;

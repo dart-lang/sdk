@@ -1,0 +1,41 @@
+# Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+template("rust_library") {
+  manifest = rebase_path("Cargo.toml")
+  if (defined(invoker.manifest)) {
+    manifest = invoker.manifest
+  }
+
+  cmd = [
+    rebase_path("//buildtools/${current_os}-${current_cpu}/rust/bin/cargo"),
+    "build",
+    "--target-dir",
+    rebase_path(target_out_dir),
+    "--manifest-path",
+    manifest,
+  ]
+  output = "$target_out_dir/lib${invoker.lib_name}.a"
+  debug = defined(invoker.debug) && invoker.debug
+
+  if (!debug) {
+    cmd += [ "--release" ]
+  }
+
+  action(target_name) {
+    script = "//build/rust/run.py"
+    args = cmd
+    outputs = [ output ]
+    public_configs = [ ":${target_name}_config" ]
+  }
+
+  config("${target_name}_config") {
+    libs = [ "wasmer" ]
+    if (debug) {
+      lib_dirs = [ "$target_out_dir/debug" ]
+    } else {
+      lib_dirs = [ "$target_out_dir/release" ]
+    }
+  }
+}

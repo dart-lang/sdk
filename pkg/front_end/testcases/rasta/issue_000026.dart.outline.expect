@@ -4,15 +4,15 @@ import "dart:core" as core;
 
 class C extends core::Object {
   field dynamic a;
-  field dynamic b;
-  field dynamic c;
+  field core::int* b;
+  field core::int* c;
   synthetic constructor •() → self::C*
     ;
 }
 class D extends core::Object {
   field dynamic a;
-  field dynamic b;
-  field dynamic c;
+  field core::int* b;
+  field core::int* c;
   constructor •() → self::D*
     ;
 }

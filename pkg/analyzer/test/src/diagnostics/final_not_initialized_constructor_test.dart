@@ -50,4 +50,36 @@ class A {
       error(StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS, 57, 1),
     ]);
   }
+
+  Future<void> test_redirecting_error() async {
+    await assertErrorsInCode('''
+class A {
+  final int x;
+  A() : this._();
+  A._();
+}
+''', [
+      error(StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1, 45, 1),
+    ]);
+  }
+
+  Future<void> test_redirecting_no_error() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int x;
+  A() : this._();
+  A._() : x = 0;
+}
+''');
+  }
+
+  Future<void> test_two_constructors_no_errors() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int x;
+  A.zero() : x = 0;
+  A.one() : x = 1;
+}
+''');
+  }
 }

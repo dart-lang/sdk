@@ -31,11 +31,8 @@ Bytecode {
   PushNull
   StoreFieldTOS        CP#9
   Push                 r3
-  PushConstant         CP#11
-  StoreFieldTOS        CP#12
-  Push                 r3
   PushConstant         CP#0
-  StoreFieldTOS        CP#14
+  StoreFieldTOS        CP#11
   Push                 r3
   Push                 r0
   StoreFieldTOS        CP#1
@@ -44,7 +41,7 @@ Bytecode {
   StoreLocal           r3
   PushInt              3
   Push                 r3
-  UncheckedClosureCall CP#16, 2
+  UncheckedClosureCall CP#13, 2
   Drop1
   Push                 r0
   LoadContextVar       0, 0
@@ -62,20 +59,18 @@ ConstantPool {
   [8] = Reserved
   [9] = InstanceField dart:core::_Closure::_function_type_arguments (field)
   [10] = Reserved
-  [11] = EmptyTypeArguments
-  [12] = InstanceField dart:core::_Closure::_delayed_type_arguments (field)
-  [13] = Reserved
-  [14] = InstanceField dart:core::_Closure::_function (field)
-  [15] = Reserved
-  [16] = ObjectRef ArgDesc num-args 2, num-type-args 0, names []
+  [11] = InstanceField dart:core::_Closure::_function (field)
+  [12] = Reserved
+  [13] = ObjectRef ArgDesc num-args 2, num-type-args 0, names []
 }
 Closure #lib::simpleClosure::'<anonymous closure>' (dart:core::int y) -> dart:core::Null
 ClosureCode {
   EntryFixed           2, 3
-  CheckStack           0
   Push                 FP[-6]
   LoadFieldTOS         CP#1
   PopLocal             r0
+  CheckFunctionTypeArgs 0, r1
+  CheckStack           0
   JumpIfUnchecked      L1
   Push                 FP[-5]
   PushConstant         CP#3
@@ -103,8 +98,8 @@ Function 'callWithArgs', static, reflectable, debuggable
 
 Bytecode {
   Entry                2
-  CheckStack           0
   CheckFunctionTypeArgs 8, r0
+  CheckStack           0
   PushConstant         CP#0
   StoreLocal           r1
   Push                 r1
@@ -318,7 +313,6 @@ ConstantPool {
 Closure #lib::testPartialInstantiation::'foo' <dart:core::Object T> (#lib::testPartialInstantiation::Closure/0::TypeParam/0 t) -> void
 ClosureCode {
   EntryFixed           2, 3
-  CheckStack           0
   Push                 FP[-6]
   LoadFieldTOS         CP#1
   PopLocal             r1
@@ -332,6 +326,7 @@ ClosureCode {
 L1:
   CheckFunctionTypeArgs 1, r0
 L2:
+  CheckStack           0
   Push                 r0
   Push                 FP[-6]
   LoadFieldTOS         CP#6
@@ -573,8 +568,8 @@ Function 'foo', reflectable, debuggable
 
 Bytecode {
   Entry                5
-  CheckStack           0
   CheckFunctionTypeArgs 2, r0
+  CheckStack           0
   AllocateContext      0, 1
   PopLocal             r1
   Push                 r1
@@ -661,7 +656,6 @@ ConstantPool {
 Closure #lib::A::foo::'nested1' <dart:core::Object T5, dart:core::Object T6> () -> void
 ClosureCode {
   EntryFixed           1, 5
-  CheckStack           0
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r1
@@ -675,6 +669,7 @@ ClosureCode {
 L1:
   CheckFunctionTypeArgs 2, r0
 L2:
+  CheckStack           0
   Push                 r0
   Push                 FP[-5]
   LoadFieldTOS         CP#6
@@ -721,7 +716,6 @@ L2:
 Closure #lib::A::foo::Closure/0::'nested2' <dart:core::Object T7, dart:core::Object T8> () -> void
 ClosureCode {
   EntryFixed           1, 5
-  CheckStack           0
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r1
@@ -735,6 +729,7 @@ ClosureCode {
 L1:
   CheckFunctionTypeArgs 2, r0
 L2:
+  CheckStack           0
   Push                 r0
   Push                 FP[-5]
   LoadFieldTOS         CP#6
@@ -752,9 +747,6 @@ L2:
   Push                 r4
   Push                 r0
   StoreFieldTOS        CP#6
-  Push                 r4
-  PushConstant         CP#5
-  StoreFieldTOS        CP#3
   Push                 r4
   PushConstant         CP#11
   StoreFieldTOS        CP#32
@@ -774,10 +766,11 @@ L2:
 Closure #lib::A::foo::Closure/1::'<anonymous closure>' () -> dart:core::Null
 ClosureCode {
   EntryFixed           1, 4
-  CheckStack           0
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r1
+  CheckFunctionTypeArgs 0, r2
+  CheckStack           0
   Push                 FP[-5]
   LoadFieldTOS         CP#6
   PopLocal             r0
@@ -856,7 +849,7 @@ ClosureCode {
 Class 'B', script = '#lib'
     extends dart:core::Object
 
-Field 'foo', type = dart:core::int, getter = 'get:foo', setter = 'set:foo', reflectable
+Field 'foo', type = dart:core::int, getter = 'get:foo', setter = 'set:foo', reflectable, has-initializer
     value = null
 
 Function '', constructor, reflectable
@@ -908,11 +901,8 @@ Bytecode {
   PushNull
   StoreFieldTOS        CP#12
   Push                 r4
-  PushConstant         CP#14
-  StoreFieldTOS        CP#15
-  Push                 r4
   PushConstant         CP#0
-  StoreFieldTOS        CP#17
+  StoreFieldTOS        CP#14
   Push                 r4
   Push                 r0
   StoreFieldTOS        CP#1
@@ -921,29 +911,29 @@ Bytecode {
   StoreLocal           r4
   PushInt              10
   Push                 r4
-  UncheckedClosureCall CP#23, 2
+  UncheckedClosureCall CP#20, 2
   Drop1
   Push                 r3
   StoreLocal           r4
   PushInt              11
   Push                 r4
-  UncheckedClosureCall CP#23, 2
+  UncheckedClosureCall CP#20, 2
   Drop1
   Push                 r2
-  DirectCall           CP#20, 1
+  DirectCall           CP#17, 1
   Drop1
   Push                 r0
   LoadContextVar       0, 2
-  DirectCall           CP#20, 1
+  DirectCall           CP#17, 1
   Drop1
   Push                 r0
   LoadContextVar       0, 1
-  DirectCall           CP#20, 1
+  DirectCall           CP#17, 1
   Drop1
   Push                 r0
   PushInt              42
   StoreContextVar      0, 3
-  AllocateClosure      CP#24
+  AllocateClosure      CP#21
   StoreLocal           r3
   Push                 r3
   PushNull
@@ -952,11 +942,8 @@ Bytecode {
   PushNull
   StoreFieldTOS        CP#12
   Push                 r3
-  PushConstant         CP#14
-  StoreFieldTOS        CP#15
-  Push                 r3
-  PushConstant         CP#24
-  StoreFieldTOS        CP#17
+  PushConstant         CP#21
+  StoreFieldTOS        CP#14
   Push                 r3
   Push                 r0
   StoreFieldTOS        CP#1
@@ -964,7 +951,7 @@ Bytecode {
   Push                 r2
   StoreLocal           r3
   Push                 r3
-  UncheckedClosureCall CP#19, 1
+  UncheckedClosureCall CP#16, 1
   Drop1
   PushNull
   ReturnTOS
@@ -984,28 +971,26 @@ ConstantPool {
   [11] = Reserved
   [12] = InstanceField dart:core::_Closure::_function_type_arguments (field)
   [13] = Reserved
-  [14] = EmptyTypeArguments
-  [15] = InstanceField dart:core::_Closure::_delayed_type_arguments (field)
-  [16] = Reserved
-  [17] = InstanceField dart:core::_Closure::_function (field)
+  [14] = InstanceField dart:core::_Closure::_function (field)
+  [15] = Reserved
+  [16] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
+  [17] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
   [18] = Reserved
-  [19] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
-  [20] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
-  [21] = Reserved
-  [22] = EndClosureFunctionScope
-  [23] = ObjectRef ArgDesc num-args 2, num-type-args 0, names []
-  [24] = ClosureFunction 2
-  [25] = InterfaceCall '#lib::B::set:foo', ArgDesc num-args 2, num-type-args 0, names []
-  [26] = Reserved
-  [27] = EndClosureFunctionScope
+  [19] = EndClosureFunctionScope
+  [20] = ObjectRef ArgDesc num-args 2, num-type-args 0, names []
+  [21] = ClosureFunction 2
+  [22] = InterfaceCall '#lib::B::set:foo', ArgDesc num-args 2, num-type-args 0, names []
+  [23] = Reserved
+  [24] = EndClosureFunctionScope
 }
 Closure #lib::B::topLevel::'<anonymous closure>' (dart:core::int y) -> dart:core::Null
 ClosureCode {
   EntryFixed           2, 4
-  CheckStack           0
   Push                 FP[-6]
   LoadFieldTOS         CP#1
   PopLocal             r0
+  CheckFunctionTypeArgs 0, r1
+  CheckStack           0
   AllocateContext      1, 2
   StoreLocal           r1
   Push                 r1
@@ -1049,11 +1034,8 @@ L1:
   PushNull
   StoreFieldTOS        CP#12
   Push                 r2
-  PushConstant         CP#14
-  StoreFieldTOS        CP#15
-  Push                 r2
   PushConstant         CP#6
-  StoreFieldTOS        CP#17
+  StoreFieldTOS        CP#14
   Push                 r2
   Push                 r0
   StoreFieldTOS        CP#1
@@ -1061,11 +1043,11 @@ L1:
   Push                 r3
   StoreLocal           r2
   Push                 r2
-  UncheckedClosureCall CP#19, 1
+  UncheckedClosureCall CP#16, 1
   Drop1
   Push                 r0
   LoadContextVar       1, 1
-  DirectCall           CP#20, 1
+  DirectCall           CP#17, 1
   Drop1
 L2:
   PushNull
@@ -1075,10 +1057,11 @@ L2:
 Closure #lib::B::topLevel::Closure/0::'closure2' () -> void
 ClosureCode {
   EntryFixed           1, 3
-  CheckStack           0
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r0
+  CheckFunctionTypeArgs 0, r1
+  CheckStack           0
   Push                 r0
   LoadContextParent
   Push                 r0
@@ -1103,15 +1086,16 @@ ClosureCode {
 Closure #lib::B::topLevel::'<anonymous closure>' () -> dart:core::Null
 ClosureCode {
   EntryFixed           1, 3
-  CheckStack           0
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r0
+  CheckFunctionTypeArgs 0, r1
+  CheckStack           0
   Push                 r0
   LoadContextVar       0, 0
   Push                 r0
   LoadContextVar       0, 3
-  InterfaceCall        CP#25, 2
+  InterfaceCall        CP#22, 2
   Drop1
   PushNull
   ReturnTOS
@@ -1186,18 +1170,15 @@ L2:
   PushNull
   StoreFieldTOS        CP#10
   Push                 r3
-  PushConstant         CP#12
-  StoreFieldTOS        CP#13
-  Push                 r3
   PushConstant         CP#4
-  StoreFieldTOS        CP#15
+  StoreFieldTOS        CP#12
   Push                 r3
   Push                 r0
   StoreFieldTOS        CP#5
-  InstantiatedInterfaceCall CP#17, 2
+  InstantiatedInterfaceCall CP#14, 2
   Drop1
   Push                 r4
-  AllocateClosure      CP#20
+  AllocateClosure      CP#17
   StoreLocal           r3
   Push                 r3
   PushNull
@@ -1206,15 +1187,12 @@ L2:
   PushNull
   StoreFieldTOS        CP#10
   Push                 r3
-  PushConstant         CP#12
-  StoreFieldTOS        CP#13
-  Push                 r3
-  PushConstant         CP#20
-  StoreFieldTOS        CP#15
+  PushConstant         CP#17
+  StoreFieldTOS        CP#12
   Push                 r3
   Push                 r0
   StoreFieldTOS        CP#5
-  InstantiatedInterfaceCall CP#17, 2
+  InstantiatedInterfaceCall CP#14, 2
   Drop1
   Push                 r0
   CloneContext         1, 1
@@ -1252,27 +1230,25 @@ ConstantPool {
   [9] = Reserved
   [10] = InstanceField dart:core::_Closure::_function_type_arguments (field)
   [11] = Reserved
-  [12] = EmptyTypeArguments
-  [13] = InstanceField dart:core::_Closure::_delayed_type_arguments (field)
-  [14] = Reserved
-  [15] = InstanceField dart:core::_Closure::_function (field)
+  [12] = InstanceField dart:core::_Closure::_function (field)
+  [13] = Reserved
+  [14] = InstantiatedInterfaceCall 'dart:core::List::add', ArgDesc num-args 2, num-type-args 0, names [], receiver dart:core::List < dart:core::Function >
+  [15] = Reserved
   [16] = Reserved
-  [17] = InstantiatedInterfaceCall 'dart:core::List::add', ArgDesc num-args 2, num-type-args 0, names [], receiver dart:core::List < dart:core::Function >
-  [18] = Reserved
-  [19] = Reserved
-  [20] = ClosureFunction 1
-  [21] = Type dart:core::int
-  [22] = ObjectRef 'ii'
-  [23] = SubtypeTestCache
-  [24] = EndClosureFunctionScope
+  [17] = ClosureFunction 1
+  [18] = Type dart:core::int
+  [19] = ObjectRef 'ii'
+  [20] = SubtypeTestCache
+  [21] = EndClosureFunctionScope
 }
 Closure #lib::C::testForLoop::'<anonymous closure>' () -> dart:core::int
 ClosureCode {
   EntryFixed           1, 2
-  CheckStack           0
   Push                 FP[-5]
   LoadFieldTOS         CP#5
   PopLocal             r0
+  CheckFunctionTypeArgs 0, r1
+  CheckStack           0
   Push                 r0
   LoadContextVar       1, 0
   Push                 r0
@@ -1285,17 +1261,18 @@ ClosureCode {
 Closure #lib::C::testForLoop::'<anonymous closure>' (dart:core::int ii) -> dart:core::Null
 ClosureCode {
   EntryFixed           2, 3
-  CheckStack           0
   Push                 FP[-6]
   LoadFieldTOS         CP#5
   PopLocal             r0
+  CheckFunctionTypeArgs 0, r1
+  CheckStack           0
   JumpIfUnchecked      L1
   Push                 FP[-5]
-  PushConstant         CP#21
+  PushConstant         CP#18
   PushNull
   PushNull
-  PushConstant         CP#22
-  AssertAssignable     1, CP#23
+  PushConstant         CP#19
+  AssertAssignable     1, CP#20
   Drop1
 L1:
   Push                 r0
@@ -1324,6 +1301,7 @@ L2:
   CheckStack           1
   Push                 r2
   InterfaceCall        CP#2, 1
+  AssertBoolean        0
   JumpIfFalse          L1
   AllocateContext      0, 1
   PopLocal             r0
@@ -1340,11 +1318,8 @@ L2:
   PushNull
   StoreFieldTOS        CP#12
   Push                 r4
-  PushConstant         CP#14
-  StoreFieldTOS        CP#15
-  Push                 r4
   PushConstant         CP#6
-  StoreFieldTOS        CP#17
+  StoreFieldTOS        CP#14
   Push                 r4
   Push                 r0
   StoreFieldTOS        CP#7
@@ -1352,11 +1327,11 @@ L2:
   Push                 r3
   StoreLocal           r4
   Push                 r4
-  UncheckedClosureCall CP#19, 1
+  UncheckedClosureCall CP#16, 1
   Drop1
   Push                 r0
   LoadContextVar       0, 0
-  DirectCall           CP#20, 1
+  DirectCall           CP#17, 1
   Drop1
   Push                 r0
   LoadContextParent
@@ -1381,22 +1356,20 @@ ConstantPool {
   [11] = Reserved
   [12] = InstanceField dart:core::_Closure::_function_type_arguments (field)
   [13] = Reserved
-  [14] = EmptyTypeArguments
-  [15] = InstanceField dart:core::_Closure::_delayed_type_arguments (field)
-  [16] = Reserved
-  [17] = InstanceField dart:core::_Closure::_function (field)
+  [14] = InstanceField dart:core::_Closure::_function (field)
+  [15] = Reserved
+  [16] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
+  [17] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
   [18] = Reserved
-  [19] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
-  [20] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
-  [21] = Reserved
 }
 Closure #lib::C::testForInLoop::'<anonymous closure>' () -> dart:core::Null
 ClosureCode {
   EntryFixed           1, 3
-  CheckStack           0
   Push                 FP[-5]
   LoadFieldTOS         CP#7
   PopLocal             r0
+  CheckFunctionTypeArgs 0, r1
+  CheckStack           0
   Push                 r0
   Push                 r0
   LoadContextVar       0, 0
@@ -1463,11 +1436,8 @@ L1:
   PushNull
   StoreFieldTOS        CP#10
   Push                 r2
-  PushConstant         CP#12
-  StoreFieldTOS        CP#13
-  Push                 r2
   PushConstant         CP#4
-  StoreFieldTOS        CP#15
+  StoreFieldTOS        CP#12
   Push                 r2
   Push                 r0
   StoreFieldTOS        CP#5
@@ -1487,19 +1457,17 @@ ConstantPool {
   [9] = Reserved
   [10] = InstanceField dart:core::_Closure::_function_type_arguments (field)
   [11] = Reserved
-  [12] = EmptyTypeArguments
-  [13] = InstanceField dart:core::_Closure::_delayed_type_arguments (field)
-  [14] = Reserved
-  [15] = InstanceField dart:core::_Closure::_function (field)
-  [16] = Reserved
+  [12] = InstanceField dart:core::_Closure::_function (field)
+  [13] = Reserved
 }
 Closure #lib::D::foo::'<anonymous closure>' () -> #lib::D::TypeParam/0
 ClosureCode {
   EntryFixed           1, 2
-  CheckStack           0
   Push                 FP[-5]
   LoadFieldTOS         CP#5
   PopLocal             r0
+  CheckFunctionTypeArgs 0, r1
+  CheckStack           0
   Push                 r0
   LoadContextVar       0, 0
   ReturnTOS
@@ -1528,11 +1496,8 @@ Bytecode {
   PushNull
   StoreFieldTOS        CP#8
   Push                 r2
-  PushConstant         CP#10
-  StoreFieldTOS        CP#11
-  Push                 r2
   PushConstant         CP#0
-  StoreFieldTOS        CP#13
+  StoreFieldTOS        CP#10
   Push                 r2
   Push                 r0
   StoreFieldTOS        CP#1
@@ -1549,21 +1514,19 @@ ConstantPool {
   [7] = Reserved
   [8] = InstanceField dart:core::_Closure::_function_type_arguments (field)
   [9] = Reserved
-  [10] = EmptyTypeArguments
-  [11] = InstanceField dart:core::_Closure::_delayed_type_arguments (field)
-  [12] = Reserved
-  [13] = InstanceField dart:core::_Closure::_function (field)
-  [14] = Reserved
-  [15] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
-  [16] = EndClosureFunctionScope
+  [10] = InstanceField dart:core::_Closure::_function (field)
+  [11] = Reserved
+  [12] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
+  [13] = EndClosureFunctionScope
 }
 Closure #lib::D::bar::'<anonymous closure>' () -> dart:core::Null
 ClosureCode {
   EntryFixed           1, 4
-  CheckStack           0
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r0
+  CheckFunctionTypeArgs 0, r1
+  CheckStack           0
   AllocateClosure      CP#3
   StoreLocal           r3
   Push                 r3
@@ -1575,11 +1538,8 @@ ClosureCode {
   PushNull
   StoreFieldTOS        CP#8
   Push                 r3
-  PushConstant         CP#10
-  StoreFieldTOS        CP#11
-  Push                 r3
   PushConstant         CP#3
-  StoreFieldTOS        CP#13
+  StoreFieldTOS        CP#10
   Push                 r3
   Push                 r0
   StoreFieldTOS        CP#1
@@ -1587,7 +1547,7 @@ ClosureCode {
   Push                 r2
   StoreLocal           r3
   Push                 r3
-  UncheckedClosureCall CP#15, 1
+  UncheckedClosureCall CP#12, 1
   Drop1
   PushNull
   ReturnTOS
@@ -1596,12 +1556,162 @@ ClosureCode {
 Closure #lib::D::bar::Closure/0::'inner' () -> dart:core::Null
 ClosureCode {
   EntryFixed           1, 2
-  CheckStack           0
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r0
+  CheckFunctionTypeArgs 0, r1
+  CheckStack           0
   PushNull
   ReturnTOS
+}
+
+Class 'E', script = '#lib', abstract
+    extends dart:core::Object
+
+Field 'foo1', type = FunctionType (dart:core::int, dart:core::int) -> dart:core::int, getter = 'get:foo1', setter = 'set:foo1', reflectable, has-initializer
+    value = null
+
+Function '', constructor, reflectable
+    parameters [] (required: 0)
+    return-type #lib::E
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  DirectCall           CP#0, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+Nullable fields: [#lib::E::foo1 (field)]
+ConstantPool {
+  [0] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+}
+
+
+Function 'get:foo2', getter, abstract, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type FunctionType <dart:core::Object T> (null::TypeParam/0, null::TypeParam/0) -> dart:core::int
+
+Function 'evalArg1', abstract, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dart:core::int
+
+Function 'evalArg2', abstract, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dart:core::int
+
+Function 'getE', abstract, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type #lib::E
+
+Function 'testCallThroughGetter1', reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dart:core::int
+
+Bytecode {
+  Entry                3
+  CheckStack           0
+  Push                 FP[-5]
+  InterfaceCall        CP#0, 1
+  PopLocal             r0
+  Push                 FP[-5]
+  InterfaceCall        CP#2, 1
+  PopLocal             r1
+  Push                 FP[-5]
+  InterfaceCall        CP#4, 1
+  StoreLocal           r2
+  Push                 r0
+  Push                 r1
+  Push                 r2
+  UncheckedClosureCall CP#6, 3
+  ReturnTOS
+}
+ConstantPool {
+  [0] = InterfaceCall '#lib::E::evalArg1', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+  [2] = InterfaceCall '#lib::E::evalArg2', ArgDesc num-args 1, num-type-args 0, names []
+  [3] = Reserved
+  [4] = InterfaceCall '#lib::E::get:foo1', ArgDesc num-args 1, num-type-args 0, names []
+  [5] = Reserved
+  [6] = ObjectRef ArgDesc num-args 3, num-type-args 0, names []
+}
+
+
+Function 'testCallThroughGetter2', reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dart:core::int
+
+Bytecode {
+  Entry                3
+  CheckStack           0
+  Push                 FP[-5]
+  InterfaceCall        CP#0, 1
+  PopLocal             r0
+  Push                 FP[-5]
+  InterfaceCall        CP#2, 1
+  PopLocal             r1
+  PushConstant         CP#4
+  Push                 FP[-5]
+  InterfaceCall        CP#5, 1
+  StoreLocal           r2
+  Push                 r0
+  Push                 r1
+  Push                 r2
+  UncheckedClosureCall CP#7, 4
+  ReturnTOS
+}
+ConstantPool {
+  [0] = InterfaceCall '#lib::E::evalArg1', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+  [2] = InterfaceCall '#lib::E::evalArg2', ArgDesc num-args 1, num-type-args 0, names []
+  [3] = Reserved
+  [4] = ObjectRef < dart:core::int >
+  [5] = InterfaceCall '#lib::E::get:foo2', ArgDesc num-args 1, num-type-args 0, names []
+  [6] = Reserved
+  [7] = ObjectRef ArgDesc num-args 3, num-type-args 1, names []
+}
+
+
+Function 'testCallThroughGetter3', reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dart:core::int
+
+Bytecode {
+  Entry                4
+  CheckStack           0
+  Push                 FP[-5]
+  InterfaceCall        CP#0, 1
+  PopLocal             r0
+  Push                 FP[-5]
+  InterfaceCall        CP#2, 1
+  PopLocal             r1
+  Push                 FP[-5]
+  InterfaceCall        CP#4, 1
+  PopLocal             r2
+  PushConstant         CP#6
+  Push                 r0
+  InterfaceCall        CP#7, 1
+  StoreLocal           r3
+  Push                 r1
+  Push                 r2
+  Push                 r3
+  UncheckedClosureCall CP#9, 4
+  ReturnTOS
+}
+ConstantPool {
+  [0] = InterfaceCall '#lib::E::getE', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+  [2] = InterfaceCall '#lib::E::evalArg1', ArgDesc num-args 1, num-type-args 0, names []
+  [3] = Reserved
+  [4] = InterfaceCall '#lib::E::evalArg2', ArgDesc num-args 1, num-type-args 0, names []
+  [5] = Reserved
+  [6] = ObjectRef < dart:core::int >
+  [7] = InterfaceCall '#lib::E::get:foo2', ArgDesc num-args 1, num-type-args 0, names []
+  [8] = Reserved
+  [9] = ObjectRef ArgDesc num-args 3, num-type-args 1, names []
 }
 
 
@@ -1656,17 +1766,17 @@ ClosureCode {
     method foo<T3 extends dart.core::Object* = dynamic, T4 extends dart.core::Object* = dynamic>() → void {
       function nested1<T5 extends dart.core::Object* = dynamic, T6 extends dart.core::Object* = dynamic>() → void {
         function nested2<T7 extends dart.core::Object* = dynamic, T8 extends dart.core::Object* = dynamic>() → void {
-          () →* dart.core::Null* nested3 = () → dart.core::Null* {
+          () →* dart.core::Null? nested3 = () → dart.core::Null? {
             dart.core::print(<dart.core::Type*>[#lib::A::T1*, #lib::A::T2*, #lib::A::foo::T3*, #lib::A::foo::T4*, T5*, T6*, T7*, T8*]);
             #lib::callWithArgs<#lib::A::T1*, #lib::A::T2*, #lib::A::foo::T3*, #lib::A::foo::T4*, T5*, T6*, T7*, T8*>();
           };
-          [@vm.call-site-attributes.metadata=receiverType:() →* dart.core::Null*] nested3.call();
+          [@vm.call-site-attributes.metadata=receiverType:FunctionType(Null? Function()*)] nested3.call();
         }
-        [@vm.call-site-attributes.metadata=receiverType:<T7 extends dart.core::Object* = dynamic, T8 extends dart.core::Object* = dynamic>() →* void] nested2.call<#lib::C7*, #lib::C8*>();
-        [@vm.call-site-attributes.metadata=receiverType:<T7 extends dart.core::Object* = dynamic, T8 extends dart.core::Object* = dynamic>() →* void] nested2.call<dart.core::List<#lib::C7*>*, dart.core::List<#lib::C8*>*>();
+        [@vm.call-site-attributes.metadata=receiverType:FunctionType(void Function<T7, T8>()*)] nested2.call<#lib::C7*, #lib::C8*>();
+        [@vm.call-site-attributes.metadata=receiverType:FunctionType(void Function<T7, T8>()*)] nested2.call<dart.core::List<#lib::C7*>*, dart.core::List<#lib::C8*>*>();
       }
-      [@vm.call-site-attributes.metadata=receiverType:<T5 extends dart.core::Object* = dynamic, T6 extends dart.core::Object* = dynamic>() →* void] nested1.call<#lib::C5*, #lib::C6*>();
-      [@vm.call-site-attributes.metadata=receiverType:<T5 extends dart.core::Object* = dynamic, T6 extends dart.core::Object* = dynamic>() →* void] nested1.call<dart.core::List<#lib::C5*>*, dart.core::List<#lib::C6*>*>();
+      [@vm.call-site-attributes.metadata=receiverType:FunctionType(void Function<T5, T6>()*)] nested1.call<#lib::C5*, #lib::C6*>();
+      [@vm.call-site-attributes.metadata=receiverType:FunctionType(void Function<T5, T6>()*)] nested1.call<dart.core::List<#lib::C5*>*, dart.core::List<#lib::C6*>*>();
     }
   }
   class B extends dart.core::Object {
@@ -1680,7 +1790,7 @@ ClosureCode {
         {
           dart.core::int* y = 2;
           dart.core::int* z = 3;
-          (dart.core::int*) →* dart.core::Null* closure1 = (dart.core::int* y) → dart.core::Null* {
+          (dart.core::int*) →* dart.core::Null? closure1 = (dart.core::int* y) → dart.core::Null? {
             x = y.{dart.core::num::+}(1);
             if(x.{dart.core::num::>}(5)) {
               dart.core::int* w = 4;
@@ -1688,12 +1798,12 @@ ClosureCode {
                 z = x.{dart.core::num::+}(2);
                 w = this.{#lib::B::foo}.{dart.core::num::+}(y);
               }
-              [@vm.call-site-attributes.metadata=receiverType:() →* void] closure2.call();
+              [@vm.call-site-attributes.metadata=receiverType:FunctionType(void Function()*)] closure2.call();
               dart.core::print(w);
             }
           };
-          [@vm.call-site-attributes.metadata=receiverType:(dart.core::int*) →* dart.core::Null*] closure1.call(10);
-          [@vm.call-site-attributes.metadata=receiverType:(dart.core::int*) →* dart.core::Null*] closure1.call(11);
+          [@vm.call-site-attributes.metadata=receiverType:FunctionType(Null? Function(int*)*)] closure1.call(10);
+          [@vm.call-site-attributes.metadata=receiverType:FunctionType(Null? Function(int*)*)] closure1.call(11);
           dart.core::print(y);
           dart.core::print(z);
         }
@@ -1701,10 +1811,10 @@ ClosureCode {
       }
       {
         dart.core::int* x = 42;
-        () →* dart.core::Null* closure3 = () → dart.core::Null* {
+        () →* dart.core::Null? closure3 = () → dart.core::Null? {
           this.{#lib::B::foo} = x;
         };
-        [@vm.call-site-attributes.metadata=receiverType:() →* dart.core::Null*] closure3.call();
+        [@vm.call-site-attributes.metadata=receiverType:FunctionType(Null? Function()*)] closure3.call();
       }
     }
   }
@@ -1717,19 +1827,25 @@ ClosureCode {
       dart.core::List<dart.core::Function*>* getI = <dart.core::Function*>[];
       dart.core::List<dart.core::Function*>* setI = <dart.core::Function*>[];
       for (dart.core::int* i = 0; i.{dart.core::num::<}(10); i = i.{dart.core::num::+}(1)) {
-        [@vm.call-site-attributes.metadata=receiverType:dart.core::List<dart.core::Function*>*] getI.{dart.core::List::add}(() → dart.core::int* => i.{dart.core::num::+}(delta));
-        [@vm.call-site-attributes.metadata=receiverType:dart.core::List<dart.core::Function*>*] setI.{dart.core::List::add}((dart.core::int* ii) → dart.core::Null* {
+        [@vm.call-site-attributes.metadata=receiverType:InterfaceType(List<Function*>*)] getI.{dart.core::List::add}(() → dart.core::int* => i.{dart.core::num::+}(delta));
+        [@vm.call-site-attributes.metadata=receiverType:InterfaceType(List<Function*>*)] setI.{dart.core::List::add}((dart.core::int* ii) → dart.core::Null? {
           i = ii.{dart.core::num::+}(delta);
         });
       }
     }
     method testForInLoop(dart.core::List<dart.core::int*>* list) → void {
-      for (dart.core::int* i in list) {
-        () →* dart.core::Null* inc = () → dart.core::Null* {
-          i = i.{dart.core::num::+}(1);
-        };
-        [@vm.call-site-attributes.metadata=receiverType:() →* dart.core::Null*] inc.call();
-        dart.core::print(i);
+      {
+        dart.core::Iterator<dart.core::int*>* :sync-for-iterator = dart._internal::unsafeCast<dart.core::Iterable<dart.core::int*>*>(list).{dart.core::Iterable::iterator};
+        for (; :sync-for-iterator.{dart.core::Iterator::moveNext}(); ) {
+          dart.core::int* i = :sync-for-iterator.{dart.core::Iterator::current};
+          {
+            () →* dart.core::Null? inc = () → dart.core::Null? {
+              i = i.{dart.core::num::+}(1);
+            };
+            [@vm.call-site-attributes.metadata=receiverType:FunctionType(Null? Function()*)] inc.call();
+            dart.core::print(i);
+          }
+        }
       }
     }
   }
@@ -1741,18 +1857,34 @@ ClosureCode {
       return () → #lib::D::T* => t;
     }
     method bar() → dynamic {
-      return () → dart.core::Null* {
-        function inner() → dart.core::Null* {}
-        [@vm.call-site-attributes.metadata=receiverType:() →* dart.core::Null*] inner.call();
+      return () → dart.core::Null? {
+        function inner() → dart.core::Null? {}
+        [@vm.call-site-attributes.metadata=receiverType:FunctionType(Null? Function()*)] inner.call();
       };
     }
   }
+  abstract class E extends dart.core::Object {
+    field (dart.core::int*, dart.core::int*) →* dart.core::int* foo1 = null;
+    synthetic constructor •() → #lib::E*
+      : super dart.core::Object::•()
+      ;
+    abstract get foo2() → <T extends dart.core::Object* = dynamic>(T*, T*) →* dart.core::int*;
+    abstract method evalArg1() → dart.core::int*;
+    abstract method evalArg2() → dart.core::int*;
+    abstract method getE() → #lib::E*;
+    method testCallThroughGetter1() → dart.core::int*
+      return let final dart.core::int* #t1 = this.{#lib::E::evalArg1}() in let final dart.core::int* #t2 = this.{#lib::E::evalArg2}() in [@vm.call-site-attributes.metadata=receiverType:FunctionType(int* Function(int*, int*)*)] this.{#lib::E::foo1}.call(#t1, #t2);
+    method testCallThroughGetter2() → dart.core::int*
+      return let final dart.core::int* #t3 = this.{#lib::E::evalArg1}() in let final dart.core::int* #t4 = this.{#lib::E::evalArg2}() in [@vm.call-site-attributes.metadata=receiverType:FunctionType(int* Function<T>(T*, T*)*)] this.{#lib::E::foo2}.call<dart.core::int*>(#t3, #t4);
+    method testCallThroughGetter3() → dart.core::int*
+      return let final #lib::E* #t5 = this.{#lib::E::getE}() in let final dart.core::int* #t6 = this.{#lib::E::evalArg1}() in let final dart.core::int* #t7 = this.{#lib::E::evalArg2}() in [@vm.call-site-attributes.metadata=receiverType:FunctionType(int* Function<T>(T*, T*)*)] #t5.{#lib::E::foo2}.call<dart.core::int*>(#t6, #t7);
+  }
   static method simpleClosure() → dart.core::int* {
     dart.core::int* x = 5;
-    (dart.core::int*) →* dart.core::Null* inc = (dart.core::int* y) → dart.core::Null* {
+    (dart.core::int*) →* dart.core::Null? inc = (dart.core::int* y) → dart.core::Null? {
       x = x.{dart.core::num::+}(y);
     };
-    [@vm.call-site-attributes.metadata=receiverType:(dart.core::int*) →* dart.core::Null*] inc.call(3);
+    [@vm.call-site-attributes.metadata=receiverType:FunctionType(Null? Function(int*)*)] inc.call(3);
     return x;
   }
   static method callWithArgs<T1 extends dart.core::Object* = dynamic, T2 extends dart.core::Object* = dynamic, T3 extends dart.core::Object* = dynamic, T4 extends dart.core::Object* = dynamic, T5 extends dart.core::Object* = dynamic, T6 extends dart.core::Object* = dynamic, T7 extends dart.core::Object* = dynamic, T8 extends dart.core::Object* = dynamic>() → void {

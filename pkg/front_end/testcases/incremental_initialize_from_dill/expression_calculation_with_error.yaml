@@ -20,6 +20,7 @@ worlds:
     expressionCompilation:
       uri: main.dart
       expression: foo()
+      errors: true
   - entry: main.dart
     expectInitializeFromDill: false
     worldType: updated

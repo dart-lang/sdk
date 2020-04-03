@@ -19,11 +19,11 @@ expectLocation(Mirror mirror, String uriSuffix, int line, int column) {
     methodMirror = mirror as MethodMirror;
   }
   Expect.isTrue(methodMirror is MethodMirror);
-  Uri uri = methodMirror.location.sourceUri;
-  Expect.isTrue(
-      uri.toString().endsWith(uriSuffix), "Expected suffix $uriSuffix in $uri");
-  Expect.equals(line, methodMirror.location.line, "line");
-  Expect.equals(column, methodMirror.location.column, "column");
+  final location = methodMirror.location;
+  final uri = location.sourceUri;
+  Expect.isTrue(uri.toString().endsWith(uriSuffix), "Expected suffix $uriSuffix in $uri");
+  Expect.equals(line, location.line, "line");
+  Expect.equals(column, location.column, "column");
 }
 
 class ClassInMainFile {

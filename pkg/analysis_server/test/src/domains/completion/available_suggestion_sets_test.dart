@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'available_suggestions_base.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AvailableSuggestionSetsTest);
   });
@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class AvailableSuggestionSetsTest extends AvailableSuggestionsBase {
-  test_notifications_whenFileChanges() async {
+  Future<void> test_notifications_whenFileChanges() async {
     var path = convertPath('/home/test/lib/a.dart');
     var uriStr = 'package:test/a.dart';
 
@@ -47,7 +47,7 @@ class B {}
     waitForSetWithUriRemoved(uriStr);
   }
 
-  test_suggestion_class() async {
+  Future<void> test_suggestion_class() async {
     var path = convertPath('/home/test/lib/a.dart');
     var uriStr = 'package:test/a.dart';
 
@@ -100,12 +100,16 @@ class A {
   },
   "parameterNames": [],
   "parameterTypes": [],
+  "relevanceTags": [
+    "package:test/a.dart::A",
+    "a"
+  ],
   "requiredParameterCount": 0
 }
 ''');
   }
 
-  test_suggestion_enum() async {
+  Future<void> test_suggestion_enum() async {
     var path = convertPath('/home/test/lib/a.dart');
     var uriStr = 'package:test/a.dart';
 
@@ -185,7 +189,7 @@ enum MyEnum {
 ''');
   }
 
-  test_suggestion_topLevelVariable() async {
+  Future<void> test_suggestion_topLevelVariable() async {
     var path = convertPath('/home/test/lib/a.dart');
     var uriStr = 'package:test/a.dart';
 

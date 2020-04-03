@@ -6,12 +6,12 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/constant.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
@@ -36,8 +36,8 @@ class ConstantFinderTest {
   Source _source;
 
   void setUp() {
-    _typeProvider = new TestTypeProvider();
-    _source = new TestSource();
+    _typeProvider = TestTypeProvider();
+    _source = TestSource();
   }
 
   /**
@@ -50,7 +50,7 @@ class ConstantFinderTest {
     ElementFactory.library(null, 'L').definingCompilationUnit =
         compilationUnitElement;
     ElementAnnotationImpl elementAnnotation =
-        new ElementAnnotationImpl(compilationUnitElement);
+        ElementAnnotationImpl(compilationUnitElement);
     _node = elementAnnotation.annotationAst =
         AstTestFactory.annotation(AstTestFactory.identifier3('x'))
           ..elementAnnotation = elementAnnotation;
@@ -76,7 +76,7 @@ class ConstantFinderTest {
     ElementFactory.library(null, 'L').definingCompilationUnit =
         compilationUnitElement;
     ElementAnnotationImpl elementAnnotation =
-        new ElementAnnotationImpl(compilationUnitElement);
+        ElementAnnotationImpl(compilationUnitElement);
     _node = elementAnnotation.annotationAst = AstTestFactory.annotation2(
         AstTestFactory.identifier3('A'), null, AstTestFactory.argumentList())
       ..elementAnnotation = elementAnnotation;
@@ -167,18 +167,18 @@ class ConstantFinderTest {
   }
 
   List<Annotation> _findAnnotations() {
-    Set<Annotation> annotations = new Set<Annotation>();
+    Set<Annotation> annotations = <Annotation>{};
     for (ConstantEvaluationTarget target in _findConstants()) {
       if (target is ElementAnnotationImpl) {
         expect(target.source, same(_source));
         annotations.add(target.annotationAst);
       }
     }
-    return new List<Annotation>.from(annotations);
+    return List<Annotation>.from(annotations);
   }
 
   List<ConstantEvaluationTarget> _findConstants() {
-    ConstantFinder finder = new ConstantFinder();
+    ConstantFinder finder = ConstantFinder();
     _node.accept(finder);
     List<ConstantEvaluationTarget> constants = finder.constantsToCompute;
     expect(constants, isNotNull);
@@ -206,9 +206,9 @@ class ConstantFinderTest {
 
   VariableDeclaration _setupFieldDeclaration(
       String className, String fieldName, Keyword keyword,
-      {bool isInitialized: true,
-      bool isStatic: false,
-      bool hasConstConstructor: false}) {
+      {bool isInitialized = true,
+      bool isStatic = false,
+      bool hasConstConstructor = false}) {
     VariableDeclaration variableDeclaration = isInitialized
         ? AstTestFactory.variableDeclaration2(
             fieldName, AstTestFactory.integer(0))
@@ -252,7 +252,7 @@ class ConstantFinderTest {
 
   VariableElement _setupVariableDeclaration(
       String name, bool isConst, bool isInitialized,
-      {isFinal: false}) {
+      {isFinal = false}) {
     VariableDeclaration variableDeclaration = isInitialized
         ? AstTestFactory.variableDeclaration2(name, AstTestFactory.integer(0))
         : AstTestFactory.variableDeclaration(name);
@@ -269,7 +269,7 @@ class ConstantFinderTest {
 @reflectiveTest
 class ReferenceFinderTest {
   Element _tail;
-  List<ConstantEvaluationTarget> _dependencies = [];
+  final List<ConstantEvaluationTarget> _dependencies = [];
 
   void test_visitSimpleIdentifier_const() {
     _visitNode(_makeTailVariable("v2", true));
@@ -304,13 +304,12 @@ class ReferenceFinderTest {
 
   SuperConstructorInvocation _makeTailSuperConstructorInvocation(
       String name, bool isConst) {
-    List<ConstructorInitializer> initializers =
-        new List<ConstructorInitializer>();
+    List<ConstructorInitializer> initializers = <ConstructorInitializer>[];
     ConstructorDeclaration constructorDeclaration =
         AstTestFactory.constructorDeclaration(AstTestFactory.identifier3(name),
             null, AstTestFactory.formalParameterList(), initializers);
     if (isConst) {
-      constructorDeclaration.constKeyword = new KeywordToken(Keyword.CONST, 0);
+      constructorDeclaration.constKeyword = KeywordToken(Keyword.CONST, 0);
     }
     ClassElementImpl classElement = ElementFactory.classElement2(name);
     SuperConstructorInvocation superConstructorInvocation =
@@ -337,7 +336,7 @@ class ReferenceFinderTest {
   }
 
   void _visitNode(AstNode node) {
-    var referenceFinder = new ReferenceFinder((dependency) {
+    var referenceFinder = ReferenceFinder((dependency) {
       _dependencies.add(dependency);
     });
     node.accept(referenceFinder);

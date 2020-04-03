@@ -12,7 +12,7 @@ import 'package:analyzer/src/summary/link.dart' as graph
 /// Ensure that the [FileState.libraryCycle] for the [file] and anything it
 /// depends on is computed.
 void computeLibraryCycle(Uint32List linkedSalt, FileState file) {
-  var libraryWalker = new _LibraryWalker(linkedSalt);
+  var libraryWalker = _LibraryWalker(linkedSalt);
   libraryWalker.walk(libraryWalker.getNode(file));
 }
 
@@ -22,7 +22,7 @@ class LibraryCycle {
   final List<FileState> libraries = [];
 
   /// The library cycles that this cycle references directly.
-  final Set<LibraryCycle> directDependencies = new Set<LibraryCycle>();
+  final Set<LibraryCycle> directDependencies = <LibraryCycle>{};
 
   /// The cycles that use this cycle, used to [invalidate] transitively.
   final List<LibraryCycle> _directUsers = [];
@@ -100,9 +100,9 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
 
   @override
   void evaluateScc(List<_LibraryNode> scc) {
-    var cycle = new LibraryCycle();
+    var cycle = LibraryCycle();
 
-    var signature = new ApiSignature();
+    var signature = ApiSignature();
     signature.addUint32List(_linkedSalt);
 
     // Sort libraries to produce stable signatures.
@@ -137,7 +137,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
 
     // Compute library specific signatures.
     for (var node in scc) {
-      var librarySignatureBuilder = new ApiSignature()
+      var librarySignatureBuilder = ApiSignature()
         ..addString(node.file.uriStr)
         ..addString(cycle.transitiveSignature);
       var librarySignature = librarySignatureBuilder.toHex();
@@ -150,7 +150,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
   }
 
   _LibraryNode getNode(FileState file) {
-    return nodesOfFiles.putIfAbsent(file, () => new _LibraryNode(this, file));
+    return nodesOfFiles.putIfAbsent(file, () => _LibraryNode(this, file));
   }
 
   void _appendDirectlyReferenced(

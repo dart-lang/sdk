@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
@@ -32,13 +34,15 @@ main(List<String> args) {
 class StaticTypeDataComputer extends DataComputer<String> {
   ir.TypeEnvironment _typeEnvironment;
 
-  ir.TypeEnvironment getTypeEnvironment(KernelToElementMapImpl elementMap) {
+  ir.StaticTypeContext getStaticTypeContext(
+      KernelToElementMapImpl elementMap, ir.Member node) {
     if (_typeEnvironment == null) {
       ir.Component component = elementMap.env.mainComponent;
+      ir.CoreTypes coreTypes = new ir.CoreTypes(component);
       _typeEnvironment = new ir.TypeEnvironment(
-          new ir.CoreTypes(component), new ir.ClassHierarchy(component));
+          coreTypes, new ir.ClassHierarchy(component, coreTypes));
     }
-    return _typeEnvironment;
+    return new ir.StaticTypeContext(node, _typeEnvironment);
   }
 
   /// Compute type inference data for [member] from kernel based inference.
@@ -56,9 +60,11 @@ class StaticTypeDataComputer extends DataComputer<String> {
             compiler.reporter,
             actualMap,
             new CachedStaticType(
-                getTypeEnvironment(elementMap),
+                getStaticTypeContext(elementMap, node),
                 staticTypeCache,
-                new ThisInterfaceType.from(node.enclosingClass?.thisType)))
+                new ThisInterfaceType.from(node.enclosingClass?.getThisType(
+                    _typeEnvironment.coreTypes,
+                    node.enclosingLibrary.nonNullable))))
         .run(node);
   }
 

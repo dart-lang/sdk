@@ -17,7 +17,7 @@ class C<U extends core::Object* = dynamic> extends self::B<asy::Future<self::C::
     ;
   operator []=(generic-covariant-impl core::Object* x, generic-covariant-impl core::Object* y) → void {}
   method h() → void {
-    super.{self::B::[]=}(self::f<dynamic>() as{TypeError} core::Map<core::int*, asy::Future<self::C::U*>*>*, self::f<core::List<asy::Future<self::C::U*>*>*>());
+    super.{self::B::[]=}(self::f<core::Map<core::int*, asy::Future<self::C::U*>*>*>(), self::f<core::List<asy::Future<self::C::U*>*>*>());
   }
 }
 static method f<T extends core::Object* = dynamic>() → self::f::T*

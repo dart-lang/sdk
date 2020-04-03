@@ -14,21 +14,19 @@ import 'driver.dart';
 import 'input_converter.dart';
 import 'operation.dart';
 
-/**
- * Launch and interact with the analysis server.
- */
-main(List<String> rawArgs) {
-  Logger logger = new Logger('Performance Measurement Client');
+/// Launch and interact with the analysis server.
+void main(List<String> rawArgs) {
+  var logger = Logger('Performance Measurement Client');
   logger.onRecord.listen((LogRecord rec) {
     print(rec.message);
   });
-  PerfArgs args = parseArgs(rawArgs);
+  var args = parseArgs(rawArgs);
 
-  Driver driver = new Driver(diagnosticPort: args.diagnosticPort);
-  Stream<Operation> stream = openInput(args);
+  var driver = Driver(diagnosticPort: args.diagnosticPort);
+  var stream = openInput(args);
   StreamSubscription<Operation> subscription;
   subscription = stream.listen((Operation op) {
-    Future future = driver.perform(op);
+    var future = driver.perform(op);
     if (future != null) {
       logger.log(Level.FINE, 'pausing operations for ${op.runtimeType}');
       subscription.pause(future.then((_) {
@@ -55,11 +53,9 @@ const HELP_CMDLINE_OPTION = 'help';
 const INPUT_CMDLINE_OPTION = 'input';
 const MAP_OPTION = 'map';
 
-/**
- * The amount of time to give the server to respond to a shutdown request
- * before forcibly terminating it.
- */
-const Duration SHUTDOWN_TIMEOUT = const Duration(seconds: 25);
+/// The amount of time to give the server to respond to a shutdown request
+/// before forcibly terminating it.
+const Duration SHUTDOWN_TIMEOUT = Duration(seconds: 25);
 
 const TMP_SRC_DIR_OPTION = 'tmpSrcDir';
 const VERBOSE_CMDLINE_OPTION = 'verbose';
@@ -68,7 +64,7 @@ const VERY_VERBOSE_CMDLINE_OPTION = 'vv';
 ArgParser _argParser;
 
 ArgParser get argParser {
-  _argParser = new ArgParser();
+  _argParser = ArgParser();
 
   _argParser.addOption(INPUT_CMDLINE_OPTION,
       abbr: 'i',
@@ -101,19 +97,17 @@ ArgParser get argParser {
   return _argParser;
 }
 
-/**
- * Open and return the input stream specifying how this client
- * should interact with the analysis server.
- */
+/// Open and return the input stream specifying how this client
+/// should interact with the analysis server.
 Stream<Operation> openInput(PerfArgs args) {
-  var logger = new Logger('openInput');
+  var logger = Logger('openInput');
   Stream<List<int>> inputRaw;
   if (args.inputPath == 'stdin') {
     inputRaw = stdin;
   } else {
-    inputRaw = new File(args.inputPath).openRead();
+    inputRaw = File(args.inputPath).openRead();
   }
-  for (PathMapEntry entry in args.srcPathMap.entries) {
+  for (var entry in args.srcPathMap.entries) {
     logger.log(
         Level.INFO,
         'mapping source path\n'
@@ -123,16 +117,14 @@ Stream<Operation> openInput(PerfArgs args) {
   return inputRaw
       .cast<List<int>>()
       .transform(systemEncoding.decoder)
-      .transform(new LineSplitter())
-      .transform(new InputConverter(args.tmpSrcDirPath, args.srcPathMap));
+      .transform(LineSplitter())
+      .transform(InputConverter(args.tmpSrcDirPath, args.srcPathMap));
 }
 
-/**
- * Parse the command line arguments.
- */
+/// Parse the command line arguments.
 PerfArgs parseArgs(List<String> rawArgs) {
   ArgResults args;
-  PerfArgs perfArgs = new PerfArgs();
+  var perfArgs = PerfArgs();
   try {
     args = argParser.parse(rawArgs);
   } on Exception catch (e) {
@@ -141,7 +133,7 @@ PerfArgs parseArgs(List<String> rawArgs) {
     exit(1);
   }
 
-  bool showHelp = args[HELP_CMDLINE_OPTION] || args.rest.isNotEmpty;
+  var showHelp = args[HELP_CMDLINE_OPTION] || args.rest.isNotEmpty;
 
   bool isMissing(key) => args[key] == null || args[key].isEmpty;
 
@@ -153,11 +145,11 @@ PerfArgs parseArgs(List<String> rawArgs) {
 
   for (String pair in args[MAP_OPTION]) {
     if (pair is String) {
-      int index = pair.indexOf(',');
-      if (index != -1 && pair.indexOf(',', index + 1) == -1) {
-        String oldSrcPrefix = _withTrailingSeparator(pair.substring(0, index));
-        String newSrcPrefix = _withTrailingSeparator(pair.substring(index + 1));
-        if (new Directory(newSrcPrefix).existsSync()) {
+      var index = pair.indexOf(',');
+      if (index != -1 && !pair.contains(',', index + 1)) {
+        var oldSrcPrefix = _withTrailingSeparator(pair.substring(0, index));
+        var newSrcPrefix = _withTrailingSeparator(pair.substring(index + 1));
+        if (Directory(newSrcPrefix).existsSync()) {
           perfArgs.srcPathMap.add(oldSrcPrefix, newSrcPrefix);
           continue;
         }
@@ -206,9 +198,7 @@ void printHelp() {
   print(argParser.usage);
 }
 
-/**
- * Ensure that the given path has a trailing separator
- */
+/// Ensure that the given path has a trailing separator
 String _withTrailingSeparator(String dirPath) {
   if (dirPath != null && dirPath.length > 4) {
     if (!dirPath.endsWith(path.separator)) {
@@ -218,31 +208,22 @@ String _withTrailingSeparator(String dirPath) {
   return dirPath;
 }
 
-/**
- * The performance measurement arguments specified on the command line.
- */
+/// The performance measurement arguments specified on the command line.
 class PerfArgs {
-  /**
-   * The file path of the instrumentation or log file
-   * used to drive performance measurement,
-   * or 'stdin' if this information should be read from standard input.
-   */
+  /// The file path of the instrumentation or log file
+  /// used to drive performance measurement,
+  /// or 'stdin' if this information should be read from standard input.
   String inputPath;
 
-  /**
-   * A mapping from the original source directory
-   * when the instrumentation or log file was generated
-   * to the target source directory used during performance testing.
-   */
-  final PathMap srcPathMap = new PathMap();
+  /// A mapping from the original source directory
+  /// when the instrumentation or log file was generated
+  /// to the target source directory used during performance testing.
+  final PathMap srcPathMap = PathMap();
 
-  /**
-   * The temporary directory containing source used during performance measurement.
-   */
+  /// The temporary directory containing source used during performance
+  /// measurement.
   String tmpSrcDirPath;
 
-  /**
-   * The diagnostic port for Analysis Server or `null` if none.
-   */
+  /// The diagnostic port for Analysis Server or `null` if none.
   int diagnosticPort;
 }

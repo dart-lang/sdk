@@ -25,8 +25,7 @@ class B extends Object with A {
   const B();
 }
 ''', [
-      error(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD, 56, 10),
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD, 62, 1),
       error(
           CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD, 62, 1),
     ]);
@@ -79,8 +78,7 @@ class X extends Object with M {
   const X();
 }
 ''', [
-      error(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD, 56, 10),
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD, 62, 1),
       error(
           CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD, 62, 1),
     ]);

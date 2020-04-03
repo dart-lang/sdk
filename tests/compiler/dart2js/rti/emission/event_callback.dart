@@ -2,15 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'dart:html';
 
 /*strong.class: global#Event:checkedInstance,checkedTypeArgument,checks=[$isEvent],instance,typeArgument*/
-
-/*strong.class: global#MouseEvent:checks=[$isMouseEvent],instance,typeArgument*/
-/*omit.class: global#MouseEvent:instance*/
-
-/*strong.class: global#KeyboardEvent:checks=[$isKeyboardEvent],instance,typeArgument*/
-/*omit.class: global#KeyboardEvent:instance*/
+/*omit.class: global#Event:checkedTypeArgument,checks=[$isEvent],instance,typeArgument*/
+/*class: global#MouseEvent:checks=[$isMouseEvent],instance,typeArgument*/
+/*class: global#KeyboardEvent:checks=[$isKeyboardEvent],instance,typeArgument*/
 
 void main() {
   print('InputElement');

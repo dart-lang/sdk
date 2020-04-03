@@ -15,7 +15,7 @@ import '../metadata/direct_call.dart';
 /// analysis. Assumes strong mode and closed world.
 Component transformComponent(CoreTypes coreTypes, Component component) {
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
-  ClosedWorldClassHierarchy hierarchy = new ClassHierarchy(component,
+  ClosedWorldClassHierarchy hierarchy = new ClassHierarchy(component, coreTypes,
       onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
   final hierarchySubtypes = hierarchy.computeSubtypesInformation();
   new CHADevirtualization(coreTypes, component, hierarchy, hierarchySubtypes)
@@ -65,6 +65,11 @@ abstract class Devirtualization extends RecursiveVisitor<Null> {
       }
     }
 
+    if (arguments.types.isNotEmpty &&
+        arguments.types.length != func.typeParameters.length) {
+      return false;
+    }
+
     return true;
   }
 
@@ -86,8 +91,7 @@ abstract class Devirtualization extends RecursiveVisitor<Null> {
   @override
   visitLibrary(Library node) {
     if (_trace) {
-      String external = node.isExternal ? " (external)" : "";
-      print("[devirt] Processing library ${node.name}${external}");
+      print("[devirt] Processing library ${node.name}");
     }
     super.visitLibrary(node);
   }

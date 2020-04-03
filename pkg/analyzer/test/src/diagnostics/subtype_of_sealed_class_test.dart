@@ -7,6 +7,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../generated/test_support.dart';
 import '../dart/resolution/driver_resolution.dart';
 
 main() {
@@ -29,8 +30,9 @@ import 'package:meta/meta.dart';
 import 'package:foo/foo.dart';
 class Bar extends Foo {}
 ''');
-    await _resolveTestFile('/pkg1/lib/lib1.dart');
-    assertTestErrorsWithCodes([HintCode.SUBTYPE_OF_SEALED_CLASS]);
+    await _resolveFile('/pkg1/lib/lib1.dart', [
+      error(HintCode.SUBTYPE_OF_SEALED_CLASS, 31, 24),
+    ]);
   }
 
   test_implementingSealedClass() async {
@@ -45,8 +47,9 @@ import 'package:meta/meta.dart';
 import 'package:foo/foo.dart';
 class Bar implements Foo {}
 ''');
-    await _resolveTestFile('/pkg1/lib/lib1.dart');
-    assertTestErrorsWithCodes([HintCode.SUBTYPE_OF_SEALED_CLASS]);
+    await _resolveFile('/pkg1/lib/lib1.dart', [
+      error(HintCode.SUBTYPE_OF_SEALED_CLASS, 31, 27),
+    ]);
   }
 
   test_mixinApplicationOfSealedClass() async {
@@ -62,8 +65,9 @@ import 'package:foo/foo.dart';
 class Bar1 {}
 class Bar2 = Bar1 with Foo;
 ''');
-    await _resolveTestFile('/pkg1/lib/lib1.dart');
-    assertTestErrorsWithCodes([HintCode.SUBTYPE_OF_SEALED_CLASS]);
+    await _resolveFile('/pkg1/lib/lib1.dart', [
+      error(HintCode.SUBTYPE_OF_SEALED_CLASS, 45, 27),
+    ]);
   }
 
   test_mixinApplicationOfSealedMixin() async {
@@ -79,8 +83,9 @@ import 'package:foo/foo.dart';
 class Bar1 {}
 class Bar2 = Bar1 with Foo;
 ''');
-    await _resolveTestFile('/pkg1/lib/lib1.dart');
-    assertTestErrorsWithCodes([HintCode.SUBTYPE_OF_SEALED_CLASS]);
+    await _resolveFile('/pkg1/lib/lib1.dart', [
+      error(HintCode.SUBTYPE_OF_SEALED_CLASS, 45, 27),
+    ]);
   }
 
   test_mixingInWithSealedMixin() async {
@@ -95,8 +100,9 @@ import 'package:meta/meta.dart';
 import 'package:foo/foo.dart';
 class Bar extends Object with Foo {}
 ''');
-    await _resolveTestFile('/pkg1/lib/lib1.dart');
-    assertTestErrorsWithCodes([HintCode.SUBTYPE_OF_SEALED_CLASS]);
+    await _resolveFile('/pkg1/lib/lib1.dart', [
+      error(HintCode.SUBTYPE_OF_SEALED_CLASS, 31, 36),
+    ]);
   }
 
   test_mixinImplementsSealedClass() async {
@@ -111,8 +117,9 @@ import 'package:meta/meta.dart';
 import 'package:foo/foo.dart';
 mixin Bar implements Foo {}
 ''');
-    await _resolveTestFile('/pkg1/lib/lib1.dart');
-    assertTestErrorsWithCodes([HintCode.SUBTYPE_OF_SEALED_CLASS]);
+    await _resolveFile('/pkg1/lib/lib1.dart', [
+      error(HintCode.SUBTYPE_OF_SEALED_CLASS, 31, 27),
+    ]);
   }
 
   test_withinLibrary_OK() async {
@@ -128,8 +135,7 @@ class Bar2 implements Foo {}
 class Bar4 = Bar1 with Foo;
 mixin Bar5 implements Foo {}
 ''');
-    await _resolveTestFile('/pkg1/lib/lib1.dart');
-    assertNoTestErrors();
+    await _resolveFile('/pkg1/lib/lib1.dart');
   }
 
   test_withinPackageLibDirectory_OK() async {
@@ -147,9 +153,8 @@ class Bar2 implements Foo {}
 class Bar4 = Bar1 with Foo;
 mixin Bar5 implements Foo {}
 ''');
-    await _resolveTestFile('/pkg1/lib/lib1.dart');
-    await _resolveTestFile('/pkg1/lib/src/lib2.dart');
-    assertNoTestErrors();
+    await _resolveFile('/pkg1/lib/lib1.dart');
+    await _resolveFile('/pkg1/lib/src/lib2.dart');
   }
 
   test_withinPackageTestDirectory_OK() async {
@@ -167,9 +172,8 @@ class Bar2 implements Foo {}
 class Bar4 = Bar1 with Foo;
 mixin Bar5 implements Foo {}
 ''');
-    await _resolveTestFile('/pkg1/lib/lib1.dart');
-    await _resolveTestFile('/pkg1/test/test.dart');
-    assertNoTestErrors();
+    await _resolveFile('/pkg1/lib/lib1.dart');
+    await _resolveFile('/pkg1/test/test.dart');
   }
 
   test_withinPart_OK() async {
@@ -188,8 +192,7 @@ class Bar2 implements Foo {}
 class Bar4 = Bar1 with Foo;
 mixin Bar5 implements Foo {}
 ''');
-    await _resolveTestFile('/pkg1/lib/lib1.dart');
-    assertNoTestErrors();
+    await _resolveFile('/pkg1/lib/lib1.dart');
   }
 
   /// Add a package named [name], and one library file, with content
@@ -205,10 +208,14 @@ mixin Bar5 implements Foo {}
     newFile('$root/pubspec.yaml');
   }
 
-  /// Resolve the test file at [path].
+  /// Resolve the file with the given [path].
   ///
   /// Similar to ResolutionTest.resolveTestFile, but a custom path is supported.
-  Future<void> _resolveTestFile(String path) async {
+  Future<void> _resolveFile(
+    String path, [
+    List<ExpectedError> expectedErrors = const [],
+  ]) async {
     result = await resolveFile(convertPath(path));
+    assertErrorsInResolvedUnit(result, expectedErrors);
   }
 }

@@ -9,11 +9,12 @@ import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 /// created.
 class TestingData {
   /// Map containing the results of flow analysis.
-  final Map<Uri, FlowAnalysisResult> uriToFlowAnalysisResult = {};
+  final Map<Uri, FlowAnalysisDataForTesting> uriToFlowAnalysisData = {};
 
   /// Called by the analysis driver after performing flow analysis, to record
   /// flow analysis results.
-  void recordFlowAnalysisResult(Uri uri, FlowAnalysisResult result) {
-    uriToFlowAnalysisResult[uri] = result;
+  void recordFlowAnalysisDataForTesting(
+      Uri uri, FlowAnalysisDataForTesting result) {
+    uriToFlowAnalysisData[uri] = result;
   }
 }

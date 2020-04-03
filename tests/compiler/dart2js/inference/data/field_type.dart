@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /*member: main:[null]*/
 main() {
   test1();
@@ -354,7 +356,7 @@ class A16 {
   // TODO(johnniwinther): Investigate why these include `null`. The ast version
   // didn't.
 
-  /*member: A16.f16:Union([exact=JSUInt31], [null|exact=JSString])*/
+  /*member: A16.f16:Union(null, [exact=JSString], [exact=JSUInt31])*/
   var f16;
 
   /*member: A16.:[exact=A16]*/
@@ -405,7 +407,7 @@ class A18 {
   /*member: A18.f18b:Value([exact=JSString], value: "1")*/
   var f18b;
 
-  /*member: A18.f18c:Union([exact=JSUInt31], [null|exact=A18])*/
+  /*member: A18.f18c:Union(null, [exact=A18], [exact=JSUInt31])*/
   var f18c;
 
   /*member: A18.:[exact=A18]*/
@@ -436,7 +438,7 @@ class A19 {
   /*member: A19.f19b:Value([exact=JSString], value: "1")*/
   var f19b;
 
-  /*member: A19.f19c:Union([exact=JSUInt31], [null|exact=A19])*/
+  /*member: A19.f19c:Union(null, [exact=A19], [exact=JSUInt31])*/
   var f19c;
 
   /*member: A19.:[exact=A19]*/
@@ -638,7 +640,7 @@ class A24 {
   /*member: A24.f24d:[exact=JSUInt31]*/
   final f24d;
 
-  /*member: A24.f24e:Union([exact=JSUInt31], [null|exact=JSDouble])*/
+  /*member: A24.f24e:Union(null, [exact=JSDouble], [exact=JSUInt31])*/
   var f24e;
 
 /*member: A24.f24f:Value([null|exact=JSString], value: "foo")*/

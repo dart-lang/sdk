@@ -44,21 +44,55 @@ RawFunction* GetFunction(const Library& lib, const char* name) {
   return func.raw();
 }
 
-void Invoke(const Library& lib, const char* name) {
+RawClass* GetClass(const Library& lib, const char* name) {
+  Thread* thread = Thread::Current();
+  const auto& cls = Class::Handle(
+      lib.LookupClassAllowPrivate(String::Handle(Symbols::New(thread, name))));
+  EXPECT(!cls.IsNull());
+  return cls.raw();
+}
+
+RawTypeParameter* GetClassTypeParameter(const Class& klass, const char* name) {
+  const auto& param = TypeParameter::Handle(
+      klass.LookupTypeParameter(String::Handle(String::New(name))));
+  EXPECT(!param.IsNull());
+  return param.raw();
+}
+
+RawTypeParameter* GetFunctionTypeParameter(const Function& fun,
+                                           const char* name) {
+  intptr_t fun_level = 0;
+  const auto& param = TypeParameter::Handle(
+      fun.LookupTypeParameter(String::Handle(String::New(name)), &fun_level));
+  EXPECT(!param.IsNull());
+  return param.raw();
+}
+
+RawObject* Invoke(const Library& lib, const char* name) {
   // These tests rely on running unoptimized code to collect type feedback. The
-  // interpreter does not collect type feedback for interface calls.
-  SetFlagScope<bool> sfs(&FLAG_enable_interpreter, false);
+  // interpreter does not collect type feedback for interface calls, so set
+  // compilation threshold to 0 in order to compile invoked function
+  // immediately and execute compiled code.
+  SetFlagScope<int> sfs(&FLAG_compilation_counter_threshold, 0);
 
   Thread* thread = Thread::Current();
   Dart_Handle api_lib = Api::NewHandle(thread, lib.raw());
-  TransitionVMToNative transition(thread);
-  Dart_Handle result =
-      Dart_Invoke(api_lib, NewString(name), /*argc=*/0, /*argv=*/nullptr);
-  EXPECT_VALID(result);
+  Dart_Handle result;
+  {
+    TransitionVMToNative transition(thread);
+    result =
+        Dart_Invoke(api_lib, NewString(name), /*argc=*/0, /*argv=*/nullptr);
+    EXPECT_VALID(result);
+  }
+  return Api::UnwrapHandle(result);
 }
 
 FlowGraph* TestPipeline::RunPasses(
     std::initializer_list<CompilerPass::Id> passes) {
+  // The table dispatch transformation needs a precompiler, which is not
+  // available in the test pipeline.
+  SetFlagScope<bool> sfs(&FLAG_use_table_dispatch, false);
+
   auto thread = Thread::Current();
   auto zone = thread->zone();
   const bool optimized = true;
@@ -114,9 +148,9 @@ FlowGraph* TestPipeline::RunPasses(
     }
 
     if (passes.size() > 0) {
-      CompilerPass::RunPipelineWithPasses(pass_state_, passes);
+      flow_graph_ = CompilerPass::RunPipelineWithPasses(pass_state_, passes);
     } else {
-      CompilerPass::RunPipeline(mode_, pass_state_);
+      flow_graph_ = CompilerPass::RunPipeline(mode_, pass_state_);
     }
   }
 
@@ -129,8 +163,7 @@ void TestPipeline::CompileGraphAndAttachFunction() {
 
   SpeculativeInliningPolicy speculative_policy(/*enable_blacklist=*/false);
 
-#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_IA32) ||                   \
-    defined(TARGET_ARCH_DBC)
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_IA32)
   const bool use_far_branches = false;
 #else
   const bool use_far_branches = true;

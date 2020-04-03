@@ -12,9 +12,9 @@ abstract class D<T> {
 }
 
 void test() {
-  var /*@type=C*/ x = new C();
-  var /*@type=D<int>*/ y = new /*@typeArgs=int*/ D(1);
-  D<List<int>> z = new /*@typeArgs=List<int>*/ D(/*@typeArgs=int*/ []);
+  var /*@type=dynamic*/ x = new C();
+  var /*@type=dynamic*/ y = new D(1);
+  D<List<int>> z = new D(/*@typeArgs=dynamic*/ []);
 }
 
 main() {}

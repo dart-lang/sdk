@@ -1,11 +1,12 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--complete_timeline
 
 import 'dart:developer';
+import 'dart:io';
+
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'test_helper.dart';
 
@@ -13,12 +14,14 @@ primeTimeline() {
   Timeline.startSync('apple');
   Timeline.instantSync('ISYNC', arguments: {'fruit': 'banana'});
   Timeline.finishSync();
-  TimelineTask task = new TimelineTask();
-  task.start('TASK1');
-  task.instant('ITASK');
-  task.finish();
+  TimelineTask parentTask = TimelineTask.withTaskId(42);
+  TimelineTask task = TimelineTask(parent: parentTask, filterKey: 'testFilter');
+  task.start('TASK1', arguments: {'task1-start-key': 'task1-start-value'});
+  task.instant('ITASK',
+      arguments: {'task1-instant-key': 'task1-instant-value'});
+  task.finish(arguments: {'task1-finish-key': 'task1-finish-value'});
 
-  Flow flow = Flow.begin();
+  Flow flow = Flow.begin(id: 123);
   Timeline.startSync('peach', flow: flow);
   Timeline.finishSync();
   Timeline.startSync('watermelon', flow: Flow.step(flow.id));
@@ -31,10 +34,23 @@ List filterForDartEvents(List events) {
   return events.where((event) => event['cat'] == 'Dart').toList();
 }
 
-bool eventsContains(List events, String phase, String name) {
+bool mapContains(Map map, Map submap) {
+  for (var key in submap.keys) {
+    if (map[key] != submap[key]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool eventsContains(List events, String phase, String name, [Map arguments]) {
   for (Map event in events) {
     if ((event['ph'] == phase) && (event['name'] == name)) {
-      return true;
+      if (arguments == null) {
+        return true;
+      } else if (mapContains(event['args'], arguments)) {
+        return true;
+      }
     }
   }
   return false;
@@ -94,7 +110,10 @@ void allEventsHaveIsolateNumber(List events) {
     }
     Map arguments = event['args'];
     expect(arguments, new isInstanceOf<Map>());
-    expect(arguments['isolateId'], new isInstanceOf<String>());
+    expect(arguments['isolateGroupId'], new isInstanceOf<String>());
+    if (event['cat'] != 'GC') {
+      expect(arguments['isolateId'], new isInstanceOf<String>());
+    }
   }
 }
 
@@ -105,18 +124,42 @@ var tests = <VMTest>[
     expect(result['traceEvents'], new isInstanceOf<List>());
     final int numEvents = result['traceEvents'].length;
     List dartEvents = filterForDartEvents(result['traceEvents']);
-    expect(dartEvents.length, equals(11));
+    expect(dartEvents.length, greaterThanOrEqualTo(11));
     allEventsHaveIsolateNumber(dartEvents);
     allEventsHaveIsolateNumber(result['traceEvents']);
-    expect(eventsContains(dartEvents, 'i', 'ISYNC'), isTrue);
-    expect(eventsContains(dartEvents, 'X', 'apple'), isTrue);
-    expect(eventsContains(dartEvents, 'b', 'TASK1'), isTrue);
-    expect(eventsContains(dartEvents, 'e', 'TASK1'), isTrue);
-    expect(eventsContains(dartEvents, 'n', 'ITASK'), isTrue);
+    expect(
+        eventsContains(dartEvents, 'i', 'ISYNC', {'fruit': 'banana'}), isTrue);
+    expect(eventsContains(dartEvents, 'B', 'apple'), isTrue);
+    expect(eventsContains(dartEvents, 'E', 'apple'), isTrue);
+    expect(
+        eventsContains(dartEvents, 'b', 'TASK1', {
+          'filterKey': 'testFilter',
+          'task1-start-key': 'task1-start-value',
+          'parentId': 42.toRadixString(16)
+        }),
+        isTrue);
+    expect(
+        eventsContains(dartEvents, 'e', 'TASK1', {
+          'filterKey': 'testFilter',
+          'task1-finish-key': 'task1-finish-value',
+        }),
+        isTrue);
+    expect(
+        eventsContains(dartEvents, 'n', 'ITASK', {
+          'filterKey': 'testFilter',
+          'task1-instant-key': 'task1-instant-value',
+        }),
+        isTrue);
     expect(eventsContains(dartEvents, 'q', 'ITASK'), isFalse);
-    expect(eventsContains(dartEvents, 's', 'peach'), isTrue);
-    expect(eventsContains(dartEvents, 't', 'watermelon'), isTrue);
-    expect(eventsContains(dartEvents, 'f', 'pear'), isTrue);
+    expect(eventsContains(dartEvents, 'B', 'peach'), isTrue);
+    expect(eventsContains(dartEvents, 'E', 'peach'), isTrue);
+    expect(eventsContains(dartEvents, 'B', 'watermelon'), isTrue);
+    expect(eventsContains(dartEvents, 'E', 'watermelon'), isTrue);
+    expect(eventsContains(dartEvents, 'B', 'pear'), isTrue);
+    expect(eventsContains(dartEvents, 'E', 'pear'), isTrue);
+    expect(eventsContains(dartEvents, 's', '123'), isTrue);
+    expect(eventsContains(dartEvents, 't', '123'), isTrue);
+    expect(eventsContains(dartEvents, 'f', '123'), isTrue);
     // Calculate the time Window of Dart events.
     int origin = timeOrigin(dartEvents);
     int extent = timeDuration(dartEvents, origin);
@@ -131,4 +174,20 @@ var tests = <VMTest>[
   },
 ];
 
-main(args) async => runVMTests(args, tests, testeeBefore: primeTimeline);
+main(List<String> args) async {
+  // Running the subprocesses of this particular test in opt counter mode
+  // will cause it to be slow and cause many compilations.
+  //
+  // Together with "--complete-timeline" this will create a huge number of
+  // timeline events which can, on ia32, cause the process to hit OOM.
+  //
+  // So we filter out that particular argument.
+  final executableArgs = Platform.executableArguments
+      .where((String arg) => !arg.contains('optimization-counter-threshold'))
+      .toList();
+
+  await runVMTests(args, tests,
+      testeeBefore: primeTimeline,
+      extraArgs: ['--complete-timeline'],
+      executableArgs: executableArgs);
+}

@@ -18,7 +18,7 @@ import "dart:io";
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
-InternetAddress HOST;
+late InternetAddress HOST;
 String localFile(path) => Platform.script.resolve(path).toFilePath();
 
 SecurityContext serverContext = new SecurityContext()
@@ -107,9 +107,9 @@ void testSimpleConnectFail(SecurityContext context, bool cancelOnError) {
   print("asyncStart testSimpleConnectFail $counter");
   asyncStart();
   RawSecureServerSocket.bind(HOST, 0, context).then((server) {
-    var clientEndFuture = RawSecureSocket
-        .connect(HOST, server.port, context: clientContext)
-        .then((clientEnd) {
+    Future<void> clientEndFuture =
+        RawSecureSocket.connect(HOST, server.port, context: clientContext)
+            .then((clientEnd) {
       Expect.fail("No client connection expected.");
     }).catchError((error) {
       Expect.isTrue(error is SocketException || error is HandshakeException);
@@ -179,11 +179,11 @@ void testServerListenAfterConnect() {
 // received from the client. This argument only takes effect when
 // handshakeBeforeSecure is true.
 void testSimpleReadWrite(
-    {bool listenSecure,
-    bool connectSecure,
-    bool handshakeBeforeSecure,
-    bool postponeSecure,
-    bool dropReads}) {
+    {required bool listenSecure,
+    required bool connectSecure,
+    required bool handshakeBeforeSecure,
+    required bool postponeSecure,
+    required bool dropReads}) {
   int clientReads = 0;
   int serverReads = 0;
   if (handshakeBeforeSecure == true &&
@@ -199,7 +199,7 @@ void testSimpleReadWrite(
   const handshakeMessageSize = 100;
 
   List<int> createTestData() {
-    List<int> data = new List<int>(messageSize);
+    List<int> data = new List<int>.filled(messageSize, 0);
     for (int i = 0; i < messageSize; i++) {
       data[i] = i & 0xff;
     }
@@ -207,7 +207,7 @@ void testSimpleReadWrite(
   }
 
   List<int> createHandshakeTestData() {
-    List<int> data = new List<int>(handshakeMessageSize);
+    List<int> data = new List<int>.filled(handshakeMessageSize, 0);
     for (int i = 0; i < handshakeMessageSize; i++) {
       data[i] = i & 0xff;
     }
@@ -234,7 +234,7 @@ void testSimpleReadWrite(
     var completer = new Completer();
     int bytesRead = 0;
     int bytesWritten = 0;
-    List<int> data = new List<int>(messageSize);
+    List<int> data = new List<int>.filled(messageSize, 0);
     client.writeEventsEnabled = false;
     var subscription;
     subscription = client.listen((event) {
@@ -291,11 +291,11 @@ void testSimpleReadWrite(
   }
 
   Future<RawSocket> runClient(RawSocket socket) {
-    var completer = new Completer();
+    var completer = new Completer<RawSocket>();
     int bytesRead = 0;
     int bytesWritten = 0;
     List<int> dataSent = createTestData();
-    List<int> dataReceived = new List<int>(dataSent.length);
+    List<int> dataReceived = new List<int>.filled(dataSent.length, 0);
     socket.listen((event) {
       switch (event) {
         case RawSocketEvent.read:
@@ -338,7 +338,7 @@ void testSimpleReadWrite(
     var completer = new Completer();
     int bytesRead = 0;
     int bytesWritten = 0;
-    List<int> data = new List<int>(handshakeMessageSize);
+    List<int> data = new List<int>.filled(handshakeMessageSize, 0);
     client.writeEventsEnabled = false;
     var subscription;
     subscription = client.listen((event) {
@@ -405,12 +405,13 @@ void testSimpleReadWrite(
     return completer.future;
   }
 
-  Future<RawSocket> runClientHandshake(RawSocket socket) {
-    var completer = new Completer();
+  Future<StreamSubscription<RawSocketEvent>> runClientHandshake(
+      RawSocket socket) {
+    var completer = new Completer<StreamSubscription<RawSocketEvent>>();
     int bytesRead = 0;
     int bytesWritten = 0;
     List<int> dataSent = createHandshakeTestData();
-    List<int> dataReceived = new List<int>(dataSent.length);
+    List<int> dataReceived = new List<int>.filled(dataSent.length, 0);
     var subscription;
     subscription = socket.listen((event) {
       switch (event) {
@@ -480,8 +481,7 @@ void testSimpleReadWrite(
         });
       } else {
         runServerHandshake(client).then((secure) {
-          RawSecureSocket
-              .secureServer(client, serverContext,
+          RawSecureSocket.secureServer(client, serverContext,
                   subscription: secure[0], bufferedData: secure[1])
               .then((client) {
             runServer(client).then((_) => server.close());
@@ -528,8 +528,8 @@ testPausedSecuringSubscription(bool pausedServer, bool pausedClient) {
         }
 
         try {
-          RawSecureSocket
-              .secureServer(client, serverContext, subscription: subscription)
+          RawSecureSocket.secureServer(client, serverContext,
+                  subscription: subscription)
               .catchError((_) {})
               .whenComplete(() {
             if (pausedServer) {
@@ -556,8 +556,7 @@ testPausedSecuringSubscription(bool pausedServer, bool pausedClient) {
           subscription.pause();
         }
         try {
-          RawSecureSocket
-              .secure(socket, subscription: subscription)
+          RawSecureSocket.secure(socket, subscription: subscription)
               .catchError((_) {})
               .whenComplete(() {
             if (pausedClient) {

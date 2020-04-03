@@ -1,9 +1,100 @@
-# Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 # WARNING:
 # Tests using the multitest feature where failure is expected should *also* be
 # listed in tests/lib/analyzer/analyze_tests.status without the "standalone"
 # prefix.
+io/http_linklocal_ipv6_test: SkipByDesign # This needs manual test.
+io/non_utf8_directory_test: Skip # Issue 33519. Temp files causing bots to go purple.
+io/non_utf8_file_test: Skip # Issue 33519. Temp files causing bots to go purple.
+io/non_utf8_link_test: Skip # Issue 33519. Temp files causing bots to go purple.
+packages_file_test: Skip # Issue 26715
+packages_file_test/none: Skip # contains no tests.
 
-*: SkipByDesign # Deprecating Dart1 tests.
+[ $builder_tag == asan ]
+io/process_detached_test: Slow, Pass
+
+[ $builder_tag == no_ipv6 ]
+io/http_ipv6_test: SkipByDesign
+io/http_loopback_test: SkipByDesign
+io/http_proxy_advanced_test: SkipByDesign
+io/socket_bind_test: SkipByDesign
+io/socket_info_ipv6_test: SkipByDesign
+io/socket_ipv6_test: SkipByDesign
+io/socket_source_address_test: SkipByDesign
+
+[ $compiler == dart2analyzer ]
+deferred_transitive_import_error_test: Skip
+
+[ $compiler == dartkp ]
+causal_async_stack_test: Skip # Flaky.
+
+[ $mode == product ]
+dart_developer_env_test: SkipByDesign
+io/stdio_implicit_close_test: Skip # SkipByDesign
+no_profiler_test: SkipByDesign
+no_support_coverage_test: SkipByDesign
+no_support_debugger_test: SkipByDesign
+no_support_disassembler_test: SkipByDesign
+no_support_il_printer_test: SkipByDesign
+no_support_service_test: SkipByDesign
+no_support_timeline_test: SkipByDesign
+verbose_gc_to_bmu_test: SkipByDesign # No verbose_gc in product mode
+
+[ $runtime == dart_precompiled ]
+http_launch_test: Skip
+io/addlatexhash_test: Skip
+io/wait_for_event_isolate_test: SkipByDesign # Uses mirrors.
+io/wait_for_event_microtask_test: SkipByDesign # Uses mirrors.
+io/wait_for_event_nested_microtask_test: SkipByDesign # Uses mirrors.
+io/wait_for_event_nested_timer_microtask_test: SkipByDesign # Uses mirrors.
+io/wait_for_event_nested_timer_test: SkipByDesign # Uses mirrors.
+io/wait_for_event_nested_waits_test: SkipByDesign # Uses mirrors.
+io/wait_for_event_timer_test: SkipByDesign # Uses mirrors.
+io/wait_for_event_zone_caught_error_test: SkipByDesign # Uses mirrors.
+io/wait_for_event_zone_test: SkipByDesign # Uses mirrors.
+io/wait_for_test: SkipByDesign # Uses mirrors.
+verbose_gc_to_bmu_test: Skip # Attempts to spawn dart using Platform.executable
+
+[ $builder_tag == swarming && $system == macos ]
+io/*: Skip # Issue 30618
+
+[ $compiler == none && $runtime == vm && $system == fuchsia ]
+*: Skip # Not yet triaged.
+
+[ $compiler != none && $runtime != dart_precompiled && $runtime != vm ]
+env_test: Skip # This is testing a vm command line parsing scenario.
+
+[ $mode == product && $runtime == dart_precompiled ]
+dwarf_stack_trace_test: SkipByDesign # Due to instruction canonicalization we can end up having the wrong names in stack traces.
+
+[ $runtime == vm && $system == linux ]
+io/http_basic_test: Slow, Pass # Issue 28046, These tests might be slow on an opt counter threshold bot. They also time out on the bot occasionally => flaky test issue 28046
+io/http_launch_test: Slow, Pass # Issue 28046, These tests might be slow on an opt counter threshold bot. They also time out on the bot occasionally => flaky test issue 28046
+
+[ $system == macos && ($runtime == dart_precompiled || $runtime == vm) ]
+io/raw_secure_server_socket_test: Crash
+io/raw_server_socket_cancel_test: Skip # Issue 28182 # This test sometimes hangs on Mac.
+io/secure_server_client_certificate_test: Skip # Re-enable once the bots have been updated. Issue #26057
+io/socket_many_connections_test: Skip # This test fails with "Too many open files" on the Mac OS buildbot. This is expected as MacOS by default runs with a very low number of allowed open files ('ulimit -n' says something like 256).
+
+[ $arch == arm || $arch == arm64 || $runtime != vm || $system == android ]
+fragmentation_test: SkipSlow
+fragmentation_typed_data_test: SkipSlow
+
+[ $compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk ]
+*: SkipByDesign
+
+[ $mode == product || $runtime == dart_precompiled ]
+no_assert_test: SkipByDesign
+
+[ $runtime == dart_precompiled || $runtime == vm ]
+deferred_transitive_import_error_test: Skip
+
+[ $hot_reload || $hot_reload_rollback ]
+io/addlatexhash_test: Crash # Issue 31252
+io/many_directory_operations_test: SkipSlow
+io/many_file_operations_test: SkipSlow
+package/*: SkipByDesign # Launches VMs in interesting ways.
+typed_data_isolate_test: SkipSlow

@@ -8,32 +8,20 @@ import 'dart:io';
 
 import 'package:analysis_server_client/listener/server_listener.dart';
 import 'package:analysis_server_client/protocol.dart';
+import 'package:analysis_server_client/src/server_base.dart';
 import 'package:path/path.dart';
 
-/// Type of callbacks used to process notifications.
-typedef void NotificationProcessor(Notification notification);
+export 'package:analysis_server_client/src/server_base.dart'
+    show NotificationProcessor;
 
 /// Instances of the class [Server] manage a server process,
 /// and facilitate communication to and from the server.
 ///
 /// Clients may not extend, implement or mix-in this class.
-class Server {
-  /// If not `null`, [_listener] will be sent information
-  /// about interactions with the server.
-  ServerListener _listener;
-
+class Server extends ServerBase {
   /// Server process object, or `null` if server hasn't been started yet
   /// or if the server has already been stopped.
   Process _process;
-
-  /// Commands that have been sent to the server but not yet acknowledged,
-  /// and the [Completer] objects which should be completed
-  /// when acknowledgement is received.
-  final _pendingCommands = <String, Completer<Map<String, dynamic>>>{};
-
-  /// Number which should be used to compute the 'id'
-  /// to send in the next command sent to the server.
-  int _nextId = 0;
 
   /// The stderr subscription or `null` if either
   /// [listenToOutput] has not been called or [stop] has been called.
@@ -43,13 +31,15 @@ class Server {
   /// [listenToOutput] has not been called or [stop] has been called.
   StreamSubscription<String> _stdoutSubscription;
 
-  Server({ServerListener listener, Process process})
-      : this._listener = listener,
-        this._process = process;
+  Server(
+      {ServerListener listener, Process process, bool stdioPassthrough = false})
+      : _process = process,
+        super(listener: listener, stdioPassthrough: stdioPassthrough);
 
   /// Force kill the server. Returns exit code future.
+  @override
   Future<int> kill({String reason = 'none'}) {
-    _listener?.killingServerProcess(reason);
+    listener?.killingServerProcess(reason);
     final process = _process;
     _process = null;
     process.kill();
@@ -58,67 +48,16 @@ class Server {
 
   /// Start listening to output from the server,
   /// and deliver notifications to [notificationProcessor].
+  @override
   void listenToOutput({NotificationProcessor notificationProcessor}) {
     _stdoutSubscription = _process.stdout
         .transform(utf8.decoder)
-        .transform(new LineSplitter())
-        .listen((String line) {
-      String trimmedLine = line.trim();
-
-      // Guard against lines like:
-      //   {"event":"server.connected","params":{...}}Observatory listening on ...
-      const observatoryMessage = 'Observatory listening on ';
-      if (trimmedLine.contains(observatoryMessage)) {
-        trimmedLine = trimmedLine
-            .substring(0, trimmedLine.indexOf(observatoryMessage))
-            .trim();
-      }
-      if (trimmedLine.isEmpty) {
-        return;
-      }
-
-      _listener?.messageReceived(trimmedLine);
-      Map<String, dynamic> message;
-      try {
-        message = json.decoder.convert(trimmedLine);
-      } catch (exception) {
-        _listener?.badMessage(trimmedLine, exception);
-        return;
-      }
-
-      final id = message[Response.ID];
-      if (id != null) {
-        // Handle response
-        final completer = _pendingCommands.remove(id);
-        if (completer == null) {
-          _listener?.unexpectedResponse(message, id);
-        }
-        if (message.containsKey(Response.ERROR)) {
-          completer.completeError(new RequestError.fromJson(
-              new ResponseDecoder(null), '.error', message[Response.ERROR]));
-        } else {
-          completer.complete(message[Response.RESULT]);
-        }
-      } else {
-        // Handle notification
-        final String event = message[Notification.EVENT];
-        if (event != null) {
-          if (notificationProcessor != null) {
-            notificationProcessor(
-                new Notification(event, message[Notification.PARAMS]));
-          }
-        } else {
-          _listener?.unexpectedMessage(message);
-        }
-      }
-    });
+        .transform(LineSplitter())
+        .listen((line) => outputProcessor(line, notificationProcessor));
     _stderrSubscription = _process.stderr
         .transform(utf8.decoder)
-        .transform(new LineSplitter())
-        .listen((String line) {
-      String trimmedLine = line.trim();
-      _listener?.errorMessage(trimmedLine);
-    });
+        .transform(LineSplitter())
+        .listen((line) => errorProcessor(line, notificationProcessor));
   }
 
   /// Send a command to the server. An 'id' will be automatically assigned.
@@ -128,23 +67,10 @@ class Server {
   /// the future will be completed with the 'result' field from the response.
   /// If the server acknowledges the command with an error response,
   /// the future will be completed with an error.
+  @override
   Future<Map<String, dynamic>> send(
-      String method, Map<String, dynamic> params) {
-    String id = '${_nextId++}';
-    Map<String, dynamic> command = <String, dynamic>{
-      Request.ID: id,
-      Request.METHOD: method
-    };
-    if (params != null) {
-      command[Request.PARAMS] = params;
-    }
-    final completer = new Completer<Map<String, dynamic>>();
-    _pendingCommands[id] = completer;
-    String line = json.encode(command);
-    _listener?.requestSent(line);
-    _process.stdin.add(utf8.encoder.convert("$line\n"));
-    return completer.future;
-  }
+          String method, Map<String, dynamic> params) =>
+      sendCommandWith(method, params, _process.stdin.add);
 
   /// Start the server.
   ///
@@ -154,22 +80,28 @@ class Server {
   ///
   /// If [serverPath] is specified, then that analysis server will be launched,
   /// otherwise the analysis server snapshot in the SDK will be launched.
+  ///
+  /// If [enableAsserts] is specified, then asserts will be enabled in the new
+  /// dart process for that server. This is typically just useful to enable
+  /// locally for debugging.
+  @override
   Future start({
     String clientId,
     String clientVersion,
     int diagnosticPort,
     String instrumentationLogFile,
-    bool profileServer: false,
+    bool profileServer = false,
     String sdkPath,
     String serverPath,
     int servicesPort,
-    bool suppressAnalytics: true,
-    bool useAnalysisHighlight2: false,
+    bool suppressAnalytics = true,
+    bool useAnalysisHighlight2 = false,
+    bool enableAsserts = false,
   }) async {
     if (_process != null) {
-      throw new Exception('Process already started');
+      throw Exception('Process already started');
     }
-    String dartBinary = Platform.executable;
+    var dartBinary = Platform.executable;
 
     // The integration tests run 3x faster when run from snapshots
     // (you need to run test.py with --use-sdk).
@@ -185,7 +117,7 @@ class Server {
       }
     }
 
-    List<String> arguments = [];
+    var arguments = <String>[];
     //
     // Add VM arguments.
     //
@@ -202,51 +134,37 @@ class Server {
     if (Platform.packageConfig != null) {
       arguments.add('--packages=${Platform.packageConfig}');
     }
+    if (enableAsserts) {
+      arguments.add('--enable-asserts');
+    }
     //
     // Add the server executable.
     //
     arguments.add(serverPath);
-    //
-    // Add server arguments.
-    //
-    // TODO(danrubel): Consider moving all cmdline argument consts
-    // out of analysis_server and into analysis_server_client
-    if (clientId != null) {
-      arguments.add('--client-id');
-      arguments.add(clientId);
-    }
-    if (clientVersion != null) {
-      arguments.add('--client-version');
-      arguments.add(clientVersion);
-    }
-    if (suppressAnalytics) {
-      arguments.add('--suppress-analytics');
-    }
-    if (diagnosticPort != null) {
-      arguments.add('--port');
-      arguments.add(diagnosticPort.toString());
-    }
-    if (instrumentationLogFile != null) {
-      arguments.add('--instrumentation-log-file=$instrumentationLogFile');
-    }
-    if (sdkPath != null) {
-      arguments.add('--sdk=$sdkPath');
-    }
-    if (useAnalysisHighlight2) {
-      arguments.add('--useAnalysisHighlight2');
-    }
-    _listener?.startingServer(dartBinary, arguments);
+
+    arguments.addAll(getServerArguments(
+        clientId: clientId,
+        clientVersion: clientVersion,
+        suppressAnalytics: suppressAnalytics,
+        diagnosticPort: diagnosticPort,
+        instrumentationLogFile: instrumentationLogFile,
+        sdkPath: sdkPath,
+        useAnalysisHighlight2: useAnalysisHighlight2));
+
+    listener?.startingServer(dartBinary, arguments);
     _process = await Process.start(dartBinary, arguments);
+    // ignore: unawaited_futures
     _process.exitCode.then((int code) {
       if (code != 0 && _process != null) {
         // Report an error if server abruptly terminated
-        _listener?.unexpectedStop(code);
+        listener?.unexpectedStop(code);
       }
     });
   }
 
   /// Attempt to gracefully shutdown the server.
   /// If that fails, then kill the process.
+  @override
   Future<int> stop({Duration timeLimit}) async {
     timeLimit ??= const Duration(seconds: 5);
     if (_process == null) {
@@ -269,7 +187,7 @@ class Server {
     return process.exitCode.timeout(
       timeLimit,
       onTimeout: () {
-        _listener?.killingServerProcess('server failed to exit');
+        listener?.killingServerProcess('server failed to exit');
         process.kill();
         return process.exitCode;
       },

@@ -1,0 +1,69 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A2 extends core::Object {
+  field core::String? foo = null;
+  synthetic constructor •() → self::A2
+    : super core::Object::•()
+    ;
+}
+class A5 extends core::Object {
+  synthetic constructor •() → self::A5
+    : super core::Object::•()
+    ;
+  operator []=(core::int index, core::String? value) → void {}
+  operator [](core::int index) → core::String?
+    return null;
+}
+class B5 extends self::A5 {
+  synthetic constructor •() → self::B5
+    : super self::A5::•()
+    ;
+  method test5() → dynamic {
+    core::String s = let final core::int #t1 = 0 in let final core::String? #t2 = super.{self::A5::[]}(#t1) in #t2.{core::String::==}(null) ?{core::String} let final core::String #t3 = "bar" in let final void #t4 = super.{self::A5::[]=}(#t1, #t3) in #t3 : #t2{core::String};
+  }
+}
+class A7 extends core::Object {
+  field core::String foo = "foo";
+  field core::String? bar = null;
+  synthetic constructor •() → self::A7
+    : super core::Object::•()
+    ;
+}
+extension E6 on core::double {
+  operator []= = self::E6|[]=;
+  operator [] = self::E6|[];
+}
+static method hest1<T extends core::Object? = dynamic>() → self::hest1::T%
+  return throw "hest";
+static method test1() → dynamic {
+  function foo() → core::String?
+    return null;
+  function bar() → core::String
+    return "bar";
+  core::String s = let final core::String? #t5 = foo.call() in #t5.{core::String::==}(null) ?{core::String} bar.call() : #t5{core::String};
+  core::String s2 = let final core::String? #t6 = self::hest1<core::String?>() in #t6.{core::String::==}(null) ?{core::String} "fisk" : #t6{core::String};
+}
+static method test2(self::A2 a) → dynamic {
+  core::String s = let final self::A2 #t7 = a in let final core::String? #t8 = #t7.{self::A2::foo} in #t8.{core::String::==}(null) ?{core::String} #t7.{self::A2::foo} = "bar" : #t8{core::String};
+}
+static method test3() → dynamic {
+  core::String? s = null;
+  core::String s2 = let final core::String? #t9 = s in #t9.{core::String::==}(null) ?{core::String} s = "bar" : #t9{core::String};
+}
+static method test4() → dynamic {
+  core::List<core::String?> list = <core::String?>[null];
+  core::String s = let final core::List<core::String?> #t10 = list in let final core::int #t11 = 0 in let final core::String? #t12 = #t10.{core::List::[]}(#t11) in #t12.{core::String::==}(null) ?{core::String} let final core::String #t13 = "bar" in let final void #t14 = #t10.{core::List::[]=}(#t11, #t13) in #t13 : #t12{core::String};
+}
+static method E6|[]=(final core::double #this, core::int index, core::String? value) → void {}
+static method E6|[](final core::double #this, core::int index) → core::String?
+  return null;
+static method test6() → dynamic {
+  core::String s = let final core::double #t15 = 3.14 in let final core::int #t16 = 0 in let final core::String? #t17 = self::E6|[](#t15, #t16) in #t17.{core::String::==}(null) ?{core::String} let final core::String #t18 = "bar" in let final void #t19 = self::E6|[]=(#t15, #t16, #t18) in #t18 : #t17{core::String};
+}
+static method test7(self::A7? a) → dynamic {
+  core::String? s = let final self::A7? #t20 = a in #t20.{core::Object::==}(null) ?{core::String?} null : let final core::String #t21 = #t20.{self::A7::foo} in #t21.{core::String::==}(null) ?{core::String} #t20.{self::A7::foo} = "bar" : #t21;
+  core::String? s2 = let final self::A7? #t22 = a in #t22.{core::Object::==}(null) ?{core::String?} null : let final core::String? #t23 = #t22.{self::A7::bar} in #t23.{core::String::==}(null) ?{core::String} #t22.{self::A7::bar} = "bar" : #t23{core::String};
+}
+static method main() → dynamic {}

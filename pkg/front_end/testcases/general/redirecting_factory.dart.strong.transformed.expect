@@ -15,7 +15,7 @@ abstract class FooBase<Tf extends core::Object* = dynamic> extends core::Object 
   static field dynamic _redirecting# = <dynamic>[self::FooBase::•];
   abstract get x() → core::int*;
   static factory •<Tf extends core::Object* = dynamic>(core::int* x) → self::FooBase<self::FooBase::•::Tf*>*
-    let <T extends core::Object* = dynamic>(core::int*) →* self::Foo<self::Foo::•::T*>* #redirecting_factory = self::Foo::• in let self::FooBase::•::Tf* #typeArg0 = null in invalid-expression;
+    let <T extends core::Object* = dynamic>(core::int*) →* self::Foo<T*>* #redirecting_factory = self::Foo::• in let self::FooBase::•::Tf* #typeArg0 = null in invalid-expression;
 }
 abstract class Foo<T extends core::Object* = dynamic> extends core::Object implements self::FooBase<dynamic> {
   static field dynamic _redirecting# = <dynamic>[self::Foo::•];
@@ -40,7 +40,7 @@ class Builder<X extends core::Object* = dynamic> extends core::Object {
 class SimpleCase<A extends core::Object* = dynamic, B extends core::Object* = dynamic> extends core::Object {
   static field dynamic _redirecting# = <dynamic>[self::SimpleCase::•];
   static factory •<A extends core::Object* = dynamic, B extends core::Object* = dynamic>() → self::SimpleCase<self::SimpleCase::•::A*, self::SimpleCase::•::B*>*
-    let <Ai extends core::Object* = dynamic, Bi extends core::Object* = dynamic>() →* self::SimpleCaseImpl<self::SimpleCaseImpl::•::Ai*, self::SimpleCaseImpl::•::Bi*>* #redirecting_factory = self::SimpleCaseImpl::• in let self::SimpleCase::•::A* #typeArg0 = null in let self::SimpleCase::•::B* #typeArg1 = null in invalid-expression;
+    let <Ai extends core::Object* = dynamic, Bi extends core::Object* = dynamic>() →* self::SimpleCaseImpl<Ai*, Bi*>* #redirecting_factory = self::SimpleCaseImpl::• in let self::SimpleCase::•::A* #typeArg0 = null in let self::SimpleCase::•::B* #typeArg1 = null in invalid-expression;
 }
 class SimpleCaseImpl<Ai extends core::Object* = dynamic, Bi extends core::Object* = dynamic> extends core::Object implements self::SimpleCase<self::SimpleCaseImpl::Ai*, self::SimpleCaseImpl::Bi*> {
   static field dynamic _redirecting# = <dynamic>[self::SimpleCaseImpl::•];
@@ -62,7 +62,7 @@ class Mixin<M extends core::Object* = dynamic> extends core::Object {
     : super core::Object::•()
     ;
 }
-class Mix<M extends core::Object* = dynamic> extends self::Base<self::Mix::M*> implements self::Mixin<self::Mix::M*> {
+class Mix<M extends core::Object* = dynamic> extends self::Base<self::Mix::M*> implements self::Mixin<self::Mix::M*> /*isEliminatedMixin*/  {
   synthetic constructor •() → self::Mix<self::Mix::M*>*
     : super self::Base::•()
     ;

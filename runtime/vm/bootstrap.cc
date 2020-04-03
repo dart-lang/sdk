@@ -60,22 +60,29 @@ static void Finish(Thread* thread) {
     field ^= fields.At(i);
     field.set_is_unboxing_candidate(false);
   }
+  // _Closure._hash field should be explicitly marked as nullable because
+  // VM creates instances of _Closure without compiling its constructors,
+  // so it won't get nullability info from a constructor.
+  field ^= fields.At(fields.Length() - 1);
+  // Note that UserVisibleName depends on --show-internal-names.
+  ASSERT(strncmp(field.UserVisibleNameCString(), "_hash", 5) == 0);
+  field.RecordStore(Object::null_object());
 
 #if defined(DEBUG)
   // Verify that closure field offsets are identical in Dart and C++.
   ASSERT(fields.Length() == 6);
   field ^= fields.At(0);
-  ASSERT(field.Offset() == Closure::instantiator_type_arguments_offset());
+  ASSERT(field.HostOffset() == Closure::instantiator_type_arguments_offset());
   field ^= fields.At(1);
-  ASSERT(field.Offset() == Closure::function_type_arguments_offset());
+  ASSERT(field.HostOffset() == Closure::function_type_arguments_offset());
   field ^= fields.At(2);
-  ASSERT(field.Offset() == Closure::delayed_type_arguments_offset());
+  ASSERT(field.HostOffset() == Closure::delayed_type_arguments_offset());
   field ^= fields.At(3);
-  ASSERT(field.Offset() == Closure::function_offset());
+  ASSERT(field.HostOffset() == Closure::function_offset());
   field ^= fields.At(4);
-  ASSERT(field.Offset() == Closure::context_offset());
+  ASSERT(field.HostOffset() == Closure::context_offset());
   field ^= fields.At(5);
-  ASSERT(field.Offset() == Closure::hash_offset());
+  ASSERT(field.HostOffset() == Closure::hash_offset());
 #endif  // defined(DEBUG)
 
   // Eagerly compile Bool class, bool constants are used from within compiler.

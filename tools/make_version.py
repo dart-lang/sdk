@@ -5,6 +5,8 @@
 #
 # This python script creates a version string in a C++ file.
 
+from __future__ import print_function
+
 import hashlib
 import os
 import sys
@@ -14,7 +16,7 @@ import utils
 
 
 def debugLog(message):
-    print >> sys.stderr, message
+    print(message, file=sys.stderr)
     sys.stderr.flush()
 
 
@@ -45,6 +47,7 @@ VM_SNAPSHOT_FILES = [
 
 def MakeVersionString(quiet, no_git_hash, custom_for_pub=None):
     channel = utils.GetChannel()
+
     if custom_for_pub and channel == 'be':
         latest = utils.GetLatestDevTag()
         if not latest:
@@ -55,17 +58,6 @@ def MakeVersionString(quiet, no_git_hash, custom_for_pub=None):
         else:
             git_hash = utils.GetShortGitHash()
             version_string = ("%s.%s-%s" % (latest, custom_for_pub, git_hash))
-        # TODO(athom): remove the custom 2.5.0 logic post release.
-        # For 2.5.0, we want flutter to claim Dart is 2.5.0 even before it is
-        # decided what exactly 2.5.0 will be. Dart & Flutter stable releases
-        # will be synced, so that what will be released as Dart 2.5.0 will also
-        # be what will be packaged with Flutter.
-        version = utils.ReadVersionFile()
-        custom_version_string = "%s.%s.%s" % (version.major, version.minor, version.patch)
-        if custom_version_string == "2.5.0" and custom_for_pub == "flutter":
-            version_string = "2.5.0"
-
-
     else:
         version_string = utils.GetSemanticSDKVersion(no_git_hash=no_git_hash)
     if not quiet:
@@ -78,7 +70,7 @@ def MakeSnapshotHashString():
     for vmfilename in VM_SNAPSHOT_FILES:
         vmfilepath = os.path.join(utils.DART_DIR, 'runtime', 'vm', vmfilename)
         with open(vmfilepath) as vmfile:
-            vmhash.update(vmfile.read())
+            vmhash.update(vmfile.read().encode('utf-8'))
     return vmhash.hexdigest()
 
 
@@ -95,10 +87,12 @@ def MakeFile(quiet,
 
     version_cc_text = open(input_file).read()
     version_cc_text = version_cc_text.replace("{{VERSION_STR}}", version_string)
+    channel = utils.GetChannel()
+    version_cc_text = version_cc_text.replace("{{CHANNEL}}", channel)
     version_time = utils.GetGitTimestamp()
     if no_git_hash or version_time == None:
         version_time = "Unknown timestamp"
-    version_cc_text = version_cc_text.replace("{{COMMIT_TIME}}", version_time)
+    version_cc_text = version_cc_text.replace("{{COMMIT_TIME}}", version_time.decode("utf-8"))
     abi_version = utils.GetAbiVersion(version_file)
     version_cc_text = version_cc_text.replace("{{ABI_VERSION}}", abi_version)
     oldest_supported_abi_version = utils.GetOldestSupportedAbiVersion(

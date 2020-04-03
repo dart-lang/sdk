@@ -1,0 +1,19 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field core::num pi;
+  field core::num? _#C#p1;
+  field core::num? _#C#p2;
+  field core::bool _#C#p2#isSet;
+  synthetic constructor •() → self::C
+    ;
+  get p1() → core::num;
+  set p1(core::num #t1) → void;
+  get p2() → core::num;
+}
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

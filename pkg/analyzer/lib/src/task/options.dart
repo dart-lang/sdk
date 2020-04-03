@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/error_processor.dart';
@@ -23,7 +24,7 @@ import 'package:analyzer/src/util/yaml.dart';
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
-final _OptionsProcessor _processor = new _OptionsProcessor();
+final _OptionsProcessor _processor = _OptionsProcessor();
 
 List<AnalysisError> analyzeAnalysisOptions(
     Source source, String content, SourceFactory sourceFactory) {
@@ -31,12 +32,12 @@ List<AnalysisError> analyzeAnalysisOptions(
   Source initialSource = source;
   SourceSpan initialIncludeSpan;
   AnalysisOptionsProvider optionsProvider =
-      new AnalysisOptionsProvider(sourceFactory);
+      AnalysisOptionsProvider(sourceFactory);
 
   // Validate the specified options and any included option files
   void validate(Source source, YamlMap options) {
     List<AnalysisError> validationErrors =
-        new OptionsFileValidator(source).validate(options);
+        OptionsFileValidator(source).validate(options);
     if (initialIncludeSpan != null && validationErrors.isNotEmpty) {
       for (AnalysisError error in validationErrors) {
         var args = [
@@ -45,7 +46,7 @@ List<AnalysisError> analyzeAnalysisOptions(
           (error.offset + error.length - 1).toString(),
           error.message,
         ];
-        errors.add(new AnalysisError(
+        errors.add(AnalysisError(
             initialSource,
             initialIncludeSpan.start.column + 1,
             initialIncludeSpan.length,
@@ -65,7 +66,7 @@ List<AnalysisError> analyzeAnalysisOptions(
     String includeUri = span.text;
     Source includedSource = sourceFactory.resolveUri(source, includeUri);
     if (includedSource == null || !includedSource.exists()) {
-      errors.add(new AnalysisError(
+      errors.add(AnalysisError(
           initialSource,
           initialIncludeSpan.start.column + 1,
           initialIncludeSpan.length,
@@ -86,7 +87,7 @@ List<AnalysisError> analyzeAnalysisOptions(
       ];
       // Report errors for included option files
       // on the include directive located in the initial options file.
-      errors.add(new AnalysisError(
+      errors.add(AnalysisError(
           initialSource,
           initialIncludeSpan.start.column + 1,
           initialIncludeSpan.length,
@@ -100,7 +101,7 @@ List<AnalysisError> analyzeAnalysisOptions(
     validate(source, options);
   } on OptionsFormatException catch (e) {
     SourceSpan span = e.span;
-    errors.add(new AnalysisError(source, span.start.column + 1, span.length,
+    errors.add(AnalysisError(source, span.start.column + 1, span.length,
         AnalysisOptionsErrorCode.PARSE_ERROR, [e.message]));
   }
   return errors;
@@ -138,20 +139,19 @@ class AnalyzerOptions {
   static const String strictRawTypes = 'strict-raw-types';
 
   /// Ways to say `ignore`.
-  static const List<String> ignoreSynonyms = const ['ignore', 'false'];
+  static const List<String> ignoreSynonyms = ['ignore', 'false'];
 
   /// Valid error `severity`s.
-  static final List<String> severities =
-      new List.unmodifiable(severityMap.keys);
+  static final List<String> severities = List.unmodifiable(severityMap.keys);
 
   /// Ways to say `include`.
-  static const List<String> includeSynonyms = const ['include', 'true'];
+  static const List<String> includeSynonyms = ['include', 'true'];
 
   /// Ways to say `true` or `false`.
-  static const List<String> trueOrFalse = const ['true', 'false'];
+  static const List<String> trueOrFalse = ['true', 'false'];
 
   /// Supported top-level `analyzer` options.
-  static const List<String> topLevel = const [
+  static const List<String> topLevel = [
     enableExperiment,
     errors,
     exclude,
@@ -162,20 +162,17 @@ class AnalyzerOptions {
   ];
 
   /// Supported `analyzer` strong-mode options.
-  static const List<String> strongModeOptions = const [
+  static const List<String> strongModeOptions = [
     declarationCasts, // deprecated
     implicitCasts,
     implicitDynamic,
   ];
 
   /// Supported `analyzer` language options.
-  static const List<String> languageOptions = const [
-    strictInference,
-    strictRawTypes
-  ];
+  static const List<String> languageOptions = [strictInference, strictRawTypes];
 
   // Supported 'analyzer' optional checks options.
-  static const List<String> optionalChecksOptions = const [
+  static const List<String> optionalChecksOptions = [
     chromeOsManifestChecks,
   ];
 }
@@ -184,12 +181,12 @@ class AnalyzerOptions {
 class AnalyzerOptionsValidator extends CompositeValidator {
   AnalyzerOptionsValidator()
       : super([
-          new TopLevelAnalyzerOptionsValidator(),
-          new StrongModeOptionValueValidator(),
-          new ErrorFilterOptionValidator(),
-          new EnabledExperimentsValidator(),
-          new LanguageOptionValidator(),
-          new OptionalChecksValueValidator()
+          TopLevelAnalyzerOptionsValidator(),
+          StrongModeOptionValueValidator(),
+          ErrorFilterOptionValidator(),
+          EnabledExperimentsValidator(),
+          LanguageOptionValidator(),
+          OptionalChecksValueValidator()
         ]);
 }
 
@@ -206,8 +203,8 @@ class CompositeValidator extends OptionsValidator {
 
 /// Validates `analyzer` language configuration options.
 class EnabledExperimentsValidator extends OptionsValidator {
-  ErrorBuilder builder = new ErrorBuilder(AnalyzerOptions.languageOptions);
-  ErrorBuilder trueOrFalseBuilder = new TrueOrFalseValueErrorBuilder();
+  ErrorBuilder builder = ErrorBuilder(AnalyzerOptions.languageOptions);
+  ErrorBuilder trueOrFalseBuilder = TrueOrFalseValueErrorBuilder();
 
   @override
   void validate(ErrorReporter reporter, YamlMap options) {
@@ -286,7 +283,7 @@ class ErrorBuilder {
 class ErrorFilterOptionValidator extends OptionsValidator {
   /// Legal values.
   static final List<String> legalValues =
-      new List.from(AnalyzerOptions.ignoreSynonyms)
+      List.from(AnalyzerOptions.ignoreSynonyms)
         ..addAll(AnalyzerOptions.includeSynonyms)
         ..addAll(AnalyzerOptions.severities);
 
@@ -300,7 +297,7 @@ class ErrorFilterOptionValidator extends OptionsValidator {
   /// Legal error code names.
   static Set<String> get errorCodes {
     if (_errorCodes == null) {
-      _errorCodes = new HashSet<String>();
+      _errorCodes = HashSet<String>();
       // Engine codes.
       _errorCodes.addAll(errorCodeValues.map((ErrorCode code) => code.name));
     }
@@ -312,7 +309,7 @@ class ErrorFilterOptionValidator extends OptionsValidator {
 
   Set<String> get lintCodes {
     if (_lintCodes == null) {
-      _lintCodes = new Set.from(
+      _lintCodes = Set.from(
           Registry.ruleRegistry.rules.map((rule) => rule.name.toUpperCase()));
     }
     return _lintCodes;
@@ -357,8 +354,8 @@ class ErrorFilterOptionValidator extends OptionsValidator {
 
 /// Validates `analyzer` language configuration options.
 class LanguageOptionValidator extends OptionsValidator {
-  ErrorBuilder builder = new ErrorBuilder(AnalyzerOptions.languageOptions);
-  ErrorBuilder trueOrFalseBuilder = new TrueOrFalseValueErrorBuilder();
+  ErrorBuilder builder = ErrorBuilder(AnalyzerOptions.languageOptions);
+  ErrorBuilder trueOrFalseBuilder = TrueOrFalseValueErrorBuilder();
 
   @override
   void validate(ErrorReporter reporter, YamlMap options) {
@@ -420,24 +417,20 @@ class OptionsFileValidator {
   final Source source;
 
   final List<OptionsValidator> _validators = [
-    new AnalyzerOptionsValidator(),
-    new LinterOptionsValidator(),
-    new LinterRuleOptionsValidator()
+    AnalyzerOptionsValidator(),
+    LinterOptionsValidator(),
+    LinterRuleOptionsValidator()
   ];
 
   OptionsFileValidator(this.source);
 
   List<AnalysisError> validate(YamlMap options) {
-    RecordingErrorListener recorder = new RecordingErrorListener();
-    ErrorReporter reporter = new ErrorReporter(recorder, source);
-    if (AnalysisEngine.ANALYSIS_OPTIONS_FILE == source.shortName) {
-      reporter.reportError(new AnalysisError(
-          source,
-          0, // offset
-          1, // length
-          AnalysisOptionsHintCode.DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME,
-          [source.shortName]));
-    }
+    RecordingErrorListener recorder = RecordingErrorListener();
+    ErrorReporter reporter = ErrorReporter(
+      recorder,
+      source,
+      isNonNullableByDefault: false,
+    );
     _validators.forEach((OptionsValidator v) => v.validate(reporter, options));
     return recorder.errors;
   }
@@ -445,8 +438,8 @@ class OptionsFileValidator {
 
 /// Validates `analyzer` strong-mode value configuration options.
 class StrongModeOptionValueValidator extends OptionsValidator {
-  ErrorBuilder builder = new ErrorBuilder(AnalyzerOptions.strongModeOptions);
-  ErrorBuilder trueOrFalseBuilder = new TrueOrFalseValueErrorBuilder();
+  ErrorBuilder builder = ErrorBuilder(AnalyzerOptions.strongModeOptions);
+  ErrorBuilder trueOrFalseBuilder = TrueOrFalseValueErrorBuilder();
 
   @override
   void validate(ErrorReporter reporter, YamlMap options) {
@@ -497,9 +490,8 @@ class StrongModeOptionValueValidator extends OptionsValidator {
 
 /// Validates `analyzer` optional-checks value configuration options.
 class OptionalChecksValueValidator extends OptionsValidator {
-  ErrorBuilder builder =
-      new ErrorBuilder(AnalyzerOptions.optionalChecksOptions);
-  ErrorBuilder trueOrFalseBuilder = new TrueOrFalseValueErrorBuilder();
+  ErrorBuilder builder = ErrorBuilder(AnalyzerOptions.optionalChecksOptions);
+  ErrorBuilder trueOrFalseBuilder = TrueOrFalseValueErrorBuilder();
 
   @override
   void validate(ErrorReporter reporter, YamlMap options) {
@@ -588,8 +580,6 @@ class TrueOrFalseValueErrorBuilder extends ErrorBuilder {
 }
 
 class _OptionsProcessor {
-  static final Map<String, Object> defaults = {'analyzer': {}};
-
   /**
    * Apply the options in the given [optionMap] to the given analysis [options].
    */
@@ -618,7 +608,9 @@ class _OptionsProcessor {
             enabledExperiments.add(experimentName);
           }
         }
-        options.enabledExperiments = enabledExperiments;
+        options.contextFeatures = FeatureSet.fromEnableFlags(
+          enabledExperiments,
+        );
       }
 
       // Process optional checks options.
@@ -701,7 +693,7 @@ class _OptionsProcessor {
   }
 
   void _applyProcessors(AnalysisOptionsImpl options, YamlNode codes) {
-    ErrorConfig config = new ErrorConfig(codes);
+    ErrorConfig config = ErrorConfig(codes);
     options.errorProcessors = config.processors;
   }
 

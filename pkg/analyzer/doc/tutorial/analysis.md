@@ -2,6 +2,33 @@
 
 This document explains how to use the analyzer package to analyze Dart code.
 
+## Conceptual Model
+
+The analysis of Dart code depends on a set of metadata (data outside the code
+being analyzed). An _analysis context_ is a representation of a set of code that
+should be analyzed using the same sources of metadata (same package_spec.json
+file, same analysis options file, etc.). That set of code typically corresponds
+to a package.
+
+Despite the fact that the analyzer APIs do not support its use in an incremental
+system, it is used that way by the analysis server, and that fact has influenced
+the design of those APIs.
+
+Specifically, in an incremental system the metadata can change over time.
+Analysis results obtained with one state of the metadata won't necessarily be
+consistent with results obtained with a different state of the metadata. Clients
+that need to work in an incremental environment need to know whether the results
+are consistent. (Clients that aren't running in an incremental environment can
+typically ignore this complication.)
+
+An _analysis session_ provides a way for clients to know when newly requested
+results would be inconsistent with previously requested results. Each analysis
+session is associated with a single analysis context and represents a specific
+state of the metadata for that context. An instance of
+`InconsistentAnalysisException` is thrown by a session if the state of the
+metadata has changed since the session was created. This prevents clients from
+getting results that would be inconsistent.
+
 ## Configuring the Contexts
 
 If you want to use the analyzer package to analyze one or more files, then you

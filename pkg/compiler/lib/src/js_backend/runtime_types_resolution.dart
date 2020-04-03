@@ -390,22 +390,23 @@ class TypeVariableTests {
     }
 
     void processCheckedType(DartType type) {
-      if (type is InterfaceType) {
+      var typeWithoutNullability = type.withoutNullability;
+      if (typeWithoutNullability is InterfaceType) {
         // Register that if [cls] needs type arguments then so do the entities
         // that declare type variables occurring in [type].
-        ClassEntity cls = type.element;
-        registerDependencies(_getClassNode(cls), type);
+        ClassEntity cls = typeWithoutNullability.element;
+        registerDependencies(_getClassNode(cls), typeWithoutNullability);
       }
-      if (type is FutureOrType) {
-        // [type] is `FutureOr<X>`.
+      if (typeWithoutNullability is FutureOrType) {
+        // [typeWithoutNullability] is `FutureOr<X>`.
 
         // For the implied `is Future<X>` test, register that if `Future` needs
         // type arguments then so do the entities that declare type variables
         // occurring in `type.typeArgument`.
-        registerDependencies(
-            _getClassNode(commonElements.futureClass), type.typeArgument);
+        registerDependencies(_getClassNode(commonElements.futureClass),
+            typeWithoutNullability.typeArgument);
         // Process `type.typeArgument` for the implied `is X` test.
-        processCheckedType(type.typeArgument);
+        processCheckedType(typeWithoutNullability.typeArgument);
       }
     }
 
@@ -486,11 +487,12 @@ class TypeVariableTests {
     }
 
     void processType(DartType type, {bool direct: true}) {
-      if (type is FutureOrType) {
+      var typeWithoutNullability = type.withoutNullability;
+      if (typeWithoutNullability is FutureOrType) {
         _getClassNode(commonElements.futureClass).markIndirectTest();
-        processType(type.typeArgument, direct: false);
+        processType(typeWithoutNullability.typeArgument, direct: false);
       } else {
-        type.forEachTypeVariable((TypeVariableType type) {
+        typeWithoutNullability.forEachTypeVariable((TypeVariableType type) {
           processTypeVariableType(type, direct: direct);
         });
       }
@@ -568,10 +570,12 @@ class TypeVariableTests {
     /// If [type] is of the form `FutureOr<X>`, also register the implicit
     /// is-tests of `Future<X>` and `X`.
     void addImplicitCheck(DartType type) {
-      if (implicitIsChecks.add(type)) {
-        if (type is FutureOrType) {
-          addImplicitCheck(commonElements.futureType(type.typeArgument));
-          addImplicitCheck(type.typeArgument);
+      var typeWithoutNullability = type.withoutNullability;
+      if (implicitIsChecks.add(typeWithoutNullability)) {
+        if (typeWithoutNullability is FutureOrType) {
+          addImplicitCheck(
+              commonElements.futureType(typeWithoutNullability.typeArgument));
+          addImplicitCheck(typeWithoutNullability.typeArgument);
         }
       }
     }
@@ -581,9 +585,11 @@ class TypeVariableTests {
     }
 
     world.isChecks.forEach((DartType type) {
-      if (type is FutureOrType) {
-        addImplicitCheck(commonElements.futureType(type.typeArgument));
-        addImplicitCheck(type.typeArgument);
+      var typeWithoutNullability = type.withoutNullability;
+      if (typeWithoutNullability is FutureOrType) {
+        addImplicitCheck(
+            commonElements.futureType(typeWithoutNullability.typeArgument));
+        addImplicitCheck(typeWithoutNullability.typeArgument);
       }
     });
 
@@ -601,7 +607,7 @@ class TypeVariableTests {
         InterfaceType instance = types.asInstanceOf(type, cls);
         if (instance != null) {
           for (DartType argument in instance.typeArguments) {
-            addImplicitCheck(argument.unaliased);
+            addImplicitCheck(argument);
           }
         }
       }
@@ -644,7 +650,7 @@ abstract class RuntimeTypesNeed {
       DataSource source, ElementEnvironment elementEnvironment) {
     bool isTrivial = source.readBool();
     if (isTrivial) {
-      return const TrivialRuntimeTypesNeed();
+      return TrivialRuntimeTypesNeed(elementEnvironment);
     }
     return new RuntimeTypesNeedImpl.readFromDataSource(
         source, elementEnvironment);
@@ -653,7 +659,7 @@ abstract class RuntimeTypesNeed {
   /// Serializes this [RuntimeTypesNeed] to [sink].
   void writeToDataSink(DataSink sink);
 
-  /// Returns `true` if [cls] needs type arguments at runtime type.
+  /// Returns `true` if [cls] needs type arguments at runtime.
   ///
   /// This is for instance the case for generic classes used in a type test:
   ///
@@ -664,6 +670,10 @@ abstract class RuntimeTypesNeed {
   ///   }
   ///
   bool classNeedsTypeArguments(ClassEntity cls);
+
+  /// Returns `true` if [cls] is a generic class which does not need type
+  /// arguments at runtime.
+  bool classHasErasedTypeArguments(ClassEntity cls);
 
   /// Returns `true` if [method] needs type arguments at runtime type.
   ///
@@ -715,7 +725,9 @@ abstract class RuntimeTypesNeed {
 }
 
 class TrivialRuntimeTypesNeed implements RuntimeTypesNeed {
-  const TrivialRuntimeTypesNeed();
+  final ElementEnvironment _elementEnvironment;
+
+  const TrivialRuntimeTypesNeed(this._elementEnvironment);
 
   @override
   void writeToDataSink(DataSink sink) {
@@ -723,7 +735,11 @@ class TrivialRuntimeTypesNeed implements RuntimeTypesNeed {
   }
 
   @override
-  bool classNeedsTypeArguments(ClassEntity cls) => true;
+  bool classNeedsTypeArguments(ClassEntity cls) =>
+      _elementEnvironment.isGenericClass(cls);
+
+  @override
+  bool classHasErasedTypeArguments(ClassEntity cls) => false;
 
   @override
   bool methodNeedsSignature(FunctionEntity method) => true;
@@ -818,6 +834,13 @@ class RuntimeTypesNeedImpl implements RuntimeTypesNeed {
   }
 
   @override
+  bool classHasErasedTypeArguments(ClassEntity cls) {
+    assert(checkClass(cls));
+    if (!_elementEnvironment.isGenericClass(cls)) return false;
+    return !classesNeedingTypeArguments.contains(cls);
+  }
+
+  @override
   bool methodNeedsSignature(FunctionEntity function) {
     return methodsNeedingSignature.contains(function);
   }
@@ -878,7 +901,7 @@ class TrivialRuntimeTypesNeedBuilder implements RuntimeTypesNeedBuilder {
   @override
   RuntimeTypesNeed computeRuntimeTypesNeed(
       KClosedWorld closedWorld, CompilerOptions options) {
-    return const TrivialRuntimeTypesNeed();
+    return TrivialRuntimeTypesNeed(closedWorld.elementEnvironment);
   }
 }
 
@@ -1038,9 +1061,10 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
 
     void processChecks(Set<DartType> checks) {
       checks.forEach((DartType type) {
-        if (type.isInterfaceType) {
+        type = type.withoutNullability;
+        if (type is InterfaceType) {
           InterfaceType itf = type;
-          if (!itf.treatAsRaw) {
+          if (!closedWorld.dartTypes.treatAsRawType(itf)) {
             potentiallyNeedTypeArguments(itf.element);
           }
         } else {
@@ -1050,7 +1074,7 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
             Entity typeDeclaration = typeVariable.element.typeDeclaration;
             potentiallyNeedTypeArguments(typeDeclaration);
           });
-          if (type.isFunctionType) {
+          if (type is FunctionType) {
             checkClosures(potentialSubtypeOf: type);
           }
           if (type is FutureOrType) {
@@ -1083,9 +1107,7 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
     void checkFunction(Entity function, FunctionType type) {
       for (FunctionTypeVariable typeVariable in type.typeVariables) {
         DartType bound = typeVariable.bound;
-        if (!bound.isDynamic &&
-            !bound.isVoid &&
-            bound != closedWorld.commonElements.objectType) {
+        if (!closedWorld.dartTypes.isTopType(bound)) {
           potentiallyNeedTypeArguments(function);
           break;
         }
@@ -1123,6 +1145,7 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
     Set<ClassEntity> classesDirectlyNeedingRuntimeType = new Set<ClassEntity>();
 
     Iterable<ClassEntity> impliedClasses(DartType type) {
+      type = type.withoutNullability;
       if (type is InterfaceType) {
         return [type.element];
       } else if (type is DynamicType) {

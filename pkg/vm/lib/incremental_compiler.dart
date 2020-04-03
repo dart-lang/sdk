@@ -5,6 +5,7 @@
 /// Defines wrapper class around incremental compiler to support
 /// the flow, where incremental deltas can be rejected by VM.
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -18,24 +19,38 @@ const String kDebugProcedureName = ":Eval";
 /// accepted.
 class IncrementalCompiler {
   IncrementalKernelGenerator _generator;
+  IncrementalSerializer incrementalSerializer;
 
   // Component that reflect the state that was most recently accepted by the
   // client. Is [null], if no compilation results were accepted by the client.
   Component _lastKnownGood;
-
   List<Component> _pendingDeltas;
   CompilerOptions _compilerOptions;
   bool initialized = false;
   bool fullComponent = false;
   Uri initializeFromDillUri;
   Uri _entryPoint;
+  final bool forExpressionCompilationOnly;
 
   Uri get entryPoint => _entryPoint;
+  IncrementalKernelGenerator get generator => _generator;
 
   IncrementalCompiler(this._compilerOptions, this._entryPoint,
-      {this.initializeFromDillUri}) {
-    _generator = new IncrementalKernelGenerator(
-        _compilerOptions, _entryPoint, initializeFromDillUri);
+      {this.initializeFromDillUri, bool incrementalSerialization: true})
+      : forExpressionCompilationOnly = false {
+    if (incrementalSerialization) {
+      incrementalSerializer = new IncrementalSerializer();
+    }
+    _generator = new IncrementalKernelGenerator(_compilerOptions, _entryPoint,
+        initializeFromDillUri, false, incrementalSerializer);
+    _pendingDeltas = <Component>[];
+  }
+
+  IncrementalCompiler.forExpressionCompilationOnly(
+      Component component, this._compilerOptions, this._entryPoint)
+      : forExpressionCompilationOnly = true {
+    _generator = new IncrementalKernelGenerator.forExpressionCompilationOnly(
+        _compilerOptions, _entryPoint, component);
     _pendingDeltas = <Component>[];
   }
 
@@ -44,15 +59,21 @@ class IncrementalCompiler {
   /// If [entryPoint] is specified, that points to new entry point for the
   /// compilation. Otherwise, previously set entryPoint is used.
   Future<Component> compile({Uri entryPoint}) async {
-    _entryPoint = entryPoint ?? _entryPoint;
-    List<Uri> entryPoints;
-    if (entryPoint != null) entryPoints = [entryPoint];
-    Component component = await _generator.computeDelta(
-        entryPoints: entryPoints, fullComponent: fullComponent);
-    initialized = true;
-    fullComponent = false;
-    _pendingDeltas.add(component);
-    return _combinePendingDeltas(false);
+    final task = new TimelineTask();
+    try {
+      task.start("IncrementalCompiler.compile");
+      _entryPoint = entryPoint ?? _entryPoint;
+      List<Uri> entryPoints;
+      if (entryPoint != null) entryPoints = [entryPoint];
+      Component component = await _generator.computeDelta(
+          entryPoints: entryPoints, fullComponent: fullComponent);
+      initialized = true;
+      fullComponent = false;
+      _pendingDeltas.add(component);
+      return _combinePendingDeltas(false);
+    } finally {
+      task.finish();
+    }
   }
 
   _combinePendingDeltas(bool includePlatform) {
@@ -85,6 +106,10 @@ class IncrementalCompiler {
   /// were accepted, don't need to be included into subsequent [compile] calls
   /// results.
   accept() {
+    if (forExpressionCompilationOnly) {
+      throw new StateError("Incremental compiler created for expression "
+          "compilation only; cannot accept");
+    }
     Map<Uri, Library> combined = <Uri, Library>{};
     Map<Uri, Source> uriToSource = <Uri, Source>{};
 
@@ -117,11 +142,18 @@ class IncrementalCompiler {
   /// were rejected. Subsequent [compile] or [compileExpression] calls need to
   /// be processed without changes picked up by rejected [compile] call.
   reject() async {
+    if (forExpressionCompilationOnly) {
+      throw new StateError("Incremental compiler created for expression "
+          "compilation only; cannot reject");
+    }
     _pendingDeltas.clear();
     // Need to reset and warm up compiler so that expression evaluation requests
     // are processed in that known good state.
-    _generator = new IncrementalKernelGenerator.fromComponent(
-        _compilerOptions, _entryPoint, _lastKnownGood);
+    if (incrementalSerializer != null) {
+      incrementalSerializer = new IncrementalSerializer();
+    }
+    _generator = new IncrementalKernelGenerator.fromComponent(_compilerOptions,
+        _entryPoint, _lastKnownGood, false, incrementalSerializer);
     await _generator.computeDelta(entryPoints: [_entryPoint]);
   }
 

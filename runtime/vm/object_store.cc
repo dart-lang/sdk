@@ -42,9 +42,6 @@ void ObjectStore::Init(Isolate* isolate) {
 
 #ifndef PRODUCT
 void ObjectStore::PrintToJSONObject(JSONObject* jsobj) {
-  if (!FLAG_support_service) {
-    return;
-  }
   jsobj->AddProperty("type", "_ObjectStore");
 
   {
@@ -79,8 +76,6 @@ RawError* ObjectStore::PreallocateObjects() {
   ASSERT(this->stack_overflow() == Instance::null());
   ASSERT(this->out_of_memory() == Instance::null());
   ASSERT(this->preallocated_stack_trace() == StackTrace::null());
-
-  this->pending_deferred_loads_ = GrowableObjectArray::New();
 
   this->closure_functions_ = GrowableObjectArray::New();
   this->resume_capabilities_ = GrowableObjectArray::New();
@@ -136,7 +131,7 @@ void ObjectStore::InitKnownObjects() {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Class& cls = Class::Handle(zone);
-  const Library& collection_lib = Library::Handle(collection_library());
+  const Library& collection_lib = Library::Handle(zone, collection_library());
   cls = collection_lib.LookupClassAllowPrivate(Symbols::_LinkedHashSet());
   ASSERT(!cls.IsNull());
   set_linked_hash_set_class(cls);
@@ -148,7 +143,7 @@ void ObjectStore::InitKnownObjects() {
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL && isolate->object_store() == this);
 
-  const Library& async_lib = Library::Handle(async_library());
+  const Library& async_lib = Library::Handle(zone, async_library());
   ASSERT(!async_lib.IsNull());
   cls = async_lib.LookupClass(Symbols::Future());
   ASSERT(!cls.IsNull());
@@ -200,7 +195,7 @@ void ObjectStore::InitKnownObjects() {
   if (FLAG_async_debugger) {
     // Disable debugging and inlining of all functions on the
     // _AsyncStarStreamController class.
-    const Array& functions = Array::Handle(cls.functions());
+    const Array& functions = Array::Handle(zone, cls.functions());
     for (intptr_t i = 0; i < functions.Length(); i++) {
       function ^= functions.At(i);
       if (function.IsNull()) {
@@ -211,11 +206,11 @@ void ObjectStore::InitKnownObjects() {
     }
   }
 
-  const Library& internal_lib = Library::Handle(_internal_library());
+  const Library& internal_lib = Library::Handle(zone, _internal_library());
   cls = internal_lib.LookupClass(Symbols::Symbol());
   set_symbol_class(cls);
 
-  const Library& core_lib = Library::Handle(core_library());
+  const Library& core_lib = Library::Handle(zone, core_library());
   cls = core_lib.LookupClassAllowPrivate(Symbols::_CompileTimeError());
   ASSERT(!cls.IsNull());
   set_compiletime_error_class(cls);
@@ -223,8 +218,8 @@ void ObjectStore::InitKnownObjects() {
   cls = core_lib.LookupClassAllowPrivate(Symbols::Pragma());
   ASSERT(!cls.IsNull());
   set_pragma_class(cls);
-  set_pragma_name(Field::Handle(cls.LookupField(Symbols::name())));
-  set_pragma_options(Field::Handle(cls.LookupField(Symbols::options())));
+  set_pragma_name(Field::Handle(zone, cls.LookupField(Symbols::name())));
+  set_pragma_options(Field::Handle(zone, cls.LookupField(Symbols::options())));
 
   cls = core_lib.LookupClassAllowPrivate(Symbols::_GrowableList());
   ASSERT(!cls.IsNull());
@@ -239,7 +234,41 @@ void ObjectStore::InitKnownObjects() {
       PrivateObjectLookup(Symbols::_simpleInstanceOfTrue());
   simple_instance_of_false_function_ =
       PrivateObjectLookup(Symbols::_simpleInstanceOfFalse());
+
+  // Ensure AddSmiSmiCheckForFastSmiStubs run by the background compiler
+  // will not create new functions.
+  const Class& smi_class = Class::Handle(zone, this->smi_class());
+  function_name =
+      Function::CreateDynamicInvocationForwarderName(Symbols::Plus());
+  Resolver::ResolveDynamicAnyArgs(zone, smi_class, function_name);
+  function_name =
+      Function::CreateDynamicInvocationForwarderName(Symbols::Minus());
+  Resolver::ResolveDynamicAnyArgs(zone, smi_class, function_name);
+  function_name =
+      Function::CreateDynamicInvocationForwarderName(Symbols::Equals());
+  Resolver::ResolveDynamicAnyArgs(zone, smi_class, function_name);
+  function_name =
+      Function::CreateDynamicInvocationForwarderName(Symbols::LAngleBracket());
+  Resolver::ResolveDynamicAnyArgs(zone, smi_class, function_name);
+  function_name =
+      Function::CreateDynamicInvocationForwarderName(Symbols::RAngleBracket());
+  Resolver::ResolveDynamicAnyArgs(zone, smi_class, function_name);
+  function_name =
+      Function::CreateDynamicInvocationForwarderName(Symbols::BitAnd());
+  Resolver::ResolveDynamicAnyArgs(zone, smi_class, function_name);
+  function_name =
+      Function::CreateDynamicInvocationForwarderName(Symbols::BitOr());
+  Resolver::ResolveDynamicAnyArgs(zone, smi_class, function_name);
+  function_name =
+      Function::CreateDynamicInvocationForwarderName(Symbols::Star());
+  Resolver::ResolveDynamicAnyArgs(zone, smi_class, function_name);
 #endif
+}
+
+void ObjectStore::PostLoad() {
+  resume_capabilities_ = GrowableObjectArray::New();
+  exit_listeners_ = GrowableObjectArray::New();
+  error_listeners_ = GrowableObjectArray::New();
 }
 
 }  // namespace dart

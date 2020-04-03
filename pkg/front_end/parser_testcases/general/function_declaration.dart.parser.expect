@@ -1,0 +1,9 @@
+main() {
+local() {}
+}
+
+
+main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+local[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

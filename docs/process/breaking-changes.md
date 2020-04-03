@@ -77,7 +77,7 @@ to a change being released in a dev channel release.
   * A request that developers may leave comments in the linked issue, if this
     breaking change poses a severe problem.
 
-* Once you have sent the announce email, please let `aadilmaan@google.com` know
+* Once you have sent the announce email, please let 'frankyow@google.com` know
 as he will help drive the request through approval review process.
 
 ### Step 2: Approval

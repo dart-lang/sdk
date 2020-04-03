@@ -12,7 +12,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'constants.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NotificationTest);
     defineReflectiveTests(RequestTest);
@@ -24,28 +24,28 @@ main() {
 @reflectiveTest
 class NotificationTest {
   void test_fromJson() {
-    Notification original = new Notification('foo');
-    Notification notification = new Notification.fromJson(original.toJson());
+    var original = Notification('foo');
+    var notification = Notification.fromJson(original.toJson());
     expect(notification.event, equals('foo'));
     expect(notification.toJson().keys, isNot(contains('params')));
   }
 
   void test_fromJson_withParams() {
-    Notification original = new Notification('foo', {'x': 'y'});
-    Notification notification = new Notification.fromJson(original.toJson());
+    var original = Notification('foo', {'x': 'y'});
+    var notification = Notification.fromJson(original.toJson());
     expect(notification.event, equals('foo'));
     expect(notification.toJson()['params'], equals({'x': 'y'}));
   }
 
   void test_toJson_noParams() {
-    Notification notification = new Notification('foo');
+    var notification = Notification('foo');
     expect(notification.event, equals('foo'));
     expect(notification.toJson().keys, isNot(contains('params')));
     expect(notification.toJson(), equals({'event': 'foo'}));
   }
 
   void test_toJson_withParams() {
-    Notification notification = new Notification('foo', {'x': 'y'});
+    var notification = Notification('foo', {'x': 'y'});
     expect(notification.event, equals('foo'));
     expect(notification.toJson()['params'], equals({'x': 'y'}));
     expect(
@@ -60,11 +60,10 @@ class NotificationTest {
 @reflectiveTest
 class RequestErrorTest {
   void test_create() {
-    RequestError error =
-        new RequestError(RequestErrorCode.INVALID_REQUEST, 'msg');
+    var error = RequestError(RequestErrorCode.INVALID_REQUEST, 'msg');
     expect(error.code, RequestErrorCode.INVALID_REQUEST);
-    expect(error.message, "msg");
-    expect(error.toJson(), equals({CODE: 'INVALID_REQUEST', MESSAGE: "msg"}));
+    expect(error.message, 'msg');
+    expect(error.toJson(), equals({CODE: 'INVALID_REQUEST', MESSAGE: 'msg'}));
   }
 
   void test_fromJson() {
@@ -74,17 +73,15 @@ class RequestErrorTest {
       MESSAGE: 'foo',
       STACK_TRACE: trace
     };
-    RequestError error =
-        new RequestError.fromJson(new ResponseDecoder(null), '', json);
+    var error = RequestError.fromJson(ResponseDecoder(null), '', json);
     expect(error.code, RequestErrorCode.INVALID_PARAMETER);
-    expect(error.message, "foo");
+    expect(error.message, 'foo');
     expect(error.stackTrace, trace);
   }
 
   void test_toJson() {
     var trace = 'a stack trace\r\nbar';
-    RequestError error = new RequestError(
-        RequestErrorCode.UNKNOWN_REQUEST, 'msg',
+    var error = RequestError(RequestErrorCode.UNKNOWN_REQUEST, 'msg',
         stackTrace: trace);
     expect(error.toJson(),
         {CODE: 'UNKNOWN_REQUEST', MESSAGE: 'msg', STACK_TRACE: trace});
@@ -94,70 +91,68 @@ class RequestErrorTest {
 @reflectiveTest
 class RequestTest {
   void test_fromJson() {
-    Request original = new Request('one', 'aMethod');
-    String jsonData = json.encode(original.toJson());
-    Request request = new Request.fromString(jsonData);
+    var original = Request('one', 'aMethod');
+    var jsonData = json.encode(original.toJson());
+    var request = Request.fromString(jsonData);
     expect(request.id, equals('one'));
     expect(request.method, equals('aMethod'));
     expect(request.clientRequestTime, isNull);
   }
 
   void test_fromJson_invalidId() {
-    String json =
-        '{"id":{"one":"two"},"method":"aMethod","params":{"foo":"bar"}}';
-    Request request = new Request.fromString(json);
+    var json = '{"id":{"one":"two"},"method":"aMethod","params":{"foo":"bar"}}';
+    var request = Request.fromString(json);
     expect(request, isNull);
   }
 
   void test_fromJson_invalidMethod() {
-    String json =
-        '{"id":"one","method":{"boo":"aMethod"},"params":{"foo":"bar"}}';
-    Request request = new Request.fromString(json);
+    var json = '{"id":"one","method":{"boo":"aMethod"},"params":{"foo":"bar"}}';
+    var request = Request.fromString(json);
     expect(request, isNull);
   }
 
   void test_fromJson_invalidParams() {
-    String json = '{"id":"one","method":"aMethod","params":"foobar"}';
-    Request request = new Request.fromString(json);
+    var json = '{"id":"one","method":"aMethod","params":"foobar"}';
+    var request = Request.fromString(json);
     expect(request, isNull);
   }
 
   void test_fromJson_withBadClientTime() {
-    Request original = new Request('one', 'aMethod', null, 347);
-    Map<String, Object> map = original.toJson();
+    var original = Request('one', 'aMethod', null, 347);
+    var map = original.toJson();
     // Insert bad value - should be int but client sent string instead
     map[Request.CLIENT_REQUEST_TIME] = '347';
-    String jsonData = json.encode(map);
-    Request request = new Request.fromString(jsonData);
+    var jsonData = json.encode(map);
+    var request = Request.fromString(jsonData);
     expect(request, isNull);
   }
 
   void test_fromJson_withClientTime() {
-    Request original = new Request('one', 'aMethod', null, 347);
-    String jsonData = json.encode(original.toJson());
-    Request request = new Request.fromString(jsonData);
+    var original = Request('one', 'aMethod', null, 347);
+    var jsonData = json.encode(original.toJson());
+    var request = Request.fromString(jsonData);
     expect(request.id, equals('one'));
     expect(request.method, equals('aMethod'));
     expect(request.clientRequestTime, 347);
   }
 
   void test_fromJson_withParams() {
-    Request original = new Request('one', 'aMethod', {'foo': 'bar'});
-    String jsonData = json.encode(original.toJson());
-    Request request = new Request.fromString(jsonData);
+    var original = Request('one', 'aMethod', {'foo': 'bar'});
+    var jsonData = json.encode(original.toJson());
+    var request = Request.fromString(jsonData);
     expect(request.id, equals('one'));
     expect(request.method, equals('aMethod'));
     expect(request.toJson()['params'], equals({'foo': 'bar'}));
   }
 
   void test_toJson() {
-    Request request = new Request('one', 'aMethod');
+    var request = Request('one', 'aMethod');
     expect(request.toJson(),
         equals({Request.ID: 'one', Request.METHOD: 'aMethod'}));
   }
 
   void test_toJson_withParams() {
-    Request request = new Request('one', 'aMethod', {'foo': 'bar'});
+    var request = Request('one', 'aMethod', {'foo': 'bar'});
     expect(
         request.toJson(),
         equals({
@@ -171,7 +166,7 @@ class RequestTest {
 @reflectiveTest
 class ResponseTest {
   void test_create_invalidRequestFormat() {
-    Response response = new Response.invalidRequestFormat();
+    var response = Response.invalidRequestFormat();
     expect(response.id, equals(''));
     expect(response.error, isNotNull);
     expect(
@@ -186,7 +181,7 @@ class ResponseTest {
   }
 
   void test_create_unknownRequest() {
-    Response response = new Response.unknownRequest(new Request('0', ''));
+    var response = Response.unknownRequest(Request('0', ''));
     expect(response.id, equals('0'));
     expect(response.error, isNotNull);
     expect(
@@ -201,27 +196,26 @@ class ResponseTest {
   }
 
   void test_fromJson() {
-    Response original = new Response('myId');
-    Response response = new Response.fromJson(original.toJson());
+    var original = Response('myId');
+    var response = Response.fromJson(original.toJson());
     expect(response.id, equals('myId'));
   }
 
   void test_fromJson_withError() {
-    Response original = new Response.invalidRequestFormat();
-    Response response = new Response.fromJson(original.toJson());
+    var original = Response.invalidRequestFormat();
+    var response = Response.fromJson(original.toJson());
     expect(response.id, equals(''));
     expect(response.error, isNotNull);
-    RequestError error = response.error;
+    var error = response.error;
     expect(error.code, equals(RequestErrorCode.INVALID_REQUEST));
     expect(error.message, equals('Invalid request'));
   }
 
   void test_fromJson_withResult() {
-    Response original = new Response('myId', result: {'foo': 'bar'});
-    Response response = new Response.fromJson(original.toJson());
+    var original = Response('myId', result: {'foo': 'bar'});
+    var response = Response.fromJson(original.toJson());
     expect(response.id, equals('myId'));
-    Map<String, Object> result =
-        response.toJson()['result'] as Map<String, Object>;
+    var result = response.toJson()['result'] as Map<String, Object>;
     expect(result.length, equals(1));
     expect(result['foo'], equals('bar'));
   }

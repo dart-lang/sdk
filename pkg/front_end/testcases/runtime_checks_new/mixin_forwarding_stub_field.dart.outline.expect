@@ -1,4 +1,18 @@
 library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/runtime_checks_new/mixin_forwarding_stub_field.dart:51:7: Error: The mixin application class 'C' introduces an erroneous override of 'y'.
+// class C = B with M implements I<int>;
+//       ^
+// pkg/front_end/testcases/runtime_checks_new/mixin_forwarding_stub_field.dart:48:7: Context: The field 'M.y' has type 'int', which does not match the corresponding type, 'Object', in the overridden setter, 'I.y'.
+//  - 'Object' is from 'dart:core'.
+//   int y;
+//       ^
+// pkg/front_end/testcases/runtime_checks_new/mixin_forwarding_stub_field.dart:43:12: Context: This is the overridden method ('y').
+//   void set y(covariant Object value);
+//            ^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -32,10 +46,10 @@ class C = self::B with self::M implements self::I<core::int*> {
   synthetic constructor •() → self::C*
     : super self::B::•()
     ;
-  forwarding-stub set y(covariant core::Object* value) → void
-    return super.{self::B::y} = value;
   forwarding-stub set x(generic-covariant-impl core::int* _) → void
     return super.{self::B::x} = _;
+  forwarding-stub set y(covariant core::Object* value) → void
+    return super.{self::B::y} = value;
 }
 static method expectTypeError(() →* void callback) → void
   ;

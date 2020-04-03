@@ -19,9 +19,6 @@ DART_ROOT = os.path.realpath(os.path.join(SCRIPT_DIR, '..'))
 GN = os.path.join(DART_ROOT, 'buildtools', 'gn')
 
 # Environment variables for default settings.
-DART_USE_ASAN = "DART_USE_ASAN"  # Use instead of --asan
-DART_USE_MSAN = "DART_USE_MSAN"  # Use instead of --msan
-DART_USE_TSAN = "DART_USE_TSAN"  # Use instead of --tsan
 DART_USE_TOOLCHAIN = "DART_USE_TOOLCHAIN"  # Use instread of --toolchain-prefix
 DART_USE_SYSROOT = "DART_USE_SYSROOT"  # Use instead of --target-sysroot
 DART_USE_CRASHPAD = "DART_USE_CRASHPAD"  # Use instead of --use-crashpad
@@ -29,18 +26,6 @@ DART_USE_CRASHPAD = "DART_USE_CRASHPAD"  # Use instead of --use-crashpad
 DART_MAKE_PLATFORM_SDK = "DART_MAKE_PLATFORM_SDK"
 
 DART_GN_ARGS = "DART_GN_ARGS"
-
-
-def UseASAN():
-    return DART_USE_ASAN in os.environ
-
-
-def UseMSAN():
-    return DART_USE_MSAN in os.environ
-
-
-def UseTSAN():
-    return DART_USE_TSAN in os.environ
 
 
 def ToolchainPrefix(args):
@@ -66,8 +51,10 @@ def GetGNArgs(args):
     return args.split()
 
 
-def GetOutDir(mode, arch, target_os):
-    return utils.GetBuildRoot(HOST_OS, mode, arch, target_os)
+# TODO(38701): Remove use_nnbd once the forked NNBD SDK is merged back in.
+def GetOutDir(mode, arch, target_os, sanitizer, use_nnbd):
+    return utils.GetBuildRoot(HOST_OS, mode, arch, target_os, sanitizer,
+                              use_nnbd)
 
 
 def ToCommandLine(gn_args):
@@ -84,28 +71,21 @@ def ToCommandLine(gn_args):
 
 def HostCpuForArch(arch):
     if arch in [
-            'ia32', 'arm', 'armv6', 'armv5te', 'simarm', 'simarmv6',
-            'simarmv5te', 'simdbc', 'armsimdbc', 'simarm_x64'
+            'ia32', 'arm', 'armv6', 'simarm', 'simarmv6', 'simarm_x64'
     ]:
         return 'x86'
-    if arch in ['x64', 'arm64', 'simarm64', 'simdbc64', 'armsimdbc64']:
+    if arch in ['x64', 'arm64', 'simarm64', 'arm_x64']:
         return 'x64'
 
 
 # The C compiler's target.
 def TargetCpuForArch(arch, target_os):
-    if arch in ['ia32', 'simarm', 'simarmv6', 'simarmv5te']:
+    if arch in ['ia32', 'simarm', 'simarmv6']:
         return 'x86'
     if arch in ['x64', 'simarm64', 'simarm_x64']:
         return 'x64'
-    if arch == 'simdbc':
-        return 'arm' if target_os == 'android' else 'x86'
-    if arch in ['simdbc64']:
-        return 'arm64' if target_os == 'android' else 'x64'
-    if arch == 'armsimdbc':
+    if arch == 'arm_x64':
         return 'arm'
-    if arch == 'armsimdbc64':
-        return 'arm64'
     return arch
 
 
@@ -115,16 +95,12 @@ def DartTargetCpuForArch(arch):
         return 'ia32'
     if arch in ['x64']:
         return 'x64'
-    if arch in ['arm', 'simarm', 'simarm_x64']:
+    if arch in ['arm', 'simarm', 'simarm_x64', 'arm_x64']:
         return 'arm'
     if arch in ['armv6', 'simarmv6']:
         return 'armv6'
-    if arch in ['armv5te', 'simarmv5te']:
-        return 'armv5te'
     if arch in ['arm64', 'simarm64']:
         return 'arm64'
-    if arch in ['simdbc', 'simdbc64', 'armsimdbc', 'armsimdbc64']:
-        return 'dbc'
     return arch
 
 
@@ -146,10 +122,6 @@ def ParseStringMap(key, string_map):
     return None
 
 
-def UseSanitizer(args):
-    return args.asan or args.msan or args.tsan
-
-
 def DontUseClang(args, target_os, host_cpu, target_cpu):
     # We don't have clang on Windows.
     return target_os == 'win'
@@ -166,7 +138,8 @@ def UseSysroot(args, gn_args):
     return True
 
 
-def ToGnArgs(args, mode, arch, target_os):
+# TODO(38701): Remove use_nnbd once the forked NNBD SDK is merged back in.
+def ToGnArgs(args, mode, arch, target_os, sanitizer, use_nnbd):
     gn_args = {}
 
     host_os = HostOsForGn(HOST_OS)
@@ -202,7 +175,7 @@ def ToGnArgs(args, mode, arch, target_os):
 
     # Use tcmalloc only when targeting Linux and when not using ASAN.
     gn_args['dart_use_tcmalloc'] = ((gn_args['target_os'] == 'linux') and
-                                    not UseSanitizer(args))
+                                    sanitizer == 'none')
 
     if gn_args['target_os'] == 'linux':
         if gn_args['target_cpu'] == 'arm':
@@ -217,8 +190,6 @@ def ToGnArgs(args, mode, arch, target_os):
             gn_args['target_cpu'] = 'arm'
             gn_args['arm_version'] = 6
             gn_args['arm_float_abi'] = floatabi
-        elif gn_args['target_cpu'] == 'armv5te':
-            raise Exception("GN support for armv5te unimplemented")
 
     gn_args['is_debug'] = mode == 'debug'
     gn_args['is_release'] = mode == 'release'
@@ -242,14 +213,19 @@ def ToGnArgs(args, mode, arch, target_os):
     enable_code_coverage = args.code_coverage and gn_args['is_clang']
     gn_args['dart_vm_code_coverage'] = enable_code_coverage
 
-    gn_args['is_asan'] = args.asan and gn_args['is_clang']
-    gn_args['is_msan'] = args.msan and gn_args['is_clang']
-    gn_args['is_tsan'] = args.tsan and gn_args['is_clang']
+    gn_args['is_asan'] = sanitizer == 'asan'
+    gn_args['is_lsan'] = sanitizer == 'lsan'
+    gn_args['is_msan'] = sanitizer == 'msan'
+    gn_args['is_tsan'] = sanitizer == 'tsan'
+    gn_args['is_ubsan'] = sanitizer == 'ubsan'
+    gn_args['include_dart2native'] = True
+    gn_args['is_qemu'] = args.use_qemu
 
     if not args.platform_sdk and not gn_args['target_cpu'].startswith('arm'):
         gn_args['dart_platform_sdk'] = args.platform_sdk
     gn_args['dart_stripped_binary'] = 'exe.stripped/dart'
-    gn_args['dartaotruntime_stripped_binary'] = 'exe.stripped/dartaotruntime'
+    gn_args[
+        'dart_precompiled_runtime_stripped_binary'] = 'exe.stripped/dart_precompiled_runtime'
     gn_args['gen_snapshot_stripped_binary'] = 'exe.stripped/gen_snapshot'
 
     # Setup the user-defined sysroot.
@@ -284,6 +260,8 @@ def ToGnArgs(args, mode, arch, target_os):
         gn_args['dart_debug_optimization_level'] = args.debug_opt_level
         gn_args['debug_optimization_level'] = args.debug_opt_level
 
+    gn_args['use_nnbd'] = use_nnbd
+
     return gn_args
 
 
@@ -295,23 +273,25 @@ def ProcessOsOption(os_name):
 
 def ProcessOptions(args):
     if args.arch == 'all':
-        args.arch = 'ia32,x64,simarm,simarm64,simdbc64'
+        args.arch = 'ia32,x64,simarm,simarm64'
     if args.mode == 'all':
         args.mode = 'debug,release,product'
     if args.os == 'all':
         args.os = 'host,android'
+    if args.sanitizer == 'all':
+        args.sanitizer = 'none,asan,lsan,msan,tsan,ubsan'
     args.mode = args.mode.split(',')
     args.arch = args.arch.split(',')
     args.os = args.os.split(',')
+    args.sanitizer = args.sanitizer.split(',')
     for mode in args.mode:
         if not mode in ['debug', 'release', 'product']:
             print("Unknown mode %s" % mode)
             return False
     for arch in args.arch:
         archs = [
-            'ia32', 'x64', 'simarm', 'arm', 'simarmv6', 'armv6', 'simarmv5te',
-            'armv5te', 'simarm64', 'arm64', 'simdbc', 'simdbc64', 'armsimdbc',
-            'armsimdbc64', 'simarm_x64'
+            'ia32', 'x64', 'simarm', 'arm', 'arm_x64', 'simarmv6', 'armv6',
+            'simarm64', 'arm64', 'simarm_x64'
         ]
         if not arch in archs:
             print("Unknown arch %s" % arch)
@@ -330,8 +310,7 @@ def ProcessOptions(args):
                       % (os_name, HOST_OS))
                 return False
             if not arch in [
-                    'ia32', 'x64', 'arm', 'armv6', 'armv5te', 'arm64', 'simdbc',
-                    'simdbc64'
+                    'ia32', 'x64', 'arm', 'arm_x64', 'armv6', 'arm64'
             ]:
                 print(
                     "Cross-compilation to %s is not supported for architecture %s."
@@ -369,8 +348,8 @@ def parse_args(args):
         '-a',
         type=str,
         help='Target architectures (comma-separated).',
-        metavar='[all,ia32,x64,simarm,arm,simarmv6,armv6,simarmv5te,armv5te,'
-        'simarm64,arm64,simdbc,armsimdbc,simarm_x64]',
+        metavar='[all,ia32,x64,simarm,arm,arm_x64,simarmv6,armv6,'
+        'simarm64,arm64,simarm_x64]',
         default='x64')
     common_group.add_argument(
         '--mode',
@@ -386,6 +365,18 @@ def parse_args(args):
         metavar='[all,host,android]',
         default='host')
     common_group.add_argument(
+        '--sanitizer',
+        type=str,
+        help='Build variants (comma-separated).',
+        metavar='[all,none,asan,lsan,msan,tsan,ubsan]',
+        default='none')
+    # TODO(38701): Remove this once the forked NNBD SDK is merged back in.
+    common_group.add_argument(
+        "--nnbd",
+        help='Use the NNBD fork of the SDK.',
+        default=False,
+        action='store_true')
+    common_group.add_argument(
         "-v",
         "--verbose",
         help='Verbose output.',
@@ -399,18 +390,16 @@ def parse_args(args):
         metavar='[soft,softfp,hard]',
         default='')
     other_group.add_argument(
-        '--asan',
-        help='Build with ASAN',
-        default=UseASAN(),
-        action='store_true')
-    other_group.add_argument(
-        '--no-asan', help='Disable ASAN', dest='asan', action='store_false')
-    other_group.add_argument(
         '--bytecode',
         '-b',
-        help='Include bytecode in the VMs platform dill',
+        help='Use bytecode in Dart VM',
         default=False,
         action="store_true")
+    other_group.add_argument(
+        '--no-bytecode',
+        help='Disable bytecode in Dart VM',
+        dest='bytecode',
+        action="store_false")
     other_group.add_argument(
         '--clang', help='Use Clang', default=True, action='store_true')
     other_group.add_argument(
@@ -442,13 +431,6 @@ def parse_args(args):
         dest='exclude_kernel_service',
         action='store_true')
     other_group.add_argument(
-        '--msan',
-        help='Build with MSAN',
-        default=UseMSAN(),
-        action='store_true')
-    other_group.add_argument(
-        '--no-msan', help='Disable MSAN', dest='msan', action='store_false')
-    other_group.add_argument(
         '--gn-args', help='Set extra GN args', dest='gn_args', action='append')
     other_group.add_argument(
         '--platform-sdk',
@@ -465,13 +447,6 @@ def parse_args(args):
         '-t',
         type=str,
         help='Comma-separated list of arch=/path/to/toolchain-prefix mappings')
-    other_group.add_argument(
-        '--tsan',
-        help='Build with TSAN',
-        default=UseTSAN(),
-        action='store_true')
-    other_group.add_argument(
-        '--no-tsan', help='Disable TSAN', dest='tsan', action='store_false')
     other_group.add_argument(
         '--wheezy',
         help='This flag is deprecated.',
@@ -494,6 +469,11 @@ def parse_args(args):
         default=False,
         dest='use_crashpad',
         action='store_true')
+    other_group.add_argument(
+        '--use-qemu',
+        default=False,
+        dest='use_qemu',
+        action='store_true')
 
     options = parser.parse_args(args)
     if not ProcessOptions(options):
@@ -513,7 +493,6 @@ def RunCommand(command):
         return ("Command failed: " + ' '.join(command) + "\n" + "output: " +
                 e.output)
 
-
 def Main(argv):
     starttime = time.time()
     args = parse_args(argv)
@@ -528,19 +507,23 @@ def Main(argv):
     for target_os in args.os:
         for mode in args.mode:
             for arch in args.arch:
-                out_dir = GetOutDir(mode, arch, target_os)
-                # TODO(infra): Re-enable --check. Many targets fail to use
-                # public_deps to re-expose header files to their dependents.
-                # See dartbug.com/32364
-                command = [gn, 'gen', out_dir]
-                gn_args = ToCommandLine(ToGnArgs(args, mode, arch, target_os))
-                gn_args += GetGNArgs(args)
-                if args.verbose:
-                    print("gn gen --check in %s" % out_dir)
-                if args.ide:
-                    command.append(ide_switch(HOST_OS))
-                command.append('--args=%s' % ' '.join(gn_args))
-                commands.append(command)
+                for sanitizer in args.sanitizer:
+                    out_dir = GetOutDir(mode, arch, target_os, sanitizer,
+                                        args.nnbd)
+                    # TODO(infra): Re-enable --check. Many targets fail to use
+                    # public_deps to re-expose header files to their dependents.
+                    # See dartbug.com/32364
+                    command = [gn, 'gen', out_dir]
+                    gn_args = ToCommandLine(
+                        ToGnArgs(args, mode, arch, target_os, sanitizer,
+                                 args.nnbd))
+                    gn_args += GetGNArgs(args)
+                    if args.verbose:
+                        print("gn gen --check in %s" % out_dir)
+                    if args.ide:
+                        command.append(ide_switch(HOST_OS))
+                    command.append('--args=%s' % ' '.join(gn_args))
+                    commands.append(command)
 
     pool = multiprocessing.Pool(args.workers)
     results = pool.map(RunCommand, commands, chunksize=1)

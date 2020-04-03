@@ -65,12 +65,12 @@ Set<String> okSetSelectorSet = new Set<String>.from(const <String>[
 ]);
 
 class SetTracerVisitor extends TracerVisitor {
-  List<TypeInformation> assignments = <TypeInformation>[];
+  List<TypeInformation> inputs = <TypeInformation>[];
 
   SetTracerVisitor(tracedType, inferrer) : super(tracedType, inferrer);
 
   /// Returns [true] if the analysis completed successfully, [false] if it
-  /// bailed out. In the former case, [assignments] holds a list of
+  /// bailed out. In the former case, [inputs] holds a list of
   /// [TypeInformation] nodes that flow into the element type of this set.
   bool run() {
     analyze();
@@ -79,7 +79,7 @@ class SetTracerVisitor extends TracerVisitor {
       set.addFlowsIntoTargets(flowsInto);
       return true;
     }
-    assignments = null;
+    inputs = null;
     return false;
   }
 
@@ -108,7 +108,7 @@ class SetTracerVisitor extends TracerVisitor {
         if (selector.isCall) {
           switch (selectorName) {
             case 'add':
-              assignments.add(info.arguments.positional[0]);
+              inputs.add(info.arguments.positional[0]);
               break;
             case 'addAll':
               // TODO(fishythefish): Extract type argument from type

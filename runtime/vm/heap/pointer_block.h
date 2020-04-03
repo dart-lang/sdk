@@ -45,6 +45,8 @@ class PointerBlock {
 
 #if defined(TESTING)
   bool Contains(RawObject* obj) const {
+    // Generated code appends to store buffers; tell MemorySanitizer.
+    MSAN_UNPOISON(this, sizeof(*this));
     for (intptr_t i = 0; i < Count(); i++) {
       if (pointers_[i] == obj) {
         return true;

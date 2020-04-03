@@ -105,7 +105,6 @@ static TimelineEventRecorder* CreateTimelineRecorder() {
 
   const bool use_startup_recorder = FLAG_startup_timeline;
   const bool use_systrace_recorder = FLAG_systrace_timeline;
-
   const char* flag = FLAG_timeline_recorder;
 
   if (use_systrace_recorder || (flag != NULL)) {
@@ -116,7 +115,11 @@ static TimelineEventRecorder* CreateTimelineRecorder() {
 
 #if defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
       return new TimelineEventSystraceRecorder();
-#elif defined(HOST_OS_FUCHSIA) && !defined(FUCHSIA_SDK)
+#elif defined(HOST_OS_MACOS)
+      if (__builtin_available(iOS 12.0, macOS 10.14, *)) {
+        return new TimelineEventMacosRecorder();
+      }
+#elif defined(HOST_OS_FUCHSIA)
       return new TimelineEventFuchsiaRecorder();
 #else
       OS::PrintErr(
@@ -392,7 +395,8 @@ TimelineEvent::TimelineEvent()
       label_(NULL),
       stream_(NULL),
       thread_(OSThread::kInvalidThreadId),
-      isolate_id_(ILLEGAL_PORT) {}
+      isolate_id_(ILLEGAL_PORT),
+      isolate_group_id_(0) {}
 
 TimelineEvent::~TimelineEvent() {
   Reset();
@@ -405,6 +409,7 @@ void TimelineEvent::Reset() {
   state_ = 0;
   thread_ = OSThread::kInvalidThreadId;
   isolate_id_ = ILLEGAL_PORT;
+  isolate_group_id_ = 0;
   stream_ = NULL;
   label_ = NULL;
   arguments_.Free();
@@ -557,12 +562,11 @@ void TimelineEvent::Init(EventType event_type, const char* label) {
   OSThread* os_thread = OSThread::Current();
   ASSERT(os_thread != NULL);
   thread_ = os_thread->trace_id();
-  Isolate* isolate = Isolate::Current();
-  if (isolate != NULL) {
-    isolate_id_ = isolate->main_port();
-  } else {
-    isolate_id_ = ILLEGAL_PORT;
-  }
+  auto thread = Thread::Current();
+  auto isolate = thread != nullptr ? thread->isolate() : nullptr;
+  auto isolate_group = thread != nullptr ? thread->isolate_group() : nullptr;
+  isolate_id_ = (isolate != nullptr) ? isolate->main_port() : ILLEGAL_PORT;
+  isolate_group_id_ = (isolate_group != nullptr) ? isolate_group->id() : 0;
   label_ = label;
   arguments_.Free();
   set_event_type(event_type);
@@ -593,9 +597,6 @@ bool TimelineEvent::Within(int64_t time_origin_micros,
 
 #ifndef PRODUCT
 void TimelineEvent::PrintJSON(JSONStream* stream) const {
-  if (!FLAG_support_service) {
-    return;
-  }
   JSONObject obj(stream);
   int64_t pid = OS::ProcessId();
   int64_t tid = OSThread::ThreadIdToIntPtr(thread_);
@@ -664,11 +665,19 @@ void TimelineEvent::PrintJSON(JSONStream* stream) const {
     ASSERT(arguments_.length() == 1);
     stream->AppendSerializedObject("args", arguments_[0].value);
     if (isolate_id_ != ILLEGAL_PORT) {
-      // If we have one, append the isolate id.
       stream->UncloseObject();
       stream->PrintfProperty("isolateId", ISOLATE_SERVICE_ID_FORMAT_STRING,
                              static_cast<int64_t>(isolate_id_));
       stream->CloseObject();
+    }
+    if (isolate_group_id_ != 0) {
+      stream->UncloseObject();
+      stream->PrintfProperty("isolateGroupId",
+                             ISOLATE_GROUP_SERVICE_ID_FORMAT_STRING,
+                             isolate_group_id_);
+      stream->CloseObject();
+    } else {
+      ASSERT(isolate_group_id_ == ILLEGAL_PORT);
     }
   } else {
     JSONObject args(&obj, "args");
@@ -677,9 +686,15 @@ void TimelineEvent::PrintJSON(JSONStream* stream) const {
       args.AddProperty(arg.name, arg.value);
     }
     if (isolate_id_ != ILLEGAL_PORT) {
-      // If we have one, append the isolate id.
       args.AddPropertyF("isolateId", ISOLATE_SERVICE_ID_FORMAT_STRING,
                         static_cast<int64_t>(isolate_id_));
+    }
+    if (isolate_group_id_ != 0) {
+      args.AddPropertyF("isolateGroupId",
+                        ISOLATE_GROUP_SERVICE_ID_FORMAT_STRING,
+                        isolate_group_id_);
+    } else {
+      ASSERT(isolate_group_id_ == ILLEGAL_PORT);
     }
   }
 }
@@ -737,9 +752,15 @@ TimelineStream::TimelineStream(const char* name,
     : name_(name),
       fuchsia_name_(fuchsia_name),
 #if defined(HOST_OS_FUCHSIA)
-      enabled_(true) {  // For generated code.
+      enabled_(static_cast<uintptr_t>(true))  // For generated code.
 #else
-      enabled_(enabled) {
+      enabled_(static_cast<uintptr_t>(enabled))
+#endif
+{
+#if defined(HOST_OS_MACOS)
+  if (__builtin_available(iOS 12.0, macOS 10.14, *)) {
+    macos_log_ = os_log_create("Dart", name);
+  }
 #endif
 }
 
@@ -768,10 +789,7 @@ TimelineEventScope::TimelineEventScope(TimelineStream* stream,
 TimelineEventScope::TimelineEventScope(Thread* thread,
                                        TimelineStream* stream,
                                        const char* label)
-    : StackResource(thread),
-      stream_(stream),
-      label_(label),
-      enabled_(false) {
+    : StackResource(thread), stream_(stream), label_(label), enabled_(false) {
   Init();
 }
 
@@ -832,44 +850,6 @@ void TimelineEventScope::StealArguments(TimelineEvent* event) {
     return;
   }
   event->StealArguments(&arguments_);
-}
-
-TimelineDurationScope::TimelineDurationScope(TimelineStream* stream,
-                                             const char* label)
-    : TimelineEventScope(stream, label) {
-  if (!enabled()) {
-    return;
-  }
-  timestamp_ = OS::GetCurrentMonotonicMicros();
-  thread_timestamp_ = OS::GetCurrentThreadCPUMicros();
-}
-
-TimelineDurationScope::TimelineDurationScope(Thread* thread,
-                                             TimelineStream* stream,
-                                             const char* label)
-    : TimelineEventScope(thread, stream, label) {
-  if (!enabled()) {
-    return;
-  }
-  timestamp_ = OS::GetCurrentMonotonicMicros();
-  thread_timestamp_ = OS::GetCurrentThreadCPUMicros();
-}
-
-TimelineDurationScope::~TimelineDurationScope() {
-  if (!ShouldEmitEvent()) {
-    return;
-  }
-  TimelineEvent* event = stream()->StartEvent();
-  if (event == NULL) {
-    // Stream is now disabled.
-    return;
-  }
-  ASSERT(event != NULL);
-  // Emit a duration event.
-  event->Duration(label(), timestamp_, OS::GetCurrentMonotonicMicros(),
-                  thread_timestamp_, OS::GetCurrentThreadCPUMicros());
-  StealArguments(event);
-  event->Complete();
 }
 
 TimelineBeginEndScope::TimelineBeginEndScope(TimelineStream* stream,
@@ -944,9 +924,6 @@ TimelineEventRecorder::TimelineEventRecorder()
 
 #ifndef PRODUCT
 void TimelineEventRecorder::PrintJSONMeta(JSONArray* events) const {
-  if (!FLAG_support_service) {
-    return;
-  }
   OSThreadIterator it;
   while (it.HasNext()) {
     OSThread* thread = it.Next();
@@ -1068,9 +1045,6 @@ void TimelineEventRecorder::ThreadBlockCompleteEvent(TimelineEvent* event) {
 
 #ifndef PRODUCT
 void TimelineEventRecorder::WriteTo(const char* directory) {
-  if (!FLAG_support_service) {
-    return;
-  }
   Dart_FileOpenCallback file_open = Dart::file_open_callback();
   Dart_FileWriteCallback file_write = Dart::file_write_callback();
   Dart_FileCloseCallback file_close = Dart::file_close_callback();
@@ -1109,11 +1083,10 @@ void TimelineEventRecorder::WriteTo(const char* directory) {
 
 int64_t TimelineEventRecorder::GetNextAsyncId() {
   // TODO(johnmccutchan): Gracefully handle wrap around.
-#if defined(HOST_OS_FUCHSIA) && !defined(FUCHSIA_SDK)
+#if defined(HOST_OS_FUCHSIA)
   return trace_generate_nonce();
 #else
-  uint32_t next =
-      static_cast<uint32_t>(AtomicOperations::FetchAndIncrement(&async_id_));
+  uint32_t next = static_cast<uint32_t>(async_id_.fetch_add(1u));
   return static_cast<int64_t>(next);
 #endif
 }
@@ -1161,13 +1134,14 @@ TimelineEventFixedBufferRecorder::~TimelineEventFixedBufferRecorder() {
   delete memory_;
 }
 
+intptr_t TimelineEventFixedBufferRecorder::Size() {
+  return memory_->size();
+}
+
 #ifndef PRODUCT
 void TimelineEventFixedBufferRecorder::PrintJSONEvents(
     JSONArray* events,
     TimelineEventFilter* filter) {
-  if (!FLAG_support_service) {
-    return;
-  }
   MutexLocker ml(&lock_);
   ResetTimeTracking();
   intptr_t block_offset = FindOldestBlockIndex();
@@ -1196,9 +1170,6 @@ void TimelineEventFixedBufferRecorder::PrintJSONEvents(
 
 void TimelineEventFixedBufferRecorder::PrintJSON(JSONStream* js,
                                                  TimelineEventFilter* filter) {
-  if (!FLAG_support_service) {
-    return;
-  }
   JSONObject topLevel(js);
   topLevel.AddProperty("type", "Timeline");
   {
@@ -1213,9 +1184,6 @@ void TimelineEventFixedBufferRecorder::PrintJSON(JSONStream* js,
 void TimelineEventFixedBufferRecorder::PrintTraceEvent(
     JSONStream* js,
     TimelineEventFilter* filter) {
-  if (!FLAG_support_service) {
-    return;
-  }
   JSONArray events(js);
   PrintJSONMeta(&events);
   PrintJSONEvents(&events, filter);
@@ -1291,9 +1259,6 @@ TimelineEventCallbackRecorder::~TimelineEventCallbackRecorder() {}
 #ifndef PRODUCT
 void TimelineEventCallbackRecorder::PrintJSON(JSONStream* js,
                                               TimelineEventFilter* filter) {
-  if (!FLAG_support_service) {
-    return;
-  }
   JSONObject topLevel(js);
   topLevel.AddProperty("type", "Timeline");
   {
@@ -1307,9 +1272,6 @@ void TimelineEventCallbackRecorder::PrintJSON(JSONStream* js,
 void TimelineEventCallbackRecorder::PrintTraceEvent(
     JSONStream* js,
     TimelineEventFilter* filter) {
-  if (!FLAG_support_service) {
-    return;
-  }
   JSONArray events(js);
 }
 #endif
@@ -1331,9 +1293,6 @@ TimelineEventPlatformRecorder::~TimelineEventPlatformRecorder() {}
 #ifndef PRODUCT
 void TimelineEventPlatformRecorder::PrintJSON(JSONStream* js,
                                               TimelineEventFilter* filter) {
-  if (!FLAG_support_service) {
-    return;
-  }
   JSONObject topLevel(js);
   topLevel.AddProperty("type", "Timeline");
   {
@@ -1347,9 +1306,6 @@ void TimelineEventPlatformRecorder::PrintJSON(JSONStream* js,
 void TimelineEventPlatformRecorder::PrintTraceEvent(
     JSONStream* js,
     TimelineEventFilter* filter) {
-  if (!FLAG_support_service) {
-    return;
-  }
   JSONArray events(js);
 }
 #endif
@@ -1381,9 +1337,6 @@ TimelineEventEndlessRecorder::~TimelineEventEndlessRecorder() {
 #ifndef PRODUCT
 void TimelineEventEndlessRecorder::PrintJSON(JSONStream* js,
                                              TimelineEventFilter* filter) {
-  if (!FLAG_support_service) {
-    return;
-  }
   JSONObject topLevel(js);
   topLevel.AddProperty("type", "Timeline");
   {
@@ -1398,9 +1351,6 @@ void TimelineEventEndlessRecorder::PrintJSON(JSONStream* js,
 void TimelineEventEndlessRecorder::PrintTraceEvent(
     JSONStream* js,
     TimelineEventFilter* filter) {
-  if (!FLAG_support_service) {
-    return;
-  }
   JSONArray events(js);
   PrintJSONMeta(&events);
   PrintJSONEvents(&events, filter);
@@ -1442,9 +1392,6 @@ static int TimelineEventBlockCompare(TimelineEventBlock* const* a,
 void TimelineEventEndlessRecorder::PrintJSONEvents(
     JSONArray* events,
     TimelineEventFilter* filter) {
-  if (!FLAG_support_service) {
-    return;
-  }
   MutexLocker ml(&lock_);
   ResetTimeTracking();
   // Collect all interesting blocks.
@@ -1629,15 +1576,17 @@ TimelineEventBlock* TimelineEventBlockIterator::Next() {
 
 void DartTimelineEventHelpers::ReportTaskEvent(Thread* thread,
                                                TimelineEvent* event,
-                                               int64_t start,
                                                int64_t id,
                                                const char* phase,
                                                const char* category,
                                                char* name,
                                                char* args) {
   ASSERT(phase != NULL);
-  ASSERT((phase[0] == 'n') || (phase[0] == 'b') || (phase[0] == 'e'));
+  ASSERT((phase[0] == 'n') || (phase[0] == 'b') || (phase[0] == 'e') ||
+         (phase[0] == 'B') || (phase[0] == 'E'));
   ASSERT(phase[1] == '\0');
+  const int64_t start = OS::GetCurrentMonotonicMicros();
+  const int64_t start_cpu = OS::GetCurrentThreadCPUMicros();
   switch (phase[0]) {
     case 'n':
       event->AsyncInstant(name, id, start);
@@ -1648,6 +1597,12 @@ void DartTimelineEventHelpers::ReportTaskEvent(Thread* thread,
     case 'e':
       event->AsyncEnd(name, id, start);
       break;
+    case 'B':
+      event->Begin(name, start, start_cpu);
+      break;
+    case 'E':
+      event->End(name, start, start_cpu);
+      break;
     default:
       UNREACHABLE();
   }
@@ -1655,29 +1610,14 @@ void DartTimelineEventHelpers::ReportTaskEvent(Thread* thread,
   event->CompleteWithPreSerializedArgs(args);
 }
 
-void DartTimelineEventHelpers::ReportCompleteEvent(Thread* thread,
-                                                   TimelineEvent* event,
-                                                   int64_t start,
-                                                   int64_t start_cpu,
-                                                   const char* category,
-                                                   char* name,
-                                                   char* args) {
-  const int64_t end = OS::GetCurrentMonotonicMicros();
-  const int64_t end_cpu = OS::GetCurrentThreadCPUMicros();
-  event->Duration(name, start, end, start_cpu, end_cpu);
-  event->set_owns_label(true);
-  event->CompleteWithPreSerializedArgs(args);
-}
-
 void DartTimelineEventHelpers::ReportFlowEvent(Thread* thread,
                                                TimelineEvent* event,
-                                               int64_t start,
-                                               int64_t start_cpu,
                                                const char* category,
                                                char* name,
                                                int64_t type,
                                                int64_t flow_id,
                                                char* args) {
+  const int64_t start = OS::GetCurrentMonotonicMicros();
   TimelineEvent::EventType event_type =
       static_cast<TimelineEvent::EventType>(type);
   switch (event_type) {
@@ -1700,10 +1640,10 @@ void DartTimelineEventHelpers::ReportFlowEvent(Thread* thread,
 
 void DartTimelineEventHelpers::ReportInstantEvent(Thread* thread,
                                                   TimelineEvent* event,
-                                                  int64_t start,
                                                   const char* category,
                                                   char* name,
                                                   char* args) {
+  const int64_t start = OS::GetCurrentMonotonicMicros();
   event->Instant(name, start);
   event->set_owns_label(true);
   event->CompleteWithPreSerializedArgs(args);

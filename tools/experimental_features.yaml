@@ -20,6 +20,7 @@
 #
 # ### Overview
 #
+# This document consists mostly of a map called "features".
 # Each entry in this map corresponds to an experiment,
 # and contains the following parts:
 #
@@ -69,35 +70,53 @@
 # from this file. Users specifying this flag on the command line should receive
 # a warning that the experiment has been retired or rejected, but the tool
 # should continue to run.
+#
+# In addition, there is also a value called "current-version"
+# specifying the version of Dart that is currently being developed.
+# Dart source files that don't specify their own version will be
+# presumed to be in this version.  Experiment flags will not affect
+# files that specify an earlier version.
 
-extension-methods:
-  help: "Extension Methods"
+current-version: 2.8
 
-non-nullable:
-  help: "Non Nullable by default"
+features:
+  extension-methods:
+    help: "Extension Methods"
+    enabledIn: '2.6.0'
 
-triple-shift:
-  help: "Triple-shift operator"
+  non-nullable:
+    help: "Non Nullable by default"
+
+  triple-shift:
+    help: "Triple-shift operator"
+
+  variance:
+    help: "Sound variance."
+
+  nonfunction-type-aliases:
+    help: "Type aliases define a <type>, not just a <functionType>."
 
 #
 # Flags below this line are shipped, retired, or rejected, cannot be specified
 # on the command line, and will eventually be removed.
 #
 
-constant-update-2018:
-  help: "Enhanced constant expressions"
-  enabledIn: '2.4.1'
-  expired: true
+  constant-update-2018:
+    help: "Enhanced constant expressions"
+    enabledIn: '2.4.1'
+    expired: true
 
-control-flow-collections:
-  help: "Control Flow Collections"
-  enabledIn: '2.2.2'
+  control-flow-collections:
+    help: "Control Flow Collections"
+    enabledIn: '2.2.2'
+    expired: true
 
-set-literals:
-  help: "Set Literals"
-  enabledIn: 2.2
-  expired: true
+  set-literals:
+    help: "Set Literals"
+    enabledIn: 2.2
+    expired: true
 
-spread-collections:
-  help: "Spread Collections"
-  enabledIn: '2.2.2'
+  spread-collections:
+    help: "Spread Collections"
+    enabledIn: '2.2.2'
+    expired: true

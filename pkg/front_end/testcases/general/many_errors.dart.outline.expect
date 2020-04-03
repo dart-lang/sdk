@@ -15,7 +15,7 @@ library;
 //   const A.named2() : x = new Object();
 //                          ^^^
 //
-// pkg/front_end/testcases/general/many_errors.dart:10:24: Warning: 'x' is a final instance variable that has already been initialized.
+// pkg/front_end/testcases/general/many_errors.dart:10:24: Error: 'x' is a final instance variable that has already been initialized.
 //   const A.named2() : x = new Object();
 //                        ^
 // pkg/front_end/testcases/general/many_errors.dart:6:9: Context: 'x' was initialized here.
@@ -30,7 +30,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class A extends core::Object {
+class A extends core::Object /*hasConstConstructor*/  {
   final field dynamic x = null;
   constructor named1() → self::A*
     ;
@@ -50,7 +50,7 @@ class C extends core::Object {
   synthetic constructor •() → self::C*
     ;
 }
-abstract class AbstractClass extends core::Object {
+abstract class AbstractClass extends core::Object /*hasConstConstructor*/  {
   const constructor id() → self::AbstractClass*
     : super core::Object::•()
     ;

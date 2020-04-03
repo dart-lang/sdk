@@ -60,7 +60,7 @@ features for Dart. Previous work has made JS interop possible, but gaps remain.
 This proposal outlines a series of usability improvements that, taken together,
 make it much easier to use JS from Dart and vice versa.
 
-Here's an example of JS interop is like today, from the [Firebase package](https://pub.dartlang.org/packages/firebase):
+Here's an example of JS interop is like today, from the [Firebase package](https://pub.dev/packages/firebase):
 ```dart
 import 'interop/app_interop.dart';
 

@@ -15,6 +15,25 @@ main() {
 
 @reflectiveTest
 class AssignmentToMethodTest extends DriverResolutionTest {
+  test_instance_extendedHasMethod_extensionHasSetter() async {
+    await assertErrorsInCode('''
+class C {
+  void foo() {}
+}
+
+extension E on C {
+  void set foo(int _) {}
+}
+
+f(C c) {
+  c.foo = 0;
+}
+''', [
+      error(StaticWarningCode.ASSIGNMENT_TO_METHOD, 87, 5),
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 95, 1),
+    ]);
+  }
+
   test_method() async {
     await assertErrorsInCode('''
 class A {
@@ -24,6 +43,25 @@ f(A a) {
   a.m = () {};
 }''', [
       error(StaticWarningCode.ASSIGNMENT_TO_METHOD, 32, 3),
+    ]);
+  }
+
+  test_this_extendedHasMethod_extensionHasSetter() async {
+    await assertErrorsInCode('''
+class C {
+  void foo() {}
+}
+
+extension E on C {
+  void set foo(int _) {}
+
+  f() {
+    this.foo = 0;
+  }
+}
+''', [
+      error(StaticWarningCode.ASSIGNMENT_TO_METHOD, 86, 8),
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 97, 1),
     ]);
   }
 }

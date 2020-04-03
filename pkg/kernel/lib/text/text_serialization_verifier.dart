@@ -396,6 +396,12 @@ class TextSerializationVerifier implements Visitor<void> {
   }
 
   @override
+  void visitFileUriExpression(FileUriExpression node) {
+    storeLastSeenUriAndOffset(node);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitSymbolConstant(SymbolConstant node) {
     storeLastSeenUriAndOffset(node);
     node.visitChildren(this);
@@ -463,6 +469,12 @@ class TextSerializationVerifier implements Visitor<void> {
 
   @override
   void visitBottomType(BottomType node) {
+    storeLastSeenUriAndOffset(node);
+    makeDartTypeRoundTrip(node);
+  }
+
+  @override
+  void visitNeverType(NeverType node) {
     storeLastSeenUriAndOffset(node);
     makeDartTypeRoundTrip(node);
   }
@@ -931,6 +943,12 @@ class TextSerializationVerifier implements Visitor<void> {
 
   @override
   void visitNot(Not node) {
+    storeLastSeenUriAndOffset(node);
+    makeExpressionRoundTrip(node);
+  }
+
+  @override
+  void visitNullCheck(NullCheck node) {
     storeLastSeenUriAndOffset(node);
     makeExpressionRoundTrip(node);
   }

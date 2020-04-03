@@ -10,28 +10,22 @@ import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisOptions;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
-import 'package:analysis_server/src/plugin/notification_manager.dart';
-import 'package:analysis_server/src/plugin/plugin_manager.dart';
-import 'package:analyzer/file_system/file_system.dart';
+import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
+import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/src/context/context_root.dart' as analyzer;
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
-import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
-import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
-import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 import 'package:test/test.dart';
-import 'package:watcher/watcher.dart';
 
 import 'mocks.dart';
 
 int findIdentifierLength(String search) {
-  int length = 0;
+  var length = 0;
   while (length < search.length) {
-    int c = search.codeUnitAt(length);
+    var c = search.codeUnitAt(length);
     if (!(c >= 'a'.codeUnitAt(0) && c <= 'z'.codeUnitAt(0) ||
         c >= 'A'.codeUnitAt(0) && c <= 'Z'.codeUnitAt(0) ||
         c >= '0'.codeUnitAt(0) && c <= '9'.codeUnitAt(0) ||
@@ -43,9 +37,7 @@ int findIdentifierLength(String search) {
   return length;
 }
 
-/**
- * An abstract base for all 'analysis' domain tests.
- */
+/// An abstract base for all 'analysis' domain tests.
 class AbstractAnalysisTest with ResourceProviderMixin {
   bool generateSummaryFiles = false;
   MockServerChannel serverChannel;
@@ -86,31 +78,31 @@ class AbstractAnalysisTest with ResourceProviderMixin {
     }
     files.add(file);
     // set subscriptions
-    Request request = new AnalysisSetSubscriptionsParams(analysisSubscriptions)
-        .toRequest('0');
+    var request =
+        AnalysisSetSubscriptionsParams(analysisSubscriptions).toRequest('0');
     handleSuccessfulRequest(request);
   }
 
   void addGeneralAnalysisSubscription(GeneralAnalysisService service) {
     generalServices.add(service);
-    Request request = new AnalysisSetGeneralSubscriptionsParams(generalServices)
-        .toRequest('0');
+    var request =
+        AnalysisSetGeneralSubscriptionsParams(generalServices).toRequest('0');
     handleSuccessfulRequest(request);
   }
 
   String addTestFile(String content) {
     newFile(testFile, content: content);
-    this.testCode = content;
+    testCode = content;
     return testFile;
   }
 
   /// Create an analysis options file based on the given arguments.
   void createAnalysisOptionsFile({List<String> experiments}) {
-    StringBuffer buffer = new StringBuffer();
+    var buffer = StringBuffer();
     if (experiments != null) {
       buffer.writeln('analyzer:');
       buffer.writeln('  enable-experiment:');
-      for (String experiment in experiments) {
+      for (var experiment in experiments) {
         buffer.writeln('    - $experiment');
       }
     }
@@ -121,27 +113,26 @@ class AbstractAnalysisTest with ResourceProviderMixin {
     //
     // Create an SDK in the mock file system.
     //
-    new MockSdk(
+    MockSdk(
         generateSummaryFiles: generateSummaryFiles,
         resourceProvider: resourceProvider);
     //
     // Create server
     //
-    AnalysisServerOptions options = new AnalysisServerOptions();
-    return new AnalysisServer(
+    var options = AnalysisServerOptions();
+    return AnalysisServer(
         serverChannel,
         resourceProvider,
         options,
-        new DartSdkManager(resourceProvider.convertPath('/sdk'), true),
+        DartSdkManager(resourceProvider.convertPath('/sdk'), true),
+        CrashReportingAttachmentsBuilder.empty,
         InstrumentationService.NULL_SERVICE);
   }
 
-  /**
-   * Creates a project `/project`.
-   */
+  /// Creates a project [projectPath].
   void createProject({Map<String, String> packageRoots}) {
     newFolder(projectPath);
-    Request request = new AnalysisSetAnalysisRootsParams([projectPath], [],
+    var request = AnalysisSetAnalysisRootsParams([projectPath], [],
             packageRoots: packageRoots)
         .toRequest('0');
     handleSuccessfulRequest(request, handler: analysisHandler);
@@ -153,41 +144,35 @@ class AbstractAnalysisTest with ResourceProviderMixin {
     }
   }
 
-  /**
-   * Returns the offset of [search] in [testCode].
-   * Fails if not found.
-   */
+  /// Returns the offset of [search] in the file at the given [path].
+  /// Fails if not found.
   int findFileOffset(String path, String search) {
-    File file = getFile(path);
-    String code = file.createSource().contents.data;
-    int offset = code.indexOf(search);
+    var file = getFile(path);
+    var code = file.createSource().contents.data;
+    var offset = code.indexOf(search);
     expect(offset, isNot(-1), reason: '"$search" in\n$code');
     return offset;
   }
 
-  /**
-   * Returns the offset of [search] in [testCode].
-   * Fails if not found.
-   */
+  /// Returns the offset of [search] in [testCode].
+  /// Fails if not found.
   int findOffset(String search) {
-    int offset = testCode.indexOf(search);
+    var offset = testCode.indexOf(search);
     expect(offset, isNot(-1));
     return offset;
   }
 
-  /**
-   * Validates that the given [request] is handled successfully.
-   */
+  /// Validates that the given [request] is handled successfully.
   Response handleSuccessfulRequest(Request request, {RequestHandler handler}) {
     handler ??= this.handler;
-    Response response = handler.handleRequest(request);
+    var response = handler.handleRequest(request);
     expect(response, isResponseSuccess(request.id));
     return response;
   }
 
   String modifyTestFile(String content) {
     modifyFile(testFile, content);
-    this.testCode = content;
+    testCode = content;
     return testFile;
   }
 
@@ -199,28 +184,27 @@ class AbstractAnalysisTest with ResourceProviderMixin {
 
   void removeGeneralAnalysisSubscription(GeneralAnalysisService service) {
     generalServices.remove(service);
-    Request request = new AnalysisSetGeneralSubscriptionsParams(generalServices)
-        .toRequest('0');
+    var request =
+        AnalysisSetGeneralSubscriptionsParams(generalServices).toRequest('0');
     handleSuccessfulRequest(request);
   }
 
   void setPriorityFiles(List<String> files) {
-    var request = new AnalysisSetPriorityFilesParams(files).toRequest('0');
+    var request = AnalysisSetPriorityFilesParams(files).toRequest('0');
     handleSuccessfulRequest(request);
   }
 
   void setUp() {
-    serverChannel = new MockServerChannel();
+    serverChannel = MockServerChannel();
     projectPath = convertPath('/project');
     testFolder = convertPath('/project/bin');
     testFile = convertPath('/project/bin/test.dart');
-    pluginManager = new TestPluginManager();
+    pluginManager = TestPluginManager();
     server = createAnalysisServer();
     server.pluginManager = pluginManager;
     handler = analysisHandler;
     // listen for notifications
-    Stream<Notification> notificationStream =
-        serverChannel.notificationController.stream;
+    var notificationStream = serverChannel.notificationController.stream;
     notificationStream.listen((Notification notification) {
       processNotification(notification);
     });
@@ -233,130 +217,15 @@ class AbstractAnalysisTest with ResourceProviderMixin {
     serverChannel = null;
   }
 
-  /**
-   * Returns a [Future] that completes when the server's analysis is complete.
-   */
+  /// Returns a [Future] that completes when the server's analysis is complete.
   Future waitForTasksFinished() {
     return server.onAnalysisComplete;
   }
 
-  /**
-   * Completes with a successful [Response] for the given [request].
-   * Otherwise fails.
-   */
+  /// Completes with a successful [Response] for the given [request].
+  /// Otherwise fails.
   Future<Response> waitResponse(Request request,
       {bool throwOnError = true}) async {
     return serverChannel.sendRequest(request, throwOnError: throwOnError);
-  }
-}
-
-/**
- * A plugin manager that simulates broadcasting requests to plugins by
- * hard-coding the responses.
- */
-class TestPluginManager implements PluginManager {
-  plugin.AnalysisSetPriorityFilesParams analysisSetPriorityFilesParams;
-  plugin.AnalysisSetSubscriptionsParams analysisSetSubscriptionsParams;
-  plugin.AnalysisUpdateContentParams analysisUpdateContentParams;
-  plugin.RequestParams broadcastedRequest;
-  Map<PluginInfo, Future<plugin.Response>> broadcastResults;
-
-  @override
-  String get byteStorePath {
-    fail('Unexpected invocation of byteStorePath');
-  }
-
-  @override
-  InstrumentationService get instrumentationService {
-    fail('Unexpected invocation of instrumentationService');
-  }
-
-  @override
-  NotificationManager get notificationManager {
-    fail('Unexpected invocation of notificationManager');
-  }
-
-  @override
-  List<PluginInfo> get plugins {
-    fail('Unexpected invocation of plugins');
-  }
-
-  @override
-  ResourceProvider get resourceProvider {
-    fail('Unexpected invocation of resourceProvider');
-  }
-
-  @override
-  String get sdkPath {
-    fail('Unexpected invocation of sdkPath');
-  }
-
-  @override
-  Future<void> addPluginToContextRoot(
-      analyzer.ContextRoot contextRoot, String path) async {
-    fail('Unexpected invocation of addPluginToContextRoot');
-  }
-
-  @override
-  Map<PluginInfo, Future<plugin.Response>> broadcastRequest(
-      plugin.RequestParams params,
-      {analyzer.ContextRoot contextRoot}) {
-    broadcastedRequest = params;
-    return broadcastResults ?? <PluginInfo, Future<plugin.Response>>{};
-  }
-
-  @override
-  Future<List<Future<plugin.Response>>> broadcastWatchEvent(
-      WatchEvent watchEvent) async {
-    return <Future<plugin.Response>>[];
-  }
-
-  @override
-  List<String> pathsFor(String pluginPath) {
-    fail('Unexpected invocation of pathsFor');
-  }
-
-  @override
-  List<PluginInfo> pluginsForContextRoot(analyzer.ContextRoot contextRoot) {
-    fail('Unexpected invocation of pluginsForContextRoot');
-  }
-
-  @override
-  void recordPluginFailure(String hostPackageName, String message) {
-    fail('Unexpected invocation of recordPluginFailure');
-  }
-
-  @override
-  void removedContextRoot(analyzer.ContextRoot contextRoot) {
-    fail('Unexpected invocation of removedContextRoot');
-  }
-
-  @override
-  Future<void> restartPlugins() async {
-    // Nothing to restart.
-    return null;
-  }
-
-  @override
-  void setAnalysisSetPriorityFilesParams(
-      plugin.AnalysisSetPriorityFilesParams params) {
-    analysisSetPriorityFilesParams = params;
-  }
-
-  @override
-  void setAnalysisSetSubscriptionsParams(
-      plugin.AnalysisSetSubscriptionsParams params) {
-    analysisSetSubscriptionsParams = params;
-  }
-
-  @override
-  void setAnalysisUpdateContentParams(
-      plugin.AnalysisUpdateContentParams params) {
-    analysisUpdateContentParams = params;
-  }
-
-  @override
-  Future<List<void>> stopAll() async {
-    fail('Unexpected invocation of stopAll');
   }
 }

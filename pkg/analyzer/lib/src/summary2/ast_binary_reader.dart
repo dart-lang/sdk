@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
@@ -351,13 +352,16 @@ class AstBinaryReader {
   }
 
   CompilationUnit _read_compilationUnit(LinkedNode data) {
-    return astFactory.compilationUnit(
-        beginToken: null,
-        scriptTag: _readNode(data.compilationUnit_scriptTag),
-        directives: _readNodeList(data.compilationUnit_directives),
-        declarations: _readNodeList(data.compilationUnit_declarations),
-        endToken: null,
-        featureSet: null);
+    var node = astFactory.compilationUnit(
+      beginToken: null,
+      scriptTag: _readNode(data.compilationUnit_scriptTag),
+      directives: _readNodeList(data.compilationUnit_directives),
+      declarations: _readNodeList(data.compilationUnit_declarations),
+      endToken: null,
+      featureSet: null,
+    );
+    LazyCompilationUnit(node, data);
+    return node;
   }
 
   ConditionalExpression _read_conditionalExpression(LinkedNode data) {
@@ -619,6 +623,24 @@ class AstBinaryReader {
     }
   }
 
+  ExtensionOverride _read_extensionOverride(LinkedNode data) {
+    var node = astFactory.extensionOverride(
+      extensionName: _readNode(data.extensionOverride_extensionName),
+      argumentList: astFactory.argumentList(
+        _Tokens.OPEN_PAREN,
+        _readNodeList(
+          data.extensionOverride_arguments,
+        ),
+        _Tokens.CLOSE_PAREN,
+      ),
+      typeArguments: _readNode(data.extensionOverride_typeArguments),
+    ) as ExtensionOverrideImpl;
+    node.extendedType = _readType(data.extensionOverride_extendedType);
+    node.typeArgumentTypes =
+        data.extensionOverride_typeArgumentTypes.map(_readType).toList();
+    return node;
+  }
+
   FieldDeclaration _read_fieldDeclaration(LinkedNode data) {
     var node = astFactory.fieldDeclaration2(
       comment: _readDocumentationComment(data),
@@ -652,8 +674,10 @@ class AstBinaryReader {
       ),
       metadata: _readNodeList(data.normalFormalParameter_metadata),
       comment: _readDocumentationComment(data),
-      type: _readNode(data.fieldFormalParameter_type),
-      parameters: _readNode(data.fieldFormalParameter_formalParameters),
+      type: _readNodeLazy(data.fieldFormalParameter_type),
+      parameters: _readNodeLazy(data.fieldFormalParameter_formalParameters),
+      question:
+          AstBinaryFlags.hasQuestion(data.flags) ? _Tokens.QUESTION : null,
       requiredKeyword:
           AstBinaryFlags.isRequired(data.flags) ? _Tokens.REQUIRED : null,
     );
@@ -984,11 +1008,13 @@ class AstBinaryReader {
   }
 
   IndexExpression _read_indexExpression(LinkedNode data) {
-    return astFactory.indexExpressionForTarget(
-      _readNode(data.indexExpression_target),
-      _Tokens.OPEN_SQUARE_BRACKET,
-      _readNode(data.indexExpression_index),
-      _Tokens.CLOSE_SQUARE_BRACKET,
+    return astFactory.indexExpressionForTarget2(
+      target: _readNode(data.indexExpression_target),
+      question:
+          AstBinaryFlags.hasQuestion(data.flags) ? _Tokens.QUESTION : null,
+      leftBracket: _Tokens.OPEN_SQUARE_BRACKET,
+      index: _readNode(data.indexExpression_index),
+      rightBracket: _Tokens.CLOSE_SQUARE_BRACKET,
     )
       ..period =
           AstBinaryFlags.hasPeriod(data.flags) ? _Tokens.PERIOD_PERIOD : null
@@ -1023,8 +1049,9 @@ class AstBinaryReader {
   }
 
   IntegerLiteral _read_integerLiteral(LinkedNode data) {
+    // TODO(scheglov) Remove `?? _intType` after internal SDK roll.
     return AstTestFactory.integer(data.integerLiteral_value)
-      ..staticType = _intType;
+      ..staticType = _readType(data.expression_type) ?? _intType;
   }
 
   InterpolationExpression _read_interpolationExpression(LinkedNode data) {
@@ -1147,6 +1174,10 @@ class AstBinaryReader {
       body,
     );
     LazyMethodDeclaration.setData(node, data);
+    LazyAst.setOperatorEqualParameterTypeFromObject(
+      node,
+      data.methodDeclaration_hasOperatorEqualWithParameterTypeFromObject,
+    );
     return node;
   }
 
@@ -1422,9 +1453,13 @@ class AstBinaryReader {
   }
 
   StringInterpolation _read_stringInterpolation(LinkedNode data) {
-    return astFactory.stringInterpolation(
+    var node = astFactory.stringInterpolation(
       _readNodeList(data.stringInterpolation_elements),
-    )..staticType = _stringType;
+    );
+    if (!_isReadingDirective) {
+      node.staticType = _stringType;
+    }
+    return node;
   }
 
   SuperConstructorInvocation _read_superConstructorInvocation(LinkedNode data) {
@@ -1547,13 +1582,15 @@ class AstBinaryReader {
   }
 
   TypeParameter _read_typeParameter(LinkedNode data) {
-    var node = astFactory.typeParameter(
-      _readDocumentationComment(data),
-      _readNodeListLazy(data.annotatedNode_metadata),
-      _declaredIdentifier(data),
-      _Tokens.EXTENDS,
-      _readNodeLazy(data.typeParameter_bound),
-    );
+    // TODO (kallentu) : Clean up AstFactoryImpl casting once variance is
+    // added to the interface.
+    var node = (astFactory as AstFactoryImpl).typeParameter2(
+        comment: _readDocumentationComment(data),
+        metadata: _readNodeListLazy(data.annotatedNode_metadata),
+        name: _declaredIdentifier(data),
+        extendsKeyword: _Tokens.EXTENDS,
+        bound: _readNodeLazy(data.typeParameter_bound),
+        varianceKeyword: _varianceKeyword(data));
     LazyTypeParameter.setData(node, data);
     return node;
   }
@@ -1719,6 +1756,8 @@ class AstBinaryReader {
         return _read_extendsClause(data);
       case LinkedNodeKind.extensionDeclaration:
         return _read_extensionDeclaration(data);
+      case LinkedNodeKind.extensionOverride:
+        return _read_extensionOverride(data);
       case LinkedNodeKind.fieldDeclaration:
         return _read_fieldDeclaration(data);
       case LinkedNodeKind.fieldFormalParameter:
@@ -1905,6 +1944,13 @@ class AstBinaryReader {
 
   DartType _readType(LinkedNodeType data) {
     return _unitContext.readType(data);
+  }
+
+  Token _varianceKeyword(LinkedNode data) {
+    if (data.typeParameter_variance != UnlinkedTokenType.NOTHING) {
+      return _Tokens.fromType(data.typeParameter_variance);
+    }
+    return null;
   }
 
   static ParameterKind _toParameterKind(LinkedNodeFormalParameterKind kind) {

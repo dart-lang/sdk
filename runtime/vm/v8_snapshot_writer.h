@@ -73,7 +73,7 @@ class V8SnapshotProfileWriter : public ZoneAllocated {
                             const char* name) {}
   void AttributeBytesTo(ObjectId object_id, size_t num_bytes) {}
   void AttributeReferenceTo(ObjectId object_id, Reference reference) {}
-  void AddRoot(ObjectId object_id) {}
+  void AddRoot(ObjectId object_id, const char* name = nullptr) {}
   intptr_t EnsureString(const char* str) { return 0; }
 #else
   explicit V8SnapshotProfileWriter(Zone* zone);
@@ -98,7 +98,7 @@ class V8SnapshotProfileWriter : public ZoneAllocated {
 
   // Marks an object as being a root in the graph. Used for analysis of the
   // graph.
-  void AddRoot(ObjectId object_id);
+  void AddRoot(ObjectId object_id, const char* name = nullptr);
 
   // Write to a file in the V8 Snapshot Profile (JSON/.heapsnapshot) format.
   void Write(const char* file);

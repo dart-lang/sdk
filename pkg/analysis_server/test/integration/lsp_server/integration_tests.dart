@@ -24,6 +24,7 @@ class AbstractLspAnalysisServerIntegrationTest
 
   /// Sends a request to the server and unwraps the result. Throws if the
   /// response was not successful or returned an error.
+  @override
   Future<T> expectSuccessfulResponseTo<T>(RequestMessage request) async {
     final resp = await sendRequestToServer(request);
     if (resp.error != null) {
@@ -45,10 +46,10 @@ class AbstractLspAnalysisServerIntegrationTest
     }
   }
 
-  newFile(String path, {String content}) =>
+  void newFile(String path, {String content}) =>
       File(path).writeAsStringSync(content ?? '');
 
-  newFolder(String path) => Directory(path).createSync(recursive: true);
+  void newFolder(String path) => Directory(path).createSync(recursive: true);
 
   @override
   void sendNotificationToServer(NotificationMessage notification) =>
@@ -56,9 +57,9 @@ class AbstractLspAnalysisServerIntegrationTest
 
   @override
   Future<ResponseMessage> sendRequestToServer(RequestMessage request) {
-    final completer = new Completer<ResponseMessage>();
-    final id = request.id.map(
-        (num) => num, (string) => throw 'String IDs not supported in tests');
+    final completer = Completer<ResponseMessage>();
+    final id = request.id.map((number) => number,
+        (string) => throw 'String IDs not supported in tests');
     _completers[id] = completer;
 
     client.channel.sendRequest(request);
@@ -83,11 +84,11 @@ class AbstractLspAnalysisServerIntegrationTest
     analysisOptionsPath = join(projectFolderPath, 'analysis_options.yaml');
     analysisOptionsUri = Uri.file(analysisOptionsPath);
 
-    client = new LspServerClient();
+    client = LspServerClient();
     await client.start();
     client.serverToClient.listen((message) {
       if (message is ResponseMessage) {
-        final id = message.id.map((num) => num,
+        final id = message.id.map((number) => number,
             (string) => throw 'String IDs not supported in tests');
 
         final completer = _completers[id];
@@ -101,7 +102,7 @@ class AbstractLspAnalysisServerIntegrationTest
     });
   }
 
-  tearDown() {
+  void tearDown() {
     // TODO(dantup): Graceful shutdown?
     client.close();
   }
@@ -111,7 +112,7 @@ class LspServerClient {
   Process _process;
   LspByteStreamServerChannel channel;
   final StreamController<Message> _serverToClient =
-      new StreamController<Message>.broadcast();
+      StreamController<Message>.broadcast();
 
   Future<int> get exitCode => _process.exitCode;
 
@@ -122,15 +123,13 @@ class LspServerClient {
     _process.kill();
   }
 
-  /**
-   * Find the root directory of the analysis_server package by proceeding
-   * upward to the 'test' dir, and then going up one more directory.
-   */
+  /// Find the root directory of the analysis_server package by proceeding
+  /// upward to the 'test' dir, and then going up one more directory.
   String findRoot(String pathname) {
     while (!['benchmark', 'test'].contains(basename(pathname))) {
-      String parent = dirname(pathname);
+      var parent = dirname(pathname);
       if (parent.length >= pathname.length) {
-        throw new Exception("Can't find root directory");
+        throw Exception("Can't find root directory");
       }
       pathname = parent;
     }
@@ -139,16 +138,29 @@ class LspServerClient {
 
   Future start() async {
     if (_process != null) {
-      throw new Exception('Process already started');
+      throw Exception('Process already started');
     }
 
-    String dartBinary = Platform.executable;
+    var dartBinary = Platform.executable;
 
-    // TODO(dantup): The other servers integration tests can run with a snapshot
-    // which is much faster - we may wish to investigate doing the same here.
-    final rootDir =
-        findRoot(Platform.script.toFilePath(windows: Platform.isWindows));
-    final serverPath = normalize(join(rootDir, 'bin', 'server.dart'));
+    var useSnapshot = true;
+    String serverPath;
+
+    if (useSnapshot) {
+      // Look for snapshots/analysis_server.dart.snapshot.
+      serverPath = normalize(join(dirname(Platform.resolvedExecutable),
+          'snapshots', 'analysis_server.dart.snapshot'));
+
+      if (!FileSystemEntity.isFileSync(serverPath)) {
+        // Look for dart-sdk/bin/snapshots/analysis_server.dart.snapshot.
+        serverPath = normalize(join(dirname(Platform.resolvedExecutable),
+            'dart-sdk', 'bin', 'snapshots', 'analysis_server.dart.snapshot'));
+      }
+    } else {
+      final rootDir =
+          findRoot(Platform.script.toFilePath(windows: Platform.isWindows));
+      serverPath = normalize(join(rootDir, 'bin', 'server.dart'));
+    }
 
     final arguments = [serverPath, '--lsp', '--suppress-analytics'];
     _process = await Process.start(dartBinary, arguments);
@@ -165,7 +177,7 @@ class LspServerClient {
       throw 'Analysis Server wrote to stderr:\n\n$message';
     });
 
-    channel = new LspByteStreamServerChannel(
+    channel = LspByteStreamServerChannel(
         _process.stdout, _process.stdin, InstrumentationService.NULL_SERVICE);
     channel.listen(_serverToClient.add);
   }

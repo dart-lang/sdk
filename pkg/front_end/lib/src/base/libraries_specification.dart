@@ -90,8 +90,8 @@
 // TODO(sigmund): move this file to a shared package.
 import 'dart:convert' show jsonDecode, jsonEncode;
 
-import '../fasta/util/relativize.dart' show relativizeUri;
-import '../fasta/resolve_input_uri.dart' show isWindows;
+import 'package:_fe_analyzer_shared/src/util/relativize.dart'
+    show relativizeUri, isWindows;
 
 /// Contents from a single library specification file.
 ///
@@ -256,6 +256,9 @@ class LibraryInfo {
 
   const LibraryInfo(this.name, this.uri, this.patches,
       {this.isSupported: true});
+
+  /// The import uri for the defined library.
+  Uri get importUri => Uri.parse('dart:${name}');
 }
 
 class LibrariesSpecificationException {

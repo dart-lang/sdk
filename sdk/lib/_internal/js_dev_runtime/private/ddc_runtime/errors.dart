@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart._runtime;
 
 // We need to set these properties while the sdk is only partially initialized
@@ -36,11 +38,10 @@ throwNullValueError() {
       null, Symbol('<Unexpected Null Value>'), null, null, null);
 }
 
-castError(obj, expectedType, [@notNull bool isImplicit = false]) {
+castError(obj, expectedType) {
   var actualType = getReifiedType(obj);
   var message = _castErrorMessage(actualType, expectedType);
-  var error = isImplicit ? TypeErrorImpl(message) : CastErrorImpl(message);
-  throw error;
+  throw TypeErrorImpl(message);
 }
 
 String _castErrorMessage(from, to) {

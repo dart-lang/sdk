@@ -1,3 +1,0 @@
-pkg/front_end/testcases/inference/for_in_loop_promotion.dart:10:11: Context: Possible promotion of x@318
-    if (x is int) {
-          ^^

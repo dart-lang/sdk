@@ -5,22 +5,20 @@
 library dart2js.kernel.env;
 
 import 'package:front_end/src/api_unstable/dart2js.dart'
-    show isRedirectingFactory;
+    show isRedirectingFactory, isRedirectingFactoryField;
 
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/clone.dart';
 import 'package:kernel/type_algebra.dart';
+import 'package:kernel/type_environment.dart' as ir;
 import 'package:collection/collection.dart' show mergeSort; // a stable sort.
 
 import '../common.dart';
-import '../constants/constructors.dart';
-import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../ir/element_map.dart';
 import '../ir/static_type_cache.dart';
-import '../ir/visitors.dart';
 import '../ir/util.dart';
 import '../js_model/element_map.dart';
 import '../js_model/env.dart';
@@ -121,8 +119,7 @@ class KLibraryEnv {
       _memberMap = <String, ir.Member>{};
       _setterMap = <String, ir.Member>{};
       for (ir.Member member in library.members) {
-        if (member.name.name.contains('#')) {
-          // Skip synthetic .dill members.
+        if (isRedirectingFactoryField(member)) {
           continue;
         }
         if (member is ir.Procedure) {
@@ -203,7 +200,10 @@ class KLibraryData {
   KLibraryData(this.library);
 
   Iterable<ConstantValue> getMetadata(KernelToElementMapImpl elementMap) {
-    return _metadata ??= elementMap.getMetadata(library.annotations);
+    return _metadata ??= elementMap.getMetadata(
+        new ir.StaticTypeContext.forAnnotations(
+            library, elementMap.typeEnvironment),
+        library.annotations);
   }
 
   Iterable<ImportEntity> getImports(KernelToElementMapImpl elementMap) {
@@ -314,7 +314,7 @@ class KClassEnvImpl implements KClassEnv {
 
   /// Copied from 'package:kernel/transformations/mixin_full_resolution.dart'.
   ir.Constructor _buildForwardingConstructor(
-      CloneVisitor cloner, ir.Constructor superclassConstructor) {
+      CloneVisitorNotMembers cloner, ir.Constructor superclassConstructor) {
     var superFunction = superclassConstructor.function;
 
     // We keep types and default values for the parameters but always mark the
@@ -352,10 +352,13 @@ class KClassEnvImpl implements KClassEnv {
     var superInitializer = new ir.SuperInitializer(superclassConstructor,
         new ir.Arguments(positionalArguments, named: namedArguments));
 
-    // Assemble the constructor.
+    // Assemble the constructor
+    // TODO(jensj): Provide a "reference" if we need to support
+    // the incremental compiler.
     return new ir.Constructor(function,
         name: superclassConstructor.name,
-        initializers: <ir.Initializer>[superInitializer]);
+        initializers: <ir.Initializer>[superInitializer],
+        reference: null);
   }
 
   @override
@@ -374,11 +377,8 @@ class KClassEnvImpl implements KClassEnv {
 
     void addField(ir.Field member, {bool includeStatic}) {
       if (!includeStatic && member.isStatic) return;
+      if (isRedirectingFactoryField(member)) return;
       var name = member.name.name;
-      if (name.contains('#')) {
-        // Skip synthetic .dill members.
-        return;
-      }
       _memberMap[name] = member;
       if (member.isMutable) {
         _setterMap[name] = member;
@@ -388,7 +388,8 @@ class KClassEnvImpl implements KClassEnv {
 
     void addProcedure(ir.Procedure member,
         {bool includeStatic, bool includeNoSuchMethodForwarders}) {
-      if (member.isForwardingStub && member.isAbstract) {
+      if ((member.isMemberSignature || member.isForwardingStub) &&
+          member.isAbstract) {
         // Skip abstract forwarding stubs. These are never emitted but they
         // might shadow the inclusion of a mixed in method in code like:
         //
@@ -403,7 +404,8 @@ class KClassEnvImpl implements KClassEnv {
         // `Mixin.method` is inherited by `Class`.
         return;
       }
-      if (member.isForwardingStub && cls.isAnonymousMixin) {
+      if ((member.isMemberSignature || member.isForwardingStub) &&
+          cls.isAnonymousMixin) {
         return;
       }
       if (!includeStatic && member.isStatic) return;
@@ -416,7 +418,6 @@ class KClassEnvImpl implements KClassEnv {
         }
       }
       var name = member.name.name;
-      assert(!name.contains('#'));
       if (member.kind == ir.ProcedureKind.Factory) {
         if (isRedirectingFactory(member)) {
           // Don't include redirecting factories.
@@ -438,7 +439,6 @@ class KClassEnvImpl implements KClassEnv {
     void addConstructors(ir.Class c) {
       for (ir.Constructor member in c.constructors) {
         var name = member.name.name;
-        assert(!name.contains('#'));
         _constructorMap[name] = member;
       }
     }
@@ -446,13 +446,15 @@ class KClassEnvImpl implements KClassEnv {
     int mixinMemberCount = 0;
 
     if (cls.mixedInClass != null) {
-      CloneVisitor cloneVisitor;
+      CloneVisitorWithMembers cloneVisitor;
       for (ir.Field field in cls.mixedInClass.mixin.fields) {
         if (field.containsSuperCalls) {
           _isSuperMixinApplication = true;
-          cloneVisitor ??= new CloneVisitor(
+          cloneVisitor ??= new CloneVisitorWithMembers(
               typeSubstitution: getSubstitutionMap(cls.mixedInType));
-          cls.addMember(cloneVisitor.clone(field));
+          // TODO(jensj): Provide a "referenceFrom" if we need to support
+          // the incremental compiler.
+          cls.addMember(cloneVisitor.cloneField(field, null));
           continue;
         }
         addField(field, includeStatic: false);
@@ -460,9 +462,11 @@ class KClassEnvImpl implements KClassEnv {
       for (ir.Procedure procedure in cls.mixedInClass.mixin.procedures) {
         if (procedure.containsSuperCalls) {
           _isSuperMixinApplication = true;
-          cloneVisitor ??= new CloneVisitor(
+          cloneVisitor ??= new CloneVisitorWithMembers(
               typeSubstitution: getSubstitutionMap(cls.mixedInType));
-          cls.addMember(cloneVisitor.clone(procedure));
+          // TODO(jensj): Provide a "referenceFrom" if we need to support
+          // the incremental compiler.
+          cls.addMember(cloneVisitor.cloneProcedure(procedure, null));
           continue;
         }
         addProcedure(procedure,
@@ -495,7 +499,7 @@ class KClassEnvImpl implements KClassEnv {
       // 'package:kernel/transformations/mixin_full_resolution.dart'
       var superclassSubstitution = getSubstitutionMap(cls.supertype);
       var superclassCloner =
-          new CloneVisitor(typeSubstitution: superclassSubstitution);
+          new CloneVisitorNotMembers(typeSubstitution: superclassSubstitution);
 
       for (var superclassConstructor in cls.superclass.constructors) {
         var forwardingConstructor = _buildForwardingConstructor(
@@ -612,7 +616,9 @@ abstract class KClassData {
   ir.Class get node;
 
   InterfaceType get thisType;
+  InterfaceType get jsInteropType;
   InterfaceType get rawType;
+  InterfaceType get instantiationToBounds;
   InterfaceType get supertype;
   InterfaceType get mixedInType;
   List<InterfaceType> get interfaces;
@@ -623,6 +629,7 @@ abstract class KClassData {
   bool get isMixinApplication;
 
   Iterable<ConstantValue> getMetadata(IrToElementMap elementMap);
+  List<Variance> getVariances();
 
   /// Convert this [KClassData] to the corresponding [JClassData].
   JClassData convert();
@@ -638,7 +645,11 @@ class KClassDataImpl implements KClassData {
   @override
   InterfaceType thisType;
   @override
+  InterfaceType jsInteropType;
+  @override
   InterfaceType rawType;
+  @override
+  InterfaceType instantiationToBounds;
   @override
   InterfaceType supertype;
   @override
@@ -649,6 +660,7 @@ class KClassDataImpl implements KClassData {
   OrderedTypeSet orderedTypeSet;
 
   Iterable<ConstantValue> _metadata;
+  List<Variance> _variances;
 
   KClassDataImpl(this.node);
 
@@ -661,8 +673,15 @@ class KClassDataImpl implements KClassData {
   @override
   Iterable<ConstantValue> getMetadata(
       covariant KernelToElementMapImpl elementMap) {
-    return _metadata ??= elementMap.getMetadata(node.annotations);
+    return _metadata ??= elementMap.getMetadata(
+        new ir.StaticTypeContext.forAnnotations(
+            node.enclosingLibrary, elementMap.typeEnvironment),
+        node.annotations);
   }
+
+  @override
+  List<Variance> getVariances() =>
+      _variances ??= node.typeParameters.map(convertVariance).toList();
 
   @override
   JClassData convert() {
@@ -699,7 +718,9 @@ abstract class KMemberDataImpl implements KMemberData {
   @override
   Iterable<ConstantValue> getMetadata(
       covariant KernelToElementMapImpl elementMap) {
-    return _metadata ??= elementMap.getMetadata(node.annotations);
+    return _metadata ??= elementMap.getMetadata(
+        new ir.StaticTypeContext(node, elementMap.typeEnvironment),
+        node.annotations);
   }
 
   @override
@@ -742,7 +763,9 @@ abstract class KFunctionDataMixin implements KFunctionData {
           _typeVariables = functionNode.typeParameters
               .map<TypeVariableType>((ir.TypeParameter typeParameter) {
             return elementMap
-                .getDartType(new ir.TypeParameterType(typeParameter));
+                .getDartType(new ir.TypeParameterType(
+                    typeParameter, ir.Nullability.nonNullable))
+                .withoutNullability;
           }).toList();
         }
       }
@@ -768,13 +791,15 @@ class KFunctionDataImpl extends KMemberDataImpl
   @override
   void forEachParameter(JsToElementMap elementMap,
       void f(DartType type, String name, ConstantValue defaultValue)) {
-    void handleParameter(ir.VariableDeclaration node, {bool isOptional: true}) {
-      DartType type = elementMap.getDartType(node.type);
-      String name = node.name;
+    void handleParameter(ir.VariableDeclaration parameter,
+        {bool isOptional: true}) {
+      DartType type = elementMap.getDartType(parameter.type);
+      String name = parameter.name;
       ConstantValue defaultValue;
       if (isOptional) {
-        if (node.initializer != null) {
-          defaultValue = elementMap.getConstantValue(node.initializer);
+        if (parameter.initializer != null) {
+          defaultValue =
+              elementMap.getConstantValue(node, parameter.initializer);
         } else {
           defaultValue = new NullConstantValue();
         }
@@ -804,35 +829,14 @@ class KFunctionDataImpl extends KMemberDataImpl
   }
 }
 
-abstract class KConstructorData extends KFunctionData {
-  ConstantConstructor getConstructorConstant(
-      KernelToElementMapImpl elementMap, ConstructorEntity constructor);
-}
+abstract class KConstructorData extends KFunctionData {}
 
 class KConstructorDataImpl extends KFunctionDataImpl
     implements KConstructorData {
-  ConstantConstructor _constantConstructor;
   ConstructorBodyEntity constructorBody;
 
   KConstructorDataImpl(ir.Member node, ir.FunctionNode functionNode)
       : super(node, functionNode);
-
-  @override
-  ConstantConstructor getConstructorConstant(
-      KernelToElementMapImpl elementMap, ConstructorEntity constructor) {
-    if (_constantConstructor == null) {
-      if (node is ir.Constructor && constructor.isConst) {
-        _constantConstructor =
-            new Constantifier(elementMap).computeConstantConstructor(node);
-      } else {
-        failedAt(
-            constructor,
-            "Unexpected constructor $constructor in "
-            "ConstructorDataImpl._getConstructorConstant");
-      }
-    }
-    return _constantConstructor;
-  }
 
   @override
   JConstructorData convert() {
@@ -853,14 +857,10 @@ class KConstructorDataImpl extends KFunctionDataImpl
 
 abstract class KFieldData extends KMemberData {
   DartType getFieldType(IrToElementMap elementMap);
-
-  ConstantExpression getFieldConstantExpression(
-      KernelToElementMapImpl elementMap);
 }
 
 class KFieldDataImpl extends KMemberDataImpl implements KFieldData {
   DartType _type;
-  ConstantExpression _constantExpression;
 
   KFieldDataImpl(ir.Field node) : super(node);
 
@@ -870,23 +870,6 @@ class KFieldDataImpl extends KMemberDataImpl implements KFieldData {
   @override
   DartType getFieldType(covariant KernelToElementMapImpl elementMap) {
     return _type ??= elementMap.getDartType(node.type);
-  }
-
-  @override
-  ConstantExpression getFieldConstantExpression(
-      KernelToElementMapImpl elementMap) {
-    if (_constantExpression == null) {
-      if (node.isConst) {
-        _constantExpression =
-            new Constantifier(elementMap).visit(node.initializer);
-      } else {
-        failedAt(
-            computeSourceSpanFromTreeNode(node),
-            "Unexpected field ${node} in "
-            "FieldDataImpl.getFieldConstant");
-      }
-    }
-    return _constantExpression;
   }
 
   @override
@@ -900,14 +883,6 @@ class KFieldDataImpl extends KMemberDataImpl implements KFieldData {
     return new JFieldDataImpl(
         node, new RegularMemberDefinition(node), staticTypes);
   }
-}
-
-class KTypedefData {
-  final ir.Typedef node;
-  final TypedefEntity element;
-  final TypedefType rawType;
-
-  KTypedefData(this.node, this.element, this.rawType);
 }
 
 class KTypeVariableData {

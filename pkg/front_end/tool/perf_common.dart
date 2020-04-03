@@ -7,21 +7,21 @@ library front_end.tool.perf_common;
 
 import 'dart:io' show exitCode, stderr;
 
+import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
+    show DiagnosticMessage, DiagnosticMessageHandler, getMessageCodeObject;
+
+import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+
 import 'package:kernel/target/targets.dart' show Target, TargetFlags;
 
 import 'package:vm/target/flutter.dart' show FlutterTarget;
 
 import 'package:vm/target/vm.dart' show VmTarget;
 
-import 'package:front_end/src/api_prototype/diagnostic_message.dart'
-    show DiagnosticMessage, DiagnosticMessageHandler, getMessageCodeObject;
-
 import 'package:front_end/src/api_prototype/terminal_color_support.dart'
     show printDiagnosticMessage;
 
 import 'package:front_end/src/fasta/fasta_codes.dart' as fastaCodes;
-
-import 'package:front_end/src/fasta/severity.dart' show Severity;
 
 /// Error messages that we temporarily allow when compiling benchmarks in strong
 /// mode.
@@ -35,7 +35,7 @@ import 'package:front_end/src/fasta/severity.dart' show Severity;
 /// from this set.
 final whitelistMessageCode = new Set<fastaCodes.Code>.from(<fastaCodes.Code>[
   // Code names in this list should match the key used in messages.yaml
-  fastaCodes.codeInvalidAssignment,
+  fastaCodes.codeInvalidAssignmentError,
   fastaCodes.codeOverrideTypeMismatchParameter,
   fastaCodes.codeOverriddenMethodCause,
 
@@ -48,13 +48,12 @@ final whitelistMessageCode = new Set<fastaCodes.Code>.from(<fastaCodes.Code>[
   fastaCodes.codeUndefinedMethod,
 ]);
 
-DiagnosticMessageHandler onDiagnosticMessageHandler({bool legacyMode: false}) {
+DiagnosticMessageHandler onDiagnosticMessageHandler() {
   bool messageReported = false;
   return (DiagnosticMessage m) {
     if (m.severity == Severity.internalProblem ||
         m.severity == Severity.error) {
-      if (legacyMode ||
-          !whitelistMessageCode.contains(getMessageCodeObject(m))) {
+      if (!whitelistMessageCode.contains(getMessageCodeObject(m))) {
         printDiagnosticMessage(m, stderr.writeln);
         exitCode = 1;
       } else if (!messageReported) {
@@ -70,8 +69,8 @@ DiagnosticMessageHandler onDiagnosticMessageHandler({bool legacyMode: false}) {
 // TODO(sigmund): delete as soon as the disableTypeInference flag and the
 // legacyMode flag get merged, and we have a single way of specifying the
 // legacy-mode flag to the FE.
-Target createTarget({bool isFlutter: false, bool legacyMode: false}) {
-  var flags = new TargetFlags(legacyMode: legacyMode);
+Target createTarget({bool isFlutter: false}) {
+  TargetFlags flags = new TargetFlags();
   if (isFlutter) {
     return new FlutterTarget(flags);
   } else {

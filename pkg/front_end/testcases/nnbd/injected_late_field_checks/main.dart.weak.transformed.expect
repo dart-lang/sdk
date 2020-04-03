@@ -1,0 +1,28 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+import "dart:test";
+
+static method main() → dynamic {}
+
+library /*isNonNullableByDefault*/;
+import self as self2;
+import "dart:_internal" as _in;
+import "dart:core" as core;
+
+import "dart:_internal";
+
+@#C1
+class Class extends core::Object {
+  late field core::int foo /* from org-dartlang-testcase:///patch_lib.dart */;
+  constructor bar() → self2::Class
+    : super core::Object::•()
+    ;
+  constructor baz(core::int foo) → self2::Class
+    : self2::Class::foo = foo, super core::Object::•()
+    ;
+}
+
+constants  {
+  #C1 = _in::_Patch {}
+}

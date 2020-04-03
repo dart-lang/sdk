@@ -4,7 +4,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# Dart Editor promote tools.
+# Dart SDK promote tools.
 
 import imp
 import optparse
@@ -27,8 +27,8 @@ def BuildOptions():
     promote - Will promote builds from raw/signed locations to release
               locations.
 
-    Example: Promote revision r29962 on dev channel:
-        python editor/build/promote.py promote --channel=dev --revision=29962
+    Example: Promote version 2.5.0 on the stable channel:
+        python editor/build/promote.py promote --channel=stable --version=2.5.0
   """
 
     result = optparse.OptionParser(usage=usage)
@@ -36,9 +36,15 @@ def BuildOptions():
     group = optparse.OptionGroup(result, 'Promote',
                                  'options used to promote code')
     group.add_option(
-        '--revision', help='The svn revision to promote', action='store')
+        '--revision',
+        '--version',
+        help='The version to promote',
+        action='store')
     group.add_option(
-        '--channel', type='string', help='Channel to promote.', default=None)
+        '--channel',
+        type='string',
+        help='The channel to promote.',
+        default=None)
     group.add_option(
         "--dry", help='Dry run', default=False, action="store_true")
     result.add_option_group(group)
@@ -66,7 +72,7 @@ def main():
 
         # Make sure options.channel is a valid
         if not options.channel:
-            die('Specify --channel=be/dev/stable')
+            die('Specify --channel=beta/dev/stable')
         if options.channel not in bot_utils.Channel.ALL_CHANNELS:
             die('You must supply a valid channel to --channel to promote')
     else:
@@ -131,11 +137,20 @@ def _PromoteDartArchiveBuild(channel, revision):
                 Gsutil(['-m', 'rm', '-R', '-f', gs_path])
                 wait_for_delete_to_be_consistent_with_list(gs_path)
 
-        # Copy sdk directory.
-        from_loc = raw_namer.sdk_directory(revision)
+        # Copy the signed sdk directory.
+        from_loc = signed_namer.sdk_directory(revision)
         to_loc = release_namer.sdk_directory(to_revision)
         remove_gs_directory(to_loc)
-        Gsutil(['-m', 'cp', '-a', 'public-read', '-R', from_loc, to_loc])
+        has_signed = exists(from_loc)
+        if has_signed:
+            Gsutil(['-m', 'cp', '-a', 'public-read', '-R', from_loc, to_loc])
+            # Because gsutil copies differently to existing directories, we need
+            # to use the base directory for the next recursive copy.
+            to_loc = release_namer.base_directory(to_revision)
+
+        # Copy the unsigned sdk directory without clobbering signed files.
+        from_loc = raw_namer.sdk_directory(revision)
+        Gsutil(['-m', 'cp', '-n', '-a', 'public-read', '-R', from_loc, to_loc])
 
         # Copy api-docs zipfile.
         from_loc = raw_namer.apidocs_zipfilepath(revision)
@@ -162,7 +177,7 @@ def Gsutil(cmd, throw_on_error=True):
     command = [sys.executable, gsutilTool] + cmd
     if DRY_RUN:
         print "DRY runnning: %s" % command
-        return
+        return (None, None, 0)
     return bot_utils.run(command, throw_on_error=throw_on_error)
 
 

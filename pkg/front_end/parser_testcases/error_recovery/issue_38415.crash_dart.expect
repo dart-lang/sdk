@@ -1,0 +1,55 @@
+Problems reported:
+
+parser/error_recovery/issue_38415.crash:1:15: Expected '[' before this.
+f() { m(T<R(<Z
+              ^...
+
+parser/error_recovery/issue_38415.crash:1:15: Expected ';' after this.
+f() { m(T<R(<Z
+              ^...
+
+beginCompilationUnit(f)
+  beginMetadataStar(f)
+  endMetadataStar(0)
+  beginTopLevelMember(f)
+    beginTopLevelMethod(UnmatchedToken({), null)
+      handleNoType(UnmatchedToken({))
+      handleIdentifier(f, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      beginBlockFunctionBody({)
+        handleIdentifier(m, expression)
+        handleNoTypeArguments(()
+        beginArguments(()
+          handleIdentifier(T, expression)
+          handleNoTypeArguments(<)
+          handleNoArguments(<)
+          handleSend(T, <)
+          beginBinaryExpression(<)
+          handleIdentifier(R, expression)
+          handleNoTypeArguments(()
+          beginArguments(()
+            beginTypeArguments(<)
+              handleIdentifier(Z, typeReference)
+              handleNoTypeArguments())
+              handleType(Z, null)
+            endTypeArguments(1, <, >)
+            handleRecoverableError(Message[ExpectedButGot, Expected '[' before this., null, {string: [}], , )
+            handleLiteralList(0, [, null, ])
+          endArguments(1, (, ))
+          handleSend(R, })
+          endBinaryExpression(<)
+        endArguments(1, (, ))
+        handleSend(m, })
+        handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], , )
+        handleExpressionStatement(;)
+      endBlockFunctionBody(1, {, })
+    endTopLevelMethod(f, null, })
+  endTopLevelDeclaration()
+  handleErrorToken(UnmatchedToken(())
+  handleErrorToken(UnmatchedToken(<))
+  handleErrorToken(UnmatchedToken(())
+  handleErrorToken(UnmatchedToken({))
+endCompilationUnit(1, )

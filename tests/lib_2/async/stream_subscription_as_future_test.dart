@@ -114,7 +114,7 @@ main() {
   });
 
   test("subscription.asFuture failure in cancel", () {
-    runZoned(() {
+    runZonedGuarded(() {
       var completer = new Completer();
       var controller =
           new StreamController(onCancel: () => completer.future, sync: true);
@@ -135,7 +135,7 @@ main() {
         Expect.isFalse(catchErrorHasRun);
         completer.completeError(499);
       }));
-    }, onError: expectAsync((e) {
+    }, expectAsync2((e, s) {
       Expect.equals(499, e);
     }));
   });

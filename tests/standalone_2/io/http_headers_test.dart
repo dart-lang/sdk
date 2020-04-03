@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 library dart._http;
 
 import "dart:async";
@@ -257,6 +259,25 @@ void testHeaderValue() {
   }
 
   HeaderValue headerValue;
+  headerValue = HeaderValue.parse("");
+  check(headerValue, "", {});
+  headerValue = HeaderValue.parse(";");
+  check(headerValue, "", {});
+  headerValue = HeaderValue.parse(";;");
+  check(headerValue, "", {});
+  headerValue = HeaderValue.parse("v;a");
+  check(headerValue, "v", {"a": null});
+  headerValue = HeaderValue.parse("v;a=");
+  check(headerValue, "v", {"a": ""});
+  Expect.throws(() => HeaderValue.parse("v;a=\""), (e) => e is HttpException);
+  headerValue = HeaderValue.parse("v;a=\"\"");
+  check(headerValue, "v", {"a": ""});
+  Expect.throws(() => HeaderValue.parse("v;a=\"\\"), (e) => e is HttpException);
+  Expect.throws(
+      () => HeaderValue.parse("v;a=\";b=\"c\""), (e) => e is HttpException);
+  Expect.throws(() => HeaderValue.parse("v;a=b c"), (e) => e is HttpException);
+  headerValue = HeaderValue.parse("æ;ø=å");
+  check(headerValue, "æ", {"ø": "å"});
   headerValue =
       HeaderValue.parse("xxx; aaa=bbb; ccc=\"\\\";\\a\"; ddd=\"    \"");
   check(headerValue, "xxx", {"aaa": "bbb", "ccc": '\";a', "ddd": "    "});
@@ -278,6 +299,32 @@ void testHeaderValue() {
   check(headerValue, "attachment", parameters);
   headerValue = HeaderValue.parse("xxx; aaa; bbb; ccc");
   check(headerValue, "xxx", {"aaa": null, "bbb": null, "ccc": null});
+  headerValue = HeaderValue.parse("v; a=A; b=B, V; c=C", valueSeparator: ";");
+  check(headerValue, "v", {});
+  headerValue = HeaderValue.parse("v; a=A; b=B, V; c=C", valueSeparator: ";");
+  check(headerValue, "v", {});
+  headerValue = HeaderValue.parse("v; a=A; b=B, V; c=C", valueSeparator: ",");
+  check(headerValue, "v", {"a": "A", "b": "B"});
+  Expect.throws(() => HeaderValue.parse("v; a=A; b=B, V; c=C"));
+
+  Expect.equals("", HeaderValue().toString());
+  Expect.equals("", HeaderValue("").toString());
+  Expect.equals("v", HeaderValue("v").toString());
+  Expect.equals("v", HeaderValue("v", null).toString());
+  Expect.equals("v", HeaderValue("v", {}).toString());
+  Expect.equals("v; ", HeaderValue("v", {"": null}).toString());
+  Expect.equals("v; a", HeaderValue("v", {"a": null}).toString());
+  Expect.equals("v; a; b", HeaderValue("v", {"a": null, "b": null}).toString());
+  Expect.equals(
+      "v; a; b=c", HeaderValue("v", {"a": null, "b": "c"}).toString());
+  Expect.equals(
+      "v; a=c; b", HeaderValue("v", {"a": "c", "b": null}).toString());
+  Expect.equals("v; a=\"\"", HeaderValue("v", {"a": ""}).toString());
+  Expect.equals("v; a=\"b c\"", HeaderValue("v", {"a": "b c"}).toString());
+  Expect.equals("v; a=\",\"", HeaderValue("v", {"a": ","}).toString());
+  Expect.equals(
+      "v; a=\"\\\\\\\"\"", HeaderValue("v", {"a": "\\\""}).toString());
+  Expect.equals("v; a=\"ø\"", HeaderValue("v", {"a": "ø"}).toString());
 }
 
 void testContentType() {
@@ -350,7 +397,7 @@ void testContentType() {
   check(contentType, "text", "html", {"charset": "utf-8", "xxx": "yyy"});
 
   contentType = ContentType.parse("text/html; charset=;");
-  check(contentType, "text", "html", {"charset": null});
+  check(contentType, "text", "html", {"charset": ""});
   contentType = ContentType.parse("text/html; charset;");
   check(contentType, "text", "html", {"charset": null});
 
@@ -563,6 +610,91 @@ void testClear() {
   Expect.isFalse(headers.chunkedTransferEncoding);
 }
 
+void testFolding() {
+  _HttpHeaders headers = new _HttpHeaders("1.1");
+  headers.add("a", "b");
+  headers.add("a", "c");
+  headers.add("a", "d");
+  // no folding by default
+  Expect.isTrue(headers.toString().contains('b, c, d'));
+  // Header name should be case insensitive
+  headers.noFolding('A');
+  var str = headers.toString();
+  Expect.isTrue(str.contains(': b'));
+  Expect.isTrue(str.contains(': c'));
+  Expect.isTrue(str.contains(': d'));
+}
+
+void testLowercaseAdd() {
+  _HttpHeaders headers = new _HttpHeaders("1.1");
+  headers.add('A', 'a');
+  Expect.equals(headers['a'][0], headers['A'][0]);
+  Expect.equals(headers['A'][0], 'a');
+  headers.add('Foo', 'Foo', preserveHeaderCase: true);
+  Expect.equals(headers['Foo'][0], 'Foo');
+  // Header field is Foo.
+  Expect.isTrue(headers.toString().contains('Foo:'));
+
+  headers.add('FOo', 'FOo', preserveHeaderCase: true);
+  // Header field changes to FOo.
+  Expect.isTrue(headers.toString().contains('FOo:'));
+
+  headers.add('FOO', 'FOO', preserveHeaderCase: false);
+  // Header field
+  Expect.isTrue(!headers.toString().contains('Foo:'));
+  Expect.isTrue(!headers.toString().contains('FOo:'));
+  Expect.isTrue(headers.toString().contains('FOO'));
+}
+
+void testLowercaseSet() {
+  _HttpHeaders headers = new _HttpHeaders("1.1");
+  headers.add('test', 'lower cases');
+  // 'Test' should override 'test' entity
+  headers.set('TEST', 'upper cases', preserveHeaderCase: true);
+  Expect.isTrue(headers.toString().contains('TEST: upper cases'));
+  Expect.equals(1, headers['test'].length);
+  Expect.equals(headers['test'][0], 'upper cases');
+
+  // Latest header will be stored.
+  headers.set('Test', 'mixed cases', preserveHeaderCase: true);
+  Expect.isTrue(headers.toString().contains('Test: mixed cases'));
+  Expect.equals(1, headers['test'].length);
+  Expect.equals(headers['test'][0], 'mixed cases');
+}
+
+void testForEach() {
+  _HttpHeaders headers = new _HttpHeaders("1.1");
+  headers.add('header1', 'value 1');
+  headers.add('header2', 'value 2');
+  headers.add('HEADER1', 'value 3', preserveHeaderCase: true);
+  headers.add('HEADER3', 'value 4', preserveHeaderCase: true);
+
+  bool myHeader1 = false;
+  bool myHeader2 = false;
+  bool myHeader3 = false;
+  int totalValues = 0;
+  headers.forEach((String name, List<String> values) {
+    totalValues += values.length;
+    if (name == "HEADER1") {
+      myHeader1 = true;
+      Expect.isTrue(values.indexOf("value 1") != -1);
+      Expect.isTrue(values.indexOf("value 3") != -1);
+    }
+    if (name == "header2") {
+      myHeader2 = true;
+      Expect.isTrue(values.indexOf("value 2") != -1);
+    }
+    if (name == "HEADER3") {
+      myHeader3 = true;
+      Expect.isTrue(values.indexOf("value 4") != -1);
+    }
+  });
+  Expect.isTrue(myHeader1);
+  Expect.isTrue(myHeader2);
+  Expect.isTrue(myHeader3);
+  Expect.equals(4, totalValues);
+}
+
 main() {
   testMultiValue();
   testDate();
@@ -581,4 +713,8 @@ main() {
   testInvalidFieldName();
   testInvalidFieldValue();
   testClear();
+  testFolding();
+  testLowercaseAdd();
+  testLowercaseSet();
+  testForEach();
 }

@@ -1,0 +1,69 @@
+main = <No Member>;
+library from "org-dartlang-test:///compileme.dart" as com {
+
+  import "package:module/lib1.dart";
+  import "package:module/lib2.dart";
+
+  class Foo extends dart.core::Object {
+    synthetic constructor •() → com::Foo*
+      : super dart.core::Object::•()
+      ;
+    method class1() → lib1::Class1* {
+      lib1::Class1* class1 = new lib1::Class1::•();
+      class1.{lib1::Class1::c3a}.{lib3::Class3a::c3b}.{lib3::Class3b::str}();
+      return class1;
+    }
+  }
+  static method main() → dynamic {
+    lib2::Class2* class2 = new lib2::Class2::•();
+    dart.core::print(class2);
+  }
+}
+library from "package:module/lib1.dart" as lib1 {
+
+  import "package:module/lib3.dart";
+
+  class Class1 extends dart.core::Object {
+    synthetic constructor •() → lib1::Class1*
+      : super dart.core::Object::•()
+      ;
+    get c3a() → lib3::Class3a* {}
+  }
+}
+library from "package:module/lib2.dart" as lib2 {
+
+  import "package:module/lib4.dart";
+
+  class Class2 extends dart.core::Object {
+    synthetic constructor •() → lib2::Class2*
+      : super dart.core::Object::•()
+      ;
+    method cl4() → void {
+      lib4::Class4* class4 = new lib4::Class4::•();
+      dart.core::print(class4);
+    }
+  }
+}
+library from "package:module/lib3.dart" as lib3 {
+
+  class Class3a extends dart.core::Object {
+    synthetic constructor •() → lib3::Class3a*
+      : super dart.core::Object::•()
+      ;
+    get c3b() → lib3::Class3b* {}
+  }
+  class Class3b extends dart.core::Object {
+    synthetic constructor •() → lib3::Class3b*
+      : super dart.core::Object::•()
+      ;
+    method str() → dart.core::String* {}
+  }
+}
+library from "package:module/lib4.dart" as lib4 {
+
+  class Class4 extends dart.core::Object {
+    synthetic constructor •() → lib4::Class4*
+      : super dart.core::Object::•()
+      ;
+  }
+}

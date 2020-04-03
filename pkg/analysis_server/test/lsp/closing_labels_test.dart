@@ -7,7 +7,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'server_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ClosingLabelsTest);
   });
@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class ClosingLabelsTest extends AbstractLspAnalysisServerTest {
-  test_afterChange() async {
+  Future<void> test_afterChange() async {
     final initialContent = 'main() {}';
     final updatedContent = '''
 Widget build(BuildContext context) {
@@ -56,7 +56,7 @@ Widget build(BuildContext context) {
     expect(second.range.end.character, equals(5));
   }
 
-  test_initial() async {
+  Future<void> test_initial() async {
     final content = '''
 Widget build(BuildContext context) {
   return new Row(         // Row       1:9

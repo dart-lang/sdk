@@ -1,0 +1,24 @@
+Problems reported:
+
+parser/error_recovery/issue_39058_prime.crash:1:1: Expected a declaration, but got '{'.
+{<[]()>}
+^
+
+beginCompilationUnit({)
+  beginMetadataStar({)
+  endMetadataStar(0)
+  beginTopLevelMember({)
+    handleRecoverableError(Message[ExpectedDeclaration, Expected a declaration, but got '{'., null, {token: {}], {, {)
+    beginBlock({, BlockKind(invalid))
+      beginTypeArguments(<)
+        handleIdentifier(, typeReference)
+        handleNoTypeArguments([])
+        handleType(, null)
+      endTypeArguments(1, <, >)
+      handleLiteralList(0, [, null, ])
+      handleExpressionStatement(;)
+    endBlock(1, {, }, BlockKind(invalid))
+    handleInvalidTopLevelBlock({)
+    handleInvalidTopLevelDeclaration(})
+  endTopLevelDeclaration()
+endCompilationUnit(1, )

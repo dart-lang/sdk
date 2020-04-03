@@ -202,13 +202,19 @@ Future<void> _addModulePerPackage(
 }
 
 Future<Module> _createSdkModule(Uri root) async {
-  List<Uri> sources = [Uri.parse('sdk/lib/libraries.json')];
+  List<Uri> sources = [
+    Uri.parse('sdk/lib/libraries.json'),
+    // TODO(#38701) Cleanup after merging the forked SDK into mainline.
+    Uri.parse('sdk_nnbd/lib/libraries.json'),
+  ];
 
   // Include all dart2js, ddc, vm library sources and patch files.
   // Note: we don't extract the list of files from the libraries.json because
   // it doesn't list files that are transitively imported.
   var sdkLibrariesAndPatchesRoots = [
     'sdk/lib/',
+    // TODO(#38701) Cleanup after merging the forked SDK into mainline.
+    'sdk_nnbd/lib/',
     'runtime/lib/',
     'runtime/bin/',
   ];

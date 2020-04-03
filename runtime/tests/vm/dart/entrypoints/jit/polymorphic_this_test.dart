@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// VMOptions=--enable-testing-pragmas --no-background-compilation --optimization-counter-threshold=10 -Denable_inlining=true
-// VMOptions=--enable-testing-pragmas --no-background-compilation --optimization-counter-threshold=10
+// VMOptions=--enable-testing-pragmas --no-background-compilation --optimization-counter-threshold=10 -Denable_inlining=true --compilation-counter-threshold=1
+// VMOptions=--enable-testing-pragmas --no-background-compilation --optimization-counter-threshold=10 --compilation-counter-threshold=1
+// VMOptions=--enable-testing-pragmas --no-background-compilation --optimization-counter-threshold=-1 --compilation-counter-threshold=1
 
 // Test that 'PolymorphicInstanceCall's against "this" go through the unchecked
 // entrypoint.
@@ -14,14 +15,6 @@ import "package:expect/expect.dart";
 abstract class C<T> {
   @NeverInline
   void target1(T x) {
-    // Make sure this method gets optimized before main.
-    // Otherwise it might get inlined into warm-up loop, and subsequent
-    // loop will call an unoptimized version (which is not guaranteed to
-    // dispatch to unchecked entry point).
-    bumpUsageCounter();
-    bumpUsageCounter();
-    bumpUsageCounter();
-
     target2(x);
   }
 
@@ -57,24 +50,10 @@ C getC() {
 }
 
 main(List<String> args) {
-  // Warmup.
-  expectedEntryPoint = -1;
-  for (int i = 0; i < 100; ++i) {
-    getC().target1(0);
-  }
-
-  expectedEntryPoint = 1;
   const int iterations = benchmarkMode ? 200000000 : 100;
   for (int i = 0; i < iterations; ++i) {
     getC().target1(i);
   }
 
-  // Once for D and once for E.
-  expectedEntryPoint = 0;
-  dynamic x = getC();
-  x.target2(0);
-  x = getC();
-  x.target2(0);
-
-  Expect.isTrue(validateRan);
+  entryPoint.expectUnchecked(iterations);
 }

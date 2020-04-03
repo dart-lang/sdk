@@ -7,7 +7,7 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'partial_code_support.dart';
 
 main() {
-  new TypedefTest().buildAll();
+  TypedefTest().buildAll();
 }
 
 class TypedefTest extends PartialCodeTest {
@@ -15,7 +15,7 @@ class TypedefTest extends PartialCodeTest {
     buildTests(
         'typedef',
         [
-          new TestDescriptor(
+          TestDescriptor(
               'keyword',
               'typedef',
               [
@@ -25,7 +25,7 @@ class TypedefTest extends PartialCodeTest {
               ],
               "typedef _s_();",
               failing: ['functionVoid', 'functionNonVoid', 'getter']),
-          new TestDescriptor(
+          TestDescriptor(
               'name',
               'typedef T',
               [
@@ -34,7 +34,7 @@ class TypedefTest extends PartialCodeTest {
               ],
               "typedef T();",
               failing: ['functionNonVoid', 'getter', 'mixin', 'setter']),
-          new TestDescriptor(
+          TestDescriptor(
               'keywordEquals',
               'typedef =',
               [
@@ -44,7 +44,7 @@ class TypedefTest extends PartialCodeTest {
               ],
               "typedef _s_ = _s_;",
               allFailing: true),
-          new TestDescriptor(
+          TestDescriptor(
               'equals',
               'typedef T =',
               [

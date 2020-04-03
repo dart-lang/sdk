@@ -12,7 +12,12 @@ _prebuilt_dart_exe =
 # When the first argument is "exec_script", gn_run_binary.py always exits with
 # status 0, but gives non-empty output when the command it is given fails.
 _prebuilt_dart_exe_trial = exec_script("../gn_run_binary.py",
-    ["exec_script", _prebuilt_dart_exe, "--version"], "string")
+                                       [
+                                         "exec_script",
+                                         _prebuilt_dart_exe,
+                                         "--version",
+                                       ],
+                                       "string")
 if (_prebuilt_dart_exe_trial == "") {
   prebuilt_dart_exe_works = true
 } else {

@@ -7,21 +7,17 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:analyzer/src/dart/scanner/reader.dart';
-import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
-import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart' as idl;
 import 'package:analyzer/src/summary/idl.dart' as idl;
@@ -45,6 +41,7 @@ class Declaration {
   final bool isConst;
   final bool isDeprecated;
   final bool isFinal;
+  final bool isStatic;
   final DeclarationKind kind;
   final LineInfo lineInfo;
   final int locationOffset;
@@ -75,6 +72,7 @@ class Declaration {
     @required this.isConst,
     @required this.isDeprecated,
     @required this.isFinal,
+    @required this.isStatic,
     @required this.kind,
     @required this.lineInfo,
     @required this.locationOffset,
@@ -141,7 +139,7 @@ class DeclarationsContext {
 
   /// The combined information about all of the dartdoc directives in this
   /// context.
-  final DartdocDirectiveInfo _dartdocDirectiveInfo = new DartdocDirectiveInfo();
+  final DartdocDirectiveInfo _dartdocDirectiveInfo = DartdocDirectiveInfo();
 
   /// Map of path prefixes to lists of paths of files from dependencies
   /// (both libraries and parts, we don't know at the time when we fill this
@@ -152,7 +150,7 @@ class DeclarationsContext {
 
   /// The set of paths of already checked known files, some of which were
   /// added to [_knownPathList]. For example we skip non-API files.
-  final Set<String> _knownPathSet = Set<String>();
+  final Set<String> _knownPathSet = <String>{};
 
   /// The list of paths of files known to this context - from the context
   /// itself, from direct dependencies, from indirect dependencies.
@@ -195,32 +193,37 @@ class DeclarationsContext {
     }
 
     if (_pathPrefixToDependencyPathList.isEmpty) {
-      _addLibrariesWithPaths(dependencyLibraries, _knownPathList);
-    }
-
-    _Package package;
-    for (var candidatePackage in _packages) {
-      if (candidatePackage.contains(path)) {
-        package = candidatePackage;
-        break;
-      }
+      _addKnownLibraries(dependencyLibraries);
     }
 
     var contextPathList = <String>[];
-    if (package != null) {
-      var containingFolder = package.folderInRootContaining(path);
-      if (containingFolder != null) {
-        for (var contextPath in _contextPathList) {
-          // `lib/` can see only libraries in `lib/`.
-          // `test/` can see libraries in `lib/` and in `test/`.
-          if (package.containsInLib(contextPath) ||
-              containingFolder.contains(contextPath)) {
-            contextPathList.add(contextPath);
-          }
+    if (!_analysisContext.workspace.isBazel) {
+      _Package package;
+      for (var candidatePackage in _packages) {
+        if (candidatePackage.contains(path)) {
+          package = candidatePackage;
+          break;
         }
       }
+
+      if (package != null) {
+        var containingFolder = package.folderInRootContaining(path);
+        if (containingFolder != null) {
+          for (var contextPath in _contextPathList) {
+            // `lib/` can see only libraries in `lib/`.
+            // `test/` can see libraries in `lib/` and in `test/`.
+            if (package.containsInLib(contextPath) ||
+                containingFolder.contains(contextPath)) {
+              contextPathList.add(contextPath);
+            }
+          }
+        }
+      } else {
+        // Not in a package, include all libraries of the context.
+        contextPathList = _contextPathList;
+      }
     } else {
-      // Not in a package, include all libraries of the context.
+      // In bazel workspaces, consider declarations from the entire context
       contextPathList = _contextPathList;
     }
 
@@ -279,6 +282,26 @@ class DeclarationsContext {
     }
   }
 
+  /// Add known libraries, other then in the context itself, or the SDK.
+  void _addKnownLibraries(List<Library> libraries) {
+    var contextPathSet = _contextPathList.toSet();
+    var sdkPathSet = _sdkLibraryPathList.toSet();
+
+    for (var path in _knownPathList) {
+      if (contextPathSet.contains(path) || sdkPathSet.contains(path)) {
+        continue;
+      }
+
+      var file = _tracker._pathToFile[path];
+      if (file != null && file.isLibrary) {
+        var library = _tracker._idToLibrary[file.id];
+        if (library != null) {
+          libraries.add(library);
+        }
+      }
+    }
+  }
+
   void _addLibrariesWithPaths(List<Library> libraries, List<String> pathList,
       {String excludingLibraryOfPath}) {
     var excludedFile = _tracker._pathToFile[excludingLibraryOfPath];
@@ -314,9 +337,10 @@ class DeclarationsContext {
         var devPaths = _resolvePackageNamesToLibPaths(dependencies.dev);
 
         var packagePath = folder.path;
-        pubPathPrefixToPathList[packagePath] = <String>[]
-          ..addAll(libPaths)
-          ..addAll(devPaths);
+        pubPathPrefixToPathList[packagePath] = [
+          ...libPaths,
+          ...devPaths,
+        ];
 
         var libPath = pathContext.join(packagePath, 'lib');
         pubPathPrefixToPathList[libPath] = libPaths;
@@ -330,7 +354,9 @@ class DeclarationsContext {
             visitFolder(resource);
           }
         }
-      } on FileSystemException {}
+      } on FileSystemException {
+        // ignored
+      }
     }
 
     visitFolder(_analysisContext.contextRoot.root);
@@ -456,7 +482,7 @@ class DeclarationsContext {
               devDependenciesNode.keys.whereType<String>().toList();
         }
       }
-    } catch (e) {}
+    } catch (_) {}
     return _PubspecDependencies(dependencies, devDependencies);
   }
 }
@@ -500,7 +526,7 @@ class DeclarationsTracker {
     var now = DateTime.now();
     if (now.difference(_whenKnownFilesPulled).inSeconds > 1) {
       _whenKnownFilesPulled = now;
-      _pullKnownFiles();
+      pullKnownFiles();
     }
     return _changedPaths.isNotEmpty || _scheduledFiles.isNotEmpty;
   }
@@ -581,7 +607,7 @@ class DeclarationsTracker {
       }
 
       if (file.exportedDeclarations == null) {
-        new _LibraryWalker().walkLibrary(file);
+        _LibraryWalker().walkLibrary(file);
         assert(file.exportedDeclarations != null);
       }
 
@@ -590,7 +616,7 @@ class DeclarationsTracker {
         file.path,
         file.uri,
         file.isLibraryDeprecated,
-        file.exportedDeclarations,
+        file.exportedDeclarations ?? const [],
       );
       _idToLibrary[file.id] = library;
       _changesController.add(
@@ -610,6 +636,17 @@ class DeclarationsTracker {
     return _idToLibrary[id];
   }
 
+  /// Pull known files into [DeclarationsContext]s.
+  ///
+  /// This is a temporary support for Bazel repositories, because IDEA
+  /// does not yet give us dependencies for them.
+  @visibleForTesting
+  void pullKnownFiles() {
+    for (var context in _contexts.values) {
+      context._scheduleKnownFiles();
+    }
+  }
+
   void _addFile(DeclarationsContext context, String path) {
     if (path.endsWith('.dart')) {
       _scheduledFiles.add(_ScheduledFile(context, path));
@@ -618,7 +655,7 @@ class DeclarationsTracker {
 
   /// Compute exported declarations for the given [libraries].
   void _computeExportedDeclarations(Set<_File> libraries) {
-    var walker = new _LibraryWalker();
+    var walker = _LibraryWalker();
     for (var library in libraries) {
       if (library.isLibrary && library.exportedDeclarations == null) {
         walker.walkLibrary(library);
@@ -702,7 +739,7 @@ class DeclarationsTracker {
     var isLibrary = file.isLibrary;
     var newLibrary = isLibrary ? file : file.library;
 
-    var invalidatedLibraries = Set<_File>();
+    var invalidatedLibraries = <_File>{};
     var notLibraries = <_File>[];
     if (wasLibrary) {
       if (isLibrary) {
@@ -735,7 +772,7 @@ class DeclarationsTracker {
           libraryFile.path,
           libraryFile.uri,
           libraryFile.isLibraryDeprecated,
-          libraryFile.exportedDeclarations,
+          libraryFile.exportedDeclarations ?? const [],
         );
         _idToLibrary[library.id] = library;
         changedLibraries.add(library);
@@ -751,16 +788,6 @@ class DeclarationsTracker {
     _changesController.add(
       LibraryChange._(changedLibraries, removedLibraries),
     );
-  }
-
-  /// Pull known files into [DeclarationsContext]s.
-  ///
-  /// This is a temporary support for Bazel repositories, because IDEA
-  /// does not yet give us dependencies for them.
-  void _pullKnownFiles() {
-    for (var context in _contexts.values) {
-      context._scheduleKnownFiles();
-    }
   }
 }
 
@@ -824,6 +851,9 @@ class RelevanceTags {
       case DeclarationKind.FUNCTION_TYPE_ALIAS:
         var name = declaration.name;
         return <String>['$uriStr::$name'];
+      case DeclarationKind.CONSTRUCTOR:
+        var className = declaration.parent.name;
+        return <String>['$uriStr::$className'];
       case DeclarationKind.ENUM_CONSTANT:
         var enumName = declaration.parent.name;
         return <String>['$uriStr::$enumName'];
@@ -885,7 +915,7 @@ class _DeclarationStorage {
           ? d.defaultArgumentListString
           : null,
       defaultArgumentListTextRanges: d.defaultArgumentListTextRanges.isNotEmpty
-          ? d.defaultArgumentListTextRanges
+          ? d.defaultArgumentListTextRanges.toList()
           : null,
       docComplete: hasDoc ? d.docComplete : null,
       docSummary: hasDoc ? d.docSummary : null,
@@ -893,6 +923,7 @@ class _DeclarationStorage {
       isConst: d.isConst,
       isDeprecated: d.isDeprecated,
       isFinal: d.isFinal,
+      isStatic: d.isStatic,
       kind: kind,
       lineInfo: lineInfo,
       locationOffset: d.locationOffset,
@@ -901,7 +932,7 @@ class _DeclarationStorage {
       locationStartLine: d.locationStartLine,
       name: d.name,
       parameters: hasParameters ? d.parameters : null,
-      parameterNames: hasParameters ? d.parameterNames : null,
+      parameterNames: hasParameters ? d.parameterNames.toList() : null,
       parameterTypes: hasParameters ? d.parameterTypes.toList() : null,
       parent: parent,
       relevanceTags: relevanceTags,
@@ -1008,6 +1039,8 @@ class _DeclarationStorage {
       children: d.children.map(toIdl).toList(),
       defaultArgumentListString: d.defaultArgumentListString,
       defaultArgumentListTextRanges: d.defaultArgumentListTextRanges,
+      codeOffset: d.codeOffset,
+      codeLength: d.codeLength,
       docComplete: d.docComplete,
       docSummary: d.docSummary,
       fieldMask: fieldMask,
@@ -1015,6 +1048,7 @@ class _DeclarationStorage {
       isConst: d.isConst,
       isDeprecated: d.isDeprecated,
       isFinal: d.isFinal,
+      isStatic: d.isStatic,
       kind: idlKind,
       locationOffset: d.locationOffset,
       locationStartColumn: d.locationStartColumn,
@@ -1071,7 +1105,7 @@ class _ExportCombinator {
 
 class _File {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 13;
+  static const int DATA_VERSION = 15;
 
   /// The next value for [id].
   static int _nextId = 0;
@@ -1263,8 +1297,8 @@ class _File {
       }
     }
 
-    String docComplete = null;
-    String docSummary = null;
+    String docComplete;
+    String docSummary;
 
     void setDartDoc(AnnotatedNode node) {
       if (node.documentationComment != null) {
@@ -1284,6 +1318,7 @@ class _File {
       bool isConst = false,
       bool isDeprecated = false,
       bool isFinal = false,
+      bool isStatic = false,
       @required DeclarationKind kind,
       @required Identifier name,
       String parameters,
@@ -1313,6 +1348,7 @@ class _File {
         isConst: isConst,
         isDeprecated: isDeprecated,
         isFinal: isFinal,
+        isStatic: isStatic,
         kind: kind,
         lineInfo: lineInfo,
         locationOffset: locationOffset,
@@ -1379,6 +1415,7 @@ class _File {
             );
             hasConstructor = true;
           } else if (classMember is FieldDeclaration) {
+            var isStatic = classMember.isStatic;
             var isConst = classMember.fields.isConst;
             var isFinal = classMember.fields.isFinal;
             for (var field in classMember.fields.variables) {
@@ -1387,6 +1424,7 @@ class _File {
                 isConst: isConst,
                 isDeprecated: isDeprecated,
                 isFinal: isFinal,
+                isStatic: isStatic,
                 kind: DeclarationKind.FIELD,
                 name: field.name,
                 parent: parent,
@@ -1395,10 +1433,12 @@ class _File {
               );
             }
           } else if (classMember is MethodDeclaration) {
+            var isStatic = classMember.isStatic;
             var parameters = classMember.parameters;
             if (classMember.isGetter) {
               addDeclaration(
                 isDeprecated: isDeprecated,
+                isStatic: isStatic,
                 kind: DeclarationKind.GETTER,
                 name: classMember.name,
                 parent: parent,
@@ -1407,6 +1447,7 @@ class _File {
             } else if (classMember.isSetter) {
               addDeclaration(
                 isDeprecated: isDeprecated,
+                isStatic: isStatic,
                 kind: DeclarationKind.SETTER,
                 name: classMember.name,
                 parameters: parameters.toSource(),
@@ -1422,6 +1463,7 @@ class _File {
                 defaultArgumentListString: defaultArguments?.text,
                 defaultArgumentListTextRanges: defaultArguments?.ranges,
                 isDeprecated: isDeprecated,
+                isStatic: isStatic,
                 kind: DeclarationKind.METHOD,
                 name: classMember.name,
                 parameters: parameters.toSource(),
@@ -1462,6 +1504,7 @@ class _File {
             isConst: false,
             isDeprecated: false,
             isFinal: false,
+            isStatic: false,
             kind: DeclarationKind.CONSTRUCTOR,
             locationOffset: -1,
             locationPath: path,
@@ -1614,7 +1657,7 @@ class _File {
   }
 
   void _extractDartdocInfoFromUnit(CompilationUnit unit) {
-    DartdocDirectiveInfo info = new DartdocDirectiveInfo();
+    DartdocDirectiveInfo info = DartdocDirectiveInfo();
     for (Directive directive in unit.directives) {
       Comment comment = directive.documentationComment;
       if (comment != null) {
@@ -1826,20 +1869,11 @@ class _File {
   }
 
   static CompilationUnit _parse(FeatureSet featureSet, String content) {
-    var errorListener = AnalysisErrorListener.NULL_LISTENER;
-    var source = StringSource(content, '');
-
-    var reader = new CharSequenceReader(content);
-    var scanner = new Scanner(null, reader, errorListener)
-      ..configureFeatures(featureSet);
-    var token = scanner.tokenize();
-
-    var parser = new Parser(source, errorListener,
-        featureSet: featureSet, useFasta: true);
-    var unit = parser.parseCompilationUnit(token);
-    unit.lineInfo = LineInfo(scanner.lineStarts);
-
-    return unit;
+    return parseString(
+      content: content,
+      featureSet: featureSet,
+      throwIfDiagnostics: false,
+    ).unit;
   }
 
   static String _readContent(File resource) {
@@ -1904,7 +1938,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
   @override
   void evaluateScc(List<_LibraryNode> scc) {
     for (var node in scc) {
-      var visitedFiles = Set<_File>();
+      var visitedFiles = <_File>{};
 
       List<Declaration> computeExported(_File file) {
         if (file.exportedDeclarations != null) {
@@ -1932,7 +1966,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
   }
 
   _LibraryNode getNode(_File file) {
-    return nodesOfFiles.putIfAbsent(file, () => new _LibraryNode(this, file));
+    return nodesOfFiles.putIfAbsent(file, () => _LibraryNode(this, file));
   }
 
   void walkLibrary(_File file) {
@@ -1979,7 +2013,9 @@ class _Package {
           return folder;
         }
       }
-    } on FileSystemException {}
+    } on FileSystemException {
+      // ignored
+    }
     return null;
   }
 }

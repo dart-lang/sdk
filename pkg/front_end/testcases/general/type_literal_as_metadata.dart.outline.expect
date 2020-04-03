@@ -1,0 +1,25 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/type_literal_as_metadata.dart:9:2: Error: This can't be used as metadata; metadata should be a reference to a compile-time constant variable, or a call to a constant constructor.
+// @A
+//  ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::A*
+    : super core::Object::•()
+    ;
+}
+@let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/general/type_literal_as_metadata.dart:9:2: Error: This can't be used as metadata; metadata should be a reference to a compile-time constant variable, or a call to a constant constructor.
+@A
+ ^" in self::A*
+class B extends core::Object {
+  synthetic constructor •() → self::B*
+    ;
+}
+static method main() → dynamic
+  ;

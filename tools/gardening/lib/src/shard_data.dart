@@ -8,8 +8,6 @@ library gardening.shard_data;
 
 const Map<String, List<String>> shardGroups = const {
   'vm': const <String>[
-    'vm-mac-debug-simdbc64-be',
-    'vm-mac-release-simdbc64-be',
     'vm-linux-debug-x64-be',
     'vm-linux-release-x64-be',
     'vm-linux-debug-ia32-be',
@@ -80,10 +78,8 @@ const Map<String, List<String>> shardGroups = const {
   'vm-reload': const <String>[
     'vm-linux-debug-x64-reload-be',
     'vm-linux-debug-x64-reload-rollback-be',
-    'vm-mac-debug-simdbc64-reload-be',
     'vm-linux-release-x64-reload-be',
     'vm-linux-release-x64-reload-rollback-be',
-    'vm-mac-release-simdbc64-reload-be',
   ],
   'dart2js-d8-hostchecked': const <String>[
     'dart2js-linux-d8-hostchecked-unittest-1-5-be',
@@ -168,8 +164,6 @@ const Map<String, List<String>> shardGroups = const {
     'app-linux-product-x64-dev',
   ],
   'vm-dev': const <String>[
-    'vm-mac-debug-simdbc64-dev',
-    'vm-mac-release-simdbc64-dev',
     'vm-linux-debug-x64-dev',
     'vm-linux-release-x64-dev',
     'vm-linux-debug-ia32-dev',
@@ -235,10 +229,8 @@ const Map<String, List<String>> shardGroups = const {
   'vm-reload-dev': const <String>[
     'vm-linux-debug-x64-reload-dev',
     'vm-linux-debug-x64-reload-rollback-dev',
-    'vm-mac-debug-simdbc64-reload-dev',
     'vm-linux-release-x64-reload-dev',
     'vm-linux-release-x64-reload-rollback-dev',
-    'vm-mac-release-simdbc64-reload-dev',
   ],
   'dart2js-d8-hostchecked-dev': const <String>[
     'dart2js-linux-d8-hostchecked-unittest-1-5-dev',
@@ -371,14 +363,10 @@ const Map<String, List<String>> shardGroups = const {
   'vm-reload-stable': const <String>[
     'vm-linux-debug-x64-reload-stable',
     'vm-linux-debug-x64-reload-rollback-stable',
-    'vm-mac-debug-simdbc64-reload-stable',
     'vm-linux-release-x64-reload-stable',
     'vm-linux-release-x64-reload-rollback-stable',
-    'vm-mac-release-simdbc64-reload-stable',
   ],
   'vm-stable': const <String>[
-    'vm-mac-debug-simdbc64-stable',
-    'vm-mac-release-simdbc64-stable',
     'vm-linux-debug-x64-stable',
     'vm-linux-release-x64-stable',
     'vm-linux-debug-ia32-stable',

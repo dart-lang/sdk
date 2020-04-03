@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // dart2jsOptions=--strong
 
 import 'package:expect/expect.dart';
@@ -31,7 +33,7 @@ void test(dynamic object, Type type, {bool expectTypeArguments}) {
     if (!expectTypeArguments) {
       expected = expected.substring(0, expected.indexOf('<'));
     }
-    expected = "'$expected'";
+    expected = '$expected';
     Expect.isTrue(e.toString().contains(expected),
         'Expected "$expected" in the message: $e');
     caught = true;

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 /// This library defines the association between runtime objects and
 /// runtime types.
 part of dart._runtime;
@@ -152,6 +154,9 @@ void trackLibraries(
   JS('', '#.set(#, #)', _loadedSourceMaps, moduleName, sourceMap);
   JS('', '#.set(#, #)', _loadedModules, moduleName, libraries);
   JS('', '#.set(#, #)', _loadedPartMaps, moduleName, parts);
+  _libraries = null;
+  _libraryObjects = null;
+  _parts = null;
 }
 
 List<String> _libraries;

@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'dart:async';
 import 'dart:io';
+import 'package:_fe_analyzer_shared/src/util/filenames.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/commandline_options.dart';
-import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/io/source_information.dart';
 import 'package:compiler/src/js/js_debug.dart';
 import 'package:js_ast/js_ast.dart';
@@ -132,6 +134,7 @@ bool parseArgument(String argument, Set<String> configurations,
 
 const Map<String, List<String>> TEST_CONFIGURATIONS = const {
   'kernel': const [],
+  'newRti': const ['--experiment-new-rti'],
 };
 
 final Map<String, Uri> TEST_FILES = _computeTestFiles();

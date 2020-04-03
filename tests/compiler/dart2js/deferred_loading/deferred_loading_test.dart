@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'dart:io' hide Link;
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/closure.dart';
@@ -32,7 +34,9 @@ main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, const OutputUnitDataComputer(),
-        options: compilerOptions, args: args, setUpFunction: () {
+        options: compilerOptions,
+        args: args,
+        setUpFunction: () {
       importPrefixes.clear();
     }, testedConfigs: allStrongConfigs);
   });
@@ -145,7 +149,7 @@ class OutputUnitIrComputer extends IrDataExtractor<String> {
   String computeMemberValue(Id id, ir.Member node) {
     if (node is ir.Field && node.isConst) {
       ir.Expression initializer = node.initializer;
-      ConstantValue constant = _elementMap.getConstantValue(initializer);
+      ConstantValue constant = _elementMap.getConstantValue(node, initializer);
       if (!constant.isPrimitive) {
         SourceSpan span = computeSourceSpanFromTreeNode(initializer);
         if (initializer is ir.ConstructorInvocation) {
@@ -173,9 +177,9 @@ class OutputUnitIrComputer extends IrDataExtractor<String> {
 
   @override
   visitConstantExpression(ir.ConstantExpression node) {
-    ConstantValue constant = _elementMap.getConstantValue(node);
+    ConstantValue constant = _elementMap.getConstantValue(null, node);
     if (!constant.isPrimitive) {
-      _constants.add('${constant.toStructuredText()}='
+      _constants.add('${constant.toStructuredText(_elementMap.types)}='
           '${outputUnitString(_data.outputUnitForConstant(constant))}');
     }
     return super.visitConstantExpression(node);

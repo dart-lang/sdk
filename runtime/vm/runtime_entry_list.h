@@ -24,11 +24,10 @@ namespace dart {
   V(InlineCacheMissHandlerTwoArgs)                                             \
   V(StaticCallMissHandlerOneArg)                                               \
   V(StaticCallMissHandlerTwoArgs)                                              \
-  V(InterpretedInterfaceCallMissHandler)                                       \
+  V(InterpretedInstanceCallMissHandler)                                        \
   V(Instanceof)                                                                \
   V(SubtypeCheck)                                                              \
   V(TypeCheck)                                                                 \
-  V(BadTypeError)                                                              \
   V(NonBoolTypeError)                                                          \
   V(InstantiateType)                                                           \
   V(InstantiateTypeArguments)                                                  \
@@ -48,10 +47,12 @@ namespace dart {
   V(IntegerDivisionByZeroException)                                            \
   V(ReThrow)                                                                   \
   V(StackOverflow)                                                             \
+  V(AllocateMint)                                                              \
   V(Throw)                                                                     \
   V(DeoptimizeMaterialize)                                                     \
   V(RewindPostDeopt)                                                           \
   V(UpdateFieldCid)                                                            \
+  V(InitInstanceField)                                                         \
   V(InitStaticField)                                                           \
   V(CompileFunction)                                                           \
   V(CompileInterpretedFunction)                                                \
@@ -87,7 +88,6 @@ namespace dart {
     RawSmi*)                                                                   \
   V(void, EnterSafepoint)                                                      \
   V(void, ExitSafepoint)                                                       \
-  V(void, VerifyCallbackIsolate, int32_t, uword)
 
 }  // namespace dart
 

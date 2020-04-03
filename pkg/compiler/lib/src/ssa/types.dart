@@ -4,6 +4,7 @@
 
 import '../common_elements.dart' show CommonElements;
 import '../elements/entities.dart';
+import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/types.dart';
 import '../native/behavior.dart';
@@ -49,14 +50,12 @@ class AbstractValueFactory {
       if (type == SpecialType.JsObject) {
         return abstractValueDomain
             .createNonNullExact(commonElements.objectClass);
-      } else if (type.isVoid) {
+      } else if (type is VoidType) {
         return abstractValueDomain.nullType;
-      } else if (type.isDynamic) {
+      } else if (closedWorld.dartTypes.isTopType(type)) {
         return abstractValueDomain.dynamicType;
       } else if (type == commonElements.nullType) {
         return abstractValueDomain.nullType;
-      } else if (type.treatAsDynamic) {
-        return abstractValueDomain.dynamicType;
       } else {
         return abstractValueDomain.createNonNullSubtype(type.element);
       }

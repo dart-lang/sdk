@@ -2,14 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import "dart:async";
 import "dart:io";
 
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 
+import 'package:_fe_analyzer_shared/src/util/filenames.dart';
 import 'package:compiler/compiler.dart' as compiler;
-import 'package:compiler/src/filenames.dart';
 
 const Map<String, String> SOURCES = const {
   "/main.dart": """
@@ -47,13 +49,11 @@ main() {
 
   // Find the path to sdk/ in the repo relative to this script.
   Uri librariesSpec = Uri.base.resolve('sdk/lib/libraries.json');
-  Uri packageRoot = Uri.base.resolve('packages/');
   var platformDir =
       Uri.parse(nativeToUriPath(Platform.resolvedExecutable)).resolve('.');
   asyncTest(() => compiler.compile(
           entrypoint,
           librariesSpec,
-          packageRoot,
           provideInput,
           handleDiagnostic,
           ['--platform-binaries=${platformDir}']).then((code) {

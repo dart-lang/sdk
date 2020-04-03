@@ -714,9 +714,15 @@ class CallPosition {
           node, CodePositionKind.START, SourcePositionKind.START);
     } else if (access is js.Fun ||
         access is js.New ||
-        access is js.NamedFunction) {
-      // function(){}()  new Function("...")()   function foo(){}()
-      //             ^                      ^                    ^
+        access is js.NamedFunction ||
+        (access is js.Parentheses &&
+            (access.enclosed is js.Fun ||
+                access.enclosed is js.New ||
+                access.enclosed is js.NamedFunction))) {
+      // function(){}()     new Function("...")()     function foo(){}()
+      //             ^                         ^                      ^
+      // (function(){})()   (new Function("..."))()   (function foo(){})()
+      //               ^                         ^                      ^
       return new CallPosition(
           node.target, CodePositionKind.END, SourcePositionKind.INNER);
     } else if (access is js.Binary || access is js.Call) {

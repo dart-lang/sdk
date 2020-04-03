@@ -6,8 +6,8 @@ part of $LIBRARYNAME;
 
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
-  Future<Geoposition> getCurrentPosition({bool enableHighAccuracy,
-      Duration timeout, Duration maximumAge}) {
+  Future<Geoposition> getCurrentPosition({bool$NULLABLE enableHighAccuracy,
+      Duration$NULLABLE timeout, Duration$NULLABLE maximumAge}) {
     var options = {};
     if (enableHighAccuracy != null) {
       options['enableHighAccuracy'] = enableHighAccuracy;
@@ -34,8 +34,8 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     return completer.future;
   }
 
-  Stream<Geoposition> watchPosition({bool enableHighAccuracy,
-      Duration timeout, Duration maximumAge}) {
+  Stream<Geoposition> watchPosition({bool$NULLABLE enableHighAccuracy,
+      Duration$NULLABLE timeout, Duration$NULLABLE maximumAge}) {
 
     var options = {};
     if (enableHighAccuracy != null) {
@@ -48,27 +48,25 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
       options['maximumAge'] = maximumAge.inMilliseconds;
     }
 
-    int watchId;
-    // TODO(jacobr): it seems like a bug that we have to specifiy the static
-    // type here for controller.stream to have the right type.
-    // dartbug.com/26278
-    StreamController<Geoposition> controller;
-    controller = new StreamController<Geoposition>(sync: true,
-      onListen: () {
-        assert(watchId == null);
-        watchId = _watchPosition(
-            (position) {
-              controller.add(_ensurePosition(position));
-            },
-            (error) {
-              controller.addError(error);
-            },
-            options);
-      },
-      onCancel: () {
-        assert(watchId != null);
-        _clearWatch(watchId);
-      });
+    int$NULLABLE watchId;
+    StreamController<Geoposition> controller =
+      new StreamController<Geoposition>(sync: true,
+        onCancel: () {
+          assert(watchId != null);
+          _clearWatch(watchId$NULLASSERT);
+        }
+      );
+    controller.onListen = () {
+      assert(watchId == null);
+      watchId = _watchPosition(
+          (position) {
+            controller.add(_ensurePosition(position));
+          },
+          (error) {
+            controller.addError(error);
+          },
+          options);
+    };
 
     return controller.stream;
   }

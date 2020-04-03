@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertToMultilineStringTest);
   });
@@ -19,7 +19,7 @@ class ConvertToMultilineStringTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.CONVERT_TO_MULTILINE_STRING;
 
-  test_doubleQuoted() async {
+  Future<void> test_doubleQuoted() async {
     await resolveTestUnit('''
 main() {
   print("abc");
@@ -33,7 +33,7 @@ abc""");
 ''');
   }
 
-  test_doubleQuoted_alreadyMultiline() async {
+  Future<void> test_doubleQuoted_alreadyMultiline() async {
     await resolveTestUnit('''
 main() {
   print("""abc""");
@@ -42,7 +42,7 @@ main() {
     await assertNoAssistAt('abc');
   }
 
-  test_doubleQuoted_interpolation_expressionElement() async {
+  Future<void> test_doubleQuoted_interpolation_expressionElement() async {
     await resolveTestUnit(r"""
 main() {
   var b = 'b';
@@ -53,7 +53,7 @@ main() {
     await assertNoAssistAt(r'c}');
   }
 
-  test_doubleQuoted_interpolation_stringElement_begin() async {
+  Future<void> test_doubleQuoted_interpolation_stringElement_begin() async {
     await resolveTestUnit(r"""
 main() {
   var b = 'b';
@@ -71,7 +71,7 @@ a $b - ${c} d""");
 ''');
   }
 
-  test_doubleQuoted_interpolation_stringElement_middle() async {
+  Future<void> test_doubleQuoted_interpolation_stringElement_middle() async {
     await resolveTestUnit(r"""
 main() {
   var b = 'b';
@@ -89,7 +89,7 @@ a $b - ${c} d""");
 ''');
   }
 
-  test_doubleQuoted_raw() async {
+  Future<void> test_doubleQuoted_raw() async {
     await resolveTestUnit('''
 main() {
   print(r"abc");
@@ -103,7 +103,7 @@ abc""");
 ''');
   }
 
-  test_singleQuoted() async {
+  Future<void> test_singleQuoted() async {
     await resolveTestUnit('''
 main() {
   print('abc');
@@ -117,7 +117,7 @@ abc''');
 """);
   }
 
-  test_singleQuoted_interpolation_expressionElement() async {
+  Future<void> test_singleQuoted_interpolation_expressionElement() async {
     await resolveTestUnit(r"""
 main() {
   var b = 'b';
@@ -128,7 +128,7 @@ main() {
     await assertNoAssistAt(r'c}');
   }
 
-  test_singleQuoted_interpolation_stringElement_begin() async {
+  Future<void> test_singleQuoted_interpolation_stringElement_begin() async {
     await resolveTestUnit(r"""
 main() {
   var b = 'b';
@@ -146,7 +146,7 @@ a $b - ${c} d''');
 """);
   }
 
-  test_singleQuoted_interpolation_stringElement_middle() async {
+  Future<void> test_singleQuoted_interpolation_stringElement_middle() async {
     await resolveTestUnit(r"""
 main() {
   var b = 'b';
@@ -154,7 +154,7 @@ main() {
   print('a $b - ${c} d');
 }
 """);
-    await assertHasAssistAt("- ", r"""
+    await assertHasAssistAt('- ', r"""
 main() {
   var b = 'b';
   var c = 'c';
@@ -164,7 +164,7 @@ a $b - ${c} d''');
 """);
   }
 
-  test_singleQuoted_raw() async {
+  Future<void> test_singleQuoted_raw() async {
     await resolveTestUnit('''
 main() {
   print(r'abc');

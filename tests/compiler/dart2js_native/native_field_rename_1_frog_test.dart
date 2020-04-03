@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // A native method prevents other members from having that name, including
 // fields.  However, native fields keep their name.  The implication: a getter
 // for the field must be based on the field's name, not the field's jsname.

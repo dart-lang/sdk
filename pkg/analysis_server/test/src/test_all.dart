@@ -7,26 +7,25 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'computer/test_all.dart' as computer;
 import 'domain_abstract_test.dart' as domain_abstract;
 import 'domains/test_all.dart' as domains;
+import 'edit/test_all.dart' as edit;
 import 'flutter/test_all.dart' as flutter;
 import 'lsp/test_all.dart' as lsp;
 import 'plugin/test_all.dart' as plugin;
+import 'server/test_all.dart' as server;
 import 'services/test_all.dart' as services;
 import 'utilities/test_all.dart' as utilities;
-import 'watch_manager_test.dart' as watch_manager;
 
-/**
- * Utility for manually running all tests.
- */
-main() {
+void main() {
   defineReflectiveSuite(() {
     computer.main();
     domain_abstract.main();
     domains.main();
+    edit.main();
     flutter.main();
     lsp.main();
     plugin.main();
+    server.main();
     services.main();
     utilities.main();
-    watch_manager.main();
   }, name: 'src');
 }

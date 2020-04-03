@@ -13,7 +13,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../domain_completion_util.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CommonUsageSorterTest);
   });
@@ -24,7 +24,7 @@ class CommonUsageSorterTest extends AbstractCompletionDomainTest {
   Future getSuggestionsWith(Map<String, List<String>> selectorRelevance) async {
     var originalSorter = DartCompletionManager.contributionSorter;
     DartCompletionManager.contributionSorter =
-        new CommonUsageSorter(selectorRelevance);
+        CommonUsageSorter(selectorRelevance);
     try {
       return await getSuggestions();
     } finally {
@@ -32,7 +32,7 @@ class CommonUsageSorterTest extends AbstractCompletionDomainTest {
     }
   }
 
-  test_ConstructorName() async {
+  Future<void> test_ConstructorName() async {
     // SimpleIdentifier  ConstructorName  InstanceCreationExpression
     addTestFile('import "dart:async"; class A {x() {new Future.^}}');
     await getSuggestionsWith({
@@ -48,7 +48,7 @@ class CommonUsageSorterTest extends AbstractCompletionDomainTest {
     assertNoResult('A');
   }
 
-  test_namedArgument_enum() async {
+  Future<void> test_namedArgument_enum() async {
     addTestFile('''
 enum E {e1, e2}
 f({E e}) {}
@@ -66,7 +66,7 @@ main() {
         relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
   }
 
-  test_PrefixedIdentifier_field() async {
+  Future<void> test_PrefixedIdentifier_field() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestFile('class A {static int s1; static int s2; x() {A.^}}');
     await getSuggestionsWith({
@@ -82,7 +82,7 @@ main() {
     assertNoResult('A');
   }
 
-  test_PrefixedIdentifier_field_inPart() async {
+  Future<void> test_PrefixedIdentifier_field_inPart() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     newFile('/project/bin/myLib.dart',
         content:
@@ -100,7 +100,7 @@ main() {
     assertNoResult('A');
   }
 
-  test_PrefixedIdentifier_getter() async {
+  Future<void> test_PrefixedIdentifier_getter() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestFile('class A {int get g1 => 1; int get g2 => 2; x() {new A().^}}');
     await getSuggestionsWith({
@@ -116,7 +116,7 @@ main() {
     assertNoResult('A');
   }
 
-  test_PrefixedIdentifier_setter() async {
+  Future<void> test_PrefixedIdentifier_setter() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestFile('class A {set s1(v) {}; set s2(v) {}; x() {new A().^}}');
     await getSuggestionsWith({
@@ -132,7 +132,7 @@ main() {
     assertNoResult('A');
   }
 
-  test_PrefixedIdentifier_static_method() async {
+  Future<void> test_PrefixedIdentifier_static_method() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestFile('import "dart:async"; class A {x() {Future.^}}');
     await getSuggestionsWith({
@@ -147,7 +147,7 @@ main() {
     assertNoResult('A');
   }
 
-  test_PropertyAccess() async {
+  Future<void> test_PropertyAccess() async {
     // SimpleIdentifier  PropertyAccess  ExpressionStatement
     addTestFile('import "dart:math"; class A {x() {new Random().^}}');
     await getSuggestionsWith({

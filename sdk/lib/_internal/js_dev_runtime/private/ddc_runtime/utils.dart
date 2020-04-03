@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart._runtime;
 
 /// This library defines a set of general javascript utilities for us
@@ -51,9 +53,13 @@ Iterable getOwnNamesAndSymbols(obj) {
   return JS('', '#.concat(#)', names, symbols);
 }
 
+/// Returns the value of field `name` on `obj`.
+///
+/// We use this instead of obj[name] since obj[name] checks the entire
+/// prototype chain instead of just `obj`.
 safeGetOwnProperty(obj, name) {
-  var desc = getOwnPropertyDescriptor(obj, name);
-  if (desc != null) return JS('', '#.value', desc);
+  if (JS<bool>('!', '#.hasOwnProperty(#)', obj, name))
+    return JS<Object>('', '#[#]', obj, name);
 }
 
 /// Defines a lazy static field.

@@ -12,7 +12,7 @@ class ObservatoryApplication {
   final TargetRepository targets = new TargetRepository(isConnectedVMTarget);
   final EventRepository events = new EventRepository();
   final NotificationRepository notifications = new NotificationRepository();
-  final _pageRegistry = new List<Page>();
+  final _pageRegistry = <Page>[];
   LocationManager _locationManager;
   LocationManager get locationManager => _locationManager;
   Page currentPage;
@@ -173,7 +173,6 @@ class ObservatoryApplication {
     _pageRegistry.add(new PortsPage(this));
     _pageRegistry.add(new LoggingPage(this));
     _pageRegistry.add(new TimelinePage(this));
-    _pageRegistry.add(new MemoryDashboardPage(this));
     _pageRegistry.add(new TimelineDashboardPage(this));
     // Note that ErrorPage must be the last entry in the list as it is
     // the catch all.

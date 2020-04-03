@@ -20,212 +20,182 @@ main() {
 class ForElementWithNnbdTest extends DriverResolutionTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
+    ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
 
   @override
   bool get typeToStringWithNullability => true;
 
-  @failingTest
   test_list_awaitForIn_dynamic_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() async {
   var b = <int>[await for (var e in a()) e];
   print(b);
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(
-        findNode.methodInvocation('a('), 'Stream<dynamic> Function()');
+        findNode.methodInvocation('a('), 'Stream<Object?> Function()');
   }
 
-  @failingTest
   test_list_awaitForIn_int_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() async {
   var b = <int>[await for (int e in a()) e];
   print(b);
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(findNode.methodInvocation('a('), 'Stream<int> Function()');
   }
 
-  @failingTest
   test_list_for_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() {
   var b = <int>[for (int i = 0; a(); i++) i];
   print(b);
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(findNode.methodInvocation('a('), 'bool Function()');
   }
 
-  @failingTest
   test_list_forIn_dynamic_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() {
   var b = <int>[for (var e in a()) e];
   print(b);
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(
-        findNode.methodInvocation('a('), 'Iterable<dynamic> Function()');
+        findNode.methodInvocation('a('), 'Iterable<Object?> Function()');
   }
 
-  @failingTest
   test_list_forIn_int_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() {
   var b = <int>[for (int e in a()) e];
   print(b);
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(
         findNode.methodInvocation('a('), 'Iterable<int> Function()');
   }
 
-  @failingTest
   test_map_awaitForIn_dynamic_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() async {
   var b = <int, int>{await for (var e in a()) e : e};
   print(b);
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(
-        findNode.methodInvocation('a('), 'Stream<dynamic> Function()');
+        findNode.methodInvocation('a('), 'Stream<Object?> Function()');
   }
 
-  @failingTest
   test_map_awaitForIn_int_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() async {
   var b = <int, int>{await for (int e in a()) e : e};
   print(b);
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(findNode.methodInvocation('a('), 'Stream<int> Function()');
   }
 
-  @failingTest
   test_map_for_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() {
   var b = <int, int>{for (int i = 0; a(); i++) i : i};
   print(b);
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(findNode.methodInvocation('a('), 'bool Function()');
   }
 
-  @failingTest
   test_map_forIn_dynamic_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() {
   var b = <int, int>{for (var e in a()) e : e};
   print(b);
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(
-        findNode.methodInvocation('a('), 'Iterable<dynamic> Function()');
+        findNode.methodInvocation('a('), 'Iterable<Object?> Function()');
   }
 
-  @failingTest
   test_map_forIn_int_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() {
   var b = <int, int>{for (int e in a()) e : e};
   print(b);
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(
         findNode.methodInvocation('a('), 'Iterable<int> Function()');
   }
 
-  @failingTest
   test_set_awaitForIn_dynamic_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() async {
   var b = <int>{await for (var e in a()) e};
   print(b);
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(
-        findNode.methodInvocation('a('), 'Stream<dynamic> Function()');
+        findNode.methodInvocation('a('), 'Stream<Object?> Function()');
   }
 
-  @failingTest
   test_set_awaitForIn_int_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() async {
   var b = <int>{await for (int e in a()) e};
   print(b);
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(findNode.methodInvocation('a('), 'Stream<int> Function()');
   }
 
-  @failingTest
   test_set_for_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() {
   var b = <int>{for (int i = 0; a(); i++) i};
   print(b);
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(findNode.methodInvocation('a('), 'bool Function()');
   }
 
-  @failingTest
   test_set_forIn_dynamic_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() {
   var b = <int>{for (var e in a()) e};
   print(b);
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(
-        findNode.methodInvocation('a('), 'Iterable<dynamic> Function()');
+        findNode.methodInvocation('a('), 'Iterable<Object?> Function()');
   }
 
-  @failingTest
   test_set_forIn_int_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() {
   var b = <int>{for (int e in a()) e};
   print(b);
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(
         findNode.methodInvocation('a('), 'Iterable<int> Function()');
   }
@@ -235,48 +205,42 @@ T a<T>() => throw '';
 class IfElementWithNnbdTest extends DriverResolutionTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
+    ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
 
   @override
   bool get typeToStringWithNullability => true;
 
-  @failingTest
   test_list_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() {
   var b = <int>[if (a()) 1];
   print(b);
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(findNode.methodInvocation('a('), 'bool Function()');
   }
 
-  @failingTest
   test_map_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() {
   var b = <String, int>{if (a()) 'a' : 1};
   print(b);
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(findNode.methodInvocation('a('), 'bool Function()');
   }
 
-  @failingTest
   test_set_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() {
   var b = <int>{if (a()) 1};
   print(b);
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(findNode.methodInvocation('a('), 'bool Function()');
   }
 }
@@ -285,50 +249,44 @@ T a<T>() => throw '';
 class SpreadElementWithNnbdTest extends DriverResolutionTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
+    ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
 
   @override
   bool get typeToStringWithNullability => true;
 
-  @failingTest
   test_list_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() {
   var b = <int>[...a()];
   print(b);
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(
         findNode.methodInvocation('a('), 'Iterable<int> Function()');
   }
 
-  @failingTest
   test_map_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() {
   var b = <String, int>{...a()};
   print(b);
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(
         findNode.methodInvocation('a('), 'Map<String, int> Function()');
   }
 
-  @failingTest
   test_set_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() {
   var b = <int>{...a()};
   print(b);
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(
         findNode.methodInvocation('a('), 'Iterable<int> Function()');
   }

@@ -13,6 +13,7 @@
 #include <zircon/status.h>
 #include <zircon/syscalls.h>
 #include <zircon/threads.h>
+#include <zircon/tls.h>
 #include <zircon/types.h>
 
 #include "platform/address_sanitizer.h"

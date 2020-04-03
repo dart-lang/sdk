@@ -9,7 +9,31 @@ import 'dart:core' hide Type;
 
 import 'package:kernel/ast.dart';
 
+import 'package:kernel/core_types.dart';
+
 import 'utils.dart';
+
+/// Dart class representation used in type flow analysis.
+/// For each Dart class there is a unique instance of [TFClass].
+/// Each [TFClass] has unique id which could be used to sort classes.
+class TFClass {
+  final int id;
+  final Class classNode;
+
+  /// TFClass should not be instantiated directly.
+  /// Instead, [TypeHierarchy.getTFClass] should be used to obtain [TFClass]
+  /// instances specific to given [TypeHierarchy].
+  TFClass(this.id, this.classNode);
+
+  @override
+  int get hashCode => id;
+
+  @override
+  bool operator ==(other) => identical(this, other);
+
+  @override
+  String toString() => classNode.toString();
+}
 
 abstract class GenericInterfacesInfo {
   // Return a type arguments vector which contains the immediate type parameters
@@ -34,41 +58,77 @@ abstract class GenericInterfacesInfo {
   List<Type> flattenedTypeArgumentsForNonGeneric(Class klass);
 }
 
+abstract class TypesBuilder {
+  final CoreTypes coreTypes;
+  final bool nullSafety;
+
+  TypesBuilder(this.coreTypes, this.nullSafety);
+
+  /// Return [TFClass] corresponding to the given [classNode].
+  TFClass getTFClass(Class classNode);
+
+  /// Create a Type which corresponds to a set of instances constrained by
+  /// Dart type annotation [dartType].
+  /// [canBeNull] can be set to false to further constrain the resulting
+  /// type if value cannot be null.
+  Type fromStaticType(DartType type, bool canBeNull) {
+    Type result;
+    if (type is InterfaceType) {
+      final cls = type.classNode;
+      result = (cls == coreTypes.nullClass)
+          ? const EmptyType()
+          : new ConeType(getTFClass(cls));
+    } else if (type == const DynamicType() || type == const VoidType()) {
+      result = const AnyType();
+    } else if (type == const BottomType() || type is NeverType) {
+      result = const EmptyType();
+    } else if (type is FunctionType) {
+      // TODO(alexmarkov): support function types
+      result = const AnyType();
+    } else if (type is TypeParameterType) {
+      final bound = type.bound;
+      // Protect against infinite recursion in case of cyclic type parameters
+      // like 'T extends T'. As of today, front-end doesn't report errors in such
+      // cases yet.
+      if (bound is TypeParameterType) {
+        result = const AnyType();
+      } else {
+        return fromStaticType(bound, canBeNull);
+      }
+    } else {
+      throw 'Unexpected type ${type.runtimeType} $type';
+    }
+    if (nullSafety && type.nullability == Nullability.nonNullable) {
+      canBeNull = false;
+    }
+    if (canBeNull) {
+      result = new Type.nullable(result);
+    }
+    return result;
+  }
+}
+
+abstract class RuntimeTypeTranslator {
+  TypeExpr instantiateConcreteType(ConcreteType type, List<DartType> typeArgs);
+}
+
 /// Abstract interface to type hierarchy information used by types.
-abstract class TypeHierarchy implements GenericInterfacesInfo {
-  /// Test if [subType] is a subtype of [superType].
-  bool isSubtype(DartType subType, DartType superType);
+abstract class TypeHierarchy extends TypesBuilder
+    implements GenericInterfacesInfo {
+  TypeHierarchy(CoreTypes coreTypes, bool nullSafety)
+      : super(coreTypes, nullSafety);
+
+  /// Test if [sub] is a subtype of [sup].
+  bool isSubtype(Class sub, Class sup);
 
   /// Return a more specific type for the type cone with [base] root.
   /// May return EmptyType, AnyType, ConcreteType or a SetType.
-  Type specializeTypeCone(DartType base);
+  Type specializeTypeCone(TFClass base);
 
-  Class get futureOrClass;
-  Class get futureClass;
-  Class get functionClass;
-}
-
-/// Basic normalization of Dart types.
-/// Currently used to approximate generic and function types.
-DartType _normalizeDartType(DartType type) {
-  if (type is InterfaceType) {
-    // TODO(alexmarkov): take generic type arguments into account
-    return type.classNode.rawType;
-  } else if (type is FunctionType) {
-    // TODO(alexmarkov): support function types
-    return const DynamicType();
-  } else if (type is TypeParameterType) {
-    // TODO(alexmarkov): instantiate type parameters if possible
-    final bound = type.bound;
-    // Protect against infinite recursion in case of cyclic type parameters
-    // like 'T extends T'. As of today, front-end doesn't report errors in such
-    // cases yet.
-    if (bound is TypeParameterType) {
-      return const DynamicType();
-    }
-    return _normalizeDartType(bound);
+  Type _cachedIntType;
+  Type get intType {
+    return _cachedIntType ??= fromStaticType(coreTypes.intLegacyRawType, true);
   }
-  return type;
 }
 
 /// Base class for type expressions.
@@ -88,54 +148,15 @@ abstract class TypeExpr {
 abstract class Type extends TypeExpr {
   const Type();
 
-  /// Create an empty type.
-  factory Type.empty() => const EmptyType();
-
-  /// Create a non-nullable type representing a subtype cone. It contains
-  /// instances of all Dart types which extend, mix-in or implement [dartType].
-  factory Type.cone(DartType dartType) {
-    dartType = _normalizeDartType(dartType);
-    if ((dartType == const DynamicType()) || (dartType == const VoidType())) {
-      return const AnyType();
-    } else if (dartType == const BottomType()) {
-      return new Type.empty();
-    } else {
-      return new ConeType(dartType);
-    }
-  }
-
   /// Create a nullable type - union of [t] and the `null` object.
   factory Type.nullable(Type t) => new NullableType(t);
 
   /// Create a type representing arbitrary nullable object (`dynamic`).
   factory Type.nullableAny() => new NullableType(const AnyType());
 
-  /// Create a Type which corresponds to a set of instances constrained by
-  /// Dart type annotation [dartType].
-  factory Type.fromStatic(DartType dartType) {
-    dartType = _normalizeDartType(dartType);
-    if ((dartType == const DynamicType()) || (dartType == const VoidType())) {
-      return new Type.nullableAny();
-    } else if (dartType == const BottomType()) {
-      return new Type.nullable(new Type.empty());
-    } else if (
-        // Recognize Null type and use a more precise representation which
-        // doesn't need type specialization.
-        // TODO(alexmarkov): figure out where exactly approximation happens if
-        // Null is represented as Nullable(Cone(Null)) instead of
-        // Nullable(Empty).
-        dartType is InterfaceType &&
-            dartType.classNode.name == 'Null' &&
-            dartType.classNode.enclosingLibrary.importUri.scheme == 'dart' &&
-            dartType.classNode.enclosingLibrary.importUri.path == 'core') {
-      return new Type.nullable(new Type.empty());
-    }
-    return new Type.nullable(new ConeType(dartType));
-  }
-
   Class getConcreteClass(TypeHierarchy typeHierarchy) => null;
 
-  bool isSubtypeOf(TypeHierarchy typeHierarchy, DartType dartType) => false;
+  bool isSubtypeOf(TypeHierarchy typeHierarchy, Class cls) => false;
 
   // Returns 'true' if this type will definitely pass a runtime type-check
   // against 'runtimeType'. Returns 'false' if the test might fail (e.g. due to
@@ -215,17 +236,23 @@ class NullableType extends Type {
 
   @override
   bool operator ==(other) =>
+      identical(this, other) ||
       (other is NullableType) && (this.baseType == other.baseType);
 
   @override
   String toString() => "${baseType}?";
 
   @override
-  bool isSubtypeOf(TypeHierarchy typeHierarchy, DartType dartType) =>
-      baseType.isSubtypeOf(typeHierarchy, dartType);
+  bool isSubtypeOf(TypeHierarchy typeHierarchy, Class cls) =>
+      baseType.isSubtypeOf(typeHierarchy, cls);
 
-  bool isSubtypeOfRuntimeType(TypeHierarchy typeHierarchy, RuntimeType other) =>
-      baseType.isSubtypeOfRuntimeType(typeHierarchy, other);
+  bool isSubtypeOfRuntimeType(TypeHierarchy typeHierarchy, RuntimeType other) {
+    if (typeHierarchy.nullSafety &&
+        other.nullability == Nullability.nonNullable) {
+      return false;
+    }
+    return baseType.isSubtypeOfRuntimeType(typeHierarchy, other);
+  }
 
   @override
   int get order => TypeOrder.Nullable.index;
@@ -299,7 +326,11 @@ class AnyType extends Type {
   }
 
   bool isSubtypeOfRuntimeType(TypeHierarchy typeHierarchy, RuntimeType other) {
-    return typeHierarchy.isSubtype(const DynamicType(), other._type);
+    final rhs = other._type;
+    return (rhs is DynamicType) ||
+        (rhs is VoidType) ||
+        (rhs is InterfaceType &&
+            rhs.classNode == typeHierarchy.coreTypes.objectClass);
   }
 }
 
@@ -329,6 +360,7 @@ class SetType extends Type {
 
   @override
   bool operator ==(other) {
+    if (identical(this, other)) return true;
     if ((other is SetType) && (types.length == other.types.length)) {
       for (int i = 0; i < types.length; i++) {
         if (types[i] != other.types[i]) {
@@ -344,8 +376,8 @@ class SetType extends Type {
   String toString() => "_T ${types}";
 
   @override
-  bool isSubtypeOf(TypeHierarchy typeHierarchy, DartType dartType) =>
-      types.every((ConcreteType t) => t.isSubtypeOf(typeHierarchy, dartType));
+  bool isSubtypeOf(TypeHierarchy typeHierarchy, Class cls) =>
+      types.every((ConcreteType t) => t.isSubtypeOf(typeHierarchy, cls));
 
   bool isSubtypeOfRuntimeType(TypeHierarchy typeHierarchy, RuntimeType other) =>
       types.every((t) => t.isSubtypeOfRuntimeType(typeHierarchy, other));
@@ -361,11 +393,12 @@ class SetType extends Type {
     while ((i1 < types1.length) && (i2 < types2.length)) {
       final t1 = types1[i1];
       final t2 = types2[i2];
-      final relation = t1.classId.compareTo(t2.classId);
-      if (relation < 0) {
+      final id1 = t1.cls.id;
+      final id2 = t2.cls.id;
+      if (id1 < id2) {
         types.add(t1);
         ++i1;
-      } else if (relation > 0) {
+      } else if (id1 > id2) {
         types.add(t2);
         ++i2;
       } else {
@@ -396,13 +429,17 @@ class SetType extends Type {
     while ((i1 < types1.length) && (i2 < types2.length)) {
       final t1 = types1[i1];
       final t2 = types2[i2];
-      final relation = t1.classId.compareTo(t2.classId);
-      if (relation < 0) {
+      final id1 = t1.cls.id;
+      final id2 = t2.cls.id;
+      if (id1 < id2) {
         ++i1;
-      } else if (relation > 0) {
+      } else if (id1 > id2) {
         ++i2;
       } else {
-        if (t1.typeArgs == null && t2.typeArgs == null) {
+        if (t1.typeArgs == null &&
+            t1.constant == null &&
+            t2.typeArgs == null &&
+            t2.constant == null) {
           types.add(t1);
         } else {
           final intersect = t1.intersection(t2, null);
@@ -430,7 +467,7 @@ class SetType extends Type {
           : new SetType(_unionLists(types, <ConcreteType>[other]));
     } else if (other is ConeType) {
       return typeHierarchy
-          .specializeTypeCone(other.dartType)
+          .specializeTypeCone(other.cls)
           .union(this, typeHierarchy);
     } else {
       throw 'Unexpected type $other';
@@ -455,14 +492,14 @@ class SetType extends Type {
     } else if (other is ConcreteType) {
       for (var type in types) {
         if (type == other) return other;
-        if (type.classId == other.classId) {
+        if (identical(type.cls, other.cls)) {
           return type.intersection(other, typeHierarchy);
         }
       }
       return EmptyType();
     } else if (other is ConeType) {
       return typeHierarchy
-          .specializeTypeCone(other.dartType)
+          .specializeTypeCone(other.cls)
           .intersection(this, typeHierarchy);
     } else {
       throw 'Unexpected type $other';
@@ -471,41 +508,41 @@ class SetType extends Type {
 }
 
 /// Type representing a subtype cone. It contains instances of all
-/// Dart types which extend, mix-in or implement [dartType].
+/// Dart types which extend, mix-in or implement certain class.
 /// TODO(alexmarkov): Introduce cones of types which extend but not implement.
 class ConeType extends Type {
-  final DartType dartType;
+  final TFClass cls;
 
-  ConeType(this.dartType) {
-    assertx(dartType != null);
-  }
+  ConeType(this.cls);
 
   @override
-  Class getConcreteClass(TypeHierarchy typeHierarchy) => typeHierarchy
-      .specializeTypeCone(dartType)
-      .getConcreteClass(typeHierarchy);
+  Class getConcreteClass(TypeHierarchy typeHierarchy) =>
+      typeHierarchy.specializeTypeCone(cls).getConcreteClass(typeHierarchy);
 
   @override
-  bool isSubtypeOf(TypeHierarchy typeHierarchy, DartType dartType) =>
-      typeHierarchy.isSubtype(this.dartType, dartType);
+  bool isSubtypeOf(TypeHierarchy typeHierarchy, Class cls) =>
+      typeHierarchy.isSubtype(this.cls.classNode, cls);
 
   bool isSubtypeOfRuntimeType(TypeHierarchy typeHierarchy, RuntimeType other) {
-    if (!typeHierarchy.isSubtype(dartType, other._type)) return false;
-    if (dartType is InterfaceType) {
-      return (dartType as InterfaceType).classNode.typeParameters.isEmpty;
+    final rhs = other._type;
+    if (rhs is DynamicType || rhs is VoidType) return true;
+    if (rhs is InterfaceType) {
+      return cls.classNode.typeParameters.isEmpty &&
+          typeHierarchy.isSubtype(cls.classNode, rhs.classNode);
     }
-    return true;
+    return false;
   }
 
   @override
-  int get hashCode => (dartType.hashCode + 37) & kHashMask;
+  int get hashCode => (cls.id + 37) & kHashMask;
 
   @override
   bool operator ==(other) =>
-      (other is ConeType) && (this.dartType == other.dartType);
+      identical(this, other) ||
+      (other is ConeType) && identical(this.cls, other.cls);
 
   @override
-  String toString() => "_T (${dartType})+";
+  String toString() => "_T ($cls)+";
 
   @override
   int get order => TypeOrder.Cone.index;
@@ -515,7 +552,7 @@ class ConeType extends Type {
 
   @override
   Type specialize(TypeHierarchy typeHierarchy) =>
-      typeHierarchy.specializeTypeCone(dartType);
+      typeHierarchy.specializeTypeCone(cls);
 
   @override
   Type union(Type other, TypeHierarchy typeHierarchy) {
@@ -526,20 +563,18 @@ class ConeType extends Type {
       if (this == other) {
         return this;
       }
-      if (typeHierarchy.isSubtype(other.dartType, this.dartType)) {
+      if (typeHierarchy.isSubtype(other.cls.classNode, this.cls.classNode)) {
         return this;
       }
-      if (typeHierarchy.isSubtype(this.dartType, other.dartType)) {
+      if (typeHierarchy.isSubtype(this.cls.classNode, other.cls.classNode)) {
         return other;
       }
     } else if (other is ConcreteType) {
-      if (typeHierarchy.isSubtype(other.classNode.rawType, this.dartType)) {
+      if (typeHierarchy.isSubtype(other.cls.classNode, this.cls.classNode)) {
         return this;
       }
     }
-    return typeHierarchy
-        .specializeTypeCone(dartType)
-        .union(other, typeHierarchy);
+    return typeHierarchy.specializeTypeCone(cls).union(other, typeHierarchy);
   }
 
   @override
@@ -551,46 +586,29 @@ class ConeType extends Type {
       if (this == other) {
         return this;
       }
-      if (typeHierarchy.isSubtype(other.dartType, this.dartType)) {
+      if (typeHierarchy.isSubtype(other.cls.classNode, this.cls.classNode)) {
         return other;
       }
-      if (typeHierarchy.isSubtype(this.dartType, other.dartType)) {
+      if (typeHierarchy.isSubtype(this.cls.classNode, other.cls.classNode)) {
         return this;
       }
     } else if (other is ConcreteType) {
-      if (typeHierarchy.isSubtype(other.classNode.rawType, this.dartType)) {
+      if (typeHierarchy.isSubtype(other.cls.classNode, this.cls.classNode)) {
         return other;
       } else {
         return const EmptyType();
       }
     }
     return typeHierarchy
-        .specializeTypeCone(dartType)
+        .specializeTypeCone(cls)
         .intersection(other, typeHierarchy);
   }
-}
-
-/// Abstract unique identifier of a Dart class.
-/// Identifiers are comparable and used to provide ordering on classes.
-abstract class ClassId<E extends ClassId<E>> implements Comparable<E> {
-  const ClassId();
-}
-
-/// Simple implementation of [ClassId] based on int.
-class IntClassId extends ClassId<IntClassId> {
-  final int id;
-
-  const IntClassId(this.id);
-
-  @override
-  int compareTo(IntClassId other) => id.compareTo(other.id);
 }
 
 /// Type representing a set of instances of a specific Dart class (no subtypes
 /// or `null` object).
 class ConcreteType extends Type implements Comparable<ConcreteType> {
-  final ClassId classId;
-  final Class classNode;
+  final TFClass cls;
   int _hashCode;
 
   // May be null if there are no type arguments constraints. The type arguments
@@ -606,48 +624,49 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
   final int numImmediateTypeArgs;
   final List<Type> typeArgs;
 
-  ConcreteType(this.classId, this.classNode, [List<Type> typeArgs_])
+  // May be null if constant value is not inferred.
+  final Constant constant;
+
+  ConcreteType(this.cls, [List<Type> typeArgs_, this.constant])
       : typeArgs = typeArgs_,
         numImmediateTypeArgs =
-            typeArgs_ != null ? classNode.typeParameters.length : 0 {
+            typeArgs_ != null ? cls.classNode.typeParameters.length : 0 {
     // TODO(alexmarkov): support closures
-    assertx(!classNode.isAbstract);
-    assertx(typeArgs == null || classNode.typeParameters.isNotEmpty);
+    assertx(!cls.classNode.isAbstract);
+    assertx(typeArgs == null || cls.classNode.typeParameters.isNotEmpty);
     assertx(typeArgs == null || typeArgs.any((t) => t is RuntimeType));
   }
 
-  ConcreteType get raw => new ConcreteType(classId, classNode, null);
+  ConcreteType get raw => new ConcreteType(cls, null);
 
   @override
-  Class getConcreteClass(TypeHierarchy typeHierarchy) => classNode;
+  Class getConcreteClass(TypeHierarchy typeHierarchy) => cls.classNode;
 
   @override
-  bool isSubtypeOf(TypeHierarchy typeHierarchy, DartType dartType) =>
-      typeHierarchy.isSubtype(classNode.rawType, dartType);
+  bool isSubtypeOf(TypeHierarchy typeHierarchy, Class other) =>
+      typeHierarchy.isSubtype(cls.classNode, other);
 
   bool isSubtypeOfRuntimeType(
       TypeHierarchy typeHierarchy, RuntimeType runtimeType) {
-    if (runtimeType._type is InterfaceType &&
-        (runtimeType._type as InterfaceType).classNode ==
-            typeHierarchy.functionClass) {
-      // TODO(35573): "implements/extends Function" is not handled correctly by
-      // the CFE. By returning "false" we force an approximation -- that a type
-      // check against "Function" might fail, whatever the LHS is.
-      return false;
-    }
+    final rhs = runtimeType._type;
+    if (rhs is DynamicType || rhs is VoidType) return true;
+    if (rhs is InterfaceType) {
+      if (rhs.classNode == typeHierarchy.coreTypes.functionClass) {
+        // TODO(35573): "implements/extends Function" is not handled correctly by
+        // the CFE. By returning "false" we force an approximation -- that a type
+        // check against "Function" might fail, whatever the LHS is.
+        return false;
+      }
 
-    if (!typeHierarchy.isSubtype(this.classNode.rawType, runtimeType._type)) {
-      return false;
-    }
+      if (!typeHierarchy.isSubtype(this.cls.classNode, rhs.classNode)) {
+        return false;
+      }
 
-    InterfaceType runtimeDartType;
-    if (runtimeType._type is InterfaceType) {
-      runtimeDartType = runtimeType._type;
-      if (runtimeDartType.typeArguments.isEmpty) return true;
-      if (runtimeDartType.classNode == typeHierarchy.futureOrClass) {
+      if (rhs.typeArguments.isEmpty) return true;
+      if (rhs.classNode == typeHierarchy.coreTypes.futureOrClass) {
+        assertx(cls.classNode != typeHierarchy.coreTypes.futureOrClass);
         if (typeHierarchy.isSubtype(
-                classNode.rawType, typeHierarchy.futureClass.rawType) ||
-            classNode == typeHierarchy.futureOrClass) {
+            cls.classNode, typeHierarchy.coreTypes.futureClass)) {
           final RuntimeType lhs =
               typeArgs == null ? RuntimeType(DynamicType(), null) : typeArgs[0];
           return lhs.isSubtypeOfRuntimeType(
@@ -656,56 +675,56 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
           return isSubtypeOfRuntimeType(typeHierarchy, runtimeType.typeArgs[0]);
         }
       }
-    } else {
-      // The TypeHierarchy result may be inaccurate only if there are type
-      // arguments which it doesn't examine.
+
+      List<Type> usableTypeArgs = typeArgs;
+      if (usableTypeArgs == null) {
+        if (cls.classNode.typeParameters.isEmpty) {
+          usableTypeArgs =
+              typeHierarchy.flattenedTypeArgumentsForNonGeneric(cls.classNode);
+        } else {
+          return false;
+        }
+      }
+
+      final interfaceOffset =
+          typeHierarchy.genericInterfaceOffsetFor(cls.classNode, rhs.classNode);
+
+      assertx(usableTypeArgs.length - interfaceOffset >=
+          runtimeType.numImmediateTypeArgs);
+
+      for (int i = 0; i < runtimeType.numImmediateTypeArgs; ++i) {
+        if (usableTypeArgs[i + interfaceOffset] == const AnyType())
+          return false;
+        assertx(usableTypeArgs[i + interfaceOffset] is RuntimeType);
+        if (!usableTypeArgs[i + interfaceOffset]
+            .isSubtypeOfRuntimeType(typeHierarchy, runtimeType.typeArgs[i])) {
+          return false;
+        }
+      }
       return true;
     }
-
-    List<Type> usableTypeArgs = typeArgs;
-    if (usableTypeArgs == null) {
-      if (classNode.typeParameters.isEmpty) {
-        usableTypeArgs =
-            typeHierarchy.flattenedTypeArgumentsForNonGeneric(classNode);
-      } else {
-        return false;
-      }
-    }
-
-    final interfaceOffset = typeHierarchy.genericInterfaceOffsetFor(
-        classNode, runtimeDartType.classNode);
-
-    assertx(usableTypeArgs.length - interfaceOffset >=
-        runtimeType.numImmediateTypeArgs);
-
-    for (int i = 0; i < runtimeType.numImmediateTypeArgs; ++i) {
-      if (usableTypeArgs[i + interfaceOffset] == const AnyType()) return false;
-      assertx(usableTypeArgs[i + interfaceOffset] is RuntimeType);
-      if (!usableTypeArgs[i + interfaceOffset]
-          .isSubtypeOfRuntimeType(typeHierarchy, runtimeType.typeArgs[i])) {
-        return false;
-      }
-    }
-    return true;
+    return false;
   }
 
   @override
   int get hashCode => _hashCode ??= _computeHashCode();
 
   int _computeHashCode() {
-    int hash = classId.hashCode ^ 0x1234 & kHashMask;
+    int hash = cls.hashCode ^ 0x1234 & kHashMask;
     // We only need to hash the first type arguments vector, since the type
     // arguments of the implemented interfaces are implied by it.
     for (int i = 0; i < numImmediateTypeArgs; ++i) {
       hash = (((hash * 31) & kHashMask) + typeArgs[i].hashCode) & kHashMask;
     }
+    hash = ((hash * 31) & kHashMask) + constant.hashCode;
     return hash;
   }
 
   @override
   bool operator ==(other) {
+    if (identical(this, other)) return true;
     if (other is ConcreteType) {
-      if (this.classId != other.classId ||
+      if (!identical(this.cls, other.cls) ||
           this.numImmediateTypeArgs != other.numImmediateTypeArgs) {
         return false;
       }
@@ -716,6 +735,9 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
           }
         }
       }
+      if (this.constant != other.constant) {
+        return false;
+      }
       return true;
     } else {
       return false;
@@ -725,12 +747,24 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
   // Note that this may return 0 for concrete types which are not equal if the
   // difference is only in type arguments.
   @override
-  int compareTo(ConcreteType other) => classId.compareTo(other.classId);
+  int compareTo(ConcreteType other) => cls.id.compareTo(other.cls.id);
 
   @override
-  String toString() => typeArgs == null
-      ? "_T (${classNode})"
-      : "_T (${classNode}<${typeArgs.take(numImmediateTypeArgs).join(', ')}>)";
+  String toString() {
+    if (typeArgs == null && constant == null) {
+      return "_T (${cls})";
+    }
+    final StringBuffer buf = new StringBuffer();
+    buf.write("_T (${cls}");
+    if (typeArgs != null) {
+      buf.write("<${typeArgs.take(numImmediateTypeArgs).join(', ')}>");
+    }
+    if (constant != null) {
+      buf.write(", $constant");
+    }
+    buf.write(")");
+    return buf.toString();
+  }
 
   @override
   int get order => TypeOrder.Concrete.index;
@@ -743,13 +777,16 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
     if (other is ConcreteType) {
       if (this == other) {
         return this;
-      } else if (this.classId != other.classId) {
-        final types = (this.classId.compareTo(other.classId) < 0)
+      } else if (!identical(this.cls, other.cls)) {
+        final types = (this.cls.id < other.cls.id)
             ? <ConcreteType>[this, other]
             : <ConcreteType>[other, this];
         return new SetType(types);
       } else {
-        assertx(typeArgs != null || other.typeArgs != null);
+        assertx(typeArgs != null ||
+            constant != null ||
+            other.typeArgs != null ||
+            other.constant != null);
         return raw;
       }
     } else {
@@ -766,30 +803,47 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
       if (this == other) {
         return this;
       }
-      if (this.classId != other.classId) {
+      if (!identical(this.cls, other.cls)) {
         return EmptyType();
       }
-      assertx(typeArgs != null || other.typeArgs != null);
-      if (typeArgs == null) {
+      if (typeArgs == null && constant == null) {
         return other;
-      } else if (other.typeArgs == null) {
+      } else if (other.typeArgs == null && other.constant == null) {
         return this;
       }
 
-      final mergedTypeArgs = new List<Type>(typeArgs.length);
-      bool hasRuntimeType = false;
-      for (int i = 0; i < typeArgs.length; ++i) {
-        final merged =
-            typeArgs[i].intersection(other.typeArgs[i], typeHierarchy);
-        if (merged is EmptyType) {
-          return EmptyType();
-        } else if (merged is RuntimeType) {
-          hasRuntimeType = true;
+      List<Type> mergedTypeArgs;
+      if (typeArgs == null) {
+        mergedTypeArgs = other.typeArgs;
+      } else if (other.typeArgs == null) {
+        mergedTypeArgs = typeArgs;
+      } else {
+        mergedTypeArgs = new List<Type>(typeArgs.length);
+        bool hasRuntimeType = false;
+        for (int i = 0; i < typeArgs.length; ++i) {
+          final merged =
+              typeArgs[i].intersection(other.typeArgs[i], typeHierarchy);
+          if (merged is EmptyType) {
+            return const EmptyType();
+          } else if (merged is RuntimeType) {
+            hasRuntimeType = true;
+          }
+          mergedTypeArgs[i] = merged;
         }
-        mergedTypeArgs[i] = merged;
+        if (!hasRuntimeType) {
+          mergedTypeArgs = null;
+        }
       }
-      if (!hasRuntimeType) return raw;
-      return new ConcreteType(classId, classNode, mergedTypeArgs);
+
+      Constant mergedConstant;
+      if (constant == null) {
+        mergedConstant = other.constant;
+      } else if (other.constant == null || constant == other.constant) {
+        mergedConstant = constant;
+      } else {
+        return const EmptyType();
+      }
+      return new ConcreteType(cls, mergedTypeArgs, mergedConstant);
     } else {
       throw 'Unexpected type $other';
     }
@@ -842,18 +896,24 @@ class RuntimeType extends Type {
 
   int get order => TypeOrder.RuntimeType.index;
 
+  Nullability get nullability => _type.nullability;
+
+  RuntimeType withNullability(Nullability n) =>
+      RuntimeType(_type.withNullability(n), typeArgs);
+
   DartType get representedTypeRaw => _type;
 
   DartType get representedType {
-    if (_type is InterfaceType && typeArgs != null) {
-      final klass = (_type as InterfaceType).classNode;
+    final type = _type;
+    if (type is InterfaceType && typeArgs != null) {
+      final klass = type.classNode;
       final typeArguments = typeArgs
           .take(klass.typeParameters.length)
           .map((pt) => pt.representedType)
           .toList();
-      return new InterfaceType(klass, typeArguments);
+      return new InterfaceType(klass, type.nullability, typeArguments);
     } else {
-      return _type;
+      return type;
     }
   }
 
@@ -870,6 +930,7 @@ class RuntimeType extends Type {
 
   @override
   operator ==(other) {
+    if (identical(this, other)) return true;
     if (other is RuntimeType) {
       if (other._type != _type) return false;
       assertx(numImmediateTypeArgs == other.numImmediateTypeArgs);
@@ -883,10 +944,11 @@ class RuntimeType extends Type {
     final head = _type is InterfaceType
         ? "${(_type as InterfaceType).classNode}"
         : "$_type";
-    if (numImmediateTypeArgs == 0) return head;
-    final typeArgsStrs =
-        typeArgs.take(numImmediateTypeArgs).map((t) => "$t").join(", ");
-    return "_TS {$head<$typeArgsStrs>}";
+    final typeArgsStrs = (numImmediateTypeArgs == 0)
+        ? ""
+        : "<${typeArgs.take(numImmediateTypeArgs).map((t) => "$t").join(", ")}>";
+    final nullability = _type.nullability.suffix;
+    return "$head$typeArgsStrs$nullability";
   }
 
   @override
@@ -894,7 +956,7 @@ class RuntimeType extends Type {
       throw "ERROR: RuntimeType does not support isSpecialized.";
 
   @override
-  bool isSubtypeOf(TypeHierarchy typeHierarchy, DartType dartType) =>
+  bool isSubtypeOf(TypeHierarchy typeHierarchy, Class cls) =>
       throw "ERROR: RuntimeType does not support isSubtypeOf.";
 
   @override
@@ -923,20 +985,38 @@ class RuntimeType extends Type {
 
   bool isSubtypeOfRuntimeType(
       TypeHierarchy typeHierarchy, RuntimeType runtimeType) {
-    if (!typeHierarchy.isSubtype(this._type, runtimeType._type)) return false;
-
-    // The typeHierarchy result maybe be inaccurate only if there are type
-    // arguments which need to be examined.
-    if (_type is! InterfaceType || runtimeType.numImmediateTypeArgs == 0) {
+    final rhs = runtimeType._type;
+    if (typeHierarchy.nullSafety &&
+        _type.nullability == Nullability.nullable &&
+        rhs.nullability == Nullability.nonNullable) {
+      return false;
+    }
+    if (rhs is DynamicType ||
+        rhs is VoidType ||
+        _type is BottomType ||
+        _type is NeverType) {
       return true;
+    }
+    if (rhs is BottomType || rhs is NeverType) return false;
+    if (_type is DynamicType || _type is VoidType) {
+      return (rhs is InterfaceType &&
+          rhs.classNode == typeHierarchy.coreTypes.objectClass);
     }
 
     final thisClass = (_type as InterfaceType).classNode;
-    final otherClass = (runtimeType._type as InterfaceType).classNode;
+    final otherClass = (rhs as InterfaceType).classNode;
 
-    if (otherClass == typeHierarchy.futureOrClass) {
-      if (thisClass == typeHierarchy.futureClass ||
-          thisClass == typeHierarchy.futureOrClass) {
+    if (!typeHierarchy.isSubtype(thisClass, otherClass)) return false;
+
+    // The typeHierarchy result maybe be inaccurate only if there are type
+    // arguments which need to be examined.
+    if (runtimeType.numImmediateTypeArgs == 0) {
+      return true;
+    }
+
+    if (otherClass == typeHierarchy.coreTypes.futureOrClass) {
+      if (thisClass == typeHierarchy.coreTypes.futureClass ||
+          thisClass == typeHierarchy.coreTypes.futureOrClass) {
         return typeArgs[0]
             .isSubtypeOfRuntimeType(typeHierarchy, runtimeType.typeArgs[0]);
       } else {

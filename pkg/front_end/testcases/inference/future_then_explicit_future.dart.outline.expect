@@ -7,3 +7,5 @@ static method m1() → dynamic
   ;
 static method m2() → dynamic
   ;
+static method main() → dynamic
+  ;

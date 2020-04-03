@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 import 'dart:_js_helper' show patch;
 import 'dart:async';
 import 'dart:convert';
@@ -404,9 +406,16 @@ class InternetAddress {
   }
 
   @patch
-  factory InternetAddress(String address) {
+  factory InternetAddress(String address, {InternetAddressType type}) {
     throw UnsupportedError("InternetAddress");
   }
+
+  @patch
+  factory InternetAddress.fromRawAddress(Uint8List rawAddress,
+      {InternetAddressType type}) {
+    throw new UnsupportedError("InternetAddress.fromRawAddress");
+  }
+
   @patch
   static Future<List<InternetAddress>> lookup(String host,
       {InternetAddressType type = InternetAddressType.any}) {
@@ -448,7 +457,7 @@ class RawServerSocket {
 @patch
 class ServerSocket {
   @patch
-  static Future<ServerSocket> bind(address, int port,
+  static Future<ServerSocket> _bind(address, int port,
       {int backlog = 0, bool v6Only = false, bool shared = false}) {
     throw UnsupportedError("ServerSocket.bind");
   }

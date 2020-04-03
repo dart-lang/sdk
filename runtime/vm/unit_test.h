@@ -440,6 +440,10 @@ class TestIsolateScope {
   DISALLOW_COPY_AND_ASSIGN(TestIsolateScope);
 };
 
+// Ensures core libraries are initialized, thereby allowing vm/cc tests to
+// e.g. run functions using microtasks.
+void SetupCoreLibrariesForUnitTest();
+
 template <typename T>
 struct is_void {
   static const bool value = false;
@@ -463,7 +467,10 @@ struct is_double<double> {
 class AssemblerTest {
  public:
   AssemblerTest(const char* name, compiler::Assembler* assembler)
-      : name_(name), assembler_(assembler), code_(Code::ZoneHandle()) {
+      : name_(name),
+        assembler_(assembler),
+        code_(Code::ZoneHandle()),
+        disassembly_(Thread::Current()->zone()->Alloc<char>(DISASSEMBLY_SIZE)) {
     ASSERT(name != NULL);
     ASSERT(assembler != NULL);
   }
@@ -481,7 +488,7 @@ class AssemblerTest {
 // using the ABI calling convention.
 // ResultType is the return type of the assembler test function.
 // ArgNType is the type of the Nth argument.
-#if defined(USING_SIMULATOR) && !defined(TARGET_ARCH_DBC)
+#if defined(USING_SIMULATOR)
 
 #if defined(ARCH_IS_64_BIT)
   // TODO(fschneider): Make InvokeWithCodeAndThread<> more general and work on
@@ -532,29 +539,6 @@ class AssemblerTest {
         reinterpret_cast<intptr_t>(arg2), reinterpret_cast<intptr_t>(arg3), 0,
         fp_return, fp_args);
   }
-#elif defined(USING_SIMULATOR) && defined(TARGET_ARCH_DBC)
-  template <typename ResultType,
-            typename Arg1Type,
-            typename Arg2Type,
-            typename Arg3Type>
-  ResultType Invoke(Arg1Type arg1, Arg2Type arg2, Arg3Type arg3) {
-    // TODO(fschneider): Support double arguments for simulator calls.
-    COMPILE_ASSERT(is_void<ResultType>::value);
-    COMPILE_ASSERT(!is_double<Arg1Type>::value);
-    COMPILE_ASSERT(!is_double<Arg2Type>::value);
-    COMPILE_ASSERT(!is_double<Arg3Type>::value);
-    const Object& arg1obj = Object::Handle(reinterpret_cast<RawObject*>(arg1));
-    const Object& arg2obj = Object::Handle(reinterpret_cast<RawObject*>(arg2));
-    const intptr_t kTypeArgsLen = 0;
-    const intptr_t kNumArgs = 2;
-    const Array& argdesc =
-        Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs));
-    const Array& arguments = Array::Handle(Array::New(2));
-    arguments.SetAt(0, arg1obj);
-    arguments.SetAt(1, arg2obj);
-    Simulator::Current()->Call(code(), argdesc, arguments,
-                               reinterpret_cast<Thread*>(arg3));
-  }
 #else
   template <typename ResultType>
   ResultType InvokeWithCodeAndThread() {
@@ -580,7 +564,7 @@ class AssemblerTest {
     typedef ResultType (*FunctionType)(Arg1Type, Arg2Type, Arg3Type);
     return reinterpret_cast<FunctionType>(entry())(arg1, arg2, arg3);
   }
-#endif  // defined(USING_SIMULATOR) && !defined(TARGET_ARCH_DBC)
+#endif  // defined(USING_SIMULATOR)
 
   // Assemble test and set code_.
   void Assemble();
@@ -593,7 +577,7 @@ class AssemblerTest {
   compiler::Assembler* assembler_;
   Code& code_;
   static const intptr_t DISASSEMBLY_SIZE = 10240;
-  char disassembly_[DISASSEMBLY_SIZE];
+  char* disassembly_;
 
   DISALLOW_COPY_AND_ASSIGN(AssemblerTest);
 };

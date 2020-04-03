@@ -683,8 +683,8 @@ RegExpTree* RegExpParser::ParseDisjunction() {
               Advance(2);
               break;
             }
-            FALL_THROUGH;
           }
+            FALL_THROUGH;
           case '0': {
             Advance();
             if (is_unicode() && Next() >= '0' && Next() <= '9') {
@@ -802,8 +802,8 @@ RegExpTree* RegExpParser::ParseDisjunction() {
           ReportError("Nothing to repeat");
           UNREACHABLE();
         }
-        FALL_THROUGH;
       }
+        FALL_THROUGH;
       case '}':
       case ']':
         if (is_unicode()) {
@@ -1506,7 +1506,7 @@ bool LookupPropertyValueName(UProperty property,
   UErrorCode ec = U_ZERO_ERROR;
   icu::UnicodeSet set;
   set.applyIntPropertyValue(property, property_value, ec);
-  bool success = ec == U_ZERO_ERROR && !set.isEmpty();
+  bool success = ec == U_ZERO_ERROR && (set.isEmpty() == 0);
 
   if (success) {
     set.removeAllStrings();

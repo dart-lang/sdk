@@ -8,9 +8,11 @@
 // @dart = 2.4
 
 import 'package:foo/foo.dart';
+import 'package:foo/foo_with_part.dart';
 
 /*library: languageVersion=2.4*/
 
 main() {
   foo();
+  fooWithPart();
 }

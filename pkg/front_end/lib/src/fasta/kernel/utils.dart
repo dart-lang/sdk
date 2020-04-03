@@ -8,23 +8,21 @@ import 'dart:io' show BytesBuilder, File, IOSink;
 
 import 'dart:typed_data' show Uint8List;
 
-import 'package:kernel/clone.dart' show CloneVisitor;
+import 'package:kernel/clone.dart' show CloneVisitorWithMembers;
 
 import 'package:kernel/ast.dart'
     show
+        Class,
+        Component,
         DartType,
         Library,
-        Component,
         Procedure,
-        Class,
+        Supertype,
+        TreeNode,
         TypeParameter,
-        TypeParameterType,
-        Supertype;
+        TypeParameterType;
 
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
-
-import 'package:kernel/binary/limited_ast_to_binary.dart'
-    show LimitedBinaryPrinter;
 
 import 'package:kernel/text/ast_to_text.dart' show Printer;
 
@@ -51,9 +49,7 @@ Future<Null> writeComponentToFile(Component component, Uri uri,
   File output = new File.fromUri(uri);
   IOSink sink = output.openWrite();
   try {
-    BinaryPrinter printer = filter == null
-        ? new BinaryPrinter(sink)
-        : new LimitedBinaryPrinter(sink, filter ?? (_) => true, false);
+    BinaryPrinter printer = new BinaryPrinter(sink, libraryFilter: filter);
     printer.writeComponentFile(component);
   } finally {
     await sink.close();
@@ -66,11 +62,10 @@ Uint8List serializeComponent(Component component,
     bool includeSources: true,
     bool includeOffsets: true}) {
   ByteSink byteSink = new ByteSink();
-  BinaryPrinter printer = filter == null
-      ? new BinaryPrinter(byteSink,
-          includeSources: includeSources, includeOffsets: includeOffsets)
-      : new LimitedBinaryPrinter(byteSink, filter, !includeSources,
-          includeOffsets: includeOffsets);
+  BinaryPrinter printer = new BinaryPrinter(byteSink,
+      libraryFilter: filter,
+      includeSources: includeSources,
+      includeOffsets: includeOffsets);
   printer.writeComponentFile(component);
   return byteSink.builder.takeBytes();
 }
@@ -78,29 +73,33 @@ Uint8List serializeComponent(Component component,
 const String kDebugClassName = "#DebugClass";
 
 Component createExpressionEvaluationComponent(Procedure procedure) {
-  Library fakeLibrary =
-      new Library(new Uri(scheme: 'evaluate', path: 'source'));
+  Library realLibrary = procedure.enclosingLibrary;
+
+  Library fakeLibrary = new Library(new Uri(scheme: 'evaluate', path: 'source'))
+    ..setLanguageVersion(
+        realLibrary.languageVersionMajor, realLibrary.languageVersionMinor);
 
   if (procedure.parent is Class) {
     Class realClass = procedure.parent;
 
-    Class fakeClass = new Class(name: kDebugClassName);
+    Class fakeClass = new Class(name: kDebugClassName)..parent = fakeLibrary;
     Map<TypeParameter, TypeParameter> typeParams =
         <TypeParameter, TypeParameter>{};
     Map<TypeParameter, DartType> typeSubstitution = <TypeParameter, DartType>{};
     for (TypeParameter typeParam in realClass.typeParameters) {
-      var newNode = new TypeParameter(typeParam.name);
+      TypeParameter newNode = new TypeParameter(typeParam.name)
+        ..parent = fakeClass;
       typeParams[typeParam] = newNode;
-      typeSubstitution[typeParam] = new TypeParameterType(newNode);
+      typeSubstitution[typeParam] =
+          new TypeParameterType.forAlphaRenaming(typeParam, newNode);
     }
-    CloneVisitor cloner = new CloneVisitor(
+    CloneVisitorWithMembers cloner = new CloneVisitorWithMembers(
         typeSubstitution: typeSubstitution, typeParams: typeParams);
 
     for (TypeParameter typeParam in realClass.typeParameters) {
-      fakeClass.typeParameters.add(typeParam.accept(cloner));
+      fakeClass.typeParameters.add(typeParam.accept<TreeNode>(cloner));
     }
 
-    fakeClass.parent = fakeLibrary;
     if (realClass.supertype != null) {
       // supertype is null for Object.
       fakeClass.supertype = new Supertype.byReference(
@@ -109,7 +108,7 @@ Component createExpressionEvaluationComponent(Procedure procedure) {
     }
 
     // Rebind the type parameters in the procedure.
-    procedure = procedure.accept(cloner);
+    procedure = cloner.cloneProcedure(procedure, null);
     procedure.parent = fakeClass;
     fakeClass.procedures.add(procedure);
     fakeLibrary.classes.add(fakeClass);

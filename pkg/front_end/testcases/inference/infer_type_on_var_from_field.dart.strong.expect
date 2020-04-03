@@ -3,17 +3,14 @@ library test;
 // Problems in library:
 //
 // pkg/front_end/testcases/inference/infer_type_on_var_from_field.dart:13:38: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-// Try changing the type of the left hand side, or casting the right hand side to 'int'.
 //     a = /*error:INVALID_ASSIGNMENT*/ "hi";
 //                                      ^
 //
 // pkg/front_end/testcases/inference/infer_type_on_var_from_field.dart:16:38: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-// Try changing the type of the left hand side, or casting the right hand side to 'int'.
 //     b = /*error:INVALID_ASSIGNMENT*/ "hi";
 //                                      ^
 //
 // pkg/front_end/testcases/inference/infer_type_on_var_from_field.dart:19:38: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-// Try changing the type of the left hand side, or casting the right hand side to 'int'.
 //     c = /*error:INVALID_ASSIGNMENT*/ "hi";
 //                                      ^
 //
@@ -30,19 +27,16 @@ class A extends core::Object {
   method test1() → dynamic {
     core::int* a = this.{self::A::x};
     a = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/infer_type_on_var_from_field.dart:13:38: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-Try changing the type of the left hand side, or casting the right hand side to 'int'.
     a = /*error:INVALID_ASSIGNMENT*/ \"hi\";
                                      ^" in "hi" as{TypeError} core::int*;
     a = 3;
     core::int* b = this.{self::A::y};
     b = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/inference/infer_type_on_var_from_field.dart:16:38: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-Try changing the type of the left hand side, or casting the right hand side to 'int'.
     b = /*error:INVALID_ASSIGNMENT*/ \"hi\";
                                      ^" in "hi" as{TypeError} core::int*;
     b = 4;
     core::int* c = this.{self::A::z};
     c = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/inference/infer_type_on_var_from_field.dart:19:38: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-Try changing the type of the left hand side, or casting the right hand side to 'int'.
     c = /*error:INVALID_ASSIGNMENT*/ \"hi\";
                                      ^" in "hi" as{TypeError} core::int*;
     c = 4;

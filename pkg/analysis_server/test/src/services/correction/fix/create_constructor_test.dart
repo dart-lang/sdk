@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CreateConstructorTest);
     defineReflectiveTests(CreateConstructorMixinTest);
@@ -20,7 +20,7 @@ class CreateConstructorMixinTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CREATE_CONSTRUCTOR;
 
-  test_named() async {
+  Future<void> test_named() async {
     await resolveTestUnit('''
 mixin M {}
 
@@ -39,7 +39,7 @@ class CreateConstructorTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CREATE_CONSTRUCTOR;
 
-  test_inLibrary_insteadOfSyntheticDefault() async {
+  Future<void> test_inLibrary_insteadOfSyntheticDefault() async {
     var a = newFile('/home/test/lib/a.dart', content: '''
 /// $_text200
 class A {}
@@ -59,7 +59,7 @@ class A {
 ''', target: a);
   }
 
-  test_inLibrary_named() async {
+  Future<void> test_inLibrary_named() async {
     var a = newFile('/home/test/lib/a.dart', content: '''
 /// $_text200
 class A {}
@@ -79,7 +79,7 @@ class A {
 ''', target: a);
   }
 
-  test_insteadOfSyntheticDefault() async {
+  Future<void> test_insteadOfSyntheticDefault() async {
     await resolveTestUnit('''
 class A {
   int field;
@@ -104,7 +104,7 @@ main() {
 ''');
   }
 
-  test_named() async {
+  Future<void> test_named() async {
     await resolveTestUnit('''
 class A {
   method() {}
@@ -126,7 +126,7 @@ main() {
     assertLinkedGroup(change.linkedEditGroups[0], ['named(int ', 'named(1']);
   }
 
-  test_named_emptyClassBody() async {
+  Future<void> test_named_emptyClassBody() async {
     await resolveTestUnit('''
 class A {}
 main() {

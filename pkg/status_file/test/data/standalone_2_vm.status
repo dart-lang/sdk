@@ -24,16 +24,6 @@ io/socket_close_test: Pass, Timeout # Issue 28502: timeout.
 no_allow_absolute_addresses_test: SkipByDesign # Not supported.
 link_natives_lazily_test: SkipByDesign # Not supported.
 
-[ $arch == simdbc || $arch == simdbc64 ]
-full_coverage_test: Skip # TODO(vegorov) SIMDBC interpreter doesn't support coverage yet.
-
-link_natives_lazily_test: SkipByDesign # SIMDBC interpreter doesn't support lazy linking of natives.
-
-no_lazy_dispatchers_test: SkipByDesign # SIMDBC interpreter doesn't support --no_lazy_dispatchers
-
-[ $arch == simdbc64 && $mode == debug && $checked ]
-io/web_socket_test: Pass, RuntimeError # Issue 26814.
-
 [ $system == windows ]
 verbose_gc_to_bmu_test: Skip
 io/process_sync_test: Pass, Timeout # Issue 24596

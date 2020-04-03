@@ -14,20 +14,18 @@ import 'package:protobuf/protobuf.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-main() {
+void main() {
   defineReflectiveTests(WorkerLoopTest);
 }
 
-typedef void _TestWorkerLoopAnalyze(CommandLineOptions options);
+typedef _TestWorkerLoopAnalyze = void Function(CommandLineOptions options);
 
-/**
- * [AnalyzerWorkerLoop] for testing.
- */
+/// [AnalyzerWorkerLoop] for testing.
 class TestAnalyzerWorkerLoop extends AnalyzerWorkerLoop {
   final _TestWorkerLoopAnalyze _analyze;
 
   TestAnalyzerWorkerLoop(AsyncWorkerConnection connection, [this._analyze])
-      : super(new MemoryResourceProvider(), connection);
+      : super(MemoryResourceProvider(), connection);
 
   @override
   Future<void> analyze(CommandLineOptions options, inputs) async {
@@ -39,19 +37,18 @@ class TestAnalyzerWorkerLoop extends AnalyzerWorkerLoop {
 
 @reflectiveTest
 class WorkerLoopTest {
-  final TestStdinAsync stdinStream = new TestStdinAsync();
-  final TestStdoutStream stdoutStream = new TestStdoutStream();
+  final TestStdinAsync stdinStream = TestStdinAsync();
+  final TestStdoutStream stdoutStream = TestStdoutStream();
   TestAsyncWorkerConnection connection;
 
   WorkerLoopTest() {
-    connection =
-        new TestAsyncWorkerConnection(this.stdinStream, this.stdoutStream);
+    connection = TestAsyncWorkerConnection(stdinStream, stdoutStream);
   }
 
   void setUp() {}
 
-  test_run() async {
-    var request = new WorkRequest();
+  Future<void> test_run() async {
+    var request = WorkRequest();
     request.arguments.addAll([
       '--build-summary-input=/tmp/1.sum',
       '--build-summary-input=/tmp/2.sum',
@@ -61,7 +58,7 @@ class WorkerLoopTest {
     stdinStream.addInputBytes(_serializeProto(request));
     stdinStream.close();
 
-    await new TestAnalyzerWorkerLoop(connection, (CommandLineOptions options) {
+    await TestAnalyzerWorkerLoop(connection, (CommandLineOptions options) {
       expect(options.buildSummaryInputs,
           unorderedEquals(['/tmp/1.sum', '/tmp/2.sum']));
       expect(
@@ -89,12 +86,12 @@ class WorkerLoopTest {
     expect(stdoutStream.writes[0], _serializeProto(response));
   }
 
-  test_run_invalidOptions() async {
-    var request = new WorkRequest();
+  Future<void> test_run_invalidOptions() async {
+    var request = WorkRequest();
     request.arguments.addAll(['--unknown-option', '/foo.dart', '/bar.dart']);
     stdinStream.addInputBytes(_serializeProto(request));
     stdinStream.close();
-    await new TestAnalyzerWorkerLoop(connection).run();
+    await TestAnalyzerWorkerLoop(connection).run();
     expect(connection.responses, hasLength(1));
 
     var response = connection.responses[0];
@@ -102,11 +99,11 @@ class WorkerLoopTest {
     expect(response.output, anything);
   }
 
-  test_run_invalidRequest_noArgumentsInputs() async {
-    stdinStream.addInputBytes(_serializeProto(new WorkRequest()));
+  Future<void> test_run_invalidRequest_noArgumentsInputs() async {
+    stdinStream.addInputBytes(_serializeProto(WorkRequest()));
     stdinStream.close();
 
-    await new TestAnalyzerWorkerLoop(connection).run();
+    await TestAnalyzerWorkerLoop(connection).run();
     expect(connection.responses, hasLength(1));
 
     var response = connection.responses[0];
@@ -114,10 +111,10 @@ class WorkerLoopTest {
     expect(response.output, anything);
   }
 
-  test_run_invalidRequest_randomBytes() async {
+  Future<void> test_run_invalidRequest_randomBytes() async {
     stdinStream.addInputBytes([1, 2, 3]);
     stdinStream.close();
-    await new TestAnalyzerWorkerLoop(connection).run();
+    await TestAnalyzerWorkerLoop(connection).run();
     expect(connection.responses, hasLength(1));
 
     var response = connection.responses[0];
@@ -125,17 +122,17 @@ class WorkerLoopTest {
     expect(response.output, anything);
   }
 
-  test_run_stopAtEOF() async {
+  Future<void> test_run_stopAtEOF() async {
     stdinStream.close();
-    await new TestAnalyzerWorkerLoop(connection).run();
+    await TestAnalyzerWorkerLoop(connection).run();
   }
 
   List<int> _serializeProto(GeneratedMessage message) {
     var buffer = message.writeToBuffer();
-    var writer = new CodedBufferWriter();
+    var writer = CodedBufferWriter();
     writer.writeInt32NoTag(buffer.length);
 
-    List<int> result = [];
+    var result = <int>[];
     result.addAll(writer.toBuffer());
     result.addAll(buffer);
     return result;

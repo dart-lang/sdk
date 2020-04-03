@@ -1,0 +1,19 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/three_typedefs_loop.dart:8:9: Error: The typedef 'Bar' has a reference to itself.
+// typedef Bar<T> = void Function(Baz<T>);
+//         ^^^
+//
+// pkg/front_end/testcases/general/three_typedefs_loop.dart:7:9: Error: The typedef 'Foo' has a reference to itself.
+// typedef Foo<T> = void Function(Bar<T>);
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef Foo<unrelated T extends core::Object* = dynamic> = (((invalid-type) →* void) →* void) →* void;
+typedef Bar<unrelated T extends core::Object* = dynamic> = ((invalid-type) →* void) →* void;
+typedef Baz<unrelated T extends core::Object* = dynamic> = (invalid-type) →* void;
+static method main() → dynamic {}

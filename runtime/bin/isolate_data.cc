@@ -17,7 +17,6 @@ IsolateGroupData::IsolateGroupData(const char* url,
     : script_url((url != NULL) ? strdup(url) : NULL),
       package_root(NULL),
       app_snapshot_(app_snapshot),
-      dependencies_(NULL),
       resolved_packages_config_(NULL),
       kernel_buffer_(NULL),
       kernel_buffer_size_(0),
@@ -41,7 +40,6 @@ IsolateGroupData::~IsolateGroupData() {
   resolved_packages_config_ = NULL;
   kernel_buffer_ = NULL;
   kernel_buffer_size_ = 0;
-  delete dependencies_;
 }
 
 IsolateData::IsolateData(IsolateGroupData* isolate_group_data)

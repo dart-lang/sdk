@@ -8,14 +8,13 @@
 #include "include/dart_tools_api.h"
 
 #include "vm/allocation.h"
-#include "vm/object_graph.h"
 #include "vm/object_id_ring.h"
 #include "vm/os_thread.h"
 
 namespace dart {
 
 #define SERVICE_PROTOCOL_MAJOR_VERSION 3
-#define SERVICE_PROTOCOL_MINOR_VERSION 25
+#define SERVICE_PROTOCOL_MINOR_VERSION 30
 
 class Array;
 class EmbedderServiceHandler;
@@ -24,6 +23,7 @@ class GCEvent;
 class GrowableObjectArray;
 class Instance;
 class Isolate;
+class IsolateGroup;
 class JSONStream;
 class JSONObject;
 class Object;
@@ -44,6 +44,9 @@ class ServiceIdZone {
 };
 
 #define ISOLATE_SERVICE_ID_FORMAT_STRING "isolates/%" Pd64 ""
+#define ISOLATE_GROUP_SERVICE_ID_PREFIX "isolateGroups/"
+#define ISOLATE_GROUP_SERVICE_ID_FORMAT_STRING                                 \
+  ISOLATE_GROUP_SERVICE_ID_PREFIX "%" Pu64 ""
 
 class RingServiceIdZone : public ServiceIdZone {
  public:
@@ -121,9 +124,6 @@ class Service : public AllStatic {
       Dart_GetVMServiceAssetsArchive get_service_assets);
 
   static void SendEchoEvent(Isolate* isolate, const char* text);
-  static void SendGraphEvent(Thread* thread,
-                             ObjectGraph::SnapshotRoots roots,
-                             bool collect_garbage);
   static void SendInspectEvent(Isolate* isolate, const Object& inspectee);
 
   static void SendEmbedderEvent(Isolate* isolate,
@@ -146,6 +146,15 @@ class Service : public AllStatic {
                                  const String& event_kind,
                                  const String& event_data);
 
+  // Takes ownership of 'data'.
+  static void SendEventWithData(const char* stream_id,
+                                const char* event_type,
+                                intptr_t reservation,
+                                const char* metadata,
+                                intptr_t metadata_size,
+                                uint8_t* data,
+                                intptr_t data_size);
+
   static void PostError(const String& method_name,
                         const Array& parameter_keys,
                         const Array& parameter_values,
@@ -159,7 +168,7 @@ class Service : public AllStatic {
   static StreamInfo debug_stream;
   static StreamInfo gc_stream;
   static StreamInfo echo_stream;
-  static StreamInfo graph_stream;
+  static StreamInfo heapsnapshot_stream;
   static StreamInfo logging_stream;
   static StreamInfo extension_stream;
   static StreamInfo timeline_stream;
@@ -212,19 +221,12 @@ class Service : public AllStatic {
                                        const Array& parameter_values,
                                        const Instance& reply_port,
                                        const Instance& id);
+
   // Takes ownership of 'bytes'.
   static void SendEvent(const char* stream_id,
                         const char* event_type,
                         uint8_t* bytes,
                         intptr_t bytes_length);
-
-  // Does not take ownership of 'data'.
-  static void SendEventWithData(const char* stream_id,
-                                const char* event_type,
-                                const char* metadata,
-                                intptr_t metadata_size,
-                                const uint8_t* data,
-                                intptr_t data_size);
 
   static void PostEvent(Isolate* isolate,
                         const char* stream_id,

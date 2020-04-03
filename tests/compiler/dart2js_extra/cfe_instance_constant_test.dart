@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// dart2jsOptions=--enable-experiment=constant-update-2018
+// @dart = 2.7
 
 // Regression test for CFE constant evaluation. The evaluation of [Class9.field]
 // assumed that its initializer did not hold an unevaluated constant.

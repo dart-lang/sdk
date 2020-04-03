@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 import 'dart:io' show WebSocket;
 import 'dart:convert' show jsonDecode, jsonEncode;
@@ -145,7 +145,7 @@ var tests = <IsolateTest>[
       completions.forEach((complete) => complete());
 
       final errors = await Future.wait(results.map((future) {
-        return future.then((_) {
+        return future.then<dynamic>((_) {
           expect(false, isTrue, reason: 'shouldn\'t get here');
         }).catchError((e) => e);
       }));

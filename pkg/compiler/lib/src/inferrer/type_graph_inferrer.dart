@@ -70,13 +70,12 @@ class TypeGraphInferrer implements TypesInferrer {
   }
 
   InferrerEngine createInferrerEngineFor(FunctionEntity main) {
-    return new InferrerEngineImpl(
+    return InferrerEngine(
         _compiler.options,
         _compiler.progress,
         _compiler.reporter,
         _compiler.outputProvider,
         closedWorld,
-        _compiler.frontendStrategy.noSuchMethodRegistry,
         main,
         _inferredDataBuilder);
   }
@@ -116,8 +115,7 @@ class TypeGraphInferrer implements TypesInferrer {
           returnType != null &&
               abstractValueDomain.isEmpty(returnType).isDefinitelyTrue;
 
-      bool isCalledOnce =
-          typeInformation.isCalledOnce(); //isMemberCalledOnce(member);
+      bool isCalledOnce = typeInformation.isCalledOnce();
 
       memberResults[member] = new GlobalTypeInferenceMemberResultImpl(
           data, returnType, type,

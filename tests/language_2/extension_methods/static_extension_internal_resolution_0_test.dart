@@ -71,10 +71,9 @@ extension MyExt on A {
       double t2 = methodInOtherExtensionScope();
       checkOtherExtensionValue(t2);
     }
-
   }
 
-   void testIdentifiersOnThis() {
+  void testIdentifiersOnThis() {
     // Instance members resolve to the instance methods and not the members
     // of the other extension (when present)
     {
@@ -125,7 +124,6 @@ extension MyExt on A {
       self.setterInOtherExtensionScope = otherExtensionValue;
       double t2 = self.methodInOtherExtensionScope();
       checkOtherExtensionValue(t2);
-
     }
   }
 
@@ -207,5 +205,4 @@ void main() {
     double t2 = a.methodInOtherExtensionScope();
     checkOtherExtensionValue(t2);
   }
-
 }

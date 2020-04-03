@@ -4,6 +4,9 @@
 
 #include "include/dart_api.h"
 
+#include "bin/builtin.h"
+#include "bin/vmservice_impl.h"
+
 #include "platform/globals.h"
 
 #include "vm/class_finalizer.h"
@@ -214,7 +217,7 @@ ISOLATE_UNIT_TEST_CASE(InstanceClass) {
   ClassFinalizer::FinalizeTypesInClass(empty_class);
   empty_class.Finalize();
 
-  EXPECT_EQ(kObjectAlignment, empty_class.instance_size());
+  EXPECT_EQ(kObjectAlignment, empty_class.host_instance_size());
   Instance& instance = Instance::Handle(Instance::New(empty_class));
   EXPECT_EQ(empty_class.raw(), instance.clazz());
 
@@ -231,7 +234,7 @@ ISOLATE_UNIT_TEST_CASE(InstanceClass) {
   const Array& one_fields = Array::Handle(Array::New(1));
   const String& field_name = String::Handle(Symbols::New(thread, "the_field"));
   const Field& field = Field::Handle(
-      Field::New(field_name, false, false, false, true, one_field_class,
+      Field::New(field_name, false, false, false, true, false, one_field_class,
                  Object::dynamic_type(), TokenPosition::kMinSource,
                  TokenPosition::kMinSource));
   one_fields.SetAt(0, field);
@@ -239,8 +242,8 @@ ISOLATE_UNIT_TEST_CASE(InstanceClass) {
   one_field_class.Finalize();
   intptr_t header_size = sizeof(RawObject);
   EXPECT_EQ(Utils::RoundUp((header_size + (1 * kWordSize)), kObjectAlignment),
-            one_field_class.instance_size());
-  EXPECT_EQ(header_size, field.Offset());
+            one_field_class.host_instance_size());
+  EXPECT_EQ(header_size, field.HostOffset());
   EXPECT(!one_field_class.is_implemented());
   one_field_class.set_is_implemented();
   EXPECT(one_field_class.is_implemented());
@@ -1832,10 +1835,22 @@ TEST_CASE(ArrayLengthNegativeOne) {
 TEST_CASE(ArrayLengthSmiMin) {
   TestIllegalArrayLength(kSmiMin);
 }
+
 TEST_CASE(ArrayLengthOneTooMany) {
   const intptr_t kOneTooMany = Array::kMaxElements + 1;
   ASSERT(kOneTooMany >= 0);
-  TestIllegalArrayLength(kOneTooMany);
+
+  char buffer[1024];
+  Utils::SNPrint(buffer, sizeof(buffer),
+                 "main() {\n"
+                 "  return new List(%" Pd
+                 ");\n"
+                 "}\n",
+                 kOneTooMany);
+  Dart_Handle lib = TestCase::LoadTestScript(buffer, NULL);
+  EXPECT_VALID(lib);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_ERROR(result, "Out of Memory");
 }
 
 TEST_CASE(ArrayLengthMaxElements) {
@@ -1873,7 +1888,7 @@ static void TestIllegalTypedDataLength(const char* class_name,
   EXPECT_VALID(lib);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   Utils::SNPrint(buffer, sizeof(buffer), "%" Pd, length);
-  EXPECT_ERROR(result, "Invalid argument(s)");
+  EXPECT_ERROR(result, "RangeError (length): Invalid value");
   EXPECT_ERROR(result, buffer);
 }
 
@@ -1887,7 +1902,19 @@ TEST_CASE(Int8ListLengthOneTooMany) {
   const intptr_t kOneTooMany =
       TypedData::MaxElements(kTypedDataInt8ArrayCid) + 1;
   ASSERT(kOneTooMany >= 0);
-  TestIllegalTypedDataLength("Int8List", kOneTooMany);
+
+  char buffer[1024];
+  Utils::SNPrint(buffer, sizeof(buffer),
+                 "import 'dart:typed_data';\n"
+                 "main() {\n"
+                 "  return new Int8List(%" Pd
+                 ");\n"
+                 "}\n",
+                 kOneTooMany);
+  Dart_Handle lib = TestCase::LoadTestScript(buffer, NULL);
+  EXPECT_VALID(lib);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_ERROR(result, "Out of Memory");
 }
 
 TEST_CASE(Int8ListLengthMaxElements) {
@@ -2102,11 +2129,11 @@ ISOLATE_UNIT_TEST_CASE(GrowableObjectArray) {
     array.Add(value);
   }
   Heap* heap = Isolate::Current()->heap();
-  heap->CollectAllGarbage();
+  GCTestHelper::CollectAllGarbage();
   intptr_t capacity_before = heap->CapacityInWords(Heap::kOld);
   new_array = Array::MakeFixedLength(array);
   EXPECT_EQ(1, new_array.Length());
-  heap->CollectAllGarbage();
+  GCTestHelper::CollectAllGarbage();
   intptr_t capacity_after = heap->CapacityInWords(Heap::kOld);
   // Page should shrink.
   EXPECT_LT(capacity_after, capacity_before);
@@ -2235,8 +2262,7 @@ ISOLATE_UNIT_TEST_CASE(Script) {
   const char* source_chars = "This will not compile.";
   const String& url = String::Handle(String::New(url_chars));
   const String& source = String::Handle(String::New(source_chars));
-  const Script& script =
-      Script::Handle(Script::New(url, source, RawScript::kScriptTag));
+  const Script& script = Script::Handle(Script::New(url, source));
   EXPECT(!script.IsNull());
   EXPECT(script.IsScript());
   String& str = String::Handle(script.url());
@@ -2283,7 +2309,7 @@ ISOLATE_UNIT_TEST_CASE(Context) {
 ISOLATE_UNIT_TEST_CASE(ContextScope) {
   // We need an active compiler context to manipulate scopes, since local
   // variables and slots can be canonicalized in the compiler state.
-  CompilerState compiler_state(Thread::Current());
+  CompilerState compiler_state(Thread::Current(), /*is_aot=*/false);
 
   const intptr_t parent_scope_function_level = 0;
   LocalScope* parent_scope =
@@ -2525,8 +2551,9 @@ ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(CodeImmutability, "Crash") {
 class CodeTestHelper {
  public:
   static void SetInstructions(const Code& code,
-                              const Instructions& instructions) {
-    code.SetActiveInstructions(instructions);
+                              const Instructions& instructions,
+                              uword unchecked_offset) {
+    code.SetActiveInstructions(instructions, unchecked_offset);
     code.set_instructions(instructions);
   }
 };
@@ -2546,7 +2573,8 @@ ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(CodeExecutability, "Crash") {
       function, nullptr, &_assembler_, Code::PoolAttachment::kAttachPool));
   function.AttachCode(code);
   Instructions& instructions = Instructions::Handle(code.instructions());
-  uword payload_start = instructions.PayloadStart();
+  uword payload_start = code.PayloadStart();
+  const uword unchecked_offset = code.UncheckedEntryPoint() - code.EntryPoint();
   EXPECT_EQ(instructions.raw(), Instructions::FromPayloadStart(payload_start));
   // Execute the executable view of the instructions (default).
   Object& result =
@@ -2557,7 +2585,7 @@ ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(CodeExecutability, "Crash") {
   payload_start = instructions.PayloadStart();
   EXPECT_EQ(instructions.raw(), Instructions::FromPayloadStart(payload_start));
   // Hook up Code and Instructions objects.
-  CodeTestHelper::SetInstructions(code, instructions);
+  CodeTestHelper::SetInstructions(code, instructions, unchecked_offset);
   function.AttachCode(code);
   // Try executing the generated code, expected to crash.
   result = DartEntry::InvokeFunction(function, Array::empty_array());
@@ -2641,14 +2669,10 @@ ISOLATE_UNIT_TEST_CASE(ExceptionHandlers) {
   exception_handlers ^= ExceptionHandlers::New(kNumEntries);
   const bool kNeedsStackTrace = true;
   const bool kNoStackTrace = false;
-  exception_handlers.SetHandlerInfo(0, -1, 20u, kNeedsStackTrace, false,
-                                    TokenPosition::kNoSource, true);
-  exception_handlers.SetHandlerInfo(1, 0, 30u, kNeedsStackTrace, false,
-                                    TokenPosition::kNoSource, true);
-  exception_handlers.SetHandlerInfo(2, -1, 40u, kNoStackTrace, true,
-                                    TokenPosition::kNoSource, true);
-  exception_handlers.SetHandlerInfo(3, 1, 150u, kNoStackTrace, true,
-                                    TokenPosition::kNoSource, true);
+  exception_handlers.SetHandlerInfo(0, -1, 20u, kNeedsStackTrace, false, true);
+  exception_handlers.SetHandlerInfo(1, 0, 30u, kNeedsStackTrace, false, true);
+  exception_handlers.SetHandlerInfo(2, -1, 40u, kNoStackTrace, true, true);
+  exception_handlers.SetHandlerInfo(3, 1, 150u, kNoStackTrace, true, true);
 
   extern void GenerateIncrement(compiler::Assembler * assembler);
   compiler::ObjectPoolBuilder object_pool_builder;
@@ -2680,14 +2704,19 @@ ISOLATE_UNIT_TEST_CASE(ExceptionHandlers) {
 ISOLATE_UNIT_TEST_CASE(PcDescriptors) {
   DescriptorList* builder = new DescriptorList(0);
 
-  // kind, pc_offset, deopt_id, token_pos, try_index
-  builder->AddDescriptor(RawPcDescriptors::kOther, 10, 1, TokenPosition(20), 1);
-  builder->AddDescriptor(RawPcDescriptors::kDeopt, 20, 2, TokenPosition(30), 0);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 30, 3, TokenPosition(40), 1);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 10, 4, TokenPosition(40), 2);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 10, 5, TokenPosition(80), 3);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 80, 6, TokenPosition(150),
-                         3);
+  // kind, pc_offset, deopt_id, token_pos, try_index, yield_index
+  builder->AddDescriptor(RawPcDescriptors::kOther, 10, 1, TokenPosition(20), 1,
+                         1);
+  builder->AddDescriptor(RawPcDescriptors::kDeopt, 20, 2, TokenPosition(30), 0,
+                         -1);
+  builder->AddDescriptor(RawPcDescriptors::kOther, 30, 3, TokenPosition(40), 1,
+                         10);
+  builder->AddDescriptor(RawPcDescriptors::kOther, 10, 4, TokenPosition(40), 2,
+                         20);
+  builder->AddDescriptor(RawPcDescriptors::kOther, 10, 5, TokenPosition(80), 3,
+                         30);
+  builder->AddDescriptor(RawPcDescriptors::kOther, 80, 6, TokenPosition(150), 3,
+                         30);
 
   PcDescriptors& descriptors = PcDescriptors::Handle();
   descriptors ^= builder->FinalizePcDescriptors(0);
@@ -2706,6 +2735,7 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptors) {
   PcDescriptors::Iterator iter(pc_descs, RawPcDescriptors::kAnyKind);
 
   EXPECT_EQ(true, iter.MoveNext());
+  EXPECT_EQ(1, iter.YieldIndex());
   EXPECT_EQ(20, iter.TokenPos().value());
   EXPECT_EQ(1, iter.TryIndex());
   EXPECT_EQ(static_cast<uword>(10), iter.PcOffset());
@@ -2713,19 +2743,24 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptors) {
   EXPECT_EQ(RawPcDescriptors::kOther, iter.Kind());
 
   EXPECT_EQ(true, iter.MoveNext());
+  EXPECT_EQ(-1, iter.YieldIndex());
   EXPECT_EQ(30, iter.TokenPos().value());
   EXPECT_EQ(RawPcDescriptors::kDeopt, iter.Kind());
 
   EXPECT_EQ(true, iter.MoveNext());
+  EXPECT_EQ(10, iter.YieldIndex());
   EXPECT_EQ(40, iter.TokenPos().value());
 
   EXPECT_EQ(true, iter.MoveNext());
+  EXPECT_EQ(20, iter.YieldIndex());
   EXPECT_EQ(40, iter.TokenPos().value());
 
   EXPECT_EQ(true, iter.MoveNext());
+  EXPECT_EQ(30, iter.YieldIndex());
   EXPECT_EQ(80, iter.TokenPos().value());
 
   EXPECT_EQ(true, iter.MoveNext());
+  EXPECT_EQ(30, iter.YieldIndex());
   EXPECT_EQ(150, iter.TokenPos().value());
 
   EXPECT_EQ(3, iter.TryIndex());
@@ -2741,16 +2776,17 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptorsLargeDeltas) {
 
   // kind, pc_offset, deopt_id, token_pos, try_index
   builder->AddDescriptor(RawPcDescriptors::kOther, 100, 1, TokenPosition(200),
-                         1);
+                         1, 10);
   builder->AddDescriptor(RawPcDescriptors::kDeopt, 200, 2, TokenPosition(300),
-                         0);
+                         0, -1);
   builder->AddDescriptor(RawPcDescriptors::kOther, 300, 3, TokenPosition(400),
-                         1);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 100, 4, TokenPosition(0), 2);
+                         1, 10);
+  builder->AddDescriptor(RawPcDescriptors::kOther, 100, 4, TokenPosition(0), 2,
+                         20);
   builder->AddDescriptor(RawPcDescriptors::kOther, 100, 5, TokenPosition(800),
-                         3);
+                         3, 30);
   builder->AddDescriptor(RawPcDescriptors::kOther, 800, 6, TokenPosition(150),
-                         3);
+                         3, 30);
 
   PcDescriptors& descriptors = PcDescriptors::Handle();
   descriptors ^= builder->FinalizePcDescriptors(0);
@@ -2769,6 +2805,7 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptorsLargeDeltas) {
   PcDescriptors::Iterator iter(pc_descs, RawPcDescriptors::kAnyKind);
 
   EXPECT_EQ(true, iter.MoveNext());
+  EXPECT_EQ(10, iter.YieldIndex());
   EXPECT_EQ(200, iter.TokenPos().value());
   EXPECT_EQ(1, iter.TryIndex());
   EXPECT_EQ(static_cast<uword>(100), iter.PcOffset());
@@ -2776,19 +2813,24 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptorsLargeDeltas) {
   EXPECT_EQ(RawPcDescriptors::kOther, iter.Kind());
 
   EXPECT_EQ(true, iter.MoveNext());
+  EXPECT_EQ(-1, iter.YieldIndex());
   EXPECT_EQ(300, iter.TokenPos().value());
   EXPECT_EQ(RawPcDescriptors::kDeopt, iter.Kind());
 
   EXPECT_EQ(true, iter.MoveNext());
+  EXPECT_EQ(10, iter.YieldIndex());
   EXPECT_EQ(400, iter.TokenPos().value());
 
   EXPECT_EQ(true, iter.MoveNext());
+  EXPECT_EQ(20, iter.YieldIndex());
   EXPECT_EQ(0, iter.TokenPos().value());
 
   EXPECT_EQ(true, iter.MoveNext());
+  EXPECT_EQ(30, iter.YieldIndex());
   EXPECT_EQ(800, iter.TokenPos().value());
 
   EXPECT_EQ(true, iter.MoveNext());
+  EXPECT_EQ(30, iter.YieldIndex());
   EXPECT_EQ(150, iter.TokenPos().value());
 
   EXPECT_EQ(3, iter.TryIndex());
@@ -2812,7 +2854,7 @@ static RawField* CreateTestField(const char* name) {
   const String& field_name =
       String::Handle(Symbols::New(Thread::Current(), name));
   const Field& field = Field::Handle(Field::New(
-      field_name, true, false, false, true, cls, Object::dynamic_type(),
+      field_name, true, false, false, true, false, cls, Object::dynamic_type(),
       TokenPosition::kMinSource, TokenPosition::kMinSource));
   return field.raw();
 }
@@ -2861,8 +2903,8 @@ ISOLATE_UNIT_TEST_CASE(ICData) {
   const String& target_name = String::Handle(Symbols::New(thread, "Thun"));
   const intptr_t kTypeArgsLen = 0;
   const intptr_t kNumArgs = 1;
-  const Array& args_descriptor = Array::Handle(
-      ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs, Object::null_array()));
+  const Array& args_descriptor = Array::Handle(ArgumentsDescriptor::NewBoxed(
+      kTypeArgsLen, kNumArgs, Object::null_array()));
   ICData& o1 = ICData::Handle();
   o1 = ICData::New(function, target_name, args_descriptor, id, num_args_tested,
                    ICData::kInstance);
@@ -3195,7 +3237,6 @@ TEST_CASE(StackTraceFormat) {
 }
 
 ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveCrossGen) {
-  Isolate* isolate = Isolate::Current();
   WeakProperty& weak = WeakProperty::Handle();
   {
     // Weak property and value in new. Key in old.
@@ -3210,8 +3251,8 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveCrossGen) {
     key ^= OneByteString::null();
     value ^= OneByteString::null();
   }
-  isolate->heap()->CollectGarbage(Heap::kNew);
-  isolate->heap()->CollectGarbage(Heap::kOld);
+  GCTestHelper::CollectNewSpace();
+  GCTestHelper::CollectOldSpace();
   // Weak property key and value should survive due to cross-generation
   // pointers.
   EXPECT(weak.key() != Object::null());
@@ -3229,8 +3270,8 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveCrossGen) {
     key ^= OneByteString::null();
     value ^= OneByteString::null();
   }
-  isolate->heap()->CollectGarbage(Heap::kNew);
-  isolate->heap()->CollectGarbage(Heap::kOld);
+  GCTestHelper::CollectNewSpace();
+  GCTestHelper::CollectOldSpace();
   // Weak property key and value should survive due to cross-generation
   // pointers.
   EXPECT(weak.key() != Object::null());
@@ -3248,7 +3289,7 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveCrossGen) {
     key ^= Integer::null();
     value ^= OneByteString::null();
   }
-  isolate->heap()->CollectAllGarbage();
+  GCTestHelper::CollectAllGarbage();
   // Weak property key and value should survive due implicit liveness of
   // non-heap objects.
   EXPECT(weak.key() != Object::null());
@@ -3266,7 +3307,7 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveCrossGen) {
     key ^= OneByteString::null();
     value ^= OneByteString::null();
   }
-  isolate->heap()->CollectAllGarbage();
+  GCTestHelper::CollectAllGarbage();
   // Weak property key and value should survive due implicit liveness of
   // non-heap objects.
   EXPECT(weak.key() != Object::null());
@@ -3283,8 +3324,8 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveCrossGen) {
     key ^= OneByteString::null();
     value ^= OneByteString::null();
   }
-  isolate->heap()->CollectGarbage(Heap::kNew);
-  isolate->heap()->CollectGarbage(Heap::kOld);
+  GCTestHelper::CollectNewSpace();
+  GCTestHelper::CollectOldSpace();
   // Weak property key and value should survive due to cross-generation
   // pointers.
   EXPECT(weak.key() != Object::null());
@@ -3301,8 +3342,8 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveCrossGen) {
     key ^= OneByteString::null();
     value ^= OneByteString::null();
   }
-  isolate->heap()->CollectGarbage(Heap::kNew);
-  isolate->heap()->CollectGarbage(Heap::kOld);
+  GCTestHelper::CollectNewSpace();
+  GCTestHelper::CollectOldSpace();
   // Weak property key and value should survive due to cross-generation
   // pointers.
   EXPECT(weak.key() != Object::null());
@@ -3312,7 +3353,6 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveCrossGen) {
 ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveRecurse) {
   // This used to end in an infinite recursion. Caused by scavenging the weak
   // property before scavenging the key.
-  Isolate* isolate = Isolate::Current();
   WeakProperty& weak = WeakProperty::Handle();
   Array& arr = Array::Handle(Array::New(1));
   {
@@ -3326,13 +3366,12 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveRecurse) {
     weak.set_key(key);
     weak.set_value(value);
   }
-  isolate->heap()->CollectAllGarbage();
+  GCTestHelper::CollectAllGarbage();
   EXPECT(weak.key() != Object::null());
   EXPECT(weak.value() != Object::null());
 }
 
 ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveOne_NewSpace) {
-  Isolate* isolate = Isolate::Current();
   WeakProperty& weak = WeakProperty::Handle();
   String& key = String::Handle();
   key ^= OneByteString::New("key");
@@ -3344,13 +3383,12 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveOne_NewSpace) {
     weak.set_key(key);
     weak.set_value(value);
   }
-  isolate->heap()->CollectAllGarbage();
+  GCTestHelper::CollectAllGarbage();
   EXPECT(weak.key() != Object::null());
   EXPECT(weak.value() != Object::null());
 }
 
 ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveTwo_NewSpace) {
-  Isolate* isolate = Isolate::Current();
   WeakProperty& weak1 = WeakProperty::Handle();
   String& key1 = String::Handle();
   key1 ^= OneByteString::New("key1");
@@ -3370,7 +3408,7 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveTwo_NewSpace) {
     weak2.set_key(key2);
     weak2.set_value(value2);
   }
-  isolate->heap()->CollectAllGarbage();
+  GCTestHelper::CollectAllGarbage();
   EXPECT(weak1.key() != Object::null());
   EXPECT(weak1.value() != Object::null());
   EXPECT(weak2.key() != Object::null());
@@ -3378,7 +3416,6 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveTwo_NewSpace) {
 }
 
 ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveTwoShared_NewSpace) {
-  Isolate* isolate = Isolate::Current();
   WeakProperty& weak1 = WeakProperty::Handle();
   WeakProperty& weak2 = WeakProperty::Handle();
   String& key = String::Handle();
@@ -3396,7 +3433,7 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveTwoShared_NewSpace) {
     weak2.set_key(key);
     weak2.set_value(value2);
   }
-  isolate->heap()->CollectAllGarbage();
+  GCTestHelper::CollectAllGarbage();
   EXPECT(weak1.key() != Object::null());
   EXPECT(weak1.value() != Object::null());
   EXPECT(weak2.key() != Object::null());
@@ -3404,7 +3441,6 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveTwoShared_NewSpace) {
 }
 
 ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveOne_OldSpace) {
-  Isolate* isolate = Isolate::Current();
   WeakProperty& weak = WeakProperty::Handle();
   String& key = String::Handle();
   key ^= OneByteString::New("key", Heap::kOld);
@@ -3416,13 +3452,12 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveOne_OldSpace) {
     weak.set_key(key);
     weak.set_value(value);
   }
-  isolate->heap()->CollectAllGarbage();
+  GCTestHelper::CollectAllGarbage();
   EXPECT(weak.key() != Object::null());
   EXPECT(weak.value() != Object::null());
 }
 
 ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveTwo_OldSpace) {
-  Isolate* isolate = Isolate::Current();
   WeakProperty& weak1 = WeakProperty::Handle();
   String& key1 = String::Handle();
   key1 ^= OneByteString::New("key1", Heap::kOld);
@@ -3442,7 +3477,7 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveTwo_OldSpace) {
     weak2.set_key(key2);
     weak2.set_value(value2);
   }
-  isolate->heap()->CollectAllGarbage();
+  GCTestHelper::CollectAllGarbage();
   EXPECT(weak1.key() != Object::null());
   EXPECT(weak1.value() != Object::null());
   EXPECT(weak2.key() != Object::null());
@@ -3450,7 +3485,6 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveTwo_OldSpace) {
 }
 
 ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveTwoShared_OldSpace) {
-  Isolate* isolate = Isolate::Current();
   WeakProperty& weak1 = WeakProperty::Handle();
   WeakProperty& weak2 = WeakProperty::Handle();
   String& key = String::Handle();
@@ -3468,7 +3502,7 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveTwoShared_OldSpace) {
     weak2.set_key(key);
     weak2.set_value(value2);
   }
-  isolate->heap()->CollectAllGarbage();
+  GCTestHelper::CollectAllGarbage();
   EXPECT(weak1.key() != Object::null());
   EXPECT(weak1.value() != Object::null());
   EXPECT(weak2.key() != Object::null());
@@ -3476,7 +3510,6 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveTwoShared_OldSpace) {
 }
 
 ISOLATE_UNIT_TEST_CASE(WeakProperty_ClearOne_NewSpace) {
-  Isolate* isolate = Isolate::Current();
   WeakProperty& weak = WeakProperty::Handle();
   {
     HANDLESCOPE(thread);
@@ -3490,13 +3523,12 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_ClearOne_NewSpace) {
     key ^= OneByteString::null();
     value ^= OneByteString::null();
   }
-  isolate->heap()->CollectAllGarbage();
+  GCTestHelper::CollectAllGarbage();
   EXPECT(weak.key() == Object::null());
   EXPECT(weak.value() == Object::null());
 }
 
 ISOLATE_UNIT_TEST_CASE(WeakProperty_ClearTwoShared_NewSpace) {
-  Isolate* isolate = Isolate::Current();
   WeakProperty& weak1 = WeakProperty::Handle();
   WeakProperty& weak2 = WeakProperty::Handle();
   {
@@ -3514,7 +3546,7 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_ClearTwoShared_NewSpace) {
     weak2.set_key(key);
     weak2.set_value(value2);
   }
-  isolate->heap()->CollectAllGarbage();
+  GCTestHelper::CollectAllGarbage();
   EXPECT(weak1.key() == Object::null());
   EXPECT(weak1.value() == Object::null());
   EXPECT(weak2.key() == Object::null());
@@ -3522,7 +3554,6 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_ClearTwoShared_NewSpace) {
 }
 
 ISOLATE_UNIT_TEST_CASE(WeakProperty_ClearOne_OldSpace) {
-  Isolate* isolate = Isolate::Current();
   WeakProperty& weak = WeakProperty::Handle();
   {
     HANDLESCOPE(thread);
@@ -3536,13 +3567,12 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_ClearOne_OldSpace) {
     key ^= OneByteString::null();
     value ^= OneByteString::null();
   }
-  isolate->heap()->CollectAllGarbage();
+  GCTestHelper::CollectAllGarbage();
   EXPECT(weak.key() == Object::null());
   EXPECT(weak.value() == Object::null());
 }
 
 ISOLATE_UNIT_TEST_CASE(WeakProperty_ClearTwoShared_OldSpace) {
-  Isolate* isolate = Isolate::Current();
   WeakProperty& weak1 = WeakProperty::Handle();
   WeakProperty& weak2 = WeakProperty::Handle();
   {
@@ -3560,7 +3590,7 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_ClearTwoShared_OldSpace) {
     weak2.set_key(key);
     weak2.set_value(value2);
   }
-  isolate->heap()->CollectAllGarbage();
+  GCTestHelper::CollectAllGarbage();
   EXPECT(weak1.key() == Object::null());
   EXPECT(weak1.value() == Object::null());
   EXPECT(weak2.key() == Object::null());
@@ -3676,7 +3706,7 @@ ISOLATE_UNIT_TEST_CASE(FindInvocationDispatcherFunctionIndex) {
   // Add invocation dispatcher.
   const String& invocation_dispatcher_name =
       String::Handle(Symbols::New(thread, "myMethod"));
-  const Array& args_desc = Array::Handle(ArgumentsDescriptor::New(0, 1));
+  const Array& args_desc = Array::Handle(ArgumentsDescriptor::NewBoxed(0, 1));
   Function& invocation_dispatcher = Function::Handle();
   invocation_dispatcher ^= cls.GetInvocationDispatcher(
       invocation_dispatcher_name, args_desc,
@@ -3973,9 +4003,45 @@ class ObjectAccumulator : public ObjectVisitor {
   GrowableArray<Object*>* objects_;
 };
 
+ISOLATE_UNIT_TEST_CASE(ToCString) {
+  // Set native resolvers in case we need to read native methods.
+  {
+    TransitionVMToNative transition(thread);
+    bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
+    bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
+    bin::Builtin::SetNativeResolver(bin::Builtin::kCLILibrary);
+    bin::VmService::SetNativeResolver();
+  }
+
+  GCTestHelper::CollectAllGarbage();
+  GrowableArray<Object*> objects;
+  {
+    HeapIterationScope iteration(Thread::Current());
+    ObjectAccumulator acc(&objects);
+    iteration.IterateObjects(&acc);
+  }
+  for (intptr_t i = 0; i < objects.length(); ++i) {
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
+
+    // All ToCString implementations should not allocate on the Dart heap so
+    // they remain useful in all parts of the VM.
+    NoSafepointScope no_safepoint;
+    objects[i]->ToCString();
+  }
+}
+
 ISOLATE_UNIT_TEST_CASE(PrintJSON) {
-  Heap* heap = Isolate::Current()->heap();
-  heap->CollectAllGarbage();
+  // Set native resolvers in case we need to read native methods.
+  {
+    TransitionVMToNative transition(thread);
+    bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
+    bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
+    bin::Builtin::SetNativeResolver(bin::Builtin::kCLILibrary);
+    bin::VmService::SetNativeResolver();
+  }
+
+  GCTestHelper::CollectAllGarbage();
   GrowableArray<Object*> objects;
   {
     HeapIterationScope iteration(Thread::Current());
@@ -4506,11 +4572,11 @@ ISOLATE_UNIT_TEST_CASE(String_ScrubName) {
       {"_MyClass@6328321.named", "_MyClass.named"},
   };
   String& test = String::Handle();
-  String& result = String::Handle();
+  const char* result;
   for (size_t i = 0; i < ARRAY_SIZE(tests); i++) {
     test = String::New(tests[i].in);
     result = String::ScrubName(test);
-    EXPECT_STREQ(tests[i].out, result.ToCString());
+    EXPECT_STREQ(tests[i].out, result);
   }
 }
 

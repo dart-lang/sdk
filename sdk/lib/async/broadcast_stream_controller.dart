@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.async;
 
 class _BroadcastStream<T> extends _ControllerStream<T> {
@@ -251,13 +253,14 @@ abstract class _BroadcastStreamController<T>
   }
 
   void addError(Object error, [StackTrace stackTrace]) {
-    error = _nonNullError(error);
+    ArgumentError.checkNotNull(error, "error");
     if (!_mayAddEvent) throw _addEventError();
     AsyncError replacement = Zone.current.errorCallback(error, stackTrace);
     if (replacement != null) {
       error = _nonNullError(replacement.error);
       stackTrace = replacement.stackTrace;
     }
+    stackTrace ??= AsyncError.defaultStackTrace(error);
     _sendError(error, stackTrace);
   }
 
@@ -478,6 +481,8 @@ class _AsBroadcastStreamController<T> extends _SyncBroadcastStreamController<T>
   }
 
   void addError(Object error, [StackTrace stackTrace]) {
+    ArgumentError.checkNotNull(error, "error");
+    stackTrace ??= AsyncError.defaultStackTrace(error);
     if (!isClosed && _isFiring) {
       _addPendingEvent(new _DelayedError(error, stackTrace));
       return;

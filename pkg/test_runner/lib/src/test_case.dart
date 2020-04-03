@@ -12,9 +12,9 @@ import "package:status_file/expectation.dart";
 import 'command.dart';
 import 'command_output.dart';
 import 'configuration.dart';
+import 'options.dart';
 import 'output_log.dart';
 import 'process_queue.dart';
-import 'repository.dart';
 import 'test_file.dart';
 import 'utils.dart';
 
@@ -45,7 +45,7 @@ const _excludedEnvironmentVariables = [
 /// for evaluating if the test has passed, failed, crashed, or timed out, and
 /// the TestCase has information about what the expected result of the test
 /// should be.
-class TestCase extends UniqueObject {
+class TestCase {
   /// A list of commands to execute. Most test cases have a single command.
   /// Dart2js tests have two commands, one to compile the source and another
   /// to execute it. Some isolate tests might even have three, if they require
@@ -55,28 +55,20 @@ class TestCase extends UniqueObject {
 
   TestConfiguration configuration;
   String displayName;
-  int hash = 0;
   Set<Expectation> expectedOutcomes;
   final TestFile testFile;
 
   TestCase(this.displayName, this.commands, this.configuration,
       this.expectedOutcomes,
-      {TestFile testFile})
-      : testFile = testFile {
+      {this.testFile}) {
     // A test case should do something.
     assert(commands.isNotEmpty);
-
-    if (testFile != null) {
-      hash = (testFile.originPath?.relativeTo(Repository.dir)?.toString())
-          .hashCode;
-    }
   }
 
   TestCase indexedCopy(int index) {
     var newCommands = commands.map((c) => c.indexedCopy(index)).toList();
     return TestCase(displayName, newCommands, configuration, expectedOutcomes,
-        testFile: testFile)
-      ..hash = hash;
+        testFile: testFile);
   }
 
   bool get hasRuntimeError => testFile?.hasRuntimeError ?? false;
@@ -84,10 +76,6 @@ class TestCase extends UniqueObject {
   bool get hasSyntaxError => testFile?.hasSyntaxError ?? false;
   bool get hasCompileError => testFile?.hasCompileError ?? false;
   bool get hasCrash => testFile?.hasCrash ?? false;
-  bool get isNegative =>
-      hasCompileError ||
-      hasRuntimeError && configuration.runtime != Runtime.none ||
-      displayName.contains("negative_test");
 
   bool get unexpectedOutput {
     var outcome = result;
@@ -117,9 +105,6 @@ class TestCase extends UniqueObject {
         return Expectation.runtimeError;
       }
       return Expectation.pass;
-    }
-    if (displayName.contains("negative_test")) {
-      return Expectation.fail;
     }
     if (configuration.compiler == Compiler.dart2analyzer && hasStaticWarning) {
       return Expectation.staticWarning;
@@ -269,7 +254,7 @@ class RunningProcess {
       var processFuture = io.Process.start(command.executable, args,
           environment: processEnvironment,
           workingDirectory: command.workingDirectory);
-      processFuture.then((io.Process process) {
+      processFuture.then<dynamic>((io.Process process) {
         var stdoutFuture = process.stdout.pipe(stdout);
         var stderrFuture = process.stderr.pipe(stderr);
         pid = process.pid;
@@ -375,8 +360,8 @@ class RunningProcess {
   }
 
   CommandOutput _createCommandOutput(ProcessCommand command, int exitCode) {
-    List<int> stdoutData = stdout.toList();
-    List<int> stderrData = stderr.toList();
+    var stdoutData = stdout.toList();
+    var stderrData = stderr.toList();
     if (stdout.hasNonUtf8 || stderr.hasNonUtf8) {
       // If the output contained non-utf8 formatted data, then make the exit
       // code non-zero if it isn't already.
@@ -384,8 +369,7 @@ class RunningProcess {
         exitCode = nonUtfFakeExitCode;
       }
     }
-    var commandOutput = createCommandOutput(
-        command,
+    var commandOutput = command.createOutput(
         exitCode,
         timedOut,
         stdoutData,
@@ -398,8 +382,8 @@ class RunningProcess {
   }
 
   Map<String, String> _createProcessEnvironment() {
-    var environment = Map<String, String>.from(io.Platform.environment);
-
+    final environment = Map<String, String>.from(io.Platform.environment);
+    environment.addAll(sanitizerEnvironmentVariables);
     if (command.environmentOverrides != null) {
       for (var key in command.environmentOverrides.keys) {
         environment[key] = command.environmentOverrides[key];

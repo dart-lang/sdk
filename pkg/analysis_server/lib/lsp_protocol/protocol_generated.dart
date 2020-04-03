@@ -6,6 +6,7 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/lsp_spec/generate_all.dart".
 
+// ignore_for_file: annotate_overrides
 // ignore_for_file: deprecated_member_use
 // ignore_for_file: deprecated_member_use_from_same_package
 // ignore_for_file: unnecessary_brace_in_string_interps
@@ -22,10 +23,10 @@ import 'package:analysis_server/src/protocol/protocol_internal.dart'
     show listEqual, mapEqual;
 import 'package:analyzer/src/generated/utilities_general.dart';
 
-const jsonEncoder = const JsonEncoder.withIndent('    ');
+const jsonEncoder = JsonEncoder.withIndent('    ');
 
 class ApplyWorkspaceEditParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       ApplyWorkspaceEditParams.canParse, ApplyWorkspaceEditParams.fromJson);
 
   ApplyWorkspaceEditParams(this.label, this.edit) {
@@ -37,7 +38,7 @@ class ApplyWorkspaceEditParams implements ToJsonable {
     final label = json['label'];
     final edit =
         json['edit'] != null ? WorkspaceEdit.fromJson(json['edit']) : null;
-    return new ApplyWorkspaceEditParams(label, edit);
+    return ApplyWorkspaceEditParams(label, edit);
   }
 
   /// The edits to apply.
@@ -48,7 +49,7 @@ class ApplyWorkspaceEditParams implements ToJsonable {
   final String label;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (label != null) {
       __result['label'] = label;
     }
@@ -61,7 +62,7 @@ class ApplyWorkspaceEditParams implements ToJsonable {
       reporter.push('label');
       try {
         if (obj['label'] != null && !(obj['label'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -70,15 +71,15 @@ class ApplyWorkspaceEditParams implements ToJsonable {
       reporter.push('edit');
       try {
         if (!obj.containsKey('edit')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['edit'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(WorkspaceEdit.canParse(obj['edit'], reporter))) {
-          reporter.reportError("must be of type WorkspaceEdit");
+          reporter.reportError('must be of type WorkspaceEdit');
           return false;
         }
       } finally {
@@ -86,13 +87,13 @@ class ApplyWorkspaceEditParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type ApplyWorkspaceEditParams");
+      reporter.reportError('must be of type ApplyWorkspaceEditParams');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ApplyWorkspaceEditParams) {
       return label == other.label && edit == other.edit && true;
     }
@@ -101,7 +102,7 @@ class ApplyWorkspaceEditParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, label.hashCode);
     hash = JenkinsSmiHash.combine(hash, edit.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -112,7 +113,7 @@ class ApplyWorkspaceEditParams implements ToJsonable {
 }
 
 class ApplyWorkspaceEditResponse implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       ApplyWorkspaceEditResponse.canParse, ApplyWorkspaceEditResponse.fromJson);
 
   ApplyWorkspaceEditResponse(this.applied, this.failureReason) {
@@ -123,7 +124,7 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
   static ApplyWorkspaceEditResponse fromJson(Map<String, dynamic> json) {
     final applied = json['applied'];
     final failureReason = json['failureReason'];
-    return new ApplyWorkspaceEditResponse(applied, failureReason);
+    return ApplyWorkspaceEditResponse(applied, failureReason);
   }
 
   /// Indicates whether the edit was applied or not.
@@ -135,7 +136,7 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
   final String failureReason;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['applied'] =
         applied ?? (throw 'applied is required but was not set');
     if (failureReason != null) {
@@ -149,15 +150,15 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
       reporter.push('applied');
       try {
         if (!obj.containsKey('applied')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['applied'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['applied'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -166,7 +167,7 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
       reporter.push('failureReason');
       try {
         if (obj['failureReason'] != null && !(obj['failureReason'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -174,13 +175,13 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type ApplyWorkspaceEditResponse");
+      reporter.reportError('must be of type ApplyWorkspaceEditResponse');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ApplyWorkspaceEditResponse) {
       return applied == other.applied &&
           failureReason == other.failureReason &&
@@ -191,7 +192,7 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, applied.hashCode);
     hash = JenkinsSmiHash.combine(hash, failureReason.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -203,7 +204,7 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
 
 class CancelParams implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(CancelParams.canParse, CancelParams.fromJson);
+      LspJsonHandler(CancelParams.canParse, CancelParams.fromJson);
 
   CancelParams(this.id) {
     if (id == null) {
@@ -212,18 +213,18 @@ class CancelParams implements ToJsonable {
   }
   static CancelParams fromJson(Map<String, dynamic> json) {
     final id = json['id'] is num
-        ? new Either2<num, String>.t1(json['id'])
+        ? Either2<num, String>.t1(json['id'])
         : (json['id'] is String
-            ? new Either2<num, String>.t2(json['id'])
+            ? Either2<num, String>.t2(json['id'])
             : (throw '''${json['id']} was not one of (num, String)'''));
-    return new CancelParams(id);
+    return CancelParams(id);
   }
 
   /// The request id to cancel.
   final Either2<num, String> id;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['id'] = id ?? (throw 'id is required but was not set');
     return __result;
   }
@@ -233,15 +234,15 @@ class CancelParams implements ToJsonable {
       reporter.push('id');
       try {
         if (!obj.containsKey('id')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['id'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!((obj['id'] is num || obj['id'] is String))) {
-          reporter.reportError("must be of type Either2<num, String>");
+          reporter.reportError('must be of type Either2<num, String>');
           return false;
         }
       } finally {
@@ -249,13 +250,13 @@ class CancelParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type CancelParams");
+      reporter.reportError('must be of type CancelParams');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CancelParams) {
       return id == other.id && true;
     }
@@ -264,7 +265,7 @@ class CancelParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, id.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -274,8 +275,8 @@ class CancelParams implements ToJsonable {
 }
 
 class ClientCapabilities implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      ClientCapabilities.canParse, ClientCapabilities.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(ClientCapabilities.canParse, ClientCapabilities.fromJson);
 
   ClientCapabilities(this.workspace, this.textDocument, this.experimental);
   static ClientCapabilities fromJson(Map<String, dynamic> json) {
@@ -286,7 +287,7 @@ class ClientCapabilities implements ToJsonable {
         ? TextDocumentClientCapabilities.fromJson(json['textDocument'])
         : null;
     final experimental = json['experimental'];
-    return new ClientCapabilities(workspace, textDocument, experimental);
+    return ClientCapabilities(workspace, textDocument, experimental);
   }
 
   /// Experimental client capabilities.
@@ -299,7 +300,7 @@ class ClientCapabilities implements ToJsonable {
   final WorkspaceClientCapabilities workspace;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (workspace != null) {
       __result['workspace'] = workspace;
     }
@@ -319,7 +320,7 @@ class ClientCapabilities implements ToJsonable {
         if (obj['workspace'] != null &&
             !(WorkspaceClientCapabilities.canParse(
                 obj['workspace'], reporter))) {
-          reporter.reportError("must be of type WorkspaceClientCapabilities");
+          reporter.reportError('must be of type WorkspaceClientCapabilities');
           return false;
         }
       } finally {
@@ -331,7 +332,7 @@ class ClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilities.canParse(
                 obj['textDocument'], reporter))) {
           reporter
-              .reportError("must be of type TextDocumentClientCapabilities");
+              .reportError('must be of type TextDocumentClientCapabilities');
           return false;
         }
       } finally {
@@ -340,7 +341,7 @@ class ClientCapabilities implements ToJsonable {
       reporter.push('experimental');
       try {
         if (obj['experimental'] != null && !(true)) {
-          reporter.reportError("must be of type dynamic");
+          reporter.reportError('must be of type dynamic');
           return false;
         }
       } finally {
@@ -348,13 +349,13 @@ class ClientCapabilities implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type ClientCapabilities");
+      reporter.reportError('must be of type ClientCapabilities');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ClientCapabilities) {
       return workspace == other.workspace &&
           textDocument == other.textDocument &&
@@ -366,7 +367,7 @@ class ClientCapabilities implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, workspace.hashCode);
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
     hash = JenkinsSmiHash.combine(hash, experimental.hashCode);
@@ -384,7 +385,7 @@ class ClientCapabilities implements ToJsonable {
 /// supplied, the `edit` is applied first, then the `command` is executed.
 class CodeAction implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(CodeAction.canParse, CodeAction.fromJson);
+      LspJsonHandler(CodeAction.canParse, CodeAction.fromJson);
 
   CodeAction(this.title, this.kind, this.diagnostics, this.edit, this.command) {
     if (title == null) {
@@ -403,7 +404,7 @@ class CodeAction implements ToJsonable {
         json['edit'] != null ? WorkspaceEdit.fromJson(json['edit']) : null;
     final command =
         json['command'] != null ? Command.fromJson(json['command']) : null;
-    return new CodeAction(title, kind, diagnostics, edit, command);
+    return CodeAction(title, kind, diagnostics, edit, command);
   }
 
   /// A command this code action executes. If a code action provides an edit and
@@ -425,7 +426,7 @@ class CodeAction implements ToJsonable {
   final String title;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['title'] = title ?? (throw 'title is required but was not set');
     if (kind != null) {
       __result['kind'] = kind;
@@ -447,15 +448,15 @@ class CodeAction implements ToJsonable {
       reporter.push('title');
       try {
         if (!obj.containsKey('title')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['title'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['title'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -465,7 +466,7 @@ class CodeAction implements ToJsonable {
       try {
         if (obj['kind'] != null &&
             !(CodeActionKind.canParse(obj['kind'], reporter))) {
-          reporter.reportError("must be of type CodeActionKind");
+          reporter.reportError('must be of type CodeActionKind');
           return false;
         }
       } finally {
@@ -477,7 +478,7 @@ class CodeAction implements ToJsonable {
             !((obj['diagnostics'] is List &&
                 (obj['diagnostics']
                     .every((item) => Diagnostic.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<Diagnostic>");
+          reporter.reportError('must be of type List<Diagnostic>');
           return false;
         }
       } finally {
@@ -487,7 +488,7 @@ class CodeAction implements ToJsonable {
       try {
         if (obj['edit'] != null &&
             !(WorkspaceEdit.canParse(obj['edit'], reporter))) {
-          reporter.reportError("must be of type WorkspaceEdit");
+          reporter.reportError('must be of type WorkspaceEdit');
           return false;
         }
       } finally {
@@ -497,7 +498,7 @@ class CodeAction implements ToJsonable {
       try {
         if (obj['command'] != null &&
             !(Command.canParse(obj['command'], reporter))) {
-          reporter.reportError("must be of type Command");
+          reporter.reportError('must be of type Command');
           return false;
         }
       } finally {
@@ -505,13 +506,13 @@ class CodeAction implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type CodeAction");
+      reporter.reportError('must be of type CodeAction');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CodeAction) {
       return title == other.title &&
           kind == other.kind &&
@@ -526,7 +527,7 @@ class CodeAction implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, title.hashCode);
     hash = JenkinsSmiHash.combine(hash, kind.hashCode);
     hash = JenkinsSmiHash.combine(hash, diagnostics.hashCode);
@@ -542,8 +543,8 @@ class CodeAction implements ToJsonable {
 /// Contains additional diagnostic information about the context in which a code
 /// action is run.
 class CodeActionContext implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      CodeActionContext.canParse, CodeActionContext.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(CodeActionContext.canParse, CodeActionContext.fromJson);
 
   CodeActionContext(this.diagnostics, this.only) {
     if (diagnostics == null) {
@@ -559,7 +560,7 @@ class CodeActionContext implements ToJsonable {
         ?.map((item) => item != null ? CodeActionKind.fromJson(item) : null)
         ?.cast<CodeActionKind>()
         ?.toList();
-    return new CodeActionContext(diagnostics, only);
+    return CodeActionContext(diagnostics, only);
   }
 
   /// An array of diagnostics.
@@ -572,7 +573,7 @@ class CodeActionContext implements ToJsonable {
   final List<CodeActionKind> only;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['diagnostics'] =
         diagnostics ?? (throw 'diagnostics is required but was not set');
     if (only != null) {
@@ -586,17 +587,17 @@ class CodeActionContext implements ToJsonable {
       reporter.push('diagnostics');
       try {
         if (!obj.containsKey('diagnostics')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['diagnostics'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!((obj['diagnostics'] is List &&
             (obj['diagnostics']
                 .every((item) => Diagnostic.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<Diagnostic>");
+          reporter.reportError('must be of type List<Diagnostic>');
           return false;
         }
       } finally {
@@ -608,7 +609,7 @@ class CodeActionContext implements ToJsonable {
             !((obj['only'] is List &&
                 (obj['only'].every(
                     (item) => CodeActionKind.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<CodeActionKind>");
+          reporter.reportError('must be of type List<CodeActionKind>');
           return false;
         }
       } finally {
@@ -616,13 +617,13 @@ class CodeActionContext implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type CodeActionContext");
+      reporter.reportError('must be of type CodeActionContext');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CodeActionContext) {
       return listEqual(diagnostics, other.diagnostics,
               (Diagnostic a, Diagnostic b) => a == b) &&
@@ -635,7 +636,7 @@ class CodeActionContext implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, diagnostics.hashCode);
     hash = JenkinsSmiHash.combine(hash, only.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -656,11 +657,14 @@ class CodeActionKind {
     return obj is String;
   }
 
+  /// Empty kind.
+  static const Empty = CodeActionKind('');
+
   /// Base kind for quickfix actions: 'quickfix'
-  static const QuickFix = const CodeActionKind('quickfix');
+  static const QuickFix = CodeActionKind('quickfix');
 
   /// Base kind for refactoring actions: 'refactor'
-  static const Refactor = const CodeActionKind('refactor');
+  static const Refactor = CodeActionKind('refactor');
 
   /// Base kind for refactoring extraction actions: 'refactor.extract'
   ///
@@ -671,7 +675,7 @@ class CodeActionKind {
   /// - Extract variable
   /// - Extract interface from class
   /// - ...
-  static const RefactorExtract = const CodeActionKind('refactor.extract');
+  static const RefactorExtract = CodeActionKind('refactor.extract');
 
   /// Base kind for refactoring inline actions: 'refactor.inline'
   ///
@@ -681,7 +685,7 @@ class CodeActionKind {
   /// - Inline variable
   /// - Inline constant
   /// - ...
-  static const RefactorInline = const CodeActionKind('refactor.inline');
+  static const RefactorInline = CodeActionKind('refactor.inline');
 
   /// Base kind for refactoring rewrite actions: 'refactor.rewrite'
   ///
@@ -693,16 +697,15 @@ class CodeActionKind {
   /// - Make method static
   /// - Move method to base class
   /// - ...
-  static const RefactorRewrite = const CodeActionKind('refactor.rewrite');
+  static const RefactorRewrite = CodeActionKind('refactor.rewrite');
 
   /// Base kind for source actions: `source`
   ///
   /// Source code actions apply to the entire file.
-  static const Source = const CodeActionKind('source');
+  static const Source = CodeActionKind('source');
 
   /// Base kind for an organize imports source action: `source.organizeImports`
-  static const SourceOrganizeImports =
-      const CodeActionKind('source.organizeImports');
+  static const SourceOrganizeImports = CodeActionKind('source.organizeImports');
 
   Object toJson() => _value;
 
@@ -710,15 +713,15 @@ class CodeActionKind {
   String toString() => _value.toString();
 
   @override
-  get hashCode => _value.hashCode;
+  int get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is CodeActionKind && o._value == _value;
+  bool operator ==(Object o) => o is CodeActionKind && o._value == _value;
 }
 
 /// Code Action options.
 class CodeActionOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      CodeActionOptions.canParse, CodeActionOptions.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(CodeActionOptions.canParse, CodeActionOptions.fromJson);
 
   CodeActionOptions(this.codeActionKinds);
   static CodeActionOptions fromJson(Map<String, dynamic> json) {
@@ -729,7 +732,7 @@ class CodeActionOptions implements ToJsonable {
         ?.map((item) => item != null ? CodeActionKind.fromJson(item) : null)
         ?.cast<CodeActionKind>()
         ?.toList();
-    return new CodeActionOptions(codeActionKinds);
+    return CodeActionOptions(codeActionKinds);
   }
 
   /// CodeActionKinds that this server may return.
@@ -739,7 +742,7 @@ class CodeActionOptions implements ToJsonable {
   final List<CodeActionKind> codeActionKinds;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (codeActionKinds != null) {
       __result['codeActionKinds'] = codeActionKinds;
     }
@@ -754,7 +757,7 @@ class CodeActionOptions implements ToJsonable {
             !((obj['codeActionKinds'] is List &&
                 (obj['codeActionKinds'].every(
                     (item) => CodeActionKind.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<CodeActionKind>");
+          reporter.reportError('must be of type List<CodeActionKind>');
           return false;
         }
       } finally {
@@ -762,13 +765,13 @@ class CodeActionOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type CodeActionOptions");
+      reporter.reportError('must be of type CodeActionOptions');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CodeActionOptions) {
       return listEqual(codeActionKinds, other.codeActionKinds,
               (CodeActionKind a, CodeActionKind b) => a == b) &&
@@ -779,7 +782,7 @@ class CodeActionOptions implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, codeActionKinds.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -790,8 +793,8 @@ class CodeActionOptions implements ToJsonable {
 
 /// Params for the CodeActionRequest
 class CodeActionParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      CodeActionParams.canParse, CodeActionParams.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(CodeActionParams.canParse, CodeActionParams.fromJson);
 
   CodeActionParams(this.textDocument, this.range, this.context) {
     if (textDocument == null) {
@@ -812,7 +815,7 @@ class CodeActionParams implements ToJsonable {
     final context = json['context'] != null
         ? CodeActionContext.fromJson(json['context'])
         : null;
-    return new CodeActionParams(textDocument, range, context);
+    return CodeActionParams(textDocument, range, context);
   }
 
   /// Context carrying additional information.
@@ -825,7 +828,7 @@ class CodeActionParams implements ToJsonable {
   final TextDocumentIdentifier textDocument;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
     __result['range'] = range ?? (throw 'range is required but was not set');
@@ -839,15 +842,15 @@ class CodeActionParams implements ToJsonable {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['textDocument'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
-          reporter.reportError("must be of type TextDocumentIdentifier");
+          reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
       } finally {
@@ -856,15 +859,15 @@ class CodeActionParams implements ToJsonable {
       reporter.push('range');
       try {
         if (!obj.containsKey('range')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['range'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Range.canParse(obj['range'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -873,15 +876,15 @@ class CodeActionParams implements ToJsonable {
       reporter.push('context');
       try {
         if (!obj.containsKey('context')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['context'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(CodeActionContext.canParse(obj['context'], reporter))) {
-          reporter.reportError("must be of type CodeActionContext");
+          reporter.reportError('must be of type CodeActionContext');
           return false;
         }
       } finally {
@@ -889,13 +892,13 @@ class CodeActionParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type CodeActionParams");
+      reporter.reportError('must be of type CodeActionParams');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CodeActionParams) {
       return textDocument == other.textDocument &&
           range == other.range &&
@@ -907,7 +910,7 @@ class CodeActionParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
     hash = JenkinsSmiHash.combine(hash, range.hashCode);
     hash = JenkinsSmiHash.combine(hash, context.hashCode);
@@ -920,7 +923,7 @@ class CodeActionParams implements ToJsonable {
 
 class CodeActionRegistrationOptions
     implements TextDocumentRegistrationOptions, CodeActionOptions, ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       CodeActionRegistrationOptions.canParse,
       CodeActionRegistrationOptions.fromJson);
 
@@ -934,7 +937,7 @@ class CodeActionRegistrationOptions
         ?.map((item) => item != null ? CodeActionKind.fromJson(item) : null)
         ?.cast<CodeActionKind>()
         ?.toList();
-    return new CodeActionRegistrationOptions(documentSelector, codeActionKinds);
+    return CodeActionRegistrationOptions(documentSelector, codeActionKinds);
   }
 
   /// CodeActionKinds that this server may return.
@@ -948,7 +951,7 @@ class CodeActionRegistrationOptions
   final List<DocumentFilter> documentSelector;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['documentSelector'] = documentSelector;
     if (codeActionKinds != null) {
       __result['codeActionKinds'] = codeActionKinds;
@@ -961,14 +964,14 @@ class CodeActionRegistrationOptions
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['documentSelector'] != null &&
             !((obj['documentSelector'] is List &&
                 (obj['documentSelector'].every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<DocumentFilter>");
+          reporter.reportError('must be of type List<DocumentFilter>');
           return false;
         }
       } finally {
@@ -980,7 +983,7 @@ class CodeActionRegistrationOptions
             !((obj['codeActionKinds'] is List &&
                 (obj['codeActionKinds'].every(
                     (item) => CodeActionKind.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<CodeActionKind>");
+          reporter.reportError('must be of type List<CodeActionKind>');
           return false;
         }
       } finally {
@@ -988,13 +991,13 @@ class CodeActionRegistrationOptions
       }
       return true;
     } else {
-      reporter.reportError("must be of type CodeActionRegistrationOptions");
+      reporter.reportError('must be of type CodeActionRegistrationOptions');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CodeActionRegistrationOptions) {
       return documentSelector == other.documentSelector &&
           listEqual(codeActionKinds, other.codeActionKinds,
@@ -1006,7 +1009,7 @@ class CodeActionRegistrationOptions
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
     hash = JenkinsSmiHash.combine(hash, codeActionKinds.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -1024,7 +1027,7 @@ class CodeActionRegistrationOptions
 /// in two stages.
 class CodeLens implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(CodeLens.canParse, CodeLens.fromJson);
+      LspJsonHandler(CodeLens.canParse, CodeLens.fromJson);
 
   CodeLens(this.range, this.command, this.data) {
     if (range == null) {
@@ -1036,7 +1039,7 @@ class CodeLens implements ToJsonable {
     final command =
         json['command'] != null ? Command.fromJson(json['command']) : null;
     final data = json['data'];
-    return new CodeLens(range, command, data);
+    return CodeLens(range, command, data);
   }
 
   /// The command this code lens represents.
@@ -1051,7 +1054,7 @@ class CodeLens implements ToJsonable {
   final Range range;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['range'] = range ?? (throw 'range is required but was not set');
     if (command != null) {
       __result['command'] = command;
@@ -1067,15 +1070,15 @@ class CodeLens implements ToJsonable {
       reporter.push('range');
       try {
         if (!obj.containsKey('range')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['range'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Range.canParse(obj['range'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -1085,7 +1088,7 @@ class CodeLens implements ToJsonable {
       try {
         if (obj['command'] != null &&
             !(Command.canParse(obj['command'], reporter))) {
-          reporter.reportError("must be of type Command");
+          reporter.reportError('must be of type Command');
           return false;
         }
       } finally {
@@ -1094,7 +1097,7 @@ class CodeLens implements ToJsonable {
       reporter.push('data');
       try {
         if (obj['data'] != null && !(true)) {
-          reporter.reportError("must be of type dynamic");
+          reporter.reportError('must be of type dynamic');
           return false;
         }
       } finally {
@@ -1102,13 +1105,13 @@ class CodeLens implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type CodeLens");
+      reporter.reportError('must be of type CodeLens');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CodeLens) {
       return range == other.range &&
           command == other.command &&
@@ -1120,7 +1123,7 @@ class CodeLens implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, range.hashCode);
     hash = JenkinsSmiHash.combine(hash, command.hashCode);
     hash = JenkinsSmiHash.combine(hash, data.hashCode);
@@ -1134,19 +1137,19 @@ class CodeLens implements ToJsonable {
 /// Code Lens options.
 class CodeLensOptions implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(CodeLensOptions.canParse, CodeLensOptions.fromJson);
+      LspJsonHandler(CodeLensOptions.canParse, CodeLensOptions.fromJson);
 
   CodeLensOptions(this.resolveProvider);
   static CodeLensOptions fromJson(Map<String, dynamic> json) {
     final resolveProvider = json['resolveProvider'];
-    return new CodeLensOptions(resolveProvider);
+    return CodeLensOptions(resolveProvider);
   }
 
   /// Code lens has a resolve provider as well.
   final bool resolveProvider;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (resolveProvider != null) {
       __result['resolveProvider'] = resolveProvider;
     }
@@ -1159,7 +1162,7 @@ class CodeLensOptions implements ToJsonable {
       try {
         if (obj['resolveProvider'] != null &&
             !(obj['resolveProvider'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -1167,13 +1170,13 @@ class CodeLensOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type CodeLensOptions");
+      reporter.reportError('must be of type CodeLensOptions');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CodeLensOptions) {
       return resolveProvider == other.resolveProvider && true;
     }
@@ -1182,7 +1185,7 @@ class CodeLensOptions implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, resolveProvider.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -1193,7 +1196,7 @@ class CodeLensOptions implements ToJsonable {
 
 class CodeLensParams implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(CodeLensParams.canParse, CodeLensParams.fromJson);
+      LspJsonHandler(CodeLensParams.canParse, CodeLensParams.fromJson);
 
   CodeLensParams(this.textDocument) {
     if (textDocument == null) {
@@ -1204,14 +1207,14 @@ class CodeLensParams implements ToJsonable {
     final textDocument = json['textDocument'] != null
         ? TextDocumentIdentifier.fromJson(json['textDocument'])
         : null;
-    return new CodeLensParams(textDocument);
+    return CodeLensParams(textDocument);
   }
 
   /// The document to request code lens for.
   final TextDocumentIdentifier textDocument;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
     return __result;
@@ -1222,15 +1225,15 @@ class CodeLensParams implements ToJsonable {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['textDocument'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
-          reporter.reportError("must be of type TextDocumentIdentifier");
+          reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
       } finally {
@@ -1238,13 +1241,13 @@ class CodeLensParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type CodeLensParams");
+      reporter.reportError('must be of type CodeLensParams');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CodeLensParams) {
       return textDocument == other.textDocument && true;
     }
@@ -1253,7 +1256,7 @@ class CodeLensParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -1264,7 +1267,7 @@ class CodeLensParams implements ToJsonable {
 
 class CodeLensRegistrationOptions
     implements TextDocumentRegistrationOptions, ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       CodeLensRegistrationOptions.canParse,
       CodeLensRegistrationOptions.fromJson);
 
@@ -1275,7 +1278,7 @@ class CodeLensRegistrationOptions
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
-    return new CodeLensRegistrationOptions(resolveProvider, documentSelector);
+    return CodeLensRegistrationOptions(resolveProvider, documentSelector);
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -1286,7 +1289,7 @@ class CodeLensRegistrationOptions
   final bool resolveProvider;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (resolveProvider != null) {
       __result['resolveProvider'] = resolveProvider;
     }
@@ -1300,7 +1303,7 @@ class CodeLensRegistrationOptions
       try {
         if (obj['resolveProvider'] != null &&
             !(obj['resolveProvider'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -1309,14 +1312,14 @@ class CodeLensRegistrationOptions
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['documentSelector'] != null &&
             !((obj['documentSelector'] is List &&
                 (obj['documentSelector'].every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<DocumentFilter>");
+          reporter.reportError('must be of type List<DocumentFilter>');
           return false;
         }
       } finally {
@@ -1324,13 +1327,13 @@ class CodeLensRegistrationOptions
       }
       return true;
     } else {
-      reporter.reportError("must be of type CodeLensRegistrationOptions");
+      reporter.reportError('must be of type CodeLensRegistrationOptions');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CodeLensRegistrationOptions) {
       return resolveProvider == other.resolveProvider &&
           documentSelector == other.documentSelector &&
@@ -1341,7 +1344,7 @@ class CodeLensRegistrationOptions
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, resolveProvider.hashCode);
     hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -1353,8 +1356,7 @@ class CodeLensRegistrationOptions
 
 /// Represents a color in RGBA space.
 class Color implements ToJsonable {
-  static const jsonHandler =
-      const LspJsonHandler(Color.canParse, Color.fromJson);
+  static const jsonHandler = LspJsonHandler(Color.canParse, Color.fromJson);
 
   Color(this.red, this.green, this.blue, this.alpha) {
     if (red == null) {
@@ -1375,7 +1377,7 @@ class Color implements ToJsonable {
     final green = json['green'];
     final blue = json['blue'];
     final alpha = json['alpha'];
-    return new Color(red, green, blue, alpha);
+    return Color(red, green, blue, alpha);
   }
 
   /// The alpha component of this color in the range [0-1].
@@ -1391,7 +1393,7 @@ class Color implements ToJsonable {
   final num red;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['red'] = red ?? (throw 'red is required but was not set');
     __result['green'] = green ?? (throw 'green is required but was not set');
     __result['blue'] = blue ?? (throw 'blue is required but was not set');
@@ -1404,15 +1406,15 @@ class Color implements ToJsonable {
       reporter.push('red');
       try {
         if (!obj.containsKey('red')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['red'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['red'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -1421,15 +1423,15 @@ class Color implements ToJsonable {
       reporter.push('green');
       try {
         if (!obj.containsKey('green')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['green'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['green'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -1438,15 +1440,15 @@ class Color implements ToJsonable {
       reporter.push('blue');
       try {
         if (!obj.containsKey('blue')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['blue'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['blue'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -1455,15 +1457,15 @@ class Color implements ToJsonable {
       reporter.push('alpha');
       try {
         if (!obj.containsKey('alpha')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['alpha'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['alpha'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -1471,13 +1473,13 @@ class Color implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type Color");
+      reporter.reportError('must be of type Color');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is Color) {
       return red == other.red &&
           green == other.green &&
@@ -1490,7 +1492,7 @@ class Color implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, red.hashCode);
     hash = JenkinsSmiHash.combine(hash, green.hashCode);
     hash = JenkinsSmiHash.combine(hash, blue.hashCode);
@@ -1503,8 +1505,8 @@ class Color implements ToJsonable {
 }
 
 class ColorInformation implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      ColorInformation.canParse, ColorInformation.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(ColorInformation.canParse, ColorInformation.fromJson);
 
   ColorInformation(this.range, this.color) {
     if (range == null) {
@@ -1517,7 +1519,7 @@ class ColorInformation implements ToJsonable {
   static ColorInformation fromJson(Map<String, dynamic> json) {
     final range = json['range'] != null ? Range.fromJson(json['range']) : null;
     final color = json['color'] != null ? Color.fromJson(json['color']) : null;
-    return new ColorInformation(range, color);
+    return ColorInformation(range, color);
   }
 
   /// The actual color value for this color range.
@@ -1527,7 +1529,7 @@ class ColorInformation implements ToJsonable {
   final Range range;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['range'] = range ?? (throw 'range is required but was not set');
     __result['color'] = color ?? (throw 'color is required but was not set');
     return __result;
@@ -1538,15 +1540,15 @@ class ColorInformation implements ToJsonable {
       reporter.push('range');
       try {
         if (!obj.containsKey('range')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['range'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Range.canParse(obj['range'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -1555,15 +1557,15 @@ class ColorInformation implements ToJsonable {
       reporter.push('color');
       try {
         if (!obj.containsKey('color')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['color'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Color.canParse(obj['color'], reporter))) {
-          reporter.reportError("must be of type Color");
+          reporter.reportError('must be of type Color');
           return false;
         }
       } finally {
@@ -1571,13 +1573,13 @@ class ColorInformation implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type ColorInformation");
+      reporter.reportError('must be of type ColorInformation');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ColorInformation) {
       return range == other.range && color == other.color && true;
     }
@@ -1586,7 +1588,7 @@ class ColorInformation implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, range.hashCode);
     hash = JenkinsSmiHash.combine(hash, color.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -1597,8 +1599,8 @@ class ColorInformation implements ToJsonable {
 }
 
 class ColorPresentation implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      ColorPresentation.canParse, ColorPresentation.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(ColorPresentation.canParse, ColorPresentation.fromJson);
 
   ColorPresentation(this.label, this.textEdit, this.additionalTextEdits) {
     if (label == null) {
@@ -1613,7 +1615,7 @@ class ColorPresentation implements ToJsonable {
         ?.map((item) => item != null ? TextEdit.fromJson(item) : null)
         ?.cast<TextEdit>()
         ?.toList();
-    return new ColorPresentation(label, textEdit, additionalTextEdits);
+    return ColorPresentation(label, textEdit, additionalTextEdits);
   }
 
   /// An optional array of additional text edits ([TextEdit]) that are applied
@@ -1632,7 +1634,7 @@ class ColorPresentation implements ToJsonable {
   final TextEdit textEdit;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['label'] = label ?? (throw 'label is required but was not set');
     if (textEdit != null) {
       __result['textEdit'] = textEdit;
@@ -1648,15 +1650,15 @@ class ColorPresentation implements ToJsonable {
       reporter.push('label');
       try {
         if (!obj.containsKey('label')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['label'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['label'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -1666,7 +1668,7 @@ class ColorPresentation implements ToJsonable {
       try {
         if (obj['textEdit'] != null &&
             !(TextEdit.canParse(obj['textEdit'], reporter))) {
-          reporter.reportError("must be of type TextEdit");
+          reporter.reportError('must be of type TextEdit');
           return false;
         }
       } finally {
@@ -1678,7 +1680,7 @@ class ColorPresentation implements ToJsonable {
             !((obj['additionalTextEdits'] is List &&
                 (obj['additionalTextEdits']
                     .every((item) => TextEdit.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<TextEdit>");
+          reporter.reportError('must be of type List<TextEdit>');
           return false;
         }
       } finally {
@@ -1686,13 +1688,13 @@ class ColorPresentation implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type ColorPresentation");
+      reporter.reportError('must be of type ColorPresentation');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ColorPresentation) {
       return label == other.label &&
           textEdit == other.textEdit &&
@@ -1705,7 +1707,7 @@ class ColorPresentation implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, label.hashCode);
     hash = JenkinsSmiHash.combine(hash, textEdit.hashCode);
     hash = JenkinsSmiHash.combine(hash, additionalTextEdits.hashCode);
@@ -1717,7 +1719,7 @@ class ColorPresentation implements ToJsonable {
 }
 
 class ColorPresentationParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       ColorPresentationParams.canParse, ColorPresentationParams.fromJson);
 
   ColorPresentationParams(this.textDocument, this.color, this.range) {
@@ -1737,7 +1739,7 @@ class ColorPresentationParams implements ToJsonable {
         : null;
     final color = json['color'] != null ? Color.fromJson(json['color']) : null;
     final range = json['range'] != null ? Range.fromJson(json['range']) : null;
-    return new ColorPresentationParams(textDocument, color, range);
+    return ColorPresentationParams(textDocument, color, range);
   }
 
   /// The color information to request presentations for.
@@ -1750,7 +1752,7 @@ class ColorPresentationParams implements ToJsonable {
   final TextDocumentIdentifier textDocument;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
     __result['color'] = color ?? (throw 'color is required but was not set');
@@ -1763,15 +1765,15 @@ class ColorPresentationParams implements ToJsonable {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['textDocument'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
-          reporter.reportError("must be of type TextDocumentIdentifier");
+          reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
       } finally {
@@ -1780,15 +1782,15 @@ class ColorPresentationParams implements ToJsonable {
       reporter.push('color');
       try {
         if (!obj.containsKey('color')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['color'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Color.canParse(obj['color'], reporter))) {
-          reporter.reportError("must be of type Color");
+          reporter.reportError('must be of type Color');
           return false;
         }
       } finally {
@@ -1797,15 +1799,15 @@ class ColorPresentationParams implements ToJsonable {
       reporter.push('range');
       try {
         if (!obj.containsKey('range')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['range'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Range.canParse(obj['range'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -1813,13 +1815,13 @@ class ColorPresentationParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type ColorPresentationParams");
+      reporter.reportError('must be of type ColorPresentationParams');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ColorPresentationParams) {
       return textDocument == other.textDocument &&
           color == other.color &&
@@ -1831,7 +1833,7 @@ class ColorPresentationParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
     hash = JenkinsSmiHash.combine(hash, color.hashCode);
     hash = JenkinsSmiHash.combine(hash, range.hashCode);
@@ -1844,15 +1846,15 @@ class ColorPresentationParams implements ToJsonable {
 
 /// Color provider options.
 class ColorProviderOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       ColorProviderOptions.canParse, ColorProviderOptions.fromJson);
 
   static ColorProviderOptions fromJson(Map<String, dynamic> json) {
-    return new ColorProviderOptions();
+    return ColorProviderOptions();
   }
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     return __result;
   }
 
@@ -1860,13 +1862,13 @@ class ColorProviderOptions implements ToJsonable {
     if (obj is Map<String, dynamic>) {
       return true;
     } else {
-      reporter.reportError("must be of type ColorProviderOptions");
+      reporter.reportError('must be of type ColorProviderOptions');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ColorProviderOptions) {
       return true;
     }
@@ -1875,7 +1877,7 @@ class ColorProviderOptions implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -1884,8 +1886,7 @@ class ColorProviderOptions implements ToJsonable {
 }
 
 class Command implements ToJsonable {
-  static const jsonHandler =
-      const LspJsonHandler(Command.canParse, Command.fromJson);
+  static const jsonHandler = LspJsonHandler(Command.canParse, Command.fromJson);
 
   Command(this.title, this.command, this.arguments) {
     if (title == null) {
@@ -1900,7 +1901,7 @@ class Command implements ToJsonable {
     final command = json['command'];
     final arguments =
         json['arguments']?.map((item) => item)?.cast<dynamic>()?.toList();
-    return new Command(title, command, arguments);
+    return Command(title, command, arguments);
   }
 
   /// Arguments that the command handler should be invoked with.
@@ -1913,7 +1914,7 @@ class Command implements ToJsonable {
   final String title;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['title'] = title ?? (throw 'title is required but was not set');
     __result['command'] =
         command ?? (throw 'command is required but was not set');
@@ -1928,15 +1929,15 @@ class Command implements ToJsonable {
       reporter.push('title');
       try {
         if (!obj.containsKey('title')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['title'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['title'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -1945,15 +1946,15 @@ class Command implements ToJsonable {
       reporter.push('command');
       try {
         if (!obj.containsKey('command')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['command'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['command'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -1964,7 +1965,7 @@ class Command implements ToJsonable {
         if (obj['arguments'] != null &&
             !((obj['arguments'] is List &&
                 (obj['arguments'].every((item) => true))))) {
-          reporter.reportError("must be of type List<dynamic>");
+          reporter.reportError('must be of type List<dynamic>');
           return false;
         }
       } finally {
@@ -1972,13 +1973,13 @@ class Command implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type Command");
+      reporter.reportError('must be of type Command');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is Command) {
       return title == other.title &&
           command == other.command &&
@@ -1991,7 +1992,7 @@ class Command implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, title.hashCode);
     hash = JenkinsSmiHash.combine(hash, command.hashCode);
     hash = JenkinsSmiHash.combine(hash, arguments.hashCode);
@@ -2005,8 +2006,8 @@ class Command implements ToJsonable {
 /// Contains additional information about the context in which a completion
 /// request is triggered.
 class CompletionContext implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      CompletionContext.canParse, CompletionContext.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(CompletionContext.canParse, CompletionContext.fromJson);
 
   CompletionContext(this.triggerKind, this.triggerCharacter) {
     if (triggerKind == null) {
@@ -2018,7 +2019,7 @@ class CompletionContext implements ToJsonable {
         ? CompletionTriggerKind.fromJson(json['triggerKind'])
         : null;
     final triggerCharacter = json['triggerCharacter'];
-    return new CompletionContext(triggerKind, triggerCharacter);
+    return CompletionContext(triggerKind, triggerCharacter);
   }
 
   /// The trigger character (a single character) that has trigger code complete.
@@ -2029,7 +2030,7 @@ class CompletionContext implements ToJsonable {
   final CompletionTriggerKind triggerKind;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['triggerKind'] =
         triggerKind ?? (throw 'triggerKind is required but was not set');
     if (triggerCharacter != null) {
@@ -2043,15 +2044,15 @@ class CompletionContext implements ToJsonable {
       reporter.push('triggerKind');
       try {
         if (!obj.containsKey('triggerKind')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['triggerKind'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(CompletionTriggerKind.canParse(obj['triggerKind'], reporter))) {
-          reporter.reportError("must be of type CompletionTriggerKind");
+          reporter.reportError('must be of type CompletionTriggerKind');
           return false;
         }
       } finally {
@@ -2061,7 +2062,7 @@ class CompletionContext implements ToJsonable {
       try {
         if (obj['triggerCharacter'] != null &&
             !(obj['triggerCharacter'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -2069,13 +2070,13 @@ class CompletionContext implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type CompletionContext");
+      reporter.reportError('must be of type CompletionContext');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CompletionContext) {
       return triggerKind == other.triggerKind &&
           triggerCharacter == other.triggerCharacter &&
@@ -2086,7 +2087,7 @@ class CompletionContext implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, triggerKind.hashCode);
     hash = JenkinsSmiHash.combine(hash, triggerCharacter.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -2098,7 +2099,7 @@ class CompletionContext implements ToJsonable {
 
 class CompletionItem implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(CompletionItem.canParse, CompletionItem.fromJson);
+      LspJsonHandler(CompletionItem.canParse, CompletionItem.fromJson);
 
   CompletionItem(
       this.label,
@@ -2126,12 +2127,11 @@ class CompletionItem implements ToJsonable {
         json['kind'] != null ? CompletionItemKind.fromJson(json['kind']) : null;
     final detail = json['detail'];
     final documentation = json['documentation'] is String
-        ? new Either2<String, MarkupContent>.t1(json['documentation'])
+        ? Either2<String, MarkupContent>.t1(json['documentation'])
         : (MarkupContent.canParse(json['documentation'], nullLspJsonReporter)
-            ? new Either2<String, MarkupContent>.t2(
-                json['documentation'] != null
-                    ? MarkupContent.fromJson(json['documentation'])
-                    : null)
+            ? Either2<String, MarkupContent>.t2(json['documentation'] != null
+                ? MarkupContent.fromJson(json['documentation'])
+                : null)
             : (json['documentation'] == null
                 ? null
                 : (throw '''${json['documentation']} was not one of (String, MarkupContent)''')));
@@ -2156,7 +2156,7 @@ class CompletionItem implements ToJsonable {
     final data = json['data'] != null
         ? CompletionItemResolutionInfo.fromJson(json['data'])
         : null;
-    return new CompletionItem(
+    return CompletionItem(
         label,
         kind,
         detail,
@@ -2224,7 +2224,8 @@ class CompletionItem implements ToJsonable {
   final String insertText;
 
   /// The format of the insert text. The format applies to both the `insertText`
-  /// property and the `newText` property of a provided `textEdit`.
+  /// property and the `newText` property of a provided `textEdit`. If ommitted
+  /// defaults to `InsertTextFormat.PlainText`.
   final InsertTextFormat insertTextFormat;
 
   /// The kind of this completion item. Based of the kind an icon is chosen by
@@ -2255,7 +2256,7 @@ class CompletionItem implements ToJsonable {
   final TextEdit textEdit;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['label'] = label ?? (throw 'label is required but was not set');
     if (kind != null) {
       __result['kind'] = kind;
@@ -2307,15 +2308,15 @@ class CompletionItem implements ToJsonable {
       reporter.push('label');
       try {
         if (!obj.containsKey('label')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['label'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['label'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -2325,7 +2326,7 @@ class CompletionItem implements ToJsonable {
       try {
         if (obj['kind'] != null &&
             !(CompletionItemKind.canParse(obj['kind'], reporter))) {
-          reporter.reportError("must be of type CompletionItemKind");
+          reporter.reportError('must be of type CompletionItemKind');
           return false;
         }
       } finally {
@@ -2334,7 +2335,7 @@ class CompletionItem implements ToJsonable {
       reporter.push('detail');
       try {
         if (obj['detail'] != null && !(obj['detail'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -2346,7 +2347,7 @@ class CompletionItem implements ToJsonable {
             !((obj['documentation'] is String ||
                 MarkupContent.canParse(obj['documentation'], reporter)))) {
           reporter
-              .reportError("must be of type Either2<String, MarkupContent>");
+              .reportError('must be of type Either2<String, MarkupContent>');
           return false;
         }
       } finally {
@@ -2355,7 +2356,7 @@ class CompletionItem implements ToJsonable {
       reporter.push('deprecated');
       try {
         if (obj['deprecated'] != null && !(obj['deprecated'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -2364,7 +2365,7 @@ class CompletionItem implements ToJsonable {
       reporter.push('preselect');
       try {
         if (obj['preselect'] != null && !(obj['preselect'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -2373,7 +2374,7 @@ class CompletionItem implements ToJsonable {
       reporter.push('sortText');
       try {
         if (obj['sortText'] != null && !(obj['sortText'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -2382,7 +2383,7 @@ class CompletionItem implements ToJsonable {
       reporter.push('filterText');
       try {
         if (obj['filterText'] != null && !(obj['filterText'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -2391,7 +2392,7 @@ class CompletionItem implements ToJsonable {
       reporter.push('insertText');
       try {
         if (obj['insertText'] != null && !(obj['insertText'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -2401,7 +2402,7 @@ class CompletionItem implements ToJsonable {
       try {
         if (obj['insertTextFormat'] != null &&
             !(InsertTextFormat.canParse(obj['insertTextFormat'], reporter))) {
-          reporter.reportError("must be of type InsertTextFormat");
+          reporter.reportError('must be of type InsertTextFormat');
           return false;
         }
       } finally {
@@ -2411,7 +2412,7 @@ class CompletionItem implements ToJsonable {
       try {
         if (obj['textEdit'] != null &&
             !(TextEdit.canParse(obj['textEdit'], reporter))) {
-          reporter.reportError("must be of type TextEdit");
+          reporter.reportError('must be of type TextEdit');
           return false;
         }
       } finally {
@@ -2423,7 +2424,7 @@ class CompletionItem implements ToJsonable {
             !((obj['additionalTextEdits'] is List &&
                 (obj['additionalTextEdits']
                     .every((item) => TextEdit.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<TextEdit>");
+          reporter.reportError('must be of type List<TextEdit>');
           return false;
         }
       } finally {
@@ -2434,7 +2435,7 @@ class CompletionItem implements ToJsonable {
         if (obj['commitCharacters'] != null &&
             !((obj['commitCharacters'] is List &&
                 (obj['commitCharacters'].every((item) => item is String))))) {
-          reporter.reportError("must be of type List<String>");
+          reporter.reportError('must be of type List<String>');
           return false;
         }
       } finally {
@@ -2444,7 +2445,7 @@ class CompletionItem implements ToJsonable {
       try {
         if (obj['command'] != null &&
             !(Command.canParse(obj['command'], reporter))) {
-          reporter.reportError("must be of type Command");
+          reporter.reportError('must be of type Command');
           return false;
         }
       } finally {
@@ -2454,7 +2455,7 @@ class CompletionItem implements ToJsonable {
       try {
         if (obj['data'] != null &&
             !(CompletionItemResolutionInfo.canParse(obj['data'], reporter))) {
-          reporter.reportError("must be of type CompletionItemResolutionInfo");
+          reporter.reportError('must be of type CompletionItemResolutionInfo');
           return false;
         }
       } finally {
@@ -2462,13 +2463,13 @@ class CompletionItem implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type CompletionItem");
+      reporter.reportError('must be of type CompletionItem');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CompletionItem) {
       return label == other.label &&
           kind == other.kind &&
@@ -2494,7 +2495,7 @@ class CompletionItem implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, label.hashCode);
     hash = JenkinsSmiHash.combine(hash, kind.hashCode);
     hash = JenkinsSmiHash.combine(hash, detail.hashCode);
@@ -2528,31 +2529,31 @@ class CompletionItemKind {
     return obj is num;
   }
 
-  static const Text = const CompletionItemKind(1);
-  static const Method = const CompletionItemKind(2);
-  static const Function = const CompletionItemKind(3);
-  static const Constructor = const CompletionItemKind(4);
-  static const Field = const CompletionItemKind(5);
-  static const Variable = const CompletionItemKind(6);
-  static const Class = const CompletionItemKind(7);
-  static const Interface = const CompletionItemKind(8);
-  static const Module = const CompletionItemKind(9);
-  static const Property = const CompletionItemKind(10);
-  static const Unit = const CompletionItemKind(11);
-  static const Value = const CompletionItemKind(12);
-  static const Enum = const CompletionItemKind(13);
-  static const Keyword = const CompletionItemKind(14);
-  static const Snippet = const CompletionItemKind(15);
-  static const Color = const CompletionItemKind(16);
-  static const File = const CompletionItemKind(17);
-  static const Reference = const CompletionItemKind(18);
-  static const Folder = const CompletionItemKind(19);
-  static const EnumMember = const CompletionItemKind(20);
-  static const Constant = const CompletionItemKind(21);
-  static const Struct = const CompletionItemKind(22);
-  static const Event = const CompletionItemKind(23);
-  static const Operator = const CompletionItemKind(24);
-  static const TypeParameter = const CompletionItemKind(25);
+  static const Text = CompletionItemKind(1);
+  static const Method = CompletionItemKind(2);
+  static const Function = CompletionItemKind(3);
+  static const Constructor = CompletionItemKind(4);
+  static const Field = CompletionItemKind(5);
+  static const Variable = CompletionItemKind(6);
+  static const Class = CompletionItemKind(7);
+  static const Interface = CompletionItemKind(8);
+  static const Module = CompletionItemKind(9);
+  static const Property = CompletionItemKind(10);
+  static const Unit = CompletionItemKind(11);
+  static const Value = CompletionItemKind(12);
+  static const Enum = CompletionItemKind(13);
+  static const Keyword = CompletionItemKind(14);
+  static const Snippet = CompletionItemKind(15);
+  static const Color = CompletionItemKind(16);
+  static const File = CompletionItemKind(17);
+  static const Reference = CompletionItemKind(18);
+  static const Folder = CompletionItemKind(19);
+  static const EnumMember = CompletionItemKind(20);
+  static const Constant = CompletionItemKind(21);
+  static const Struct = CompletionItemKind(22);
+  static const Event = CompletionItemKind(23);
+  static const Operator = CompletionItemKind(24);
+  static const TypeParameter = CompletionItemKind(25);
 
   Object toJson() => _value;
 
@@ -2560,16 +2561,16 @@ class CompletionItemKind {
   String toString() => _value.toString();
 
   @override
-  get hashCode => _value.hashCode;
+  int get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is CompletionItemKind && o._value == _value;
+  bool operator ==(Object o) => o is CompletionItemKind && o._value == _value;
 }
 
 /// Represents a collection of completion items ([CompletionItem]) to be
 /// presented in the editor.
 class CompletionList implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(CompletionList.canParse, CompletionList.fromJson);
+      LspJsonHandler(CompletionList.canParse, CompletionList.fromJson);
 
   CompletionList(this.isIncomplete, this.items) {
     if (isIncomplete == null) {
@@ -2585,7 +2586,7 @@ class CompletionList implements ToJsonable {
         ?.map((item) => item != null ? CompletionItem.fromJson(item) : null)
         ?.cast<CompletionItem>()
         ?.toList();
-    return new CompletionList(isIncomplete, items);
+    return CompletionList(isIncomplete, items);
   }
 
   /// This list it not complete. Further typing should result in recomputing
@@ -2596,7 +2597,7 @@ class CompletionList implements ToJsonable {
   final List<CompletionItem> items;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['isIncomplete'] =
         isIncomplete ?? (throw 'isIncomplete is required but was not set');
     __result['items'] = items ?? (throw 'items is required but was not set');
@@ -2608,15 +2609,15 @@ class CompletionList implements ToJsonable {
       reporter.push('isIncomplete');
       try {
         if (!obj.containsKey('isIncomplete')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['isIncomplete'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['isIncomplete'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -2625,17 +2626,17 @@ class CompletionList implements ToJsonable {
       reporter.push('items');
       try {
         if (!obj.containsKey('items')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['items'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!((obj['items'] is List &&
             (obj['items']
                 .every((item) => CompletionItem.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<CompletionItem>");
+          reporter.reportError('must be of type List<CompletionItem>');
           return false;
         }
       } finally {
@@ -2643,13 +2644,13 @@ class CompletionList implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type CompletionList");
+      reporter.reportError('must be of type CompletionList');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CompletionList) {
       return isIncomplete == other.isIncomplete &&
           listEqual(items, other.items,
@@ -2661,7 +2662,7 @@ class CompletionList implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, isIncomplete.hashCode);
     hash = JenkinsSmiHash.combine(hash, items.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -2673,8 +2674,8 @@ class CompletionList implements ToJsonable {
 
 /// Completion options.
 class CompletionOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      CompletionOptions.canParse, CompletionOptions.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(CompletionOptions.canParse, CompletionOptions.fromJson);
 
   CompletionOptions(this.resolveProvider, this.triggerCharacters);
   static CompletionOptions fromJson(Map<String, dynamic> json) {
@@ -2683,7 +2684,7 @@ class CompletionOptions implements ToJsonable {
         ?.map((item) => item)
         ?.cast<String>()
         ?.toList();
-    return new CompletionOptions(resolveProvider, triggerCharacters);
+    return CompletionOptions(resolveProvider, triggerCharacters);
   }
 
   /// The server provides support to resolve additional information for a
@@ -2694,7 +2695,7 @@ class CompletionOptions implements ToJsonable {
   final List<String> triggerCharacters;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (resolveProvider != null) {
       __result['resolveProvider'] = resolveProvider;
     }
@@ -2710,7 +2711,7 @@ class CompletionOptions implements ToJsonable {
       try {
         if (obj['resolveProvider'] != null &&
             !(obj['resolveProvider'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -2721,7 +2722,7 @@ class CompletionOptions implements ToJsonable {
         if (obj['triggerCharacters'] != null &&
             !((obj['triggerCharacters'] is List &&
                 (obj['triggerCharacters'].every((item) => item is String))))) {
-          reporter.reportError("must be of type List<String>");
+          reporter.reportError('must be of type List<String>');
           return false;
         }
       } finally {
@@ -2729,13 +2730,13 @@ class CompletionOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type CompletionOptions");
+      reporter.reportError('must be of type CompletionOptions');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CompletionOptions) {
       return resolveProvider == other.resolveProvider &&
           listEqual(triggerCharacters, other.triggerCharacters,
@@ -2747,7 +2748,7 @@ class CompletionOptions implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, resolveProvider.hashCode);
     hash = JenkinsSmiHash.combine(hash, triggerCharacters.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -2758,8 +2759,8 @@ class CompletionOptions implements ToJsonable {
 }
 
 class CompletionParams implements TextDocumentPositionParams, ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      CompletionParams.canParse, CompletionParams.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(CompletionParams.canParse, CompletionParams.fromJson);
 
   CompletionParams(this.context, this.textDocument, this.position) {
     if (textDocument == null) {
@@ -2778,7 +2779,7 @@ class CompletionParams implements TextDocumentPositionParams, ToJsonable {
         : null;
     final position =
         json['position'] != null ? Position.fromJson(json['position']) : null;
-    return new CompletionParams(context, textDocument, position);
+    return CompletionParams(context, textDocument, position);
   }
 
   /// The completion context. This is only available if the client specifies to
@@ -2793,7 +2794,7 @@ class CompletionParams implements TextDocumentPositionParams, ToJsonable {
   final TextDocumentIdentifier textDocument;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (context != null) {
       __result['context'] = context;
     }
@@ -2810,7 +2811,7 @@ class CompletionParams implements TextDocumentPositionParams, ToJsonable {
       try {
         if (obj['context'] != null &&
             !(CompletionContext.canParse(obj['context'], reporter))) {
-          reporter.reportError("must be of type CompletionContext");
+          reporter.reportError('must be of type CompletionContext');
           return false;
         }
       } finally {
@@ -2819,15 +2820,15 @@ class CompletionParams implements TextDocumentPositionParams, ToJsonable {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['textDocument'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
-          reporter.reportError("must be of type TextDocumentIdentifier");
+          reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
       } finally {
@@ -2836,15 +2837,15 @@ class CompletionParams implements TextDocumentPositionParams, ToJsonable {
       reporter.push('position');
       try {
         if (!obj.containsKey('position')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['position'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Position.canParse(obj['position'], reporter))) {
-          reporter.reportError("must be of type Position");
+          reporter.reportError('must be of type Position');
           return false;
         }
       } finally {
@@ -2852,13 +2853,13 @@ class CompletionParams implements TextDocumentPositionParams, ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type CompletionParams");
+      reporter.reportError('must be of type CompletionParams');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CompletionParams) {
       return context == other.context &&
           textDocument == other.textDocument &&
@@ -2870,7 +2871,7 @@ class CompletionParams implements TextDocumentPositionParams, ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, context.hashCode);
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
     hash = JenkinsSmiHash.combine(hash, position.hashCode);
@@ -2883,7 +2884,7 @@ class CompletionParams implements TextDocumentPositionParams, ToJsonable {
 
 class CompletionRegistrationOptions
     implements TextDocumentRegistrationOptions, ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       CompletionRegistrationOptions.canParse,
       CompletionRegistrationOptions.fromJson);
 
@@ -2903,14 +2904,17 @@ class CompletionRegistrationOptions
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
-    return new CompletionRegistrationOptions(triggerCharacters,
-        allCommitCharacters, resolveProvider, documentSelector);
+    return CompletionRegistrationOptions(triggerCharacters, allCommitCharacters,
+        resolveProvider, documentSelector);
   }
 
   /// The list of all possible characters that commit a completion. This field
   /// can be used if clients don't support individual commmit characters per
   /// completion item. See
-  /// `ClientCapabilities.textDocument.completion.completionItem.commitCharactersSupport`
+  /// `ClientCapabilities.textDocument.completion.completionItem.commitCharactersSupport`.
+  ///
+  /// If a server provides both `allCommitCharacters` and commit characters on
+  /// an individual completion item the ones on the completion item win.
   ///
   /// Since 3.2.0
   final List<String> allCommitCharacters;
@@ -2936,7 +2940,7 @@ class CompletionRegistrationOptions
   final List<String> triggerCharacters;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (triggerCharacters != null) {
       __result['triggerCharacters'] = triggerCharacters;
     }
@@ -2957,7 +2961,7 @@ class CompletionRegistrationOptions
         if (obj['triggerCharacters'] != null &&
             !((obj['triggerCharacters'] is List &&
                 (obj['triggerCharacters'].every((item) => item is String))))) {
-          reporter.reportError("must be of type List<String>");
+          reporter.reportError('must be of type List<String>');
           return false;
         }
       } finally {
@@ -2969,7 +2973,7 @@ class CompletionRegistrationOptions
             !((obj['allCommitCharacters'] is List &&
                 (obj['allCommitCharacters']
                     .every((item) => item is String))))) {
-          reporter.reportError("must be of type List<String>");
+          reporter.reportError('must be of type List<String>');
           return false;
         }
       } finally {
@@ -2979,7 +2983,7 @@ class CompletionRegistrationOptions
       try {
         if (obj['resolveProvider'] != null &&
             !(obj['resolveProvider'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -2988,14 +2992,14 @@ class CompletionRegistrationOptions
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['documentSelector'] != null &&
             !((obj['documentSelector'] is List &&
                 (obj['documentSelector'].every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<DocumentFilter>");
+          reporter.reportError('must be of type List<DocumentFilter>');
           return false;
         }
       } finally {
@@ -3003,13 +3007,13 @@ class CompletionRegistrationOptions
       }
       return true;
     } else {
-      reporter.reportError("must be of type CompletionRegistrationOptions");
+      reporter.reportError('must be of type CompletionRegistrationOptions');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CompletionRegistrationOptions) {
       return listEqual(triggerCharacters, other.triggerCharacters,
               (String a, String b) => a == b) &&
@@ -3024,7 +3028,7 @@ class CompletionRegistrationOptions
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, triggerCharacters.hashCode);
     hash = JenkinsSmiHash.combine(hash, allCommitCharacters.hashCode);
     hash = JenkinsSmiHash.combine(hash, resolveProvider.hashCode);
@@ -3055,15 +3059,14 @@ class CompletionTriggerKind {
 
   /// Completion was triggered by typing an identifier (24x7 code complete),
   /// manual invocation (e.g Ctrl+Space) or via API.
-  static const Invoked = const CompletionTriggerKind._(1);
+  static const Invoked = CompletionTriggerKind._(1);
 
   /// Completion was triggered by a trigger character specified by the
   /// `triggerCharacters` properties of the `CompletionRegistrationOptions`.
-  static const TriggerCharacter = const CompletionTriggerKind._(2);
+  static const TriggerCharacter = CompletionTriggerKind._(2);
 
   /// Completion was re-triggered as the current completion list is incomplete.
-  static const TriggerForIncompleteCompletions =
-      const CompletionTriggerKind._(3);
+  static const TriggerForIncompleteCompletions = CompletionTriggerKind._(3);
 
   Object toJson() => _value;
 
@@ -3071,20 +3074,21 @@ class CompletionTriggerKind {
   String toString() => _value.toString();
 
   @override
-  get hashCode => _value.hashCode;
+  int get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is CompletionTriggerKind && o._value == _value;
+  bool operator ==(Object o) =>
+      o is CompletionTriggerKind && o._value == _value;
 }
 
 class ConfigurationItem implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      ConfigurationItem.canParse, ConfigurationItem.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(ConfigurationItem.canParse, ConfigurationItem.fromJson);
 
   ConfigurationItem(this.scopeUri, this.section);
   static ConfigurationItem fromJson(Map<String, dynamic> json) {
     final scopeUri = json['scopeUri'];
     final section = json['section'];
-    return new ConfigurationItem(scopeUri, section);
+    return ConfigurationItem(scopeUri, section);
   }
 
   /// The scope to get the configuration section for.
@@ -3094,7 +3098,7 @@ class ConfigurationItem implements ToJsonable {
   final String section;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (scopeUri != null) {
       __result['scopeUri'] = scopeUri;
     }
@@ -3109,7 +3113,7 @@ class ConfigurationItem implements ToJsonable {
       reporter.push('scopeUri');
       try {
         if (obj['scopeUri'] != null && !(obj['scopeUri'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -3118,7 +3122,7 @@ class ConfigurationItem implements ToJsonable {
       reporter.push('section');
       try {
         if (obj['section'] != null && !(obj['section'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -3126,13 +3130,13 @@ class ConfigurationItem implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type ConfigurationItem");
+      reporter.reportError('must be of type ConfigurationItem');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ConfigurationItem) {
       return scopeUri == other.scopeUri && section == other.section && true;
     }
@@ -3141,7 +3145,7 @@ class ConfigurationItem implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, scopeUri.hashCode);
     hash = JenkinsSmiHash.combine(hash, section.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -3152,7 +3156,7 @@ class ConfigurationItem implements ToJsonable {
 }
 
 class ConfigurationParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       ConfigurationParams.canParse, ConfigurationParams.fromJson);
 
   ConfigurationParams(this.items) {
@@ -3165,13 +3169,13 @@ class ConfigurationParams implements ToJsonable {
         ?.map((item) => item != null ? ConfigurationItem.fromJson(item) : null)
         ?.cast<ConfigurationItem>()
         ?.toList();
-    return new ConfigurationParams(items);
+    return ConfigurationParams(items);
   }
 
   final List<ConfigurationItem> items;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['items'] = items ?? (throw 'items is required but was not set');
     return __result;
   }
@@ -3181,17 +3185,17 @@ class ConfigurationParams implements ToJsonable {
       reporter.push('items');
       try {
         if (!obj.containsKey('items')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['items'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!((obj['items'] is List &&
             (obj['items'].every(
                 (item) => ConfigurationItem.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<ConfigurationItem>");
+          reporter.reportError('must be of type List<ConfigurationItem>');
           return false;
         }
       } finally {
@@ -3199,13 +3203,13 @@ class ConfigurationParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type ConfigurationParams");
+      reporter.reportError('must be of type ConfigurationParams');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ConfigurationParams) {
       return listEqual(items, other.items,
               (ConfigurationItem a, ConfigurationItem b) => a == b) &&
@@ -3216,7 +3220,7 @@ class ConfigurationParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, items.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -3228,7 +3232,7 @@ class ConfigurationParams implements ToJsonable {
 /// Create file operation
 class CreateFile implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(CreateFile.canParse, CreateFile.fromJson);
+      LspJsonHandler(CreateFile.canParse, CreateFile.fromJson);
 
   CreateFile(this.kind, this.uri, this.options) {
     if (kind == null) {
@@ -3244,7 +3248,7 @@ class CreateFile implements ToJsonable {
     final options = json['options'] != null
         ? CreateFileOptions.fromJson(json['options'])
         : null;
-    return new CreateFile(kind, uri, options);
+    return CreateFile(kind, uri, options);
   }
 
   /// A create
@@ -3257,7 +3261,7 @@ class CreateFile implements ToJsonable {
   final String uri;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['kind'] = kind ?? (throw 'kind is required but was not set');
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
     if (options != null) {
@@ -3271,15 +3275,15 @@ class CreateFile implements ToJsonable {
       reporter.push('kind');
       try {
         if (!obj.containsKey('kind')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['kind'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['kind'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -3288,15 +3292,15 @@ class CreateFile implements ToJsonable {
       reporter.push('uri');
       try {
         if (!obj.containsKey('uri')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['uri'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['uri'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -3306,7 +3310,7 @@ class CreateFile implements ToJsonable {
       try {
         if (obj['options'] != null &&
             !(CreateFileOptions.canParse(obj['options'], reporter))) {
-          reporter.reportError("must be of type CreateFileOptions");
+          reporter.reportError('must be of type CreateFileOptions');
           return false;
         }
       } finally {
@@ -3314,13 +3318,13 @@ class CreateFile implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type CreateFile");
+      reporter.reportError('must be of type CreateFile');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CreateFile) {
       return kind == other.kind &&
           uri == other.uri &&
@@ -3332,7 +3336,7 @@ class CreateFile implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, kind.hashCode);
     hash = JenkinsSmiHash.combine(hash, uri.hashCode);
     hash = JenkinsSmiHash.combine(hash, options.hashCode);
@@ -3345,14 +3349,14 @@ class CreateFile implements ToJsonable {
 
 /// Options to create a file.
 class CreateFileOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      CreateFileOptions.canParse, CreateFileOptions.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(CreateFileOptions.canParse, CreateFileOptions.fromJson);
 
   CreateFileOptions(this.overwrite, this.ignoreIfExists);
   static CreateFileOptions fromJson(Map<String, dynamic> json) {
     final overwrite = json['overwrite'];
     final ignoreIfExists = json['ignoreIfExists'];
-    return new CreateFileOptions(overwrite, ignoreIfExists);
+    return CreateFileOptions(overwrite, ignoreIfExists);
   }
 
   /// Ignore if exists.
@@ -3362,7 +3366,7 @@ class CreateFileOptions implements ToJsonable {
   final bool overwrite;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (overwrite != null) {
       __result['overwrite'] = overwrite;
     }
@@ -3377,7 +3381,7 @@ class CreateFileOptions implements ToJsonable {
       reporter.push('overwrite');
       try {
         if (obj['overwrite'] != null && !(obj['overwrite'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -3386,7 +3390,7 @@ class CreateFileOptions implements ToJsonable {
       reporter.push('ignoreIfExists');
       try {
         if (obj['ignoreIfExists'] != null && !(obj['ignoreIfExists'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -3394,13 +3398,13 @@ class CreateFileOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type CreateFileOptions");
+      reporter.reportError('must be of type CreateFileOptions');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CreateFileOptions) {
       return overwrite == other.overwrite &&
           ignoreIfExists == other.ignoreIfExists &&
@@ -3411,7 +3415,7 @@ class CreateFileOptions implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, overwrite.hashCode);
     hash = JenkinsSmiHash.combine(hash, ignoreIfExists.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -3424,7 +3428,7 @@ class CreateFileOptions implements ToJsonable {
 /// Delete file operation
 class DeleteFile implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(DeleteFile.canParse, DeleteFile.fromJson);
+      LspJsonHandler(DeleteFile.canParse, DeleteFile.fromJson);
 
   DeleteFile(this.kind, this.uri, this.options) {
     if (kind == null) {
@@ -3440,7 +3444,7 @@ class DeleteFile implements ToJsonable {
     final options = json['options'] != null
         ? DeleteFileOptions.fromJson(json['options'])
         : null;
-    return new DeleteFile(kind, uri, options);
+    return DeleteFile(kind, uri, options);
   }
 
   /// A delete
@@ -3453,7 +3457,7 @@ class DeleteFile implements ToJsonable {
   final String uri;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['kind'] = kind ?? (throw 'kind is required but was not set');
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
     if (options != null) {
@@ -3467,15 +3471,15 @@ class DeleteFile implements ToJsonable {
       reporter.push('kind');
       try {
         if (!obj.containsKey('kind')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['kind'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['kind'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -3484,15 +3488,15 @@ class DeleteFile implements ToJsonable {
       reporter.push('uri');
       try {
         if (!obj.containsKey('uri')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['uri'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['uri'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -3502,7 +3506,7 @@ class DeleteFile implements ToJsonable {
       try {
         if (obj['options'] != null &&
             !(DeleteFileOptions.canParse(obj['options'], reporter))) {
-          reporter.reportError("must be of type DeleteFileOptions");
+          reporter.reportError('must be of type DeleteFileOptions');
           return false;
         }
       } finally {
@@ -3510,13 +3514,13 @@ class DeleteFile implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DeleteFile");
+      reporter.reportError('must be of type DeleteFile');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DeleteFile) {
       return kind == other.kind &&
           uri == other.uri &&
@@ -3528,7 +3532,7 @@ class DeleteFile implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, kind.hashCode);
     hash = JenkinsSmiHash.combine(hash, uri.hashCode);
     hash = JenkinsSmiHash.combine(hash, options.hashCode);
@@ -3541,14 +3545,14 @@ class DeleteFile implements ToJsonable {
 
 /// Delete file options
 class DeleteFileOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      DeleteFileOptions.canParse, DeleteFileOptions.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(DeleteFileOptions.canParse, DeleteFileOptions.fromJson);
 
   DeleteFileOptions(this.recursive, this.ignoreIfNotExists);
   static DeleteFileOptions fromJson(Map<String, dynamic> json) {
     final recursive = json['recursive'];
     final ignoreIfNotExists = json['ignoreIfNotExists'];
-    return new DeleteFileOptions(recursive, ignoreIfNotExists);
+    return DeleteFileOptions(recursive, ignoreIfNotExists);
   }
 
   /// Ignore the operation if the file doesn't exist.
@@ -3558,7 +3562,7 @@ class DeleteFileOptions implements ToJsonable {
   final bool recursive;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (recursive != null) {
       __result['recursive'] = recursive;
     }
@@ -3573,7 +3577,7 @@ class DeleteFileOptions implements ToJsonable {
       reporter.push('recursive');
       try {
         if (obj['recursive'] != null && !(obj['recursive'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -3583,7 +3587,7 @@ class DeleteFileOptions implements ToJsonable {
       try {
         if (obj['ignoreIfNotExists'] != null &&
             !(obj['ignoreIfNotExists'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -3591,13 +3595,13 @@ class DeleteFileOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DeleteFileOptions");
+      reporter.reportError('must be of type DeleteFileOptions');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DeleteFileOptions) {
       return recursive == other.recursive &&
           ignoreIfNotExists == other.ignoreIfNotExists &&
@@ -3608,7 +3612,7 @@ class DeleteFileOptions implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, recursive.hashCode);
     hash = JenkinsSmiHash.combine(hash, ignoreIfNotExists.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -3620,7 +3624,7 @@ class DeleteFileOptions implements ToJsonable {
 
 class Diagnostic implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(Diagnostic.canParse, Diagnostic.fromJson);
+      LspJsonHandler(Diagnostic.canParse, Diagnostic.fromJson);
 
   Diagnostic(this.range, this.severity, this.code, this.source, this.message,
       this.relatedInformation) {
@@ -3644,7 +3648,7 @@ class Diagnostic implements ToJsonable {
             item != null ? DiagnosticRelatedInformation.fromJson(item) : null)
         ?.cast<DiagnosticRelatedInformation>()
         ?.toList();
-    return new Diagnostic(
+    return Diagnostic(
         range, severity, code, source, message, relatedInformation);
   }
 
@@ -3670,7 +3674,7 @@ class Diagnostic implements ToJsonable {
   final String source;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['range'] = range ?? (throw 'range is required but was not set');
     if (severity != null) {
       __result['severity'] = severity;
@@ -3694,15 +3698,15 @@ class Diagnostic implements ToJsonable {
       reporter.push('range');
       try {
         if (!obj.containsKey('range')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['range'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Range.canParse(obj['range'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -3712,7 +3716,7 @@ class Diagnostic implements ToJsonable {
       try {
         if (obj['severity'] != null &&
             !(DiagnosticSeverity.canParse(obj['severity'], reporter))) {
-          reporter.reportError("must be of type DiagnosticSeverity");
+          reporter.reportError('must be of type DiagnosticSeverity');
           return false;
         }
       } finally {
@@ -3721,7 +3725,7 @@ class Diagnostic implements ToJsonable {
       reporter.push('code');
       try {
         if (obj['code'] != null && !(obj['code'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -3730,7 +3734,7 @@ class Diagnostic implements ToJsonable {
       reporter.push('source');
       try {
         if (obj['source'] != null && !(obj['source'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -3739,15 +3743,15 @@ class Diagnostic implements ToJsonable {
       reporter.push('message');
       try {
         if (!obj.containsKey('message')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['message'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['message'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -3760,7 +3764,7 @@ class Diagnostic implements ToJsonable {
                 (obj['relatedInformation'].every((item) =>
                     DiagnosticRelatedInformation.canParse(item, reporter)))))) {
           reporter.reportError(
-              "must be of type List<DiagnosticRelatedInformation>");
+              'must be of type List<DiagnosticRelatedInformation>');
           return false;
         }
       } finally {
@@ -3768,13 +3772,13 @@ class Diagnostic implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type Diagnostic");
+      reporter.reportError('must be of type Diagnostic');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is Diagnostic) {
       return range == other.range &&
           severity == other.severity &&
@@ -3794,7 +3798,7 @@ class Diagnostic implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, range.hashCode);
     hash = JenkinsSmiHash.combine(hash, severity.hashCode);
     hash = JenkinsSmiHash.combine(hash, code.hashCode);
@@ -3812,7 +3816,7 @@ class Diagnostic implements ToJsonable {
 /// should be used to point to code locations that cause or related to a
 /// diagnostics, e.g when duplicating a symbol in a scope.
 class DiagnosticRelatedInformation implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DiagnosticRelatedInformation.canParse,
       DiagnosticRelatedInformation.fromJson);
 
@@ -3828,7 +3832,7 @@ class DiagnosticRelatedInformation implements ToJsonable {
     final location =
         json['location'] != null ? Location.fromJson(json['location']) : null;
     final message = json['message'];
-    return new DiagnosticRelatedInformation(location, message);
+    return DiagnosticRelatedInformation(location, message);
   }
 
   /// The location of this related diagnostic information.
@@ -3838,7 +3842,7 @@ class DiagnosticRelatedInformation implements ToJsonable {
   final String message;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['location'] =
         location ?? (throw 'location is required but was not set');
     __result['message'] =
@@ -3851,15 +3855,15 @@ class DiagnosticRelatedInformation implements ToJsonable {
       reporter.push('location');
       try {
         if (!obj.containsKey('location')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['location'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Location.canParse(obj['location'], reporter))) {
-          reporter.reportError("must be of type Location");
+          reporter.reportError('must be of type Location');
           return false;
         }
       } finally {
@@ -3868,15 +3872,15 @@ class DiagnosticRelatedInformation implements ToJsonable {
       reporter.push('message');
       try {
         if (!obj.containsKey('message')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['message'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['message'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -3884,13 +3888,13 @@ class DiagnosticRelatedInformation implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DiagnosticRelatedInformation");
+      reporter.reportError('must be of type DiagnosticRelatedInformation');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DiagnosticRelatedInformation) {
       return location == other.location && message == other.message && true;
     }
@@ -3899,7 +3903,7 @@ class DiagnosticRelatedInformation implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, location.hashCode);
     hash = JenkinsSmiHash.combine(hash, message.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -3920,16 +3924,16 @@ class DiagnosticSeverity {
   }
 
   /// Reports an error.
-  static const Error = const DiagnosticSeverity(1);
+  static const Error = DiagnosticSeverity(1);
 
   /// Reports a warning.
-  static const Warning = const DiagnosticSeverity(2);
+  static const Warning = DiagnosticSeverity(2);
 
   /// Reports an information.
-  static const Information = const DiagnosticSeverity(3);
+  static const Information = DiagnosticSeverity(3);
 
   /// Reports a hint.
-  static const Hint = const DiagnosticSeverity(4);
+  static const Hint = DiagnosticSeverity(4);
 
   Object toJson() => _value;
 
@@ -3937,27 +3941,27 @@ class DiagnosticSeverity {
   String toString() => _value.toString();
 
   @override
-  get hashCode => _value.hashCode;
+  int get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is DiagnosticSeverity && o._value == _value;
+  bool operator ==(Object o) => o is DiagnosticSeverity && o._value == _value;
 }
 
 class DidChangeConfigurationParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DidChangeConfigurationParams.canParse,
       DidChangeConfigurationParams.fromJson);
 
   DidChangeConfigurationParams(this.settings);
   static DidChangeConfigurationParams fromJson(Map<String, dynamic> json) {
     final settings = json['settings'];
-    return new DidChangeConfigurationParams(settings);
+    return DidChangeConfigurationParams(settings);
   }
 
   /// The actual changed settings
   final dynamic settings;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['settings'] = settings;
     return __result;
   }
@@ -3967,11 +3971,11 @@ class DidChangeConfigurationParams implements ToJsonable {
       reporter.push('settings');
       try {
         if (!obj.containsKey('settings')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['settings'] != null && !(true)) {
-          reporter.reportError("must be of type dynamic");
+          reporter.reportError('must be of type dynamic');
           return false;
         }
       } finally {
@@ -3979,13 +3983,13 @@ class DidChangeConfigurationParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DidChangeConfigurationParams");
+      reporter.reportError('must be of type DidChangeConfigurationParams');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DidChangeConfigurationParams) {
       return settings == other.settings && true;
     }
@@ -3994,7 +3998,7 @@ class DidChangeConfigurationParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, settings.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -4004,7 +4008,7 @@ class DidChangeConfigurationParams implements ToJsonable {
 }
 
 class DidChangeTextDocumentParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DidChangeTextDocumentParams.canParse,
       DidChangeTextDocumentParams.fromJson);
 
@@ -4025,7 +4029,7 @@ class DidChangeTextDocumentParams implements ToJsonable {
             item != null ? TextDocumentContentChangeEvent.fromJson(item) : null)
         ?.cast<TextDocumentContentChangeEvent>()
         ?.toList();
-    return new DidChangeTextDocumentParams(textDocument, contentChanges);
+    return DidChangeTextDocumentParams(textDocument, contentChanges);
   }
 
   /// The actual content changes. The content changes describe single state
@@ -4038,7 +4042,7 @@ class DidChangeTextDocumentParams implements ToJsonable {
   final VersionedTextDocumentIdentifier textDocument;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
     __result['contentChanges'] =
@@ -4051,17 +4055,17 @@ class DidChangeTextDocumentParams implements ToJsonable {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['textDocument'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(VersionedTextDocumentIdentifier.canParse(
             obj['textDocument'], reporter))) {
           reporter
-              .reportError("must be of type VersionedTextDocumentIdentifier");
+              .reportError('must be of type VersionedTextDocumentIdentifier');
           return false;
         }
       } finally {
@@ -4070,18 +4074,18 @@ class DidChangeTextDocumentParams implements ToJsonable {
       reporter.push('contentChanges');
       try {
         if (!obj.containsKey('contentChanges')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['contentChanges'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!((obj['contentChanges'] is List &&
             (obj['contentChanges'].every((item) =>
                 TextDocumentContentChangeEvent.canParse(item, reporter)))))) {
           reporter.reportError(
-              "must be of type List<TextDocumentContentChangeEvent>");
+              'must be of type List<TextDocumentContentChangeEvent>');
           return false;
         }
       } finally {
@@ -4089,13 +4093,13 @@ class DidChangeTextDocumentParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DidChangeTextDocumentParams");
+      reporter.reportError('must be of type DidChangeTextDocumentParams');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DidChangeTextDocumentParams) {
       return textDocument == other.textDocument &&
           listEqual(
@@ -4111,7 +4115,7 @@ class DidChangeTextDocumentParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
     hash = JenkinsSmiHash.combine(hash, contentChanges.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -4122,7 +4126,7 @@ class DidChangeTextDocumentParams implements ToJsonable {
 }
 
 class DidChangeWatchedFilesParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DidChangeWatchedFilesParams.canParse,
       DidChangeWatchedFilesParams.fromJson);
 
@@ -4136,14 +4140,14 @@ class DidChangeWatchedFilesParams implements ToJsonable {
         ?.map((item) => item != null ? FileEvent.fromJson(item) : null)
         ?.cast<FileEvent>()
         ?.toList();
-    return new DidChangeWatchedFilesParams(changes);
+    return DidChangeWatchedFilesParams(changes);
   }
 
   /// The actual file events.
   final List<FileEvent> changes;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['changes'] =
         changes ?? (throw 'changes is required but was not set');
     return __result;
@@ -4154,17 +4158,17 @@ class DidChangeWatchedFilesParams implements ToJsonable {
       reporter.push('changes');
       try {
         if (!obj.containsKey('changes')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['changes'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!((obj['changes'] is List &&
             (obj['changes']
                 .every((item) => FileEvent.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<FileEvent>");
+          reporter.reportError('must be of type List<FileEvent>');
           return false;
         }
       } finally {
@@ -4172,13 +4176,13 @@ class DidChangeWatchedFilesParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DidChangeWatchedFilesParams");
+      reporter.reportError('must be of type DidChangeWatchedFilesParams');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DidChangeWatchedFilesParams) {
       return listEqual(
               changes, other.changes, (FileEvent a, FileEvent b) => a == b) &&
@@ -4189,7 +4193,7 @@ class DidChangeWatchedFilesParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, changes.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -4200,7 +4204,7 @@ class DidChangeWatchedFilesParams implements ToJsonable {
 
 /// Describe options to be used when registering for file system change events.
 class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DidChangeWatchedFilesRegistrationOptions.canParse,
       DidChangeWatchedFilesRegistrationOptions.fromJson);
 
@@ -4215,14 +4219,14 @@ class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
         ?.map((item) => item != null ? FileSystemWatcher.fromJson(item) : null)
         ?.cast<FileSystemWatcher>()
         ?.toList();
-    return new DidChangeWatchedFilesRegistrationOptions(watchers);
+    return DidChangeWatchedFilesRegistrationOptions(watchers);
   }
 
   /// The watchers to register.
   final List<FileSystemWatcher> watchers;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['watchers'] =
         watchers ?? (throw 'watchers is required but was not set');
     return __result;
@@ -4233,17 +4237,17 @@ class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
       reporter.push('watchers');
       try {
         if (!obj.containsKey('watchers')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['watchers'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!((obj['watchers'] is List &&
             (obj['watchers'].every(
                 (item) => FileSystemWatcher.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<FileSystemWatcher>");
+          reporter.reportError('must be of type List<FileSystemWatcher>');
           return false;
         }
       } finally {
@@ -4252,13 +4256,13 @@ class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type DidChangeWatchedFilesRegistrationOptions");
+          'must be of type DidChangeWatchedFilesRegistrationOptions');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DidChangeWatchedFilesRegistrationOptions) {
       return listEqual(watchers, other.watchers,
               (FileSystemWatcher a, FileSystemWatcher b) => a == b) &&
@@ -4269,7 +4273,7 @@ class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, watchers.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -4279,7 +4283,7 @@ class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
 }
 
 class DidChangeWorkspaceFoldersParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DidChangeWorkspaceFoldersParams.canParse,
       DidChangeWorkspaceFoldersParams.fromJson);
 
@@ -4292,14 +4296,14 @@ class DidChangeWorkspaceFoldersParams implements ToJsonable {
     final event = json['event'] != null
         ? WorkspaceFoldersChangeEvent.fromJson(json['event'])
         : null;
-    return new DidChangeWorkspaceFoldersParams(event);
+    return DidChangeWorkspaceFoldersParams(event);
   }
 
   /// The actual workspace folder change event.
   final WorkspaceFoldersChangeEvent event;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['event'] = event ?? (throw 'event is required but was not set');
     return __result;
   }
@@ -4309,15 +4313,15 @@ class DidChangeWorkspaceFoldersParams implements ToJsonable {
       reporter.push('event');
       try {
         if (!obj.containsKey('event')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['event'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(WorkspaceFoldersChangeEvent.canParse(obj['event'], reporter))) {
-          reporter.reportError("must be of type WorkspaceFoldersChangeEvent");
+          reporter.reportError('must be of type WorkspaceFoldersChangeEvent');
           return false;
         }
       } finally {
@@ -4325,13 +4329,13 @@ class DidChangeWorkspaceFoldersParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DidChangeWorkspaceFoldersParams");
+      reporter.reportError('must be of type DidChangeWorkspaceFoldersParams');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DidChangeWorkspaceFoldersParams) {
       return event == other.event && true;
     }
@@ -4340,7 +4344,7 @@ class DidChangeWorkspaceFoldersParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, event.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -4350,7 +4354,7 @@ class DidChangeWorkspaceFoldersParams implements ToJsonable {
 }
 
 class DidCloseTextDocumentParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DidCloseTextDocumentParams.canParse, DidCloseTextDocumentParams.fromJson);
 
   DidCloseTextDocumentParams(this.textDocument) {
@@ -4362,14 +4366,14 @@ class DidCloseTextDocumentParams implements ToJsonable {
     final textDocument = json['textDocument'] != null
         ? TextDocumentIdentifier.fromJson(json['textDocument'])
         : null;
-    return new DidCloseTextDocumentParams(textDocument);
+    return DidCloseTextDocumentParams(textDocument);
   }
 
   /// The document that was closed.
   final TextDocumentIdentifier textDocument;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
     return __result;
@@ -4380,15 +4384,15 @@ class DidCloseTextDocumentParams implements ToJsonable {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['textDocument'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
-          reporter.reportError("must be of type TextDocumentIdentifier");
+          reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
       } finally {
@@ -4396,13 +4400,13 @@ class DidCloseTextDocumentParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DidCloseTextDocumentParams");
+      reporter.reportError('must be of type DidCloseTextDocumentParams');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DidCloseTextDocumentParams) {
       return textDocument == other.textDocument && true;
     }
@@ -4411,7 +4415,7 @@ class DidCloseTextDocumentParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -4421,7 +4425,7 @@ class DidCloseTextDocumentParams implements ToJsonable {
 }
 
 class DidOpenTextDocumentParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DidOpenTextDocumentParams.canParse, DidOpenTextDocumentParams.fromJson);
 
   DidOpenTextDocumentParams(this.textDocument) {
@@ -4433,14 +4437,14 @@ class DidOpenTextDocumentParams implements ToJsonable {
     final textDocument = json['textDocument'] != null
         ? TextDocumentItem.fromJson(json['textDocument'])
         : null;
-    return new DidOpenTextDocumentParams(textDocument);
+    return DidOpenTextDocumentParams(textDocument);
   }
 
   /// The document that was opened.
   final TextDocumentItem textDocument;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
     return __result;
@@ -4451,15 +4455,15 @@ class DidOpenTextDocumentParams implements ToJsonable {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['textDocument'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(TextDocumentItem.canParse(obj['textDocument'], reporter))) {
-          reporter.reportError("must be of type TextDocumentItem");
+          reporter.reportError('must be of type TextDocumentItem');
           return false;
         }
       } finally {
@@ -4467,13 +4471,13 @@ class DidOpenTextDocumentParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DidOpenTextDocumentParams");
+      reporter.reportError('must be of type DidOpenTextDocumentParams');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DidOpenTextDocumentParams) {
       return textDocument == other.textDocument && true;
     }
@@ -4482,7 +4486,7 @@ class DidOpenTextDocumentParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -4492,7 +4496,7 @@ class DidOpenTextDocumentParams implements ToJsonable {
 }
 
 class DidSaveTextDocumentParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DidSaveTextDocumentParams.canParse, DidSaveTextDocumentParams.fromJson);
 
   DidSaveTextDocumentParams(this.textDocument, this.text) {
@@ -4505,7 +4509,7 @@ class DidSaveTextDocumentParams implements ToJsonable {
         ? TextDocumentIdentifier.fromJson(json['textDocument'])
         : null;
     final text = json['text'];
-    return new DidSaveTextDocumentParams(textDocument, text);
+    return DidSaveTextDocumentParams(textDocument, text);
   }
 
   /// Optional the content when saved. Depends on the includeText value when the
@@ -4516,7 +4520,7 @@ class DidSaveTextDocumentParams implements ToJsonable {
   final TextDocumentIdentifier textDocument;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
     if (text != null) {
@@ -4530,15 +4534,15 @@ class DidSaveTextDocumentParams implements ToJsonable {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['textDocument'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
-          reporter.reportError("must be of type TextDocumentIdentifier");
+          reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
       } finally {
@@ -4547,7 +4551,7 @@ class DidSaveTextDocumentParams implements ToJsonable {
       reporter.push('text');
       try {
         if (obj['text'] != null && !(obj['text'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -4555,13 +4559,13 @@ class DidSaveTextDocumentParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DidSaveTextDocumentParams");
+      reporter.reportError('must be of type DidSaveTextDocumentParams');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DidSaveTextDocumentParams) {
       return textDocument == other.textDocument && text == other.text && true;
     }
@@ -4570,7 +4574,7 @@ class DidSaveTextDocumentParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
     hash = JenkinsSmiHash.combine(hash, text.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -4582,14 +4586,14 @@ class DidSaveTextDocumentParams implements ToJsonable {
 
 class DocumentFilter implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(DocumentFilter.canParse, DocumentFilter.fromJson);
+      LspJsonHandler(DocumentFilter.canParse, DocumentFilter.fromJson);
 
   DocumentFilter(this.language, this.scheme, this.pattern);
   static DocumentFilter fromJson(Map<String, dynamic> json) {
     final language = json['language'];
     final scheme = json['scheme'];
     final pattern = json['pattern'];
-    return new DocumentFilter(language, scheme, pattern);
+    return DocumentFilter(language, scheme, pattern);
   }
 
   /// A language id, like `typescript`.
@@ -4614,7 +4618,7 @@ class DocumentFilter implements ToJsonable {
   final String scheme;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (language != null) {
       __result['language'] = language;
     }
@@ -4632,7 +4636,7 @@ class DocumentFilter implements ToJsonable {
       reporter.push('language');
       try {
         if (obj['language'] != null && !(obj['language'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -4641,7 +4645,7 @@ class DocumentFilter implements ToJsonable {
       reporter.push('scheme');
       try {
         if (obj['scheme'] != null && !(obj['scheme'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -4650,7 +4654,7 @@ class DocumentFilter implements ToJsonable {
       reporter.push('pattern');
       try {
         if (obj['pattern'] != null && !(obj['pattern'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -4658,13 +4662,13 @@ class DocumentFilter implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DocumentFilter");
+      reporter.reportError('must be of type DocumentFilter');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DocumentFilter) {
       return language == other.language &&
           scheme == other.scheme &&
@@ -4676,7 +4680,7 @@ class DocumentFilter implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, language.hashCode);
     hash = JenkinsSmiHash.combine(hash, scheme.hashCode);
     hash = JenkinsSmiHash.combine(hash, pattern.hashCode);
@@ -4688,7 +4692,7 @@ class DocumentFilter implements ToJsonable {
 }
 
 class DocumentFormattingParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DocumentFormattingParams.canParse, DocumentFormattingParams.fromJson);
 
   DocumentFormattingParams(this.textDocument, this.options) {
@@ -4706,7 +4710,7 @@ class DocumentFormattingParams implements ToJsonable {
     final options = json['options'] != null
         ? FormattingOptions.fromJson(json['options'])
         : null;
-    return new DocumentFormattingParams(textDocument, options);
+    return DocumentFormattingParams(textDocument, options);
   }
 
   /// The format options.
@@ -4716,7 +4720,7 @@ class DocumentFormattingParams implements ToJsonable {
   final TextDocumentIdentifier textDocument;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
     __result['options'] =
@@ -4729,15 +4733,15 @@ class DocumentFormattingParams implements ToJsonable {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['textDocument'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
-          reporter.reportError("must be of type TextDocumentIdentifier");
+          reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
       } finally {
@@ -4746,15 +4750,15 @@ class DocumentFormattingParams implements ToJsonable {
       reporter.push('options');
       try {
         if (!obj.containsKey('options')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['options'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(FormattingOptions.canParse(obj['options'], reporter))) {
-          reporter.reportError("must be of type FormattingOptions");
+          reporter.reportError('must be of type FormattingOptions');
           return false;
         }
       } finally {
@@ -4762,13 +4766,13 @@ class DocumentFormattingParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DocumentFormattingParams");
+      reporter.reportError('must be of type DocumentFormattingParams');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DocumentFormattingParams) {
       return textDocument == other.textDocument &&
           options == other.options &&
@@ -4779,7 +4783,7 @@ class DocumentFormattingParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
     hash = JenkinsSmiHash.combine(hash, options.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -4793,8 +4797,8 @@ class DocumentFormattingParams implements ToJsonable {
 /// special attention. Usually a document highlight is visualized by changing
 /// the background color of its range.
 class DocumentHighlight implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      DocumentHighlight.canParse, DocumentHighlight.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(DocumentHighlight.canParse, DocumentHighlight.fromJson);
 
   DocumentHighlight(this.range, this.kind) {
     if (range == null) {
@@ -4806,7 +4810,7 @@ class DocumentHighlight implements ToJsonable {
     final kind = json['kind'] != null
         ? DocumentHighlightKind.fromJson(json['kind'])
         : null;
-    return new DocumentHighlight(range, kind);
+    return DocumentHighlight(range, kind);
   }
 
   /// The highlight kind, default is DocumentHighlightKind.Text.
@@ -4816,7 +4820,7 @@ class DocumentHighlight implements ToJsonable {
   final Range range;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['range'] = range ?? (throw 'range is required but was not set');
     if (kind != null) {
       __result['kind'] = kind;
@@ -4829,15 +4833,15 @@ class DocumentHighlight implements ToJsonable {
       reporter.push('range');
       try {
         if (!obj.containsKey('range')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['range'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Range.canParse(obj['range'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -4847,7 +4851,7 @@ class DocumentHighlight implements ToJsonable {
       try {
         if (obj['kind'] != null &&
             !(DocumentHighlightKind.canParse(obj['kind'], reporter))) {
-          reporter.reportError("must be of type DocumentHighlightKind");
+          reporter.reportError('must be of type DocumentHighlightKind');
           return false;
         }
       } finally {
@@ -4855,13 +4859,13 @@ class DocumentHighlight implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DocumentHighlight");
+      reporter.reportError('must be of type DocumentHighlight');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DocumentHighlight) {
       return range == other.range && kind == other.kind && true;
     }
@@ -4870,7 +4874,7 @@ class DocumentHighlight implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, range.hashCode);
     hash = JenkinsSmiHash.combine(hash, kind.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -4892,13 +4896,13 @@ class DocumentHighlightKind {
   }
 
   /// A textual occurrence.
-  static const Text = const DocumentHighlightKind(1);
+  static const Text = DocumentHighlightKind(1);
 
   /// Read-access of a symbol, like reading a variable.
-  static const Read = const DocumentHighlightKind(2);
+  static const Read = DocumentHighlightKind(2);
 
   /// Write-access of a symbol, like writing to a variable.
-  static const Write = const DocumentHighlightKind(3);
+  static const Write = DocumentHighlightKind(3);
 
   Object toJson() => _value;
 
@@ -4906,16 +4910,17 @@ class DocumentHighlightKind {
   String toString() => _value.toString();
 
   @override
-  get hashCode => _value.hashCode;
+  int get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is DocumentHighlightKind && o._value == _value;
+  bool operator ==(Object o) =>
+      o is DocumentHighlightKind && o._value == _value;
 }
 
 /// A document link is a range in a text document that links to an internal or
 /// external resource, like another text document or a web site.
 class DocumentLink implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(DocumentLink.canParse, DocumentLink.fromJson);
+      LspJsonHandler(DocumentLink.canParse, DocumentLink.fromJson);
 
   DocumentLink(this.range, this.target, this.data) {
     if (range == null) {
@@ -4926,7 +4931,7 @@ class DocumentLink implements ToJsonable {
     final range = json['range'] != null ? Range.fromJson(json['range']) : null;
     final target = json['target'];
     final data = json['data'];
-    return new DocumentLink(range, target, data);
+    return DocumentLink(range, target, data);
   }
 
   /// A data entry field that is preserved on a document link between a
@@ -4940,7 +4945,7 @@ class DocumentLink implements ToJsonable {
   final String target;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['range'] = range ?? (throw 'range is required but was not set');
     if (target != null) {
       __result['target'] = target;
@@ -4956,15 +4961,15 @@ class DocumentLink implements ToJsonable {
       reporter.push('range');
       try {
         if (!obj.containsKey('range')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['range'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Range.canParse(obj['range'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -4973,7 +4978,7 @@ class DocumentLink implements ToJsonable {
       reporter.push('target');
       try {
         if (obj['target'] != null && !(obj['target'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -4982,7 +4987,7 @@ class DocumentLink implements ToJsonable {
       reporter.push('data');
       try {
         if (obj['data'] != null && !(true)) {
-          reporter.reportError("must be of type dynamic");
+          reporter.reportError('must be of type dynamic');
           return false;
         }
       } finally {
@@ -4990,13 +4995,13 @@ class DocumentLink implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DocumentLink");
+      reporter.reportError('must be of type DocumentLink');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DocumentLink) {
       return range == other.range &&
           target == other.target &&
@@ -5008,7 +5013,7 @@ class DocumentLink implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, range.hashCode);
     hash = JenkinsSmiHash.combine(hash, target.hashCode);
     hash = JenkinsSmiHash.combine(hash, data.hashCode);
@@ -5021,20 +5026,20 @@ class DocumentLink implements ToJsonable {
 
 /// Document link options.
 class DocumentLinkOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DocumentLinkOptions.canParse, DocumentLinkOptions.fromJson);
 
   DocumentLinkOptions(this.resolveProvider);
   static DocumentLinkOptions fromJson(Map<String, dynamic> json) {
     final resolveProvider = json['resolveProvider'];
-    return new DocumentLinkOptions(resolveProvider);
+    return DocumentLinkOptions(resolveProvider);
   }
 
   /// Document links have a resolve provider as well.
   final bool resolveProvider;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (resolveProvider != null) {
       __result['resolveProvider'] = resolveProvider;
     }
@@ -5047,7 +5052,7 @@ class DocumentLinkOptions implements ToJsonable {
       try {
         if (obj['resolveProvider'] != null &&
             !(obj['resolveProvider'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -5055,13 +5060,13 @@ class DocumentLinkOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DocumentLinkOptions");
+      reporter.reportError('must be of type DocumentLinkOptions');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DocumentLinkOptions) {
       return resolveProvider == other.resolveProvider && true;
     }
@@ -5070,7 +5075,7 @@ class DocumentLinkOptions implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, resolveProvider.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -5080,8 +5085,8 @@ class DocumentLinkOptions implements ToJsonable {
 }
 
 class DocumentLinkParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      DocumentLinkParams.canParse, DocumentLinkParams.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(DocumentLinkParams.canParse, DocumentLinkParams.fromJson);
 
   DocumentLinkParams(this.textDocument) {
     if (textDocument == null) {
@@ -5092,14 +5097,14 @@ class DocumentLinkParams implements ToJsonable {
     final textDocument = json['textDocument'] != null
         ? TextDocumentIdentifier.fromJson(json['textDocument'])
         : null;
-    return new DocumentLinkParams(textDocument);
+    return DocumentLinkParams(textDocument);
   }
 
   /// The document to provide document links for.
   final TextDocumentIdentifier textDocument;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
     return __result;
@@ -5110,15 +5115,15 @@ class DocumentLinkParams implements ToJsonable {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['textDocument'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
-          reporter.reportError("must be of type TextDocumentIdentifier");
+          reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
       } finally {
@@ -5126,13 +5131,13 @@ class DocumentLinkParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DocumentLinkParams");
+      reporter.reportError('must be of type DocumentLinkParams');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DocumentLinkParams) {
       return textDocument == other.textDocument && true;
     }
@@ -5141,7 +5146,7 @@ class DocumentLinkParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -5152,7 +5157,7 @@ class DocumentLinkParams implements ToJsonable {
 
 class DocumentLinkRegistrationOptions
     implements TextDocumentRegistrationOptions, ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DocumentLinkRegistrationOptions.canParse,
       DocumentLinkRegistrationOptions.fromJson);
 
@@ -5163,8 +5168,7 @@ class DocumentLinkRegistrationOptions
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
-    return new DocumentLinkRegistrationOptions(
-        resolveProvider, documentSelector);
+    return DocumentLinkRegistrationOptions(resolveProvider, documentSelector);
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -5175,7 +5179,7 @@ class DocumentLinkRegistrationOptions
   final bool resolveProvider;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (resolveProvider != null) {
       __result['resolveProvider'] = resolveProvider;
     }
@@ -5189,7 +5193,7 @@ class DocumentLinkRegistrationOptions
       try {
         if (obj['resolveProvider'] != null &&
             !(obj['resolveProvider'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -5198,14 +5202,14 @@ class DocumentLinkRegistrationOptions
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['documentSelector'] != null &&
             !((obj['documentSelector'] is List &&
                 (obj['documentSelector'].every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<DocumentFilter>");
+          reporter.reportError('must be of type List<DocumentFilter>');
           return false;
         }
       } finally {
@@ -5213,13 +5217,13 @@ class DocumentLinkRegistrationOptions
       }
       return true;
     } else {
-      reporter.reportError("must be of type DocumentLinkRegistrationOptions");
+      reporter.reportError('must be of type DocumentLinkRegistrationOptions');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DocumentLinkRegistrationOptions) {
       return resolveProvider == other.resolveProvider &&
           documentSelector == other.documentSelector &&
@@ -5230,7 +5234,7 @@ class DocumentLinkRegistrationOptions
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, resolveProvider.hashCode);
     hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -5242,7 +5246,7 @@ class DocumentLinkRegistrationOptions
 
 /// Format document on type options.
 class DocumentOnTypeFormattingOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DocumentOnTypeFormattingOptions.canParse,
       DocumentOnTypeFormattingOptions.fromJson);
 
@@ -5258,7 +5262,7 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
         ?.map((item) => item)
         ?.cast<String>()
         ?.toList();
-    return new DocumentOnTypeFormattingOptions(
+    return DocumentOnTypeFormattingOptions(
         firstTriggerCharacter, moreTriggerCharacter);
   }
 
@@ -5269,7 +5273,7 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
   final List<String> moreTriggerCharacter;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['firstTriggerCharacter'] = firstTriggerCharacter ??
         (throw 'firstTriggerCharacter is required but was not set');
     if (moreTriggerCharacter != null) {
@@ -5283,15 +5287,15 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
       reporter.push('firstTriggerCharacter');
       try {
         if (!obj.containsKey('firstTriggerCharacter')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['firstTriggerCharacter'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['firstTriggerCharacter'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -5303,7 +5307,7 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
             !((obj['moreTriggerCharacter'] is List &&
                 (obj['moreTriggerCharacter']
                     .every((item) => item is String))))) {
-          reporter.reportError("must be of type List<String>");
+          reporter.reportError('must be of type List<String>');
           return false;
         }
       } finally {
@@ -5311,13 +5315,13 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DocumentOnTypeFormattingOptions");
+      reporter.reportError('must be of type DocumentOnTypeFormattingOptions');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DocumentOnTypeFormattingOptions) {
       return firstTriggerCharacter == other.firstTriggerCharacter &&
           listEqual(moreTriggerCharacter, other.moreTriggerCharacter,
@@ -5329,7 +5333,7 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, firstTriggerCharacter.hashCode);
     hash = JenkinsSmiHash.combine(hash, moreTriggerCharacter.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -5340,7 +5344,7 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
 }
 
 class DocumentOnTypeFormattingParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DocumentOnTypeFormattingParams.canParse,
       DocumentOnTypeFormattingParams.fromJson);
 
@@ -5369,8 +5373,7 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
     final options = json['options'] != null
         ? FormattingOptions.fromJson(json['options'])
         : null;
-    return new DocumentOnTypeFormattingParams(
-        textDocument, position, ch, options);
+    return DocumentOnTypeFormattingParams(textDocument, position, ch, options);
   }
 
   /// The character that has been typed.
@@ -5386,7 +5389,7 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
   final TextDocumentIdentifier textDocument;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
     __result['position'] =
@@ -5402,15 +5405,15 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['textDocument'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
-          reporter.reportError("must be of type TextDocumentIdentifier");
+          reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
       } finally {
@@ -5419,15 +5422,15 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
       reporter.push('position');
       try {
         if (!obj.containsKey('position')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['position'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Position.canParse(obj['position'], reporter))) {
-          reporter.reportError("must be of type Position");
+          reporter.reportError('must be of type Position');
           return false;
         }
       } finally {
@@ -5436,15 +5439,15 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
       reporter.push('ch');
       try {
         if (!obj.containsKey('ch')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['ch'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['ch'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -5453,15 +5456,15 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
       reporter.push('options');
       try {
         if (!obj.containsKey('options')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['options'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(FormattingOptions.canParse(obj['options'], reporter))) {
-          reporter.reportError("must be of type FormattingOptions");
+          reporter.reportError('must be of type FormattingOptions');
           return false;
         }
       } finally {
@@ -5469,13 +5472,13 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DocumentOnTypeFormattingParams");
+      reporter.reportError('must be of type DocumentOnTypeFormattingParams');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DocumentOnTypeFormattingParams) {
       return textDocument == other.textDocument &&
           position == other.position &&
@@ -5488,7 +5491,7 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
     hash = JenkinsSmiHash.combine(hash, position.hashCode);
     hash = JenkinsSmiHash.combine(hash, ch.hashCode);
@@ -5502,7 +5505,7 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
 
 class DocumentOnTypeFormattingRegistrationOptions
     implements TextDocumentRegistrationOptions, ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DocumentOnTypeFormattingRegistrationOptions.canParse,
       DocumentOnTypeFormattingRegistrationOptions.fromJson);
 
@@ -5523,7 +5526,7 @@ class DocumentOnTypeFormattingRegistrationOptions
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
-    return new DocumentOnTypeFormattingRegistrationOptions(
+    return DocumentOnTypeFormattingRegistrationOptions(
         firstTriggerCharacter, moreTriggerCharacter, documentSelector);
   }
 
@@ -5538,7 +5541,7 @@ class DocumentOnTypeFormattingRegistrationOptions
   final List<String> moreTriggerCharacter;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['firstTriggerCharacter'] = firstTriggerCharacter ??
         (throw 'firstTriggerCharacter is required but was not set');
     if (moreTriggerCharacter != null) {
@@ -5553,15 +5556,15 @@ class DocumentOnTypeFormattingRegistrationOptions
       reporter.push('firstTriggerCharacter');
       try {
         if (!obj.containsKey('firstTriggerCharacter')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['firstTriggerCharacter'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['firstTriggerCharacter'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -5573,7 +5576,7 @@ class DocumentOnTypeFormattingRegistrationOptions
             !((obj['moreTriggerCharacter'] is List &&
                 (obj['moreTriggerCharacter']
                     .every((item) => item is String))))) {
-          reporter.reportError("must be of type List<String>");
+          reporter.reportError('must be of type List<String>');
           return false;
         }
       } finally {
@@ -5582,14 +5585,14 @@ class DocumentOnTypeFormattingRegistrationOptions
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['documentSelector'] != null &&
             !((obj['documentSelector'] is List &&
                 (obj['documentSelector'].every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<DocumentFilter>");
+          reporter.reportError('must be of type List<DocumentFilter>');
           return false;
         }
       } finally {
@@ -5598,13 +5601,13 @@ class DocumentOnTypeFormattingRegistrationOptions
       return true;
     } else {
       reporter.reportError(
-          "must be of type DocumentOnTypeFormattingRegistrationOptions");
+          'must be of type DocumentOnTypeFormattingRegistrationOptions');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DocumentOnTypeFormattingRegistrationOptions) {
       return firstTriggerCharacter == other.firstTriggerCharacter &&
           listEqual(moreTriggerCharacter, other.moreTriggerCharacter,
@@ -5617,7 +5620,7 @@ class DocumentOnTypeFormattingRegistrationOptions
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, firstTriggerCharacter.hashCode);
     hash = JenkinsSmiHash.combine(hash, moreTriggerCharacter.hashCode);
     hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
@@ -5629,7 +5632,7 @@ class DocumentOnTypeFormattingRegistrationOptions
 }
 
 class DocumentRangeFormattingParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DocumentRangeFormattingParams.canParse,
       DocumentRangeFormattingParams.fromJson);
 
@@ -5652,7 +5655,7 @@ class DocumentRangeFormattingParams implements ToJsonable {
     final options = json['options'] != null
         ? FormattingOptions.fromJson(json['options'])
         : null;
-    return new DocumentRangeFormattingParams(textDocument, range, options);
+    return DocumentRangeFormattingParams(textDocument, range, options);
   }
 
   /// The format options
@@ -5665,7 +5668,7 @@ class DocumentRangeFormattingParams implements ToJsonable {
   final TextDocumentIdentifier textDocument;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
     __result['range'] = range ?? (throw 'range is required but was not set');
@@ -5679,15 +5682,15 @@ class DocumentRangeFormattingParams implements ToJsonable {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['textDocument'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
-          reporter.reportError("must be of type TextDocumentIdentifier");
+          reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
       } finally {
@@ -5696,15 +5699,15 @@ class DocumentRangeFormattingParams implements ToJsonable {
       reporter.push('range');
       try {
         if (!obj.containsKey('range')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['range'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Range.canParse(obj['range'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -5713,15 +5716,15 @@ class DocumentRangeFormattingParams implements ToJsonable {
       reporter.push('options');
       try {
         if (!obj.containsKey('options')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['options'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(FormattingOptions.canParse(obj['options'], reporter))) {
-          reporter.reportError("must be of type FormattingOptions");
+          reporter.reportError('must be of type FormattingOptions');
           return false;
         }
       } finally {
@@ -5729,13 +5732,13 @@ class DocumentRangeFormattingParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DocumentRangeFormattingParams");
+      reporter.reportError('must be of type DocumentRangeFormattingParams');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DocumentRangeFormattingParams) {
       return textDocument == other.textDocument &&
           range == other.range &&
@@ -5747,7 +5750,7 @@ class DocumentRangeFormattingParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
     hash = JenkinsSmiHash.combine(hash, range.hashCode);
     hash = JenkinsSmiHash.combine(hash, options.hashCode);
@@ -5764,7 +5767,7 @@ class DocumentRangeFormattingParams implements ToJsonable {
 /// most interesting range, e.g. the range of an identifier.
 class DocumentSymbol implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(DocumentSymbol.canParse, DocumentSymbol.fromJson);
+      LspJsonHandler(DocumentSymbol.canParse, DocumentSymbol.fromJson);
 
   DocumentSymbol(this.name, this.detail, this.kind, this.deprecated, this.range,
       this.selectionRange, this.children) {
@@ -5795,7 +5798,7 @@ class DocumentSymbol implements ToJsonable {
         ?.map((item) => item != null ? DocumentSymbol.fromJson(item) : null)
         ?.cast<DocumentSymbol>()
         ?.toList();
-    return new DocumentSymbol(
+    return DocumentSymbol(
         name, detail, kind, deprecated, range, selectionRange, children);
   }
 
@@ -5827,7 +5830,7 @@ class DocumentSymbol implements ToJsonable {
   final Range selectionRange;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['name'] = name ?? (throw 'name is required but was not set');
     if (detail != null) {
       __result['detail'] = detail;
@@ -5850,15 +5853,15 @@ class DocumentSymbol implements ToJsonable {
       reporter.push('name');
       try {
         if (!obj.containsKey('name')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['name'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['name'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -5867,7 +5870,7 @@ class DocumentSymbol implements ToJsonable {
       reporter.push('detail');
       try {
         if (obj['detail'] != null && !(obj['detail'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -5876,15 +5879,15 @@ class DocumentSymbol implements ToJsonable {
       reporter.push('kind');
       try {
         if (!obj.containsKey('kind')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['kind'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(SymbolKind.canParse(obj['kind'], reporter))) {
-          reporter.reportError("must be of type SymbolKind");
+          reporter.reportError('must be of type SymbolKind');
           return false;
         }
       } finally {
@@ -5893,7 +5896,7 @@ class DocumentSymbol implements ToJsonable {
       reporter.push('deprecated');
       try {
         if (obj['deprecated'] != null && !(obj['deprecated'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -5902,15 +5905,15 @@ class DocumentSymbol implements ToJsonable {
       reporter.push('range');
       try {
         if (!obj.containsKey('range')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['range'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Range.canParse(obj['range'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -5919,15 +5922,15 @@ class DocumentSymbol implements ToJsonable {
       reporter.push('selectionRange');
       try {
         if (!obj.containsKey('selectionRange')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['selectionRange'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Range.canParse(obj['selectionRange'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -5939,7 +5942,7 @@ class DocumentSymbol implements ToJsonable {
             !((obj['children'] is List &&
                 (obj['children'].every(
                     (item) => DocumentSymbol.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<DocumentSymbol>");
+          reporter.reportError('must be of type List<DocumentSymbol>');
           return false;
         }
       } finally {
@@ -5947,13 +5950,13 @@ class DocumentSymbol implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DocumentSymbol");
+      reporter.reportError('must be of type DocumentSymbol');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DocumentSymbol) {
       return name == other.name &&
           detail == other.detail &&
@@ -5970,7 +5973,7 @@ class DocumentSymbol implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, name.hashCode);
     hash = JenkinsSmiHash.combine(hash, detail.hashCode);
     hash = JenkinsSmiHash.combine(hash, kind.hashCode);
@@ -5986,7 +5989,7 @@ class DocumentSymbol implements ToJsonable {
 }
 
 class DocumentSymbolParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DocumentSymbolParams.canParse, DocumentSymbolParams.fromJson);
 
   DocumentSymbolParams(this.textDocument) {
@@ -5998,14 +6001,14 @@ class DocumentSymbolParams implements ToJsonable {
     final textDocument = json['textDocument'] != null
         ? TextDocumentIdentifier.fromJson(json['textDocument'])
         : null;
-    return new DocumentSymbolParams(textDocument);
+    return DocumentSymbolParams(textDocument);
   }
 
   /// The text document.
   final TextDocumentIdentifier textDocument;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
     return __result;
@@ -6016,15 +6019,15 @@ class DocumentSymbolParams implements ToJsonable {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['textDocument'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
-          reporter.reportError("must be of type TextDocumentIdentifier");
+          reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
       } finally {
@@ -6032,13 +6035,13 @@ class DocumentSymbolParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DocumentSymbolParams");
+      reporter.reportError('must be of type DocumentSymbolParams');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DocumentSymbolParams) {
       return textDocument == other.textDocument && true;
     }
@@ -6047,7 +6050,7 @@ class DocumentSymbolParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -6067,19 +6070,19 @@ class ErrorCodes {
   }
 
   /// Defined by JSON RPC
-  static const ParseError = const ErrorCodes(-32700);
-  static const InvalidRequest = const ErrorCodes(-32600);
-  static const MethodNotFound = const ErrorCodes(-32601);
-  static const InvalidParams = const ErrorCodes(-32602);
-  static const InternalError = const ErrorCodes(-32603);
-  static const serverErrorStart = const ErrorCodes(-32099);
-  static const serverErrorEnd = const ErrorCodes(-32000);
-  static const ServerNotInitialized = const ErrorCodes(-32002);
-  static const UnknownErrorCode = const ErrorCodes(-32001);
+  static const ParseError = ErrorCodes(-32700);
+  static const InvalidRequest = ErrorCodes(-32600);
+  static const MethodNotFound = ErrorCodes(-32601);
+  static const InvalidParams = ErrorCodes(-32602);
+  static const InternalError = ErrorCodes(-32603);
+  static const serverErrorStart = ErrorCodes(-32099);
+  static const serverErrorEnd = ErrorCodes(-32000);
+  static const ServerNotInitialized = ErrorCodes(-32002);
+  static const UnknownErrorCode = ErrorCodes(-32001);
 
   /// Defined by the protocol.
-  static const RequestCancelled = const ErrorCodes(-32800);
-  static const ContentModified = const ErrorCodes(-32801);
+  static const RequestCancelled = ErrorCodes(-32800);
+  static const ContentModified = ErrorCodes(-32801);
 
   Object toJson() => _value;
 
@@ -6087,14 +6090,14 @@ class ErrorCodes {
   String toString() => _value.toString();
 
   @override
-  get hashCode => _value.hashCode;
+  int get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is ErrorCodes && o._value == _value;
+  bool operator ==(Object o) => o is ErrorCodes && o._value == _value;
 }
 
 /// Execute command options.
 class ExecuteCommandOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       ExecuteCommandOptions.canParse, ExecuteCommandOptions.fromJson);
 
   ExecuteCommandOptions(this.commands) {
@@ -6105,14 +6108,14 @@ class ExecuteCommandOptions implements ToJsonable {
   static ExecuteCommandOptions fromJson(Map<String, dynamic> json) {
     final commands =
         json['commands']?.map((item) => item)?.cast<String>()?.toList();
-    return new ExecuteCommandOptions(commands);
+    return ExecuteCommandOptions(commands);
   }
 
   /// The commands to be executed on the server
   final List<String> commands;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['commands'] =
         commands ?? (throw 'commands is required but was not set');
     return __result;
@@ -6123,16 +6126,16 @@ class ExecuteCommandOptions implements ToJsonable {
       reporter.push('commands');
       try {
         if (!obj.containsKey('commands')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['commands'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!((obj['commands'] is List &&
             (obj['commands'].every((item) => item is String))))) {
-          reporter.reportError("must be of type List<String>");
+          reporter.reportError('must be of type List<String>');
           return false;
         }
       } finally {
@@ -6140,13 +6143,13 @@ class ExecuteCommandOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type ExecuteCommandOptions");
+      reporter.reportError('must be of type ExecuteCommandOptions');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ExecuteCommandOptions) {
       return listEqual(
               commands, other.commands, (String a, String b) => a == b) &&
@@ -6157,7 +6160,7 @@ class ExecuteCommandOptions implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, commands.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -6167,7 +6170,7 @@ class ExecuteCommandOptions implements ToJsonable {
 }
 
 class ExecuteCommandParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       ExecuteCommandParams.canParse, ExecuteCommandParams.fromJson);
 
   ExecuteCommandParams(this.command, this.arguments) {
@@ -6179,7 +6182,7 @@ class ExecuteCommandParams implements ToJsonable {
     final command = json['command'];
     final arguments =
         json['arguments']?.map((item) => item)?.cast<dynamic>()?.toList();
-    return new ExecuteCommandParams(command, arguments);
+    return ExecuteCommandParams(command, arguments);
   }
 
   /// Arguments that the command should be invoked with.
@@ -6189,7 +6192,7 @@ class ExecuteCommandParams implements ToJsonable {
   final String command;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['command'] =
         command ?? (throw 'command is required but was not set');
     if (arguments != null) {
@@ -6203,15 +6206,15 @@ class ExecuteCommandParams implements ToJsonable {
       reporter.push('command');
       try {
         if (!obj.containsKey('command')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['command'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['command'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -6222,7 +6225,7 @@ class ExecuteCommandParams implements ToJsonable {
         if (obj['arguments'] != null &&
             !((obj['arguments'] is List &&
                 (obj['arguments'].every((item) => true))))) {
-          reporter.reportError("must be of type List<dynamic>");
+          reporter.reportError('must be of type List<dynamic>');
           return false;
         }
       } finally {
@@ -6230,13 +6233,13 @@ class ExecuteCommandParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type ExecuteCommandParams");
+      reporter.reportError('must be of type ExecuteCommandParams');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ExecuteCommandParams) {
       return command == other.command &&
           listEqual(
@@ -6248,7 +6251,7 @@ class ExecuteCommandParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, command.hashCode);
     hash = JenkinsSmiHash.combine(hash, arguments.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -6260,7 +6263,7 @@ class ExecuteCommandParams implements ToJsonable {
 
 /// Execute command registration options.
 class ExecuteCommandRegistrationOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       ExecuteCommandRegistrationOptions.canParse,
       ExecuteCommandRegistrationOptions.fromJson);
 
@@ -6272,14 +6275,14 @@ class ExecuteCommandRegistrationOptions implements ToJsonable {
   static ExecuteCommandRegistrationOptions fromJson(Map<String, dynamic> json) {
     final commands =
         json['commands']?.map((item) => item)?.cast<String>()?.toList();
-    return new ExecuteCommandRegistrationOptions(commands);
+    return ExecuteCommandRegistrationOptions(commands);
   }
 
   /// The commands to be executed on the server
   final List<String> commands;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['commands'] =
         commands ?? (throw 'commands is required but was not set');
     return __result;
@@ -6290,16 +6293,16 @@ class ExecuteCommandRegistrationOptions implements ToJsonable {
       reporter.push('commands');
       try {
         if (!obj.containsKey('commands')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['commands'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!((obj['commands'] is List &&
             (obj['commands'].every((item) => item is String))))) {
-          reporter.reportError("must be of type List<String>");
+          reporter.reportError('must be of type List<String>');
           return false;
         }
       } finally {
@@ -6307,13 +6310,13 @@ class ExecuteCommandRegistrationOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type ExecuteCommandRegistrationOptions");
+      reporter.reportError('must be of type ExecuteCommandRegistrationOptions');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ExecuteCommandRegistrationOptions) {
       return listEqual(
               commands, other.commands, (String a, String b) => a == b) &&
@@ -6324,7 +6327,7 @@ class ExecuteCommandRegistrationOptions implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, commands.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -6353,21 +6356,21 @@ class FailureHandlingKind {
   /// Applying the workspace change is simply aborted if one of the changes
   /// provided fails. All operations executed before the failing operation stay
   /// executed.
-  static const Abort = const FailureHandlingKind._('abort');
+  static const Abort = FailureHandlingKind._('abort');
 
   /// All operations are executed transactionally. That means they either all
   /// succeed or no changes at all are applied to the workspace.
-  static const Transactional = const FailureHandlingKind._('transactional');
+  static const Transactional = FailureHandlingKind._('transactional');
 
   /// If the workspace edit contains only textual file changes they are executed
   /// transactionally. If resource changes (create, rename or delete file) are
   /// part of the change the failure handling strategy is abort.
   static const TextOnlyTransactional =
-      const FailureHandlingKind._('textOnlyTransactional');
+      FailureHandlingKind._('textOnlyTransactional');
 
   /// The client tries to undo the operations already executed. But there is no
   /// guarantee that this succeeds.
-  static const Undo = const FailureHandlingKind._('undo');
+  static const Undo = FailureHandlingKind._('undo');
 
   Object toJson() => _value;
 
@@ -6375,9 +6378,9 @@ class FailureHandlingKind {
   String toString() => _value.toString();
 
   @override
-  get hashCode => _value.hashCode;
+  int get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is FailureHandlingKind && o._value == _value;
+  bool operator ==(Object o) => o is FailureHandlingKind && o._value == _value;
 }
 
 /// The file event type.
@@ -6392,13 +6395,13 @@ class FileChangeType {
   }
 
   /// The file got created.
-  static const Created = const FileChangeType(1);
+  static const Created = FileChangeType(1);
 
   /// The file got changed.
-  static const Changed = const FileChangeType(2);
+  static const Changed = FileChangeType(2);
 
   /// The file got deleted.
-  static const Deleted = const FileChangeType(3);
+  static const Deleted = FileChangeType(3);
 
   Object toJson() => _value;
 
@@ -6406,15 +6409,15 @@ class FileChangeType {
   String toString() => _value.toString();
 
   @override
-  get hashCode => _value.hashCode;
+  int get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is FileChangeType && o._value == _value;
+  bool operator ==(Object o) => o is FileChangeType && o._value == _value;
 }
 
 /// An event describing a file change.
 class FileEvent implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(FileEvent.canParse, FileEvent.fromJson);
+      LspJsonHandler(FileEvent.canParse, FileEvent.fromJson);
 
   FileEvent(this.uri, this.type) {
     if (uri == null) {
@@ -6427,7 +6430,7 @@ class FileEvent implements ToJsonable {
   static FileEvent fromJson(Map<String, dynamic> json) {
     final uri = json['uri'];
     final type = json['type'];
-    return new FileEvent(uri, type);
+    return FileEvent(uri, type);
   }
 
   /// The change type.
@@ -6437,7 +6440,7 @@ class FileEvent implements ToJsonable {
   final String uri;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
     __result['type'] = type ?? (throw 'type is required but was not set');
     return __result;
@@ -6448,15 +6451,15 @@ class FileEvent implements ToJsonable {
       reporter.push('uri');
       try {
         if (!obj.containsKey('uri')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['uri'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['uri'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -6465,15 +6468,15 @@ class FileEvent implements ToJsonable {
       reporter.push('type');
       try {
         if (!obj.containsKey('type')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['type'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['type'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -6481,13 +6484,13 @@ class FileEvent implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type FileEvent");
+      reporter.reportError('must be of type FileEvent');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is FileEvent) {
       return uri == other.uri && type == other.type && true;
     }
@@ -6496,7 +6499,7 @@ class FileEvent implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, uri.hashCode);
     hash = JenkinsSmiHash.combine(hash, type.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -6507,8 +6510,8 @@ class FileEvent implements ToJsonable {
 }
 
 class FileSystemWatcher implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      FileSystemWatcher.canParse, FileSystemWatcher.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(FileSystemWatcher.canParse, FileSystemWatcher.fromJson);
 
   FileSystemWatcher(this.globPattern, this.kind) {
     if (globPattern == null) {
@@ -6518,7 +6521,7 @@ class FileSystemWatcher implements ToJsonable {
   static FileSystemWatcher fromJson(Map<String, dynamic> json) {
     final globPattern = json['globPattern'];
     final kind = json['kind'] != null ? WatchKind.fromJson(json['kind']) : null;
-    return new FileSystemWatcher(globPattern, kind);
+    return FileSystemWatcher(globPattern, kind);
   }
 
   /// The  glob pattern to watch.
@@ -6541,7 +6544,7 @@ class FileSystemWatcher implements ToJsonable {
   final WatchKind kind;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['globPattern'] =
         globPattern ?? (throw 'globPattern is required but was not set');
     if (kind != null) {
@@ -6555,15 +6558,15 @@ class FileSystemWatcher implements ToJsonable {
       reporter.push('globPattern');
       try {
         if (!obj.containsKey('globPattern')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['globPattern'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['globPattern'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -6573,7 +6576,7 @@ class FileSystemWatcher implements ToJsonable {
       try {
         if (obj['kind'] != null &&
             !(WatchKind.canParse(obj['kind'], reporter))) {
-          reporter.reportError("must be of type WatchKind");
+          reporter.reportError('must be of type WatchKind');
           return false;
         }
       } finally {
@@ -6581,13 +6584,13 @@ class FileSystemWatcher implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type FileSystemWatcher");
+      reporter.reportError('must be of type FileSystemWatcher');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is FileSystemWatcher) {
       return globPattern == other.globPattern && kind == other.kind && true;
     }
@@ -6596,7 +6599,7 @@ class FileSystemWatcher implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, globPattern.hashCode);
     hash = JenkinsSmiHash.combine(hash, kind.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -6609,7 +6612,7 @@ class FileSystemWatcher implements ToJsonable {
 /// Represents a folding range.
 class FoldingRange implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(FoldingRange.canParse, FoldingRange.fromJson);
+      LspJsonHandler(FoldingRange.canParse, FoldingRange.fromJson);
 
   FoldingRange(this.startLine, this.startCharacter, this.endLine,
       this.endCharacter, this.kind) {
@@ -6627,8 +6630,7 @@ class FoldingRange implements ToJsonable {
     final endCharacter = json['endCharacter'];
     final kind =
         json['kind'] != null ? FoldingRangeKind.fromJson(json['kind']) : null;
-    return new FoldingRange(
-        startLine, startCharacter, endLine, endCharacter, kind);
+    return FoldingRange(startLine, startCharacter, endLine, endCharacter, kind);
   }
 
   /// The zero-based character offset before the folded range ends. If not
@@ -6652,7 +6654,7 @@ class FoldingRange implements ToJsonable {
   final num startLine;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['startLine'] =
         startLine ?? (throw 'startLine is required but was not set');
     if (startCharacter != null) {
@@ -6674,15 +6676,15 @@ class FoldingRange implements ToJsonable {
       reporter.push('startLine');
       try {
         if (!obj.containsKey('startLine')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['startLine'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['startLine'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -6691,7 +6693,7 @@ class FoldingRange implements ToJsonable {
       reporter.push('startCharacter');
       try {
         if (obj['startCharacter'] != null && !(obj['startCharacter'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -6700,15 +6702,15 @@ class FoldingRange implements ToJsonable {
       reporter.push('endLine');
       try {
         if (!obj.containsKey('endLine')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['endLine'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['endLine'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -6717,7 +6719,7 @@ class FoldingRange implements ToJsonable {
       reporter.push('endCharacter');
       try {
         if (obj['endCharacter'] != null && !(obj['endCharacter'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -6727,7 +6729,7 @@ class FoldingRange implements ToJsonable {
       try {
         if (obj['kind'] != null &&
             !(FoldingRangeKind.canParse(obj['kind'], reporter))) {
-          reporter.reportError("must be of type FoldingRangeKind");
+          reporter.reportError('must be of type FoldingRangeKind');
           return false;
         }
       } finally {
@@ -6735,13 +6737,13 @@ class FoldingRange implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type FoldingRange");
+      reporter.reportError('must be of type FoldingRange');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is FoldingRange) {
       return startLine == other.startLine &&
           startCharacter == other.startCharacter &&
@@ -6755,7 +6757,7 @@ class FoldingRange implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, startLine.hashCode);
     hash = JenkinsSmiHash.combine(hash, startCharacter.hashCode);
     hash = JenkinsSmiHash.combine(hash, endLine.hashCode);
@@ -6780,13 +6782,13 @@ class FoldingRangeKind {
   }
 
   /// Folding range for a comment
-  static const Comment = const FoldingRangeKind(r'comment');
+  static const Comment = FoldingRangeKind(r'comment');
 
   /// Folding range for a imports or includes
-  static const Imports = const FoldingRangeKind(r'imports');
+  static const Imports = FoldingRangeKind(r'imports');
 
   /// Folding range for a region (e.g. `#region`)
-  static const Region = const FoldingRangeKind(r'region');
+  static const Region = FoldingRangeKind(r'region');
 
   Object toJson() => _value;
 
@@ -6794,14 +6796,14 @@ class FoldingRangeKind {
   String toString() => _value.toString();
 
   @override
-  get hashCode => _value.hashCode;
+  int get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is FoldingRangeKind && o._value == _value;
+  bool operator ==(Object o) => o is FoldingRangeKind && o._value == _value;
 }
 
 class FoldingRangeParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      FoldingRangeParams.canParse, FoldingRangeParams.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(FoldingRangeParams.canParse, FoldingRangeParams.fromJson);
 
   FoldingRangeParams(this.textDocument) {
     if (textDocument == null) {
@@ -6812,14 +6814,14 @@ class FoldingRangeParams implements ToJsonable {
     final textDocument = json['textDocument'] != null
         ? TextDocumentIdentifier.fromJson(json['textDocument'])
         : null;
-    return new FoldingRangeParams(textDocument);
+    return FoldingRangeParams(textDocument);
   }
 
   /// The text document.
   final TextDocumentIdentifier textDocument;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
     return __result;
@@ -6830,15 +6832,15 @@ class FoldingRangeParams implements ToJsonable {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['textDocument'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
-          reporter.reportError("must be of type TextDocumentIdentifier");
+          reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
       } finally {
@@ -6846,13 +6848,13 @@ class FoldingRangeParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type FoldingRangeParams");
+      reporter.reportError('must be of type FoldingRangeParams');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is FoldingRangeParams) {
       return textDocument == other.textDocument && true;
     }
@@ -6861,7 +6863,7 @@ class FoldingRangeParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -6872,16 +6874,16 @@ class FoldingRangeParams implements ToJsonable {
 
 /// Folding range provider options.
 class FoldingRangeProviderOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       FoldingRangeProviderOptions.canParse,
       FoldingRangeProviderOptions.fromJson);
 
   static FoldingRangeProviderOptions fromJson(Map<String, dynamic> json) {
-    return new FoldingRangeProviderOptions();
+    return FoldingRangeProviderOptions();
   }
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     return __result;
   }
 
@@ -6889,13 +6891,13 @@ class FoldingRangeProviderOptions implements ToJsonable {
     if (obj is Map<String, dynamic>) {
       return true;
     } else {
-      reporter.reportError("must be of type FoldingRangeProviderOptions");
+      reporter.reportError('must be of type FoldingRangeProviderOptions');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is FoldingRangeProviderOptions) {
       return true;
     }
@@ -6904,7 +6906,7 @@ class FoldingRangeProviderOptions implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -6914,8 +6916,8 @@ class FoldingRangeProviderOptions implements ToJsonable {
 
 /// Value-object describing what options formatting should use.
 class FormattingOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      FormattingOptions.canParse, FormattingOptions.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(FormattingOptions.canParse, FormattingOptions.fromJson);
 
   FormattingOptions(this.tabSize, this.insertSpaces) {
     if (tabSize == null) {
@@ -6928,7 +6930,7 @@ class FormattingOptions implements ToJsonable {
   static FormattingOptions fromJson(Map<String, dynamic> json) {
     final tabSize = json['tabSize'];
     final insertSpaces = json['insertSpaces'];
-    return new FormattingOptions(tabSize, insertSpaces);
+    return FormattingOptions(tabSize, insertSpaces);
   }
 
   /// Prefer spaces over tabs.
@@ -6938,7 +6940,7 @@ class FormattingOptions implements ToJsonable {
   final num tabSize;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['tabSize'] =
         tabSize ?? (throw 'tabSize is required but was not set');
     __result['insertSpaces'] =
@@ -6951,15 +6953,15 @@ class FormattingOptions implements ToJsonable {
       reporter.push('tabSize');
       try {
         if (!obj.containsKey('tabSize')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['tabSize'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['tabSize'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -6968,15 +6970,15 @@ class FormattingOptions implements ToJsonable {
       reporter.push('insertSpaces');
       try {
         if (!obj.containsKey('insertSpaces')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['insertSpaces'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['insertSpaces'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -6984,13 +6986,13 @@ class FormattingOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type FormattingOptions");
+      reporter.reportError('must be of type FormattingOptions');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is FormattingOptions) {
       return tabSize == other.tabSize &&
           insertSpaces == other.insertSpaces &&
@@ -7001,7 +7003,7 @@ class FormattingOptions implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, tabSize.hashCode);
     hash = JenkinsSmiHash.combine(hash, insertSpaces.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -7013,8 +7015,7 @@ class FormattingOptions implements ToJsonable {
 
 /// The result of a hover request.
 class Hover implements ToJsonable {
-  static const jsonHandler =
-      const LspJsonHandler(Hover.canParse, Hover.fromJson);
+  static const jsonHandler = LspJsonHandler(Hover.canParse, Hover.fromJson);
 
   Hover(this.contents, this.range) {
     if (contents == null) {
@@ -7023,14 +7024,14 @@ class Hover implements ToJsonable {
   }
   static Hover fromJson(Map<String, dynamic> json) {
     final contents = json['contents'] is String
-        ? new Either2<String, MarkupContent>.t1(json['contents'])
+        ? Either2<String, MarkupContent>.t1(json['contents'])
         : (MarkupContent.canParse(json['contents'], nullLspJsonReporter)
-            ? new Either2<String, MarkupContent>.t2(json['contents'] != null
+            ? Either2<String, MarkupContent>.t2(json['contents'] != null
                 ? MarkupContent.fromJson(json['contents'])
                 : null)
             : (throw '''${json['contents']} was not one of (String, MarkupContent)'''));
     final range = json['range'] != null ? Range.fromJson(json['range']) : null;
-    return new Hover(contents, range);
+    return Hover(contents, range);
   }
 
   /// The hover's content
@@ -7041,7 +7042,7 @@ class Hover implements ToJsonable {
   final Range range;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['contents'] =
         contents ?? (throw 'contents is required but was not set');
     if (range != null) {
@@ -7055,17 +7056,17 @@ class Hover implements ToJsonable {
       reporter.push('contents');
       try {
         if (!obj.containsKey('contents')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['contents'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!((obj['contents'] is String ||
             MarkupContent.canParse(obj['contents'], reporter)))) {
           reporter
-              .reportError("must be of type Either2<String, MarkupContent>");
+              .reportError('must be of type Either2<String, MarkupContent>');
           return false;
         }
       } finally {
@@ -7074,7 +7075,7 @@ class Hover implements ToJsonable {
       reporter.push('range');
       try {
         if (obj['range'] != null && !(Range.canParse(obj['range'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -7082,13 +7083,13 @@ class Hover implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type Hover");
+      reporter.reportError('must be of type Hover');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is Hover) {
       return contents == other.contents && range == other.range && true;
     }
@@ -7097,7 +7098,7 @@ class Hover implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, contents.hashCode);
     hash = JenkinsSmiHash.combine(hash, range.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -7108,8 +7109,8 @@ class Hover implements ToJsonable {
 }
 
 class InitializeParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      InitializeParams.canParse, InitializeParams.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(InitializeParams.canParse, InitializeParams.fromJson);
 
   InitializeParams(
       this.processId,
@@ -7136,8 +7137,8 @@ class InitializeParams implements ToJsonable {
         ?.map((item) => item != null ? WorkspaceFolder.fromJson(item) : null)
         ?.cast<WorkspaceFolder>()
         ?.toList();
-    return new InitializeParams(processId, rootPath, rootUri,
-        initializationOptions, capabilities, trace, workspaceFolders);
+    return InitializeParams(processId, rootPath, rootUri, initializationOptions,
+        capabilities, trace, workspaceFolders);
   }
 
   /// The capabilities provided by the client (editor or tool)
@@ -7173,7 +7174,7 @@ class InitializeParams implements ToJsonable {
   final List<WorkspaceFolder> workspaceFolders;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['processId'] = processId;
     if (rootPath != null) {
       __result['rootPath'] = rootPath;
@@ -7198,11 +7199,11 @@ class InitializeParams implements ToJsonable {
       reporter.push('processId');
       try {
         if (!obj.containsKey('processId')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['processId'] != null && !(obj['processId'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -7211,7 +7212,7 @@ class InitializeParams implements ToJsonable {
       reporter.push('rootPath');
       try {
         if (obj['rootPath'] != null && !(obj['rootPath'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -7220,11 +7221,11 @@ class InitializeParams implements ToJsonable {
       reporter.push('rootUri');
       try {
         if (!obj.containsKey('rootUri')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['rootUri'] != null && !(obj['rootUri'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -7233,7 +7234,7 @@ class InitializeParams implements ToJsonable {
       reporter.push('initializationOptions');
       try {
         if (obj['initializationOptions'] != null && !(true)) {
-          reporter.reportError("must be of type dynamic");
+          reporter.reportError('must be of type dynamic');
           return false;
         }
       } finally {
@@ -7242,15 +7243,15 @@ class InitializeParams implements ToJsonable {
       reporter.push('capabilities');
       try {
         if (!obj.containsKey('capabilities')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['capabilities'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(ClientCapabilities.canParse(obj['capabilities'], reporter))) {
-          reporter.reportError("must be of type ClientCapabilities");
+          reporter.reportError('must be of type ClientCapabilities');
           return false;
         }
       } finally {
@@ -7259,7 +7260,7 @@ class InitializeParams implements ToJsonable {
       reporter.push('trace');
       try {
         if (obj['trace'] != null && !(obj['trace'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -7271,7 +7272,7 @@ class InitializeParams implements ToJsonable {
             !((obj['workspaceFolders'] is List &&
                 (obj['workspaceFolders'].every(
                     (item) => WorkspaceFolder.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<WorkspaceFolder>");
+          reporter.reportError('must be of type List<WorkspaceFolder>');
           return false;
         }
       } finally {
@@ -7279,13 +7280,13 @@ class InitializeParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type InitializeParams");
+      reporter.reportError('must be of type InitializeParams');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is InitializeParams) {
       return processId == other.processId &&
           rootPath == other.rootPath &&
@@ -7302,7 +7303,7 @@ class InitializeParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, processId.hashCode);
     hash = JenkinsSmiHash.combine(hash, rootPath.hashCode);
     hash = JenkinsSmiHash.combine(hash, rootUri.hashCode);
@@ -7318,8 +7319,8 @@ class InitializeParams implements ToJsonable {
 }
 
 class InitializeResult implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      InitializeResult.canParse, InitializeResult.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(InitializeResult.canParse, InitializeResult.fromJson);
 
   InitializeResult(this.capabilities) {
     if (capabilities == null) {
@@ -7330,14 +7331,14 @@ class InitializeResult implements ToJsonable {
     final capabilities = json['capabilities'] != null
         ? ServerCapabilities.fromJson(json['capabilities'])
         : null;
-    return new InitializeResult(capabilities);
+    return InitializeResult(capabilities);
   }
 
   /// The capabilities the language server provides.
   final ServerCapabilities capabilities;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['capabilities'] =
         capabilities ?? (throw 'capabilities is required but was not set');
     return __result;
@@ -7348,15 +7349,15 @@ class InitializeResult implements ToJsonable {
       reporter.push('capabilities');
       try {
         if (!obj.containsKey('capabilities')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['capabilities'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(ServerCapabilities.canParse(obj['capabilities'], reporter))) {
-          reporter.reportError("must be of type ServerCapabilities");
+          reporter.reportError('must be of type ServerCapabilities');
           return false;
         }
       } finally {
@@ -7364,13 +7365,13 @@ class InitializeResult implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type InitializeResult");
+      reporter.reportError('must be of type InitializeResult');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is InitializeResult) {
       return capabilities == other.capabilities && true;
     }
@@ -7379,7 +7380,7 @@ class InitializeResult implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, capabilities.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -7389,15 +7390,15 @@ class InitializeResult implements ToJsonable {
 }
 
 class InitializedParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      InitializedParams.canParse, InitializedParams.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(InitializedParams.canParse, InitializedParams.fromJson);
 
   static InitializedParams fromJson(Map<String, dynamic> json) {
-    return new InitializedParams();
+    return InitializedParams();
   }
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     return __result;
   }
 
@@ -7405,13 +7406,13 @@ class InitializedParams implements ToJsonable {
     if (obj is Map<String, dynamic>) {
       return true;
     } else {
-      reporter.reportError("must be of type InitializedParams");
+      reporter.reportError('must be of type InitializedParams');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is InitializedParams) {
       return true;
     }
@@ -7420,7 +7421,7 @@ class InitializedParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -7446,7 +7447,7 @@ class InsertTextFormat {
   }
 
   /// The primary text to be inserted is treated as a plain string.
-  static const PlainText = const InsertTextFormat._(1);
+  static const PlainText = InsertTextFormat._(1);
 
   /// The primary text to be inserted is treated as a snippet.
   ///
@@ -7454,7 +7455,7 @@ class InsertTextFormat {
   /// `${3:foo}`. `$0` defines the final tab stop, it defaults to the end of the
   /// snippet. Placeholders with equal identifiers are linked, that is typing in
   /// one will update others too.
-  static const Snippet = const InsertTextFormat._(2);
+  static const Snippet = InsertTextFormat._(2);
 
   Object toJson() => _value;
 
@@ -7462,14 +7463,14 @@ class InsertTextFormat {
   String toString() => _value.toString();
 
   @override
-  get hashCode => _value.hashCode;
+  int get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is InsertTextFormat && o._value == _value;
+  bool operator ==(Object o) => o is InsertTextFormat && o._value == _value;
 }
 
 class Location implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(Location.canParse, Location.fromJson);
+      LspJsonHandler(Location.canParse, Location.fromJson);
 
   Location(this.uri, this.range) {
     if (uri == null) {
@@ -7482,14 +7483,14 @@ class Location implements ToJsonable {
   static Location fromJson(Map<String, dynamic> json) {
     final uri = json['uri'];
     final range = json['range'] != null ? Range.fromJson(json['range']) : null;
-    return new Location(uri, range);
+    return Location(uri, range);
   }
 
   final Range range;
   final String uri;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
     __result['range'] = range ?? (throw 'range is required but was not set');
     return __result;
@@ -7500,15 +7501,15 @@ class Location implements ToJsonable {
       reporter.push('uri');
       try {
         if (!obj.containsKey('uri')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['uri'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['uri'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -7517,15 +7518,15 @@ class Location implements ToJsonable {
       reporter.push('range');
       try {
         if (!obj.containsKey('range')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['range'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Range.canParse(obj['range'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -7533,13 +7534,13 @@ class Location implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type Location");
+      reporter.reportError('must be of type Location');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is Location) {
       return uri == other.uri && range == other.range && true;
     }
@@ -7548,7 +7549,7 @@ class Location implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, uri.hashCode);
     hash = JenkinsSmiHash.combine(hash, range.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -7560,7 +7561,7 @@ class Location implements ToJsonable {
 
 class LocationLink implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(LocationLink.canParse, LocationLink.fromJson);
+      LspJsonHandler(LocationLink.canParse, LocationLink.fromJson);
 
   LocationLink(this.originSelectionRange, this.targetUri, this.targetRange,
       this.targetSelectionRange) {
@@ -7585,7 +7586,7 @@ class LocationLink implements ToJsonable {
     final targetSelectionRange = json['targetSelectionRange'] != null
         ? Range.fromJson(json['targetSelectionRange'])
         : null;
-    return new LocationLink(
+    return LocationLink(
         originSelectionRange, targetUri, targetRange, targetSelectionRange);
   }
 
@@ -7610,7 +7611,7 @@ class LocationLink implements ToJsonable {
   final String targetUri;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (originSelectionRange != null) {
       __result['originSelectionRange'] = originSelectionRange;
     }
@@ -7629,7 +7630,7 @@ class LocationLink implements ToJsonable {
       try {
         if (obj['originSelectionRange'] != null &&
             !(Range.canParse(obj['originSelectionRange'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -7638,15 +7639,15 @@ class LocationLink implements ToJsonable {
       reporter.push('targetUri');
       try {
         if (!obj.containsKey('targetUri')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['targetUri'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['targetUri'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -7655,15 +7656,15 @@ class LocationLink implements ToJsonable {
       reporter.push('targetRange');
       try {
         if (!obj.containsKey('targetRange')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['targetRange'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Range.canParse(obj['targetRange'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -7672,15 +7673,15 @@ class LocationLink implements ToJsonable {
       reporter.push('targetSelectionRange');
       try {
         if (!obj.containsKey('targetSelectionRange')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['targetSelectionRange'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Range.canParse(obj['targetSelectionRange'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -7688,13 +7689,13 @@ class LocationLink implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type LocationLink");
+      reporter.reportError('must be of type LocationLink');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is LocationLink) {
       return originSelectionRange == other.originSelectionRange &&
           targetUri == other.targetUri &&
@@ -7707,7 +7708,7 @@ class LocationLink implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, originSelectionRange.hashCode);
     hash = JenkinsSmiHash.combine(hash, targetUri.hashCode);
     hash = JenkinsSmiHash.combine(hash, targetRange.hashCode);
@@ -7720,8 +7721,8 @@ class LocationLink implements ToJsonable {
 }
 
 class LogMessageParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      LogMessageParams.canParse, LogMessageParams.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(LogMessageParams.canParse, LogMessageParams.fromJson);
 
   LogMessageParams(this.type, this.message) {
     if (type == null) {
@@ -7735,7 +7736,7 @@ class LogMessageParams implements ToJsonable {
     final type =
         json['type'] != null ? MessageType.fromJson(json['type']) : null;
     final message = json['message'];
-    return new LogMessageParams(type, message);
+    return LogMessageParams(type, message);
   }
 
   /// The actual message
@@ -7745,7 +7746,7 @@ class LogMessageParams implements ToJsonable {
   final MessageType type;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['type'] = type ?? (throw 'type is required but was not set');
     __result['message'] =
         message ?? (throw 'message is required but was not set');
@@ -7757,15 +7758,15 @@ class LogMessageParams implements ToJsonable {
       reporter.push('type');
       try {
         if (!obj.containsKey('type')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['type'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(MessageType.canParse(obj['type'], reporter))) {
-          reporter.reportError("must be of type MessageType");
+          reporter.reportError('must be of type MessageType');
           return false;
         }
       } finally {
@@ -7774,15 +7775,15 @@ class LogMessageParams implements ToJsonable {
       reporter.push('message');
       try {
         if (!obj.containsKey('message')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['message'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['message'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -7790,13 +7791,13 @@ class LogMessageParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type LogMessageParams");
+      reporter.reportError('must be of type LogMessageParams');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is LogMessageParams) {
       return type == other.type && message == other.message && true;
     }
@@ -7805,7 +7806,7 @@ class LogMessageParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, type.hashCode);
     hash = JenkinsSmiHash.combine(hash, message.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -7839,7 +7840,7 @@ class LogMessageParams implements ToJsonable {
 /// could decide to remove HTML from the markdown to avoid script execution.
 class MarkupContent implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(MarkupContent.canParse, MarkupContent.fromJson);
+      LspJsonHandler(MarkupContent.canParse, MarkupContent.fromJson);
 
   MarkupContent(this.kind, this.value) {
     if (kind == null) {
@@ -7853,7 +7854,7 @@ class MarkupContent implements ToJsonable {
     final kind =
         json['kind'] != null ? MarkupKind.fromJson(json['kind']) : null;
     final value = json['value'];
-    return new MarkupContent(kind, value);
+    return MarkupContent(kind, value);
   }
 
   /// The type of the Markup
@@ -7863,7 +7864,7 @@ class MarkupContent implements ToJsonable {
   final String value;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['kind'] = kind ?? (throw 'kind is required but was not set');
     __result['value'] = value ?? (throw 'value is required but was not set');
     return __result;
@@ -7874,15 +7875,15 @@ class MarkupContent implements ToJsonable {
       reporter.push('kind');
       try {
         if (!obj.containsKey('kind')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['kind'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(MarkupKind.canParse(obj['kind'], reporter))) {
-          reporter.reportError("must be of type MarkupKind");
+          reporter.reportError('must be of type MarkupKind');
           return false;
         }
       } finally {
@@ -7891,15 +7892,15 @@ class MarkupContent implements ToJsonable {
       reporter.push('value');
       try {
         if (!obj.containsKey('value')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['value'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['value'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -7907,13 +7908,13 @@ class MarkupContent implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type MarkupContent");
+      reporter.reportError('must be of type MarkupContent');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is MarkupContent) {
       return kind == other.kind && value == other.value && true;
     }
@@ -7922,7 +7923,7 @@ class MarkupContent implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, kind.hashCode);
     hash = JenkinsSmiHash.combine(hash, value.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -7953,10 +7954,10 @@ class MarkupKind {
   }
 
   /// Plain text is supported as a content format
-  static const PlainText = const MarkupKind._(r'plaintext');
+  static const PlainText = MarkupKind._(r'plaintext');
 
   /// Markdown is supported as a content format
-  static const Markdown = const MarkupKind._(r'markdown');
+  static const Markdown = MarkupKind._(r'markdown');
 
   Object toJson() => _value;
 
@@ -7964,14 +7965,13 @@ class MarkupKind {
   String toString() => _value.toString();
 
   @override
-  get hashCode => _value.hashCode;
+  int get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is MarkupKind && o._value == _value;
+  bool operator ==(Object o) => o is MarkupKind && o._value == _value;
 }
 
 class Message implements ToJsonable {
-  static const jsonHandler =
-      const LspJsonHandler(Message.canParse, Message.fromJson);
+  static const jsonHandler = LspJsonHandler(Message.canParse, Message.fromJson);
 
   Message(this.jsonrpc) {
     if (jsonrpc == null) {
@@ -7989,13 +7989,13 @@ class Message implements ToJsonable {
       return NotificationMessage.fromJson(json);
     }
     final jsonrpc = json['jsonrpc'];
-    return new Message(jsonrpc);
+    return Message(jsonrpc);
   }
 
   final String jsonrpc;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['jsonrpc'] =
         jsonrpc ?? (throw 'jsonrpc is required but was not set');
     return __result;
@@ -8006,15 +8006,15 @@ class Message implements ToJsonable {
       reporter.push('jsonrpc');
       try {
         if (!obj.containsKey('jsonrpc')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['jsonrpc'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['jsonrpc'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -8022,13 +8022,13 @@ class Message implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type Message");
+      reporter.reportError('must be of type Message');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is Message) {
       return jsonrpc == other.jsonrpc && true;
     }
@@ -8037,7 +8037,7 @@ class Message implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, jsonrpc.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -8047,8 +8047,8 @@ class Message implements ToJsonable {
 }
 
 class MessageActionItem implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      MessageActionItem.canParse, MessageActionItem.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(MessageActionItem.canParse, MessageActionItem.fromJson);
 
   MessageActionItem(this.title) {
     if (title == null) {
@@ -8057,14 +8057,14 @@ class MessageActionItem implements ToJsonable {
   }
   static MessageActionItem fromJson(Map<String, dynamic> json) {
     final title = json['title'];
-    return new MessageActionItem(title);
+    return MessageActionItem(title);
   }
 
   /// A short title like 'Retry', 'Open Log' etc.
   final String title;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['title'] = title ?? (throw 'title is required but was not set');
     return __result;
   }
@@ -8074,15 +8074,15 @@ class MessageActionItem implements ToJsonable {
       reporter.push('title');
       try {
         if (!obj.containsKey('title')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['title'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['title'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -8090,13 +8090,13 @@ class MessageActionItem implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type MessageActionItem");
+      reporter.reportError('must be of type MessageActionItem');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is MessageActionItem) {
       return title == other.title && true;
     }
@@ -8105,7 +8105,7 @@ class MessageActionItem implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, title.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -8125,16 +8125,16 @@ class MessageType {
   }
 
   /// An error message.
-  static const Error = const MessageType(1);
+  static const Error = MessageType(1);
 
   /// A warning message.
-  static const Warning = const MessageType(2);
+  static const Warning = MessageType(2);
 
   /// An information message.
-  static const Info = const MessageType(3);
+  static const Info = MessageType(3);
 
   /// A log message.
-  static const Log = const MessageType(4);
+  static const Log = MessageType(4);
 
   Object toJson() => _value;
 
@@ -8142,9 +8142,9 @@ class MessageType {
   String toString() => _value.toString();
 
   @override
-  get hashCode => _value.hashCode;
+  int get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is MessageType && o._value == _value;
+  bool operator ==(Object o) => o is MessageType && o._value == _value;
 }
 
 /// Valid LSP methods known at the time of code generation from the spec.
@@ -8159,172 +8159,160 @@ class Method {
   }
 
   /// Constant for the '$/cancelRequest' method.
-  static const cancelRequest = const Method(r'$/cancelRequest');
+  static const cancelRequest = Method(r'$/cancelRequest');
 
   /// Constant for the 'initialize' method.
-  static const initialize = const Method(r'initialize');
+  static const initialize = Method(r'initialize');
 
   /// Constant for the 'initialized' method.
-  static const initialized = const Method(r'initialized');
+  static const initialized = Method(r'initialized');
 
   /// Constant for the 'shutdown' method.
-  static const shutdown = const Method(r'shutdown');
+  static const shutdown = Method(r'shutdown');
 
   /// Constant for the 'exit' method.
-  static const exit = const Method(r'exit');
+  static const exit = Method(r'exit');
 
   /// Constant for the 'window/showMessage' method.
-  static const window_showMessage = const Method(r'window/showMessage');
+  static const window_showMessage = Method(r'window/showMessage');
 
   /// Constant for the 'window/showMessageRequest' method.
-  static const window_showMessageRequest =
-      const Method(r'window/showMessageRequest');
+  static const window_showMessageRequest = Method(r'window/showMessageRequest');
 
   /// Constant for the 'window/logMessage' method.
-  static const window_logMessage = const Method(r'window/logMessage');
+  static const window_logMessage = Method(r'window/logMessage');
 
   /// Constant for the 'telemetry/event' method.
-  static const telemetry_event = const Method(r'telemetry/event');
+  static const telemetry_event = Method(r'telemetry/event');
 
   /// Constant for the 'client/registerCapability' method.
-  static const client_registerCapability =
-      const Method(r'client/registerCapability');
+  static const client_registerCapability = Method(r'client/registerCapability');
 
   /// Constant for the 'client/unregisterCapability' method.
   static const client_unregisterCapability =
-      const Method(r'client/unregisterCapability');
+      Method(r'client/unregisterCapability');
 
   /// Constant for the 'workspace/workspaceFolders' method.
   static const workspace_workspaceFolders =
-      const Method(r'workspace/workspaceFolders');
+      Method(r'workspace/workspaceFolders');
 
   /// Constant for the 'workspace/didChangeWorkspaceFolders' method.
   static const workspace_didChangeWorkspaceFolders =
-      const Method(r'workspace/didChangeWorkspaceFolders');
+      Method(r'workspace/didChangeWorkspaceFolders');
 
   /// Constant for the 'workspace/configuration' method.
-  static const workspace_configuration =
-      const Method(r'workspace/configuration');
+  static const workspace_configuration = Method(r'workspace/configuration');
 
   /// Constant for the 'workspace/didChangeWatchedFiles' method.
   static const workspace_didChangeWatchedFiles =
-      const Method(r'workspace/didChangeWatchedFiles');
+      Method(r'workspace/didChangeWatchedFiles');
 
   /// Constant for the 'workspace/symbol' method.
-  static const workspace_symbol = const Method(r'workspace/symbol');
+  static const workspace_symbol = Method(r'workspace/symbol');
 
   /// Constant for the 'workspace/executeCommand' method.
-  static const workspace_executeCommand =
-      const Method(r'workspace/executeCommand');
+  static const workspace_executeCommand = Method(r'workspace/executeCommand');
 
   /// Constant for the 'workspace/applyEdit' method.
-  static const workspace_applyEdit = const Method(r'workspace/applyEdit');
+  static const workspace_applyEdit = Method(r'workspace/applyEdit');
 
   /// Constant for the 'textDocument/didOpen' method.
-  static const textDocument_didOpen = const Method(r'textDocument/didOpen');
+  static const textDocument_didOpen = Method(r'textDocument/didOpen');
 
   /// Constant for the 'textDocument/didChange' method.
-  static const textDocument_didChange = const Method(r'textDocument/didChange');
+  static const textDocument_didChange = Method(r'textDocument/didChange');
 
   /// Constant for the 'textDocument/willSave' method.
-  static const textDocument_willSave = const Method(r'textDocument/willSave');
+  static const textDocument_willSave = Method(r'textDocument/willSave');
 
   /// Constant for the 'textDocument/willSaveWaitUntil' method.
   static const textDocument_willSaveWaitUntil =
-      const Method(r'textDocument/willSaveWaitUntil');
+      Method(r'textDocument/willSaveWaitUntil');
 
   /// Constant for the 'textDocument/didClose' method.
-  static const textDocument_didClose = const Method(r'textDocument/didClose');
+  static const textDocument_didClose = Method(r'textDocument/didClose');
 
   /// Constant for the 'textDocument/publishDiagnostics' method.
   static const textDocument_publishDiagnostics =
-      const Method(r'textDocument/publishDiagnostics');
+      Method(r'textDocument/publishDiagnostics');
 
   /// Constant for the 'textDocument/completion' method.
-  static const textDocument_completion =
-      const Method(r'textDocument/completion');
+  static const textDocument_completion = Method(r'textDocument/completion');
 
   /// Constant for the 'completionItem/resolve' method.
-  static const completionItem_resolve = const Method(r'completionItem/resolve');
+  static const completionItem_resolve = Method(r'completionItem/resolve');
 
   /// Constant for the 'textDocument/hover' method.
-  static const textDocument_hover = const Method(r'textDocument/hover');
+  static const textDocument_hover = Method(r'textDocument/hover');
 
   /// Constant for the 'textDocument/signatureHelp' method.
   static const textDocument_signatureHelp =
-      const Method(r'textDocument/signatureHelp');
+      Method(r'textDocument/signatureHelp');
 
   /// Constant for the 'textDocument/declaration' method.
-  static const textDocument_declaration =
-      const Method(r'textDocument/declaration');
+  static const textDocument_declaration = Method(r'textDocument/declaration');
 
   /// Constant for the 'textDocument/definition' method.
-  static const textDocument_definition =
-      const Method(r'textDocument/definition');
+  static const textDocument_definition = Method(r'textDocument/definition');
 
   /// Constant for the 'textDocument/typeDefinition' method.
   static const textDocument_typeDefinition =
-      const Method(r'textDocument/typeDefinition');
+      Method(r'textDocument/typeDefinition');
 
   /// Constant for the 'textDocument/implementation' method.
   static const textDocument_implementation =
-      const Method(r'textDocument/implementation');
+      Method(r'textDocument/implementation');
 
   /// Constant for the 'textDocument/references' method.
-  static const textDocument_references =
-      const Method(r'textDocument/references');
+  static const textDocument_references = Method(r'textDocument/references');
 
   /// Constant for the 'textDocument/documentHighlight' method.
   static const textDocument_documentHighlight =
-      const Method(r'textDocument/documentHighlight');
+      Method(r'textDocument/documentHighlight');
 
   /// Constant for the 'textDocument/documentSymbol' method.
   static const textDocument_documentSymbol =
-      const Method(r'textDocument/documentSymbol');
+      Method(r'textDocument/documentSymbol');
 
   /// Constant for the 'textDocument/codeAction' method.
-  static const textDocument_codeAction =
-      const Method(r'textDocument/codeAction');
+  static const textDocument_codeAction = Method(r'textDocument/codeAction');
 
   /// Constant for the 'textDocument/codeLens' method.
-  static const textDocument_codeLens = const Method(r'textDocument/codeLens');
+  static const textDocument_codeLens = Method(r'textDocument/codeLens');
 
   /// Constant for the 'codeLens/resolve' method.
-  static const codeLens_resolve = const Method(r'codeLens/resolve');
+  static const codeLens_resolve = Method(r'codeLens/resolve');
 
   /// Constant for the 'textDocument/documentLink' method.
-  static const textDocument_documentLink =
-      const Method(r'textDocument/documentLink');
+  static const textDocument_documentLink = Method(r'textDocument/documentLink');
 
   /// Constant for the 'documentLink/resolve' method.
-  static const documentLink_resolve = const Method(r'documentLink/resolve');
+  static const documentLink_resolve = Method(r'documentLink/resolve');
 
   /// Constant for the 'textDocument/documentColor' method.
   static const textDocument_documentColor =
-      const Method(r'textDocument/documentColor');
+      Method(r'textDocument/documentColor');
 
   /// Constant for the 'textDocument/colorPresentation' method.
   static const textDocument_colorPresentation =
-      const Method(r'textDocument/colorPresentation');
+      Method(r'textDocument/colorPresentation');
 
   /// Constant for the 'textDocument/formatting' method.
-  static const textDocument_formatting =
-      const Method(r'textDocument/formatting');
+  static const textDocument_formatting = Method(r'textDocument/formatting');
 
   /// Constant for the 'textDocument/onTypeFormatting' method.
   static const textDocument_onTypeFormatting =
-      const Method(r'textDocument/onTypeFormatting');
+      Method(r'textDocument/onTypeFormatting');
 
   /// Constant for the 'textDocument/rename' method.
-  static const textDocument_rename = const Method(r'textDocument/rename');
+  static const textDocument_rename = Method(r'textDocument/rename');
 
   /// Constant for the 'textDocument/prepareRename' method.
   static const textDocument_prepareRename =
-      const Method(r'textDocument/prepareRename');
+      Method(r'textDocument/prepareRename');
 
   /// Constant for the 'textDocument/foldingRange' method.
-  static const textDocument_foldingRange =
-      const Method(r'textDocument/foldingRange');
+  static const textDocument_foldingRange = Method(r'textDocument/foldingRange');
 
   Object toJson() => _value;
 
@@ -8332,13 +8320,13 @@ class Method {
   String toString() => _value.toString();
 
   @override
-  get hashCode => _value.hashCode;
+  int get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is Method && o._value == _value;
+  bool operator ==(Object o) => o is Method && o._value == _value;
 }
 
 class NotificationMessage implements Message, IncomingMessage, ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       NotificationMessage.canParse, NotificationMessage.fromJson);
 
   NotificationMessage(this.method, this.params, this.jsonrpc) {
@@ -8354,7 +8342,7 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
         json['method'] != null ? Method.fromJson(json['method']) : null;
     final params = json['params'];
     final jsonrpc = json['jsonrpc'];
-    return new NotificationMessage(method, params, jsonrpc);
+    return NotificationMessage(method, params, jsonrpc);
   }
 
   final String jsonrpc;
@@ -8366,7 +8354,7 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
   final dynamic params;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['method'] = method ?? (throw 'method is required but was not set');
     if (params != null) {
       __result['params'] = params;
@@ -8381,15 +8369,15 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
       reporter.push('method');
       try {
         if (!obj.containsKey('method')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['method'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Method.canParse(obj['method'], reporter))) {
-          reporter.reportError("must be of type Method");
+          reporter.reportError('must be of type Method');
           return false;
         }
       } finally {
@@ -8398,7 +8386,7 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
       reporter.push('params');
       try {
         if (obj['params'] != null && !(true)) {
-          reporter.reportError("must be of type dynamic");
+          reporter.reportError('must be of type dynamic');
           return false;
         }
       } finally {
@@ -8407,15 +8395,15 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
       reporter.push('jsonrpc');
       try {
         if (!obj.containsKey('jsonrpc')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['jsonrpc'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['jsonrpc'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -8423,13 +8411,13 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type NotificationMessage");
+      reporter.reportError('must be of type NotificationMessage');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is NotificationMessage) {
       return method == other.method &&
           params == other.params &&
@@ -8441,7 +8429,7 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, method.hashCode);
     hash = JenkinsSmiHash.combine(hash, params.hashCode);
     hash = JenkinsSmiHash.combine(hash, jsonrpc.hashCode);
@@ -8455,7 +8443,7 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
 /// Represents a parameter of a callable-signature. A parameter can have a label
 /// and a doc-comment.
 class ParameterInformation implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       ParameterInformation.canParse, ParameterInformation.fromJson);
 
   ParameterInformation(this.label, this.documentation) {
@@ -8466,16 +8454,15 @@ class ParameterInformation implements ToJsonable {
   static ParameterInformation fromJson(Map<String, dynamic> json) {
     final label = json['label'];
     final documentation = json['documentation'] is String
-        ? new Either2<String, MarkupContent>.t1(json['documentation'])
+        ? Either2<String, MarkupContent>.t1(json['documentation'])
         : (MarkupContent.canParse(json['documentation'], nullLspJsonReporter)
-            ? new Either2<String, MarkupContent>.t2(
-                json['documentation'] != null
-                    ? MarkupContent.fromJson(json['documentation'])
-                    : null)
+            ? Either2<String, MarkupContent>.t2(json['documentation'] != null
+                ? MarkupContent.fromJson(json['documentation'])
+                : null)
             : (json['documentation'] == null
                 ? null
                 : (throw '''${json['documentation']} was not one of (String, MarkupContent)''')));
-    return new ParameterInformation(label, documentation);
+    return ParameterInformation(label, documentation);
   }
 
   /// The human-readable doc-comment of this parameter. Will be shown in the UI
@@ -8495,7 +8482,7 @@ class ParameterInformation implements ToJsonable {
   final String label;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['label'] = label ?? (throw 'label is required but was not set');
     if (documentation != null) {
       __result['documentation'] = documentation;
@@ -8508,15 +8495,15 @@ class ParameterInformation implements ToJsonable {
       reporter.push('label');
       try {
         if (!obj.containsKey('label')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['label'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['label'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -8528,7 +8515,7 @@ class ParameterInformation implements ToJsonable {
             !((obj['documentation'] is String ||
                 MarkupContent.canParse(obj['documentation'], reporter)))) {
           reporter
-              .reportError("must be of type Either2<String, MarkupContent>");
+              .reportError('must be of type Either2<String, MarkupContent>');
           return false;
         }
       } finally {
@@ -8536,13 +8523,13 @@ class ParameterInformation implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type ParameterInformation");
+      reporter.reportError('must be of type ParameterInformation');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ParameterInformation) {
       return label == other.label &&
           documentation == other.documentation &&
@@ -8553,7 +8540,7 @@ class ParameterInformation implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, label.hashCode);
     hash = JenkinsSmiHash.combine(hash, documentation.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -8565,7 +8552,7 @@ class ParameterInformation implements ToJsonable {
 
 class Position implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(Position.canParse, Position.fromJson);
+      LspJsonHandler(Position.canParse, Position.fromJson);
 
   Position(this.line, this.character) {
     if (line == null) {
@@ -8578,7 +8565,7 @@ class Position implements ToJsonable {
   static Position fromJson(Map<String, dynamic> json) {
     final line = json['line'];
     final character = json['character'];
-    return new Position(line, character);
+    return Position(line, character);
   }
 
   /// Character offset on a line in a document (zero-based). Assuming that the
@@ -8593,7 +8580,7 @@ class Position implements ToJsonable {
   final num line;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['line'] = line ?? (throw 'line is required but was not set');
     __result['character'] =
         character ?? (throw 'character is required but was not set');
@@ -8605,15 +8592,15 @@ class Position implements ToJsonable {
       reporter.push('line');
       try {
         if (!obj.containsKey('line')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['line'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['line'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -8622,15 +8609,15 @@ class Position implements ToJsonable {
       reporter.push('character');
       try {
         if (!obj.containsKey('character')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['character'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['character'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -8638,13 +8625,13 @@ class Position implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type Position");
+      reporter.reportError('must be of type Position');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is Position) {
       return line == other.line && character == other.character && true;
     }
@@ -8653,7 +8640,7 @@ class Position implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, line.hashCode);
     hash = JenkinsSmiHash.combine(hash, character.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -8664,7 +8651,7 @@ class Position implements ToJsonable {
 }
 
 class PublishDiagnosticsParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       PublishDiagnosticsParams.canParse, PublishDiagnosticsParams.fromJson);
 
   PublishDiagnosticsParams(this.uri, this.diagnostics) {
@@ -8681,7 +8668,7 @@ class PublishDiagnosticsParams implements ToJsonable {
         ?.map((item) => item != null ? Diagnostic.fromJson(item) : null)
         ?.cast<Diagnostic>()
         ?.toList();
-    return new PublishDiagnosticsParams(uri, diagnostics);
+    return PublishDiagnosticsParams(uri, diagnostics);
   }
 
   /// An array of diagnostic information items.
@@ -8691,7 +8678,7 @@ class PublishDiagnosticsParams implements ToJsonable {
   final String uri;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
     __result['diagnostics'] =
         diagnostics ?? (throw 'diagnostics is required but was not set');
@@ -8703,15 +8690,15 @@ class PublishDiagnosticsParams implements ToJsonable {
       reporter.push('uri');
       try {
         if (!obj.containsKey('uri')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['uri'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['uri'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -8720,17 +8707,17 @@ class PublishDiagnosticsParams implements ToJsonable {
       reporter.push('diagnostics');
       try {
         if (!obj.containsKey('diagnostics')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['diagnostics'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!((obj['diagnostics'] is List &&
             (obj['diagnostics']
                 .every((item) => Diagnostic.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<Diagnostic>");
+          reporter.reportError('must be of type List<Diagnostic>');
           return false;
         }
       } finally {
@@ -8738,13 +8725,13 @@ class PublishDiagnosticsParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type PublishDiagnosticsParams");
+      reporter.reportError('must be of type PublishDiagnosticsParams');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is PublishDiagnosticsParams) {
       return uri == other.uri &&
           listEqual(diagnostics, other.diagnostics,
@@ -8756,7 +8743,7 @@ class PublishDiagnosticsParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, uri.hashCode);
     hash = JenkinsSmiHash.combine(hash, diagnostics.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -8767,8 +8754,7 @@ class PublishDiagnosticsParams implements ToJsonable {
 }
 
 class Range implements ToJsonable {
-  static const jsonHandler =
-      const LspJsonHandler(Range.canParse, Range.fromJson);
+  static const jsonHandler = LspJsonHandler(Range.canParse, Range.fromJson);
 
   Range(this.start, this.end) {
     if (start == null) {
@@ -8782,7 +8768,7 @@ class Range implements ToJsonable {
     final start =
         json['start'] != null ? Position.fromJson(json['start']) : null;
     final end = json['end'] != null ? Position.fromJson(json['end']) : null;
-    return new Range(start, end);
+    return Range(start, end);
   }
 
   /// The range's end position.
@@ -8792,7 +8778,7 @@ class Range implements ToJsonable {
   final Position start;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['start'] = start ?? (throw 'start is required but was not set');
     __result['end'] = end ?? (throw 'end is required but was not set');
     return __result;
@@ -8803,15 +8789,15 @@ class Range implements ToJsonable {
       reporter.push('start');
       try {
         if (!obj.containsKey('start')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['start'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Position.canParse(obj['start'], reporter))) {
-          reporter.reportError("must be of type Position");
+          reporter.reportError('must be of type Position');
           return false;
         }
       } finally {
@@ -8820,15 +8806,15 @@ class Range implements ToJsonable {
       reporter.push('end');
       try {
         if (!obj.containsKey('end')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['end'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Position.canParse(obj['end'], reporter))) {
-          reporter.reportError("must be of type Position");
+          reporter.reportError('must be of type Position');
           return false;
         }
       } finally {
@@ -8836,13 +8822,13 @@ class Range implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type Range");
+      reporter.reportError('must be of type Range');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is Range) {
       return start == other.start && end == other.end && true;
     }
@@ -8851,7 +8837,7 @@ class Range implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, start.hashCode);
     hash = JenkinsSmiHash.combine(hash, end.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -8862,7 +8848,7 @@ class Range implements ToJsonable {
 }
 
 class RangeAndPlaceholder implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       RangeAndPlaceholder.canParse, RangeAndPlaceholder.fromJson);
 
   RangeAndPlaceholder(this.range, this.placeholder) {
@@ -8876,14 +8862,14 @@ class RangeAndPlaceholder implements ToJsonable {
   static RangeAndPlaceholder fromJson(Map<String, dynamic> json) {
     final range = json['range'] != null ? Range.fromJson(json['range']) : null;
     final placeholder = json['placeholder'];
-    return new RangeAndPlaceholder(range, placeholder);
+    return RangeAndPlaceholder(range, placeholder);
   }
 
   final String placeholder;
   final Range range;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['range'] = range ?? (throw 'range is required but was not set');
     __result['placeholder'] =
         placeholder ?? (throw 'placeholder is required but was not set');
@@ -8895,15 +8881,15 @@ class RangeAndPlaceholder implements ToJsonable {
       reporter.push('range');
       try {
         if (!obj.containsKey('range')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['range'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Range.canParse(obj['range'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -8912,15 +8898,15 @@ class RangeAndPlaceholder implements ToJsonable {
       reporter.push('placeholder');
       try {
         if (!obj.containsKey('placeholder')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['placeholder'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['placeholder'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -8928,13 +8914,13 @@ class RangeAndPlaceholder implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type RangeAndPlaceholder");
+      reporter.reportError('must be of type RangeAndPlaceholder');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is RangeAndPlaceholder) {
       return range == other.range && placeholder == other.placeholder && true;
     }
@@ -8943,7 +8929,7 @@ class RangeAndPlaceholder implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, range.hashCode);
     hash = JenkinsSmiHash.combine(hash, placeholder.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -8954,8 +8940,8 @@ class RangeAndPlaceholder implements ToJsonable {
 }
 
 class ReferenceContext implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      ReferenceContext.canParse, ReferenceContext.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(ReferenceContext.canParse, ReferenceContext.fromJson);
 
   ReferenceContext(this.includeDeclaration) {
     if (includeDeclaration == null) {
@@ -8964,14 +8950,14 @@ class ReferenceContext implements ToJsonable {
   }
   static ReferenceContext fromJson(Map<String, dynamic> json) {
     final includeDeclaration = json['includeDeclaration'];
-    return new ReferenceContext(includeDeclaration);
+    return ReferenceContext(includeDeclaration);
   }
 
   /// Include the declaration of the current symbol.
   final bool includeDeclaration;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['includeDeclaration'] = includeDeclaration ??
         (throw 'includeDeclaration is required but was not set');
     return __result;
@@ -8982,15 +8968,15 @@ class ReferenceContext implements ToJsonable {
       reporter.push('includeDeclaration');
       try {
         if (!obj.containsKey('includeDeclaration')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['includeDeclaration'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['includeDeclaration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -8998,13 +8984,13 @@ class ReferenceContext implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type ReferenceContext");
+      reporter.reportError('must be of type ReferenceContext');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ReferenceContext) {
       return includeDeclaration == other.includeDeclaration && true;
     }
@@ -9013,7 +8999,7 @@ class ReferenceContext implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, includeDeclaration.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -9024,7 +9010,7 @@ class ReferenceContext implements ToJsonable {
 
 class ReferenceParams implements TextDocumentPositionParams, ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(ReferenceParams.canParse, ReferenceParams.fromJson);
+      LspJsonHandler(ReferenceParams.canParse, ReferenceParams.fromJson);
 
   ReferenceParams(this.context, this.textDocument, this.position) {
     if (context == null) {
@@ -9046,7 +9032,7 @@ class ReferenceParams implements TextDocumentPositionParams, ToJsonable {
         : null;
     final position =
         json['position'] != null ? Position.fromJson(json['position']) : null;
-    return new ReferenceParams(context, textDocument, position);
+    return ReferenceParams(context, textDocument, position);
   }
 
   final ReferenceContext context;
@@ -9058,7 +9044,7 @@ class ReferenceParams implements TextDocumentPositionParams, ToJsonable {
   final TextDocumentIdentifier textDocument;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['context'] =
         context ?? (throw 'context is required but was not set');
     __result['textDocument'] =
@@ -9073,15 +9059,15 @@ class ReferenceParams implements TextDocumentPositionParams, ToJsonable {
       reporter.push('context');
       try {
         if (!obj.containsKey('context')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['context'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(ReferenceContext.canParse(obj['context'], reporter))) {
-          reporter.reportError("must be of type ReferenceContext");
+          reporter.reportError('must be of type ReferenceContext');
           return false;
         }
       } finally {
@@ -9090,15 +9076,15 @@ class ReferenceParams implements TextDocumentPositionParams, ToJsonable {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['textDocument'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
-          reporter.reportError("must be of type TextDocumentIdentifier");
+          reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
       } finally {
@@ -9107,15 +9093,15 @@ class ReferenceParams implements TextDocumentPositionParams, ToJsonable {
       reporter.push('position');
       try {
         if (!obj.containsKey('position')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['position'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Position.canParse(obj['position'], reporter))) {
-          reporter.reportError("must be of type Position");
+          reporter.reportError('must be of type Position');
           return false;
         }
       } finally {
@@ -9123,13 +9109,13 @@ class ReferenceParams implements TextDocumentPositionParams, ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type ReferenceParams");
+      reporter.reportError('must be of type ReferenceParams');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ReferenceParams) {
       return context == other.context &&
           textDocument == other.textDocument &&
@@ -9141,7 +9127,7 @@ class ReferenceParams implements TextDocumentPositionParams, ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, context.hashCode);
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
     hash = JenkinsSmiHash.combine(hash, position.hashCode);
@@ -9155,7 +9141,7 @@ class ReferenceParams implements TextDocumentPositionParams, ToJsonable {
 /// General parameters to register for a capability.
 class Registration implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(Registration.canParse, Registration.fromJson);
+      LspJsonHandler(Registration.canParse, Registration.fromJson);
 
   Registration(this.id, this.method, this.registerOptions) {
     if (id == null) {
@@ -9169,7 +9155,7 @@ class Registration implements ToJsonable {
     final id = json['id'];
     final method = json['method'];
     final registerOptions = json['registerOptions'];
-    return new Registration(id, method, registerOptions);
+    return Registration(id, method, registerOptions);
   }
 
   /// The id used to register the request. The id can be used to deregister the
@@ -9183,7 +9169,7 @@ class Registration implements ToJsonable {
   final dynamic registerOptions;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['id'] = id ?? (throw 'id is required but was not set');
     __result['method'] = method ?? (throw 'method is required but was not set');
     if (registerOptions != null) {
@@ -9197,15 +9183,15 @@ class Registration implements ToJsonable {
       reporter.push('id');
       try {
         if (!obj.containsKey('id')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['id'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['id'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -9214,15 +9200,15 @@ class Registration implements ToJsonable {
       reporter.push('method');
       try {
         if (!obj.containsKey('method')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['method'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['method'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -9231,7 +9217,7 @@ class Registration implements ToJsonable {
       reporter.push('registerOptions');
       try {
         if (obj['registerOptions'] != null && !(true)) {
-          reporter.reportError("must be of type dynamic");
+          reporter.reportError('must be of type dynamic');
           return false;
         }
       } finally {
@@ -9239,13 +9225,13 @@ class Registration implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type Registration");
+      reporter.reportError('must be of type Registration');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is Registration) {
       return id == other.id &&
           method == other.method &&
@@ -9257,7 +9243,7 @@ class Registration implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, id.hashCode);
     hash = JenkinsSmiHash.combine(hash, method.hashCode);
     hash = JenkinsSmiHash.combine(hash, registerOptions.hashCode);
@@ -9269,8 +9255,8 @@ class Registration implements ToJsonable {
 }
 
 class RegistrationParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      RegistrationParams.canParse, RegistrationParams.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(RegistrationParams.canParse, RegistrationParams.fromJson);
 
   RegistrationParams(this.registrations) {
     if (registrations == null) {
@@ -9282,13 +9268,13 @@ class RegistrationParams implements ToJsonable {
         ?.map((item) => item != null ? Registration.fromJson(item) : null)
         ?.cast<Registration>()
         ?.toList();
-    return new RegistrationParams(registrations);
+    return RegistrationParams(registrations);
   }
 
   final List<Registration> registrations;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['registrations'] =
         registrations ?? (throw 'registrations is required but was not set');
     return __result;
@@ -9299,17 +9285,17 @@ class RegistrationParams implements ToJsonable {
       reporter.push('registrations');
       try {
         if (!obj.containsKey('registrations')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['registrations'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!((obj['registrations'] is List &&
             (obj['registrations']
                 .every((item) => Registration.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<Registration>");
+          reporter.reportError('must be of type List<Registration>');
           return false;
         }
       } finally {
@@ -9317,13 +9303,13 @@ class RegistrationParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type RegistrationParams");
+      reporter.reportError('must be of type RegistrationParams');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is RegistrationParams) {
       return listEqual(registrations, other.registrations,
               (Registration a, Registration b) => a == b) &&
@@ -9334,7 +9320,7 @@ class RegistrationParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, registrations.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -9346,7 +9332,7 @@ class RegistrationParams implements ToJsonable {
 /// Rename file operation
 class RenameFile implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(RenameFile.canParse, RenameFile.fromJson);
+      LspJsonHandler(RenameFile.canParse, RenameFile.fromJson);
 
   RenameFile(this.kind, this.oldUri, this.newUri, this.options) {
     if (kind == null) {
@@ -9366,7 +9352,7 @@ class RenameFile implements ToJsonable {
     final options = json['options'] != null
         ? RenameFileOptions.fromJson(json['options'])
         : null;
-    return new RenameFile(kind, oldUri, newUri, options);
+    return RenameFile(kind, oldUri, newUri, options);
   }
 
   /// A rename
@@ -9382,7 +9368,7 @@ class RenameFile implements ToJsonable {
   final RenameFileOptions options;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['kind'] = kind ?? (throw 'kind is required but was not set');
     __result['oldUri'] = oldUri ?? (throw 'oldUri is required but was not set');
     __result['newUri'] = newUri ?? (throw 'newUri is required but was not set');
@@ -9397,15 +9383,15 @@ class RenameFile implements ToJsonable {
       reporter.push('kind');
       try {
         if (!obj.containsKey('kind')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['kind'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['kind'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -9414,15 +9400,15 @@ class RenameFile implements ToJsonable {
       reporter.push('oldUri');
       try {
         if (!obj.containsKey('oldUri')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['oldUri'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['oldUri'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -9431,15 +9417,15 @@ class RenameFile implements ToJsonable {
       reporter.push('newUri');
       try {
         if (!obj.containsKey('newUri')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['newUri'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['newUri'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -9449,7 +9435,7 @@ class RenameFile implements ToJsonable {
       try {
         if (obj['options'] != null &&
             !(RenameFileOptions.canParse(obj['options'], reporter))) {
-          reporter.reportError("must be of type RenameFileOptions");
+          reporter.reportError('must be of type RenameFileOptions');
           return false;
         }
       } finally {
@@ -9457,13 +9443,13 @@ class RenameFile implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type RenameFile");
+      reporter.reportError('must be of type RenameFile');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is RenameFile) {
       return kind == other.kind &&
           oldUri == other.oldUri &&
@@ -9476,7 +9462,7 @@ class RenameFile implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, kind.hashCode);
     hash = JenkinsSmiHash.combine(hash, oldUri.hashCode);
     hash = JenkinsSmiHash.combine(hash, newUri.hashCode);
@@ -9490,14 +9476,14 @@ class RenameFile implements ToJsonable {
 
 /// Rename file options
 class RenameFileOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      RenameFileOptions.canParse, RenameFileOptions.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(RenameFileOptions.canParse, RenameFileOptions.fromJson);
 
   RenameFileOptions(this.overwrite, this.ignoreIfExists);
   static RenameFileOptions fromJson(Map<String, dynamic> json) {
     final overwrite = json['overwrite'];
     final ignoreIfExists = json['ignoreIfExists'];
-    return new RenameFileOptions(overwrite, ignoreIfExists);
+    return RenameFileOptions(overwrite, ignoreIfExists);
   }
 
   /// Ignores if target exists.
@@ -9507,7 +9493,7 @@ class RenameFileOptions implements ToJsonable {
   final bool overwrite;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (overwrite != null) {
       __result['overwrite'] = overwrite;
     }
@@ -9522,7 +9508,7 @@ class RenameFileOptions implements ToJsonable {
       reporter.push('overwrite');
       try {
         if (obj['overwrite'] != null && !(obj['overwrite'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -9531,7 +9517,7 @@ class RenameFileOptions implements ToJsonable {
       reporter.push('ignoreIfExists');
       try {
         if (obj['ignoreIfExists'] != null && !(obj['ignoreIfExists'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -9539,13 +9525,13 @@ class RenameFileOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type RenameFileOptions");
+      reporter.reportError('must be of type RenameFileOptions');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is RenameFileOptions) {
       return overwrite == other.overwrite &&
           ignoreIfExists == other.ignoreIfExists &&
@@ -9556,7 +9542,7 @@ class RenameFileOptions implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, overwrite.hashCode);
     hash = JenkinsSmiHash.combine(hash, ignoreIfExists.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -9569,19 +9555,19 @@ class RenameFileOptions implements ToJsonable {
 /// Rename options
 class RenameOptions implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(RenameOptions.canParse, RenameOptions.fromJson);
+      LspJsonHandler(RenameOptions.canParse, RenameOptions.fromJson);
 
   RenameOptions(this.prepareProvider);
   static RenameOptions fromJson(Map<String, dynamic> json) {
     final prepareProvider = json['prepareProvider'];
-    return new RenameOptions(prepareProvider);
+    return RenameOptions(prepareProvider);
   }
 
   /// Renames should be checked and tested before being executed.
   final bool prepareProvider;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (prepareProvider != null) {
       __result['prepareProvider'] = prepareProvider;
     }
@@ -9594,7 +9580,7 @@ class RenameOptions implements ToJsonable {
       try {
         if (obj['prepareProvider'] != null &&
             !(obj['prepareProvider'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -9602,13 +9588,13 @@ class RenameOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type RenameOptions");
+      reporter.reportError('must be of type RenameOptions');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is RenameOptions) {
       return prepareProvider == other.prepareProvider && true;
     }
@@ -9617,7 +9603,7 @@ class RenameOptions implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, prepareProvider.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -9628,7 +9614,7 @@ class RenameOptions implements ToJsonable {
 
 class RenameParams implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(RenameParams.canParse, RenameParams.fromJson);
+      LspJsonHandler(RenameParams.canParse, RenameParams.fromJson);
 
   RenameParams(this.textDocument, this.position, this.newName) {
     if (textDocument == null) {
@@ -9648,7 +9634,7 @@ class RenameParams implements ToJsonable {
     final position =
         json['position'] != null ? Position.fromJson(json['position']) : null;
     final newName = json['newName'];
-    return new RenameParams(textDocument, position, newName);
+    return RenameParams(textDocument, position, newName);
   }
 
   /// The new name of the symbol. If the given name is not valid the request
@@ -9662,7 +9648,7 @@ class RenameParams implements ToJsonable {
   final TextDocumentIdentifier textDocument;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
     __result['position'] =
@@ -9677,15 +9663,15 @@ class RenameParams implements ToJsonable {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['textDocument'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
-          reporter.reportError("must be of type TextDocumentIdentifier");
+          reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
       } finally {
@@ -9694,15 +9680,15 @@ class RenameParams implements ToJsonable {
       reporter.push('position');
       try {
         if (!obj.containsKey('position')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['position'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Position.canParse(obj['position'], reporter))) {
-          reporter.reportError("must be of type Position");
+          reporter.reportError('must be of type Position');
           return false;
         }
       } finally {
@@ -9711,15 +9697,15 @@ class RenameParams implements ToJsonable {
       reporter.push('newName');
       try {
         if (!obj.containsKey('newName')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['newName'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['newName'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -9727,13 +9713,13 @@ class RenameParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type RenameParams");
+      reporter.reportError('must be of type RenameParams');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is RenameParams) {
       return textDocument == other.textDocument &&
           position == other.position &&
@@ -9745,7 +9731,7 @@ class RenameParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
     hash = JenkinsSmiHash.combine(hash, position.hashCode);
     hash = JenkinsSmiHash.combine(hash, newName.hashCode);
@@ -9758,7 +9744,7 @@ class RenameParams implements ToJsonable {
 
 class RenameRegistrationOptions
     implements TextDocumentRegistrationOptions, ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       RenameRegistrationOptions.canParse, RenameRegistrationOptions.fromJson);
 
   RenameRegistrationOptions(this.prepareProvider, this.documentSelector);
@@ -9768,7 +9754,7 @@ class RenameRegistrationOptions
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
-    return new RenameRegistrationOptions(prepareProvider, documentSelector);
+    return RenameRegistrationOptions(prepareProvider, documentSelector);
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -9779,7 +9765,7 @@ class RenameRegistrationOptions
   final bool prepareProvider;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (prepareProvider != null) {
       __result['prepareProvider'] = prepareProvider;
     }
@@ -9793,7 +9779,7 @@ class RenameRegistrationOptions
       try {
         if (obj['prepareProvider'] != null &&
             !(obj['prepareProvider'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -9802,14 +9788,14 @@ class RenameRegistrationOptions
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['documentSelector'] != null &&
             !((obj['documentSelector'] is List &&
                 (obj['documentSelector'].every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<DocumentFilter>");
+          reporter.reportError('must be of type List<DocumentFilter>');
           return false;
         }
       } finally {
@@ -9817,13 +9803,13 @@ class RenameRegistrationOptions
       }
       return true;
     } else {
-      reporter.reportError("must be of type RenameRegistrationOptions");
+      reporter.reportError('must be of type RenameRegistrationOptions');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is RenameRegistrationOptions) {
       return prepareProvider == other.prepareProvider &&
           documentSelector == other.documentSelector &&
@@ -9834,7 +9820,7 @@ class RenameRegistrationOptions
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, prepareProvider.hashCode);
     hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -9846,7 +9832,7 @@ class RenameRegistrationOptions
 
 class RequestMessage implements Message, IncomingMessage, ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(RequestMessage.canParse, RequestMessage.fromJson);
+      LspJsonHandler(RequestMessage.canParse, RequestMessage.fromJson);
 
   RequestMessage(this.id, this.method, this.params, this.jsonrpc) {
     if (id == null) {
@@ -9861,15 +9847,15 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
   }
   static RequestMessage fromJson(Map<String, dynamic> json) {
     final id = json['id'] is num
-        ? new Either2<num, String>.t1(json['id'])
+        ? Either2<num, String>.t1(json['id'])
         : (json['id'] is String
-            ? new Either2<num, String>.t2(json['id'])
+            ? Either2<num, String>.t2(json['id'])
             : (throw '''${json['id']} was not one of (num, String)'''));
     final method =
         json['method'] != null ? Method.fromJson(json['method']) : null;
     final params = json['params'];
     final jsonrpc = json['jsonrpc'];
-    return new RequestMessage(id, method, params, jsonrpc);
+    return RequestMessage(id, method, params, jsonrpc);
   }
 
   /// The request id.
@@ -9883,7 +9869,7 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
   final dynamic params;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['id'] = id ?? (throw 'id is required but was not set');
     __result['method'] = method ?? (throw 'method is required but was not set');
     if (params != null) {
@@ -9899,15 +9885,15 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
       reporter.push('id');
       try {
         if (!obj.containsKey('id')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['id'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!((obj['id'] is num || obj['id'] is String))) {
-          reporter.reportError("must be of type Either2<num, String>");
+          reporter.reportError('must be of type Either2<num, String>');
           return false;
         }
       } finally {
@@ -9916,15 +9902,15 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
       reporter.push('method');
       try {
         if (!obj.containsKey('method')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['method'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Method.canParse(obj['method'], reporter))) {
-          reporter.reportError("must be of type Method");
+          reporter.reportError('must be of type Method');
           return false;
         }
       } finally {
@@ -9933,7 +9919,7 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
       reporter.push('params');
       try {
         if (obj['params'] != null && !(true)) {
-          reporter.reportError("must be of type dynamic");
+          reporter.reportError('must be of type dynamic');
           return false;
         }
       } finally {
@@ -9942,15 +9928,15 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
       reporter.push('jsonrpc');
       try {
         if (!obj.containsKey('jsonrpc')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['jsonrpc'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['jsonrpc'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -9958,13 +9944,13 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type RequestMessage");
+      reporter.reportError('must be of type RequestMessage');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is RequestMessage) {
       return id == other.id &&
           method == other.method &&
@@ -9977,7 +9963,7 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, id.hashCode);
     hash = JenkinsSmiHash.combine(hash, method.hashCode);
     hash = JenkinsSmiHash.combine(hash, params.hashCode);
@@ -10006,13 +9992,13 @@ class ResourceOperationKind {
   }
 
   /// Supports creating new files and folders.
-  static const Create = const ResourceOperationKind._('create');
+  static const Create = ResourceOperationKind._('create');
 
   /// Supports renaming existing files and folders.
-  static const Rename = const ResourceOperationKind._('rename');
+  static const Rename = ResourceOperationKind._('rename');
 
   /// Supports deleting existing files and folders.
-  static const Delete = const ResourceOperationKind._('delete');
+  static const Delete = ResourceOperationKind._('delete');
 
   Object toJson() => _value;
 
@@ -10020,14 +10006,15 @@ class ResourceOperationKind {
   String toString() => _value.toString();
 
   @override
-  get hashCode => _value.hashCode;
+  int get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is ResourceOperationKind && o._value == _value;
+  bool operator ==(Object o) =>
+      o is ResourceOperationKind && o._value == _value;
 }
 
 class ResponseError<D> implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(ResponseError.canParse, ResponseError.fromJson);
+      LspJsonHandler(ResponseError.canParse, ResponseError.fromJson);
 
   ResponseError(this.code, this.message, this.data) {
     if (code == null) {
@@ -10042,7 +10029,7 @@ class ResponseError<D> implements ToJsonable {
         json['code'] != null ? ErrorCodes.fromJson(json['code']) : null;
     final message = json['message'];
     final data = json['data'];
-    return new ResponseError<D>(code, message, data);
+    return ResponseError<D>(code, message, data);
   }
 
   /// A number indicating the error type that occurred.
@@ -10056,7 +10043,7 @@ class ResponseError<D> implements ToJsonable {
   final String message;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['code'] = code ?? (throw 'code is required but was not set');
     __result['message'] =
         message ?? (throw 'message is required but was not set');
@@ -10071,15 +10058,15 @@ class ResponseError<D> implements ToJsonable {
       reporter.push('code');
       try {
         if (!obj.containsKey('code')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['code'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(ErrorCodes.canParse(obj['code'], reporter))) {
-          reporter.reportError("must be of type ErrorCodes");
+          reporter.reportError('must be of type ErrorCodes');
           return false;
         }
       } finally {
@@ -10088,15 +10075,15 @@ class ResponseError<D> implements ToJsonable {
       reporter.push('message');
       try {
         if (!obj.containsKey('message')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['message'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['message'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -10105,7 +10092,7 @@ class ResponseError<D> implements ToJsonable {
       reporter.push('data');
       try {
         if (obj['data'] != null && !(obj['data'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -10113,13 +10100,13 @@ class ResponseError<D> implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type ResponseError<D>");
+      reporter.reportError('must be of type ResponseError<D>');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ResponseError) {
       return code == other.code &&
           message == other.message &&
@@ -10131,7 +10118,7 @@ class ResponseError<D> implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, code.hashCode);
     hash = JenkinsSmiHash.combine(hash, message.hashCode);
     hash = JenkinsSmiHash.combine(hash, data.hashCode);
@@ -10144,7 +10131,7 @@ class ResponseError<D> implements ToJsonable {
 
 class ResponseMessage implements Message, ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(ResponseMessage.canParse, ResponseMessage.fromJson);
+      LspJsonHandler(ResponseMessage.canParse, ResponseMessage.fromJson);
 
   ResponseMessage(this.id, this.result, this.error, this.jsonrpc) {
     if (jsonrpc == null) {
@@ -10153,9 +10140,9 @@ class ResponseMessage implements Message, ToJsonable {
   }
   static ResponseMessage fromJson(Map<String, dynamic> json) {
     final id = json['id'] is num
-        ? new Either2<num, String>.t1(json['id'])
+        ? Either2<num, String>.t1(json['id'])
         : (json['id'] is String
-            ? new Either2<num, String>.t2(json['id'])
+            ? Either2<num, String>.t2(json['id'])
             : (json['id'] == null
                 ? null
                 : (throw '''${json['id']} was not one of (num, String)''')));
@@ -10164,7 +10151,7 @@ class ResponseMessage implements Message, ToJsonable {
         ? ResponseError.fromJson<dynamic>(json['error'])
         : null;
     final jsonrpc = json['jsonrpc'];
-    return new ResponseMessage(id, result, error, jsonrpc);
+    return ResponseMessage(id, result, error, jsonrpc);
   }
 
   /// The error object in case a request fails.
@@ -10179,7 +10166,7 @@ class ResponseMessage implements Message, ToJsonable {
   final dynamic result;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['id'] = id;
     __result['jsonrpc'] =
         jsonrpc ?? (throw 'jsonrpc is required but was not set');
@@ -10198,11 +10185,11 @@ class ResponseMessage implements Message, ToJsonable {
       reporter.push('id');
       try {
         if (!obj.containsKey('id')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['id'] != null && !((obj['id'] is num || obj['id'] is String))) {
-          reporter.reportError("must be of type Either2<num, String>");
+          reporter.reportError('must be of type Either2<num, String>');
           return false;
         }
       } finally {
@@ -10211,7 +10198,7 @@ class ResponseMessage implements Message, ToJsonable {
       reporter.push('result');
       try {
         if (obj['result'] != null && !(true)) {
-          reporter.reportError("must be of type dynamic");
+          reporter.reportError('must be of type dynamic');
           return false;
         }
       } finally {
@@ -10221,7 +10208,7 @@ class ResponseMessage implements Message, ToJsonable {
       try {
         if (obj['error'] != null &&
             !(ResponseError.canParse(obj['error'], reporter))) {
-          reporter.reportError("must be of type ResponseError<dynamic>");
+          reporter.reportError('must be of type ResponseError<dynamic>');
           return false;
         }
       } finally {
@@ -10230,15 +10217,15 @@ class ResponseMessage implements Message, ToJsonable {
       reporter.push('jsonrpc');
       try {
         if (!obj.containsKey('jsonrpc')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['jsonrpc'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['jsonrpc'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -10246,13 +10233,13 @@ class ResponseMessage implements Message, ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type ResponseMessage");
+      reporter.reportError('must be of type ResponseMessage');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ResponseMessage) {
       return id == other.id &&
           result == other.result &&
@@ -10265,7 +10252,7 @@ class ResponseMessage implements Message, ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, id.hashCode);
     hash = JenkinsSmiHash.combine(hash, result.hashCode);
     hash = JenkinsSmiHash.combine(hash, error.hashCode);
@@ -10280,19 +10267,19 @@ class ResponseMessage implements Message, ToJsonable {
 /// Save options.
 class SaveOptions implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(SaveOptions.canParse, SaveOptions.fromJson);
+      LspJsonHandler(SaveOptions.canParse, SaveOptions.fromJson);
 
   SaveOptions(this.includeText);
   static SaveOptions fromJson(Map<String, dynamic> json) {
     final includeText = json['includeText'];
-    return new SaveOptions(includeText);
+    return SaveOptions(includeText);
   }
 
   /// The client is supposed to include the content on save.
   final bool includeText;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (includeText != null) {
       __result['includeText'] = includeText;
     }
@@ -10304,7 +10291,7 @@ class SaveOptions implements ToJsonable {
       reporter.push('includeText');
       try {
         if (obj['includeText'] != null && !(obj['includeText'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -10312,13 +10299,13 @@ class SaveOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type SaveOptions");
+      reporter.reportError('must be of type SaveOptions');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is SaveOptions) {
       return includeText == other.includeText && true;
     }
@@ -10327,7 +10314,7 @@ class SaveOptions implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, includeText.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -10337,8 +10324,8 @@ class SaveOptions implements ToJsonable {
 }
 
 class ServerCapabilities implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      ServerCapabilities.canParse, ServerCapabilities.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(ServerCapabilities.canParse, ServerCapabilities.fromJson);
 
   ServerCapabilities(
       this.textDocumentSync,
@@ -10368,13 +10355,12 @@ class ServerCapabilities implements ToJsonable {
   static ServerCapabilities fromJson(Map<String, dynamic> json) {
     final textDocumentSync = TextDocumentSyncOptions.canParse(
             json['textDocumentSync'], nullLspJsonReporter)
-        ? new Either2<TextDocumentSyncOptions, num>.t1(
+        ? Either2<TextDocumentSyncOptions, num>.t1(
             json['textDocumentSync'] != null
                 ? TextDocumentSyncOptions.fromJson(json['textDocumentSync'])
                 : null)
         : (json['textDocumentSync'] is num
-            ? new Either2<TextDocumentSyncOptions, num>.t2(
-                json['textDocumentSync'])
+            ? Either2<TextDocumentSyncOptions, num>.t2(json['textDocumentSync'])
             : (json['textDocumentSync'] == null
                 ? null
                 : (throw '''${json['textDocumentSync']} was not one of (TextDocumentSyncOptions, num)''')));
@@ -10393,10 +10379,10 @@ class ServerCapabilities implements ToJsonable {
     final documentSymbolProvider = json['documentSymbolProvider'];
     final workspaceSymbolProvider = json['workspaceSymbolProvider'];
     final codeActionProvider = json['codeActionProvider'] is bool
-        ? new Either2<bool, CodeActionOptions>.t1(json['codeActionProvider'])
+        ? Either2<bool, CodeActionOptions>.t1(json['codeActionProvider'])
         : (CodeActionOptions.canParse(
                 json['codeActionProvider'], nullLspJsonReporter)
-            ? new Either2<bool, CodeActionOptions>.t2(
+            ? Either2<bool, CodeActionOptions>.t2(
                 json['codeActionProvider'] != null
                     ? CodeActionOptions.fromJson(json['codeActionProvider'])
                     : null)
@@ -10415,9 +10401,9 @@ class ServerCapabilities implements ToJsonable {
                 json['documentOnTypeFormattingProvider'])
             : null;
     final renameProvider = json['renameProvider'] is bool
-        ? new Either2<bool, RenameOptions>.t1(json['renameProvider'])
+        ? Either2<bool, RenameOptions>.t1(json['renameProvider'])
         : (RenameOptions.canParse(json['renameProvider'], nullLspJsonReporter)
-            ? new Either2<bool, RenameOptions>.t2(json['renameProvider'] != null
+            ? Either2<bool, RenameOptions>.t2(json['renameProvider'] != null
                 ? RenameOptions.fromJson(json['renameProvider'])
                 : null)
             : (json['renameProvider'] == null
@@ -10436,7 +10422,7 @@ class ServerCapabilities implements ToJsonable {
         ? ServerCapabilitiesWorkspace.fromJson(json['workspace'])
         : null;
     final experimental = json['experimental'];
-    return new ServerCapabilities(
+    return ServerCapabilities(
         textDocumentSync,
         hoverProvider,
         completionProvider,
@@ -10553,7 +10539,7 @@ class ServerCapabilities implements ToJsonable {
   final bool workspaceSymbolProvider;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (textDocumentSync != null) {
       __result['textDocumentSync'] = textDocumentSync;
     }
@@ -10640,7 +10626,7 @@ class ServerCapabilities implements ToJsonable {
                     obj['textDocumentSync'], reporter) ||
                 obj['textDocumentSync'] is num))) {
           reporter.reportError(
-              "must be of type Either2<TextDocumentSyncOptions, num>");
+              'must be of type Either2<TextDocumentSyncOptions, num>');
           return false;
         }
       } finally {
@@ -10649,7 +10635,7 @@ class ServerCapabilities implements ToJsonable {
       reporter.push('hoverProvider');
       try {
         if (obj['hoverProvider'] != null && !(obj['hoverProvider'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -10660,7 +10646,7 @@ class ServerCapabilities implements ToJsonable {
         if (obj['completionProvider'] != null &&
             !(CompletionOptions.canParse(
                 obj['completionProvider'], reporter))) {
-          reporter.reportError("must be of type CompletionOptions");
+          reporter.reportError('must be of type CompletionOptions');
           return false;
         }
       } finally {
@@ -10671,7 +10657,7 @@ class ServerCapabilities implements ToJsonable {
         if (obj['signatureHelpProvider'] != null &&
             !(SignatureHelpOptions.canParse(
                 obj['signatureHelpProvider'], reporter))) {
-          reporter.reportError("must be of type SignatureHelpOptions");
+          reporter.reportError('must be of type SignatureHelpOptions');
           return false;
         }
       } finally {
@@ -10681,7 +10667,7 @@ class ServerCapabilities implements ToJsonable {
       try {
         if (obj['definitionProvider'] != null &&
             !(obj['definitionProvider'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -10690,7 +10676,7 @@ class ServerCapabilities implements ToJsonable {
       reporter.push('typeDefinitionProvider');
       try {
         if (obj['typeDefinitionProvider'] != null && !(true)) {
-          reporter.reportError("must be of type dynamic");
+          reporter.reportError('must be of type dynamic');
           return false;
         }
       } finally {
@@ -10699,7 +10685,7 @@ class ServerCapabilities implements ToJsonable {
       reporter.push('implementationProvider');
       try {
         if (obj['implementationProvider'] != null && !(true)) {
-          reporter.reportError("must be of type dynamic");
+          reporter.reportError('must be of type dynamic');
           return false;
         }
       } finally {
@@ -10709,7 +10695,7 @@ class ServerCapabilities implements ToJsonable {
       try {
         if (obj['referencesProvider'] != null &&
             !(obj['referencesProvider'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -10719,7 +10705,7 @@ class ServerCapabilities implements ToJsonable {
       try {
         if (obj['documentHighlightProvider'] != null &&
             !(obj['documentHighlightProvider'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -10729,7 +10715,7 @@ class ServerCapabilities implements ToJsonable {
       try {
         if (obj['documentSymbolProvider'] != null &&
             !(obj['documentSymbolProvider'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -10739,7 +10725,7 @@ class ServerCapabilities implements ToJsonable {
       try {
         if (obj['workspaceSymbolProvider'] != null &&
             !(obj['workspaceSymbolProvider'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -10752,7 +10738,7 @@ class ServerCapabilities implements ToJsonable {
                 CodeActionOptions.canParse(
                     obj['codeActionProvider'], reporter)))) {
           reporter
-              .reportError("must be of type Either2<bool, CodeActionOptions>");
+              .reportError('must be of type Either2<bool, CodeActionOptions>');
           return false;
         }
       } finally {
@@ -10762,7 +10748,7 @@ class ServerCapabilities implements ToJsonable {
       try {
         if (obj['codeLensProvider'] != null &&
             !(CodeLensOptions.canParse(obj['codeLensProvider'], reporter))) {
-          reporter.reportError("must be of type CodeLensOptions");
+          reporter.reportError('must be of type CodeLensOptions');
           return false;
         }
       } finally {
@@ -10772,7 +10758,7 @@ class ServerCapabilities implements ToJsonable {
       try {
         if (obj['documentFormattingProvider'] != null &&
             !(obj['documentFormattingProvider'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -10782,7 +10768,7 @@ class ServerCapabilities implements ToJsonable {
       try {
         if (obj['documentRangeFormattingProvider'] != null &&
             !(obj['documentRangeFormattingProvider'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -10794,7 +10780,7 @@ class ServerCapabilities implements ToJsonable {
             !(DocumentOnTypeFormattingOptions.canParse(
                 obj['documentOnTypeFormattingProvider'], reporter))) {
           reporter
-              .reportError("must be of type DocumentOnTypeFormattingOptions");
+              .reportError('must be of type DocumentOnTypeFormattingOptions');
           return false;
         }
       } finally {
@@ -10805,7 +10791,7 @@ class ServerCapabilities implements ToJsonable {
         if (obj['renameProvider'] != null &&
             !((obj['renameProvider'] is bool ||
                 RenameOptions.canParse(obj['renameProvider'], reporter)))) {
-          reporter.reportError("must be of type Either2<bool, RenameOptions>");
+          reporter.reportError('must be of type Either2<bool, RenameOptions>');
           return false;
         }
       } finally {
@@ -10816,7 +10802,7 @@ class ServerCapabilities implements ToJsonable {
         if (obj['documentLinkProvider'] != null &&
             !(DocumentLinkOptions.canParse(
                 obj['documentLinkProvider'], reporter))) {
-          reporter.reportError("must be of type DocumentLinkOptions");
+          reporter.reportError('must be of type DocumentLinkOptions');
           return false;
         }
       } finally {
@@ -10825,7 +10811,7 @@ class ServerCapabilities implements ToJsonable {
       reporter.push('colorProvider');
       try {
         if (obj['colorProvider'] != null && !(true)) {
-          reporter.reportError("must be of type dynamic");
+          reporter.reportError('must be of type dynamic');
           return false;
         }
       } finally {
@@ -10834,7 +10820,7 @@ class ServerCapabilities implements ToJsonable {
       reporter.push('foldingRangeProvider');
       try {
         if (obj['foldingRangeProvider'] != null && !(true)) {
-          reporter.reportError("must be of type dynamic");
+          reporter.reportError('must be of type dynamic');
           return false;
         }
       } finally {
@@ -10843,7 +10829,7 @@ class ServerCapabilities implements ToJsonable {
       reporter.push('declarationProvider');
       try {
         if (obj['declarationProvider'] != null && !(true)) {
-          reporter.reportError("must be of type dynamic");
+          reporter.reportError('must be of type dynamic');
           return false;
         }
       } finally {
@@ -10854,7 +10840,7 @@ class ServerCapabilities implements ToJsonable {
         if (obj['executeCommandProvider'] != null &&
             !(ExecuteCommandOptions.canParse(
                 obj['executeCommandProvider'], reporter))) {
-          reporter.reportError("must be of type ExecuteCommandOptions");
+          reporter.reportError('must be of type ExecuteCommandOptions');
           return false;
         }
       } finally {
@@ -10865,7 +10851,7 @@ class ServerCapabilities implements ToJsonable {
         if (obj['workspace'] != null &&
             !(ServerCapabilitiesWorkspace.canParse(
                 obj['workspace'], reporter))) {
-          reporter.reportError("must be of type ServerCapabilitiesWorkspace");
+          reporter.reportError('must be of type ServerCapabilitiesWorkspace');
           return false;
         }
       } finally {
@@ -10874,7 +10860,7 @@ class ServerCapabilities implements ToJsonable {
       reporter.push('experimental');
       try {
         if (obj['experimental'] != null && !(true)) {
-          reporter.reportError("must be of type dynamic");
+          reporter.reportError('must be of type dynamic');
           return false;
         }
       } finally {
@@ -10882,13 +10868,13 @@ class ServerCapabilities implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type ServerCapabilities");
+      reporter.reportError('must be of type ServerCapabilities');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ServerCapabilities) {
       return textDocumentSync == other.textDocumentSync &&
           hoverProvider == other.hoverProvider &&
@@ -10923,7 +10909,7 @@ class ServerCapabilities implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, textDocumentSync.hashCode);
     hash = JenkinsSmiHash.combine(hash, hoverProvider.hashCode);
     hash = JenkinsSmiHash.combine(hash, completionProvider.hashCode);
@@ -10958,7 +10944,7 @@ class ServerCapabilities implements ToJsonable {
 }
 
 class ServerCapabilitiesWorkspace implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       ServerCapabilitiesWorkspace.canParse,
       ServerCapabilitiesWorkspace.fromJson);
 
@@ -10967,7 +10953,7 @@ class ServerCapabilitiesWorkspace implements ToJsonable {
     final workspaceFolders = json['workspaceFolders'] != null
         ? ServerCapabilitiesWorkspaceFolders.fromJson(json['workspaceFolders'])
         : null;
-    return new ServerCapabilitiesWorkspace(workspaceFolders);
+    return ServerCapabilitiesWorkspace(workspaceFolders);
   }
 
   /// The server supports workspace folder.
@@ -10976,7 +10962,7 @@ class ServerCapabilitiesWorkspace implements ToJsonable {
   final ServerCapabilitiesWorkspaceFolders workspaceFolders;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (workspaceFolders != null) {
       __result['workspaceFolders'] = workspaceFolders;
     }
@@ -10991,7 +10977,7 @@ class ServerCapabilitiesWorkspace implements ToJsonable {
             !(ServerCapabilitiesWorkspaceFolders.canParse(
                 obj['workspaceFolders'], reporter))) {
           reporter.reportError(
-              "must be of type ServerCapabilitiesWorkspaceFolders");
+              'must be of type ServerCapabilitiesWorkspaceFolders');
           return false;
         }
       } finally {
@@ -10999,13 +10985,13 @@ class ServerCapabilitiesWorkspace implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type ServerCapabilitiesWorkspace");
+      reporter.reportError('must be of type ServerCapabilitiesWorkspace');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ServerCapabilitiesWorkspace) {
       return workspaceFolders == other.workspaceFolders && true;
     }
@@ -11014,7 +11000,7 @@ class ServerCapabilitiesWorkspace implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, workspaceFolders.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -11024,7 +11010,7 @@ class ServerCapabilitiesWorkspace implements ToJsonable {
 }
 
 class ServerCapabilitiesWorkspaceFolders implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       ServerCapabilitiesWorkspaceFolders.canParse,
       ServerCapabilitiesWorkspaceFolders.fromJson);
 
@@ -11033,8 +11019,7 @@ class ServerCapabilitiesWorkspaceFolders implements ToJsonable {
       Map<String, dynamic> json) {
     final supported = json['supported'];
     final changeNotifications = json['changeNotifications'];
-    return new ServerCapabilitiesWorkspaceFolders(
-        supported, changeNotifications);
+    return ServerCapabilitiesWorkspaceFolders(supported, changeNotifications);
   }
 
   /// Whether the server wants to receive workspace folder change notifications.
@@ -11049,7 +11034,7 @@ class ServerCapabilitiesWorkspaceFolders implements ToJsonable {
   final bool supported;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (supported != null) {
       __result['supported'] = supported;
     }
@@ -11064,7 +11049,7 @@ class ServerCapabilitiesWorkspaceFolders implements ToJsonable {
       reporter.push('supported');
       try {
         if (obj['supported'] != null && !(obj['supported'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -11074,7 +11059,7 @@ class ServerCapabilitiesWorkspaceFolders implements ToJsonable {
       try {
         if (obj['changeNotifications'] != null &&
             !(obj['changeNotifications'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -11083,13 +11068,13 @@ class ServerCapabilitiesWorkspaceFolders implements ToJsonable {
       return true;
     } else {
       reporter
-          .reportError("must be of type ServerCapabilitiesWorkspaceFolders");
+          .reportError('must be of type ServerCapabilitiesWorkspaceFolders');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ServerCapabilitiesWorkspaceFolders) {
       return supported == other.supported &&
           changeNotifications == other.changeNotifications &&
@@ -11100,7 +11085,7 @@ class ServerCapabilitiesWorkspaceFolders implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, supported.hashCode);
     hash = JenkinsSmiHash.combine(hash, changeNotifications.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -11111,8 +11096,8 @@ class ServerCapabilitiesWorkspaceFolders implements ToJsonable {
 }
 
 class ShowMessageParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      ShowMessageParams.canParse, ShowMessageParams.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(ShowMessageParams.canParse, ShowMessageParams.fromJson);
 
   ShowMessageParams(this.type, this.message) {
     if (type == null) {
@@ -11126,7 +11111,7 @@ class ShowMessageParams implements ToJsonable {
     final type =
         json['type'] != null ? MessageType.fromJson(json['type']) : null;
     final message = json['message'];
-    return new ShowMessageParams(type, message);
+    return ShowMessageParams(type, message);
   }
 
   /// The actual message.
@@ -11136,7 +11121,7 @@ class ShowMessageParams implements ToJsonable {
   final MessageType type;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['type'] = type ?? (throw 'type is required but was not set');
     __result['message'] =
         message ?? (throw 'message is required but was not set');
@@ -11148,15 +11133,15 @@ class ShowMessageParams implements ToJsonable {
       reporter.push('type');
       try {
         if (!obj.containsKey('type')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['type'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(MessageType.canParse(obj['type'], reporter))) {
-          reporter.reportError("must be of type MessageType");
+          reporter.reportError('must be of type MessageType');
           return false;
         }
       } finally {
@@ -11165,15 +11150,15 @@ class ShowMessageParams implements ToJsonable {
       reporter.push('message');
       try {
         if (!obj.containsKey('message')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['message'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['message'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -11181,13 +11166,13 @@ class ShowMessageParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type ShowMessageParams");
+      reporter.reportError('must be of type ShowMessageParams');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ShowMessageParams) {
       return type == other.type && message == other.message && true;
     }
@@ -11196,7 +11181,7 @@ class ShowMessageParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, type.hashCode);
     hash = JenkinsSmiHash.combine(hash, message.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -11207,7 +11192,7 @@ class ShowMessageParams implements ToJsonable {
 }
 
 class ShowMessageRequestParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       ShowMessageRequestParams.canParse, ShowMessageRequestParams.fromJson);
 
   ShowMessageRequestParams(this.type, this.message, this.actions) {
@@ -11226,7 +11211,7 @@ class ShowMessageRequestParams implements ToJsonable {
         ?.map((item) => item != null ? MessageActionItem.fromJson(item) : null)
         ?.cast<MessageActionItem>()
         ?.toList();
-    return new ShowMessageRequestParams(type, message, actions);
+    return ShowMessageRequestParams(type, message, actions);
   }
 
   /// The message action items to present.
@@ -11239,7 +11224,7 @@ class ShowMessageRequestParams implements ToJsonable {
   final MessageType type;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['type'] = type ?? (throw 'type is required but was not set');
     __result['message'] =
         message ?? (throw 'message is required but was not set');
@@ -11254,15 +11239,15 @@ class ShowMessageRequestParams implements ToJsonable {
       reporter.push('type');
       try {
         if (!obj.containsKey('type')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['type'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(MessageType.canParse(obj['type'], reporter))) {
-          reporter.reportError("must be of type MessageType");
+          reporter.reportError('must be of type MessageType');
           return false;
         }
       } finally {
@@ -11271,15 +11256,15 @@ class ShowMessageRequestParams implements ToJsonable {
       reporter.push('message');
       try {
         if (!obj.containsKey('message')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['message'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['message'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -11291,7 +11276,7 @@ class ShowMessageRequestParams implements ToJsonable {
             !((obj['actions'] is List &&
                 (obj['actions'].every(
                     (item) => MessageActionItem.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<MessageActionItem>");
+          reporter.reportError('must be of type List<MessageActionItem>');
           return false;
         }
       } finally {
@@ -11299,13 +11284,13 @@ class ShowMessageRequestParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type ShowMessageRequestParams");
+      reporter.reportError('must be of type ShowMessageRequestParams');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ShowMessageRequestParams) {
       return type == other.type &&
           message == other.message &&
@@ -11318,7 +11303,7 @@ class ShowMessageRequestParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, type.hashCode);
     hash = JenkinsSmiHash.combine(hash, message.hashCode);
     hash = JenkinsSmiHash.combine(hash, actions.hashCode);
@@ -11333,7 +11318,7 @@ class ShowMessageRequestParams implements ToJsonable {
 /// multiple signature but only one active and only one active parameter.
 class SignatureHelp implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(SignatureHelp.canParse, SignatureHelp.fromJson);
+      LspJsonHandler(SignatureHelp.canParse, SignatureHelp.fromJson);
 
   SignatureHelp(this.signatures, this.activeSignature, this.activeParameter) {
     if (signatures == null) {
@@ -11348,7 +11333,7 @@ class SignatureHelp implements ToJsonable {
         ?.toList();
     final activeSignature = json['activeSignature'];
     final activeParameter = json['activeParameter'];
-    return new SignatureHelp(signatures, activeSignature, activeParameter);
+    return SignatureHelp(signatures, activeSignature, activeParameter);
   }
 
   /// The active parameter of the active signature. If omitted or the value lies
@@ -11371,7 +11356,7 @@ class SignatureHelp implements ToJsonable {
   final List<SignatureInformation> signatures;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['signatures'] =
         signatures ?? (throw 'signatures is required but was not set');
     if (activeSignature != null) {
@@ -11388,17 +11373,17 @@ class SignatureHelp implements ToJsonable {
       reporter.push('signatures');
       try {
         if (!obj.containsKey('signatures')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['signatures'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!((obj['signatures'] is List &&
             (obj['signatures'].every(
                 (item) => SignatureInformation.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<SignatureInformation>");
+          reporter.reportError('must be of type List<SignatureInformation>');
           return false;
         }
       } finally {
@@ -11408,7 +11393,7 @@ class SignatureHelp implements ToJsonable {
       try {
         if (obj['activeSignature'] != null &&
             !(obj['activeSignature'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -11418,7 +11403,7 @@ class SignatureHelp implements ToJsonable {
       try {
         if (obj['activeParameter'] != null &&
             !(obj['activeParameter'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -11426,13 +11411,13 @@ class SignatureHelp implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type SignatureHelp");
+      reporter.reportError('must be of type SignatureHelp');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is SignatureHelp) {
       return listEqual(signatures, other.signatures,
               (SignatureInformation a, SignatureInformation b) => a == b) &&
@@ -11445,7 +11430,7 @@ class SignatureHelp implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, signatures.hashCode);
     hash = JenkinsSmiHash.combine(hash, activeSignature.hashCode);
     hash = JenkinsSmiHash.combine(hash, activeParameter.hashCode);
@@ -11458,7 +11443,7 @@ class SignatureHelp implements ToJsonable {
 
 /// Signature help options.
 class SignatureHelpOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       SignatureHelpOptions.canParse, SignatureHelpOptions.fromJson);
 
   SignatureHelpOptions(this.triggerCharacters);
@@ -11467,14 +11452,14 @@ class SignatureHelpOptions implements ToJsonable {
         ?.map((item) => item)
         ?.cast<String>()
         ?.toList();
-    return new SignatureHelpOptions(triggerCharacters);
+    return SignatureHelpOptions(triggerCharacters);
   }
 
   /// The characters that trigger signature help automatically.
   final List<String> triggerCharacters;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (triggerCharacters != null) {
       __result['triggerCharacters'] = triggerCharacters;
     }
@@ -11488,7 +11473,7 @@ class SignatureHelpOptions implements ToJsonable {
         if (obj['triggerCharacters'] != null &&
             !((obj['triggerCharacters'] is List &&
                 (obj['triggerCharacters'].every((item) => item is String))))) {
-          reporter.reportError("must be of type List<String>");
+          reporter.reportError('must be of type List<String>');
           return false;
         }
       } finally {
@@ -11496,13 +11481,13 @@ class SignatureHelpOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type SignatureHelpOptions");
+      reporter.reportError('must be of type SignatureHelpOptions');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is SignatureHelpOptions) {
       return listEqual(triggerCharacters, other.triggerCharacters,
               (String a, String b) => a == b) &&
@@ -11513,7 +11498,7 @@ class SignatureHelpOptions implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, triggerCharacters.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -11524,7 +11509,7 @@ class SignatureHelpOptions implements ToJsonable {
 
 class SignatureHelpRegistrationOptions
     implements TextDocumentRegistrationOptions, ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       SignatureHelpRegistrationOptions.canParse,
       SignatureHelpRegistrationOptions.fromJson);
 
@@ -11539,7 +11524,7 @@ class SignatureHelpRegistrationOptions
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
-    return new SignatureHelpRegistrationOptions(
+    return SignatureHelpRegistrationOptions(
         triggerCharacters, documentSelector);
   }
 
@@ -11551,7 +11536,7 @@ class SignatureHelpRegistrationOptions
   final List<String> triggerCharacters;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (triggerCharacters != null) {
       __result['triggerCharacters'] = triggerCharacters;
     }
@@ -11566,7 +11551,7 @@ class SignatureHelpRegistrationOptions
         if (obj['triggerCharacters'] != null &&
             !((obj['triggerCharacters'] is List &&
                 (obj['triggerCharacters'].every((item) => item is String))))) {
-          reporter.reportError("must be of type List<String>");
+          reporter.reportError('must be of type List<String>');
           return false;
         }
       } finally {
@@ -11575,14 +11560,14 @@ class SignatureHelpRegistrationOptions
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['documentSelector'] != null &&
             !((obj['documentSelector'] is List &&
                 (obj['documentSelector'].every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<DocumentFilter>");
+          reporter.reportError('must be of type List<DocumentFilter>');
           return false;
         }
       } finally {
@@ -11590,13 +11575,13 @@ class SignatureHelpRegistrationOptions
       }
       return true;
     } else {
-      reporter.reportError("must be of type SignatureHelpRegistrationOptions");
+      reporter.reportError('must be of type SignatureHelpRegistrationOptions');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is SignatureHelpRegistrationOptions) {
       return listEqual(triggerCharacters, other.triggerCharacters,
               (String a, String b) => a == b) &&
@@ -11608,7 +11593,7 @@ class SignatureHelpRegistrationOptions
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, triggerCharacters.hashCode);
     hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -11621,7 +11606,7 @@ class SignatureHelpRegistrationOptions
 /// Represents the signature of something callable. A signature can have a
 /// label, like a function-name, a doc-comment, and a set of parameters.
 class SignatureInformation implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       SignatureInformation.canParse, SignatureInformation.fromJson);
 
   SignatureInformation(this.label, this.documentation, this.parameters) {
@@ -11632,12 +11617,11 @@ class SignatureInformation implements ToJsonable {
   static SignatureInformation fromJson(Map<String, dynamic> json) {
     final label = json['label'];
     final documentation = json['documentation'] is String
-        ? new Either2<String, MarkupContent>.t1(json['documentation'])
+        ? Either2<String, MarkupContent>.t1(json['documentation'])
         : (MarkupContent.canParse(json['documentation'], nullLspJsonReporter)
-            ? new Either2<String, MarkupContent>.t2(
-                json['documentation'] != null
-                    ? MarkupContent.fromJson(json['documentation'])
-                    : null)
+            ? Either2<String, MarkupContent>.t2(json['documentation'] != null
+                ? MarkupContent.fromJson(json['documentation'])
+                : null)
             : (json['documentation'] == null
                 ? null
                 : (throw '''${json['documentation']} was not one of (String, MarkupContent)''')));
@@ -11646,7 +11630,7 @@ class SignatureInformation implements ToJsonable {
             (item) => item != null ? ParameterInformation.fromJson(item) : null)
         ?.cast<ParameterInformation>()
         ?.toList();
-    return new SignatureInformation(label, documentation, parameters);
+    return SignatureInformation(label, documentation, parameters);
   }
 
   /// The human-readable doc-comment of this signature. Will be shown in the UI
@@ -11660,7 +11644,7 @@ class SignatureInformation implements ToJsonable {
   final List<ParameterInformation> parameters;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['label'] = label ?? (throw 'label is required but was not set');
     if (documentation != null) {
       __result['documentation'] = documentation;
@@ -11676,15 +11660,15 @@ class SignatureInformation implements ToJsonable {
       reporter.push('label');
       try {
         if (!obj.containsKey('label')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['label'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['label'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -11696,7 +11680,7 @@ class SignatureInformation implements ToJsonable {
             !((obj['documentation'] is String ||
                 MarkupContent.canParse(obj['documentation'], reporter)))) {
           reporter
-              .reportError("must be of type Either2<String, MarkupContent>");
+              .reportError('must be of type Either2<String, MarkupContent>');
           return false;
         }
       } finally {
@@ -11708,7 +11692,7 @@ class SignatureInformation implements ToJsonable {
             !((obj['parameters'] is List &&
                 (obj['parameters'].every((item) =>
                     ParameterInformation.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<ParameterInformation>");
+          reporter.reportError('must be of type List<ParameterInformation>');
           return false;
         }
       } finally {
@@ -11716,13 +11700,13 @@ class SignatureInformation implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type SignatureInformation");
+      reporter.reportError('must be of type SignatureInformation');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is SignatureInformation) {
       return label == other.label &&
           documentation == other.documentation &&
@@ -11735,7 +11719,7 @@ class SignatureInformation implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, label.hashCode);
     hash = JenkinsSmiHash.combine(hash, documentation.hashCode);
     hash = JenkinsSmiHash.combine(hash, parameters.hashCode);
@@ -11748,13 +11732,13 @@ class SignatureInformation implements ToJsonable {
 
 /// Static registration options to be returned in the initialize request.
 class StaticRegistrationOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       StaticRegistrationOptions.canParse, StaticRegistrationOptions.fromJson);
 
   StaticRegistrationOptions(this.id);
   static StaticRegistrationOptions fromJson(Map<String, dynamic> json) {
     final id = json['id'];
-    return new StaticRegistrationOptions(id);
+    return StaticRegistrationOptions(id);
   }
 
   /// The id used to register the request. The id can be used to deregister the
@@ -11762,7 +11746,7 @@ class StaticRegistrationOptions implements ToJsonable {
   final String id;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (id != null) {
       __result['id'] = id;
     }
@@ -11774,7 +11758,7 @@ class StaticRegistrationOptions implements ToJsonable {
       reporter.push('id');
       try {
         if (obj['id'] != null && !(obj['id'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -11782,13 +11766,13 @@ class StaticRegistrationOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type StaticRegistrationOptions");
+      reporter.reportError('must be of type StaticRegistrationOptions');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is StaticRegistrationOptions) {
       return id == other.id && true;
     }
@@ -11797,7 +11781,7 @@ class StaticRegistrationOptions implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, id.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -11809,8 +11793,8 @@ class StaticRegistrationOptions implements ToJsonable {
 /// Represents information about programming constructs like variables, classes,
 /// interfaces etc.
 class SymbolInformation implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      SymbolInformation.canParse, SymbolInformation.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(SymbolInformation.canParse, SymbolInformation.fromJson);
 
   SymbolInformation(this.name, this.kind, this.deprecated, this.location,
       this.containerName) {
@@ -11832,8 +11816,7 @@ class SymbolInformation implements ToJsonable {
     final location =
         json['location'] != null ? Location.fromJson(json['location']) : null;
     final containerName = json['containerName'];
-    return new SymbolInformation(
-        name, kind, deprecated, location, containerName);
+    return SymbolInformation(name, kind, deprecated, location, containerName);
   }
 
   /// The name of the symbol containing this symbol. This information is for
@@ -11863,7 +11846,7 @@ class SymbolInformation implements ToJsonable {
   final String name;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['name'] = name ?? (throw 'name is required but was not set');
     __result['kind'] = kind ?? (throw 'kind is required but was not set');
     if (deprecated != null) {
@@ -11882,15 +11865,15 @@ class SymbolInformation implements ToJsonable {
       reporter.push('name');
       try {
         if (!obj.containsKey('name')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['name'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['name'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -11899,15 +11882,15 @@ class SymbolInformation implements ToJsonable {
       reporter.push('kind');
       try {
         if (!obj.containsKey('kind')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['kind'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(SymbolKind.canParse(obj['kind'], reporter))) {
-          reporter.reportError("must be of type SymbolKind");
+          reporter.reportError('must be of type SymbolKind');
           return false;
         }
       } finally {
@@ -11916,7 +11899,7 @@ class SymbolInformation implements ToJsonable {
       reporter.push('deprecated');
       try {
         if (obj['deprecated'] != null && !(obj['deprecated'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -11925,15 +11908,15 @@ class SymbolInformation implements ToJsonable {
       reporter.push('location');
       try {
         if (!obj.containsKey('location')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['location'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Location.canParse(obj['location'], reporter))) {
-          reporter.reportError("must be of type Location");
+          reporter.reportError('must be of type Location');
           return false;
         }
       } finally {
@@ -11942,7 +11925,7 @@ class SymbolInformation implements ToJsonable {
       reporter.push('containerName');
       try {
         if (obj['containerName'] != null && !(obj['containerName'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -11950,13 +11933,13 @@ class SymbolInformation implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type SymbolInformation");
+      reporter.reportError('must be of type SymbolInformation');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is SymbolInformation) {
       return name == other.name &&
           kind == other.kind &&
@@ -11970,7 +11953,7 @@ class SymbolInformation implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, name.hashCode);
     hash = JenkinsSmiHash.combine(hash, kind.hashCode);
     hash = JenkinsSmiHash.combine(hash, deprecated.hashCode);
@@ -11994,32 +11977,32 @@ class SymbolKind {
     return obj is num;
   }
 
-  static const File = const SymbolKind(1);
-  static const Module = const SymbolKind(2);
-  static const Namespace = const SymbolKind(3);
-  static const Package = const SymbolKind(4);
-  static const Class = const SymbolKind(5);
-  static const Method = const SymbolKind(6);
-  static const Property = const SymbolKind(7);
-  static const Field = const SymbolKind(8);
-  static const Constructor = const SymbolKind(9);
-  static const Enum = const SymbolKind(10);
-  static const Interface = const SymbolKind(11);
-  static const Function = const SymbolKind(12);
-  static const Variable = const SymbolKind(13);
-  static const Constant = const SymbolKind(14);
-  static const Str = const SymbolKind(15);
-  static const Number = const SymbolKind(16);
-  static const Boolean = const SymbolKind(17);
-  static const Array = const SymbolKind(18);
-  static const Obj = const SymbolKind(19);
-  static const Key = const SymbolKind(20);
-  static const Null = const SymbolKind(21);
-  static const EnumMember = const SymbolKind(22);
-  static const Struct = const SymbolKind(23);
-  static const Event = const SymbolKind(24);
-  static const Operator = const SymbolKind(25);
-  static const TypeParameter = const SymbolKind(26);
+  static const File = SymbolKind(1);
+  static const Module = SymbolKind(2);
+  static const Namespace = SymbolKind(3);
+  static const Package = SymbolKind(4);
+  static const Class = SymbolKind(5);
+  static const Method = SymbolKind(6);
+  static const Property = SymbolKind(7);
+  static const Field = SymbolKind(8);
+  static const Constructor = SymbolKind(9);
+  static const Enum = SymbolKind(10);
+  static const Interface = SymbolKind(11);
+  static const Function = SymbolKind(12);
+  static const Variable = SymbolKind(13);
+  static const Constant = SymbolKind(14);
+  static const Str = SymbolKind(15);
+  static const Number = SymbolKind(16);
+  static const Boolean = SymbolKind(17);
+  static const Array = SymbolKind(18);
+  static const Obj = SymbolKind(19);
+  static const Key = SymbolKind(20);
+  static const Null = SymbolKind(21);
+  static const EnumMember = SymbolKind(22);
+  static const Struct = SymbolKind(23);
+  static const Event = SymbolKind(24);
+  static const Operator = SymbolKind(25);
+  static const TypeParameter = SymbolKind(26);
 
   Object toJson() => _value;
 
@@ -12027,16 +12010,16 @@ class SymbolKind {
   String toString() => _value.toString();
 
   @override
-  get hashCode => _value.hashCode;
+  int get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is SymbolKind && o._value == _value;
+  bool operator ==(Object o) => o is SymbolKind && o._value == _value;
 }
 
 /// Describe options to be used when registering for text document change
 /// events.
 class TextDocumentChangeRegistrationOptions
     implements TextDocumentRegistrationOptions, ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentChangeRegistrationOptions.canParse,
       TextDocumentChangeRegistrationOptions.fromJson);
 
@@ -12054,8 +12037,7 @@ class TextDocumentChangeRegistrationOptions
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
-    return new TextDocumentChangeRegistrationOptions(
-        syncKind, documentSelector);
+    return TextDocumentChangeRegistrationOptions(syncKind, documentSelector);
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -12067,7 +12049,7 @@ class TextDocumentChangeRegistrationOptions
   final TextDocumentSyncKind syncKind;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['syncKind'] =
         syncKind ?? (throw 'syncKind is required but was not set');
     __result['documentSelector'] = documentSelector;
@@ -12079,15 +12061,15 @@ class TextDocumentChangeRegistrationOptions
       reporter.push('syncKind');
       try {
         if (!obj.containsKey('syncKind')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['syncKind'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(TextDocumentSyncKind.canParse(obj['syncKind'], reporter))) {
-          reporter.reportError("must be of type TextDocumentSyncKind");
+          reporter.reportError('must be of type TextDocumentSyncKind');
           return false;
         }
       } finally {
@@ -12096,14 +12078,14 @@ class TextDocumentChangeRegistrationOptions
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['documentSelector'] != null &&
             !((obj['documentSelector'] is List &&
                 (obj['documentSelector'].every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<DocumentFilter>");
+          reporter.reportError('must be of type List<DocumentFilter>');
           return false;
         }
       } finally {
@@ -12112,13 +12094,13 @@ class TextDocumentChangeRegistrationOptions
       return true;
     } else {
       reporter
-          .reportError("must be of type TextDocumentChangeRegistrationOptions");
+          .reportError('must be of type TextDocumentChangeRegistrationOptions');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentChangeRegistrationOptions) {
       return syncKind == other.syncKind &&
           documentSelector == other.documentSelector &&
@@ -12129,7 +12111,7 @@ class TextDocumentChangeRegistrationOptions
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, syncKind.hashCode);
     hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -12141,7 +12123,7 @@ class TextDocumentChangeRegistrationOptions
 
 /// Text document specific client capabilities.
 class TextDocumentClientCapabilities implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilities.canParse,
       TextDocumentClientCapabilities.fromJson);
 
@@ -12244,7 +12226,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
         ? TextDocumentClientCapabilitiesFoldingRange.fromJson(
             json['foldingRange'])
         : null;
-    return new TextDocumentClientCapabilities(
+    return TextDocumentClientCapabilities(
         synchronization,
         completion,
         hover,
@@ -12341,7 +12323,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
   final TextDocumentClientCapabilitiesTypeDefinition typeDefinition;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (synchronization != null) {
       __result['synchronization'] = synchronization;
     }
@@ -12416,7 +12398,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesSynchronization.canParse(
                 obj['synchronization'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesSynchronization");
+              'must be of type TextDocumentClientCapabilitiesSynchronization');
           return false;
         }
       } finally {
@@ -12428,7 +12410,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesCompletion.canParse(
                 obj['completion'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesCompletion");
+              'must be of type TextDocumentClientCapabilitiesCompletion');
           return false;
         }
       } finally {
@@ -12440,7 +12422,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesHover.canParse(
                 obj['hover'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesHover");
+              'must be of type TextDocumentClientCapabilitiesHover');
           return false;
         }
       } finally {
@@ -12452,7 +12434,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesSignatureHelp.canParse(
                 obj['signatureHelp'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesSignatureHelp");
+              'must be of type TextDocumentClientCapabilitiesSignatureHelp');
           return false;
         }
       } finally {
@@ -12464,7 +12446,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesReferences.canParse(
                 obj['references'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesReferences");
+              'must be of type TextDocumentClientCapabilitiesReferences');
           return false;
         }
       } finally {
@@ -12476,7 +12458,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesDocumentHighlight.canParse(
                 obj['documentHighlight'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesDocumentHighlight");
+              'must be of type TextDocumentClientCapabilitiesDocumentHighlight');
           return false;
         }
       } finally {
@@ -12488,7 +12470,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesDocumentSymbol.canParse(
                 obj['documentSymbol'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesDocumentSymbol");
+              'must be of type TextDocumentClientCapabilitiesDocumentSymbol');
           return false;
         }
       } finally {
@@ -12500,7 +12482,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesFormatting.canParse(
                 obj['formatting'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesFormatting");
+              'must be of type TextDocumentClientCapabilitiesFormatting');
           return false;
         }
       } finally {
@@ -12512,7 +12494,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesRangeFormatting.canParse(
                 obj['rangeFormatting'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesRangeFormatting");
+              'must be of type TextDocumentClientCapabilitiesRangeFormatting');
           return false;
         }
       } finally {
@@ -12524,7 +12506,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesOnTypeFormatting.canParse(
                 obj['onTypeFormatting'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesOnTypeFormatting");
+              'must be of type TextDocumentClientCapabilitiesOnTypeFormatting');
           return false;
         }
       } finally {
@@ -12536,7 +12518,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesDeclaration.canParse(
                 obj['declaration'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesDeclaration");
+              'must be of type TextDocumentClientCapabilitiesDeclaration');
           return false;
         }
       } finally {
@@ -12548,7 +12530,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesDefinition.canParse(
                 obj['definition'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesDefinition");
+              'must be of type TextDocumentClientCapabilitiesDefinition');
           return false;
         }
       } finally {
@@ -12560,7 +12542,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesTypeDefinition.canParse(
                 obj['typeDefinition'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesTypeDefinition");
+              'must be of type TextDocumentClientCapabilitiesTypeDefinition');
           return false;
         }
       } finally {
@@ -12572,7 +12554,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesImplementation.canParse(
                 obj['implementation'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesImplementation");
+              'must be of type TextDocumentClientCapabilitiesImplementation');
           return false;
         }
       } finally {
@@ -12584,7 +12566,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesCodeAction.canParse(
                 obj['codeAction'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesCodeAction");
+              'must be of type TextDocumentClientCapabilitiesCodeAction');
           return false;
         }
       } finally {
@@ -12596,7 +12578,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesCodeLens.canParse(
                 obj['codeLens'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesCodeLens");
+              'must be of type TextDocumentClientCapabilitiesCodeLens');
           return false;
         }
       } finally {
@@ -12608,7 +12590,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesDocumentLink.canParse(
                 obj['documentLink'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesDocumentLink");
+              'must be of type TextDocumentClientCapabilitiesDocumentLink');
           return false;
         }
       } finally {
@@ -12620,7 +12602,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesColorProvider.canParse(
                 obj['colorProvider'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesColorProvider");
+              'must be of type TextDocumentClientCapabilitiesColorProvider');
           return false;
         }
       } finally {
@@ -12632,7 +12614,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesRename.canParse(
                 obj['rename'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesRename");
+              'must be of type TextDocumentClientCapabilitiesRename');
           return false;
         }
       } finally {
@@ -12644,7 +12626,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesPublishDiagnostics.canParse(
                 obj['publishDiagnostics'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesPublishDiagnostics");
+              'must be of type TextDocumentClientCapabilitiesPublishDiagnostics');
           return false;
         }
       } finally {
@@ -12656,7 +12638,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesFoldingRange.canParse(
                 obj['foldingRange'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesFoldingRange");
+              'must be of type TextDocumentClientCapabilitiesFoldingRange');
           return false;
         }
       } finally {
@@ -12664,13 +12646,13 @@ class TextDocumentClientCapabilities implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type TextDocumentClientCapabilities");
+      reporter.reportError('must be of type TextDocumentClientCapabilities');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilities) {
       return synchronization == other.synchronization &&
           completion == other.completion &&
@@ -12700,7 +12682,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, synchronization.hashCode);
     hash = JenkinsSmiHash.combine(hash, completion.hashCode);
     hash = JenkinsSmiHash.combine(hash, hover.hashCode);
@@ -12730,7 +12712,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesCodeAction implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesCodeAction.canParse,
       TextDocumentClientCapabilitiesCodeAction.fromJson);
 
@@ -12743,7 +12725,7 @@ class TextDocumentClientCapabilitiesCodeAction implements ToJsonable {
         ? TextDocumentClientCapabilitiesCodeActionLiteralSupport.fromJson(
             json['codeActionLiteralSupport'])
         : null;
-    return new TextDocumentClientCapabilitiesCodeAction(
+    return TextDocumentClientCapabilitiesCodeAction(
         dynamicRegistration, codeActionLiteralSupport);
   }
 
@@ -12758,7 +12740,7 @@ class TextDocumentClientCapabilitiesCodeAction implements ToJsonable {
   final bool dynamicRegistration;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -12774,7 +12756,7 @@ class TextDocumentClientCapabilitiesCodeAction implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -12786,7 +12768,7 @@ class TextDocumentClientCapabilitiesCodeAction implements ToJsonable {
             !(TextDocumentClientCapabilitiesCodeActionLiteralSupport.canParse(
                 obj['codeActionLiteralSupport'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesCodeActionLiteralSupport");
+              'must be of type TextDocumentClientCapabilitiesCodeActionLiteralSupport');
           return false;
         }
       } finally {
@@ -12795,13 +12777,13 @@ class TextDocumentClientCapabilitiesCodeAction implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesCodeAction");
+          'must be of type TextDocumentClientCapabilitiesCodeAction');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesCodeAction) {
       return dynamicRegistration == other.dynamicRegistration &&
           codeActionLiteralSupport == other.codeActionLiteralSupport &&
@@ -12812,7 +12794,7 @@ class TextDocumentClientCapabilitiesCodeAction implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     hash = JenkinsSmiHash.combine(hash, codeActionLiteralSupport.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -12823,7 +12805,7 @@ class TextDocumentClientCapabilitiesCodeAction implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesCodeActionKind implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesCodeActionKind.canParse,
       TextDocumentClientCapabilitiesCodeActionKind.fromJson);
 
@@ -12838,7 +12820,7 @@ class TextDocumentClientCapabilitiesCodeActionKind implements ToJsonable {
         ?.map((item) => item != null ? CodeActionKind.fromJson(item) : null)
         ?.cast<CodeActionKind>()
         ?.toList();
-    return new TextDocumentClientCapabilitiesCodeActionKind(valueSet);
+    return TextDocumentClientCapabilitiesCodeActionKind(valueSet);
   }
 
   /// The code action kind values the client supports. When this property exists
@@ -12847,7 +12829,7 @@ class TextDocumentClientCapabilitiesCodeActionKind implements ToJsonable {
   final List<CodeActionKind> valueSet;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['valueSet'] =
         valueSet ?? (throw 'valueSet is required but was not set');
     return __result;
@@ -12858,17 +12840,17 @@ class TextDocumentClientCapabilitiesCodeActionKind implements ToJsonable {
       reporter.push('valueSet');
       try {
         if (!obj.containsKey('valueSet')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['valueSet'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!((obj['valueSet'] is List &&
             (obj['valueSet']
                 .every((item) => CodeActionKind.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<CodeActionKind>");
+          reporter.reportError('must be of type List<CodeActionKind>');
           return false;
         }
       } finally {
@@ -12877,13 +12859,13 @@ class TextDocumentClientCapabilitiesCodeActionKind implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesCodeActionKind");
+          'must be of type TextDocumentClientCapabilitiesCodeActionKind');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesCodeActionKind) {
       return listEqual(valueSet, other.valueSet,
               (CodeActionKind a, CodeActionKind b) => a == b) &&
@@ -12894,7 +12876,7 @@ class TextDocumentClientCapabilitiesCodeActionKind implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, valueSet.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -12905,7 +12887,7 @@ class TextDocumentClientCapabilitiesCodeActionKind implements ToJsonable {
 
 class TextDocumentClientCapabilitiesCodeActionLiteralSupport
     implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesCodeActionLiteralSupport.canParse,
       TextDocumentClientCapabilitiesCodeActionLiteralSupport.fromJson);
 
@@ -12920,7 +12902,7 @@ class TextDocumentClientCapabilitiesCodeActionLiteralSupport
         ? TextDocumentClientCapabilitiesCodeActionKind.fromJson(
             json['codeActionKind'])
         : null;
-    return new TextDocumentClientCapabilitiesCodeActionLiteralSupport(
+    return TextDocumentClientCapabilitiesCodeActionLiteralSupport(
         codeActionKind);
   }
 
@@ -12928,7 +12910,7 @@ class TextDocumentClientCapabilitiesCodeActionLiteralSupport
   final TextDocumentClientCapabilitiesCodeActionKind codeActionKind;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['codeActionKind'] =
         codeActionKind ?? (throw 'codeActionKind is required but was not set');
     return __result;
@@ -12939,17 +12921,17 @@ class TextDocumentClientCapabilitiesCodeActionLiteralSupport
       reporter.push('codeActionKind');
       try {
         if (!obj.containsKey('codeActionKind')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['codeActionKind'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(TextDocumentClientCapabilitiesCodeActionKind.canParse(
             obj['codeActionKind'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesCodeActionKind");
+              'must be of type TextDocumentClientCapabilitiesCodeActionKind');
           return false;
         }
       } finally {
@@ -12958,13 +12940,13 @@ class TextDocumentClientCapabilitiesCodeActionLiteralSupport
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesCodeActionLiteralSupport");
+          'must be of type TextDocumentClientCapabilitiesCodeActionLiteralSupport');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesCodeActionLiteralSupport) {
       return codeActionKind == other.codeActionKind && true;
     }
@@ -12973,7 +12955,7 @@ class TextDocumentClientCapabilitiesCodeActionLiteralSupport
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, codeActionKind.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -12983,7 +12965,7 @@ class TextDocumentClientCapabilitiesCodeActionLiteralSupport
 }
 
 class TextDocumentClientCapabilitiesCodeLens implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesCodeLens.canParse,
       TextDocumentClientCapabilitiesCodeLens.fromJson);
 
@@ -12991,14 +12973,14 @@ class TextDocumentClientCapabilitiesCodeLens implements ToJsonable {
   static TextDocumentClientCapabilitiesCodeLens fromJson(
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
-    return new TextDocumentClientCapabilitiesCodeLens(dynamicRegistration);
+    return TextDocumentClientCapabilitiesCodeLens(dynamicRegistration);
   }
 
   /// Whether code lens supports dynamic registration.
   final bool dynamicRegistration;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -13011,7 +12993,7 @@ class TextDocumentClientCapabilitiesCodeLens implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -13020,13 +13002,13 @@ class TextDocumentClientCapabilitiesCodeLens implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesCodeLens");
+          'must be of type TextDocumentClientCapabilitiesCodeLens');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesCodeLens) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
@@ -13035,7 +13017,7 @@ class TextDocumentClientCapabilitiesCodeLens implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -13045,7 +13027,7 @@ class TextDocumentClientCapabilitiesCodeLens implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesColorProvider implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesColorProvider.canParse,
       TextDocumentClientCapabilitiesColorProvider.fromJson);
 
@@ -13053,7 +13035,7 @@ class TextDocumentClientCapabilitiesColorProvider implements ToJsonable {
   static TextDocumentClientCapabilitiesColorProvider fromJson(
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
-    return new TextDocumentClientCapabilitiesColorProvider(dynamicRegistration);
+    return TextDocumentClientCapabilitiesColorProvider(dynamicRegistration);
   }
 
   /// Whether colorProvider supports dynamic registration. If this is set to
@@ -13063,7 +13045,7 @@ class TextDocumentClientCapabilitiesColorProvider implements ToJsonable {
   final bool dynamicRegistration;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -13076,7 +13058,7 @@ class TextDocumentClientCapabilitiesColorProvider implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -13085,13 +13067,13 @@ class TextDocumentClientCapabilitiesColorProvider implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesColorProvider");
+          'must be of type TextDocumentClientCapabilitiesColorProvider');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesColorProvider) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
@@ -13100,7 +13082,7 @@ class TextDocumentClientCapabilitiesColorProvider implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -13110,7 +13092,7 @@ class TextDocumentClientCapabilitiesColorProvider implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesCompletion implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesCompletion.canParse,
       TextDocumentClientCapabilitiesCompletion.fromJson);
 
@@ -13128,7 +13110,7 @@ class TextDocumentClientCapabilitiesCompletion implements ToJsonable {
             json['completionItemKind'])
         : null;
     final contextSupport = json['contextSupport'];
-    return new TextDocumentClientCapabilitiesCompletion(dynamicRegistration,
+    return TextDocumentClientCapabilitiesCompletion(dynamicRegistration,
         completionItem, completionItemKind, contextSupport);
   }
 
@@ -13144,7 +13126,7 @@ class TextDocumentClientCapabilitiesCompletion implements ToJsonable {
   final bool dynamicRegistration;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -13166,7 +13148,7 @@ class TextDocumentClientCapabilitiesCompletion implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -13178,7 +13160,7 @@ class TextDocumentClientCapabilitiesCompletion implements ToJsonable {
             !(TextDocumentClientCapabilitiesCompletionItem.canParse(
                 obj['completionItem'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesCompletionItem");
+              'must be of type TextDocumentClientCapabilitiesCompletionItem');
           return false;
         }
       } finally {
@@ -13190,7 +13172,7 @@ class TextDocumentClientCapabilitiesCompletion implements ToJsonable {
             !(TextDocumentClientCapabilitiesCompletionItemKind.canParse(
                 obj['completionItemKind'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesCompletionItemKind");
+              'must be of type TextDocumentClientCapabilitiesCompletionItemKind');
           return false;
         }
       } finally {
@@ -13199,7 +13181,7 @@ class TextDocumentClientCapabilitiesCompletion implements ToJsonable {
       reporter.push('contextSupport');
       try {
         if (obj['contextSupport'] != null && !(obj['contextSupport'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -13208,13 +13190,13 @@ class TextDocumentClientCapabilitiesCompletion implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesCompletion");
+          'must be of type TextDocumentClientCapabilitiesCompletion');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesCompletion) {
       return dynamicRegistration == other.dynamicRegistration &&
           completionItem == other.completionItem &&
@@ -13227,7 +13209,7 @@ class TextDocumentClientCapabilitiesCompletion implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     hash = JenkinsSmiHash.combine(hash, completionItem.hashCode);
     hash = JenkinsSmiHash.combine(hash, completionItemKind.hashCode);
@@ -13240,7 +13222,7 @@ class TextDocumentClientCapabilitiesCompletion implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesCompletionItem implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesCompletionItem.canParse,
       TextDocumentClientCapabilitiesCompletionItem.fromJson);
 
@@ -13260,7 +13242,7 @@ class TextDocumentClientCapabilitiesCompletionItem implements ToJsonable {
         ?.toList();
     final deprecatedSupport = json['deprecatedSupport'];
     final preselectSupport = json['preselectSupport'];
-    return new TextDocumentClientCapabilitiesCompletionItem(
+    return TextDocumentClientCapabilitiesCompletionItem(
         snippetSupport,
         commitCharactersSupport,
         documentationFormat,
@@ -13290,7 +13272,7 @@ class TextDocumentClientCapabilitiesCompletionItem implements ToJsonable {
   final bool snippetSupport;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (snippetSupport != null) {
       __result['snippetSupport'] = snippetSupport;
     }
@@ -13314,7 +13296,7 @@ class TextDocumentClientCapabilitiesCompletionItem implements ToJsonable {
       reporter.push('snippetSupport');
       try {
         if (obj['snippetSupport'] != null && !(obj['snippetSupport'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -13324,7 +13306,7 @@ class TextDocumentClientCapabilitiesCompletionItem implements ToJsonable {
       try {
         if (obj['commitCharactersSupport'] != null &&
             !(obj['commitCharactersSupport'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -13336,7 +13318,7 @@ class TextDocumentClientCapabilitiesCompletionItem implements ToJsonable {
             !((obj['documentationFormat'] is List &&
                 (obj['documentationFormat']
                     .every((item) => MarkupKind.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<MarkupKind>");
+          reporter.reportError('must be of type List<MarkupKind>');
           return false;
         }
       } finally {
@@ -13346,7 +13328,7 @@ class TextDocumentClientCapabilitiesCompletionItem implements ToJsonable {
       try {
         if (obj['deprecatedSupport'] != null &&
             !(obj['deprecatedSupport'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -13356,7 +13338,7 @@ class TextDocumentClientCapabilitiesCompletionItem implements ToJsonable {
       try {
         if (obj['preselectSupport'] != null &&
             !(obj['preselectSupport'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -13365,13 +13347,13 @@ class TextDocumentClientCapabilitiesCompletionItem implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesCompletionItem");
+          'must be of type TextDocumentClientCapabilitiesCompletionItem');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesCompletionItem) {
       return snippetSupport == other.snippetSupport &&
           commitCharactersSupport == other.commitCharactersSupport &&
@@ -13386,7 +13368,7 @@ class TextDocumentClientCapabilitiesCompletionItem implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, snippetSupport.hashCode);
     hash = JenkinsSmiHash.combine(hash, commitCharactersSupport.hashCode);
     hash = JenkinsSmiHash.combine(hash, documentationFormat.hashCode);
@@ -13400,7 +13382,7 @@ class TextDocumentClientCapabilitiesCompletionItem implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesCompletionItemKind implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesCompletionItemKind.canParse,
       TextDocumentClientCapabilitiesCompletionItemKind.fromJson);
 
@@ -13411,7 +13393,7 @@ class TextDocumentClientCapabilitiesCompletionItemKind implements ToJsonable {
         ?.map((item) => item != null ? CompletionItemKind.fromJson(item) : null)
         ?.cast<CompletionItemKind>()
         ?.toList();
-    return new TextDocumentClientCapabilitiesCompletionItemKind(valueSet);
+    return TextDocumentClientCapabilitiesCompletionItemKind(valueSet);
   }
 
   /// The completion item kind values the client supports. When this property
@@ -13424,7 +13406,7 @@ class TextDocumentClientCapabilitiesCompletionItemKind implements ToJsonable {
   final List<CompletionItemKind> valueSet;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (valueSet != null) {
       __result['valueSet'] = valueSet;
     }
@@ -13439,7 +13421,7 @@ class TextDocumentClientCapabilitiesCompletionItemKind implements ToJsonable {
             !((obj['valueSet'] is List &&
                 (obj['valueSet'].every(
                     (item) => CompletionItemKind.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<CompletionItemKind>");
+          reporter.reportError('must be of type List<CompletionItemKind>');
           return false;
         }
       } finally {
@@ -13448,13 +13430,13 @@ class TextDocumentClientCapabilitiesCompletionItemKind implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesCompletionItemKind");
+          'must be of type TextDocumentClientCapabilitiesCompletionItemKind');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesCompletionItemKind) {
       return listEqual(valueSet, other.valueSet,
               (CompletionItemKind a, CompletionItemKind b) => a == b) &&
@@ -13465,7 +13447,7 @@ class TextDocumentClientCapabilitiesCompletionItemKind implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, valueSet.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -13475,7 +13457,7 @@ class TextDocumentClientCapabilitiesCompletionItemKind implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesDeclaration implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesDeclaration.canParse,
       TextDocumentClientCapabilitiesDeclaration.fromJson);
 
@@ -13485,7 +13467,7 @@ class TextDocumentClientCapabilitiesDeclaration implements ToJsonable {
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
     final linkSupport = json['linkSupport'];
-    return new TextDocumentClientCapabilitiesDeclaration(
+    return TextDocumentClientCapabilitiesDeclaration(
         dynamicRegistration, linkSupport);
   }
 
@@ -13501,7 +13483,7 @@ class TextDocumentClientCapabilitiesDeclaration implements ToJsonable {
   final bool linkSupport;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -13517,7 +13499,7 @@ class TextDocumentClientCapabilitiesDeclaration implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -13526,7 +13508,7 @@ class TextDocumentClientCapabilitiesDeclaration implements ToJsonable {
       reporter.push('linkSupport');
       try {
         if (obj['linkSupport'] != null && !(obj['linkSupport'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -13535,13 +13517,13 @@ class TextDocumentClientCapabilitiesDeclaration implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesDeclaration");
+          'must be of type TextDocumentClientCapabilitiesDeclaration');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesDeclaration) {
       return dynamicRegistration == other.dynamicRegistration &&
           linkSupport == other.linkSupport &&
@@ -13552,7 +13534,7 @@ class TextDocumentClientCapabilitiesDeclaration implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     hash = JenkinsSmiHash.combine(hash, linkSupport.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -13563,7 +13545,7 @@ class TextDocumentClientCapabilitiesDeclaration implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesDefinition implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesDefinition.canParse,
       TextDocumentClientCapabilitiesDefinition.fromJson);
 
@@ -13573,7 +13555,7 @@ class TextDocumentClientCapabilitiesDefinition implements ToJsonable {
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
     final linkSupport = json['linkSupport'];
-    return new TextDocumentClientCapabilitiesDefinition(
+    return TextDocumentClientCapabilitiesDefinition(
         dynamicRegistration, linkSupport);
   }
 
@@ -13584,7 +13566,7 @@ class TextDocumentClientCapabilitiesDefinition implements ToJsonable {
   final bool linkSupport;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -13600,7 +13582,7 @@ class TextDocumentClientCapabilitiesDefinition implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -13609,7 +13591,7 @@ class TextDocumentClientCapabilitiesDefinition implements ToJsonable {
       reporter.push('linkSupport');
       try {
         if (obj['linkSupport'] != null && !(obj['linkSupport'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -13618,13 +13600,13 @@ class TextDocumentClientCapabilitiesDefinition implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesDefinition");
+          'must be of type TextDocumentClientCapabilitiesDefinition');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesDefinition) {
       return dynamicRegistration == other.dynamicRegistration &&
           linkSupport == other.linkSupport &&
@@ -13635,7 +13617,7 @@ class TextDocumentClientCapabilitiesDefinition implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     hash = JenkinsSmiHash.combine(hash, linkSupport.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -13646,7 +13628,7 @@ class TextDocumentClientCapabilitiesDefinition implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesDocumentHighlight implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesDocumentHighlight.canParse,
       TextDocumentClientCapabilitiesDocumentHighlight.fromJson);
 
@@ -13654,15 +13636,14 @@ class TextDocumentClientCapabilitiesDocumentHighlight implements ToJsonable {
   static TextDocumentClientCapabilitiesDocumentHighlight fromJson(
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
-    return new TextDocumentClientCapabilitiesDocumentHighlight(
-        dynamicRegistration);
+    return TextDocumentClientCapabilitiesDocumentHighlight(dynamicRegistration);
   }
 
   /// Whether document highlight supports dynamic registration.
   final bool dynamicRegistration;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -13675,7 +13656,7 @@ class TextDocumentClientCapabilitiesDocumentHighlight implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -13684,13 +13665,13 @@ class TextDocumentClientCapabilitiesDocumentHighlight implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesDocumentHighlight");
+          'must be of type TextDocumentClientCapabilitiesDocumentHighlight');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesDocumentHighlight) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
@@ -13699,7 +13680,7 @@ class TextDocumentClientCapabilitiesDocumentHighlight implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -13709,7 +13690,7 @@ class TextDocumentClientCapabilitiesDocumentHighlight implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesDocumentLink implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesDocumentLink.canParse,
       TextDocumentClientCapabilitiesDocumentLink.fromJson);
 
@@ -13717,14 +13698,14 @@ class TextDocumentClientCapabilitiesDocumentLink implements ToJsonable {
   static TextDocumentClientCapabilitiesDocumentLink fromJson(
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
-    return new TextDocumentClientCapabilitiesDocumentLink(dynamicRegistration);
+    return TextDocumentClientCapabilitiesDocumentLink(dynamicRegistration);
   }
 
   /// Whether document link supports dynamic registration.
   final bool dynamicRegistration;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -13737,7 +13718,7 @@ class TextDocumentClientCapabilitiesDocumentLink implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -13746,13 +13727,13 @@ class TextDocumentClientCapabilitiesDocumentLink implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesDocumentLink");
+          'must be of type TextDocumentClientCapabilitiesDocumentLink');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesDocumentLink) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
@@ -13761,7 +13742,7 @@ class TextDocumentClientCapabilitiesDocumentLink implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -13771,7 +13752,7 @@ class TextDocumentClientCapabilitiesDocumentLink implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesDocumentSymbol implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesDocumentSymbol.canParse,
       TextDocumentClientCapabilitiesDocumentSymbol.fromJson);
 
@@ -13785,7 +13766,7 @@ class TextDocumentClientCapabilitiesDocumentSymbol implements ToJsonable {
         : null;
     final hierarchicalDocumentSymbolSupport =
         json['hierarchicalDocumentSymbolSupport'];
-    return new TextDocumentClientCapabilitiesDocumentSymbol(
+    return TextDocumentClientCapabilitiesDocumentSymbol(
         dynamicRegistration, symbolKind, hierarchicalDocumentSymbolSupport);
   }
 
@@ -13799,7 +13780,7 @@ class TextDocumentClientCapabilitiesDocumentSymbol implements ToJsonable {
   final TextDocumentClientCapabilitiesSymbolKind symbolKind;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -13819,7 +13800,7 @@ class TextDocumentClientCapabilitiesDocumentSymbol implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -13831,7 +13812,7 @@ class TextDocumentClientCapabilitiesDocumentSymbol implements ToJsonable {
             !(TextDocumentClientCapabilitiesSymbolKind.canParse(
                 obj['symbolKind'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesSymbolKind");
+              'must be of type TextDocumentClientCapabilitiesSymbolKind');
           return false;
         }
       } finally {
@@ -13841,7 +13822,7 @@ class TextDocumentClientCapabilitiesDocumentSymbol implements ToJsonable {
       try {
         if (obj['hierarchicalDocumentSymbolSupport'] != null &&
             !(obj['hierarchicalDocumentSymbolSupport'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -13850,13 +13831,13 @@ class TextDocumentClientCapabilitiesDocumentSymbol implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesDocumentSymbol");
+          'must be of type TextDocumentClientCapabilitiesDocumentSymbol');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesDocumentSymbol) {
       return dynamicRegistration == other.dynamicRegistration &&
           symbolKind == other.symbolKind &&
@@ -13869,7 +13850,7 @@ class TextDocumentClientCapabilitiesDocumentSymbol implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     hash = JenkinsSmiHash.combine(hash, symbolKind.hashCode);
     hash = JenkinsSmiHash.combine(
@@ -13882,7 +13863,7 @@ class TextDocumentClientCapabilitiesDocumentSymbol implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesFoldingRange implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesFoldingRange.canParse,
       TextDocumentClientCapabilitiesFoldingRange.fromJson);
 
@@ -13893,7 +13874,7 @@ class TextDocumentClientCapabilitiesFoldingRange implements ToJsonable {
     final dynamicRegistration = json['dynamicRegistration'];
     final rangeLimit = json['rangeLimit'];
     final lineFoldingOnly = json['lineFoldingOnly'];
-    return new TextDocumentClientCapabilitiesFoldingRange(
+    return TextDocumentClientCapabilitiesFoldingRange(
         dynamicRegistration, rangeLimit, lineFoldingOnly);
   }
 
@@ -13915,7 +13896,7 @@ class TextDocumentClientCapabilitiesFoldingRange implements ToJsonable {
   final num rangeLimit;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -13934,7 +13915,7 @@ class TextDocumentClientCapabilitiesFoldingRange implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -13943,7 +13924,7 @@ class TextDocumentClientCapabilitiesFoldingRange implements ToJsonable {
       reporter.push('rangeLimit');
       try {
         if (obj['rangeLimit'] != null && !(obj['rangeLimit'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -13953,7 +13934,7 @@ class TextDocumentClientCapabilitiesFoldingRange implements ToJsonable {
       try {
         if (obj['lineFoldingOnly'] != null &&
             !(obj['lineFoldingOnly'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -13962,13 +13943,13 @@ class TextDocumentClientCapabilitiesFoldingRange implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesFoldingRange");
+          'must be of type TextDocumentClientCapabilitiesFoldingRange');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesFoldingRange) {
       return dynamicRegistration == other.dynamicRegistration &&
           rangeLimit == other.rangeLimit &&
@@ -13980,7 +13961,7 @@ class TextDocumentClientCapabilitiesFoldingRange implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     hash = JenkinsSmiHash.combine(hash, rangeLimit.hashCode);
     hash = JenkinsSmiHash.combine(hash, lineFoldingOnly.hashCode);
@@ -13992,7 +13973,7 @@ class TextDocumentClientCapabilitiesFoldingRange implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesFormatting implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesFormatting.canParse,
       TextDocumentClientCapabilitiesFormatting.fromJson);
 
@@ -14000,14 +13981,14 @@ class TextDocumentClientCapabilitiesFormatting implements ToJsonable {
   static TextDocumentClientCapabilitiesFormatting fromJson(
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
-    return new TextDocumentClientCapabilitiesFormatting(dynamicRegistration);
+    return TextDocumentClientCapabilitiesFormatting(dynamicRegistration);
   }
 
   /// Whether formatting supports dynamic registration.
   final bool dynamicRegistration;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -14020,7 +14001,7 @@ class TextDocumentClientCapabilitiesFormatting implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -14029,13 +14010,13 @@ class TextDocumentClientCapabilitiesFormatting implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesFormatting");
+          'must be of type TextDocumentClientCapabilitiesFormatting');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesFormatting) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
@@ -14044,7 +14025,7 @@ class TextDocumentClientCapabilitiesFormatting implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -14054,7 +14035,7 @@ class TextDocumentClientCapabilitiesFormatting implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesHover implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesHover.canParse,
       TextDocumentClientCapabilitiesHover.fromJson);
 
@@ -14067,7 +14048,7 @@ class TextDocumentClientCapabilitiesHover implements ToJsonable {
         ?.map((item) => item != null ? MarkupKind.fromJson(item) : null)
         ?.cast<MarkupKind>()
         ?.toList();
-    return new TextDocumentClientCapabilitiesHover(
+    return TextDocumentClientCapabilitiesHover(
         dynamicRegistration, contentFormat);
   }
 
@@ -14079,7 +14060,7 @@ class TextDocumentClientCapabilitiesHover implements ToJsonable {
   final bool dynamicRegistration;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -14095,7 +14076,7 @@ class TextDocumentClientCapabilitiesHover implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -14107,7 +14088,7 @@ class TextDocumentClientCapabilitiesHover implements ToJsonable {
             !((obj['contentFormat'] is List &&
                 (obj['contentFormat']
                     .every((item) => MarkupKind.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<MarkupKind>");
+          reporter.reportError('must be of type List<MarkupKind>');
           return false;
         }
       } finally {
@@ -14116,13 +14097,13 @@ class TextDocumentClientCapabilitiesHover implements ToJsonable {
       return true;
     } else {
       reporter
-          .reportError("must be of type TextDocumentClientCapabilitiesHover");
+          .reportError('must be of type TextDocumentClientCapabilitiesHover');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesHover) {
       return dynamicRegistration == other.dynamicRegistration &&
           listEqual(contentFormat, other.contentFormat,
@@ -14134,7 +14115,7 @@ class TextDocumentClientCapabilitiesHover implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     hash = JenkinsSmiHash.combine(hash, contentFormat.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -14145,7 +14126,7 @@ class TextDocumentClientCapabilitiesHover implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesImplementation implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesImplementation.canParse,
       TextDocumentClientCapabilitiesImplementation.fromJson);
 
@@ -14155,7 +14136,7 @@ class TextDocumentClientCapabilitiesImplementation implements ToJsonable {
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
     final linkSupport = json['linkSupport'];
-    return new TextDocumentClientCapabilitiesImplementation(
+    return TextDocumentClientCapabilitiesImplementation(
         dynamicRegistration, linkSupport);
   }
 
@@ -14171,7 +14152,7 @@ class TextDocumentClientCapabilitiesImplementation implements ToJsonable {
   final bool linkSupport;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -14187,7 +14168,7 @@ class TextDocumentClientCapabilitiesImplementation implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -14196,7 +14177,7 @@ class TextDocumentClientCapabilitiesImplementation implements ToJsonable {
       reporter.push('linkSupport');
       try {
         if (obj['linkSupport'] != null && !(obj['linkSupport'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -14205,13 +14186,13 @@ class TextDocumentClientCapabilitiesImplementation implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesImplementation");
+          'must be of type TextDocumentClientCapabilitiesImplementation');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesImplementation) {
       return dynamicRegistration == other.dynamicRegistration &&
           linkSupport == other.linkSupport &&
@@ -14222,7 +14203,7 @@ class TextDocumentClientCapabilitiesImplementation implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     hash = JenkinsSmiHash.combine(hash, linkSupport.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -14233,7 +14214,7 @@ class TextDocumentClientCapabilitiesImplementation implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesOnTypeFormatting implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesOnTypeFormatting.canParse,
       TextDocumentClientCapabilitiesOnTypeFormatting.fromJson);
 
@@ -14241,15 +14222,14 @@ class TextDocumentClientCapabilitiesOnTypeFormatting implements ToJsonable {
   static TextDocumentClientCapabilitiesOnTypeFormatting fromJson(
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
-    return new TextDocumentClientCapabilitiesOnTypeFormatting(
-        dynamicRegistration);
+    return TextDocumentClientCapabilitiesOnTypeFormatting(dynamicRegistration);
   }
 
   /// Whether on type formatting supports dynamic registration.
   final bool dynamicRegistration;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -14262,7 +14242,7 @@ class TextDocumentClientCapabilitiesOnTypeFormatting implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -14271,13 +14251,13 @@ class TextDocumentClientCapabilitiesOnTypeFormatting implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesOnTypeFormatting");
+          'must be of type TextDocumentClientCapabilitiesOnTypeFormatting');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesOnTypeFormatting) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
@@ -14286,7 +14266,7 @@ class TextDocumentClientCapabilitiesOnTypeFormatting implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -14296,7 +14276,7 @@ class TextDocumentClientCapabilitiesOnTypeFormatting implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesParameterInformation implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesParameterInformation.canParse,
       TextDocumentClientCapabilitiesParameterInformation.fromJson);
 
@@ -14304,7 +14284,7 @@ class TextDocumentClientCapabilitiesParameterInformation implements ToJsonable {
   static TextDocumentClientCapabilitiesParameterInformation fromJson(
       Map<String, dynamic> json) {
     final labelOffsetSupport = json['labelOffsetSupport'];
-    return new TextDocumentClientCapabilitiesParameterInformation(
+    return TextDocumentClientCapabilitiesParameterInformation(
         labelOffsetSupport);
   }
 
@@ -14315,7 +14295,7 @@ class TextDocumentClientCapabilitiesParameterInformation implements ToJsonable {
   final bool labelOffsetSupport;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (labelOffsetSupport != null) {
       __result['labelOffsetSupport'] = labelOffsetSupport;
     }
@@ -14328,7 +14308,7 @@ class TextDocumentClientCapabilitiesParameterInformation implements ToJsonable {
       try {
         if (obj['labelOffsetSupport'] != null &&
             !(obj['labelOffsetSupport'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -14337,13 +14317,13 @@ class TextDocumentClientCapabilitiesParameterInformation implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesParameterInformation");
+          'must be of type TextDocumentClientCapabilitiesParameterInformation');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesParameterInformation) {
       return labelOffsetSupport == other.labelOffsetSupport && true;
     }
@@ -14352,7 +14332,7 @@ class TextDocumentClientCapabilitiesParameterInformation implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, labelOffsetSupport.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -14362,7 +14342,7 @@ class TextDocumentClientCapabilitiesParameterInformation implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesPublishDiagnostics implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesPublishDiagnostics.canParse,
       TextDocumentClientCapabilitiesPublishDiagnostics.fromJson);
 
@@ -14370,15 +14350,14 @@ class TextDocumentClientCapabilitiesPublishDiagnostics implements ToJsonable {
   static TextDocumentClientCapabilitiesPublishDiagnostics fromJson(
       Map<String, dynamic> json) {
     final relatedInformation = json['relatedInformation'];
-    return new TextDocumentClientCapabilitiesPublishDiagnostics(
-        relatedInformation);
+    return TextDocumentClientCapabilitiesPublishDiagnostics(relatedInformation);
   }
 
   /// Whether the clients accepts diagnostics with related information.
   final bool relatedInformation;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (relatedInformation != null) {
       __result['relatedInformation'] = relatedInformation;
     }
@@ -14391,7 +14370,7 @@ class TextDocumentClientCapabilitiesPublishDiagnostics implements ToJsonable {
       try {
         if (obj['relatedInformation'] != null &&
             !(obj['relatedInformation'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -14400,13 +14379,13 @@ class TextDocumentClientCapabilitiesPublishDiagnostics implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesPublishDiagnostics");
+          'must be of type TextDocumentClientCapabilitiesPublishDiagnostics');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesPublishDiagnostics) {
       return relatedInformation == other.relatedInformation && true;
     }
@@ -14415,7 +14394,7 @@ class TextDocumentClientCapabilitiesPublishDiagnostics implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, relatedInformation.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -14425,7 +14404,7 @@ class TextDocumentClientCapabilitiesPublishDiagnostics implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesRangeFormatting implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesRangeFormatting.canParse,
       TextDocumentClientCapabilitiesRangeFormatting.fromJson);
 
@@ -14433,15 +14412,14 @@ class TextDocumentClientCapabilitiesRangeFormatting implements ToJsonable {
   static TextDocumentClientCapabilitiesRangeFormatting fromJson(
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
-    return new TextDocumentClientCapabilitiesRangeFormatting(
-        dynamicRegistration);
+    return TextDocumentClientCapabilitiesRangeFormatting(dynamicRegistration);
   }
 
   /// Whether range formatting supports dynamic registration.
   final bool dynamicRegistration;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -14454,7 +14432,7 @@ class TextDocumentClientCapabilitiesRangeFormatting implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -14463,13 +14441,13 @@ class TextDocumentClientCapabilitiesRangeFormatting implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesRangeFormatting");
+          'must be of type TextDocumentClientCapabilitiesRangeFormatting');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesRangeFormatting) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
@@ -14478,7 +14456,7 @@ class TextDocumentClientCapabilitiesRangeFormatting implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -14488,7 +14466,7 @@ class TextDocumentClientCapabilitiesRangeFormatting implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesReferences implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesReferences.canParse,
       TextDocumentClientCapabilitiesReferences.fromJson);
 
@@ -14496,14 +14474,14 @@ class TextDocumentClientCapabilitiesReferences implements ToJsonable {
   static TextDocumentClientCapabilitiesReferences fromJson(
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
-    return new TextDocumentClientCapabilitiesReferences(dynamicRegistration);
+    return TextDocumentClientCapabilitiesReferences(dynamicRegistration);
   }
 
   /// Whether references supports dynamic registration.
   final bool dynamicRegistration;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -14516,7 +14494,7 @@ class TextDocumentClientCapabilitiesReferences implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -14525,13 +14503,13 @@ class TextDocumentClientCapabilitiesReferences implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesReferences");
+          'must be of type TextDocumentClientCapabilitiesReferences');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesReferences) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
@@ -14540,7 +14518,7 @@ class TextDocumentClientCapabilitiesReferences implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -14550,7 +14528,7 @@ class TextDocumentClientCapabilitiesReferences implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesRename implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesRename.canParse,
       TextDocumentClientCapabilitiesRename.fromJson);
 
@@ -14560,7 +14538,7 @@ class TextDocumentClientCapabilitiesRename implements ToJsonable {
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
     final prepareSupport = json['prepareSupport'];
-    return new TextDocumentClientCapabilitiesRename(
+    return TextDocumentClientCapabilitiesRename(
         dynamicRegistration, prepareSupport);
   }
 
@@ -14572,7 +14550,7 @@ class TextDocumentClientCapabilitiesRename implements ToJsonable {
   final bool prepareSupport;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -14588,7 +14566,7 @@ class TextDocumentClientCapabilitiesRename implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -14597,7 +14575,7 @@ class TextDocumentClientCapabilitiesRename implements ToJsonable {
       reporter.push('prepareSupport');
       try {
         if (obj['prepareSupport'] != null && !(obj['prepareSupport'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -14606,13 +14584,13 @@ class TextDocumentClientCapabilitiesRename implements ToJsonable {
       return true;
     } else {
       reporter
-          .reportError("must be of type TextDocumentClientCapabilitiesRename");
+          .reportError('must be of type TextDocumentClientCapabilitiesRename');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesRename) {
       return dynamicRegistration == other.dynamicRegistration &&
           prepareSupport == other.prepareSupport &&
@@ -14623,7 +14601,7 @@ class TextDocumentClientCapabilitiesRename implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     hash = JenkinsSmiHash.combine(hash, prepareSupport.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -14634,7 +14612,7 @@ class TextDocumentClientCapabilitiesRename implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesSignatureHelp implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesSignatureHelp.canParse,
       TextDocumentClientCapabilitiesSignatureHelp.fromJson);
 
@@ -14647,7 +14625,7 @@ class TextDocumentClientCapabilitiesSignatureHelp implements ToJsonable {
         ? TextDocumentClientCapabilitiesSignatureInformation.fromJson(
             json['signatureInformation'])
         : null;
-    return new TextDocumentClientCapabilitiesSignatureHelp(
+    return TextDocumentClientCapabilitiesSignatureHelp(
         dynamicRegistration, signatureInformation);
   }
 
@@ -14659,7 +14637,7 @@ class TextDocumentClientCapabilitiesSignatureHelp implements ToJsonable {
   final TextDocumentClientCapabilitiesSignatureInformation signatureInformation;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -14675,7 +14653,7 @@ class TextDocumentClientCapabilitiesSignatureHelp implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -14687,7 +14665,7 @@ class TextDocumentClientCapabilitiesSignatureHelp implements ToJsonable {
             !(TextDocumentClientCapabilitiesSignatureInformation.canParse(
                 obj['signatureInformation'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesSignatureInformation");
+              'must be of type TextDocumentClientCapabilitiesSignatureInformation');
           return false;
         }
       } finally {
@@ -14696,13 +14674,13 @@ class TextDocumentClientCapabilitiesSignatureHelp implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesSignatureHelp");
+          'must be of type TextDocumentClientCapabilitiesSignatureHelp');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesSignatureHelp) {
       return dynamicRegistration == other.dynamicRegistration &&
           signatureInformation == other.signatureInformation &&
@@ -14713,7 +14691,7 @@ class TextDocumentClientCapabilitiesSignatureHelp implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     hash = JenkinsSmiHash.combine(hash, signatureInformation.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -14724,7 +14702,7 @@ class TextDocumentClientCapabilitiesSignatureHelp implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesSignatureInformation implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesSignatureInformation.canParse,
       TextDocumentClientCapabilitiesSignatureInformation.fromJson);
 
@@ -14740,7 +14718,7 @@ class TextDocumentClientCapabilitiesSignatureInformation implements ToJsonable {
         ? TextDocumentClientCapabilitiesParameterInformation.fromJson(
             json['parameterInformation'])
         : null;
-    return new TextDocumentClientCapabilitiesSignatureInformation(
+    return TextDocumentClientCapabilitiesSignatureInformation(
         documentationFormat, parameterInformation);
   }
 
@@ -14752,7 +14730,7 @@ class TextDocumentClientCapabilitiesSignatureInformation implements ToJsonable {
   final TextDocumentClientCapabilitiesParameterInformation parameterInformation;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (documentationFormat != null) {
       __result['documentationFormat'] = documentationFormat;
     }
@@ -14770,7 +14748,7 @@ class TextDocumentClientCapabilitiesSignatureInformation implements ToJsonable {
             !((obj['documentationFormat'] is List &&
                 (obj['documentationFormat']
                     .every((item) => MarkupKind.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<MarkupKind>");
+          reporter.reportError('must be of type List<MarkupKind>');
           return false;
         }
       } finally {
@@ -14782,7 +14760,7 @@ class TextDocumentClientCapabilitiesSignatureInformation implements ToJsonable {
             !(TextDocumentClientCapabilitiesParameterInformation.canParse(
                 obj['parameterInformation'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesParameterInformation");
+              'must be of type TextDocumentClientCapabilitiesParameterInformation');
           return false;
         }
       } finally {
@@ -14791,13 +14769,13 @@ class TextDocumentClientCapabilitiesSignatureInformation implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesSignatureInformation");
+          'must be of type TextDocumentClientCapabilitiesSignatureInformation');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesSignatureInformation) {
       return listEqual(documentationFormat, other.documentationFormat,
               (MarkupKind a, MarkupKind b) => a == b) &&
@@ -14809,7 +14787,7 @@ class TextDocumentClientCapabilitiesSignatureInformation implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, documentationFormat.hashCode);
     hash = JenkinsSmiHash.combine(hash, parameterInformation.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -14820,7 +14798,7 @@ class TextDocumentClientCapabilitiesSignatureInformation implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesSymbolKind implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesSymbolKind.canParse,
       TextDocumentClientCapabilitiesSymbolKind.fromJson);
 
@@ -14831,7 +14809,7 @@ class TextDocumentClientCapabilitiesSymbolKind implements ToJsonable {
         ?.map((item) => item != null ? SymbolKind.fromJson(item) : null)
         ?.cast<SymbolKind>()
         ?.toList();
-    return new TextDocumentClientCapabilitiesSymbolKind(valueSet);
+    return TextDocumentClientCapabilitiesSymbolKind(valueSet);
   }
 
   /// The symbol kind values the client supports. When this property exists the
@@ -14843,7 +14821,7 @@ class TextDocumentClientCapabilitiesSymbolKind implements ToJsonable {
   final List<SymbolKind> valueSet;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (valueSet != null) {
       __result['valueSet'] = valueSet;
     }
@@ -14858,7 +14836,7 @@ class TextDocumentClientCapabilitiesSymbolKind implements ToJsonable {
             !((obj['valueSet'] is List &&
                 (obj['valueSet']
                     .every((item) => SymbolKind.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<SymbolKind>");
+          reporter.reportError('must be of type List<SymbolKind>');
           return false;
         }
       } finally {
@@ -14867,13 +14845,13 @@ class TextDocumentClientCapabilitiesSymbolKind implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesSymbolKind");
+          'must be of type TextDocumentClientCapabilitiesSymbolKind');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesSymbolKind) {
       return listEqual(valueSet, other.valueSet,
               (SymbolKind a, SymbolKind b) => a == b) &&
@@ -14884,7 +14862,7 @@ class TextDocumentClientCapabilitiesSymbolKind implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, valueSet.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -14894,7 +14872,7 @@ class TextDocumentClientCapabilitiesSymbolKind implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesSynchronization implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesSynchronization.canParse,
       TextDocumentClientCapabilitiesSynchronization.fromJson);
 
@@ -14906,7 +14884,7 @@ class TextDocumentClientCapabilitiesSynchronization implements ToJsonable {
     final willSave = json['willSave'];
     final willSaveWaitUntil = json['willSaveWaitUntil'];
     final didSave = json['didSave'];
-    return new TextDocumentClientCapabilitiesSynchronization(
+    return TextDocumentClientCapabilitiesSynchronization(
         dynamicRegistration, willSave, willSaveWaitUntil, didSave);
   }
 
@@ -14925,7 +14903,7 @@ class TextDocumentClientCapabilitiesSynchronization implements ToJsonable {
   final bool willSaveWaitUntil;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -14947,7 +14925,7 @@ class TextDocumentClientCapabilitiesSynchronization implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -14956,7 +14934,7 @@ class TextDocumentClientCapabilitiesSynchronization implements ToJsonable {
       reporter.push('willSave');
       try {
         if (obj['willSave'] != null && !(obj['willSave'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -14966,7 +14944,7 @@ class TextDocumentClientCapabilitiesSynchronization implements ToJsonable {
       try {
         if (obj['willSaveWaitUntil'] != null &&
             !(obj['willSaveWaitUntil'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -14975,7 +14953,7 @@ class TextDocumentClientCapabilitiesSynchronization implements ToJsonable {
       reporter.push('didSave');
       try {
         if (obj['didSave'] != null && !(obj['didSave'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -14984,13 +14962,13 @@ class TextDocumentClientCapabilitiesSynchronization implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesSynchronization");
+          'must be of type TextDocumentClientCapabilitiesSynchronization');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesSynchronization) {
       return dynamicRegistration == other.dynamicRegistration &&
           willSave == other.willSave &&
@@ -15003,7 +14981,7 @@ class TextDocumentClientCapabilitiesSynchronization implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     hash = JenkinsSmiHash.combine(hash, willSave.hashCode);
     hash = JenkinsSmiHash.combine(hash, willSaveWaitUntil.hashCode);
@@ -15016,7 +14994,7 @@ class TextDocumentClientCapabilitiesSynchronization implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesTypeDefinition implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesTypeDefinition.canParse,
       TextDocumentClientCapabilitiesTypeDefinition.fromJson);
 
@@ -15026,7 +15004,7 @@ class TextDocumentClientCapabilitiesTypeDefinition implements ToJsonable {
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
     final linkSupport = json['linkSupport'];
-    return new TextDocumentClientCapabilitiesTypeDefinition(
+    return TextDocumentClientCapabilitiesTypeDefinition(
         dynamicRegistration, linkSupport);
   }
 
@@ -15042,7 +15020,7 @@ class TextDocumentClientCapabilitiesTypeDefinition implements ToJsonable {
   final bool linkSupport;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -15058,7 +15036,7 @@ class TextDocumentClientCapabilitiesTypeDefinition implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -15067,7 +15045,7 @@ class TextDocumentClientCapabilitiesTypeDefinition implements ToJsonable {
       reporter.push('linkSupport');
       try {
         if (obj['linkSupport'] != null && !(obj['linkSupport'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -15076,13 +15054,13 @@ class TextDocumentClientCapabilitiesTypeDefinition implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesTypeDefinition");
+          'must be of type TextDocumentClientCapabilitiesTypeDefinition');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesTypeDefinition) {
       return dynamicRegistration == other.dynamicRegistration &&
           linkSupport == other.linkSupport &&
@@ -15093,7 +15071,7 @@ class TextDocumentClientCapabilitiesTypeDefinition implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     hash = JenkinsSmiHash.combine(hash, linkSupport.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -15107,7 +15085,7 @@ class TextDocumentClientCapabilitiesTypeDefinition implements ToJsonable {
 /// are omitted the new text is considered to be the full content of the
 /// document.
 class TextDocumentContentChangeEvent implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentContentChangeEvent.canParse,
       TextDocumentContentChangeEvent.fromJson);
 
@@ -15120,7 +15098,7 @@ class TextDocumentContentChangeEvent implements ToJsonable {
     final range = json['range'] != null ? Range.fromJson(json['range']) : null;
     final rangeLength = json['rangeLength'];
     final text = json['text'];
-    return new TextDocumentContentChangeEvent(range, rangeLength, text);
+    return TextDocumentContentChangeEvent(range, rangeLength, text);
   }
 
   /// The range of the document that changed.
@@ -15133,7 +15111,7 @@ class TextDocumentContentChangeEvent implements ToJsonable {
   final String text;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (range != null) {
       __result['range'] = range;
     }
@@ -15149,7 +15127,7 @@ class TextDocumentContentChangeEvent implements ToJsonable {
       reporter.push('range');
       try {
         if (obj['range'] != null && !(Range.canParse(obj['range'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -15158,7 +15136,7 @@ class TextDocumentContentChangeEvent implements ToJsonable {
       reporter.push('rangeLength');
       try {
         if (obj['rangeLength'] != null && !(obj['rangeLength'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -15167,15 +15145,15 @@ class TextDocumentContentChangeEvent implements ToJsonable {
       reporter.push('text');
       try {
         if (!obj.containsKey('text')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['text'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['text'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -15183,13 +15161,13 @@ class TextDocumentContentChangeEvent implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type TextDocumentContentChangeEvent");
+      reporter.reportError('must be of type TextDocumentContentChangeEvent');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentContentChangeEvent) {
       return range == other.range &&
           rangeLength == other.rangeLength &&
@@ -15201,7 +15179,7 @@ class TextDocumentContentChangeEvent implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, range.hashCode);
     hash = JenkinsSmiHash.combine(hash, rangeLength.hashCode);
     hash = JenkinsSmiHash.combine(hash, text.hashCode);
@@ -15213,8 +15191,8 @@ class TextDocumentContentChangeEvent implements ToJsonable {
 }
 
 class TextDocumentEdit implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      TextDocumentEdit.canParse, TextDocumentEdit.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(TextDocumentEdit.canParse, TextDocumentEdit.fromJson);
 
   TextDocumentEdit(this.textDocument, this.edits) {
     if (textDocument == null) {
@@ -15232,7 +15210,7 @@ class TextDocumentEdit implements ToJsonable {
         ?.map((item) => item != null ? TextEdit.fromJson(item) : null)
         ?.cast<TextEdit>()
         ?.toList();
-    return new TextDocumentEdit(textDocument, edits);
+    return TextDocumentEdit(textDocument, edits);
   }
 
   /// The edits to be applied.
@@ -15242,7 +15220,7 @@ class TextDocumentEdit implements ToJsonable {
   final VersionedTextDocumentIdentifier textDocument;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
     __result['edits'] = edits ?? (throw 'edits is required but was not set');
@@ -15254,17 +15232,17 @@ class TextDocumentEdit implements ToJsonable {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['textDocument'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(VersionedTextDocumentIdentifier.canParse(
             obj['textDocument'], reporter))) {
           reporter
-              .reportError("must be of type VersionedTextDocumentIdentifier");
+              .reportError('must be of type VersionedTextDocumentIdentifier');
           return false;
         }
       } finally {
@@ -15273,17 +15251,17 @@ class TextDocumentEdit implements ToJsonable {
       reporter.push('edits');
       try {
         if (!obj.containsKey('edits')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['edits'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!((obj['edits'] is List &&
             (obj['edits']
                 .every((item) => TextEdit.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<TextEdit>");
+          reporter.reportError('must be of type List<TextEdit>');
           return false;
         }
       } finally {
@@ -15291,13 +15269,13 @@ class TextDocumentEdit implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type TextDocumentEdit");
+      reporter.reportError('must be of type TextDocumentEdit');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentEdit) {
       return textDocument == other.textDocument &&
           listEqual(edits, other.edits, (TextEdit a, TextEdit b) => a == b) &&
@@ -15308,7 +15286,7 @@ class TextDocumentEdit implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
     hash = JenkinsSmiHash.combine(hash, edits.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -15319,7 +15297,7 @@ class TextDocumentEdit implements ToJsonable {
 }
 
 class TextDocumentIdentifier implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentIdentifier.canParse, TextDocumentIdentifier.fromJson);
 
   TextDocumentIdentifier(this.uri) {
@@ -15332,14 +15310,14 @@ class TextDocumentIdentifier implements ToJsonable {
       return VersionedTextDocumentIdentifier.fromJson(json);
     }
     final uri = json['uri'];
-    return new TextDocumentIdentifier(uri);
+    return TextDocumentIdentifier(uri);
   }
 
   /// The text document's URI.
   final String uri;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
     return __result;
   }
@@ -15349,15 +15327,15 @@ class TextDocumentIdentifier implements ToJsonable {
       reporter.push('uri');
       try {
         if (!obj.containsKey('uri')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['uri'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['uri'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -15365,13 +15343,13 @@ class TextDocumentIdentifier implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type TextDocumentIdentifier");
+      reporter.reportError('must be of type TextDocumentIdentifier');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentIdentifier) {
       return uri == other.uri && true;
     }
@@ -15380,7 +15358,7 @@ class TextDocumentIdentifier implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, uri.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -15390,8 +15368,8 @@ class TextDocumentIdentifier implements ToJsonable {
 }
 
 class TextDocumentItem implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      TextDocumentItem.canParse, TextDocumentItem.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(TextDocumentItem.canParse, TextDocumentItem.fromJson);
 
   TextDocumentItem(this.uri, this.languageId, this.version, this.text) {
     if (uri == null) {
@@ -15412,7 +15390,7 @@ class TextDocumentItem implements ToJsonable {
     final languageId = json['languageId'];
     final version = json['version'];
     final text = json['text'];
-    return new TextDocumentItem(uri, languageId, version, text);
+    return TextDocumentItem(uri, languageId, version, text);
   }
 
   /// The text document's language identifier.
@@ -15429,7 +15407,7 @@ class TextDocumentItem implements ToJsonable {
   final num version;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
     __result['languageId'] =
         languageId ?? (throw 'languageId is required but was not set');
@@ -15444,15 +15422,15 @@ class TextDocumentItem implements ToJsonable {
       reporter.push('uri');
       try {
         if (!obj.containsKey('uri')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['uri'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['uri'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -15461,15 +15439,15 @@ class TextDocumentItem implements ToJsonable {
       reporter.push('languageId');
       try {
         if (!obj.containsKey('languageId')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['languageId'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['languageId'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -15478,15 +15456,15 @@ class TextDocumentItem implements ToJsonable {
       reporter.push('version');
       try {
         if (!obj.containsKey('version')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['version'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['version'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -15495,15 +15473,15 @@ class TextDocumentItem implements ToJsonable {
       reporter.push('text');
       try {
         if (!obj.containsKey('text')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['text'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['text'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -15511,13 +15489,13 @@ class TextDocumentItem implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type TextDocumentItem");
+      reporter.reportError('must be of type TextDocumentItem');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentItem) {
       return uri == other.uri &&
           languageId == other.languageId &&
@@ -15530,7 +15508,7 @@ class TextDocumentItem implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, uri.hashCode);
     hash = JenkinsSmiHash.combine(hash, languageId.hashCode);
     hash = JenkinsSmiHash.combine(hash, version.hashCode);
@@ -15543,7 +15521,7 @@ class TextDocumentItem implements ToJsonable {
 }
 
 class TextDocumentPositionParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentPositionParams.canParse, TextDocumentPositionParams.fromJson);
 
   TextDocumentPositionParams(this.textDocument, this.position) {
@@ -15566,7 +15544,7 @@ class TextDocumentPositionParams implements ToJsonable {
         : null;
     final position =
         json['position'] != null ? Position.fromJson(json['position']) : null;
-    return new TextDocumentPositionParams(textDocument, position);
+    return TextDocumentPositionParams(textDocument, position);
   }
 
   /// The position inside the text document.
@@ -15576,7 +15554,7 @@ class TextDocumentPositionParams implements ToJsonable {
   final TextDocumentIdentifier textDocument;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
     __result['position'] =
@@ -15589,15 +15567,15 @@ class TextDocumentPositionParams implements ToJsonable {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['textDocument'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
-          reporter.reportError("must be of type TextDocumentIdentifier");
+          reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
       } finally {
@@ -15606,15 +15584,15 @@ class TextDocumentPositionParams implements ToJsonable {
       reporter.push('position');
       try {
         if (!obj.containsKey('position')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['position'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Position.canParse(obj['position'], reporter))) {
-          reporter.reportError("must be of type Position");
+          reporter.reportError('must be of type Position');
           return false;
         }
       } finally {
@@ -15622,13 +15600,13 @@ class TextDocumentPositionParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type TextDocumentPositionParams");
+      reporter.reportError('must be of type TextDocumentPositionParams');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentPositionParams) {
       return textDocument == other.textDocument &&
           position == other.position &&
@@ -15639,7 +15617,7 @@ class TextDocumentPositionParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
     hash = JenkinsSmiHash.combine(hash, position.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -15650,7 +15628,7 @@ class TextDocumentPositionParams implements ToJsonable {
 }
 
 class TextDocumentRegistrationOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentRegistrationOptions.canParse,
       TextDocumentRegistrationOptions.fromJson);
 
@@ -15690,7 +15668,7 @@ class TextDocumentRegistrationOptions implements ToJsonable {
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
-    return new TextDocumentRegistrationOptions(documentSelector);
+    return TextDocumentRegistrationOptions(documentSelector);
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -15698,7 +15676,7 @@ class TextDocumentRegistrationOptions implements ToJsonable {
   final List<DocumentFilter> documentSelector;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['documentSelector'] = documentSelector;
     return __result;
   }
@@ -15708,14 +15686,14 @@ class TextDocumentRegistrationOptions implements ToJsonable {
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['documentSelector'] != null &&
             !((obj['documentSelector'] is List &&
                 (obj['documentSelector'].every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<DocumentFilter>");
+          reporter.reportError('must be of type List<DocumentFilter>');
           return false;
         }
       } finally {
@@ -15723,13 +15701,13 @@ class TextDocumentRegistrationOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type TextDocumentRegistrationOptions");
+      reporter.reportError('must be of type TextDocumentRegistrationOptions');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentRegistrationOptions) {
       return documentSelector == other.documentSelector && true;
     }
@@ -15738,7 +15716,7 @@ class TextDocumentRegistrationOptions implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -15760,13 +15738,13 @@ class TextDocumentSaveReason {
 
   /// Manually triggered, e.g. by the user pressing save, by starting debugging,
   /// or by an API call.
-  static const Manual = const TextDocumentSaveReason(1);
+  static const Manual = TextDocumentSaveReason(1);
 
   /// Automatic after a delay.
-  static const AfterDelay = const TextDocumentSaveReason(2);
+  static const AfterDelay = TextDocumentSaveReason(2);
 
   /// When the editor lost focus.
-  static const FocusOut = const TextDocumentSaveReason(3);
+  static const FocusOut = TextDocumentSaveReason(3);
 
   Object toJson() => _value;
 
@@ -15774,14 +15752,15 @@ class TextDocumentSaveReason {
   String toString() => _value.toString();
 
   @override
-  get hashCode => _value.hashCode;
+  int get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is TextDocumentSaveReason && o._value == _value;
+  bool operator ==(Object o) =>
+      o is TextDocumentSaveReason && o._value == _value;
 }
 
 class TextDocumentSaveRegistrationOptions
     implements TextDocumentRegistrationOptions, ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentSaveRegistrationOptions.canParse,
       TextDocumentSaveRegistrationOptions.fromJson);
 
@@ -15793,8 +15772,7 @@ class TextDocumentSaveRegistrationOptions
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
-    return new TextDocumentSaveRegistrationOptions(
-        includeText, documentSelector);
+    return TextDocumentSaveRegistrationOptions(includeText, documentSelector);
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -15805,7 +15783,7 @@ class TextDocumentSaveRegistrationOptions
   final bool includeText;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (includeText != null) {
       __result['includeText'] = includeText;
     }
@@ -15818,7 +15796,7 @@ class TextDocumentSaveRegistrationOptions
       reporter.push('includeText');
       try {
         if (obj['includeText'] != null && !(obj['includeText'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -15827,14 +15805,14 @@ class TextDocumentSaveRegistrationOptions
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['documentSelector'] != null &&
             !((obj['documentSelector'] is List &&
                 (obj['documentSelector'].every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<DocumentFilter>");
+          reporter.reportError('must be of type List<DocumentFilter>');
           return false;
         }
       } finally {
@@ -15843,13 +15821,13 @@ class TextDocumentSaveRegistrationOptions
       return true;
     } else {
       reporter
-          .reportError("must be of type TextDocumentSaveRegistrationOptions");
+          .reportError('must be of type TextDocumentSaveRegistrationOptions');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentSaveRegistrationOptions) {
       return includeText == other.includeText &&
           documentSelector == other.documentSelector &&
@@ -15860,7 +15838,7 @@ class TextDocumentSaveRegistrationOptions
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, includeText.hashCode);
     hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -15883,14 +15861,14 @@ class TextDocumentSyncKind {
   }
 
   /// Documents should not be synced at all.
-  static const None = const TextDocumentSyncKind(0);
+  static const None = TextDocumentSyncKind(0);
 
   /// Documents are synced by always sending the full content of the document.
-  static const Full = const TextDocumentSyncKind(1);
+  static const Full = TextDocumentSyncKind(1);
 
   /// Documents are synced by sending the full content on open. After that only
   /// incremental updates to the document are send.
-  static const Incremental = const TextDocumentSyncKind(2);
+  static const Incremental = TextDocumentSyncKind(2);
 
   Object toJson() => _value;
 
@@ -15898,13 +15876,13 @@ class TextDocumentSyncKind {
   String toString() => _value.toString();
 
   @override
-  get hashCode => _value.hashCode;
+  int get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is TextDocumentSyncKind && o._value == _value;
+  bool operator ==(Object o) => o is TextDocumentSyncKind && o._value == _value;
 }
 
 class TextDocumentSyncOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentSyncOptions.canParse, TextDocumentSyncOptions.fromJson);
 
   TextDocumentSyncOptions(this.openClose, this.change, this.willSave,
@@ -15918,7 +15896,7 @@ class TextDocumentSyncOptions implements ToJsonable {
     final willSaveWaitUntil = json['willSaveWaitUntil'];
     final save =
         json['save'] != null ? SaveOptions.fromJson(json['save']) : null;
-    return new TextDocumentSyncOptions(
+    return TextDocumentSyncOptions(
         openClose, change, willSave, willSaveWaitUntil, save);
   }
 
@@ -15945,7 +15923,7 @@ class TextDocumentSyncOptions implements ToJsonable {
   final bool willSaveWaitUntil;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (openClose != null) {
       __result['openClose'] = openClose;
     }
@@ -15969,7 +15947,7 @@ class TextDocumentSyncOptions implements ToJsonable {
       reporter.push('openClose');
       try {
         if (obj['openClose'] != null && !(obj['openClose'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -15979,7 +15957,7 @@ class TextDocumentSyncOptions implements ToJsonable {
       try {
         if (obj['change'] != null &&
             !(TextDocumentSyncKind.canParse(obj['change'], reporter))) {
-          reporter.reportError("must be of type TextDocumentSyncKind");
+          reporter.reportError('must be of type TextDocumentSyncKind');
           return false;
         }
       } finally {
@@ -15988,7 +15966,7 @@ class TextDocumentSyncOptions implements ToJsonable {
       reporter.push('willSave');
       try {
         if (obj['willSave'] != null && !(obj['willSave'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -15998,7 +15976,7 @@ class TextDocumentSyncOptions implements ToJsonable {
       try {
         if (obj['willSaveWaitUntil'] != null &&
             !(obj['willSaveWaitUntil'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -16008,7 +15986,7 @@ class TextDocumentSyncOptions implements ToJsonable {
       try {
         if (obj['save'] != null &&
             !(SaveOptions.canParse(obj['save'], reporter))) {
-          reporter.reportError("must be of type SaveOptions");
+          reporter.reportError('must be of type SaveOptions');
           return false;
         }
       } finally {
@@ -16016,13 +15994,13 @@ class TextDocumentSyncOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type TextDocumentSyncOptions");
+      reporter.reportError('must be of type TextDocumentSyncOptions');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentSyncOptions) {
       return openClose == other.openClose &&
           change == other.change &&
@@ -16036,7 +16014,7 @@ class TextDocumentSyncOptions implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, openClose.hashCode);
     hash = JenkinsSmiHash.combine(hash, change.hashCode);
     hash = JenkinsSmiHash.combine(hash, willSave.hashCode);
@@ -16051,7 +16029,7 @@ class TextDocumentSyncOptions implements ToJsonable {
 
 class TextEdit implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(TextEdit.canParse, TextEdit.fromJson);
+      LspJsonHandler(TextEdit.canParse, TextEdit.fromJson);
 
   TextEdit(this.range, this.newText) {
     if (range == null) {
@@ -16064,7 +16042,7 @@ class TextEdit implements ToJsonable {
   static TextEdit fromJson(Map<String, dynamic> json) {
     final range = json['range'] != null ? Range.fromJson(json['range']) : null;
     final newText = json['newText'];
-    return new TextEdit(range, newText);
+    return TextEdit(range, newText);
   }
 
   /// The string to be inserted. For delete operations use an empty string.
@@ -16075,7 +16053,7 @@ class TextEdit implements ToJsonable {
   final Range range;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['range'] = range ?? (throw 'range is required but was not set');
     __result['newText'] =
         newText ?? (throw 'newText is required but was not set');
@@ -16087,15 +16065,15 @@ class TextEdit implements ToJsonable {
       reporter.push('range');
       try {
         if (!obj.containsKey('range')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['range'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Range.canParse(obj['range'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -16104,15 +16082,15 @@ class TextEdit implements ToJsonable {
       reporter.push('newText');
       try {
         if (!obj.containsKey('newText')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['newText'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['newText'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -16120,13 +16098,13 @@ class TextEdit implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type TextEdit");
+      reporter.reportError('must be of type TextEdit');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextEdit) {
       return range == other.range && newText == other.newText && true;
     }
@@ -16135,7 +16113,7 @@ class TextEdit implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, range.hashCode);
     hash = JenkinsSmiHash.combine(hash, newText.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -16148,7 +16126,7 @@ class TextEdit implements ToJsonable {
 /// General parameters to unregister a capability.
 class Unregistration implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(Unregistration.canParse, Unregistration.fromJson);
+      LspJsonHandler(Unregistration.canParse, Unregistration.fromJson);
 
   Unregistration(this.id, this.method) {
     if (id == null) {
@@ -16161,7 +16139,7 @@ class Unregistration implements ToJsonable {
   static Unregistration fromJson(Map<String, dynamic> json) {
     final id = json['id'];
     final method = json['method'];
-    return new Unregistration(id, method);
+    return Unregistration(id, method);
   }
 
   /// The id used to unregister the request or notification. Usually an id
@@ -16172,7 +16150,7 @@ class Unregistration implements ToJsonable {
   final String method;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['id'] = id ?? (throw 'id is required but was not set');
     __result['method'] = method ?? (throw 'method is required but was not set');
     return __result;
@@ -16183,15 +16161,15 @@ class Unregistration implements ToJsonable {
       reporter.push('id');
       try {
         if (!obj.containsKey('id')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['id'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['id'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -16200,15 +16178,15 @@ class Unregistration implements ToJsonable {
       reporter.push('method');
       try {
         if (!obj.containsKey('method')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['method'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['method'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -16216,13 +16194,13 @@ class Unregistration implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type Unregistration");
+      reporter.reportError('must be of type Unregistration');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is Unregistration) {
       return id == other.id && method == other.method && true;
     }
@@ -16231,7 +16209,7 @@ class Unregistration implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, id.hashCode);
     hash = JenkinsSmiHash.combine(hash, method.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -16242,7 +16220,7 @@ class Unregistration implements ToJsonable {
 }
 
 class UnregistrationParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       UnregistrationParams.canParse, UnregistrationParams.fromJson);
 
   UnregistrationParams(this.unregisterations) {
@@ -16255,13 +16233,13 @@ class UnregistrationParams implements ToJsonable {
         ?.map((item) => item != null ? Unregistration.fromJson(item) : null)
         ?.cast<Unregistration>()
         ?.toList();
-    return new UnregistrationParams(unregisterations);
+    return UnregistrationParams(unregisterations);
   }
 
   final List<Unregistration> unregisterations;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['unregisterations'] = unregisterations ??
         (throw 'unregisterations is required but was not set');
     return __result;
@@ -16272,17 +16250,17 @@ class UnregistrationParams implements ToJsonable {
       reporter.push('unregisterations');
       try {
         if (!obj.containsKey('unregisterations')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['unregisterations'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!((obj['unregisterations'] is List &&
             (obj['unregisterations']
                 .every((item) => Unregistration.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<Unregistration>");
+          reporter.reportError('must be of type List<Unregistration>');
           return false;
         }
       } finally {
@@ -16290,13 +16268,13 @@ class UnregistrationParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type UnregistrationParams");
+      reporter.reportError('must be of type UnregistrationParams');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is UnregistrationParams) {
       return listEqual(unregisterations, other.unregisterations,
               (Unregistration a, Unregistration b) => a == b) &&
@@ -16307,7 +16285,7 @@ class UnregistrationParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, unregisterations.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -16318,7 +16296,7 @@ class UnregistrationParams implements ToJsonable {
 
 class VersionedTextDocumentIdentifier
     implements TextDocumentIdentifier, ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       VersionedTextDocumentIdentifier.canParse,
       VersionedTextDocumentIdentifier.fromJson);
 
@@ -16330,7 +16308,7 @@ class VersionedTextDocumentIdentifier
   static VersionedTextDocumentIdentifier fromJson(Map<String, dynamic> json) {
     final version = json['version'];
     final uri = json['uri'];
-    return new VersionedTextDocumentIdentifier(version, uri);
+    return VersionedTextDocumentIdentifier(version, uri);
   }
 
   /// The text document's URI.
@@ -16347,7 +16325,7 @@ class VersionedTextDocumentIdentifier
   final num version;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['version'] = version;
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
     return __result;
@@ -16358,11 +16336,11 @@ class VersionedTextDocumentIdentifier
       reporter.push('version');
       try {
         if (!obj.containsKey('version')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['version'] != null && !(obj['version'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -16371,15 +16349,15 @@ class VersionedTextDocumentIdentifier
       reporter.push('uri');
       try {
         if (!obj.containsKey('uri')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['uri'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['uri'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -16387,13 +16365,13 @@ class VersionedTextDocumentIdentifier
       }
       return true;
     } else {
-      reporter.reportError("must be of type VersionedTextDocumentIdentifier");
+      reporter.reportError('must be of type VersionedTextDocumentIdentifier');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is VersionedTextDocumentIdentifier) {
       return version == other.version && uri == other.uri && true;
     }
@@ -16402,7 +16380,7 @@ class VersionedTextDocumentIdentifier
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, version.hashCode);
     hash = JenkinsSmiHash.combine(hash, uri.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -16423,13 +16401,13 @@ class WatchKind {
   }
 
   /// Interested in create events.
-  static const Create = const WatchKind(1);
+  static const Create = WatchKind(1);
 
   /// Interested in change events
-  static const Change = const WatchKind(2);
+  static const Change = WatchKind(2);
 
   /// Interested in delete events
-  static const Delete = const WatchKind(4);
+  static const Delete = WatchKind(4);
 
   Object toJson() => _value;
 
@@ -16437,14 +16415,14 @@ class WatchKind {
   String toString() => _value.toString();
 
   @override
-  get hashCode => _value.hashCode;
+  int get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is WatchKind && o._value == _value;
+  bool operator ==(Object o) => o is WatchKind && o._value == _value;
 }
 
 /// The parameters send in a will save text document notification.
 class WillSaveTextDocumentParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       WillSaveTextDocumentParams.canParse, WillSaveTextDocumentParams.fromJson);
 
   WillSaveTextDocumentParams(this.textDocument, this.reason) {
@@ -16460,7 +16438,7 @@ class WillSaveTextDocumentParams implements ToJsonable {
         ? TextDocumentIdentifier.fromJson(json['textDocument'])
         : null;
     final reason = json['reason'];
-    return new WillSaveTextDocumentParams(textDocument, reason);
+    return WillSaveTextDocumentParams(textDocument, reason);
   }
 
   /// The 'TextDocumentSaveReason'.
@@ -16470,7 +16448,7 @@ class WillSaveTextDocumentParams implements ToJsonable {
   final TextDocumentIdentifier textDocument;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
     __result['reason'] = reason ?? (throw 'reason is required but was not set');
@@ -16482,15 +16460,15 @@ class WillSaveTextDocumentParams implements ToJsonable {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['textDocument'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
-          reporter.reportError("must be of type TextDocumentIdentifier");
+          reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
       } finally {
@@ -16499,15 +16477,15 @@ class WillSaveTextDocumentParams implements ToJsonable {
       reporter.push('reason');
       try {
         if (!obj.containsKey('reason')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['reason'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['reason'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -16515,13 +16493,13 @@ class WillSaveTextDocumentParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type WillSaveTextDocumentParams");
+      reporter.reportError('must be of type WillSaveTextDocumentParams');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is WillSaveTextDocumentParams) {
       return textDocument == other.textDocument &&
           reason == other.reason &&
@@ -16532,7 +16510,7 @@ class WillSaveTextDocumentParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
     hash = JenkinsSmiHash.combine(hash, reason.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -16544,7 +16522,7 @@ class WillSaveTextDocumentParams implements ToJsonable {
 
 /// Workspace specific client capabilities.
 class WorkspaceClientCapabilities implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       WorkspaceClientCapabilities.canParse,
       WorkspaceClientCapabilities.fromJson);
 
@@ -16580,7 +16558,7 @@ class WorkspaceClientCapabilities implements ToJsonable {
         : null;
     final workspaceFolders = json['workspaceFolders'];
     final configuration = json['configuration'];
-    return new WorkspaceClientCapabilities(
+    return WorkspaceClientCapabilities(
         applyEdit,
         workspaceEdit,
         didChangeConfiguration,
@@ -16624,7 +16602,7 @@ class WorkspaceClientCapabilities implements ToJsonable {
   final bool workspaceFolders;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (applyEdit != null) {
       __result['applyEdit'] = applyEdit;
     }
@@ -16657,7 +16635,7 @@ class WorkspaceClientCapabilities implements ToJsonable {
       reporter.push('applyEdit');
       try {
         if (obj['applyEdit'] != null && !(obj['applyEdit'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -16669,7 +16647,7 @@ class WorkspaceClientCapabilities implements ToJsonable {
             !(WorkspaceClientCapabilitiesWorkspaceEdit.canParse(
                 obj['workspaceEdit'], reporter))) {
           reporter.reportError(
-              "must be of type WorkspaceClientCapabilitiesWorkspaceEdit");
+              'must be of type WorkspaceClientCapabilitiesWorkspaceEdit');
           return false;
         }
       } finally {
@@ -16681,7 +16659,7 @@ class WorkspaceClientCapabilities implements ToJsonable {
             !(WorkspaceClientCapabilitiesDidChangeConfiguration.canParse(
                 obj['didChangeConfiguration'], reporter))) {
           reporter.reportError(
-              "must be of type WorkspaceClientCapabilitiesDidChangeConfiguration");
+              'must be of type WorkspaceClientCapabilitiesDidChangeConfiguration');
           return false;
         }
       } finally {
@@ -16693,7 +16671,7 @@ class WorkspaceClientCapabilities implements ToJsonable {
             !(WorkspaceClientCapabilitiesDidChangeWatchedFiles.canParse(
                 obj['didChangeWatchedFiles'], reporter))) {
           reporter.reportError(
-              "must be of type WorkspaceClientCapabilitiesDidChangeWatchedFiles");
+              'must be of type WorkspaceClientCapabilitiesDidChangeWatchedFiles');
           return false;
         }
       } finally {
@@ -16705,7 +16683,7 @@ class WorkspaceClientCapabilities implements ToJsonable {
             !(WorkspaceClientCapabilitiesSymbol.canParse(
                 obj['symbol'], reporter))) {
           reporter
-              .reportError("must be of type WorkspaceClientCapabilitiesSymbol");
+              .reportError('must be of type WorkspaceClientCapabilitiesSymbol');
           return false;
         }
       } finally {
@@ -16717,7 +16695,7 @@ class WorkspaceClientCapabilities implements ToJsonable {
             !(WorkspaceClientCapabilitiesExecuteCommand.canParse(
                 obj['executeCommand'], reporter))) {
           reporter.reportError(
-              "must be of type WorkspaceClientCapabilitiesExecuteCommand");
+              'must be of type WorkspaceClientCapabilitiesExecuteCommand');
           return false;
         }
       } finally {
@@ -16727,7 +16705,7 @@ class WorkspaceClientCapabilities implements ToJsonable {
       try {
         if (obj['workspaceFolders'] != null &&
             !(obj['workspaceFolders'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -16736,7 +16714,7 @@ class WorkspaceClientCapabilities implements ToJsonable {
       reporter.push('configuration');
       try {
         if (obj['configuration'] != null && !(obj['configuration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -16744,13 +16722,13 @@ class WorkspaceClientCapabilities implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type WorkspaceClientCapabilities");
+      reporter.reportError('must be of type WorkspaceClientCapabilities');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is WorkspaceClientCapabilities) {
       return applyEdit == other.applyEdit &&
           workspaceEdit == other.workspaceEdit &&
@@ -16767,7 +16745,7 @@ class WorkspaceClientCapabilities implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, applyEdit.hashCode);
     hash = JenkinsSmiHash.combine(hash, workspaceEdit.hashCode);
     hash = JenkinsSmiHash.combine(hash, didChangeConfiguration.hashCode);
@@ -16784,7 +16762,7 @@ class WorkspaceClientCapabilities implements ToJsonable {
 }
 
 class WorkspaceClientCapabilitiesDidChangeConfiguration implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       WorkspaceClientCapabilitiesDidChangeConfiguration.canParse,
       WorkspaceClientCapabilitiesDidChangeConfiguration.fromJson);
 
@@ -16792,7 +16770,7 @@ class WorkspaceClientCapabilitiesDidChangeConfiguration implements ToJsonable {
   static WorkspaceClientCapabilitiesDidChangeConfiguration fromJson(
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
-    return new WorkspaceClientCapabilitiesDidChangeConfiguration(
+    return WorkspaceClientCapabilitiesDidChangeConfiguration(
         dynamicRegistration);
   }
 
@@ -16800,7 +16778,7 @@ class WorkspaceClientCapabilitiesDidChangeConfiguration implements ToJsonable {
   final bool dynamicRegistration;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -16813,7 +16791,7 @@ class WorkspaceClientCapabilitiesDidChangeConfiguration implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -16822,13 +16800,13 @@ class WorkspaceClientCapabilitiesDidChangeConfiguration implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type WorkspaceClientCapabilitiesDidChangeConfiguration");
+          'must be of type WorkspaceClientCapabilitiesDidChangeConfiguration');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is WorkspaceClientCapabilitiesDidChangeConfiguration) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
@@ -16837,7 +16815,7 @@ class WorkspaceClientCapabilitiesDidChangeConfiguration implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -16847,7 +16825,7 @@ class WorkspaceClientCapabilitiesDidChangeConfiguration implements ToJsonable {
 }
 
 class WorkspaceClientCapabilitiesDidChangeWatchedFiles implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       WorkspaceClientCapabilitiesDidChangeWatchedFiles.canParse,
       WorkspaceClientCapabilitiesDidChangeWatchedFiles.fromJson);
 
@@ -16855,7 +16833,7 @@ class WorkspaceClientCapabilitiesDidChangeWatchedFiles implements ToJsonable {
   static WorkspaceClientCapabilitiesDidChangeWatchedFiles fromJson(
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
-    return new WorkspaceClientCapabilitiesDidChangeWatchedFiles(
+    return WorkspaceClientCapabilitiesDidChangeWatchedFiles(
         dynamicRegistration);
   }
 
@@ -16865,7 +16843,7 @@ class WorkspaceClientCapabilitiesDidChangeWatchedFiles implements ToJsonable {
   final bool dynamicRegistration;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -16878,7 +16856,7 @@ class WorkspaceClientCapabilitiesDidChangeWatchedFiles implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -16887,13 +16865,13 @@ class WorkspaceClientCapabilitiesDidChangeWatchedFiles implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type WorkspaceClientCapabilitiesDidChangeWatchedFiles");
+          'must be of type WorkspaceClientCapabilitiesDidChangeWatchedFiles');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is WorkspaceClientCapabilitiesDidChangeWatchedFiles) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
@@ -16902,7 +16880,7 @@ class WorkspaceClientCapabilitiesDidChangeWatchedFiles implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -16912,7 +16890,7 @@ class WorkspaceClientCapabilitiesDidChangeWatchedFiles implements ToJsonable {
 }
 
 class WorkspaceClientCapabilitiesExecuteCommand implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       WorkspaceClientCapabilitiesExecuteCommand.canParse,
       WorkspaceClientCapabilitiesExecuteCommand.fromJson);
 
@@ -16920,14 +16898,14 @@ class WorkspaceClientCapabilitiesExecuteCommand implements ToJsonable {
   static WorkspaceClientCapabilitiesExecuteCommand fromJson(
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
-    return new WorkspaceClientCapabilitiesExecuteCommand(dynamicRegistration);
+    return WorkspaceClientCapabilitiesExecuteCommand(dynamicRegistration);
   }
 
   /// Execute command supports dynamic registration.
   final bool dynamicRegistration;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -16940,7 +16918,7 @@ class WorkspaceClientCapabilitiesExecuteCommand implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -16949,13 +16927,13 @@ class WorkspaceClientCapabilitiesExecuteCommand implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type WorkspaceClientCapabilitiesExecuteCommand");
+          'must be of type WorkspaceClientCapabilitiesExecuteCommand');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is WorkspaceClientCapabilitiesExecuteCommand) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
@@ -16964,7 +16942,7 @@ class WorkspaceClientCapabilitiesExecuteCommand implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -16974,7 +16952,7 @@ class WorkspaceClientCapabilitiesExecuteCommand implements ToJsonable {
 }
 
 class WorkspaceClientCapabilitiesSymbol implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       WorkspaceClientCapabilitiesSymbol.canParse,
       WorkspaceClientCapabilitiesSymbol.fromJson);
 
@@ -16984,8 +16962,7 @@ class WorkspaceClientCapabilitiesSymbol implements ToJsonable {
     final symbolKind = json['symbolKind'] != null
         ? WorkspaceClientCapabilitiesSymbolKind.fromJson(json['symbolKind'])
         : null;
-    return new WorkspaceClientCapabilitiesSymbol(
-        dynamicRegistration, symbolKind);
+    return WorkspaceClientCapabilitiesSymbol(dynamicRegistration, symbolKind);
   }
 
   /// Symbol request supports dynamic registration.
@@ -16996,7 +16973,7 @@ class WorkspaceClientCapabilitiesSymbol implements ToJsonable {
   final WorkspaceClientCapabilitiesSymbolKind symbolKind;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -17012,7 +16989,7 @@ class WorkspaceClientCapabilitiesSymbol implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -17024,7 +17001,7 @@ class WorkspaceClientCapabilitiesSymbol implements ToJsonable {
             !(WorkspaceClientCapabilitiesSymbolKind.canParse(
                 obj['symbolKind'], reporter))) {
           reporter.reportError(
-              "must be of type WorkspaceClientCapabilitiesSymbolKind");
+              'must be of type WorkspaceClientCapabilitiesSymbolKind');
           return false;
         }
       } finally {
@@ -17032,13 +17009,13 @@ class WorkspaceClientCapabilitiesSymbol implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type WorkspaceClientCapabilitiesSymbol");
+      reporter.reportError('must be of type WorkspaceClientCapabilitiesSymbol');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is WorkspaceClientCapabilitiesSymbol) {
       return dynamicRegistration == other.dynamicRegistration &&
           symbolKind == other.symbolKind &&
@@ -17049,7 +17026,7 @@ class WorkspaceClientCapabilitiesSymbol implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     hash = JenkinsSmiHash.combine(hash, symbolKind.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -17060,7 +17037,7 @@ class WorkspaceClientCapabilitiesSymbol implements ToJsonable {
 }
 
 class WorkspaceClientCapabilitiesSymbolKind implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       WorkspaceClientCapabilitiesSymbolKind.canParse,
       WorkspaceClientCapabilitiesSymbolKind.fromJson);
 
@@ -17071,7 +17048,7 @@ class WorkspaceClientCapabilitiesSymbolKind implements ToJsonable {
         ?.map((item) => item != null ? SymbolKind.fromJson(item) : null)
         ?.cast<SymbolKind>()
         ?.toList();
-    return new WorkspaceClientCapabilitiesSymbolKind(valueSet);
+    return WorkspaceClientCapabilitiesSymbolKind(valueSet);
   }
 
   /// The symbol kind values the client supports. When this property exists the
@@ -17083,7 +17060,7 @@ class WorkspaceClientCapabilitiesSymbolKind implements ToJsonable {
   final List<SymbolKind> valueSet;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (valueSet != null) {
       __result['valueSet'] = valueSet;
     }
@@ -17098,7 +17075,7 @@ class WorkspaceClientCapabilitiesSymbolKind implements ToJsonable {
             !((obj['valueSet'] is List &&
                 (obj['valueSet']
                     .every((item) => SymbolKind.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<SymbolKind>");
+          reporter.reportError('must be of type List<SymbolKind>');
           return false;
         }
       } finally {
@@ -17107,13 +17084,13 @@ class WorkspaceClientCapabilitiesSymbolKind implements ToJsonable {
       return true;
     } else {
       reporter
-          .reportError("must be of type WorkspaceClientCapabilitiesSymbolKind");
+          .reportError('must be of type WorkspaceClientCapabilitiesSymbolKind');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is WorkspaceClientCapabilitiesSymbolKind) {
       return listEqual(valueSet, other.valueSet,
               (SymbolKind a, SymbolKind b) => a == b) &&
@@ -17124,7 +17101,7 @@ class WorkspaceClientCapabilitiesSymbolKind implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, valueSet.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -17134,7 +17111,7 @@ class WorkspaceClientCapabilitiesSymbolKind implements ToJsonable {
 }
 
 class WorkspaceClientCapabilitiesWorkspaceEdit implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       WorkspaceClientCapabilitiesWorkspaceEdit.canParse,
       WorkspaceClientCapabilitiesWorkspaceEdit.fromJson);
 
@@ -17151,7 +17128,7 @@ class WorkspaceClientCapabilitiesWorkspaceEdit implements ToJsonable {
     final failureHandling = json['failureHandling'] != null
         ? FailureHandlingKind.fromJson(json['failureHandling'])
         : null;
-    return new WorkspaceClientCapabilitiesWorkspaceEdit(
+    return WorkspaceClientCapabilitiesWorkspaceEdit(
         documentChanges, resourceOperations, failureHandling);
   }
 
@@ -17167,7 +17144,7 @@ class WorkspaceClientCapabilitiesWorkspaceEdit implements ToJsonable {
   final List<ResourceOperationKind> resourceOperations;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (documentChanges != null) {
       __result['documentChanges'] = documentChanges;
     }
@@ -17186,7 +17163,7 @@ class WorkspaceClientCapabilitiesWorkspaceEdit implements ToJsonable {
       try {
         if (obj['documentChanges'] != null &&
             !(obj['documentChanges'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -17198,7 +17175,7 @@ class WorkspaceClientCapabilitiesWorkspaceEdit implements ToJsonable {
             !((obj['resourceOperations'] is List &&
                 (obj['resourceOperations'].every((item) =>
                     ResourceOperationKind.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<ResourceOperationKind>");
+          reporter.reportError('must be of type List<ResourceOperationKind>');
           return false;
         }
       } finally {
@@ -17208,7 +17185,7 @@ class WorkspaceClientCapabilitiesWorkspaceEdit implements ToJsonable {
       try {
         if (obj['failureHandling'] != null &&
             !(FailureHandlingKind.canParse(obj['failureHandling'], reporter))) {
-          reporter.reportError("must be of type FailureHandlingKind");
+          reporter.reportError('must be of type FailureHandlingKind');
           return false;
         }
       } finally {
@@ -17217,13 +17194,13 @@ class WorkspaceClientCapabilitiesWorkspaceEdit implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type WorkspaceClientCapabilitiesWorkspaceEdit");
+          'must be of type WorkspaceClientCapabilitiesWorkspaceEdit');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is WorkspaceClientCapabilitiesWorkspaceEdit) {
       return documentChanges == other.documentChanges &&
           listEqual(resourceOperations, other.resourceOperations,
@@ -17236,7 +17213,7 @@ class WorkspaceClientCapabilitiesWorkspaceEdit implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, documentChanges.hashCode);
     hash = JenkinsSmiHash.combine(hash, resourceOperations.hashCode);
     hash = JenkinsSmiHash.combine(hash, failureHandling.hashCode);
@@ -17249,12 +17226,12 @@ class WorkspaceClientCapabilitiesWorkspaceEdit implements ToJsonable {
 
 class WorkspaceEdit implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(WorkspaceEdit.canParse, WorkspaceEdit.fromJson);
+      LspJsonHandler(WorkspaceEdit.canParse, WorkspaceEdit.fromJson);
 
   WorkspaceEdit(this.changes, this.documentChanges);
   static WorkspaceEdit fromJson(Map<String, dynamic> json) {
     final changes = json['changes']
-        ?.map((key, value) => new MapEntry(
+        ?.map((key, value) => MapEntry(
             key,
             value
                 ?.map((item) => item != null ? TextEdit.fromJson(item) : null)
@@ -17262,24 +17239,24 @@ class WorkspaceEdit implements ToJsonable {
                 ?.toList()))
         ?.cast<String, List<TextEdit>>();
     final documentChanges = (json['documentChanges'] is List && (json['documentChanges'].every((item) => TextDocumentEdit.canParse(item, nullLspJsonReporter))))
-        ? new Either2<List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>.t1(
+        ? Either2<List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>.t1(
             json['documentChanges']
                 ?.map((item) =>
                     item != null ? TextDocumentEdit.fromJson(item) : null)
                 ?.cast<TextDocumentEdit>()
                 ?.toList())
         : ((json['documentChanges'] is List && (json['documentChanges'].every((item) => (TextDocumentEdit.canParse(item, nullLspJsonReporter) || CreateFile.canParse(item, nullLspJsonReporter) || RenameFile.canParse(item, nullLspJsonReporter) || DeleteFile.canParse(item, nullLspJsonReporter)))))
-            ? new Either2<List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>.t2(json['documentChanges']
+            ? Either2<List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>.t2(json['documentChanges']
                 ?.map((item) => TextDocumentEdit.canParse(item, nullLspJsonReporter)
-                    ? new Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t1(
+                    ? Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t1(
                         item != null ? TextDocumentEdit.fromJson(item) : null)
                     : (CreateFile.canParse(item, nullLspJsonReporter)
-                        ? new Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t2(item != null ? CreateFile.fromJson(item) : null)
-                        : (RenameFile.canParse(item, nullLspJsonReporter) ? new Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t3(item != null ? RenameFile.fromJson(item) : null) : (DeleteFile.canParse(item, nullLspJsonReporter) ? new Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t4(item != null ? DeleteFile.fromJson(item) : null) : (item == null ? null : (throw '''${item} was not one of (TextDocumentEdit, CreateFile, RenameFile, DeleteFile)'''))))))
+                        ? Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t2(item != null ? CreateFile.fromJson(item) : null)
+                        : (RenameFile.canParse(item, nullLspJsonReporter) ? Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t3(item != null ? RenameFile.fromJson(item) : null) : (DeleteFile.canParse(item, nullLspJsonReporter) ? Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t4(item != null ? DeleteFile.fromJson(item) : null) : (item == null ? null : (throw '''${item} was not one of (TextDocumentEdit, CreateFile, RenameFile, DeleteFile)'''))))))
                 ?.cast<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>()
                 ?.toList())
             : (json['documentChanges'] == null ? null : (throw '''${json['documentChanges']} was not one of (List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>)''')));
-    return new WorkspaceEdit(changes, documentChanges);
+    return WorkspaceEdit(changes, documentChanges);
   }
 
   /// Holds changes to existing resources.
@@ -17303,7 +17280,7 @@ class WorkspaceEdit implements ToJsonable {
       documentChanges;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (changes != null) {
       __result['changes'] = changes;
     }
@@ -17324,7 +17301,7 @@ class WorkspaceEdit implements ToJsonable {
                     obj['changes'].values.every((item) => (item is List &&
                         (item.every((item) =>
                             TextEdit.canParse(item, reporter)))))))))) {
-          reporter.reportError("must be of type Map<String, List<TextEdit>>");
+          reporter.reportError('must be of type Map<String, List<TextEdit>>');
           return false;
         }
       } finally {
@@ -17343,7 +17320,7 @@ class WorkspaceEdit implements ToJsonable {
                             RenameFile.canParse(item, reporter) ||
                             DeleteFile.canParse(item, reporter)))))))) {
           reporter.reportError(
-              "must be of type Either2<List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>");
+              'must be of type Either2<List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>');
           return false;
         }
       } finally {
@@ -17351,13 +17328,13 @@ class WorkspaceEdit implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type WorkspaceEdit");
+      reporter.reportError('must be of type WorkspaceEdit');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is WorkspaceEdit) {
       return mapEqual(changes, other.changes,
               (List<TextEdit> a, List<TextEdit> b) => a == b) &&
@@ -17369,7 +17346,7 @@ class WorkspaceEdit implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, changes.hashCode);
     hash = JenkinsSmiHash.combine(hash, documentChanges.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -17381,7 +17358,7 @@ class WorkspaceEdit implements ToJsonable {
 
 class WorkspaceFolder implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(WorkspaceFolder.canParse, WorkspaceFolder.fromJson);
+      LspJsonHandler(WorkspaceFolder.canParse, WorkspaceFolder.fromJson);
 
   WorkspaceFolder(this.uri, this.name) {
     if (uri == null) {
@@ -17394,7 +17371,7 @@ class WorkspaceFolder implements ToJsonable {
   static WorkspaceFolder fromJson(Map<String, dynamic> json) {
     final uri = json['uri'];
     final name = json['name'];
-    return new WorkspaceFolder(uri, name);
+    return WorkspaceFolder(uri, name);
   }
 
   /// The name of the workspace folder. Used to refer to this workspace folder
@@ -17405,7 +17382,7 @@ class WorkspaceFolder implements ToJsonable {
   final String uri;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
     __result['name'] = name ?? (throw 'name is required but was not set');
     return __result;
@@ -17416,15 +17393,15 @@ class WorkspaceFolder implements ToJsonable {
       reporter.push('uri');
       try {
         if (!obj.containsKey('uri')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['uri'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['uri'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -17433,15 +17410,15 @@ class WorkspaceFolder implements ToJsonable {
       reporter.push('name');
       try {
         if (!obj.containsKey('name')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['name'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['name'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -17449,13 +17426,13 @@ class WorkspaceFolder implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type WorkspaceFolder");
+      reporter.reportError('must be of type WorkspaceFolder');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is WorkspaceFolder) {
       return uri == other.uri && name == other.name && true;
     }
@@ -17464,7 +17441,7 @@ class WorkspaceFolder implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, uri.hashCode);
     hash = JenkinsSmiHash.combine(hash, name.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -17476,7 +17453,7 @@ class WorkspaceFolder implements ToJsonable {
 
 /// The workspace folder change event.
 class WorkspaceFoldersChangeEvent implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       WorkspaceFoldersChangeEvent.canParse,
       WorkspaceFoldersChangeEvent.fromJson);
 
@@ -17497,7 +17474,7 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
         ?.map((item) => item != null ? WorkspaceFolder.fromJson(item) : null)
         ?.cast<WorkspaceFolder>()
         ?.toList();
-    return new WorkspaceFoldersChangeEvent(added, removed);
+    return WorkspaceFoldersChangeEvent(added, removed);
   }
 
   /// The array of added workspace folders
@@ -17507,7 +17484,7 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
   final List<WorkspaceFolder> removed;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['added'] = added ?? (throw 'added is required but was not set');
     __result['removed'] =
         removed ?? (throw 'removed is required but was not set');
@@ -17519,17 +17496,17 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
       reporter.push('added');
       try {
         if (!obj.containsKey('added')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['added'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!((obj['added'] is List &&
             (obj['added']
                 .every((item) => WorkspaceFolder.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<WorkspaceFolder>");
+          reporter.reportError('must be of type List<WorkspaceFolder>');
           return false;
         }
       } finally {
@@ -17538,17 +17515,17 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
       reporter.push('removed');
       try {
         if (!obj.containsKey('removed')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['removed'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!((obj['removed'] is List &&
             (obj['removed']
                 .every((item) => WorkspaceFolder.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<WorkspaceFolder>");
+          reporter.reportError('must be of type List<WorkspaceFolder>');
           return false;
         }
       } finally {
@@ -17556,13 +17533,13 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type WorkspaceFoldersChangeEvent");
+      reporter.reportError('must be of type WorkspaceFoldersChangeEvent');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is WorkspaceFoldersChangeEvent) {
       return listEqual(added, other.added,
               (WorkspaceFolder a, WorkspaceFolder b) => a == b) &&
@@ -17575,7 +17552,7 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, added.hashCode);
     hash = JenkinsSmiHash.combine(hash, removed.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -17587,7 +17564,7 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
 
 /// The parameters of a Workspace Symbol Request.
 class WorkspaceSymbolParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       WorkspaceSymbolParams.canParse, WorkspaceSymbolParams.fromJson);
 
   WorkspaceSymbolParams(this.query) {
@@ -17597,14 +17574,14 @@ class WorkspaceSymbolParams implements ToJsonable {
   }
   static WorkspaceSymbolParams fromJson(Map<String, dynamic> json) {
     final query = json['query'];
-    return new WorkspaceSymbolParams(query);
+    return WorkspaceSymbolParams(query);
   }
 
   /// A non-empty query string
   final String query;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['query'] = query ?? (throw 'query is required but was not set');
     return __result;
   }
@@ -17614,15 +17591,15 @@ class WorkspaceSymbolParams implements ToJsonable {
       reporter.push('query');
       try {
         if (!obj.containsKey('query')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['query'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['query'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -17630,13 +17607,13 @@ class WorkspaceSymbolParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type WorkspaceSymbolParams");
+      reporter.reportError('must be of type WorkspaceSymbolParams');
       return false;
     }
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is WorkspaceSymbolParams) {
       return query == other.query && true;
     }
@@ -17645,7 +17622,7 @@ class WorkspaceSymbolParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, query.hashCode);
     return JenkinsSmiHash.finish(hash);
   }

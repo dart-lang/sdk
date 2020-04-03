@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -18,6 +19,15 @@ main() {
 
 @reflectiveTest
 class NonConstantSetElementTest extends DriverResolutionTest {
+  test_const_forElement() async {
+    await assertErrorsInCode(r'''
+const Set set = {};
+var v = const {for (final x in set) x};
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 35, 22),
+    ]);
+  }
+
   test_const_ifElement_thenElseFalse_finalElse() async {
     await assertErrorsInCode(
         '''
@@ -179,5 +189,7 @@ var v = <int>{a};
 class NonConstantSetElementWithConstantsTest extends NonConstantSetElementTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [EnableString.constant_update_2018];
+    ..contextFeatures = FeatureSet.fromEnableFlags(
+      [EnableString.constant_update_2018],
+    );
 }

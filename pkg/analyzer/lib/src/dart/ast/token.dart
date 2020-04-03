@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/token.dart';
 
-export 'package:front_end/src/scanner/token.dart'
+export 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show
         BeginToken,
         CommentToken,

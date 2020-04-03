@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveInterpolationBracesTest);
   });
@@ -23,17 +23,17 @@ class RemoveInterpolationBracesTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.unnecessary_brace_in_string_interps;
 
-  test_withSpace() async {
+  Future<void> test_withSpace() async {
     await resolveTestUnit(r'''
 main() {
   var v = 42;
-  print('v: /*LINT*/${ v}');
+  print('v: ${ v}');
 }
 ''');
     await assertHasFix(r'''
 main() {
   var v = 42;
-  print('v: /*LINT*/$v');
+  print('v: $v');
 }
 ''', length: 4);
   }

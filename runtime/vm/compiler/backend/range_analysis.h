@@ -10,15 +10,24 @@
 
 namespace dart {
 
+class SExpression;
+class FlowGraphSerializer;
+
 class RangeBoundary : public ValueObject {
  public:
-  enum Kind {
-    kUnknown,
-    kNegativeInfinity,
-    kPositiveInfinity,
-    kSymbol,
-    kConstant,
-  };
+#define FOR_EACH_RANGE_BOUNDARY_KIND(V)                                        \
+  V(Unknown)                                                                   \
+  V(NegativeInfinity)                                                          \
+  V(PositiveInfinity)                                                          \
+  V(Symbol)                                                                    \
+  V(Constant)
+
+#define KIND_DEFN(name) k##name,
+  enum Kind { FOR_EACH_RANGE_BOUNDARY_KIND(KIND_DEFN) };
+#undef KIND_DEFN
+
+  static const char* KindToCString(Kind kind);
+  static bool ParseKind(const char* str, Kind* out);
 
   enum RangeSize {
     kRangeBoundarySmi,
@@ -233,6 +242,7 @@ class RangeBoundary : public ValueObject {
 
   void PrintTo(BufferFormatter* f) const;
   const char* ToCString() const;
+  SExpression* ToSExpression(FlowGraphSerializer* s);
 
   static RangeBoundary Add(const RangeBoundary& a,
                            const RangeBoundary& b,
@@ -287,6 +297,8 @@ class RangeBoundary : public ValueObject {
   int64_t SmiLowerBound() const { return LowerBound(kRangeBoundarySmi); }
 
  private:
+  friend class FlowGraphDeserializer;  // For setting fields directly.
+
   RangeBoundary(Kind kind, int64_t value, int64_t offset)
       : kind_(kind), value_(value), offset_(offset) {}
 
@@ -331,6 +343,7 @@ class Range : public ZoneAllocated {
 
   void PrintTo(BufferFormatter* f) const;
   static const char* ToCString(const Range* range);
+  SExpression* ToSExpression(FlowGraphSerializer* s);
 
   bool Equals(const Range* other) {
     ASSERT(min_.IsUnknown() == max_.IsUnknown());
@@ -493,6 +506,8 @@ class Range : public ZoneAllocated {
                        Range* result);
 
  private:
+  friend class FlowGraphDeserializer;  // For setting min_/max_ directly.
+
   RangeBoundary min_;
   RangeBoundary max_;
 

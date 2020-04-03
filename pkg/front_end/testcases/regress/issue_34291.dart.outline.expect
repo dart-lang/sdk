@@ -1,7 +1,13 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_34291.dart:9:1: Error: Expected 0 type arguments.
+// lib.A<B> foo() {}
+// ^
+//
 import self as self;
 import "dart:core" as core;
-import "issue_34291_lib.dart" as iss;
 
 import "org-dartlang-testcase:///issue_34291_lib.dart" as lib;
 
@@ -9,16 +15,16 @@ class B extends core::Object {
   synthetic constructor •() → self::B*
     ;
 }
-static method foo() → iss::A*
+static method foo() → invalid-type
   ;
 static method main() → dynamic
   ;
 
 library;
-import self as iss;
+import self as self2;
 import "dart:core" as core;
 
 class A extends core::Object {
-  synthetic constructor •() → iss::A*
+  synthetic constructor •() → self2::A*
     ;
 }

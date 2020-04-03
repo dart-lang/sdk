@@ -17,7 +17,7 @@ class ImplementedComputer {
 
   ImplementedComputer(this.searchEngine, this.unitElement);
 
-  compute() async {
+  Future<void> compute() async {
     for (var element in unitElement.mixins) {
       await _computeForClassElement(element);
     }
@@ -27,15 +27,15 @@ class ImplementedComputer {
   }
 
   void _addImplementedClass(ClassElement type) {
-    int offset = type.nameOffset;
-    int length = type.nameLength;
-    classes.add(new protocol.ImplementedClass(offset, length));
+    var offset = type.nameOffset;
+    var length = type.nameLength;
+    classes.add(protocol.ImplementedClass(offset, length));
   }
 
   void _addImplementedMember(Element member) {
-    int offset = member.nameOffset;
-    int length = member.nameLength;
-    members.add(new protocol.ImplementedMember(offset, length));
+    var offset = member.nameOffset;
+    var length = member.nameLength;
+    members.add(protocol.ImplementedMember(offset, length));
   }
 
   void _addMemberIfImplemented(Element element) {
@@ -68,13 +68,11 @@ class ImplementedComputer {
   }
 
   bool _hasOverride(Element element) {
-    String name = element.displayName;
+    var name = element.displayName;
     return subtypeMembers.contains(name);
   }
 
-  /**
-   * Return `true` if the given [element] is a static element.
-   */
+  /// Return `true` if the given [element] is a static element.
   static bool _isStatic(Element element) {
     if (element is ExecutableElement) {
       return element.isStatic;

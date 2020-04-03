@@ -5,6 +5,6 @@
 export 'package:analysis_server_client/src/protocol/protocol_base.dart';
 export 'package:analysis_server_client/src/protocol/protocol_common.dart';
 export 'package:analysis_server_client/src/protocol/protocol_constants.dart';
+export 'package:analysis_server_client/src/protocol/protocol_generated.dart';
 export 'package:analysis_server_client/src/protocol/protocol_internal.dart'
     show ResponseDecoder;
-export 'package:analysis_server_client/src/protocol/protocol_generated.dart';

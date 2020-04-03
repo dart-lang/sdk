@@ -21,6 +21,7 @@ import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 class ReferencesHandler
     extends MessageHandler<ReferenceParams, List<Location>> {
   ReferencesHandler(LspAnalysisServer server) : super(server);
+  @override
   Method get handlesMessage => Method.textDocument_references;
 
   @override
@@ -43,7 +44,7 @@ class ReferencesHandler
   }
 
   List<Location> _getDeclarations(CompilationUnit unit, int offset) {
-    final collector = new NavigationCollectorImpl();
+    final collector = NavigationCollectorImpl();
     computeDartNavigation(server.resourceProvider, collector, unit, offset, 0);
 
     return convert(collector.targets, (NavigationTarget target) {
@@ -55,7 +56,7 @@ class ReferencesHandler
 
   Future<ErrorOr<List<Location>>> _getRefererences(String path, int offset,
       ReferenceParams params, ResolvedUnitResult unit) async {
-    Element element = await server.getElementAtOffset(path, offset);
+    var element = await server.getElementAtOffset(path, offset);
     if (element is ImportElement) {
       element = (element as ImportElement).prefix;
     }
@@ -69,7 +70,7 @@ class ReferencesHandler
       return success();
     }
 
-    final computer = new ElementReferencesComputer(server.searchEngine);
+    final computer = ElementReferencesComputer(server.searchEngine);
     final results = await computer.compute(element, false);
 
     Location toLocation(SearchResult result) {

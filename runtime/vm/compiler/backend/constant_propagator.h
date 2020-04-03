@@ -37,6 +37,9 @@ class ConstantPropagator : public FlowGraphVisitor {
  private:
   void Analyze();
   void Transform();
+  // Tries to replace uses of [defn] with a constant, returns true if
+  // successfull. The [value] is used as a temporary handle.
+  bool TransformDefinition(Definition* defn);
   void EliminateRedundantBranches();
 
   void SetReachable(BlockEntryInstr* block);
@@ -73,6 +76,9 @@ class ConstantPropagator : public FlowGraphVisitor {
   // Sentinels for unknown constant and non-constant values.
   const Object& unknown_;
   const Object& non_constant_;
+
+  // Temporary handle used in [TransformDefinition].
+  Object& constant_value_;
 
   // Analysis results. For each block, a reachability bit.  Indexed by
   // preorder number.

@@ -32,10 +32,10 @@ class FlutterRunnerTarget extends VmTarget {
         // PRODUCT mode.
         'dart:mirrors',
 
-        'dart:profiler',
         'dart:typed_data',
         'dart:nativewrappers',
         'dart:io',
+        'dart:wasm',
 
         // Required for flutter_runner.
         'dart:fuchsia.builtin',
@@ -44,4 +44,7 @@ class FlutterRunnerTarget extends VmTarget {
         'dart:vmservice_io',
         'dart:ui',
       ];
+
+  @override
+  List<String> get extraRequiredLibrariesPlatform => const <String>[];
 }

@@ -29,7 +29,7 @@ StackTrace mapStackTrace(Mapping sourceMap, StackTrace stackTrace,
     if (frame.line == null) return null;
 
     // If there's no column, try using the first column of the line.
-    var column = frame.column == null ? 0 : frame.column;
+    var column = frame.column ?? 0;
 
     // Subtract 1 because stack traces use 1-indexed lines and columns and
     // source maps uses 0-indexed.
@@ -50,7 +50,7 @@ StackTrace mapStackTrace(Mapping sourceMap, StackTrace stackTrace,
         }
         var packageRoot = '$root/packages';
         if (p.url.isWithin(packageRoot, sourceUrl)) {
-          sourceUrl = "package:" + p.url.relative(sourceUrl, from: packageRoot);
+          sourceUrl = 'package:' + p.url.relative(sourceUrl, from: packageRoot);
           break;
         }
       }
@@ -58,7 +58,7 @@ StackTrace mapStackTrace(Mapping sourceMap, StackTrace stackTrace,
 
     if (!sourceUrl.startsWith('dart:') &&
         !sourceUrl.startsWith('package:') &&
-        sourceUrl.contains('dart_sdk.js')) {
+        sourceUrl.contains('dart_sdk')) {
       // This compresses the long dart_sdk URLs if SDK source maps are missing.
       // It's no longer linkable, but neither are the properly mapped ones
       // above.
@@ -70,10 +70,59 @@ StackTrace mapStackTrace(Mapping sourceMap, StackTrace stackTrace,
   }).where((frame) => frame != null));
 }
 
+final escapedPipe = '\$124';
+final escapedPound = '\$35';
+
 /// Reformats a JS member name to make it look more Dart-like.
+///
+/// Logic copied from build/build_web_compilers/web/stack_trace_mapper.dart.
+/// TODO(https://github.com/dart-lang/sdk/issues/38869): Remove this logic when
+/// DDC stack trace deobfuscation is overhauled.
 String _prettifyMember(String member) {
   var last = member.lastIndexOf('.');
   if (last < 0) return member;
   var suffix = member.substring(last + 1);
-  return suffix == 'fn' ? member : suffix;
+  member = suffix == 'fn' ? member : suffix;
+  // We avoid unescaping the entire member here due to DDC's deduping mechanism
+  // introducing trailing $N.
+  member = member.replaceAll(escapedPipe, '|');
+  return member.contains('|') ? _prettifyExtension(member) : member;
+}
+
+/// Reformats a JS member name as an extension method invocation.
+String _prettifyExtension(String member) {
+  var isSetter = false;
+  var pipeIndex = member.indexOf('|');
+  var spaceIndex = member.indexOf(' ');
+  var poundIndex = member.indexOf('escapedPound');
+  if (spaceIndex >= 0) {
+    // Here member is a static field or static getter/setter.
+    isSetter = member.substring(0, spaceIndex) == 'set';
+    member = member.substring(spaceIndex + 1, member.length);
+  } else if (poundIndex >= 0) {
+    // Here member is a tearoff or local property getter/setter.
+    isSetter = member.substring(pipeIndex + 1, poundIndex) == 'set';
+    member = member.replaceRange(pipeIndex + 1, poundIndex + 3, '');
+  } else {
+    var body = member.substring(pipeIndex + 1, member.length);
+    if (body.startsWith('unary') || body.startsWith('\$')) {
+      // Here member's an operator, so it's safe to unescape everything lazily.
+      member = _unescape(member);
+    }
+  }
+  member = member.replaceAll('|', '.');
+  return isSetter ? '$member=' : member;
+}
+
+/// Unescapes a DDC-escaped JS identifier name.
+///
+/// Identifier names that contain illegal JS characters are escaped by DDC to a
+/// decimal representation of the symbol's UTF-16 value.
+/// Warning: this greedily escapes characters, so it can be unsafe in the event
+/// that an escaped sequence precedes a number literal in the JS name.
+String _unescape(String name) {
+  return name.replaceAllMapped(
+      RegExp(r'\$[0-9]+'),
+      (m) =>
+          String.fromCharCode(int.parse(name.substring(m.start + 1, m.end))));
 }

@@ -6,6 +6,12 @@
 # Comments can also be inline like 'correct # this is ok'.
 # Note that at least one space before the hash is required.
 
+# Comments on a line by itself will be considered a header of the file and
+# automatic tools might move it to the top of the file.
+
+JS
+argument(s)
+assigning
 b
 c
 compilercontext.runincontext
@@ -13,9 +19,9 @@ compilesdk
 constructor(s)
 count.#count
 d
-dart_runner
-dart:ffi
 dart2js_server
+dart:ffi
+dart_runner
 dartbug.com
 dname
 e.g
@@ -25,7 +31,9 @@ field's
 flutter_runner
 futureor
 h
+interop
 libraries.json
+list.filled
 loadlibrary
 name.#name
 name.stack
@@ -34,7 +42,10 @@ nativetype
 nosuchmethod
 num1%.3ms
 o
+opt
+opts
 part(s)
+patch(es)
 re
 sdksummary
 stacktrace

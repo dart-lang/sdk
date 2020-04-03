@@ -3,18 +3,15 @@ library test;
 // Problems in library:
 //
 // pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:15:44: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-// Try changing the type of the left hand side, or casting the right hand side to 'int'.
 //       int x = /*error:INVALID_ASSIGNMENT*/ i;
 //                                            ^
 //
 // pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:23:44: Error: A value of type 'T' can't be assigned to a variable of type 'int'.
-// Try changing the type of the left hand side, or casting the right hand side to 'int'.
 //       int x = /*error:INVALID_ASSIGNMENT*/ i;
 //                                            ^
 //
 // pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:32:45: Error: A value of type 'Foo' can't be assigned to a variable of type 'String'.
 //  - 'Foo' is from 'pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart'.
-// Try changing the type of the left hand side, or casting the right hand side to 'String'.
 //     String y = /*error:INVALID_ASSIGNMENT*/ x;
 //                                             ^
 //
@@ -33,6 +30,7 @@ library test;
 //
 import self as self;
 import "dart:core" as core;
+import "dart:_internal" as _in;
 
 class Foo extends core::Object {
   field core::int* bar = 42;
@@ -45,11 +43,16 @@ class Bar<T extends core::Iterable<core::String*>* = core::Iterable<core::String
     : super core::Object::•()
     ;
   method foo(generic-covariant-impl self::Bar::T* t) → void {
-    for (core::String* i in t) {
-      core::int* x = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:15:44: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-Try changing the type of the left hand side, or casting the right hand side to 'int'.
+    {
+      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(t).{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        core::String* i = :sync-for-iterator.{core::Iterator::current};
+        {
+          core::int* x = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:15:44: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
       int x = /*error:INVALID_ASSIGNMENT*/ i;
                                            ^" in i as{TypeError} core::int*;
+        }
+      }
     }
   }
 }
@@ -58,61 +61,113 @@ class Baz<T extends core::Object* = dynamic, E extends core::Iterable<self::Baz:
     : super core::Object::•()
     ;
   method foo(generic-covariant-impl self::Baz::S* t) → void {
-    for (self::Baz::T* i in t) {
-      core::int* x = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:23:44: Error: A value of type 'T' can't be assigned to a variable of type 'int'.
-Try changing the type of the left hand side, or casting the right hand side to 'int'.
+    {
+      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(t).{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        self::Baz::T* i = :sync-for-iterator.{core::Iterator::current};
+        {
+          core::int* x = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:23:44: Error: A value of type 'T' can't be assigned to a variable of type 'int'.
       int x = /*error:INVALID_ASSIGNMENT*/ i;
                                            ^" in i as{TypeError} core::int*;
-      self::Baz::T* y = i;
+          self::Baz::T* y = i;
+        }
+      }
     }
   }
 }
 static method test() → dynamic {
   core::List<self::Foo*>* list = <self::Foo*>[];
-  for (self::Foo* x in list) {
-    core::String* y = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:32:45: Error: A value of type 'Foo' can't be assigned to a variable of type 'String'.
+  {
+    core::Iterator<self::Foo*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<self::Foo*>*>(list).{core::Iterable::iterator};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+      self::Foo* x = :sync-for-iterator.{core::Iterator::current};
+      {
+        core::String* y = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:32:45: Error: A value of type 'Foo' can't be assigned to a variable of type 'String'.
  - 'Foo' is from 'pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart'.
-Try changing the type of the left hand side, or casting the right hand side to 'String'.
     String y = /*error:INVALID_ASSIGNMENT*/ x;
                                             ^" in x as{TypeError} core::String*;
+      }
+    }
   }
-  for (dynamic x in list) {
-    core::String* y = x as{TypeError} core::String*;
+  {
+    core::Iterator<self::Foo*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<self::Foo*>*>(list).{core::Iterable::iterator};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+      dynamic x = :sync-for-iterator.{core::Iterator::current};
+      {
+        core::String* y = x as{TypeError,ForDynamic} core::String*;
+      }
+    }
   }
-  for (final self::Foo* #t4 in list) {
-    core::String* x = let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:39:15: Error: A value of type 'Foo' can't be assigned to a variable of type 'String'.
+  {
+    core::Iterator<self::Foo*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<self::Foo*>*>(list).{core::Iterable::iterator};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+      final self::Foo* #t4 = :sync-for-iterator.{core::Iterator::current};
+      {
+        core::String* x = let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:39:15: Error: A value of type 'Foo' can't be assigned to a variable of type 'String'.
  - 'Foo' is from 'pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart'.
 Try changing the type of the variable.
   for (String x in /*error:FOR_IN_OF_INVALID_ELEMENT_TYPE*/ list) {
               ^" in #t4 as{TypeError} core::String*;
-    core::String* y = x;
+        core::String* y = x;
+      }
+    }
   }
   dynamic z;
-  for (final self::Foo* #t6 in list) {
-    z = #t6;
-    core::String* y = z as{TypeError} core::String*;
+  {
+    core::Iterator<self::Foo*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<self::Foo*>*>(list).{core::Iterable::iterator};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+      final self::Foo* #t6 = :sync-for-iterator.{core::Iterator::current};
+      {
+        z = #t6;
+        core::String* y = z as{TypeError,ForDynamic} core::String*;
+      }
+    }
   }
   core::Iterable<dynamic>* iter = list;
-  for (final dynamic #t7 in iter) {
-    self::Foo* x = #t7 as{TypeError} self::Foo*;
-    self::Foo* y = x;
+  {
+    core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(iter).{core::Iterable::iterator};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+      final dynamic #t7 = :sync-for-iterator.{core::Iterator::current};
+      {
+        self::Foo* x = #t7 as{TypeError,ForDynamic} self::Foo*;
+        self::Foo* y = x;
+      }
+    }
   }
   dynamic iter2 = list;
-  for (final dynamic #t8 in iter2 as{TypeError} core::Iterable<dynamic>*) {
-    self::Foo* x = #t8 as{TypeError} self::Foo*;
-    self::Foo* y = x;
+  {
+    core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(iter2 as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+      final dynamic #t8 = :sync-for-iterator.{core::Iterator::current};
+      {
+        self::Foo* x = #t8 as{TypeError,ForDynamic} self::Foo*;
+        self::Foo* y = x;
+      }
+    }
   }
   core::Map<core::String*, self::Foo*>* map = <core::String*, self::Foo*>{};
-  for (dynamic x in let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:60:70: Error: The type 'Map<String, Foo>' used in the 'for' loop must implement 'Iterable<dynamic>'.
+  {
+    core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:60:70: Error: The type 'Map<String, Foo>' used in the 'for' loop must implement 'Iterable<dynamic>'.
  - 'Map' is from 'dart:core'.
  - 'Foo' is from 'pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart'.
  - 'Iterable' is from 'dart:core'.
   for (var /*@ type=dynamic */ x in /*error:FOR_IN_OF_INVALID_TYPE*/ map) {
-                                                                     ^" in map as{TypeError} core::Iterable<dynamic>*) {
-    core::String* y = x as{TypeError} core::String*;
+                                                                     ^" in map as{TypeError} core::Iterable<dynamic>*).{core::Iterable::iterator};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+      dynamic x = :sync-for-iterator.{core::Iterator::current};
+      {
+        core::String* y = x as{TypeError,ForDynamic} core::String*;
+      }
+    }
   }
-  for (core::String* x in map.{core::Map::keys}) {
-    core::String* y = x;
+  {
+    core::Iterator<core::String*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::String*>*>(map.{core::Map::keys}).{core::Iterable::iterator};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+      core::String* x = :sync-for-iterator.{core::Iterator::current};
+      {
+        core::String* y = x;
+      }
+    }
   }
 }
 static method main() → dynamic {}

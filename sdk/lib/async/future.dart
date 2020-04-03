@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.async;
 
 /// A type representing values that are either `Future<T>` or `T`.
@@ -12,8 +14,6 @@ part of dart.async;
 ///
 /// It is a compile-time error for any class to extend, mix in or implement
 /// `FutureOr`.
-///
-/// Note: the `FutureOr<T>` type is interpreted as `dynamic` in non strong-mode.
 ///
 /// # Examples
 /// ``` dart
@@ -254,6 +254,7 @@ abstract class Future<T> {
    *
    * Use [Completer] to create a future and complete it later.
    */
+  @pragma("vm:entry-point")
   factory Future.value([FutureOr<T> value]) {
     return new _Future<T>.immediate(value);
   }
@@ -266,12 +267,12 @@ abstract class Future<T> {
    * If an error handler isn't added before the future completes, the error
    * will be considered unhandled.
    *
-   * If [error] is `null`, it is replaced by a [NullThrownError].
+   * The [error] must not be `null`.
    *
    * Use [Completer] to create a future and complete it later.
    */
   factory Future.error(Object error, [StackTrace stackTrace]) {
-    error = _nonNullError(error);
+    ArgumentError.checkNotNull(error, "error");
     if (!identical(Zone.current, _rootZone)) {
       AsyncError replacement = Zone.current.errorCallback(error, stackTrace);
       if (replacement != null) {
@@ -279,6 +280,7 @@ abstract class Future<T> {
         stackTrace = replacement.stackTrace;
       }
     }
+    stackTrace ??= AsyncError.defaultStackTrace(error);
     return new _Future<T>.immediateError(error, stackTrace);
   }
 
@@ -362,7 +364,7 @@ abstract class Future<T> {
     // Handle an error from any of the futures.
     // TODO(jmesserly): use `void` return type once it can be inferred for the
     // `then` call below.
-    handleError(theError, StackTrace theStackTrace) {
+    handleError(Object theError, StackTrace theStackTrace) {
       remaining--;
       if (values != null) {
         if (cleanUp != null) {
@@ -637,8 +639,6 @@ abstract class Future<T> {
   // - (dynamic, StackTrace) -> FutureOr<T>
   // Given that there is a `test` function that is usually used to do an
   // `isCheck` we should also expect functions that take a specific argument.
-  // Note: making `catchError` return a `Future<T>` in non-strong mode could be
-  // a breaking change.
   Future<T> catchError(Function onError, {bool test(Object error)});
 
   /**
@@ -876,7 +876,7 @@ abstract class Completer<T> {
    * Completing a future with an error indicates that an exception was thrown
    * while trying to produce a value.
    *
-   * If [error] is `null`, it is replaced by a [NullThrownError].
+   * The [error] must not be `null`.
    *
    * If `error` is a `Future`, the future itself is used as the error value.
    * If you want to complete with the result of the future, you can use:
@@ -906,13 +906,14 @@ abstract class Completer<T> {
 }
 
 // Helper function completing a _Future with error, but checking the zone
-// for error replacement first.
+// for error replacement first and missing stack trace.
 void _completeWithErrorCallback(_Future result, error, StackTrace stackTrace) {
   AsyncError replacement = Zone.current.errorCallback(error, stackTrace);
   if (replacement != null) {
     error = _nonNullError(replacement.error);
     stackTrace = replacement.stackTrace;
   }
+  stackTrace ??= AsyncError.defaultStackTrace(error);
   result._completeError(error, stackTrace);
 }
 
@@ -924,6 +925,7 @@ void _asyncCompleteWithErrorCallback(
     error = _nonNullError(replacement.error);
     stackTrace = replacement.stackTrace;
   }
+  stackTrace ??= AsyncError.defaultStackTrace(error);
   result._asyncCompleteError(error, stackTrace);
 }
 

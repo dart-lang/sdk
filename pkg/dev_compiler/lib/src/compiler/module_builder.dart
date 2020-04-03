@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:args/args.dart' show ArgParser, ArgResults;
-import 'package:args/command_runner.dart' show UsageException;
+import 'package:dev_compiler/src/compiler/shared_compiler.dart';
 import 'package:path/path.dart' as p;
 
 import '../js_ast/js_ast.dart';
@@ -20,14 +20,8 @@ enum ModuleFormat {
   /// Asynchronous Module Definition (AMD, used in browsers).
   amd,
 
-  /// Dart Dev Compiler's legacy format (deprecated).
-  legacy,
-
-  /// Like [amd] but can be concatenated into a single file.
-  amdConcat,
-
-  /// Like [legacy] but can be concatenated into a single file.
-  legacyConcat
+  /// Dart Dev Compiler's own format.
+  ddc,
 }
 
 /// Parses a string into a [ModuleFormat].
@@ -35,35 +29,15 @@ ModuleFormat parseModuleFormat(String s) => {
       'es6': ModuleFormat.es6,
       'common': ModuleFormat.common,
       'amd': ModuleFormat.amd,
+      'ddc': ModuleFormat.ddc,
       // Deprecated:
       'node': ModuleFormat.common,
-      'legacy': ModuleFormat.legacy
+      'legacy': ModuleFormat.ddc
     }[s];
 
 /// Parse the module format option added by [addModuleFormatOptions].
 List<ModuleFormat> parseModuleFormatOption(ArgResults args) {
-  var formats =
-      (args['modules'] as List<String>).map(parseModuleFormat).toList();
-
-  if (args['single-out-file'] as bool) {
-    for (int i = 0; i < formats.length; i++) {
-      var format = formats[i];
-      switch (formats[i]) {
-        case ModuleFormat.amd:
-          formats[i] = ModuleFormat.amdConcat;
-          break;
-        case ModuleFormat.legacy:
-          formats[i] = ModuleFormat.legacyConcat;
-          break;
-        default:
-          throw UsageException(
-              'Format $format cannot be combined with '
-                  'single-out-file. Only amd and legacy modes are supported.',
-              '');
-      }
-    }
-  }
-  return formats;
+  return (args['modules'] as List<String>).map(parseModuleFormat).toList();
 }
 
 /// Adds an option to the [argParser] for choosing the module format, optionally
@@ -74,7 +48,8 @@ void addModuleFormatOptions(ArgParser argParser, {bool hide = true}) {
     'es6',
     'common',
     'amd',
-    'legacy', // deprecated
+    'ddc',
+    'legacy', // renamed to ddc
     'node', // renamed to commonjs
     'all' // to emit all flavors for the SDK
   ], allowedHelp: {
@@ -84,12 +59,6 @@ void addModuleFormatOptions(ArgParser argParser, {bool hide = true}) {
   }, defaultsTo: [
     'amd'
   ]);
-
-  argParser.addFlag('single-out-file',
-      help: 'emit modules that can be concatenated into one file.\n'
-          'Only compatible with legacy and amd module formats.',
-      defaultsTo: false,
-      hide: hide);
 }
 
 /// Transforms an ES6 [module] into a given module [format].
@@ -102,16 +71,13 @@ void addModuleFormatOptions(ArgParser argParser, {bool hide = true}) {
 /// [ExportDeclaration]s.
 Program transformModuleFormat(ModuleFormat format, Program module) {
   switch (format) {
-    case ModuleFormat.legacy:
-    case ModuleFormat.legacyConcat:
+    case ModuleFormat.ddc:
       // Legacy format always generates output compatible with single file mode.
-      return LegacyModuleBuilder().build(module);
+      return DdcModuleBuilder().build(module);
     case ModuleFormat.common:
       return CommonJSModuleBuilder().build(module);
     case ModuleFormat.amd:
       return AmdModuleBuilder().build(module);
-    case ModuleFormat.amdConcat:
-      return AmdModuleBuilder(singleOutFile: true).build(module);
     case ModuleFormat.es6:
     default:
       return module;
@@ -144,11 +110,11 @@ abstract class _ModuleBuilder {
     }
   }
 
-  visitImportDeclaration(ImportDeclaration node) {
+  void visitImportDeclaration(ImportDeclaration node) {
     imports.add(node);
   }
 
-  visitExportDeclaration(ExportDeclaration node) {
+  void visitExportDeclaration(ExportDeclaration node) {
     exports.add(node);
     var exported = node.exported;
     if (exported is! ExportClause) {
@@ -156,14 +122,14 @@ abstract class _ModuleBuilder {
     }
   }
 
-  visitStatement(Statement node) {
+  void visitStatement(Statement node) {
     statements.add(node);
   }
 }
 
-/// Generates modules for with our legacy `dart_library.js` loading mechanism.
+/// Generates modules for with our DDC `dart_library.js` loading mechanism.
 // TODO(jmesserly): remove this and replace with something that interoperates.
-class LegacyModuleBuilder extends _ModuleBuilder {
+class DdcModuleBuilder extends _ModuleBuilder {
   Program build(Program module) {
     // Collect imports/exports/statements.
     visitProgram(module);
@@ -180,7 +146,8 @@ class LegacyModuleBuilder extends _ModuleBuilder {
           TemporaryId(pathToJSIdentifier(import.from.valueWithoutQuotes));
       parameters.add(moduleVar);
       for (var importName in import.namedImports) {
-        assert(!importName.isStar); // import * not supported in legacy modules.
+        assert(!importName
+            .isStar); // import * not supported in ddc format modules.
         var asName = importName.asName ?? importName.name;
         var fromName = importName.name.name;
         // Load non-SDK modules on demand (i.e., deferred).
@@ -204,7 +171,7 @@ class LegacyModuleBuilder extends _ModuleBuilder {
       // TODO(jmesserly): make these immutable in JS?
       for (var export in exports) {
         var names = export.exportedNames;
-        assert(names != null); // export * not supported in legacy modules.
+        assert(names != null); // export * not supported in ddc modules.
         for (var name in names) {
           var alias = name.asName ?? name.name;
           statements.add(
@@ -220,12 +187,13 @@ class LegacyModuleBuilder extends _ModuleBuilder {
         js.fun("function(#) { 'use strict'; #; }", [parameters, statements]),
         true);
 
-    var moduleDef = js.statement("dart_library.library(#, #, #, #)", [
+    var moduleDef = js.statement('dart_library.library(#, #, #, #, #)', [
       js.string(module.name, "'"),
       LiteralNull(),
       js.commentExpression(
-          "Imports", ArrayInitializer(importNames, multiline: true)),
-      resultModule
+          'Imports', ArrayInitializer(importNames, multiline: true)),
+      resultModule,
+      SharedCompiler.metricsLocationID
     ]);
     return Program(<ModuleItem>[moduleDef]);
   }
@@ -280,9 +248,7 @@ class CommonJSModuleBuilder extends _ModuleBuilder {
 
 /// Generates AMD modules (used in browsers with RequireJS).
 class AmdModuleBuilder extends _ModuleBuilder {
-  final bool singleOutFile;
-
-  AmdModuleBuilder({this.singleOutFile = false});
+  AmdModuleBuilder();
 
   Program build(Program module) {
     var importStatements = <Statement>[];
@@ -326,16 +292,9 @@ class AmdModuleBuilder extends _ModuleBuilder {
     }
 
     // TODO(vsm): Consider using an immediately invoked named function pattern
-    // (see legacy code above).
-    var block = singleOutFile
-        ? js.statement("define(#, #, function(#) { 'use strict'; #; });", [
-            js.string(module.name, "'"),
-            ArrayInitializer(dependencies),
-            fnParams,
-            statements
-          ])
-        : js.statement("define(#, function(#) { 'use strict'; #; });",
-            [ArrayInitializer(dependencies), fnParams, statements]);
+    // (see ddc module code above).
+    var block = js.statement("define(#, function(#) { 'use strict'; #; });",
+        [ArrayInitializer(dependencies), fnParams, statements]);
 
     return Program([block]);
   }
@@ -359,34 +318,5 @@ String pathToJSIdentifier(String path) {
       .replaceAll('-', '_'));
 }
 
-/// Escape [name] to make it into a valid identifier.
-String toJSIdentifier(String name) {
-  if (name.isEmpty) return r'$';
-
-  // Escape any invalid characters
-  StringBuffer buffer;
-  for (int i = 0; i < name.length; i++) {
-    var ch = name[i];
-    var needsEscape = ch == r'$' || _invalidCharInIdentifier.hasMatch(ch);
-    if (needsEscape && buffer == null) {
-      buffer = StringBuffer(name.substring(0, i));
-    }
-    if (buffer != null) {
-      buffer.write(needsEscape ? '\$${ch.codeUnits.join("")}' : ch);
-    }
-  }
-
-  var result = buffer != null ? '$buffer' : name;
-  // Ensure the identifier first character is not numeric and that the whole
-  // identifier is not a keyword.
-  if (result.startsWith(RegExp('[0-9]')) || invalidVariableName(result)) {
-    return '\$$result';
-  }
-  return result;
-}
-
-// Invalid characters for identifiers, which would need to be escaped.
-final _invalidCharInIdentifier = RegExp(r'[^A-Za-z_$0-9]');
-
 // Replacement string for path separators (i.e., '/', '\', '..').
-final encodedSeparator = "__";
+final encodedSeparator = '__';

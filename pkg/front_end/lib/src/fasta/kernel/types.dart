@@ -13,211 +13,215 @@ import 'package:kernel/ast.dart'
         FunctionType,
         InterfaceType,
         InvalidType,
+        Library,
         NamedType,
+        NeverType,
         Nullability,
         TypeParameter,
         TypeParameterType,
         TypedefType,
+        Variance,
         VoidType;
 
-import 'package:kernel/type_algebra.dart' show Substitution;
+import 'package:kernel/core_types.dart';
+
+import 'package:kernel/type_algebra.dart'
+    show Substitution, combineNullabilitiesForSubstitution;
+
+import 'package:kernel/type_environment.dart';
+
+import 'package:kernel/src/future_or.dart';
 
 import 'kernel_builder.dart' show ClassHierarchyBuilder;
 
-class Types {
+class Types implements SubtypeTester {
   final ClassHierarchyBuilder hierarchy;
 
   Types(this.hierarchy);
 
   /// Returns true if [s] is a subtype of [t].
-  bool isSubtypeOfKernel(DartType s, DartType t) {
-    if (s is InvalidType) {
-      // InvalidType is a bottom type.
-      return true;
+  bool isSubtypeOfKernel(DartType s, DartType t, SubtypeCheckMode mode) {
+    IsSubtypeOf result = performNullabilityAwareSubtypeCheck(s, t);
+    switch (mode) {
+      case SubtypeCheckMode.withNullabilities:
+        return result.isSubtypeWhenUsingNullabilities();
+      case SubtypeCheckMode.ignoringNullabilities:
+        return result.isSubtypeWhenIgnoringNullabilities();
+      default:
+        throw new StateError("Unhandled subtype checking mode '$mode'");
     }
-    if (t is InvalidType) {
-      return false;
-    }
-    return isSubtypeOfKernelNullability(s, s.nullability, t, t.nullability);
   }
 
-  bool isSubtypeOfKernelNullability(
-      DartType s, Nullability sNullability, DartType t, tNullability) {
+  @override
+  IsSubtypeOf performNullabilityAwareSubtypeCheck(DartType s, DartType t) {
     if (s is BottomType) {
-      return true; // Rule 3.
+      return const IsSubtypeOf.always(); // Rule 3.
     }
     if (t is DynamicType) {
-      return true; // Rule 2.
+      return const IsSubtypeOf.always(); // Rule 2.
     }
     if (t is VoidType) {
-      return true; // Rule 2.
+      return const IsSubtypeOf.always(); // Rule 2.
     }
     if (t is BottomType) {
-      return false;
+      return const IsSubtypeOf.never();
     }
+    if (s is NeverType) {
+      return new IsSubtypeOf.basedSolelyOnNullabilities(
+          s, t, hierarchy.futureOrClass);
+    }
+
+    // TODO(dmitryas): Remove InvalidType from subtype relation.
+    if (s is InvalidType) {
+      // InvalidType is a bottom type.
+      return const IsSubtypeOf.always();
+    }
+    if (t is InvalidType) {
+      return const IsSubtypeOf.never();
+    }
+
     if (t is InterfaceType) {
       Class cls = t.classNode;
-      if (cls == hierarchy.objectKernelClass) {
-        return true; // Rule 2.
+      if (cls == hierarchy.objectClass &&
+          !(s is InterfaceType && s.classNode == hierarchy.futureOrClass)) {
+        return new IsSubtypeOf.basedSolelyOnNullabilities(
+            s, t, hierarchy.futureOrClass);
       }
-      if (cls == hierarchy.futureOrKernelClass) {
+      if (cls == hierarchy.futureOrClass) {
         const IsFutureOrSubtypeOf relation = const IsFutureOrSubtypeOf();
         if (s is DynamicType) {
-          return relation.isDynamicRelated(
-              s, sNullability, t, tNullability, this);
+          return relation.isDynamicRelated(s, t, this);
         } else if (s is VoidType) {
-          return relation.isVoidRelated(s, sNullability, t, tNullability, this);
+          return relation.isVoidRelated(s, t, this);
         } else if (s is InterfaceType) {
-          return s.classNode == hierarchy.futureOrKernelClass
-              ? relation.isFutureOrRelated(
-                  s, sNullability, t, tNullability, this)
-              : relation.isInterfaceRelated(
-                  s, sNullability, t, tNullability, this);
+          return s.classNode == hierarchy.futureOrClass
+              ? relation.isFutureOrRelated(s, t, this)
+              : relation.isInterfaceRelated(s, t, this);
         } else if (s is FunctionType) {
-          return relation.isFunctionRelated(
-              s, sNullability, t, tNullability, this);
+          return relation.isFunctionRelated(s, t, this);
         } else if (s is TypeParameterType) {
           return s.promotedBound == null
-              ? relation.isTypeParameterRelated(
-                  s, sNullability, t, tNullability, this)
-              : relation.isIntersectionRelated(
-                  s, sNullability, t, tNullability, this);
+              ? relation.isTypeParameterRelated(s, t, this)
+              : relation.isIntersectionRelated(s, t, this);
         } else if (s is TypedefType) {
-          return relation.isTypedefRelated(
-              s, sNullability, t, tNullability, this);
+          return relation.isTypedefRelated(s, t, this);
         }
       } else {
         const IsInterfaceSubtypeOf relation = const IsInterfaceSubtypeOf();
         if (s is DynamicType) {
-          return relation.isDynamicRelated(
-              s, sNullability, t, tNullability, this);
+          return relation.isDynamicRelated(s, t, this);
         } else if (s is VoidType) {
-          return relation.isVoidRelated(s, sNullability, t, tNullability, this);
+          return relation.isVoidRelated(s, t, this);
         } else if (s is InterfaceType) {
-          return s.classNode == hierarchy.futureOrKernelClass
-              ? relation.isFutureOrRelated(
-                  s, sNullability, t, tNullability, this)
-              : relation.isInterfaceRelated(
-                  s, sNullability, t, tNullability, this);
+          return s.classNode == hierarchy.futureOrClass
+              ? relation.isFutureOrRelated(s, t, this)
+              : relation.isInterfaceRelated(s, t, this);
         } else if (s is FunctionType) {
-          return relation.isFunctionRelated(
-              s, sNullability, t, tNullability, this);
+          return relation.isFunctionRelated(s, t, this);
         } else if (s is TypeParameterType) {
           return s.promotedBound == null
-              ? relation.isTypeParameterRelated(
-                  s, sNullability, t, tNullability, this)
-              : relation.isIntersectionRelated(
-                  s, sNullability, t, tNullability, this);
+              ? relation.isTypeParameterRelated(s, t, this)
+              : relation.isIntersectionRelated(s, t, this);
         } else if (s is TypedefType) {
-          return relation.isTypedefRelated(
-              s, sNullability, t, tNullability, this);
+          return relation.isTypedefRelated(s, t, this);
         }
       }
     } else if (t is FunctionType) {
       const IsFunctionSubtypeOf relation = const IsFunctionSubtypeOf();
       if (s is DynamicType) {
-        return relation.isDynamicRelated(
-            s, sNullability, t, tNullability, this);
+        return relation.isDynamicRelated(s, t, this);
       } else if (s is VoidType) {
-        return relation.isVoidRelated(s, sNullability, t, tNullability, this);
+        return relation.isVoidRelated(s, t, this);
       } else if (s is InterfaceType) {
-        return s.classNode == hierarchy.futureOrKernelClass
-            ? relation.isFutureOrRelated(s, sNullability, t, tNullability, this)
-            : relation.isInterfaceRelated(
-                s, sNullability, t, tNullability, this);
+        return s.classNode == hierarchy.futureOrClass
+            ? relation.isFutureOrRelated(s, t, this)
+            : relation.isInterfaceRelated(s, t, this);
       } else if (s is FunctionType) {
-        return relation.isFunctionRelated(
-            s, sNullability, t, tNullability, this);
+        return relation.isFunctionRelated(s, t, this);
       } else if (s is TypeParameterType) {
         return s.promotedBound == null
-            ? relation.isTypeParameterRelated(
-                s, sNullability, t, tNullability, this)
-            : relation.isIntersectionRelated(
-                s, sNullability, t, tNullability, this);
+            ? relation.isTypeParameterRelated(s, t, this)
+            : relation.isIntersectionRelated(s, t, this);
       } else if (s is TypedefType) {
-        return relation.isTypedefRelated(
-            s, sNullability, t, tNullability, this);
+        return relation.isTypedefRelated(s, t, this);
       }
     } else if (t is TypeParameterType) {
       if (t.promotedBound == null) {
         const IsTypeParameterSubtypeOf relation =
             const IsTypeParameterSubtypeOf();
         if (s is DynamicType) {
-          return relation.isDynamicRelated(
-              s, sNullability, t, tNullability, this);
+          return relation.isDynamicRelated(s, t, this);
         } else if (s is VoidType) {
-          return relation.isVoidRelated(s, sNullability, t, tNullability, this);
+          return relation.isVoidRelated(s, t, this);
         } else if (s is InterfaceType) {
-          return s.classNode == hierarchy.futureOrKernelClass
-              ? relation.isFutureOrRelated(
-                  s, sNullability, t, tNullability, this)
-              : relation.isInterfaceRelated(
-                  s, sNullability, t, tNullability, this);
+          return s.classNode == hierarchy.futureOrClass
+              ? relation.isFutureOrRelated(s, t, this)
+              : relation.isInterfaceRelated(s, t, this);
         } else if (s is FunctionType) {
-          return relation.isFunctionRelated(
-              s, sNullability, t, tNullability, this);
+          return relation.isFunctionRelated(s, t, this);
         } else if (s is TypeParameterType) {
           return s.promotedBound == null
-              ? relation.isTypeParameterRelated(
-                  s, sNullability, t, tNullability, this)
-              : relation.isIntersectionRelated(
-                  s, sNullability, t, tNullability, this);
+              ? relation.isTypeParameterRelated(s, t, this)
+              : relation.isIntersectionRelated(s, t, this);
         } else if (s is TypedefType) {
-          return relation.isTypedefRelated(
-              s, sNullability, t, tNullability, this);
+          return relation.isTypedefRelated(s, t, this);
         }
       } else {
         const IsIntersectionSubtypeOf relation =
             const IsIntersectionSubtypeOf();
         if (s is DynamicType) {
-          return relation.isDynamicRelated(
-              s, sNullability, t, tNullability, this);
+          return relation.isDynamicRelated(s, t, this);
         } else if (s is VoidType) {
-          return relation.isVoidRelated(s, sNullability, t, tNullability, this);
+          return relation.isVoidRelated(s, t, this);
         } else if (s is InterfaceType) {
-          return s.classNode == hierarchy.futureOrKernelClass
-              ? relation.isFutureOrRelated(
-                  s, sNullability, t, tNullability, this)
-              : relation.isInterfaceRelated(
-                  s, sNullability, t, tNullability, this);
+          return s.classNode == hierarchy.futureOrClass
+              ? relation.isFutureOrRelated(s, t, this)
+              : relation.isInterfaceRelated(s, t, this);
         } else if (s is FunctionType) {
-          return relation.isFunctionRelated(
-              s, sNullability, t, tNullability, this);
+          return relation.isFunctionRelated(s, t, this);
         } else if (s is TypeParameterType) {
           return s.promotedBound == null
-              ? relation.isTypeParameterRelated(
-                  s, sNullability, t, tNullability, this)
-              : relation.isIntersectionRelated(
-                  s, sNullability, t, tNullability, this);
+              ? relation.isTypeParameterRelated(s, t, this)
+              : relation.isIntersectionRelated(s, t, this);
         } else if (s is TypedefType) {
-          return relation.isTypedefRelated(
-              s, sNullability, t, tNullability, this);
+          return relation.isTypedefRelated(s, t, this);
         }
       }
     } else if (t is TypedefType) {
       const IsTypedefSubtypeOf relation = const IsTypedefSubtypeOf();
       if (s is DynamicType) {
-        return relation.isDynamicRelated(
-            s, sNullability, t, tNullability, this);
+        return relation.isDynamicRelated(s, t, this);
       } else if (s is VoidType) {
-        return relation.isVoidRelated(s, sNullability, t, tNullability, this);
+        return relation.isVoidRelated(s, t, this);
       } else if (s is InterfaceType) {
-        return s.classNode == hierarchy.futureOrKernelClass
-            ? relation.isFutureOrRelated(s, sNullability, t, tNullability, this)
-            : relation.isInterfaceRelated(
-                s, sNullability, t, tNullability, this);
+        return s.classNode == hierarchy.futureOrClass
+            ? relation.isFutureOrRelated(s, t, this)
+            : relation.isInterfaceRelated(s, t, this);
       } else if (s is FunctionType) {
-        return relation.isFunctionRelated(
-            s, sNullability, t, tNullability, this);
+        return relation.isFunctionRelated(s, t, this);
       } else if (s is TypeParameterType) {
         return s.promotedBound == null
-            ? relation.isTypeParameterRelated(
-                s, sNullability, t, tNullability, this)
-            : relation.isIntersectionRelated(
-                s, sNullability, t, tNullability, this);
+            ? relation.isTypeParameterRelated(s, t, this)
+            : relation.isIntersectionRelated(s, t, this);
       } else if (s is TypedefType) {
-        return relation.isTypedefRelated(
-            s, sNullability, t, tNullability, this);
+        return relation.isTypedefRelated(s, t, this);
+      }
+    } else if (t is NeverType) {
+      const IsNeverTypeSubtypeOf relation = const IsNeverTypeSubtypeOf();
+      if (s is DynamicType) {
+        return relation.isDynamicRelated(s, t, this);
+      } else if (s is VoidType) {
+        return relation.isVoidRelated(s, t, this);
+      } else if (s is InterfaceType) {
+        return relation.isInterfaceRelated(s, t, this);
+      } else if (s is FunctionType) {
+        return relation.isFunctionRelated(s, t, this);
+      } else if (s is TypeParameterType) {
+        return s.promotedBound == null
+            ? relation.isTypeParameterRelated(s, t, this)
+            : relation.isIntersectionRelated(s, t, this);
+      } else if (s is TypedefType) {
+        return relation.isTypedefRelated(s, t, this);
       }
     } else {
       throw "Unhandled type: ${t.runtimeType}";
@@ -225,136 +229,203 @@ class Types {
     throw "Unhandled type combination: ${t.runtimeType} ${s.runtimeType}";
   }
 
-  /// Returns true if all types in [s] and [t] pairwise are subtypes.
-  bool areSubtypesOfKernel(List<DartType> s, List<DartType> t) {
-    if (s.length != t.length) {
-      throw "Numbers of type arguments don't match $s $t.";
+  /// Returns true if all type arguments in [s] and [t] pairwise are subtypes
+  /// with respect to the variance of the corresponding [p] type parameter.
+  IsSubtypeOf areTypeArgumentsOfSubtypeKernel(
+      List<DartType> s, List<DartType> t, List<TypeParameter> p) {
+    if (s.length != t.length || s.length != p.length) {
+      throw "Numbers of type arguments don't match $s $t with parameters $p.";
     }
+    IsSubtypeOf result = const IsSubtypeOf.always();
     for (int i = 0; i < s.length; i++) {
-      if (!isSubtypeOfKernel(s[i], t[i])) return false;
+      int variance = p[i].variance;
+      if (variance == Variance.contravariant) {
+        result = result.and(performNullabilityAwareSubtypeCheck(t[i], s[i]));
+        if (!result.isSubtypeWhenIgnoringNullabilities()) {
+          return const IsSubtypeOf.never();
+        }
+      } else if (variance == Variance.invariant) {
+        result = result.and(isSameTypeKernel(s[i], t[i]));
+        if (!result.isSubtypeWhenIgnoringNullabilities()) {
+          return const IsSubtypeOf.never();
+        }
+      } else {
+        result = result.and(performNullabilityAwareSubtypeCheck(s[i], t[i]));
+        if (!result.isSubtypeWhenIgnoringNullabilities()) {
+          return const IsSubtypeOf.never();
+        }
+      }
     }
-    return true;
+    return result;
   }
 
-  bool isSameTypeKernel(DartType s, DartType t) {
-    return isSubtypeOfKernel(s, t) && isSubtypeOfKernel(t, s);
+  IsSubtypeOf isSameTypeKernel(DartType s, DartType t) {
+    return performNullabilityAwareSubtypeCheck(s, t)
+        .andSubtypeCheckFor(t, s, this);
+  }
+
+  @override
+  bool isSubtypeOf(
+      DartType subtype, DartType supertype, SubtypeCheckMode mode) {
+    return isSubtypeOfKernel(subtype, supertype, mode);
+  }
+
+  @override
+  Class get futureOrClass => hierarchy.coreTypes.futureOrClass;
+
+  @override
+  Class get functionClass => hierarchy.coreTypes.functionClass;
+
+  @override
+  InterfaceType get functionLegacyRawType =>
+      hierarchy.coreTypes.functionLegacyRawType;
+
+  @override
+  InterfaceType futureType(DartType type, Nullability nullability) {
+    return new InterfaceType(
+        hierarchy.coreTypes.futureClass, nullability, <DartType>[type]);
+  }
+
+  @override
+  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass,
+      Library clientLibrary, CoreTypes coreTypes) {
+    return hierarchy.getKernelTypeAsInstanceOf(type, superclass, clientLibrary);
+  }
+
+  @override
+  List<DartType> getTypeArgumentsAsInstanceOf(
+      InterfaceType type, Class superclass) {
+    return hierarchy.getKernelTypeArgumentsAsInstanceOf(type, superclass);
+  }
+
+  @override
+  bool isTop(DartType type) {
+    return type is DynamicType ||
+        type is VoidType ||
+        type == objectLegacyRawType ||
+        type == objectNullableRawType;
+  }
+
+  @override
+  InterfaceType get nullType => hierarchy.coreTypes.nullType;
+
+  @override
+  Class get objectClass => hierarchy.coreTypes.objectClass;
+
+  @override
+  InterfaceType get objectLegacyRawType {
+    return hierarchy.coreTypes.objectLegacyRawType;
+  }
+
+  @override
+  InterfaceType get objectNullableRawType {
+    return hierarchy.coreTypes.objectNullableRawType;
+  }
+
+  @override
+  IsSubtypeOf performNullabilityAwareMutualSubtypesCheck(
+      DartType type1, DartType type2) {
+    return isSameTypeKernel(type1, type2);
   }
 }
 
 abstract class TypeRelation<T extends DartType> {
   const TypeRelation();
 
-  bool isDynamicRelated(DynamicType s, Nullability sNullability, T t,
-      Nullability tNullability, Types types);
+  IsSubtypeOf isDynamicRelated(DynamicType s, T t, Types types);
 
-  bool isVoidRelated(VoidType s, Nullability sNullability, T t,
-      Nullability tNullability, Types types);
+  IsSubtypeOf isVoidRelated(VoidType s, T t, Types types);
 
-  bool isInterfaceRelated(InterfaceType s, Nullability sNullability, T t,
-      Nullability tNullability, Types types);
+  IsSubtypeOf isInterfaceRelated(InterfaceType s, T t, Types types);
 
-  bool isIntersectionRelated(
-      TypeParameterType intersection,
-      Nullability intersectionNullability,
-      T t,
-      Nullability tNullability,
-      Types types);
+  IsSubtypeOf isIntersectionRelated(
+      TypeParameterType intersection, T t, Types types);
 
-  bool isFunctionRelated(FunctionType s, Nullability sNullability, T t,
-      Nullability tNullability, Types types);
+  IsSubtypeOf isFunctionRelated(FunctionType s, T t, Types types);
 
-  bool isFutureOrRelated(
-      InterfaceType futureOr,
-      Nullability futureOrNullability,
-      T t,
-      Nullability tNullability,
-      Types types);
+  IsSubtypeOf isFutureOrRelated(InterfaceType futureOr, T t, Types types);
 
-  bool isTypeParameterRelated(TypeParameterType s, Nullability sNullability,
-      T t, Nullability tNullability, Types types);
+  IsSubtypeOf isTypeParameterRelated(TypeParameterType s, T t, Types types);
 
-  bool isTypedefRelated(TypedefType s, Nullability sNullability, T t,
-      Nullability tNullability, Types types);
+  IsSubtypeOf isTypedefRelated(TypedefType s, T t, Types types);
 }
 
 class IsInterfaceSubtypeOf extends TypeRelation<InterfaceType> {
   const IsInterfaceSubtypeOf();
 
   @override
-  bool isInterfaceRelated(InterfaceType s, Nullability sNullability,
-      InterfaceType t, Nullability tNullability, Types types) {
-    if (s.classNode == types.hierarchy.nullKernelClass) {
+  IsSubtypeOf isInterfaceRelated(
+      InterfaceType s, InterfaceType t, Types types) {
+    if (s.classNode == types.hierarchy.nullClass) {
       // This is an optimization, to avoid instantiating unnecessary type
       // arguments in getKernelTypeAsInstanceOf.
-      return true;
+      return new IsSubtypeOf.basedSolelyOnNullabilities(
+          s, t, types.futureOrClass);
     }
-    InterfaceType asSupertype =
-        types.hierarchy.getKernelTypeAsInstanceOf(s, t.classNode);
-    if (asSupertype == null) {
-      return false;
-    } else {
-      return types.areSubtypesOfKernel(
-          asSupertype.typeArguments, t.typeArguments);
+    List<DartType> asSupertypeArguments =
+        types.hierarchy.getKernelTypeArgumentsAsInstanceOf(s, t.classNode);
+    if (asSupertypeArguments == null) {
+      return const IsSubtypeOf.never();
     }
+    return types
+        .areTypeArgumentsOfSubtypeKernel(
+            asSupertypeArguments, t.typeArguments, t.classNode.typeParameters)
+        .and(new IsSubtypeOf.basedSolelyOnNullabilities(
+            s, t, types.futureOrClass));
   }
 
   @override
-  bool isTypeParameterRelated(TypeParameterType s, Nullability sNullability,
-      InterfaceType t, Nullability tNullability, Types types) {
-    return types.isSubtypeOfKernel(s.parameter.bound, t);
+  IsSubtypeOf isTypeParameterRelated(
+      TypeParameterType s, InterfaceType t, Types types) {
+    return types.performNullabilityAwareSubtypeCheck(s.parameter.bound, t).and(
+        new IsSubtypeOf.basedSolelyOnNullabilities(s, t, types.futureOrClass));
   }
 
   @override
-  bool isFutureOrRelated(
-      InterfaceType futureOr,
-      Nullability futureOrNullability,
-      InterfaceType t,
-      Nullability tNullability,
-      Types types) {
+  IsSubtypeOf isFutureOrRelated(
+      InterfaceType futureOr, InterfaceType t, Types types) {
     List<DartType> arguments = futureOr.typeArguments;
-    if (!types.isSubtypeOfKernel(arguments.single, t)) {
-      return false; // Rule 7.1
-    }
-    if (!types.isSubtypeOfKernel(
-        new InterfaceType(types.hierarchy.futureKernelClass, arguments), t)) {
-      return false; // Rule 7.2
-    }
-    return true;
+    // Rules 7.1 and 7.2.
+    return types
+        .performNullabilityAwareSubtypeCheck(arguments.single, t)
+        .andSubtypeCheckFor(
+            new InterfaceType(types.hierarchy.futureClass,
+                Nullability.nonNullable, arguments),
+            t,
+            types)
+        .and(new IsSubtypeOf.basedSolelyOnNullabilities(
+            futureOr, t, types.futureOrClass));
   }
 
   @override
-  bool isIntersectionRelated(
-      TypeParameterType intersection,
-      Nullability intersectionNullability,
-      InterfaceType t,
-      Nullability tNullability,
-      Types types) {
-    return types.isSubtypeOfKernel(intersection.promotedBound, t); // Rule 12.
+  IsSubtypeOf isIntersectionRelated(
+      TypeParameterType intersection, InterfaceType t, Types types) {
+    return types.performNullabilityAwareSubtypeCheck(
+        intersection.promotedBound, t); // Rule 12.
   }
 
   @override
-  bool isDynamicRelated(DynamicType s, Nullability sNullability,
-      InterfaceType t, Nullability tNullability, Types types) {
-    return false;
+  IsSubtypeOf isDynamicRelated(DynamicType s, InterfaceType t, Types types) {
+    return const IsSubtypeOf.never();
   }
 
   @override
-  bool isFunctionRelated(FunctionType s, Nullability sNullability,
-      InterfaceType t, Nullability tNullability, Types types) {
-    return t.classNode == types.hierarchy.functionKernelClass; // Rule 14.
+  IsSubtypeOf isFunctionRelated(FunctionType s, InterfaceType t, Types types) {
+    return t.classNode == types.hierarchy.functionClass
+        ? new IsSubtypeOf.basedSolelyOnNullabilities(s, t, types.futureOrClass)
+        : const IsSubtypeOf.never(); // Rule 14.
   }
 
   @override
-  bool isTypedefRelated(TypedefType s, Nullability sNullability,
-      InterfaceType t, Nullability tNullability, Types types) {
+  IsSubtypeOf isTypedefRelated(TypedefType s, InterfaceType t, Types types) {
     // Rule 5.
-    return types.isSubtypeOfKernel(s.unalias, t);
+    return types.performNullabilityAwareSubtypeCheck(s.unalias, t).and(
+        new IsSubtypeOf.basedSolelyOnNullabilities(s, t, types.futureOrClass));
   }
 
   @override
-  bool isVoidRelated(VoidType s, Nullability sNullability, InterfaceType t,
-      Nullability tNullability, Types types) {
-    return false;
+  IsSubtypeOf isVoidRelated(VoidType s, InterfaceType t, Types types) {
+    return const IsSubtypeOf.never();
   }
 }
 
@@ -362,64 +433,81 @@ class IsFunctionSubtypeOf extends TypeRelation<FunctionType> {
   const IsFunctionSubtypeOf();
 
   @override
-  bool isFunctionRelated(FunctionType s, Nullability sNullability,
-      FunctionType t, Nullability tNullability, Types types) {
+  IsSubtypeOf isFunctionRelated(FunctionType s, FunctionType t, Types types) {
     List<TypeParameter> sTypeVariables = s.typeParameters;
     List<TypeParameter> tTypeVariables = t.typeParameters;
-    if (sTypeVariables.length != tTypeVariables.length) return false;
+    if (sTypeVariables.length != tTypeVariables.length) {
+      return const IsSubtypeOf.never();
+    }
+    IsSubtypeOf result = const IsSubtypeOf.always();
     if (sTypeVariables.isNotEmpty) {
       // If the function types have type variables, we alpha-rename the type
       // variables of [s] to use those of [t].
+
+      // As an optimization, we first check if the bounds of the type variables
+      // of the two types on the same positions are mutual subtypes without
+      // alpha-renaming them.
       List<DartType> typeVariableSubstitution = <DartType>[];
-      bool secondBoundsCheckNeeded = false;
       for (int i = 0; i < sTypeVariables.length; i++) {
         TypeParameter sTypeVariable = sTypeVariables[i];
         TypeParameter tTypeVariable = tTypeVariables[i];
-        if (!types.isSameTypeKernel(sTypeVariable.bound, tTypeVariable.bound)) {
-          // If the bounds aren't the same, we need to try again after
-          // computing the substitution of type variables.
-          secondBoundsCheckNeeded = true;
-        }
-        typeVariableSubstitution.add(new TypeParameterType(tTypeVariable));
+        result = result.and(
+            types.isSameTypeKernel(sTypeVariable.bound, tTypeVariable.bound));
+        typeVariableSubstitution.add(new TypeParameterType.forAlphaRenaming(
+            sTypeVariable, tTypeVariable));
       }
       Substitution substitution =
           Substitution.fromPairs(sTypeVariables, typeVariableSubstitution);
-      if (secondBoundsCheckNeeded) {
+      // If the bounds aren't the same, we need to try again after computing the
+      // substitution of type variables.
+      if (!result.isSubtypeWhenIgnoringNullabilities()) {
+        result = const IsSubtypeOf.always();
         for (int i = 0; i < sTypeVariables.length; i++) {
           TypeParameter sTypeVariable = sTypeVariables[i];
           TypeParameter tTypeVariable = tTypeVariables[i];
-          if (!types.isSameTypeKernel(
+          result = result.and(types.isSameTypeKernel(
               substitution.substituteType(sTypeVariable.bound),
-              tTypeVariable.bound)) {
-            return false;
+              tTypeVariable.bound));
+          if (!result.isSubtypeWhenIgnoringNullabilities()) {
+            return const IsSubtypeOf.never();
           }
         }
       }
       s = substitution.substituteType(s.withoutTypeParameters);
     }
-    if (!types.isSubtypeOfKernel(s.returnType, t.returnType)) return false;
+    result = result.and(
+        types.performNullabilityAwareSubtypeCheck(s.returnType, t.returnType));
+    if (!result.isSubtypeWhenIgnoringNullabilities()) {
+      return const IsSubtypeOf.never();
+    }
     List<DartType> sPositional = s.positionalParameters;
     List<DartType> tPositional = t.positionalParameters;
     if (s.requiredParameterCount > t.requiredParameterCount) {
       // Rule 15, n1 <= n2.
-      return false;
+      return const IsSubtypeOf.never();
     }
     if (sPositional.length < tPositional.length) {
       // Rule 15, n1 + k1 >= n2 + k2.
-      return false;
+      return const IsSubtypeOf.never();
     }
     for (int i = 0; i < tPositional.length; i++) {
-      if (!types.isSubtypeOfKernel(tPositional[i], sPositional[i])) {
+      result = result.and(types.performNullabilityAwareSubtypeCheck(
+          tPositional[i], sPositional[i]));
+      if (!result.isSubtypeWhenIgnoringNullabilities()) {
         // Rule 15, Tj <: Sj.
-        return false;
+        return const IsSubtypeOf.never();
       }
     }
     List<NamedType> sNamed = s.namedParameters;
     List<NamedType> tNamed = t.namedParameters;
     if (sNamed.isNotEmpty || tNamed.isNotEmpty) {
       // Rule 16, the number of positional parameters must be the same.
-      if (sPositional.length != tPositional.length) return false;
-      if (s.requiredParameterCount != t.requiredParameterCount) return false;
+      if (sPositional.length != tPositional.length) {
+        return const IsSubtypeOf.never();
+      }
+      if (s.requiredParameterCount != t.requiredParameterCount) {
+        return const IsSubtypeOf.never();
+      }
 
       // Rule 16, the parameter names of [t] must be a subset of those of
       // [s]. Also, for the intersection, the type of the parameter of [t] must
@@ -430,67 +518,64 @@ class IsFunctionSubtypeOf extends TypeRelation<FunctionType> {
         for (; sCount < sNamed.length; sCount++) {
           if (sNamed[sCount].name == name) break;
         }
-        if (sCount == sNamed.length) return false;
-        if (!types.isSubtypeOfKernel(
-            tNamed[tCount].type, sNamed[sCount].type)) {
-          return false;
+        if (sCount == sNamed.length) return const IsSubtypeOf.never();
+        result = result.and(types.performNullabilityAwareSubtypeCheck(
+            tNamed[tCount].type, sNamed[sCount].type));
+        if (!result.isSubtypeWhenIgnoringNullabilities()) {
+          return const IsSubtypeOf.never();
         }
       }
     }
-    return true;
+    return result.and(
+        new IsSubtypeOf.basedSolelyOnNullabilities(s, t, types.futureOrClass));
   }
 
   @override
-  bool isInterfaceRelated(InterfaceType s, Nullability sNullability,
-      FunctionType t, Nullability tNullability, Types types) {
-    return s.classNode == types.hierarchy.nullKernelClass; // Rule 4.
+  IsSubtypeOf isInterfaceRelated(InterfaceType s, FunctionType t, Types types) {
+    if (s.classNode == types.hierarchy.nullClass) {
+      // Rule 4.
+      return new IsSubtypeOf.basedSolelyOnNullabilities(
+          s, t, types.futureOrClass);
+    }
+    return const IsSubtypeOf.never();
   }
 
   @override
-  bool isDynamicRelated(DynamicType s, Nullability sNullability, FunctionType t,
-      Nullability tNullability, Types types) {
-    return false;
+  IsSubtypeOf isDynamicRelated(DynamicType s, FunctionType t, Types types) {
+    return const IsSubtypeOf.never();
   }
 
   @override
-  bool isFutureOrRelated(
-      InterfaceType futureOr,
-      Nullability futureOrNullability,
-      FunctionType t,
-      Nullability tNullability,
-      Types types) {
-    return false;
+  IsSubtypeOf isFutureOrRelated(
+      InterfaceType futureOr, FunctionType t, Types types) {
+    return const IsSubtypeOf.never();
   }
 
   @override
-  bool isIntersectionRelated(
-      TypeParameterType intersection,
-      Nullability intersectionNullability,
-      FunctionType t,
-      Nullability tNullability,
-      Types types) {
+  IsSubtypeOf isIntersectionRelated(
+      TypeParameterType intersection, FunctionType t, Types types) {
     // Rule 12.
-    return types.isSubtypeOfKernel(intersection.promotedBound, t);
+    return types.performNullabilityAwareSubtypeCheck(
+        intersection.promotedBound, t);
   }
 
   @override
-  bool isTypeParameterRelated(TypeParameterType s, Nullability sNullability,
-      FunctionType t, Nullability tNullability, Types types) {
+  IsSubtypeOf isTypeParameterRelated(
+      TypeParameterType s, FunctionType t, Types types) {
     // Rule 13.
-    return types.isSubtypeOfKernel(s.parameter.bound, t);
+    return types.performNullabilityAwareSubtypeCheck(s.parameter.bound, t).and(
+        new IsSubtypeOf.basedSolelyOnNullabilities(s, t, types.futureOrClass));
   }
 
   @override
-  bool isTypedefRelated(TypedefType s, Nullability sNullability, FunctionType t,
-      Nullability tNullability, Types types) {
+  IsSubtypeOf isTypedefRelated(TypedefType s, FunctionType t, Types types) {
     // Rule 5.
-    return types.isSubtypeOfKernel(s.unalias, t);
+    return types.performNullabilityAwareSubtypeCheck(s.unalias, t);
   }
 
   @override
-  bool isVoidRelated(VoidType s, Nullability sNullability, FunctionType t,
-      Nullability tNullability, Types types) {
-    return false;
+  IsSubtypeOf isVoidRelated(VoidType s, FunctionType t, Types types) {
+    return const IsSubtypeOf.never();
   }
 }
 
@@ -498,61 +583,85 @@ class IsTypeParameterSubtypeOf extends TypeRelation<TypeParameterType> {
   const IsTypeParameterSubtypeOf();
 
   @override
-  bool isTypeParameterRelated(TypeParameterType s, Nullability sNullability,
-      TypeParameterType t, Nullability tNullability, Types types) {
-    return s.parameter == t.parameter ||
-        // Rule 13.
-        types.isSubtypeOfKernel(s.bound, t);
+  IsSubtypeOf isTypeParameterRelated(
+      TypeParameterType s, TypeParameterType t, Types types) {
+    IsSubtypeOf result = const IsSubtypeOf.always();
+    if (s.parameter != t.parameter) {
+      result = types.performNullabilityAwareSubtypeCheck(s.bound, t);
+    }
+    if (s.nullability == Nullability.undetermined &&
+        t.nullability == Nullability.undetermined) {
+      // The two nullabilities are undetermined, but are connected via
+      // additional constraint, namely that they will be equal at run time.
+      return result;
+    }
+    return result.and(
+        new IsSubtypeOf.basedSolelyOnNullabilities(s, t, types.futureOrClass));
   }
 
   @override
-  bool isIntersectionRelated(
-      TypeParameterType intersection,
-      Nullability intersectionNullability,
-      TypeParameterType t,
-      Nullability tNullability,
-      Types types) {
-    return intersection.parameter == t.parameter; // Rule 8.
+  IsSubtypeOf isIntersectionRelated(
+      TypeParameterType intersection, TypeParameterType t, Types types) {
+    // Nullable types aren't promoted to intersection types.
+    // TODO(dmitryas): Uncomment the following when the inference is updated.
+    //assert(intersection.typeParameterTypeNullability != Nullability.nullable);
+
+    // Rule 8.
+    if (intersection.parameter == t.parameter) {
+      if (intersection.nullability == Nullability.undetermined &&
+          t.nullability == Nullability.undetermined) {
+        // The two nullabilities are undetermined, but are connected via
+        // additional constraint, namely that they will be equal at run time.
+        return const IsSubtypeOf.always();
+      }
+      return new IsSubtypeOf.basedSolelyOnNullabilities(
+          intersection, t, types.futureOrClass);
+    }
+
+    // Rule 12.
+    return types.performNullabilityAwareSubtypeCheck(
+        intersection.promotedBound.withNullability(intersection.nullability),
+        t);
   }
 
   @override
-  bool isInterfaceRelated(InterfaceType s, Nullability sNullability,
-      TypeParameterType t, Nullability tNullability, Types types) {
-    return s.classNode == types.hierarchy.nullKernelClass; // Rule 4.
+  IsSubtypeOf isInterfaceRelated(
+      InterfaceType s, TypeParameterType t, Types types) {
+    if (s.classNode == types.hierarchy.nullClass) {
+      // Rule 4.
+      return new IsSubtypeOf.basedSolelyOnNullabilities(
+          s, t, types.futureOrClass);
+    }
+    return const IsSubtypeOf.never();
   }
 
   @override
-  bool isDynamicRelated(DynamicType s, Nullability sNullability,
-      TypeParameterType t, Nullability tNullability, Types types) {
-    return false;
+  IsSubtypeOf isDynamicRelated(
+      DynamicType s, TypeParameterType t, Types types) {
+    return const IsSubtypeOf.never();
   }
 
   @override
-  bool isFunctionRelated(FunctionType s, Nullability sNullability,
-      TypeParameterType t, Nullability tNullability, Types types) {
-    return false;
+  IsSubtypeOf isFunctionRelated(
+      FunctionType s, TypeParameterType t, Types types) {
+    return const IsSubtypeOf.never();
   }
 
   @override
-  bool isFutureOrRelated(
-      InterfaceType futureOr,
-      Nullability futureOrNullability,
-      TypeParameterType t,
-      Nullability tNullability,
-      Types types) {
-    return false;
+  IsSubtypeOf isFutureOrRelated(
+      InterfaceType futureOr, TypeParameterType t, Types types) {
+    return const IsSubtypeOf.never();
   }
 
   @override
-  bool isTypedefRelated(TypedefType s, Nullability sNullability,
-      TypeParameterType t, Nullability tNullability, Types types) {
-    return types.isSubtypeOfKernel(s.unalias, t);
+  IsSubtypeOf isTypedefRelated(
+      TypedefType s, TypeParameterType t, Types types) {
+    return types.performNullabilityAwareSubtypeCheck(s.unalias, t);
   }
 
   @override
-  bool isVoidRelated(VoidType s, Nullability sNullability, TypeParameterType t,
-      Nullability tNullability, Types types) {
-    return false;
+  IsSubtypeOf isVoidRelated(VoidType s, TypeParameterType t, Types types) {
+    return const IsSubtypeOf.never();
   }
 }
 
@@ -560,59 +669,46 @@ class IsTypedefSubtypeOf extends TypeRelation<TypedefType> {
   const IsTypedefSubtypeOf();
 
   @override
-  bool isInterfaceRelated(InterfaceType s, Nullability sNullability,
-      TypedefType t, Nullability tNullability, Types types) {
-    return types.isSubtypeOfKernel(s, t.unalias);
+  IsSubtypeOf isInterfaceRelated(InterfaceType s, TypedefType t, Types types) {
+    return types.performNullabilityAwareSubtypeCheck(s, t.unalias);
   }
 
   @override
-  bool isDynamicRelated(DynamicType s, Nullability sNullability, TypedefType t,
-      Nullability tNullability, Types types) {
-    return types.isSubtypeOfKernel(s, t.unalias);
+  IsSubtypeOf isDynamicRelated(DynamicType s, TypedefType t, Types types) {
+    return types.performNullabilityAwareSubtypeCheck(s, t.unalias);
   }
 
   @override
-  bool isFunctionRelated(FunctionType s, Nullability sNullability,
-      TypedefType t, Nullability tNullability, Types types) {
-    return types.isSubtypeOfKernel(s, t.unalias);
+  IsSubtypeOf isFunctionRelated(FunctionType s, TypedefType t, Types types) {
+    return types.performNullabilityAwareSubtypeCheck(s, t.unalias);
   }
 
   @override
-  bool isFutureOrRelated(
-      InterfaceType futureOr,
-      Nullability futureOrNullability,
-      TypedefType t,
-      Nullability tNullability,
-      Types types) {
-    return types.isSubtypeOfKernel(futureOr, t.unalias);
+  IsSubtypeOf isFutureOrRelated(
+      InterfaceType futureOr, TypedefType t, Types types) {
+    return types.performNullabilityAwareSubtypeCheck(futureOr, t.unalias);
   }
 
   @override
-  bool isIntersectionRelated(
-      TypeParameterType intersection,
-      Nullability intersectionNullability,
-      TypedefType t,
-      Nullability tNullability,
-      Types types) {
-    return types.isSubtypeOfKernel(intersection, t.unalias);
+  IsSubtypeOf isIntersectionRelated(
+      TypeParameterType intersection, TypedefType t, Types types) {
+    return types.performNullabilityAwareSubtypeCheck(intersection, t.unalias);
   }
 
   @override
-  bool isTypeParameterRelated(TypeParameterType s, Nullability sNullability,
-      TypedefType t, Nullability tNullability, Types types) {
-    return types.isSubtypeOfKernel(s, t.unalias);
+  IsSubtypeOf isTypeParameterRelated(
+      TypeParameterType s, TypedefType t, Types types) {
+    return types.performNullabilityAwareSubtypeCheck(s, t.unalias);
   }
 
   @override
-  bool isTypedefRelated(TypedefType s, Nullability sNullability, TypedefType t,
-      Nullability tNullability, Types types) {
-    return types.isSubtypeOfKernel(s.unalias, t.unalias);
+  IsSubtypeOf isTypedefRelated(TypedefType s, TypedefType t, Types types) {
+    return types.performNullabilityAwareSubtypeCheck(s.unalias, t.unalias);
   }
 
   @override
-  bool isVoidRelated(VoidType s, Nullability sNullability, TypedefType t,
-      Nullability tNullability, Types types) {
-    return types.isSubtypeOfKernel(s, t.unalias);
+  IsSubtypeOf isVoidRelated(VoidType s, TypedefType t, Types types) {
+    return types.performNullabilityAwareSubtypeCheck(s, t.unalias);
   }
 }
 
@@ -620,89 +716,136 @@ class IsFutureOrSubtypeOf extends TypeRelation<InterfaceType> {
   const IsFutureOrSubtypeOf();
 
   @override
-  bool isInterfaceRelated(InterfaceType s, Nullability sNullability,
-      InterfaceType futureOr, Nullability futureOrNullability, Types types) {
+  IsSubtypeOf isInterfaceRelated(
+      InterfaceType s, InterfaceType futureOr, Types types) {
     List<DartType> arguments = futureOr.typeArguments;
-    if (types.isSubtypeOfKernel(s, arguments.single)) {
-      return true; // Rule 11.
-    }
-    // Rule 10.
-    return types.isSubtypeOfKernel(
-        s, new InterfaceType(types.hierarchy.futureKernelClass, arguments));
+
+    Nullability unitedNullability =
+        computeNullabilityOfFutureOr(futureOr, types.hierarchy.futureOrClass);
+
+    return types
+        // Rule 11.
+        .performNullabilityAwareSubtypeCheck(
+            s, arguments.single.withNullability(unitedNullability))
+        // Rule 10.
+        .orSubtypeCheckFor(
+            s,
+            new InterfaceType(
+                types.hierarchy.futureClass, unitedNullability, arguments),
+            types);
   }
 
   @override
-  bool isFutureOrRelated(
-      InterfaceType sFutureOr,
-      Nullability sFutureOrNullability,
-      InterfaceType tFutureOr,
-      Nullability tFutureOrNullability,
-      Types types) {
+  IsSubtypeOf isFutureOrRelated(
+      InterfaceType sFutureOr, InterfaceType tFutureOr, Types types) {
     // This follows from combining rules 7, 10, and 11.
-    return types.isSubtypeOfKernel(
-        sFutureOr.typeArguments.single, tFutureOr.typeArguments.single);
+    DartType sArgument = sFutureOr.typeArguments.single;
+    DartType tArgument = tFutureOr.typeArguments.single;
+    DartType sFutureOfArgument = new InterfaceType(types.hierarchy.futureClass,
+        Nullability.nonNullable, sFutureOr.typeArguments);
+    DartType tFutureOfArgument = new InterfaceType(types.hierarchy.futureClass,
+        Nullability.nonNullable, tFutureOr.typeArguments);
+    Nullability sNullability =
+        computeNullabilityOfFutureOr(sFutureOr, types.hierarchy.futureOrClass);
+    Nullability tNullability =
+        computeNullabilityOfFutureOr(tFutureOr, types.hierarchy.futureOrClass);
+    // The following is an optimized is-subtype-of test for the case where
+    // both LHS and RHS are FutureOrs.  It's based on the following:
+    // FutureOr<X> <: FutureOr<Y> iff X <: Y OR (X <: Future<Y> AND
+    // Future<X> <: Y).
+    //
+    // The correctness of that can be shown as follows:
+    //   1. FutureOr<X> <: Y iff X <: Y AND Future<X> <: Y
+    //   2. X <: FutureOr<Y> iff X <: Y OR X <: Future<Y>
+    //   3. 1,2 => FutureOr<X> <: FutureOr<Y> iff
+    //          (X <: Y OR X <: Future<Y>) AND
+    //            (Future<X> <: Y OR Future<X> <: Future<Y>)
+    //   4. X <: Y iff Future<X> <: Future<Y>
+    //   5. 3,4 => FutureOr<X> <: FutureOr<Y> iff
+    //          (X <: Y OR X <: Future<Y>) AND
+    //            (X <: Y OR Future<X> <: Y) iff
+    //          X <: Y OR (X <: Future<Y> AND Future<X> <: Y)
+    return types
+        .performNullabilityAwareSubtypeCheck(sArgument, tArgument)
+        .or(types
+            .performNullabilityAwareSubtypeCheck(sArgument, tFutureOfArgument)
+            .andSubtypeCheckFor(sFutureOfArgument, tArgument, types))
+        .and(new IsSubtypeOf.basedSolelyOnNullabilities(
+            sFutureOr.withNullability(sNullability),
+            tFutureOr.withNullability(tNullability),
+            types.futureOrClass));
   }
 
   @override
-  bool isDynamicRelated(DynamicType s, Nullability sNullability,
-      InterfaceType futureOr, Nullability futureOrNullability, Types types) {
+  IsSubtypeOf isDynamicRelated(
+      DynamicType s, InterfaceType futureOr, Types types) {
     // Rule 11.
-    return types.isSubtypeOfKernel(s, futureOr.typeArguments.single);
+    DartType argument = futureOr.typeArguments.single;
+    return types.performNullabilityAwareSubtypeCheck(
+        s,
+        argument.withNullability(computeNullabilityOfFutureOr(
+            futureOr, types.hierarchy.futureOrClass)));
   }
 
   @override
-  bool isVoidRelated(VoidType s, Nullability sNullability,
-      InterfaceType futureOr, Nullability futureOrNullability, Types types) {
+  IsSubtypeOf isVoidRelated(VoidType s, InterfaceType futureOr, Types types) {
     // Rule 11.
-    return types.isSubtypeOfKernel(s, futureOr.typeArguments.single);
+    DartType argument = futureOr.typeArguments.single;
+    return types.performNullabilityAwareSubtypeCheck(
+        s,
+        argument.withNullability(computeNullabilityOfFutureOr(
+            futureOr, types.hierarchy.futureOrClass)));
   }
 
   @override
-  bool isTypeParameterRelated(TypeParameterType s, Nullability sNullability,
-      InterfaceType futureOr, Nullability futureOrNullability, Types types) {
+  IsSubtypeOf isTypeParameterRelated(
+      TypeParameterType s, InterfaceType futureOr, Types types) {
     List<DartType> arguments = futureOr.typeArguments;
-    if (types.isSubtypeOfKernel(s, arguments.single)) {
-      // Rule 11.
-      return true;
-    }
-
-    if (types.isSubtypeOfKernel(s.parameter.bound, futureOr)) {
-      // Rule 13.
-      return true;
-    }
-
-    // Rule 10.
-    return types.isSubtypeOfKernel(
-        s, new InterfaceType(types.hierarchy.futureKernelClass, arguments));
+    Nullability unitedNullability =
+        computeNullabilityOfFutureOr(futureOr, types.hierarchy.futureOrClass);
+    // TODO(dmitryas): Revise the original optimization.
+    return types
+        // Rule 11.
+        .performNullabilityAwareSubtypeCheck(
+            s, arguments.single.withNullability(unitedNullability))
+        // Rule 13.
+        .orSubtypeCheckFor(
+            s.parameter.bound.withNullability(
+                combineNullabilitiesForSubstitution(
+                    s.parameter.bound.nullability, s.nullability)),
+            futureOr,
+            types)
+        // Rule 10.
+        .orSubtypeCheckFor(
+            s,
+            new InterfaceType(
+                types.hierarchy.futureClass, unitedNullability, arguments),
+            types);
   }
 
   @override
-  bool isFunctionRelated(FunctionType s, Nullability sNullability,
-      InterfaceType futureOr, Nullability futureOrNullability, Types types) {
+  IsSubtypeOf isFunctionRelated(
+      FunctionType s, InterfaceType futureOr, Types types) {
     // Rule 11.
-    return types.isSubtypeOfKernel(s, futureOr.typeArguments.single);
+    DartType argument = futureOr.typeArguments.single;
+    return types.performNullabilityAwareSubtypeCheck(
+        s,
+        argument.withNullability(computeNullabilityOfFutureOr(
+            futureOr, types.hierarchy.futureOrClass)));
   }
 
   @override
-  bool isIntersectionRelated(
-      TypeParameterType intersection,
-      Nullability intersectionNullability,
-      InterfaceType futureOr,
-      Nullability futureOrNullability,
-      Types types) {
-    if (isTypeParameterRelated(intersection, intersectionNullability, futureOr,
-        futureOrNullability, types)) {
-      // Rule 8.
-      return true;
-    }
-    // Rule 12.
-    return types.isSubtypeOfKernel(intersection.promotedBound, futureOr);
+  IsSubtypeOf isIntersectionRelated(
+      TypeParameterType intersection, InterfaceType futureOr, Types types) {
+    return isTypeParameterRelated(intersection, futureOr, types) // Rule 8.
+        .orSubtypeCheckFor(
+            intersection.promotedBound, futureOr, types); // Rule 12.
   }
 
   @override
-  bool isTypedefRelated(TypedefType s, Nullability sNullability,
-      InterfaceType futureOr, Nullability futureOrNullability, Types types) {
-    return types.isSubtypeOfKernel(s.unalias, futureOr);
+  IsSubtypeOf isTypedefRelated(
+      TypedefType s, InterfaceType futureOr, Types types) {
+    return types.performNullabilityAwareSubtypeCheck(s.unalias, futureOr);
   }
 }
 
@@ -710,93 +853,114 @@ class IsIntersectionSubtypeOf extends TypeRelation<TypeParameterType> {
   const IsIntersectionSubtypeOf();
 
   @override
-  bool isIntersectionRelated(
-      TypeParameterType sIntersection,
-      Nullability sIntersectionNullability,
-      TypeParameterType tIntersection,
-      Nullability tIntersectionNullability,
-      Types types) {
+  IsSubtypeOf isIntersectionRelated(TypeParameterType sIntersection,
+      TypeParameterType tIntersection, Types types) {
     // Rule 9.
-    return const IsTypeParameterSubtypeOf().isIntersectionRelated(
-            sIntersection,
-            sIntersectionNullability,
-            tIntersection,
-            tIntersectionNullability,
-            types) &&
-        types.isSubtypeOfKernel(sIntersection, tIntersection.promotedBound);
+    return const IsTypeParameterSubtypeOf()
+        .isIntersectionRelated(sIntersection, tIntersection, types)
+        .andSubtypeCheckFor(sIntersection, tIntersection.promotedBound, types);
   }
 
   @override
-  bool isTypeParameterRelated(
-      TypeParameterType s,
-      Nullability sNullability,
-      TypeParameterType intersection,
-      Nullability intersectionNullability,
-      Types types) {
+  IsSubtypeOf isTypeParameterRelated(
+      TypeParameterType s, TypeParameterType intersection, Types types) {
     // Rule 9.
-    return const IsTypeParameterSubtypeOf().isTypeParameterRelated(
-            s, sNullability, intersection, intersectionNullability, types) &&
-        types.isSubtypeOfKernel(s, intersection.promotedBound);
+    return const IsTypeParameterSubtypeOf()
+        .isTypeParameterRelated(s, intersection, types)
+        .andSubtypeCheckFor(s, intersection.promotedBound, types);
   }
 
   @override
-  bool isInterfaceRelated(
-      InterfaceType s,
-      Nullability sNullability,
-      TypeParameterType intersection,
-      Nullability intersectionNullability,
-      Types types) {
-    return s.classNode == types.hierarchy.nullKernelClass; // Rule 4.
+  IsSubtypeOf isInterfaceRelated(
+      InterfaceType s, TypeParameterType intersection, Types types) {
+    if (s.classNode == types.hierarchy.nullClass) {
+      // Rule 4.
+      return new IsSubtypeOf.basedSolelyOnNullabilities(
+          s, intersection, types.futureOrClass);
+    }
+    return const IsSubtypeOf.never();
   }
 
   @override
-  bool isDynamicRelated(
-      DynamicType s,
-      Nullability sNullability,
-      TypeParameterType intersection,
-      Nullability intersectionNullability,
-      Types types) {
-    return false;
+  IsSubtypeOf isDynamicRelated(
+      DynamicType s, TypeParameterType intersection, Types types) {
+    return const IsSubtypeOf.never();
   }
 
   @override
-  bool isFunctionRelated(
-      FunctionType s,
-      Nullability sNullability,
-      TypeParameterType intersection,
-      Nullability intersectionNullability,
-      Types types) {
-    return false;
+  IsSubtypeOf isFunctionRelated(
+      FunctionType s, TypeParameterType intersection, Types types) {
+    return const IsSubtypeOf.never();
   }
 
   @override
-  bool isFutureOrRelated(
-      InterfaceType futureOr,
-      Nullability futureOrNullability,
-      TypeParameterType intersection,
-      Nullability intersectionNullability,
-      Types types) {
-    return false;
+  IsSubtypeOf isFutureOrRelated(
+      InterfaceType futureOr, TypeParameterType intersection, Types types) {
+    return const IsSubtypeOf.never();
   }
 
   @override
-  bool isTypedefRelated(
-      TypedefType s,
-      Nullability sNullability,
-      TypeParameterType intersection,
-      Nullability intersectionNullability,
-      Types types) {
+  IsSubtypeOf isTypedefRelated(
+      TypedefType s, TypeParameterType intersection, Types types) {
     // Rule 5.
-    return types.isSubtypeOfKernel(s.unalias, intersection);
+    return types.performNullabilityAwareSubtypeCheck(s.unalias, intersection);
   }
 
   @override
-  bool isVoidRelated(
-      VoidType s,
-      Nullability sNullability,
-      TypeParameterType intersection,
-      Nullability intersectionNullability,
-      Types types) {
-    return false;
+  IsSubtypeOf isVoidRelated(
+      VoidType s, TypeParameterType intersection, Types types) {
+    return const IsSubtypeOf.never();
+  }
+}
+
+class IsNeverTypeSubtypeOf implements TypeRelation<NeverType> {
+  const IsNeverTypeSubtypeOf();
+
+  IsSubtypeOf isDynamicRelated(DynamicType s, NeverType t, Types types) {
+    return const IsSubtypeOf.never();
+  }
+
+  IsSubtypeOf isVoidRelated(VoidType s, NeverType t, Types types) {
+    return const IsSubtypeOf.never();
+  }
+
+  IsSubtypeOf isInterfaceRelated(InterfaceType s, NeverType t, Types types) {
+    if (s.classNode == types.hierarchy.nullClass) {
+      if (t.nullability == Nullability.nullable ||
+          t.nullability == Nullability.legacy) {
+        return const IsSubtypeOf.always();
+      }
+      if (t.nullability == Nullability.nonNullable) {
+        return const IsSubtypeOf.never();
+      }
+      throw new StateError(
+          "Unexpected nullability '$t.nullability' of type Never");
+    }
+    return const IsSubtypeOf.never();
+  }
+
+  IsSubtypeOf isIntersectionRelated(
+      TypeParameterType intersection, NeverType t, Types types) {
+    return types.performNullabilityAwareSubtypeCheck(
+        intersection.promotedBound, t);
+  }
+
+  IsSubtypeOf isFunctionRelated(FunctionType s, NeverType t, Types types) {
+    return const IsSubtypeOf.never();
+  }
+
+  IsSubtypeOf isFutureOrRelated(
+      InterfaceType futureOr, NeverType t, Types types) {
+    return const IsSubtypeOf.never();
+  }
+
+  IsSubtypeOf isTypeParameterRelated(
+      TypeParameterType s, NeverType t, Types types) {
+    return types.performNullabilityAwareSubtypeCheck(s.bound, t).and(
+        new IsSubtypeOf.basedSolelyOnNullabilities(s, t, types.futureOrClass));
+  }
+
+  IsSubtypeOf isTypedefRelated(TypedefType s, NeverType t, Types types) {
+    return types.performNullabilityAwareSubtypeCheck(s.unalias, t);
   }
 }

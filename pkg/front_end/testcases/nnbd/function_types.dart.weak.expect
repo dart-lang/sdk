@@ -1,0 +1,40 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef F = () → void;
+class A<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::T%>
+    : super core::Object::•()
+    ;
+}
+class B extends self::A<() →? dynamic> {
+  synthetic constructor •() → self::B
+    : super self::A::•()
+    ;
+  method method(() →? dynamic x) → () →? dynamic
+    return null;
+}
+static method foo() → void {}
+static method bar() → () → void
+  return #C1;
+static method baz() → () →? void
+  return #C1;
+static method hest() → () → void
+  return #C1;
+static method fisk() → () →? void
+  return #C1;
+static method foobar(() →? dynamic x) → () →? dynamic
+  return null;
+static method main() → dynamic {
+  () → void g = () → core::Null? {};
+  () →? void f = g;
+  () → void fBar = self::bar();
+  () →? void fBaz = self::baz();
+  () → void fHest = self::hest();
+  () →? void fFisk = self::fisk();
+}
+
+constants  {
+  #C1 = tearoff self::foo
+}

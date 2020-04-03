@@ -17,46 +17,50 @@ static const uword kUwordOne = 1U;
 template <typename S, typename T, int position, int size>
 class BitField {
  public:
+  typedef T Type;
+
   static_assert((sizeof(S) * kBitsPerByte) >= (position + size),
                 "BitField does not fit into the type.");
 
   static const intptr_t kNextBit = position + size;
 
   // Tells whether the provided value fits into the bit field.
-  static bool is_valid(T value) {
+  static constexpr bool is_valid(T value) {
     return (static_cast<S>(value) & ~((kUwordOne << size) - 1)) == 0;
   }
 
   // Returns a S mask of the bit field.
-  static S mask() { return (kUwordOne << size) - 1; }
+  static constexpr S mask() { return (kUwordOne << size) - 1; }
 
   // Returns a S mask of the bit field which can be applied directly to
   // to the raw unshifted bits.
-  static S mask_in_place() { return ((kUwordOne << size) - 1) << position; }
+  static constexpr S mask_in_place() {
+    return ((kUwordOne << size) - 1) << position;
+  }
 
   // Returns the shift count needed to right-shift the bit field to
   // the least-significant bits.
-  static int shift() { return position; }
+  static constexpr int shift() { return position; }
 
   // Returns the size of the bit field.
-  static int bitsize() { return size; }
+  static constexpr int bitsize() { return size; }
 
   // Returns an S with the bit field value encoded.
-  static S encode(T value) {
-    ASSERT(is_valid(value));
+  static UNLESS_DEBUG(constexpr) S encode(T value) {
+    DEBUG_ASSERT(is_valid(value));
     return static_cast<S>(value) << position;
   }
 
   // Extracts the bit field from the value.
-  static T decode(S value) {
+  static constexpr T decode(S value) {
     return static_cast<T>((value >> position) & ((kUwordOne << size) - 1));
   }
 
   // Returns an S with the bit field value encoded based on the
   // original value. Only the bits corresponding to this bit field
   // will be changed.
-  static S update(T value, S original) {
-    ASSERT(is_valid(value));
+  static UNLESS_DEBUG(constexpr) S update(T value, S original) {
+    DEBUG_ASSERT(is_valid(value));
     return (static_cast<S>(value) << position) | (~mask_in_place() & original);
   }
 };

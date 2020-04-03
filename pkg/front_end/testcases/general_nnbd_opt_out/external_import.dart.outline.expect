@@ -1,0 +1,9 @@
+@dart._internal::ExternalName::•("dart-ext:here")
+@dart._internal::ExternalName::•("dart-ext:foo/../there")
+@dart._internal::ExternalName::•("dart-ext:/usr/local/somewhere")
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:_internal" as _in;
+
+static method main() → dynamic
+  ;

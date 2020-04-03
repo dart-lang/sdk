@@ -102,13 +102,13 @@ class CustomElementsResolutionAnalysis extends CustomElementsAnalysisBase {
   }
 
   void registerTypeLiteral(DartType type) {
-    if (type.isInterfaceType) {
+    if (type is InterfaceType) {
       // TODO(sra): If we had a flow query from the type literal expression to
       // the Type argument of the metadata lookup, we could tell if this type
       // literal is really a demand for the metadata.
       InterfaceType interfaceType = type;
       join.selectedClasses.add(interfaceType.element);
-    } else if (type.isTypeVariable) {
+    } else if (type is TypeVariableType) {
       // This is a type parameter of a parameterized class.
       // TODO(sra): Is there a way to determine which types are bound to the
       // parameter?

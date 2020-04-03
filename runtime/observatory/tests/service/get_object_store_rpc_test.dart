@@ -4,30 +4,17 @@
 
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
-import 'dart:developer' as developer;
 
-void doDebugger() {
-  developer.debugger(message: "foo", when: true);
-}
+void testeeMain() {}
 
 bool isClosureFunctionsList(NamedField field) {
   return field.name == 'closure_functions_';
 }
 
 var tests = <IsolateTest>[
-// Initial data fetch and verify we've hit the breakpoint.
-  (Isolate isolate) async {
-    await isolate.rootLibrary.load();
-    var script = isolate.rootLibrary.scripts[0];
-    await script.load();
-    await hasStoppedAtBreakpoint(isolate);
-    // Sanity check.
-    expect(isolate.pauseEvent is M.PauseBreakpointEvent, isTrue);
-  },
-
 // Get object_store.
   (Isolate isolate) async {
     var object_store = await isolate.getObjectStore();
@@ -42,5 +29,4 @@ var tests = <IsolateTest>[
   }
 ];
 
-main(args) =>
-    runIsolateTestsSynchronous(args, tests, testeeConcurrent: doDebugger);
+main(args) => runIsolateTestsSynchronous(args, tests, testeeBefore: testeeMain);

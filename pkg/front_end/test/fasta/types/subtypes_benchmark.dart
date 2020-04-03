@@ -14,18 +14,19 @@ import "package:kernel/core_types.dart" show CoreTypes;
 
 import "package:kernel/target/targets.dart" show NoneTarget, TargetFlags;
 
-import "package:kernel/type_environment.dart" show TypeEnvironment;
+import 'package:kernel/testing/type_parser_environment.dart'
+    show TypeParserEnvironment, parseLibrary;
 
-import "kernel_type_parser.dart"
-    show KernelEnvironment, KernelFromParsedType, parseLibrary;
-
-import "type_parser.dart" as type_parser show parse, parseTypeVariables;
+import "package:kernel/type_environment.dart"
+    show SubtypeCheckMode, TypeEnvironment;
 
 import "package:front_end/src/api_prototype/compiler_options.dart"
     show CompilerOptions;
 
 import "package:front_end/src/base/processed_options.dart"
     show ProcessedOptions;
+
+import "package:front_end/src/fasta/builder/class_builder.dart";
 
 import "package:front_end/src/fasta/compiler_context.dart" show CompilerContext;
 
@@ -34,7 +35,7 @@ import "package:front_end/src/fasta/dill/dill_loader.dart" show DillLoader;
 import "package:front_end/src/fasta/dill/dill_target.dart" show DillTarget;
 
 import "package:front_end/src/fasta/kernel/kernel_builder.dart"
-    show ClassHierarchyBuilder, ClassBuilder;
+    show ClassHierarchyBuilder;
 
 import "package:front_end/src/fasta/ticker.dart" show Ticker;
 
@@ -65,7 +66,7 @@ SubtypesBenchmark parseBenchMark(String source) {
   Map<Object, Object> data = json.decode(source);
   List<Object> classes = data["classes"];
   Uri uri = Uri.parse("dart:core");
-  KernelEnvironment environment = new KernelEnvironment(uri, uri);
+  TypeParserEnvironment environment = new TypeParserEnvironment(uri, uri);
   Library library =
       parseLibrary(uri, classes.join("\n"), environment: environment);
   List<Object> checks = data["checks"];
@@ -79,20 +80,14 @@ SubtypesBenchmark parseBenchMark(String source) {
     if (tSource.contains("?")) continue;
     if (sSource.contains("⊥")) continue;
     if (tSource.contains("⊥")) continue;
-    KernelEnvironment localEnvironment = environment;
+    TypeParserEnvironment localEnvironment = environment;
     if (arguments.length > 2) {
       List<Object> typeParametersSource = arguments[2];
-      localEnvironment = const KernelFromParsedType()
-          .computeTypeParameterEnvironment(
-              type_parser
-                  .parseTypeVariables("<${typeParametersSource.join(', ')}>"),
-              environment)
-          .environment;
+      localEnvironment = environment
+          .extendWithTypeParameters("${typeParametersSource.join(', ')}");
     }
-    DartType s = localEnvironment
-        .kernelFromParsedType(type_parser.parse(sSource).single);
-    DartType t = localEnvironment
-        .kernelFromParsedType(type_parser.parse(tSource).single);
+    DartType s = localEnvironment.parseType(sSource);
+    DartType t = localEnvironment.parseType(tSource);
     subtypeChecks.add(new SubtypeCheck(s, t, kind == "isSubtype"));
   }
   return new SubtypesBenchmark(library, subtypeChecks);
@@ -101,7 +96,8 @@ SubtypesBenchmark parseBenchMark(String source) {
 void performChecks(List<SubtypeCheck> checks, TypeEnvironment environment) {
   for (int i = 0; i < checks.length; i++) {
     SubtypeCheck check = checks[i];
-    bool isSubtype = environment.isSubtypeOf(check.s, check.t);
+    bool isSubtype = environment.isSubtypeOf(
+        check.s, check.t, SubtypeCheckMode.ignoringNullabilities);
     if (isSubtype != check.isSubtype) {
       throw "Check failed: $check";
     }
@@ -112,7 +108,8 @@ void performFastaChecks(
     List<SubtypeCheck> checks, ClassHierarchyBuilder hierarchy) {
   for (int i = 0; i < checks.length; i++) {
     SubtypeCheck check = checks[i];
-    bool isSubtype = hierarchy.types.isSubtypeOfKernel(check.s, check.t);
+    bool isSubtype = hierarchy.types.isSubtypeOfKernel(
+        check.s, check.t, SubtypeCheckMode.ignoringNullabilities);
     if (isSubtype != check.isSubtype) {
       throw "Check failed: $check";
     }
@@ -134,8 +131,8 @@ Future<void> run(Uri benchmarkInput, String name) async {
   bytes = null;
   ticker.logMs("Parsed benchmark file");
   Component c = new Component(libraries: [bench.library]);
-  ClassHierarchy hierarchy = new ClassHierarchy(c);
   CoreTypes coreTypes = new CoreTypes(c);
+  ClassHierarchy hierarchy = new ClassHierarchy(c, coreTypes);
   TypeEnvironment environment = new TypeEnvironment(coreTypes, hierarchy);
 
   final CompilerContext context = new CompilerContext(new ProcessedOptions(

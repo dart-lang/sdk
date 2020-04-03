@@ -47,7 +47,9 @@ class AstBinaryFlags {
 
   static final _hasQuestion = _checkBit(
     1,
+    FieldFormalParameter,
     GenericFunctionType,
+    IndexExpression,
     TypeName,
   );
 
@@ -224,43 +226,43 @@ class AstBinaryFlags {
   );
 
   static int encode({
-    bool hasAwait: false,
-    bool hasEqual: false,
-    bool hasInitializer: false,
-    bool hasName: false,
-    bool hasNot: false,
-    bool hasPeriod: false,
-    bool hasPeriod2: false,
-    bool hasQuestion: false,
-    bool hasSeparatorColon: false,
-    bool hasSeparatorEquals: false,
-    bool hasThis: false,
-    bool hasTypeArguments: false,
-    bool isAbstract: false,
-    bool isAsync: false,
-    bool isConst: false,
-    bool isCovariant: false,
-    bool isDeclaration: false,
-    bool isDeferred: false,
-    bool isDelimiterCurly: false,
-    bool isDelimiterSquare: false,
-    bool isExternal: false,
-    bool isFactory: false,
-    bool isFinal: false,
-    bool isGenerator: false,
-    bool isGet: false,
-    bool isLate: false,
-    bool isMap: false,
-    bool isNative: false,
-    bool isNew: false,
-    bool isOperator: false,
-    bool isRequired: false,
-    bool isSet: false,
-    bool isStar: false,
-    bool isStatic: false,
-    bool isStringInterpolationIdentifier: false,
-    bool isSync: false,
-    bool isVar: false,
+    bool hasAwait = false,
+    bool hasEqual = false,
+    bool hasInitializer = false,
+    bool hasName = false,
+    bool hasNot = false,
+    bool hasPeriod = false,
+    bool hasPeriod2 = false,
+    bool hasQuestion = false,
+    bool hasSeparatorColon = false,
+    bool hasSeparatorEquals = false,
+    bool hasThis = false,
+    bool hasTypeArguments = false,
+    bool isAbstract = false,
+    bool isAsync = false,
+    bool isConst = false,
+    bool isCovariant = false,
+    bool isDeclaration = false,
+    bool isDeferred = false,
+    bool isDelimiterCurly = false,
+    bool isDelimiterSquare = false,
+    bool isExternal = false,
+    bool isFactory = false,
+    bool isFinal = false,
+    bool isGenerator = false,
+    bool isGet = false,
+    bool isLate = false,
+    bool isMap = false,
+    bool isNative = false,
+    bool isNew = false,
+    bool isOperator = false,
+    bool isRequired = false,
+    bool isSet = false,
+    bool isStar = false,
+    bool isStatic = false,
+    bool isStringInterpolationIdentifier = false,
+    bool isSync = false,
+    bool isVar = false,
   }) {
     var result = 0;
     if (hasAwait) {
@@ -406,7 +408,7 @@ class AstBinaryFlags {
   }
 
   static bool hasQuestion(int flags) {
-    return (flags & _isStringInterpolationIdentifier) != 0;
+    return (flags & _hasQuestion) != 0;
   }
 
   static bool hasSeparatorColon(int flags) {

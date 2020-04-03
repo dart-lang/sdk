@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../tool/lsp_spec/matchers.dart';
 import 'server_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CompletionTest);
   });
@@ -17,7 +17,7 @@ main() {
 
 @reflectiveTest
 class CompletionTest extends AbstractLspAnalysisServerTest {
-  expectAutoImportCompletion(List<CompletionItem> items, String file) {
+  void expectAutoImportCompletion(List<CompletionItem> items, String file) {
     expect(
       items.singleWhere(
         (c) => c.detail?.contains("Auto import from '$file'") ?? false,
@@ -27,7 +27,7 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     );
   }
 
-  test_completionKinds_default() async {
+  Future<void> test_completionKinds_default() async {
     newFile(join(projectFolderPath, 'file.dart'));
     newFolder(join(projectFolderPath, 'folder'));
 
@@ -47,7 +47,7 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     expect(builtin.kind, equals(CompletionItemKind.Module));
   }
 
-  test_completionKinds_imports() async {
+  Future<void> test_completionKinds_imports() async {
     final content = "import '^';";
 
     // Tell the server we support some specific CompletionItemKinds.
@@ -72,7 +72,7 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     expect(builtin.kind, equals(CompletionItemKind.Module));
   }
 
-  test_completionKinds_supportedSubset() async {
+  Future<void> test_completionKinds_supportedSubset() async {
     final content = '''
     class MyClass {
       String abcdefghij;
@@ -100,21 +100,21 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     );
   }
 
-  test_completionTriggerKinds_invalidParams() async {
+  Future<void> test_completionTriggerKinds_invalidParams() async {
     await initialize();
 
     final invalidTriggerKind = CompletionTriggerKind.fromJson(-1);
     final request = getCompletion(
       mainFileUri,
-      new Position(0, 0),
-      context: new CompletionContext(invalidTriggerKind, 'A'),
+      Position(0, 0),
+      context: CompletionContext(invalidTriggerKind, 'A'),
     );
 
     await expectLater(
         request, throwsA(isResponseError(ErrorCodes.InvalidParams)));
   }
 
-  test_gettersAndSetters() async {
+  Future<void> test_gettersAndSetters() async {
     final content = '''
     class MyClass {
       String get justGetter => '';
@@ -143,7 +143,7 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     });
   }
 
-  test_insideString() async {
+  Future<void> test_insideString() async {
     final content = '''
     var a = "This is ^a test"
     ''';
@@ -154,7 +154,7 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     expect(res, isEmpty);
   }
 
-  test_isDeprecated_notSupported() async {
+  Future<void> test_isDeprecated_notSupported() async {
     final content = '''
     class MyClass {
       @deprecated
@@ -177,7 +177,7 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     expect(item.detail.toLowerCase(), contains('deprecated'));
   }
 
-  test_isDeprecated_supported() async {
+  Future<void> test_isDeprecated_supported() async {
     final content = '''
     class MyClass {
       @deprecated
@@ -202,7 +202,51 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     expect(item.detail, isNot(contains('deprecated')));
   }
 
-  test_nonDartFile() async {
+  Future<void> test_namedArg_plainText() async {
+    final content = '''
+    class A { const A({int one}); }
+    @A(^)
+    main() { }
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    expect(res.any((c) => c.label == 'one: '), isTrue);
+    final item = res.singleWhere((c) => c.label == 'one: ');
+    expect(item.insertTextFormat,
+        anyOf(equals(InsertTextFormat.PlainText), isNull));
+    expect(item.insertText, anyOf(equals('test'), isNull));
+    final updated = applyTextEdits(withoutMarkers(content), [item.textEdit]);
+    expect(updated, contains('one: '));
+  }
+
+  Future<void> test_namedArg_snippetStringSelection() async {
+    final content = '''
+    class A { const A({int one}); }
+    @A(^)
+    main() { }
+    ''';
+
+    await initialize(
+        textDocumentCapabilities: withCompletionItemSnippetSupport(
+            emptyTextDocumentClientCapabilities));
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    expect(res.any((c) => c.label == 'one: '), isTrue);
+    final item = res.singleWhere((c) => c.label == 'one: ');
+    // Ensure the snippet comes through in the expected format with the expected
+    // placeholder.
+    expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
+    expect(item.insertText, equals(r'one: ${1:}'));
+    expect(item.textEdit.newText, equals(r'one: ${1:}'));
+    expect(
+      item.textEdit.range,
+      equals(Range(positionFromMarker(content), positionFromMarker(content))),
+    );
+  }
+
+  Future<void> test_nonDartFile() async {
     newFile(pubspecFilePath, content: simplePubspecContent);
     await initialize();
 
@@ -210,7 +254,25 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     expect(res, isEmpty);
   }
 
-  test_plainText() async {
+  Future<void> test_parensNotInFilterTextInsertText() async {
+    final content = '''
+    class MyClass {}
+
+    main() {
+      MyClass a = new MyCla^
+    }
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    expect(res.any((c) => c.label == 'MyClass()'), isTrue);
+    final item = res.singleWhere((c) => c.label == 'MyClass()');
+    expect(item.filterText, equals('MyClass'));
+    expect(item.insertText, equals('MyClass'));
+  }
+
+  Future<void> test_plainText() async {
     final content = '''
     class MyClass {
       String abcdefghij;
@@ -234,25 +296,7 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     expect(updated, contains('a.abcdefghij'));
   }
 
-  test_parensNotInFilterTextInsertText() async {
-    final content = '''
-    class MyClass {}
-
-    main() {
-      MyClass a = new MyCla^
-    }
-    ''';
-
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-    final res = await getCompletion(mainFileUri, positionFromMarker(content));
-    expect(res.any((c) => c.label == 'MyClass()'), isTrue);
-    final item = res.singleWhere((c) => c.label == 'MyClass()');
-    expect(item.filterText, equals('MyClass'));
-    expect(item.insertText, equals('MyClass'));
-  }
-
-  test_suggestionSets() async {
+  Future<void> test_suggestionSets() async {
     newFile(
       join(projectFolderPath, 'other_file.dart'),
       content: '''
@@ -323,7 +367,7 @@ main() {
     '''));
   }
 
-  test_suggestionSets_doesNotFilterSymbolsWithSameName() async {
+  Future<void> test_suggestionSets_doesNotFilterSymbolsWithSameName() async {
     // Classes here are not re-exports, so should not be filtered out.
     newFile(
       join(projectFolderPath, 'source_file1.dart'),
@@ -365,7 +409,7 @@ main() {
     expectAutoImportCompletion(resolvedCompletions, '../source_file3.dart');
   }
 
-  test_suggestionSets_enumValues() async {
+  Future<void> test_suggestionSets_enumValues() async {
     newFile(
       join(projectFolderPath, 'source_file.dart'),
       content: '''
@@ -427,7 +471,7 @@ main() {
     '''));
   }
 
-  test_suggestionSets_enumValuesAlreadyImported() async {
+  Future<void> test_suggestionSets_enumValuesAlreadyImported() async {
     newFile(
       join(projectFolderPath, 'source_file.dart'),
       content: '''
@@ -471,7 +515,7 @@ main() {
     expect(resolved.detail, isNull);
   }
 
-  test_suggestionSets_filtersOutAlreadyImportedSymbols() async {
+  Future<void> test_suggestionSets_filtersOutAlreadyImportedSymbols() async {
     newFile(
       join(projectFolderPath, 'source_file.dart'),
       content: '''
@@ -514,64 +558,8 @@ main() {
     expect(resolved.detail, isNull);
   }
 
-  test_suggestionSets_namedConstructors() async {
-    newFile(
-      join(projectFolderPath, 'other_file.dart'),
-      content: '''
-      /// This class is in another file.
-      class InOtherFile {
-        InOtherFile.fromJson() {}
-      }
-      ''',
-    );
-
-    final content = '''
-main() {
-  var a = InOtherF^
-}
-    ''';
-
-    final initialAnalysis = waitForAnalysisComplete();
-    await initialize(
-        workspaceCapabilities:
-            withApplyEditSupport(emptyWorkspaceClientCapabilities));
-    await openFile(mainFileUri, withoutMarkers(content));
-    await initialAnalysis;
-    final res = await getCompletion(mainFileUri, positionFromMarker(content));
-
-    // Find the completion for the class in the other file.
-    final completion =
-        res.singleWhere((c) => c.label == 'InOtherFile.fromJson()');
-    expect(completion, isNotNull);
-
-    // Expect no docs or text edit, since these are added during resolve.
-    expect(completion.documentation, isNull);
-    expect(completion.textEdit, isNull);
-
-    // Resolve the completion item (via server) to get its edits. This is the
-    // LSP's equiv of getSuggestionDetails() and is invoked by LSP clients to
-    // populate additional info (in our case, the additional edits for inserting
-    // the import).
-    final resolved = await resolveCompletion(completion);
-    expect(resolved, isNotNull);
-
-    // Apply both the main completion edit and the additionalTextEdits atomically.
-    final newContent = applyTextEdits(
-      withoutMarkers(content),
-      [resolved.textEdit].followedBy(resolved.additionalTextEdits).toList(),
-    );
-
-    // Ensure both edits were made - the completion, and the inserted import.
-    expect(newContent, equals('''
-import '../other_file.dart';
-
-main() {
-  var a = InOtherFile.fromJson
-}
-    '''));
-  }
-
-  test_suggestionSets_includesReexportedSymbolsForEachFile() async {
+  Future<void>
+      test_suggestionSets_includesReexportedSymbolsForEachFile() async {
     newFile(
       join(projectFolderPath, 'source_file.dart'),
       content: '''
@@ -617,7 +605,7 @@ main() {
     expectAutoImportCompletion(resolvedCompletions, '../reexport2.dart');
   }
 
-  test_suggestionSets_insertsIntoPartFiles() async {
+  Future<void> test_suggestionSets_insertsIntoPartFiles() async {
     // File we'll be adding an import for.
     newFile(
       join(projectFolderPath, 'other_file.dart'),
@@ -681,7 +669,7 @@ main() {
         // When the server sends the edit back, just keep a copy and say we
         // applied successfully (it'll be verified below).
         editParams = edit;
-        return new ApplyWorkspaceEditResponse(true, null);
+        return ApplyWorkspaceEditResponse(true, null);
       },
     );
     // Successful edits return an empty success() response.
@@ -705,7 +693,64 @@ import '../other_file.dart';
 part 'main.dart';'''));
   }
 
-  test_suggestionSets_unavailableIfDisabled() async {
+  Future<void> test_suggestionSets_namedConstructors() async {
+    newFile(
+      join(projectFolderPath, 'other_file.dart'),
+      content: '''
+      /// This class is in another file.
+      class InOtherFile {
+        InOtherFile.fromJson() {}
+      }
+      ''',
+    );
+
+    final content = '''
+main() {
+  var a = InOtherF^
+}
+    ''';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await initialize(
+        workspaceCapabilities:
+            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+
+    // Find the completion for the class in the other file.
+    final completion =
+        res.singleWhere((c) => c.label == 'InOtherFile.fromJson()');
+    expect(completion, isNotNull);
+
+    // Expect no docs or text edit, since these are added during resolve.
+    expect(completion.documentation, isNull);
+    expect(completion.textEdit, isNull);
+
+    // Resolve the completion item (via server) to get its edits. This is the
+    // LSP's equiv of getSuggestionDetails() and is invoked by LSP clients to
+    // populate additional info (in our case, the additional edits for inserting
+    // the import).
+    final resolved = await resolveCompletion(completion);
+    expect(resolved, isNotNull);
+
+    // Apply both the main completion edit and the additionalTextEdits atomically.
+    final newContent = applyTextEdits(
+      withoutMarkers(content),
+      [resolved.textEdit].followedBy(resolved.additionalTextEdits).toList(),
+    );
+
+    // Ensure both edits were made - the completion, and the inserted import.
+    expect(newContent, equals('''
+import '../other_file.dart';
+
+main() {
+  var a = InOtherFile.fromJson
+}
+    '''));
+  }
+
+  Future<void> test_suggestionSets_unavailableIfDisabled() async {
     newFile(
       join(projectFolderPath, 'other_file.dart'),
       content: 'class InOtherFile {}',
@@ -737,7 +782,7 @@ main() {
     expect(completion, isNull);
   }
 
-  test_suggestionSets_unavailableWithoutApplyEdit() async {
+  Future<void> test_suggestionSets_unavailableWithoutApplyEdit() async {
     // If client doesn't advertise support for workspace/applyEdit, we won't
     // include suggestion sets.
     newFile(
@@ -766,7 +811,7 @@ main() {
     expect(completion, isNull);
   }
 
-  test_unopenFile() async {
+  Future<void> test_unopenFile() async {
     final content = '''
     class MyClass {
       String abcdefghij;

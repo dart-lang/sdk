@@ -140,6 +140,7 @@ libraryDefinition
 topLevelDefinition
     :    classDeclaration
     |    mixinDeclaration
+    |    extensionDeclaration
     |    enumType
     |    typeAlias
     |    EXTERNAL functionSignature ';'
@@ -274,14 +275,16 @@ classDeclaration
     |    ABSTRACT? CLASS mixinApplicationClass
     ;
 
-mixinDeclaration
-    :    MIXIN typeIdentifier typeParameters?
-         (ON typeNotVoidNotFunctionList)? interfaces?
-         LBRACE (metadata mixinMemberDefinition)* RBRACE
+superclass
+    :    EXTENDS typeNotVoidNotFunction
     ;
 
 mixins
     :    WITH typeNotVoidNotFunctionList
+    ;
+
+interfaces
+    :    IMPLEMENTS typeNotVoidNotFunctionList
     ;
 
 classMemberDefinition
@@ -289,8 +292,28 @@ classMemberDefinition
     |    declaration ';'
     ;
 
+mixinApplicationClass
+    :    typeWithParameters '=' mixinApplication ';'
+    ;
+
+mixinDeclaration
+    :    MIXIN typeIdentifier typeParameters?
+         (ON typeNotVoidNotFunctionList)? interfaces?
+         LBRACE (metadata mixinMemberDefinition)* RBRACE
+    ;
+
 // TODO: We will probably want to make this more strict.
 mixinMemberDefinition
+    :    classMemberDefinition
+    ;
+
+extensionDeclaration
+    :    EXTENSION identifier? typeParameters? ON type
+         LBRACE (metadata extensionMemberDefinition)* RBRACE
+    ;
+
+// TODO: We might want to make this more strict.
+extensionMemberDefinition
     :    classMemberDefinition
     ;
 
@@ -414,18 +437,6 @@ constantConstructorSignature
     :    CONST constructorName formalParameterList
     ;
 
-superclass
-    :    EXTENDS typeNotVoidNotFunction
-    ;
-
-interfaces
-    :    IMPLEMENTS typeNotVoidNotFunctionList
-    ;
-
-mixinApplicationClass
-    :    typeWithParameters '=' mixinApplication ';'
-    ;
-
 mixinApplication
     :    typeNotVoidNotFunction mixins interfaces?
     ;
@@ -512,6 +523,7 @@ stringLiteral
     :    (multiLineString | singleLineString)+
     ;
 
+// Not used in the specification (needed here for <uri>).
 stringLiteralWithoutInterpolation
     :    singleLineStringWithoutInterpolation+
     ;
@@ -815,7 +827,7 @@ selector
     ;
 
 argumentPart
-    :    typeArguments? arguments
+    :    '?'? typeArguments? arguments
     ;
 
 incrementOperator
@@ -842,7 +854,7 @@ unconditionalAssignableSelector
 assignableSelector
     :    unconditionalAssignableSelector
     |    '?.' identifier
-    |    '?.[' expression ']'
+    |    '?' '[' expression ']'
     ;
 
 identifierNotFUNCTION
@@ -859,6 +871,7 @@ identifierNotFUNCTION
     |    IMPLEMENTS // Built-in identifier.
     |    IMPORT // Built-in identifier.
     |    INTERFACE // Built-in identifier.
+    |    LATE // Built-in identifier.
     |    LIBRARY // Built-in identifier.
     |    MIXIN // Built-in identifier.
     |    OPERATOR // Built-in identifier.
@@ -1065,7 +1078,11 @@ assertClause
     ;
 
 libraryName
-    :    metadata LIBRARY identifier ('.' identifier)* ';'
+    :    metadata LIBRARY dottedIdentifierList ';'
+    ;
+
+dottedIdentifierList
+    :    identifier ('.' identifier)*
     ;
 
 importOrExport
@@ -1078,8 +1095,8 @@ libraryImport
     ;
 
 importSpecification
-    :    IMPORT uri (AS identifier)? combinator* ';'
-    |    IMPORT uri DEFERRED AS identifier combinator* ';'
+    :    IMPORT configurableUri (AS identifier)? combinator* ';'
+    |    IMPORT configurableUri DEFERRED AS identifier combinator* ';'
     ;
 
 combinator
@@ -1107,8 +1124,22 @@ partDeclaration
     :    partHeader topLevelDefinition* EOF
     ;
 
+// In the specification a plain <stringLiteral> is used.
+// TODO(eernst): Check whether it creates ambiguities to do that.
 uri
     :    stringLiteralWithoutInterpolation
+    ;
+
+configurableUri
+    :    uri configurationUri*
+    ;
+
+configurationUri
+    :    IF '(' uriTest ')' uri
+    ;
+
+uriTest
+    :    dottedIdentifierList ('==' stringLiteral)?
     ;
 
 type
@@ -1221,6 +1252,7 @@ symbolLiteral
     :    '#' (operator | (identifier ('.' identifier)*))
     ;
 
+// Not used in the specification (needed here for <uri>).
 singleLineStringWithoutInterpolation
     :    RAW_SINGLE_LINE_STRING
     |    SINGLE_LINE_STRING_DQ_BEGIN_END
@@ -1276,20 +1308,122 @@ HEX_DIGIT
     |    DIGIT
     ;
 
-FINAL
-    :    'final'
+// Reserved words.
+
+ASSERT
+    :    'assert'
     ;
 
-LATE
-    :    'late'
+BREAK
+    :    'break'
     ;
 
-REQUIRED
-    :    'required'
+CASE
+    :    'case'
+    ;
+
+CATCH
+    :    'catch'
+    ;
+
+CLASS
+    :    'class'
     ;
 
 CONST
     :    'const'
+    ;
+
+CONTINUE
+    :    'continue'
+    ;
+
+DEFAULT
+    :    'default'
+    ;
+
+DO
+    :    'do'
+    ;
+
+ELSE
+    :    'else'
+    ;
+
+ENUM
+    :    'enum'
+    ;
+
+EXTENDS
+    :    'extends'
+    ;
+
+FALSE
+    :    'false'
+    ;
+
+FINAL
+    :    'final'
+    ;
+
+FINALLY
+    :    'finally'
+    ;
+
+FOR
+    :    'for'
+    ;
+
+IF
+    :    'if'
+    ;
+
+IN
+    :    'in'
+    ;
+
+IS
+    :    'is'
+    ;
+
+NEW
+    :    'new'
+    ;
+
+NULL
+    :    'null'
+    ;
+
+RETHROW
+    :    'rethrow'
+    ;
+
+RETURN
+    :    'return'
+    ;
+
+SUPER
+    :    'super'
+    ;
+
+SWITCH
+    :    'switch'
+    ;
+
+THIS
+    :    'this'
+    ;
+
+THROW
+    :    'throw'
+    ;
+
+TRUE
+    :    'true'
+    ;
+
+TRY
+    :    'try'
     ;
 
 VAR
@@ -1300,13 +1434,15 @@ VOID
     :    'void'
     ;
 
-ASYNC
-    :    'async'
+WHILE
+    :    'while'
     ;
 
-THIS
-    :    'this'
+WITH
+    :    'with'
     ;
+
+// Built-in identifiers.
 
 ABSTRACT
     :    'abstract'
@@ -1316,92 +1452,44 @@ AS
     :    'as'
     ;
 
-SYNC
-    :    'sync'
-    ;
-
-CLASS
-    :    'class'
-    ;
-
-WITH
-    :    'with'
-    ;
-
-STATIC
-    :    'static'
-    ;
-
-DYNAMIC
-    :    'dynamic'
-    ;
-
-EXTERNAL
-    :    'external'
-    ;
-
-GET
-    :    'get'
-    ;
-
-SET
-    :    'set'
-    ;
-
-OPERATOR
-    :    'operator'
-    ;
-
-SUPER
-    :    'super'
-    ;
-
-FACTORY
-    :    'factory'
-    ;
-
-EXTENDS
-    :    'extends'
-    ;
-
-IMPLEMENTS
-    :    'implements'
-    ;
-
-ENUM
-    :    'enum'
-    ;
-
-NULL
-    :    'null'
-    ;
-
-TRUE
-    :    'true'
-    ;
-
-FALSE
-    :    'false'
-    ;
-
-THROW
-    :    'throw'
-    ;
-
-NEW
-    :    'new'
-    ;
-
-AWAIT
-    :    'await'
+COVARIANT
+    :    'covariant'
     ;
 
 DEFERRED
     :    'deferred'
     ;
 
+DYNAMIC
+    :    'dynamic'
+    ;
+
 EXPORT
     :    'export'
+    ;
+
+EXTENSION
+    :    'extension'
+    ;
+
+EXTERNAL
+    :    'external'
+    ;
+
+FACTORY
+    :    'factory'
+    ;
+
+FUNCTION
+    :    'Function'
+    ;
+
+GET
+    :    'get'
+    ;
+
+IMPLEMENTS
+    :    'implements'
     ;
 
 IMPORT
@@ -1412,8 +1500,16 @@ INTERFACE
     :    'interface'
     ;
 
+LATE
+    :    'late'
+    ;
+
 LIBRARY
     :    'library'
+    ;
+
+OPERATOR
+    :    'operator'
     ;
 
 MIXIN
@@ -1424,88 +1520,36 @@ PART
     :    'part'
     ;
 
+REQUIRED
+    :    'required'
+    ;
+
+SET
+    :    'set'
+    ;
+
+STATIC
+    :    'static'
+    ;
+
 TYPEDEF
     :    'typedef'
     ;
 
-IS
-    :    'is'
-    ;
+// "Contextual keywords".
 
-IF
-    :    'if'
-    ;
-
-ELSE
-    :    'else'
-    ;
-
-WHILE
-    :    'while'
-    ;
-
-FOR
-    :    'for'
-    ;
-
-IN
-    :    'in'
-    ;
-
-DO
-    :    'do'
-    ;
-
-SWITCH
-    :    'switch'
-    ;
-
-CASE
-    :    'case'
-    ;
-
-DEFAULT
-    :    'default'
-    ;
-
-RETHROW
-    :    'rethrow'
-    ;
-
-TRY
-    :    'try'
-    ;
-
-ON
-    :    'on'
-    ;
-
-CATCH
-    :    'catch'
-    ;
-
-FINALLY
-    :    'finally'
-    ;
-
-RETURN
-    :    'return'
-    ;
-
-BREAK
-    :    'break'
-    ;
-
-CONTINUE
-    :    'continue'
+AWAIT
+    :    'await'
     ;
 
 YIELD
     :    'yield'
     ;
 
-SHOW
-    :    'show'
+// Other words used in the grammar.
+
+ASYNC
+    :    'async'
     ;
 
 HIDE
@@ -1516,17 +1560,19 @@ OF
     :    'of'
     ;
 
-ASSERT
-    :    'assert'
+ON
+    :    'on'
     ;
 
-COVARIANT
-    :    'covariant'
+SHOW
+    :    'show'
     ;
 
-FUNCTION
-    :    'Function'
+SYNC
+    :    'sync'
     ;
+
+// Lexical tokens that are not words.
 
 NUMBER
     :    DIGIT+ '.' DIGIT+ EXPONENT?
@@ -1555,10 +1601,35 @@ SIMPLE_STRING_INTERPOLATION
     ;
 
 fragment
-STRING_CONTENT_SQ
-    :    ~('\\' | '\'' | '$' |  '\r' | '\n')
-    |    '\\' ~( '\r' | '\n')
+ESCAPE_SEQUENCE
+    :    '\\n'
+    |    '\\r'
+    |    '\\b'
+    |    '\\t'
+    |    '\\v'
+    |    '\\x' HEX_DIGIT HEX_DIGIT
+    |    '\\u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
+    |    '\\u{' HEX_DIGIT_SEQUENCE '}'
+    ;
+
+fragment
+HEX_DIGIT_SEQUENCE
+    :    HEX_DIGIT HEX_DIGIT? HEX_DIGIT?
+         HEX_DIGIT? HEX_DIGIT? HEX_DIGIT?
+    ;
+
+fragment
+STRING_CONTENT_COMMON
+    :    ~('\\' | '\'' | '"' | '$' | '\r' | '\n')
+    |    ESCAPE_SEQUENCE
+    |    '\\' ~('n' | 'r' | 'b' | 't' | 'v' | 'x' | 'u' | '\r' | '\n')
     |    SIMPLE_STRING_INTERPOLATION
+    ;
+
+fragment
+STRING_CONTENT_SQ
+    :    STRING_CONTENT_COMMON
+    |    '"'
     ;
 
 SINGLE_LINE_STRING_SQ_BEGIN_END
@@ -1582,9 +1653,8 @@ SINGLE_LINE_STRING_SQ_MID_END
 
 fragment
 STRING_CONTENT_DQ
-    :    ~('\\' | '"' | '$' | '\r' | '\n')
-    |    '\\' ~('\r' | '\n')
-    |    SIMPLE_STRING_INTERPOLATION
+    :    STRING_CONTENT_COMMON
+    |    '\''
     ;
 
 SINGLE_LINE_STRING_DQ_BEGIN_END
@@ -1620,7 +1690,7 @@ QUOTES_SQ
 fragment
 STRING_CONTENT_TSQ
     :    QUOTES_SQ
-         (~('\\' | '$' | '\'') | '\\' . | SIMPLE_STRING_INTERPOLATION)
+         (STRING_CONTENT_COMMON | '"' | '\r' | '\n' | '\\\r' | '\\\n')
     ;
 
 MULTI_LINE_STRING_SQ_BEGIN_END
@@ -1656,7 +1726,7 @@ QUOTES_DQ
 fragment
 STRING_CONTENT_TDQ
     :    QUOTES_DQ
-         (~('\\' | '$' | '"') | '\\' . | SIMPLE_STRING_INTERPOLATION)
+         (STRING_CONTENT_COMMON | '\'' | '\r' | '\n' | '\\\r' | '\\\n')
     ;
 
 MULTI_LINE_STRING_DQ_BEGIN_END

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -16,171 +14,160 @@ main() {
 @reflectiveTest
 class InstrumentationServiceTest {
   void assertNormal(
-      TestInstrumentationServer server, String tag, String message) {
-    String sent = server.normalChannel.toString();
+      TestInstrumentationLogger logger, String tag, String message) {
+    String sent = logger.logged.toString();
     if (!sent.endsWith(':$tag:$message\n')) {
       fail('Expected "...:$tag:$message", found "$sent"');
     }
   }
 
   void test_logError_withColon() {
-    TestInstrumentationServer server = new TestInstrumentationServer();
-    InstrumentationService service = new InstrumentationService(server);
+    TestInstrumentationLogger logger = TestInstrumentationLogger();
+    InstrumentationService service = InstrumentationLogAdapter(logger);
     service.logError('Error:message');
-    assertNormal(server, InstrumentationService.TAG_ERROR, 'Error::message');
+    assertNormal(logger, InstrumentationLogAdapter.TAG_ERROR, 'Error::message');
   }
 
   void test_logError_withLeadingColon() {
-    TestInstrumentationServer server = new TestInstrumentationServer();
-    InstrumentationService service = new InstrumentationService(server);
+    TestInstrumentationLogger logger = TestInstrumentationLogger();
+    InstrumentationService service = InstrumentationLogAdapter(logger);
     service.logError(':a:bb');
-    assertNormal(server, InstrumentationService.TAG_ERROR, '::a::bb');
+    assertNormal(logger, InstrumentationLogAdapter.TAG_ERROR, '::a::bb');
   }
 
   void test_logError_withoutColon() {
-    TestInstrumentationServer server = new TestInstrumentationServer();
-    InstrumentationService service = new InstrumentationService(server);
+    TestInstrumentationLogger logger = TestInstrumentationLogger();
+    InstrumentationService service = InstrumentationLogAdapter(logger);
     String message = 'Error message';
     service.logError(message);
-    assertNormal(server, InstrumentationService.TAG_ERROR, message);
+    assertNormal(logger, InstrumentationLogAdapter.TAG_ERROR, message);
   }
 
   void test_logException_noTrace() {
-    TestInstrumentationServer server = new TestInstrumentationServer();
-    InstrumentationService service = new InstrumentationService(server);
+    TestInstrumentationLogger logger = TestInstrumentationLogger();
+    InstrumentationService service = InstrumentationLogAdapter(logger);
     String message = 'exceptionMessage';
-    service.logException(message, null);
-    assertNormal(server, InstrumentationService.TAG_EXCEPTION, '$message:null');
-  }
-
-  void test_logFileRead() {
-    TestInstrumentationServer server = new TestInstrumentationServer();
-    InstrumentationService service = new InstrumentationService(server);
-    String path = '/file/path';
-    int time = 978336000000;
-    String content = 'class C {\n}\n';
-    service.logFileRead(path, time, content);
+    service.logException(message);
     assertNormal(
-        server, InstrumentationService.TAG_FILE_READ, '$path:$time:$content');
+        logger, InstrumentationLogAdapter.TAG_EXCEPTION, '$message:null');
   }
 
   void test_logLogEntry() {
-    TestInstrumentationServer server = new TestInstrumentationServer();
-    InstrumentationService service = new InstrumentationService(server);
+    TestInstrumentationLogger logger = TestInstrumentationLogger();
+    InstrumentationService service = InstrumentationLogAdapter(logger);
     String level = 'level';
-    DateTime time = new DateTime(2001);
+    DateTime time = DateTime(2001);
     String message = 'message';
     String exception = 'exception';
     String stackTraceText = 'stackTrace';
-    StackTrace stackTrace = new StackTrace.fromString(stackTraceText);
+    StackTrace stackTrace = StackTrace.fromString(stackTraceText);
     service.logLogEntry(level, time, message, exception, stackTrace);
-    assertNormal(server, InstrumentationService.TAG_LOG_ENTRY,
+    assertNormal(logger, InstrumentationLogAdapter.TAG_LOG_ENTRY,
         '$level:${time.millisecondsSinceEpoch}:$message:$exception:$stackTraceText');
   }
 
   void test_logNotification() {
-    TestInstrumentationServer server = new TestInstrumentationServer();
-    InstrumentationService service = new InstrumentationService(server);
+    TestInstrumentationLogger logger = TestInstrumentationLogger();
+    InstrumentationService service = InstrumentationLogAdapter(logger);
     String message = 'notificationText';
     service.logNotification(message);
-    assertNormal(server, InstrumentationService.TAG_NOTIFICATION, message);
+    assertNormal(logger, InstrumentationLogAdapter.TAG_NOTIFICATION, message);
   }
 
   void test_logPluginError() {
-    TestInstrumentationServer server = new TestInstrumentationServer();
-    InstrumentationService service = new InstrumentationService(server);
-    PluginData plugin = new PluginData('path', 'name', 'version');
+    TestInstrumentationLogger logger = TestInstrumentationLogger();
+    InstrumentationService service = InstrumentationLogAdapter(logger);
+    PluginData plugin = PluginData('path', 'name', 'version');
     String code = 'code';
     String message = 'exceptionMessage';
     String stackTraceText = 'stackTrace';
     service.logPluginError(plugin, code, message, stackTraceText);
-    assertNormal(server, InstrumentationService.TAG_PLUGIN_ERROR,
+    assertNormal(logger, InstrumentationLogAdapter.TAG_PLUGIN_ERROR,
         '$code:$message:$stackTraceText:path:name:version');
   }
 
   void test_logPluginException_noTrace() {
-    TestInstrumentationServer server = new TestInstrumentationServer();
-    InstrumentationService service = new InstrumentationService(server);
-    PluginData plugin = new PluginData('path', 'name', 'version');
+    TestInstrumentationLogger logger = TestInstrumentationLogger();
+    InstrumentationService service = InstrumentationLogAdapter(logger);
+    PluginData plugin = PluginData('path', 'name', 'version');
     String message = 'exceptionMessage';
     service.logPluginException(plugin, message, null);
-    assertNormal(server, InstrumentationService.TAG_PLUGIN_EXCEPTION,
+    assertNormal(logger, InstrumentationLogAdapter.TAG_PLUGIN_EXCEPTION,
         '$message:null:path:name:version');
   }
 
   void test_logPluginException_withTrace() {
-    TestInstrumentationServer server = new TestInstrumentationServer();
-    InstrumentationService service = new InstrumentationService(server);
-    PluginData plugin = new PluginData('path', 'name', 'version');
+    TestInstrumentationLogger logger = TestInstrumentationLogger();
+    InstrumentationService service = InstrumentationLogAdapter(logger);
+    PluginData plugin = PluginData('path', 'name', 'version');
     String message = 'exceptionMessage';
     String stackTraceText = 'stackTrace';
-    StackTrace stackTrace = new StackTrace.fromString(stackTraceText);
+    StackTrace stackTrace = StackTrace.fromString(stackTraceText);
     service.logPluginException(plugin, message, stackTrace);
-    assertNormal(server, InstrumentationService.TAG_PLUGIN_EXCEPTION,
+    assertNormal(logger, InstrumentationLogAdapter.TAG_PLUGIN_EXCEPTION,
         '$message:$stackTraceText:path:name:version');
   }
 
   void test_logPluginNotification() {
-    TestInstrumentationServer server = new TestInstrumentationServer();
-    InstrumentationService service = new InstrumentationService(server);
+    TestInstrumentationLogger logger = TestInstrumentationLogger();
+    InstrumentationService service = InstrumentationLogAdapter(logger);
     String notification = 'notification';
     service.logPluginNotification('path', notification);
-    assertNormal(server, InstrumentationService.TAG_PLUGIN_NOTIFICATION,
+    assertNormal(logger, InstrumentationLogAdapter.TAG_PLUGIN_NOTIFICATION,
         '$notification:path::');
   }
 
   void test_logPluginRequest() {
-    TestInstrumentationServer server = new TestInstrumentationServer();
-    InstrumentationService service = new InstrumentationService(server);
+    TestInstrumentationLogger logger = TestInstrumentationLogger();
+    InstrumentationService service = InstrumentationLogAdapter(logger);
     String request = 'request';
     service.logPluginRequest('path', request);
-    assertNormal(
-        server, InstrumentationService.TAG_PLUGIN_REQUEST, '$request:path::');
+    assertNormal(logger, InstrumentationLogAdapter.TAG_PLUGIN_REQUEST,
+        '$request:path::');
   }
 
   void test_logPluginResponse() {
-    TestInstrumentationServer server = new TestInstrumentationServer();
-    InstrumentationService service = new InstrumentationService(server);
+    TestInstrumentationLogger logger = TestInstrumentationLogger();
+    InstrumentationService service = InstrumentationLogAdapter(logger);
     String response = 'response';
     service.logPluginResponse('path', response);
-    assertNormal(
-        server, InstrumentationService.TAG_PLUGIN_RESPONSE, '$response:path::');
+    assertNormal(logger, InstrumentationLogAdapter.TAG_PLUGIN_RESPONSE,
+        '$response:path::');
   }
 
   void test_logPluginTimeout() {
-    TestInstrumentationServer server = new TestInstrumentationServer();
-    InstrumentationService service = new InstrumentationService(server);
-    PluginData plugin = new PluginData('path', 'name', 'version');
+    TestInstrumentationLogger logger = TestInstrumentationLogger();
+    InstrumentationService service = InstrumentationLogAdapter(logger);
+    PluginData plugin = PluginData('path', 'name', 'version');
     String request = 'request';
     service.logPluginTimeout(plugin, request);
-    assertNormal(server, InstrumentationService.TAG_PLUGIN_TIMEOUT,
+    assertNormal(logger, InstrumentationLogAdapter.TAG_PLUGIN_TIMEOUT,
         '$request:path:name:version');
   }
 
   void test_logRequest() {
-    TestInstrumentationServer server = new TestInstrumentationServer();
-    InstrumentationService service = new InstrumentationService(server);
+    TestInstrumentationLogger logger = TestInstrumentationLogger();
+    InstrumentationService service = InstrumentationLogAdapter(logger);
     String message = 'requestText';
     service.logRequest(message);
-    assertNormal(server, InstrumentationService.TAG_REQUEST, message);
+    assertNormal(logger, InstrumentationLogAdapter.TAG_REQUEST, message);
   }
 
   void test_logResponse() {
-    TestInstrumentationServer server = new TestInstrumentationServer();
-    InstrumentationService service = new InstrumentationService(server);
+    TestInstrumentationLogger logger = TestInstrumentationLogger();
+    InstrumentationService service = InstrumentationLogAdapter(logger);
     String message = 'responseText';
     service.logResponse(message);
-    assertNormal(server, InstrumentationService.TAG_RESPONSE, message);
+    assertNormal(logger, InstrumentationLogAdapter.TAG_RESPONSE, message);
   }
 
   void test_logVersion() {
-    TestInstrumentationServer server = new TestInstrumentationServer();
-    InstrumentationService service = new InstrumentationService(server);
+    TestInstrumentationLogger logger = TestInstrumentationLogger();
+    InstrumentationService service = InstrumentationLogAdapter(logger);
     service.logVersion('myUuid', 'someClientId', 'someClientVersion',
         'aServerVersion', 'anSdkVersion');
-    expect(server.normalChannel.toString(), '');
     expect(
-        server.priorityChannel.toString(),
+        logger.logged.toString(),
         endsWith(
             ':myUuid:someClientId:someClientVersion:aServerVersion:anSdkVersion\n'));
   }
@@ -188,67 +175,39 @@ class InstrumentationServiceTest {
 
 @reflectiveTest
 class MulticastInstrumentationServerTest {
-  TestInstrumentationServer serverA = new TestInstrumentationServer();
-  TestInstrumentationServer serverB = new TestInstrumentationServer();
-  MulticastInstrumentationServer server;
+  TestInstrumentationLogger loggerA = TestInstrumentationLogger();
+  TestInstrumentationLogger loggerB = TestInstrumentationLogger();
+  MulticastInstrumentationService logger;
 
   void setUp() {
-    server = new MulticastInstrumentationServer([serverA, serverB]);
+    logger = MulticastInstrumentationService([
+      InstrumentationLogAdapter(loggerA),
+      InstrumentationLogAdapter(loggerB)
+    ]);
   }
 
   void test_log() {
-    server.log('foo bar');
-    _assertNormal(serverA, 'foo bar');
-    _assertNormal(serverB, 'foo bar');
+    logger.logInfo('foo bar');
+    _assertLogged(loggerA, 'foo bar');
+    _assertLogged(loggerB, 'foo bar');
   }
 
-  void test_logWithPriority() {
-    server.logWithPriority('foo bar');
-    _assertPriority(serverA, 'foo bar');
-    _assertPriority(serverB, 'foo bar');
-  }
-
-  void test_shutdown() {
-    server.shutdown();
-  }
-
-  void _assertNormal(TestInstrumentationServer server, String message) {
-    String sent = server.normalChannel.toString();
-    if (!sent.endsWith('$message\n')) {
-      fail('Expected "...$message", found "$sent"');
-    }
-  }
-
-  void _assertPriority(TestInstrumentationServer server, String message) {
-    String sent = server.priorityChannel.toString();
+  void _assertLogged(TestInstrumentationLogger logger, String message) {
+    String sent = logger.logged.toString();
     if (!sent.endsWith('$message\n')) {
       fail('Expected "...$message", found "$sent"');
     }
   }
 }
 
-class TestInstrumentationServer implements InstrumentationServer {
-  StringBuffer normalChannel = new StringBuffer();
-  StringBuffer priorityChannel = new StringBuffer();
-
-  @override
-  String get describe => 'test instrumentation';
-
-  @override
-  String get sessionId => '';
+class TestInstrumentationLogger implements InstrumentationLogger {
+  StringBuffer logged = StringBuffer();
 
   @override
   void log(String message) {
-    normalChannel.writeln(message);
+    logged.writeln(message);
   }
 
   @override
-  void logWithPriority(String message) {
-    priorityChannel.writeln(message);
-  }
-
-  @override
-  Future shutdown() async {
-    // Ignored
-  }
+  Future<void> shutdown() async {}
 }

@@ -1,0 +1,2 @@
+cfe=pkg/front_end/test/static_types/static_type_test.dart
+cfe:nnbd=pkg/front_end/test/static_types/static_type_test.dart

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 /// Mathematical constants and functions, plus a random number generator.
 ///
 /// To use this library in your code:
@@ -75,7 +77,7 @@ external T max<T extends num>(T a, T b);
 /// and the vector ([b],[a]).
 /// The result is in the range -PI..PI.
 ///
-/// If [b] is positive, this is the same as `atan(b/a)`.
+/// If [b] is positive, this is the same as `atan(a/b)`.
 ///
 /// The result is negative when [a] is negative (including when [a] is the
 /// double -0.0).

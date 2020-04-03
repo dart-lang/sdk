@@ -1,0 +1,3 @@
+() async => a b < c $? >
+
+([BeginToken])[SimpleToken] async[KeywordToken] =>[SimpleToken] a[StringToken] b[StringToken] <[BeginToken] c[StringToken] $[StringToken]?[SimpleToken] >[SimpleToken][SimpleToken]

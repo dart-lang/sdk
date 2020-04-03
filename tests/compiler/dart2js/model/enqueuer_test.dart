@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // Test that the enqueuers are not dependent upon in which order impacts are
 // applied.
 
@@ -162,7 +164,7 @@ main() {}
   void checkInvariant(
       Enqueuer enqueuer, ElementEnvironment elementEnvironment) {
     for (MemberEntity member
-        in compiler.enqueuer.resolution.processedEntities) {
+        in compiler.enqueuer.resolutionEnqueuerForTesting.processedEntities) {
       Expect.isTrue(
           member == elementEnvironment.mainFunction ||
               member.library != elementEnvironment.mainLibrary,
@@ -245,7 +247,7 @@ main() {}
   }
 
   compiler.onResolutionQueueEmptyForTesting = () {
-    Enqueuer enqueuer = compiler.enqueuer.resolution;
+    Enqueuer enqueuer = compiler.enqueuer.resolutionEnqueuerForTesting;
     ElementEnvironment elementEnvironment =
         compiler.frontendStrategy.elementEnvironment;
     checkInvariant(enqueuer, elementEnvironment);
@@ -278,7 +280,7 @@ main() {}
   await compiler.run(Uri.parse('memory:main.dart'));
 
   checkLiveMembers(
-      compiler.enqueuer.resolution,
+      compiler.enqueuer.resolutionEnqueuerForTesting,
       compiler.frontendStrategy.elementEnvironment,
       test.expectedLiveResolutionMap);
 

@@ -210,16 +210,16 @@ main() {
 
   // Applicable methods.
   Expect.equals("SubTarget<T>.e1", s1.e1());
-  Expect.equals("SubTarget<Object>.e2", s1.e2());
-  Expect.equals("Target<T>.e3", s1.e3());
-  Expect.equals("Target<Object>.e4", s1.e4());
+  Expect.equals("T.e2", s1.e2());
+  Expect.equals("T.e3", s1.e3());
+  Expect.equals("T.e4", s1.e4());
   Expect.equals("T.e5", s1.e5());
   Expect.equals("Object.e6", s1.e6());
 
   Expect.equals("Target<T>.e1", t1.e1());
   Expect.equals("Target<T>.e2", t1.e2());
   Expect.equals("Target<T>.e3", t1.e3());
-  Expect.equals("Target<Object>.e4", t1.e4());
+  Expect.equals("T.e4", t1.e4());
   Expect.equals("T.e5", t1.e5());
   Expect.equals("Object.e6", t1.e6());
 

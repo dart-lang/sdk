@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_tool/tools.dart';
-import 'package:front_end/src/testing/package_root.dart' as package_root;
 import 'package:path/path.dart';
 
+import '../../test/utils/package_root.dart' as package_root;
 import 'generate.dart';
 
 /**

@@ -59,7 +59,7 @@ class C extends S {
 
 main() {
   // Top-level members
-  LibraryMirror lib = reflectClass(C).owner;
+  LibraryMirror lib = reflectClass(C).owner as LibraryMirror;
   expectSource(lib.declarations[#foo1],
       "foo1() {}");
   expectSource(lib.declarations[#x],
@@ -102,7 +102,7 @@ main() {
   expectSource(reflect(a), "() {}");
 
   // Function at first line.
-  LibraryMirror otherLib = reflectClass(SomethingInOther).owner;
+  LibraryMirror otherLib = reflectClass(SomethingInOther).owner as LibraryMirror;
   expectSource(otherLib.declarations[#main],
 """main() {
   print("Blah");

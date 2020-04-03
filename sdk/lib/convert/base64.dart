@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.convert;
 
 /// A [base64](https://tools.ietf.org/html/rfc4648) encoder and decoder.
@@ -35,18 +37,18 @@ const Base64Codec base64Url = Base64Codec.urlSafe();
 
 /// Encodes [bytes] using [base64](https://tools.ietf.org/html/rfc4648) encoding.
 ///
-/// Shorthand for [base64.encode]. Useful if a local variable shadows the global
+/// Shorthand for `base64.encode`. Useful if a local variable shadows the global
 /// [base64] constant.
 String base64Encode(List<int> bytes) => base64.encode(bytes);
 
 /// Encodes [bytes] using [base64url](https://tools.ietf.org/html/rfc4648) encoding.
 ///
-/// Shorthand for [base64url.encode].
+/// Shorthand for `base64url.encode`.
 String base64UrlEncode(List<int> bytes) => base64Url.encode(bytes);
 
 /// Decodes [base64](https://tools.ietf.org/html/rfc4648) or [base64url](https://tools.ietf.org/html/rfc4648) encoded bytes.
 ///
-/// Shorthand for [base64.decode]. Useful if a local variable shadows the
+/// Shorthand for `base64.decode`. Useful if a local variable shadows the
 /// global [base64] constant.
 Uint8List base64Decode(String source) => base64.decode(source);
 
@@ -402,7 +404,8 @@ class _BufferCachingBase64Encoder extends _Base64Encoder {
       bufferCache = Uint8List(bufferLength);
     }
     // Return a view of the buffer, so it has the requested length.
-    return Uint8List.view(bufferCache.buffer, 0, bufferLength);
+    return Uint8List.view(
+        bufferCache.buffer, bufferCache.offsetInBytes, bufferLength);
   }
 }
 

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 library dart._js_helper;
 
 import 'dart:collection';
@@ -702,25 +704,22 @@ class JSName {
  */
 abstract class JavaScriptIndexingBehavior<E> {}
 
-// TODO(lrn): These exceptions should be implemented in core.
-// When they are, remove the 'Implementation' here.
-
 /// Thrown by type assertions that fail.
-class TypeErrorImpl extends Error implements TypeError {
-  final String message;
+class TypeErrorImpl extends Error implements TypeError, CastError {
+  final String _message;
 
-  TypeErrorImpl(this.message);
+  TypeErrorImpl(this._message);
 
-  String toString() => message;
+  String toString() => _message;
 }
 
 /// Thrown by the 'as' operator if the cast isn't valid.
-class CastErrorImpl extends Error implements CastError {
-  final String message;
+class CastErrorImpl extends Error implements CastError, TypeError {
+  final String _message;
 
-  CastErrorImpl(this.message);
+  CastErrorImpl(this._message);
 
-  String toString() => message;
+  String toString() => _message;
 }
 
 class FallThroughErrorImplementation extends FallThroughError {

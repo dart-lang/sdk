@@ -7,23 +7,16 @@ import 'dart:io';
 
 import 'package:analyzer/instrumentation/instrumentation.dart';
 
-/**
- * An [InstrumentationServer] that writes to a file.
- */
-class FileInstrumentationServer implements InstrumentationServer {
+/// An [InstrumentationLogger] that writes to a file (as opposed to an external
+/// source or in-memory source etc.)
+class FileInstrumentationLogger implements InstrumentationLogger {
   final String filePath;
   IOSink _sink;
 
-  FileInstrumentationServer(this.filePath) {
-    File file = new File(filePath);
+  FileInstrumentationLogger(this.filePath) {
+    File file = File(filePath);
     _sink = file.openWrite();
   }
-
-  @override
-  String get describe => "file: $filePath";
-
-  @override
-  String get sessionId => '';
 
   @override
   void log(String message) {
@@ -31,14 +24,7 @@ class FileInstrumentationServer implements InstrumentationServer {
   }
 
   @override
-  void logWithPriority(String message) {
-    log(message);
-  }
-
-  @override
   Future shutdown() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     await _sink.close();
     _sink = null;
   }

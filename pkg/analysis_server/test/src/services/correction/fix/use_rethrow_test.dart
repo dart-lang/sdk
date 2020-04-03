@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UseRethrowTest);
   });
@@ -23,11 +23,11 @@ class UseRethrowTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.use_rethrow_when_possible;
 
-  test_rethrow() async {
+  Future<void> test_rethrow() async {
     await resolveTestUnit('''
 void bad1() {
   try {} catch (e) {
-    throw/*LINT*/ e;
+    throw e;
   }
 }
 ''');

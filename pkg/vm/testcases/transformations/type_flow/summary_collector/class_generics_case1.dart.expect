@@ -1,44 +1,44 @@
------------- #lib::Element:: ------------
-%this = _Parameter #0 [_T (#lib::Element*)+]
-t1 = _Call direct [dart.core::Object::] (%this)
+------------ Element:: ------------
+%this = _Parameter #0 [_T (#lib::Element)+]
+t1 = _Call direct [Object::] (%this)
 RESULT: _T {}?
------------- #lib::MockHashMap:: ------------
+------------ MockHashMap:: ------------
 %K = _Parameter #0
 %V = _Parameter #1
 t2 = _CreateConcreteType (#lib::_NotRealHashMap @ (%K, %V))
-t3 = _Call direct [#lib::_NotRealHashMap::] (t2)
+t3 = _Call direct [_NotRealHashMap::] (t2)
 RESULT: t2
------------- #lib::_NotRealHashMap:: ------------
-%this = _Parameter #0 [_T (#lib::_NotRealHashMap<dynamic, dynamic>*)+]
-t1 = _Call direct [dart.core::Object::] (%this)
+------------ _NotRealHashMap:: ------------
+%this = _Parameter #0 [_T (#lib::_NotRealHashMap)+]
+t1 = _Call direct [Object::] (%this)
 RESULT: _T {}?
------------- #lib::_NotRealHashMap::setEntry ------------
-%this = _Parameter #0 [_T (#lib::_NotRealHashMap<dynamic, dynamic>*)+]
+------------ _NotRealHashMap::setEntry ------------
+%this = _Parameter #0 [_T (#lib::_NotRealHashMap)+]
 %key = _Parameter #1
 %value = _Parameter #2
-t3 = _Extract (%this[#lib::_NotRealHashMap/0])
-t4 = _TypeCheck (%key against t3) (for key)
-t5 = _Extract (%this[#lib::_NotRealHashMap/1])
-t6 = _TypeCheck (%value against t5) (for value)
+t3 = _Extract (%this[#lib::_NotRealHashMap/0]*)
+t4 = _TypeCheck (%key against t3) (for VariableDeclaration(key))
+t5 = _Extract (%this[#lib::_NotRealHashMap/1]*)
+t6 = _TypeCheck (%value against t5) (for VariableDeclaration(value))
 RESULT: _T {}?
------------- #lib::InheritedElement:: ------------
-%this = _Parameter #0 [_T (#lib::InheritedElement*)+]
-t1 = _Call direct [#lib::Element::] (%this)
+------------ InheritedElement:: ------------
+%this = _Parameter #0 [_T (#lib::InheritedElement)+]
+t1 = _Call direct [Element::] (%this)
 RESULT: _T {}?
------------- #lib::InheritedElement::setDependencies ------------
-%this = _Parameter #0 [_T (#lib::InheritedElement*)+]
-%dependent = _Parameter #1 [_T (#lib::Element*)+?]
-%value = _Parameter #2 [_T (dart.core::Object*)+?]
-t3* = _Call virtual get [#lib::InheritedElement::_dependents] (%this)
-t4 = _Call [#lib::MockHashMap::setEntry] (t3, %dependent, %value)
+------------ InheritedElement::setDependencies ------------
+%this = _Parameter #0 [_T (#lib::InheritedElement)+]
+%dependent = _Parameter #1 [_T (#lib::Element)+?]
+%value = _Parameter #2 [_T (dart.core::Object)+?]
+t3* = _Call virtual get [InheritedElement::_dependents] (%this)
+t4 = _Call [MockHashMap::setEntry] (t3, %dependent, %value)
 RESULT: _T {}?
------------- #lib::InheritedElement::_dependents ------------
-%this = _Parameter #0 [_T (#lib::InheritedElement*)+]
-t1* = _Call direct [#lib::MockHashMap::] (#lib::Element, dart.core::Object)
+------------ InheritedElement::_dependents ------------
+%this = _Parameter #0 [_T (#lib::InheritedElement)+]
+t1* = _Call direct [MockHashMap::] (#lib::Element*, dart.core::Object*)
 RESULT: t1
------------- #lib::main ------------
-t0 = _Call direct [#lib::InheritedElement::] (_T (#lib::InheritedElement))
-t1 = _Call [#lib::InheritedElement::setDependencies] (_T (#lib::InheritedElement), _T (#lib::InheritedElement), _T (dart.core::_Smi))
-t2 = _Call direct [#lib::Element::] (_T (#lib::Element))
-t3 = _Call [#lib::InheritedElement::setDependencies] (_T (#lib::InheritedElement), _T (#lib::Element), _T {}?)
+------------ main ------------
+t0 = _Call direct [InheritedElement::] (_T (#lib::InheritedElement))
+t1 = _Call [InheritedElement::setDependencies] (_T (#lib::InheritedElement), _T (#lib::InheritedElement), _T (dart.core::_Smi, 0))
+t2 = _Call direct [Element::] (_T (#lib::Element))
+t3 = _Call [InheritedElement::setDependencies] (_T (#lib::InheritedElement), _T (#lib::Element), _T {}?)
 RESULT: _T {}?

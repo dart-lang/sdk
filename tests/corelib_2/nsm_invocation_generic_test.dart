@@ -19,7 +19,7 @@ main() {
       nsm.name<int>(arg: argument));
   expectInvocation(
       new Invocation.genericMethod(#name, [int], [argument], {#arg: argument2}),
-      nsm.name<int>(argument, arg: argument));
+      nsm.name<int>(argument, arg: argument2));
   // Call invocation.
   expectInvocation(new Invocation.genericMethod(#call, [int], []), nsm<int>());
   expectInvocation(new Invocation.genericMethod(#call, [int], [argument]),
@@ -29,7 +29,7 @@ main() {
       nsm<int>(arg: argument));
   expectInvocation(
       new Invocation.genericMethod(#call, [int], [argument], {#arg: argument2}),
-      nsm<int>(argument, arg: argument));
+      nsm<int>(argument, arg: argument2));
 }
 
 dynamic nsm = new Recorder();

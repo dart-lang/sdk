@@ -7,7 +7,6 @@
 # dill libraries.
 
 type: newworld
-strong: true
 modules:
   module:
     module/lib1.dart: |
@@ -80,6 +79,8 @@ worlds:
       package:module/lib4.dart:
         - Class Class4
   - entry: compileme.dart
+    fromComponent: true
+    expectInitializeFromDill: false
     outlineOnly: true
     skipOutlineBodyCheck: true
     sources:

@@ -9,9 +9,10 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:front_end/src/testing/package_root.dart' as package_root;
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
+
+import 'utils/package_root.dart' as package_root;
 
 main() {
   PhysicalResourceProvider provider = PhysicalResourceProvider.INSTANCE;
@@ -19,7 +20,7 @@ main() {
   String analyzerPath = provider.pathContext.join(packageRoot, 'analyzer');
   String testDirPath = provider.pathContext.join(analyzerPath, 'test');
 
-  AnalysisContextCollection collection = new AnalysisContextCollection(
+  AnalysisContextCollection collection = AnalysisContextCollection(
       includedPaths: <String>[testDirPath], resourceProvider: provider);
   List<AnalysisContext> contexts = collection.contexts;
   if (contexts.length != 1) {

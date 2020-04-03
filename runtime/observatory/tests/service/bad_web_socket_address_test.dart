@@ -4,7 +4,7 @@
 
 import 'package:logging/logging.dart';
 import "package:observatory/service_io.dart";
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 void testBadWebSocket() {
   var vm = new WebSocketVM(new WebSocketVMTarget('ws://karatekid/ws'));

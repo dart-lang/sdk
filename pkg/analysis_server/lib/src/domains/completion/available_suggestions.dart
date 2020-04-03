@@ -14,16 +14,17 @@ import 'package:analyzer/src/services/available_declarations.dart';
 /// include different sets, e.g. inside the `lib/` directory of a `Pub` package
 /// only regular dependencies can be referenced, but `test/` can reference
 /// both regular and "dev" dependencies.
-List<protocol.IncludedSuggestionSet> computeIncludedSetList(
+void computeIncludedSetList(
   DeclarationsTracker tracker,
   ResolvedUnitResult resolvedUnit,
+  List<protocol.IncludedSuggestionSet> includedSetList,
+  Set<String> includedElementNames,
 ) {
   var analysisContext = resolvedUnit.session.analysisContext;
   var context = tracker.getContext(analysisContext);
-  if (context == null) return const [];
+  if (context == null) return;
 
   var librariesObject = context.getLibraries(resolvedUnit.path);
-  var includedSetList = <protocol.IncludedSuggestionSet>[];
 
   var importedUriSet = resolvedUnit.libraryElement.importedLibraries
       .map((importedLibrary) => importedLibrary.source.uri)
@@ -51,6 +52,10 @@ List<protocol.IncludedSuggestionSet> computeIncludedSetList(
         displayUri: _getRelativeFileUri(resolvedUnit, library.uri),
       ),
     );
+
+    for (var declaration in library.declarations) {
+      includedElementNames.add(declaration.name);
+    }
   }
 
   for (var library in librariesObject.context) {
@@ -64,8 +69,6 @@ List<protocol.IncludedSuggestionSet> computeIncludedSetList(
   for (var library in librariesObject.sdk) {
     includeLibrary(library, 6, 0, 3);
   }
-
-  return includedSetList;
 }
 
 /// Convert the [LibraryChange] into the corresponding protocol notification.
@@ -180,14 +183,23 @@ String _getRelativeFileUri(ResolvedUnitResult unit, Uri what) {
 protocol.AvailableSuggestion _protocolAvailableSuggestion(
     Declaration declaration) {
   var label = declaration.name;
-  if (declaration.kind == DeclarationKind.CONSTRUCTOR) {
-    label = declaration.parent.name;
-    if (declaration.name.isNotEmpty) {
-      label += '.${declaration.name}';
+  if (declaration.parent != null) {
+    if (declaration.kind == DeclarationKind.CONSTRUCTOR) {
+      label = declaration.parent.name;
+      if (declaration.name.isNotEmpty) {
+        label += '.${declaration.name}';
+      }
+    } else if (declaration.kind == DeclarationKind.ENUM_CONSTANT) {
+      label = '${declaration.parent.name}.${declaration.name}';
+    } else if (declaration.kind == DeclarationKind.GETTER &&
+        declaration.isStatic) {
+      label = '${declaration.parent.name}.${declaration.name}';
+    } else if (declaration.kind == DeclarationKind.FIELD &&
+        declaration.isStatic) {
+      label = '${declaration.parent.name}.${declaration.name}';
+    } else {
+      return null;
     }
-  }
-  if (declaration.kind == DeclarationKind.ENUM_CONSTANT) {
-    label = '${declaration.parent.name}.${declaration.name}';
   }
 
   String declaringLibraryUri;
@@ -211,8 +223,6 @@ protocol.AvailableSuggestion _protocolAvailableSuggestion(
     _protocolElement(declaration),
     defaultArgumentListString: declaration.defaultArgumentListString,
     defaultArgumentListTextRanges: declaration.defaultArgumentListTextRanges,
-    docComplete: declaration.docComplete,
-    docSummary: declaration.docSummary,
     parameterNames: declaration.parameterNames,
     parameterTypes: declaration.parameterTypes,
     requiredParameterCount: declaration.requiredParameterCount,
@@ -226,7 +236,9 @@ protocol.AvailableSuggestionSet _protocolAvailableSuggestionSet(
 
   void addItem(Declaration declaration) {
     var suggestion = _protocolAvailableSuggestion(declaration);
-    items.add(suggestion);
+    if (suggestion != null) {
+      items.add(suggestion);
+    }
     declaration.children.forEach(addItem);
   }
 
@@ -259,8 +271,9 @@ int _protocolElementFlags(Declaration declaration) {
   return protocol.Element.makeFlags(
     isAbstract: declaration.isAbstract,
     isConst: declaration.isConst,
-    isFinal: declaration.isFinal,
     isDeprecated: declaration.isDeprecated,
+    isFinal: declaration.isFinal,
+    isStatic: declaration.isStatic,
   );
 }
 
@@ -298,7 +311,7 @@ class DeclarationsTrackerData {
 
   /// When the completion domain subscribes for changes, we start redirecting
   /// changes to this listener.
-  void Function(LibraryChange) _listener = null;
+  void Function(LibraryChange) _listener;
 
   DeclarationsTrackerData(this._tracker) {
     _tracker.changes.listen((change) {

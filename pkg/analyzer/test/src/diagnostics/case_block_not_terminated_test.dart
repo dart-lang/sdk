@@ -15,17 +15,96 @@ main() {
 
 @reflectiveTest
 class CaseBlockNotTerminatedTest extends DriverResolutionTest {
-  test_caseBlockNotTerminated() async {
-    await assertErrorsInCode('''
-f(int p) {
-  switch (p) {
+  test_lastCase() async {
+    await assertNoErrorsInCode(r'''
+f(int a) {
+  switch (a) {
     case 0:
-      f(p);
-    case 1:
-      break;
+      print(0);
+  }
+}
+''');
+  }
+
+  test_notTerminated() async {
+    await assertErrorsInCode('''
+void f(int a) {
+  switch (a) {
+    case 0:
+      print(0);
+    default:
+      return;
   }
 }''', [
-      error(StaticWarningCode.CASE_BLOCK_NOT_TERMINATED, 30, 4),
+      error(StaticWarningCode.CASE_BLOCK_NOT_TERMINATED, 35, 4),
     ]);
+  }
+
+  test_terminated_break() async {
+    await assertNoErrorsInCode(r'''
+void f(int a) {
+  switch (a) {
+    case 0:
+      break;
+    default:
+      return;
+  }
+}
+''');
+  }
+
+  test_terminated_continue_loop() async {
+    await assertNoErrorsInCode(r'''
+void f(int a) {
+  while (true) {
+    switch (a) {
+      case 0:
+        continue;
+      default:
+        return;
+    }
+  }
+}
+''');
+  }
+
+  test_terminated_return() async {
+    await assertNoErrorsInCode(r'''
+void f(int a) {
+  switch (a) {
+    case 0:
+      return;
+    default:
+      return;
+  }
+}
+''');
+  }
+
+  test_terminated_return2() async {
+    await assertNoErrorsInCode(r'''
+void f(int a) {
+  switch (a) {
+    case 0:
+    case 1:
+      return;
+    default:
+      return;
+  }
+}
+''');
+  }
+
+  test_terminated_throw() async {
+    await assertNoErrorsInCode(r'''
+void f(int a) {
+  switch (a) {
+    case 0:
+      throw 42;
+    default:
+      return;
+  }
+}
+''');
   }
 }

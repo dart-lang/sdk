@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveParenthesesInGetterInvocationTest);
   });
@@ -19,7 +19,7 @@ class RemoveParenthesesInGetterInvocationTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_PARENTHESIS_IN_GETTER_INVOCATION;
 
-  test_noArguments() async {
+  Future<void> test_noArguments() async {
     await resolveTestUnit('''
 class A {
   int get foo => 0;

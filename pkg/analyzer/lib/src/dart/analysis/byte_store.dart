@@ -54,7 +54,7 @@ class MemoryCachingByteStore implements ByteStore {
   final Cache<String, List<int>> _cache;
 
   MemoryCachingByteStore(this._store, int maxSizeBytes)
-      : _cache = new Cache<String, List<int>>(maxSizeBytes, (v) => v.length);
+      : _cache = Cache<String, List<int>>(maxSizeBytes, (v) => v.length);
 
   @override
   List<int> get(String key) {

@@ -6,6 +6,6 @@ void main() {
   /*1:main*/ test();
 }
 
-test() {
+void test() {
   /*2:test*/ throw 'throw me';
 }

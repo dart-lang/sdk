@@ -20,24 +20,31 @@ class Dart2jsConstantEvaluator extends ir.ConstantEvaluator {
   Dart2jsConstantEvaluator(
       ir.TypeEnvironment typeEnvironment, ReportErrorFunction reportError,
       {Map<String, String> environment: const {},
+      bool enableTripleShift = false,
       bool supportReevaluationForTesting: false})
       : _supportReevaluationForTesting = supportReevaluationForTesting,
+        // TODO(johnniwinther,sigmund): Pass evaluation mode for nnbd
+        //  strong/weak mode.
         super(
             const Dart2jsConstantsBackend(supportsUnevaluatedConstants: false),
             environment,
             typeEnvironment,
-            new ErrorReporter(reportError));
+            new ErrorReporter(reportError),
+            enableTripleShift: enableTripleShift);
 
   @override
   ErrorReporter get errorReporter => super.errorReporter;
 
   @override
-  ir.Constant evaluate(ir.Expression node, {bool requireConstant: true}) {
+  ir.Constant evaluate(
+      ir.StaticTypeContext staticTypeContext, ir.Expression node,
+      {bool requireConstant: true}) {
     errorReporter.requiresConstant = requireConstant;
     if (node is ir.ConstantExpression) {
       ir.Constant constant = node.constant;
       if (constant is ir.UnevaluatedConstant) {
-        ir.Constant result = super.evaluate(constant.expression);
+        ir.Constant result =
+            super.evaluate(staticTypeContext, constant.expression);
         assert(
             result is ir.UnevaluatedConstant ||
                 !result.accept(const UnevaluatedConstantFinder()),
@@ -50,12 +57,17 @@ class Dart2jsConstantEvaluator extends ir.ConstantEvaluator {
       return constant;
     }
     if (requireConstant) {
-      // TODO(johnniwinther): Handle reporting of compile-time constant
-      // evaluation errors.
-      return super.evaluate(node);
+      return super.evaluate(staticTypeContext, node);
     } else {
       try {
-        return super.evaluate(node);
+        ir.Constant constant = super.evaluate(staticTypeContext, node);
+        if (constant is ir.UnevaluatedConstant &&
+            constant.expression is ir.InvalidExpression) {
+          return null;
+        }
+        // TODO(johnniwinther,sigmund): Replace [node] with an
+        // `ir.ConstantExpression` holding the [constant].
+        return constant;
       } catch (e) {
         return null;
       }
@@ -168,7 +180,7 @@ class ConstantReference extends ir.TreeNode {
   }
 
   @override
-  accept(ir.TreeVisitor v) {
+  R accept<R>(ir.TreeVisitor<R> v) {
     throw new UnsupportedError("ConstantReference.accept");
   }
 
@@ -187,5 +199,8 @@ class ConstantReference extends ir.TreeNode {
   }
 
   @override
-  String toString() => 'ConstantReference(constant=$constant)';
+  String toString() => 'ConstantReference(${toStringInternal()})';
+
+  @override
+  String toStringInternal() => 'constant=${constant.toStringInternal()}';
 }

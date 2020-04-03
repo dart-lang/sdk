@@ -1,0 +1,19 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///infer_from_variables_in_non_cycle_imports_with_flag_a.dart";
+
+static field core::int* y;
+static method test1() → dynamic
+  ;
+static method main() → dynamic
+  ;
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+static field core::int* x;
+static method main() → dynamic
+  ;

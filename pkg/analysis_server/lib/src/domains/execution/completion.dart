@@ -52,8 +52,8 @@ class RuntimeCompletionComputer {
     const codeMarker = '__code_\_';
 
     // Insert the code being completed at the context offset.
-    var changeBuilder = new DartChangeBuilder(session);
-    int nextImportPrefixIndex = 0;
+    var changeBuilder = DartChangeBuilder(session);
+    var nextImportPrefixIndex = 0;
     await changeBuilder.addFileEdit(contextPath, (builder) {
       builder.addInsertion(contextOffset, (builder) {
         builder.writeln('{');
@@ -68,13 +68,13 @@ class RuntimeCompletionComputer {
     }, importPrefixGenerator: (uri) => '__prefix${nextImportPrefixIndex++}');
 
     // Compute the patched context file content.
-    String targetCode = SourceEdit.applySequence(
+    var targetCode = SourceEdit.applySequence(
       contextResult.content,
       changeBuilder.sourceChange.edits[0].edits,
     );
 
     // Insert the code being completed.
-    int targetOffset = targetCode.indexOf(codeMarker) + offset;
+    var targetOffset = targetCode.indexOf(codeMarker) + offset;
     targetCode = targetCode.replaceAll(codeMarker, code);
 
     // Update the context file content to include the code being completed.
@@ -84,11 +84,12 @@ class RuntimeCompletionComputer {
       targetResult = await analysisDriver.getResult(contextPath);
     });
 
-    CompletionContributor contributor = new DartCompletionManager();
-    CompletionRequestImpl request = new CompletionRequestImpl(
+    CompletionContributor contributor = DartCompletionManager();
+    var request = CompletionRequestImpl(
       targetResult,
       targetOffset,
-      new CompletionPerformance(),
+      false,
+      CompletionPerformance(),
     );
     var suggestions = await contributor.computeSuggestions(request);
 
@@ -97,7 +98,7 @@ class RuntimeCompletionComputer {
 
     // TODO(scheglov) Add support for expressions.
     var expressions = <RuntimeCompletionExpression>[];
-    return new RuntimeCompletionResult(expressions, suggestions);
+    return RuntimeCompletionResult(expressions, suggestions);
   }
 
   Future<void> _withContextFileContent(

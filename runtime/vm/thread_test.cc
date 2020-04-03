@@ -82,8 +82,8 @@ VM_UNIT_TEST_CASE(Monitor) {
 
 class ObjectCounter : public ObjectPointerVisitor {
  public:
-  explicit ObjectCounter(Isolate* isolate, const Object* obj)
-      : ObjectPointerVisitor(isolate), obj_(obj), count_(0) {}
+  explicit ObjectCounter(IsolateGroup* isolate_group, const Object* obj)
+      : ObjectPointerVisitor(isolate_group), obj_(obj), count_(0) {}
 
   virtual void VisitPointers(RawObject** first, RawObject** last) {
     for (RawObject** current = first; current <= last; ++current) {
@@ -131,7 +131,7 @@ class TaskWithZoneAllocation : public ThreadPool::Task {
       EXPECT(smi.Value() == unique_smi);
       {
         HeapIterationScope iteration(thread);
-        ObjectCounter counter(isolate_, &smi);
+        ObjectCounter counter(isolate_->group(), &smi);
         // Ensure that our particular zone is visited.
         iteration.IterateStackPointers(&counter,
                                        ValidationPolicy::kValidateFrames);
@@ -148,7 +148,7 @@ class TaskWithZoneAllocation : public ThreadPool::Task {
       EXPECT(unique_str.Equals(unique_chars));
       {
         HeapIterationScope iteration(thread);
-        ObjectCounter str_counter(isolate_, &unique_str);
+        ObjectCounter str_counter(isolate_->group(), &unique_str);
         // Ensure that our particular zone is visited.
         iteration.IterateStackPointers(&str_counter,
                                        ValidationPolicy::kValidateFrames);
@@ -398,7 +398,7 @@ class ICDataTestTask : public ThreadPool::Task {
                  const Array& ic_datas,
                  Monitor* monitor,
                  intptr_t* exited,
-                 bool* done)
+                 std::atomic<bool>* done)
       : isolate_(isolate),
         ic_datas_(ic_datas),
         len_(ic_datas.Length()),
@@ -430,7 +430,7 @@ class ICDataTestTask : public ThreadPool::Task {
           }
         }
 
-        if (AtomicOperations::LoadAcquire(done_)) {
+        if (done_->load(std::memory_order_acquire)) {
           break;
         }
 
@@ -452,7 +452,7 @@ class ICDataTestTask : public ThreadPool::Task {
   const intptr_t len_;
   Monitor* monitor_;
   intptr_t* exited_;  // # tasks that are no longer running.
-  bool* done_;        // Signal that helper threads can stop working.
+  std::atomic<bool>* done_;  // Signal that helper threads can stop working.
 };
 
 static Function* CreateFunction(const char* name) {
@@ -479,7 +479,7 @@ ISOLATE_UNIT_TEST_CASE(ICDataTest) {
   USE(isolate);
   Monitor monitor;
   intptr_t exited = 0;
-  bool done = false;
+  std::atomic<bool> done = {false};
 
   const intptr_t kNumICData = 0x10;
 
@@ -488,7 +488,7 @@ ISOLATE_UNIT_TEST_CASE(ICDataTest) {
   Function& owner = *CreateFunction("DummyFunction");
   String& name = String::Handle(String::New("foo"));
   const Array& args_desc =
-      Array::Handle(ArgumentsDescriptor::New(0, 0, Object::empty_array()));
+      Array::Handle(ArgumentsDescriptor::NewBoxed(0, 0, Object::empty_array()));
   for (intptr_t i = 0; i < kNumICData; i++) {
     ic_data = ICData::New(owner, name, args_desc, /*deopt_id=*/0,
                           /*num_args_tested=*/1, ICData::kInstance,
@@ -517,7 +517,7 @@ ISOLATE_UNIT_TEST_CASE(ICDataTest) {
   }
   // Ensure we looped long enough to allow all helpers to succeed and exit.
   {
-    AtomicOperations::StoreRelease(&done, true);
+    done.store(true, std::memory_order_release);
     MonitorLocker ml(&monitor);
     while (exited != ICDataTestTask::kTaskCount) {
       ml.Wait();
@@ -568,7 +568,7 @@ class SafepointTestTask : public ThreadPool::Task {
         // But occasionally, organize a rendezvous.
         HeapIterationScope iteration(thread);  // Establishes a safepoint.
         ASSERT(thread->IsAtSafepoint());
-        ObjectCounter counter(isolate_, &smi);
+        ObjectCounter counter(isolate_->group(), &smi);
         iteration.IterateStackPointers(&counter,
                                        ValidationPolicy::kValidateFrames);
         {

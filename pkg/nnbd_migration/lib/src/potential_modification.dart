@@ -3,7 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' show SourceEdit;
+import 'package:nnbd_migration/instrumentation.dart';
+import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/conditional_discard.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 
@@ -34,6 +37,15 @@ class ConditionalModification extends PotentialModification {
           _KeepNode(node.condition),
           _KeepNode(node.thenStatement),
           node.elseStatement == null ? null : _KeepNode(node.elseStatement));
+    } else if (node is IfElement) {
+      return ConditionalModification._(
+          node.offset,
+          node.end,
+          node is Statement,
+          discard,
+          _KeepNode(node.condition),
+          _KeepNode(node.thenElement),
+          node.elseElement == null ? null : _KeepNode(node.elseElement));
     } else {
       throw new UnimplementedError('TODO(paulberry)');
     }
@@ -41,6 +53,13 @@ class ConditionalModification extends PotentialModification {
 
   ConditionalModification._(this.offset, this.end, this.isStatement,
       this.discard, this.condition, this.thenStatement, this.elseStatement);
+
+  @override
+  NullabilityFixDescription get description => discard.keepFalse
+      ? NullabilityFixDescription.discardThen
+      : (elseStatement == null
+          ? NullabilityFixDescription.discardCondition
+          : NullabilityFixDescription.discardElse);
 
   @override
   bool get isEmpty => discard.keepTrue && discard.keepFalse;
@@ -80,46 +99,37 @@ class ConditionalModification extends PotentialModification {
     }
     return result;
   }
-}
-
-/// Records information about the possible addition of an import to the source
-/// code.
-class PotentiallyAddImport extends PotentialModification {
-  final _usages = <PotentialModification>[];
-
-  final int _offset;
-  final String importPath;
-
-  PotentiallyAddImport(
-      AstNode beforeNode, String importPath, PotentialModification usage)
-      : this.forOffset(beforeNode.offset, importPath, usage);
-
-  PotentiallyAddImport.forOffset(
-      this._offset, this.importPath, PotentialModification usage) {
-    _usages.add(usage);
-  }
 
   @override
-  bool get isEmpty {
-    for (PotentialModification usage in _usages) {
-      if (!usage.isEmpty) {
-        return false;
-      }
-    }
-    return true;
-  }
+  Iterable<FixReasonInfo> get reasons => discard.reasons;
+}
 
-  // TODO(danrubel): change all of dartfix NNBD to use DartChangeBuilder
+/// Records information about the possible addition of a `?` suffix to a type in
+/// the source code.
+class PotentiallyAddQuestionSuffix extends PotentialModification {
+  final NullabilityNode node;
+  final DartType type;
+  final int _offset;
+
+  PotentiallyAddQuestionSuffix(this.node, this.type, this._offset);
+
+  @override
+  NullabilityFixDescription get description =>
+      NullabilityFixDescription.makeTypeNullable(
+          type.getDisplayString(withNullability: false));
+
+  @override
+  bool get isEmpty => !node.isNullable;
+
   @override
   Iterable<SourceEdit> get modifications =>
-      isEmpty ? const [] : [SourceEdit(_offset, 0, "import '$importPath';\n")];
+      isEmpty ? [] : [SourceEdit(_offset, 0, '?')];
 
-  void addUsage(PotentialModification usage) {
-    _usages.add(usage);
-  }
+  @override
+  Iterable<FixReasonInfo> get reasons => [node];
 }
 
-/// Records information about the possible addition of a `@required` annotation
+/// Records information about the possible addition of a `required` keyword
 /// to the source code.
 class PotentiallyAddRequired extends PotentialModification {
   final NullabilityNode _node;
@@ -142,21 +152,35 @@ class PotentiallyAddRequired extends PotentialModification {
       this.methodName, this.parameterName);
 
   @override
+  NullabilityFixDescription get description =>
+      NullabilityFixDescription.addRequired(
+          className, methodName, parameterName);
+
+  @override
   bool get isEmpty => _node.isNullable;
 
   @override
   Iterable<SourceEdit> get modifications =>
-      isEmpty ? const [] : [SourceEdit(_offset, 0, '@required ')];
+      isEmpty ? const [] : [SourceEdit(_offset, 0, 'required ')];
+
+  @override
+  Iterable<FixReasonInfo> get reasons => [_node];
 }
 
 /// Interface used by data structures representing potential modifications to
 /// the code being migrated.
 abstract class PotentialModification {
+  /// Gets a [NullabilityFixDescription] describing this modification.
+  NullabilityFixDescription get description;
+
   bool get isEmpty;
 
   /// Gets the individual migrations that need to be done, considering the
   /// solution to the constraint equations.
   Iterable<SourceEdit> get modifications;
+
+  /// Gets the reasons for this potential modification.
+  Iterable<FixReasonInfo> get reasons;
 }
 
 /// Helper object used by [ConditionalModification] to keep track of AST nodes

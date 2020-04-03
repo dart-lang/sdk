@@ -36,10 +36,11 @@ class ParsedFunction;
 // List of slots that correspond to fields of native objects in the following
 // format:
 //
-//     V(class_name, field_name, exact_type, FINAL|VAR)
+//     V(class_name, underlying_type, field_name, exact_type, FINAL|VAR)
 //
 // - class_name and field_name specify the name of the host class and the name
 //   of the field respectively;
+// - underlying_type: the Raw class which holds the field;
 // - exact_type specifies exact type of the field (any load from this field
 //   would only yield instances of this type);
 // - the last component specifies whether field behaves like a final field
@@ -48,30 +49,31 @@ class ParsedFunction;
 //
 // Note: native slots are expected to be non-nullable.
 #define NATIVE_SLOTS_LIST(V)                                                   \
-  V(Array, length, Smi, FINAL)                                                 \
-  V(Context, parent, Context, FINAL)                                           \
-  V(Closure, instantiator_type_arguments, TypeArguments, FINAL)                \
-  V(Closure, delayed_type_arguments, TypeArguments, FINAL)                     \
-  V(Closure, function_type_arguments, TypeArguments, FINAL)                    \
-  V(Closure, function, Function, FINAL)                                        \
-  V(Closure, context, Context, FINAL)                                          \
-  V(Closure, hash, Context, VAR)                                               \
-  V(GrowableObjectArray, length, Smi, VAR)                                     \
-  V(GrowableObjectArray, data, Array, VAR)                                     \
-  V(TypedDataBase, data_field, Dynamic, FINAL)                                 \
-  V(TypedDataBase, length, Smi, FINAL)                                         \
-  V(TypedDataView, offset_in_bytes, Smi, FINAL)                                \
-  V(TypedDataView, data, Dynamic, FINAL)                                       \
-  V(String, length, Smi, FINAL)                                                \
-  V(LinkedHashMap, index, TypedDataUint32Array, VAR)                           \
-  V(LinkedHashMap, data, Array, VAR)                                           \
-  V(LinkedHashMap, hash_mask, Smi, VAR)                                        \
-  V(LinkedHashMap, used_data, Smi, VAR)                                        \
-  V(LinkedHashMap, deleted_keys, Smi, VAR)                                     \
-  V(ArgumentsDescriptor, type_args_len, Smi, FINAL)                            \
-  V(ArgumentsDescriptor, positional_count, Smi, FINAL)                         \
-  V(ArgumentsDescriptor, count, Smi, FINAL)                                    \
-  V(Pointer, c_memory_address, Integer, FINAL)
+  V(Array, RawArray, length, Smi, FINAL)                                       \
+  V(Context, RawContext, parent, Context, FINAL)                               \
+  V(Closure, RawClosure, instantiator_type_arguments, TypeArguments, FINAL)    \
+  V(Closure, RawClosure, delayed_type_arguments, TypeArguments, FINAL)         \
+  V(Closure, RawClosure, function_type_arguments, TypeArguments, FINAL)        \
+  V(Closure, RawClosure, function, Function, FINAL)                            \
+  V(Closure, RawClosure, context, Context, FINAL)                              \
+  V(Closure, RawClosure, hash, Context, VAR)                                   \
+  V(GrowableObjectArray, RawGrowableObjectArray, length, Smi, VAR)             \
+  V(GrowableObjectArray, RawGrowableObjectArray, data, Array, VAR)             \
+  V(TypedDataBase, RawTypedDataBase, length, Smi, FINAL)                       \
+  V(TypedDataView, RawTypedDataView, offset_in_bytes, Smi, FINAL)              \
+  V(TypedDataView, RawTypedDataView, data, Dynamic, FINAL)                     \
+  V(String, RawString, length, Smi, FINAL)                                     \
+  V(LinkedHashMap, RawLinkedHashMap, index, TypedDataUint32Array, VAR)         \
+  V(LinkedHashMap, RawLinkedHashMap, data, Array, VAR)                         \
+  V(LinkedHashMap, RawLinkedHashMap, hash_mask, Smi, VAR)                      \
+  V(LinkedHashMap, RawLinkedHashMap, used_data, Smi, VAR)                      \
+  V(LinkedHashMap, RawLinkedHashMap, deleted_keys, Smi, VAR)                   \
+  V(ArgumentsDescriptor, RawArray, type_args_len, Smi, FINAL)                  \
+  V(ArgumentsDescriptor, RawArray, positional_count, Smi, FINAL)               \
+  V(ArgumentsDescriptor, RawArray, count, Smi, FINAL)                          \
+  V(ArgumentsDescriptor, RawArray, size, Smi, FINAL)                           \
+  V(PointerBase, RawPointerBase, data_field, Dynamic, FINAL)                   \
+  V(Type, RawType, arguments, TypeArguments, FINAL)
 
 // Slot is an abstraction that describes an readable (and possibly writeable)
 // location within an object.
@@ -85,13 +87,16 @@ class Slot : public ZoneAllocated {
   // clang-format off
   enum class Kind : uint8_t {
     // Native slots are identified by their kind - each native slot has its own.
-#define DECLARE_KIND(ClassName, FieldName, cid, mutability)                    \
+#define DECLARE_KIND(ClassName, UnderlyingType, FieldName, cid, mutability)    \
   k##ClassName##_##FieldName,
     NATIVE_SLOTS_LIST(DECLARE_KIND)
 #undef DECLARE_KIND
 
     // A slot used to store type arguments.
     kTypeArguments,
+
+    // A slot at a specific [index] in a [RawTypeArgument] vector.
+    kTypeArgumentsIndex,
 
     // A slot within a Context object that contains a value of a captured
     // local variable.
@@ -101,6 +106,9 @@ class Slot : public ZoneAllocated {
     kDartField,
   };
   // clang-format on
+
+  static const char* KindToCString(Kind k);
+  static bool ParseKind(const char* str, Kind* k);
 
   // Returns a slot that represents length field for the given [array_cid].
   static const Slot& GetLengthFieldForArrayCid(intptr_t array_cid);
@@ -115,6 +123,9 @@ class Slot : public ZoneAllocated {
   static const Slot& GetTypeArgumentsSlotAt(Thread* thread, intptr_t offset);
   static const Slot& GetTypeArgumentsSlotFor(Thread* thread, const Class& cls);
 
+  // Returns a slot at a specific [index] in a [RawTypeArgument] vector.
+  static const Slot& GetTypeArgumentsIndexSlot(Thread* thread, intptr_t index);
+
   // Returns a slot that represents the given captured local variable.
   static const Slot& GetContextVariableSlotFor(Thread* thread,
                                                const LocalVariable& var);
@@ -124,7 +135,7 @@ class Slot : public ZoneAllocated {
                          const ParsedFunction* parsed_function);
 
   // Convenience getters for native slots.
-#define DEFINE_GETTER(ClassName, FieldName, cid, mutability)                   \
+#define DEFINE_GETTER(ClassName, UnderlyingType, FieldName, cid, mutability)   \
   static const Slot& ClassName##_##FieldName() {                               \
     return GetNativeSlot(Kind::k##ClassName##_##FieldName);                    \
   }
@@ -136,6 +147,7 @@ class Slot : public ZoneAllocated {
   bool IsDartField() const { return kind() == Kind::kDartField; }
   bool IsLocalVariable() const { return kind() == Kind::kCapturedVariable; }
   bool IsTypeArguments() const { return kind() == Kind::kTypeArguments; }
+  bool IsArgumentOfType() const { return kind() == Kind::kTypeArgumentsIndex; }
 
   const char* Name() const;
 
@@ -144,7 +156,7 @@ class Slot : public ZoneAllocated {
   bool is_immutable() const { return IsImmutableBit::decode(flags_); }
 
   intptr_t nullable_cid() const { return cid_; }
-  intptr_t is_nullable() const { return IsNullableBit::decode(flags_); }
+  bool is_nullable() const { return IsNullableBit::decode(flags_); }
 
   // Returns true if properties of this slot were based on the guarded state
   // of the corresponding Dart field.
@@ -170,7 +182,13 @@ class Slot : public ZoneAllocated {
 
   bool IsIdentical(const Slot& other) const { return this == &other; }
 
+  bool IsContextSlot() const {
+    return kind() == Kind::kCapturedVariable || kind() == Kind::kContext_parent;
+  }
+
  private:
+  friend class FlowGraphDeserializer;  // For GetNativeSlot.
+
   Slot(Kind kind,
        int8_t bits,
        int16_t cid,

@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: slash_for_doc_comments
+// ignore_for_file: slash_for_doc_comments, prefer_single_quotes
+// ignore_for_file: always_declare_return_types, prefer_final_fields
+// ignore_for_file: always_require_non_null_named_parameters
+// ignore_for_file: omit_local_variable_types
 
 part of js_ast;
 
@@ -1518,7 +1521,7 @@ class ArrowFun extends FunctionExpression {
   @override
   final List<Parameter> params;
   @override
-  final body; // Expression or Block
+  final Node body; // Expression or Block
 
   ArrowFun(this.params, this.body);
 
@@ -1940,7 +1943,7 @@ abstract class InterpolatedNode implements Node {
 
 class InterpolatedExpression extends Expression with InterpolatedNode {
   @override
-  final nameOrPosition;
+  final Object nameOrPosition;
 
   InterpolatedExpression(this.nameOrPosition);
 
@@ -1958,7 +1961,7 @@ class InterpolatedExpression extends Expression with InterpolatedNode {
 
 class InterpolatedLiteral extends Literal with InterpolatedNode {
   @override
-  final nameOrPosition;
+  final Object nameOrPosition;
 
   InterpolatedLiteral(this.nameOrPosition);
 
@@ -1974,7 +1977,7 @@ class InterpolatedParameter extends Expression
     with InterpolatedNode
     implements Identifier {
   @override
-  final nameOrPosition;
+  final Object nameOrPosition;
 
   @override
   String get name {
@@ -2008,7 +2011,7 @@ class InterpolatedParameter extends Expression
 
 class InterpolatedSelector extends Expression with InterpolatedNode {
   @override
-  final nameOrPosition;
+  final Object nameOrPosition;
 
   InterpolatedSelector(this.nameOrPosition);
 
@@ -2026,7 +2029,7 @@ class InterpolatedSelector extends Expression with InterpolatedNode {
 
 class InterpolatedStatement extends Statement with InterpolatedNode {
   @override
-  final nameOrPosition;
+  final Object nameOrPosition;
 
   InterpolatedStatement(this.nameOrPosition);
 
@@ -2044,7 +2047,7 @@ class InterpolatedMethod extends Expression
     with InterpolatedNode
     implements Method {
   @override
-  final nameOrPosition;
+  final Object nameOrPosition;
 
   InterpolatedMethod(this.nameOrPosition);
 
@@ -2077,7 +2080,7 @@ class InterpolatedIdentifier extends Expression
     with InterpolatedNode
     implements Identifier {
   @override
-  final nameOrPosition;
+  final Object nameOrPosition;
 
   InterpolatedIdentifier(this.nameOrPosition);
 

@@ -1,0 +1,16 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef _NullaryFunction = () →* dynamic;
+typedef _UnaryFunction = (dynamic) →* dynamic;
+typedef _BinaryFunction = (dynamic, dynamic) →* dynamic;
+static method main() → dynamic {
+  core::print((#C1) is () →* dynamic);
+  core::print((#C1) is (dynamic) →* dynamic);
+  core::print((#C1) is (dynamic, dynamic) →* dynamic);
+}
+
+constants  {
+  #C1 = tearoff self::main
+}

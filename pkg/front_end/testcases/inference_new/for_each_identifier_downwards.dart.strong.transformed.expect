@@ -1,6 +1,7 @@
 library test;
 import self as self;
 import "dart:core" as core;
+import "dart:_internal" as _in;
 
 class A extends core::Object {
   synthetic constructor •() → self::A*
@@ -15,20 +16,50 @@ class C extends core::Object {
   set aSetter(self::A* value) → void {}
   method test() → void {
     self::A* aLocal;
-    for (final self::A* #t1 in self::f<core::Iterable<self::A*>*>()) {
-      aLocal = #t1;
+    {
+      core::Iterator<self::A*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<self::A*>*>(self::f<core::Iterable<self::A*>*>()).{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final self::A* #t1 = :sync-for-iterator.{core::Iterator::current};
+        {
+          aLocal = #t1;
+        }
+      }
     }
-    for (final self::A* #t2 in self::f<core::Iterable<self::A*>*>()) {
-      this.{self::C::aField} = #t2;
+    {
+      core::Iterator<self::A*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<self::A*>*>(self::f<core::Iterable<self::A*>*>()).{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final self::A* #t2 = :sync-for-iterator.{core::Iterator::current};
+        {
+          this.{self::C::aField} = #t2;
+        }
+      }
     }
-    for (final self::A* #t3 in self::f<core::Iterable<self::A*>*>()) {
-      this.{self::C::aSetter} = #t3;
+    {
+      core::Iterator<self::A*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<self::A*>*>(self::f<core::Iterable<self::A*>*>()).{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final self::A* #t3 = :sync-for-iterator.{core::Iterator::current};
+        {
+          this.{self::C::aSetter} = #t3;
+        }
+      }
     }
-    for (final self::A* #t4 in self::f<core::Iterable<self::A*>*>()) {
-      self::aTopLevel = #t4;
+    {
+      core::Iterator<self::A*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<self::A*>*>(self::f<core::Iterable<self::A*>*>()).{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final self::A* #t4 = :sync-for-iterator.{core::Iterator::current};
+        {
+          self::aTopLevel = #t4;
+        }
+      }
     }
-    for (final self::A* #t5 in self::f<core::Iterable<self::A*>*>()) {
-      self::aTopLevelSetter = #t5;
+    {
+      core::Iterator<self::A*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<self::A*>*>(self::f<core::Iterable<self::A*>*>()).{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final self::A* #t5 = :sync-for-iterator.{core::Iterator::current};
+        {
+          self::aTopLevelSetter = #t5;
+        }
+      }
     }
   }
 }

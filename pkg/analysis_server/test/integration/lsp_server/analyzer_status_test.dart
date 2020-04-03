@@ -7,7 +7,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalyzerStatusTest);
   });
@@ -15,27 +15,7 @@ main() {
 
 @reflectiveTest
 class AnalyzerStatusTest extends AbstractLspAnalysisServerIntegrationTest {
-  test_afterInitialize() async {
-    const initialContents = 'int a = 1;';
-    newFile(mainFilePath, content: initialContents);
-
-    // To avoid races, set up listeners for the notifications before we initialise
-    // and track which event came first to ensure they arrived in the expected
-    // order.
-    bool firstNotificationWasAnalyzing = null;
-    final startNotification = waitForAnalysisStart()
-        .then((_) => firstNotificationWasAnalyzing ??= true);
-    final completeNotification = waitForAnalysisComplete()
-        .then((_) => firstNotificationWasAnalyzing ??= false);
-
-    await initialize();
-    await startNotification;
-    await completeNotification;
-
-    expect(firstNotificationWasAnalyzing, isTrue);
-  }
-
-  test_afterDocumentEdits() async {
+  Future<void> test_afterDocumentEdits() async {
     const initialContents = 'int a = 1;';
     newFile(mainFilePath, content: initialContents);
 
@@ -55,5 +35,25 @@ class AnalyzerStatusTest extends AbstractLspAnalysisServerIntegrationTest {
     // Ensure the notifications come through again.
     await startNotification;
     await completeNotification;
+  }
+
+  Future<void> test_afterInitialize() async {
+    const initialContents = 'int a = 1;';
+    newFile(mainFilePath, content: initialContents);
+
+    // To avoid races, set up listeners for the notifications before we initialise
+    // and track which event came first to ensure they arrived in the expected
+    // order.
+    bool firstNotificationWasAnalyzing;
+    final startNotification = waitForAnalysisStart()
+        .then((_) => firstNotificationWasAnalyzing ??= true);
+    final completeNotification = waitForAnalysisComplete()
+        .then((_) => firstNotificationWasAnalyzing ??= false);
+
+    await initialize();
+    await startNotification;
+    await completeNotification;
+
+    expect(firstNotificationWasAnalyzing, isTrue);
   }
 }

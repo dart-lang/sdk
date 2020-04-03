@@ -6,16 +6,16 @@ library fasta.constructor_reference_builder;
 
 import '../messages.dart' show noLength, templateConstructorNotFound;
 
-import 'builder.dart'
-    show
-        ClassBuilder,
-        Builder,
-        LibraryBuilder,
-        PrefixBuilder,
-        QualifiedName,
-        Scope,
-        TypeBuilder,
-        flattenName;
+import '../identifiers.dart' show QualifiedName, flattenName;
+
+import '../scope.dart';
+
+import 'builder.dart';
+import 'class_builder.dart';
+import 'library_builder.dart';
+import 'prefix_builder.dart';
+import 'type_alias_builder.dart';
+import 'type_builder.dart';
 
 class ConstructorReferenceBuilder {
   final int charOffset;
@@ -41,12 +41,16 @@ class ConstructorReferenceBuilder {
   }
 
   void resolveIn(Scope scope, LibraryBuilder accessingLibrary) {
-    final name = this.name;
+    final Object name = this.name;
     Builder declaration;
     if (name is QualifiedName) {
       String prefix = name.qualifier;
       String middle = name.name;
       declaration = scope.lookup(prefix, charOffset, fileUri);
+      if (declaration is TypeAliasBuilder) {
+        TypeAliasBuilder aliasBuilder = declaration;
+        declaration = aliasBuilder.unaliasDeclaration(typeArguments);
+      }
       if (declaration is PrefixBuilder) {
         PrefixBuilder prefix = declaration;
         declaration = prefix.lookup(middle, name.charOffset, fileUri);

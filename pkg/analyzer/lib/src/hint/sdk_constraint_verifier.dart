@@ -7,11 +7,12 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/resolver.dart' show Namespace;
 import 'package:pub_semver/pub_semver.dart';
 
 /// A visitor that finds code that assumes a later version of the SDK than the
@@ -33,6 +34,10 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   /// features need to be checked. Use [checkConstantUpdate2018] to access this
   /// field.
   bool _checkConstantUpdate2018;
+
+  /// A cached flag indicating whether uses of extension method features need to
+  /// be checked. Use [checkExtensionMethods] to access this field.
+  bool _checkExtensionMethods;
 
   /// A cached flag indicating whether references to Future and Stream need to
   /// be checked. Use [checkFutureAndStream] to access this field.
@@ -62,24 +67,33 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
 
   /// Return a range covering every version up to, but not including, 2.1.0.
   VersionRange get before_2_1_0 =>
-      new VersionRange(max: Version.parse('2.1.0'), includeMax: false);
+      VersionRange(max: Version.parse('2.1.0'), includeMax: false);
 
   /// Return a range covering every version up to, but not including, 2.2.0.
   VersionRange get before_2_2_0 =>
-      new VersionRange(max: Version.parse('2.2.0'), includeMax: false);
+      VersionRange(max: Version.parse('2.2.0'), includeMax: false);
 
   /// Return a range covering every version up to, but not including, 2.2.2.
   VersionRange get before_2_2_2 =>
-      new VersionRange(max: Version.parse('2.2.2'), includeMax: false);
+      VersionRange(max: Version.parse('2.2.2'), includeMax: false);
 
   /// Return a range covering every version up to, but not including, 2.5.0.
   VersionRange get before_2_5_0 =>
-      new VersionRange(max: Version.parse('2.5.0'), includeMax: false);
+      VersionRange(max: Version.parse('2.5.0'), includeMax: false);
+
+  /// Return a range covering every version up to, but not including, 2.6.0.
+  VersionRange get before_2_6_0 =>
+      VersionRange(max: Version.parse('2.6.0'), includeMax: false);
 
   /// Return `true` if references to the constant-update-2018 features need to
   /// be checked.
   bool get checkConstantUpdate2018 => _checkConstantUpdate2018 ??=
       !before_2_5_0.intersect(_versionConstraint).isEmpty;
+
+  /// Return `true` if references to the extension method features need to
+  /// be checked.
+  bool get checkExtensionMethods => _checkExtensionMethods ??=
+      !before_2_6_0.intersect(_versionConstraint).isEmpty;
 
   /// Return `true` if references to Future and Stream need to be checked.
   bool get checkFutureAndStream => _checkFutureAndStream ??=
@@ -87,9 +101,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
 
   /// Return `true` if references to the non-nullable features need to be
   /// checked.
-  // TODO(brianwilkerson) Implement this as a version check when a version has
-  //  been selected.
-  bool get checkNnbd => true;
+  bool get checkNnbd => !_containingLibrary.isNonNullableByDefault;
 
   /// Return `true` if references to set literals need to be checked.
   bool get checkSetLiterals =>
@@ -146,6 +158,24 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
       }
     }
     super.visitBinaryExpression(node);
+  }
+
+  @override
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
+    if (checkExtensionMethods) {
+      _errorReporter.reportErrorForToken(
+          HintCode.SDK_VERSION_EXTENSION_METHODS, node.extensionKeyword);
+    }
+    super.visitExtensionDeclaration(node);
+  }
+
+  @override
+  void visitExtensionOverride(ExtensionOverride node) {
+    if (checkExtensionMethods) {
+      _errorReporter.reportErrorForNode(
+          HintCode.SDK_VERSION_EXTENSION_METHODS, node.extensionName);
+    }
+    super.visitExtensionOverride(node);
   }
 
   @override
@@ -215,8 +245,8 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
     }
     Element element = node.staticElement;
     if (checkFutureAndStream &&
-        (element == _typeProvider.futureType.element ||
-            element == _typeProvider.streamType.element)) {
+        (element == _typeProvider.futureElement ||
+            element == _typeProvider.streamElement)) {
       for (LibraryElement importedLibrary
           in _containingLibrary.importedLibraries) {
         if (!importedLibrary.isDartCore) {

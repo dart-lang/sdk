@@ -2,15 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
 part of $LIBRARYNAME;
 
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$MIXINS$IMPLEMENTS {
-  /// NB: This constructor likely does not work as you might expect it to! This
-  /// constructor will simply fail (returning null) if you are not on a device
-  /// with touch enabled. See dartbug.com/8314.
-  // TODO(5760): createTouchList now uses varargs.
-  factory $CLASSNAME() => null;//document._createTouchList();
 $!MEMBERS
 }

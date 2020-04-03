@@ -10,17 +10,23 @@ import '../bytecode/bytecode_serialization.dart'
     show BufferedWriter, BufferedReader, LinkWriter, LinkReader;
 import '../bytecode/declarations.dart' show Component;
 
+import 'dart:developer';
+
 class BytecodeMetadata {
   final Component component;
 
   BytecodeMetadata(this.component);
 
   void write(BufferedWriter writer) {
-    component.write(writer);
+    Timeline.timeSync("BytecodeMetadata.write", () {
+      component.write(writer);
+    });
   }
 
   factory BytecodeMetadata.read(BufferedReader reader) {
-    return new BytecodeMetadata(new Component.read(reader));
+    return Timeline.timeSync("BytecodeMetadata.read", () {
+      return new BytecodeMetadata(new Component.read(reader));
+    });
   }
 
   @override
@@ -47,10 +53,9 @@ class BytecodeMetadataRepository extends MetadataRepository<BytecodeMetadata> {
         bytecodeComponent.version,
         bytecodeComponent.stringTable,
         bytecodeComponent.objectTable,
-        linkWriter,
-        baseOffset: sink.getBufferOffset());
+        linkWriter);
     metadata.write(writer);
-    sink.writeBytes(writer.takeBytes());
+    writer.writeContentsToBinarySink(sink);
   }
 
   @override

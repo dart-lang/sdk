@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// results.json and flaky.json parses.
+// results.json and flaky.json parser.
 
 import 'dart:async';
 import 'dart:convert';
@@ -16,10 +16,6 @@ String gsutilPy;
 
 /// Cloud storage location containing results.
 const testResultsStoragePath = "gs://dart-test-results/builders";
-
-/// Cloud storage location containing approved results.
-const approvedResultsStoragePath =
-    "gs://dart-test-results-approved-results/builders";
 
 /// Limit the number of concurrent subprocesses by half the number of cores.
 final gsutilPool = new Pool(max(1, Platform.numberOfProcessors ~/ 2));
@@ -131,10 +127,14 @@ Future<List<Map<String, dynamic>>> loadResults(String path) async {
 }
 
 Map<String, Map<String, dynamic>> createResultsMap(
-        List<Map<String, dynamic>> results) =>
-    new Map<String, Map<String, dynamic>>.fromIterable(results,
-        key: (dynamic result) =>
-            "${result["configuration"]}:${result["name"]}");
+    List<Map<String, dynamic>> results) {
+  Map<String, Map<String, dynamic>> result = {};
+  for (Map<String, dynamic> map in results) {
+    var key = "${map["configuration"]}:${map["name"]}";
+    result.putIfAbsent(key, () => map);
+  }
+  return result;
+}
 
 Map<String, Map<String, dynamic>> parseResultsMap(String contents) =>
     createResultsMap(parseResults(contents));

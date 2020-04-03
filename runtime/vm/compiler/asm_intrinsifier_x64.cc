@@ -130,7 +130,6 @@ void AsmIntrinsifier::GrowableArray_Allocate(Assembler* assembler,
   /* next object start and initialize the object. */                           \
   __ movq(Address(THR, target::Thread::top_offset()), RCX);                    \
   __ addq(RAX, Immediate(kHeapObjectTag));                                     \
-  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, RDI));                  \
   /* Initialize the tags. */                                                   \
   /* RAX: new object start as a tagged pointer. */                             \
   /* RCX: new object end address. */                                           \
@@ -1634,62 +1633,80 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
+// Compares cid1 and cid2 to see if they're syntactically equivalent. If this
+// can be determined by this fast path, it jumps to either equal or not_equal,
+// otherwise it jumps to normal_ir_body. May clobber cid1, cid2, and scratch.
+static void EquivalentClassIds(Assembler* assembler,
+                               Label* normal_ir_body,
+                               Label* equal,
+                               Label* not_equal,
+                               Register cid1,
+                               Register cid2,
+                               Register scratch) {
+  Label different_cids, not_integer;
+
+  // Check if left hand side is a closure. Closures are handled in the runtime.
+  __ cmpq(cid1, Immediate(kClosureCid));
+  __ j(EQUAL, normal_ir_body);
+
+  // Check whether class ids match. If class ids don't match types may still be
+  // considered equivalent (e.g. multiple string implementation classes map to a
+  // single String type).
+  __ cmpq(cid1, cid2);
+  __ j(NOT_EQUAL, &different_cids);
+
+  // Types have the same class and neither is a closure type.
+  // Check if there are no type arguments. In this case we can return true.
+  // Otherwise fall through into the runtime to handle comparison.
+  __ LoadClassById(scratch, cid1);
+  __ movzxw(scratch,
+            FieldAddress(scratch, target::Class::num_type_arguments_offset()));
+  __ cmpq(scratch, Immediate(0));
+  __ j(NOT_EQUAL, normal_ir_body);
+  __ jmp(equal);
+
+  // Class ids are different. Check if we are comparing two string types (with
+  // different representations) or two integer types.
+  __ Bind(&different_cids);
+  __ cmpq(cid1, Immediate(kNumPredefinedCids));
+  __ j(ABOVE_EQUAL, not_equal);
+
+  // Check if both are integer types.
+  __ movq(scratch, cid1);
+  JumpIfNotInteger(assembler, scratch, &not_integer);
+
+  // First type is an integer. Check if the second is an integer too.
+  // Otherwise types are unequiv because only integers have the same runtime
+  // type as other integers.
+  JumpIfInteger(assembler, cid2, equal);
+  __ jmp(not_equal);
+
+  __ Bind(&not_integer);
+  // Check if the first type is String. If it is not then types are not
+  // equivalent because they have different class ids and they are not strings
+  // or integers.
+  JumpIfNotString(assembler, cid1, not_equal);
+  // First type is String. Check if the second is a string too.
+  JumpIfString(assembler, cid2, equal);
+  // String types are only equivalent to other String types.
+  __ jmp(not_equal);
+}
+
 void AsmIntrinsifier::ObjectHaveSameRuntimeType(Assembler* assembler,
                                                 Label* normal_ir_body) {
-  Label different_cids, equal, not_equal, not_integer;
-
   __ movq(RAX, Address(RSP, +1 * target::kWordSize));
   __ LoadClassIdMayBeSmi(RCX, RAX);
-
-  // Check if left hand size is a closure. Closures are handled in the runtime.
-  __ cmpq(RCX, Immediate(kClosureCid));
-  __ j(EQUAL, normal_ir_body);
 
   __ movq(RAX, Address(RSP, +2 * target::kWordSize));
   __ LoadClassIdMayBeSmi(RDX, RAX);
 
-  // Check whether class ids match. If class ids don't match objects can still
-  // have the same runtime type (e.g. multiple string implementation classes
-  // map to a single String type).
-  __ cmpq(RCX, RDX);
-  __ j(NOT_EQUAL, &different_cids);
-
-  // Objects have the same class and neither is a closure.
-  // Check if there are no type arguments. In this case we can return true.
-  // Otherwise fall through into the runtime to handle comparison.
-  __ LoadClassById(RDI, RCX);
-  __ movzxw(RCX, FieldAddress(RDI, target::Class::num_type_arguments_offset()));
-  __ cmpq(RCX, Immediate(0));
-  __ j(NOT_EQUAL, normal_ir_body, Assembler::kNearJump);
+  Label equal, not_equal;
+  EquivalentClassIds(assembler, normal_ir_body, &equal, &not_equal, RCX, RDX,
+                     RAX);
 
   __ Bind(&equal);
   __ LoadObject(RAX, CastHandle<Object>(TrueObject()));
   __ ret();
-
-  // Class ids are different. Check if we are comparing runtime types of
-  // two strings (with different representations) or two integers.
-  __ Bind(&different_cids);
-  __ cmpq(RCX, Immediate(kNumPredefinedCids));
-  __ j(ABOVE_EQUAL, &not_equal);
-
-  __ movq(RAX, RCX);
-  JumpIfNotInteger(assembler, RAX, &not_integer);
-
-  // First object is an integer. Check if the second is an integer too.
-  // Otherwise types are unequal because only integers have the same runtime
-  // type as other integers.
-  JumpIfInteger(assembler, RDX, &equal);
-  __ jmp(&not_equal);
-
-  __ Bind(&not_integer);
-  // Check if the first object is a string. If it is not then
-  // objects don't have the same runtime type because they have
-  // different class ids and they are not strings or integers.
-  JumpIfNotString(assembler, RCX, &not_equal);
-  // First object is a string. Check if the second is a string too.
-  JumpIfString(assembler, RDX, &equal);
-  // Strings only have the same runtime type as other strings.
-  // Fall-through to the not equal case.
 
   __ Bind(&not_equal);
   __ LoadObject(RAX, CastHandle<Object>(FalseObject()));
@@ -1722,6 +1739,59 @@ void AsmIntrinsifier::Type_getHashCode(Assembler* assembler,
   __ ret();
   __ Bind(normal_ir_body);
   // Hash not yet computed.
+}
+
+void AsmIntrinsifier::Type_equality(Assembler* assembler,
+                                    Label* normal_ir_body) {
+  Label equal, not_equal, equiv_cids, check_legacy;
+
+  __ movq(RCX, Address(RSP, +1 * target::kWordSize));
+  __ movq(RDX, Address(RSP, +2 * target::kWordSize));
+  __ cmpq(RCX, RDX);
+  __ j(EQUAL, &equal);
+
+  // RCX might not be a Type object, so check that first (RDX should be though,
+  // since this is a method on the Type class).
+  __ LoadClassIdMayBeSmi(RAX, RCX);
+  __ cmpq(RAX, Immediate(kTypeCid));
+  __ j(NOT_EQUAL, normal_ir_body);
+
+  // Check if types are syntactically equal.
+  __ movq(RDI, FieldAddress(RCX, target::Type::type_class_id_offset()));
+  __ SmiUntag(RDI);
+  __ movq(RSI, FieldAddress(RDX, target::Type::type_class_id_offset()));
+  __ SmiUntag(RSI);
+  EquivalentClassIds(assembler, normal_ir_body, &equiv_cids, &not_equal, RDI,
+                     RSI, RAX);
+
+  // Check nullability.
+  __ Bind(&equiv_cids);
+  __ movzxb(RCX, FieldAddress(RCX, target::Type::nullability_offset()));
+  __ movzxb(RDX, FieldAddress(RDX, target::Type::nullability_offset()));
+  __ cmpq(RCX, RDX);
+  __ j(NOT_EQUAL, &check_legacy, Assembler::kNearJump);
+  // Fall through to equal case if nullability is strictly equal.
+
+  __ Bind(&equal);
+  __ LoadObject(RAX, CastHandle<Object>(TrueObject()));
+  __ ret();
+
+  // At this point the nullabilities are different, so they can only be
+  // syntactically equivalent if they're both either kNonNullable or kLegacy.
+  // These are the two largest values of the enum, so we can just do a < check.
+  ASSERT(target::Nullability::kNullable < target::Nullability::kNonNullable &&
+         target::Nullability::kNonNullable < target::Nullability::kLegacy);
+  __ Bind(&check_legacy);
+  __ cmpq(RCX, Immediate(target::Nullability::kNonNullable));
+  __ j(LESS, &not_equal, Assembler::kNearJump);
+  __ cmpq(RDX, Immediate(target::Nullability::kNonNullable));
+  __ j(GREATER_EQUAL, &equal, Assembler::kNearJump);
+
+  __ Bind(&not_equal);
+  __ LoadObject(RAX, CastHandle<Object>(FalseObject()));
+  __ ret();
+
+  __ Bind(normal_ir_body);
 }
 
 void AsmIntrinsifier::Object_getHash(Assembler* assembler,
@@ -1977,13 +2047,19 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
   __ ret();
 }
 
-// Allocates one-byte string of length 'end - start'. The content is not
-// initialized. 'length-reg' contains tagged length.
+// Allocates a _OneByteString. The content is not initialized.
+// 'length-reg' contains the desired length as a _Smi or _Mint.
 // Returns new string as tagged pointer in RAX.
-static void TryAllocateOnebyteString(Assembler* assembler,
+static void TryAllocateOneByteString(Assembler* assembler,
                                      Label* ok,
                                      Label* failure,
                                      Register length_reg) {
+  // _Mint length: call to runtime to produce error.
+  __ BranchIfNotSmi(length_reg, failure);
+  // negative length: call to runtime to produce error.
+  __ cmpq(length_reg, Immediate(0));
+  __ j(LESS, failure);
+
   NOT_IN_PRODUCT(__ MaybeTraceAllocation(kOneByteStringCid, failure, false));
   if (length_reg != RDI) {
     __ movq(RDI, length_reg);
@@ -2023,7 +2099,6 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   // next object start and initialize the object.
   __ movq(Address(THR, target::Thread::top_offset()), RCX);
   __ addq(RAX, Immediate(kHeapObjectTag));
-  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, RDI));
 
   // Initialize the tags.
   // RAX: new object start as a tagged pointer.
@@ -2076,7 +2151,7 @@ void AsmIntrinsifier::OneByteString_substringUnchecked(Assembler* assembler,
   __ j(NOT_ZERO, normal_ir_body);  // 'start', 'end' not Smi.
 
   __ subq(RDI, Address(RSP, +kStartIndexOffset));
-  TryAllocateOnebyteString(assembler, &ok, normal_ir_body, RDI);
+  TryAllocateOneByteString(assembler, &ok, normal_ir_body, RDI);
   __ Bind(&ok);
   // RAX: new string as tagged pointer.
   // Copy string.
@@ -2126,7 +2201,7 @@ void AsmIntrinsifier::OneByteString_allocate(Assembler* assembler,
                                              Label* normal_ir_body) {
   __ movq(RDI, Address(RSP, +1 * target::kWordSize));  // Length.v=
   Label ok;
-  TryAllocateOnebyteString(assembler, &ok, normal_ir_body, RDI);
+  TryAllocateOneByteString(assembler, &ok, normal_ir_body, RDI);
   // RDI: Start address to copy from (untagged).
 
   __ Bind(&ok);

@@ -12,14 +12,14 @@ String computePlatformBinariesPath(String sdkPath) {
   // Try the given SDK path.
   {
     String location = path.join(sdkPath, 'lib', '_internal');
-    if (new File(path.join(location, 'vm_platform_strong.dill')).existsSync()) {
+    if (File(path.join(location, 'vm_platform_strong.dill')).existsSync()) {
       return location;
     }
   }
 
   // The given SDK path does not work.
   // Then we're probably running on bots, in 'xcodebuild/ReleaseX64'.
-  // In this case 'vm_platform.dill' is next to the 'dart'.
+  // In this case 'vm_platform_strong.dill' is next to the 'dart'.
   return path.dirname(Platform.resolvedExecutable);
 }
 

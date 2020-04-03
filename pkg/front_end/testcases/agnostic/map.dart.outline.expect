@@ -1,0 +1,9 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static const field core::List<core::int> a = const <core::int>[];
+static const field core::List<core::int?> b = const <core::int?>[];
+static const field core::Map<core::List<core::int?>, core::int> c = const <core::List<core::int?>, core::int>{self::a: 0, self::b: 1};
+static method main() → dynamic
+  ;

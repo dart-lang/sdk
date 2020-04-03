@@ -8,7 +8,7 @@ void main() {
   /*s:4*/
 }
 
-foo() /*sl:2*/ async {
-  print("hello from foo");
+Future<void> foo() /*sl:2*/ async {
+  print('hello from foo');
 /*s:3*/
 }

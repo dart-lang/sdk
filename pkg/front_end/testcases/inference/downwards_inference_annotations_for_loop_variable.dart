@@ -10,9 +10,12 @@ class Foo {
 }
 
 void test() {
-  for (@Foo(/*@ typeArgs=String* */ const []) int i = 0;
-       i /*@target=num::<*/< 1; i++) {}
-  for (@Foo(/*@ typeArgs=String* */ const []) int i in /*@ typeArgs=int* */[0]) {}
+  for (@Foo(/*@ typeArgs=String* */ const [])
+  int i = 0;
+      i /*@target=num::<*/ < 1;
+      i /*@ target=num::+ */ ++) {}
+  for (@Foo(/*@ typeArgs=String* */ const [])
+      int i in /*@ typeArgs=int* */ [0]) {}
 }
 
 main() {}

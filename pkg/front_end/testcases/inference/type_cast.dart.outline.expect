@@ -13,6 +13,6 @@ class B<T extends core::Object* = dynamic> extends self::A<self::B::T*> {
     ;
 }
 static field self::A<core::num*>* a;
-static field dynamic b;
+static field self::B<core::int*>* b;
 static method main() → dynamic
   ;

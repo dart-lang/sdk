@@ -7,18 +7,21 @@ library fasta.dill_member_builder;
 import 'package:kernel/ast.dart'
     show Constructor, Field, Member, Procedure, ProcedureKind;
 
+import '../builder/builder.dart';
+import '../builder/member_builder.dart';
+import '../builder/library_builder.dart';
+
+import '../kernel/class_hierarchy_builder.dart'
+    show ClassHierarchyBuilder, ClassMember;
 import '../kernel/kernel_builder.dart'
-    show
-        Builder,
-        MemberBuilder,
-        isRedirectingGenerativeConstructorImplementation;
+    show isRedirectingGenerativeConstructorImplementation;
 
 import '../modifier.dart'
     show abstractMask, constMask, externalMask, finalMask, lateMask, staticMask;
 
 import '../problems.dart' show unhandled;
 
-class DillMemberBuilder extends MemberBuilder {
+class DillMemberBuilder extends MemberBuilderImpl {
   final int modifiers;
 
   final Member member;
@@ -30,14 +33,12 @@ class DillMemberBuilder extends MemberBuilder {
 
   String get debugName => "DillMemberBuilder";
 
-  Member get target => member;
-
   String get name => member.name.name;
 
   bool get isConstructor => member is Constructor;
 
   ProcedureKind get kind {
-    final member = this.member;
+    final Member member = this.member;
     return member is Procedure ? member.kind : null;
   }
 
@@ -62,6 +63,126 @@ class DillMemberBuilder extends MemberBuilder {
   }
 
   bool get isField => member is Field;
+
+  @override
+  bool get isAssignable => member is Field && member.hasSetter;
+
+  @override
+  Member get readTarget {
+    if (isField) {
+      return member;
+    } else if (isConstructor) {
+      return null;
+    }
+    switch (kind) {
+      case ProcedureKind.Method:
+      case ProcedureKind.Getter:
+        return member;
+      case ProcedureKind.Operator:
+      case ProcedureKind.Setter:
+      case ProcedureKind.Factory:
+        return null;
+    }
+    throw unhandled('ProcedureKind', '$kind', charOffset, fileUri);
+  }
+
+  @override
+  Member get writeTarget {
+    if (isField) {
+      return isAssignable ? member : null;
+    } else if (isConstructor) {
+      return null;
+    }
+    switch (kind) {
+      case ProcedureKind.Setter:
+        return member;
+      case ProcedureKind.Method:
+      case ProcedureKind.Getter:
+      case ProcedureKind.Operator:
+      case ProcedureKind.Factory:
+        return null;
+    }
+    throw unhandled('ProcedureKind', '$kind', charOffset, fileUri);
+  }
+
+  @override
+  Member get invokeTarget {
+    if (isField) {
+      return member;
+    } else if (isConstructor) {
+      return member;
+    }
+    switch (kind) {
+      case ProcedureKind.Method:
+      case ProcedureKind.Getter:
+      case ProcedureKind.Operator:
+      case ProcedureKind.Factory:
+        return member;
+      case ProcedureKind.Setter:
+        return null;
+    }
+    throw unhandled('ProcedureKind', '$kind', charOffset, fileUri);
+  }
+
+  @override
+  void buildMembers(
+      LibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
+    throw new UnsupportedError('DillMemberBuilder.buildMembers');
+  }
+
+  @override
+  List<ClassMember> get localMembers => isSetter
+      ? const <ClassMember>[]
+      : <ClassMember>[new DillClassMember(this, forSetter: false)];
+
+  @override
+  List<ClassMember> get localSetters =>
+      isSetter || member is Field && member.hasSetter
+          ? <ClassMember>[new DillClassMember(this, forSetter: true)]
+          : const <ClassMember>[];
+}
+
+class DillClassMember extends BuilderClassMember {
+  @override
+  final DillMemberBuilder memberBuilder;
+
+  @override
+  final bool forSetter;
+
+  DillClassMember(this.memberBuilder, {this.forSetter})
+      : assert(forSetter != null);
+
+  @override
+  bool get isSourceDeclaration => false;
+
+  @override
+  bool get isProperty =>
+      memberBuilder.kind == null ||
+      memberBuilder.kind == ProcedureKind.Getter ||
+      memberBuilder.kind == ProcedureKind.Setter;
+
+  @override
+  bool get isSynthesized {
+    Member member = memberBuilder.member;
+    return member is Procedure &&
+        (member.isMemberSignature ||
+            (member.isForwardingStub && !member.isForwardingSemiStub));
+  }
+
+  @override
+  bool get isFunction => !isProperty;
+
+  @override
+  void inferType(ClassHierarchyBuilder hierarchy) {
+    // Do nothing; this is only for source members.
+  }
+
+  @override
+  void registerOverrideDependency(ClassMember overriddenMember) {
+    // Do nothing; this is only for source members.
+  }
+
+  String toString() => 'DillClassMember($memberBuilder,forSetter=${forSetter})';
 }
 
 int computeModifiers(Member member) {

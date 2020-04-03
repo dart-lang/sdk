@@ -5,8 +5,7 @@
 import 'dart:html';
 import 'dart:isolate';
 
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
+import 'package:async_helper/async_minitest.dart';
 
 worker(message) {
   var uri = message[0];
@@ -21,8 +20,6 @@ worker(message) {
 }
 
 main() {
-  useHtmlConfiguration();
-
   test('Use Worker API in Worker', () {
     var response = new ReceivePort();
     var remote = Isolate.spawn(worker, ['', response.sendPort]);

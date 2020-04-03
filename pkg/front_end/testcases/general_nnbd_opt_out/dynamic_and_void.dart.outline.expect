@@ -1,0 +1,18 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/dynamic_and_void.dart:12:1: Error: Type 'dynamic' not found.
+// dynamic testDynamic() => 0;
+// ^^^^^^^
+//
+import self as self;
+
+import "dart:core";
+
+static method testDynamic() → invalid-type
+  ;
+static method testVoid() → void
+  ;
+static method main() → dynamic
+  ;

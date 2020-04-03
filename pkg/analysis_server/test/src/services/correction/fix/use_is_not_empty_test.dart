@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UseIsNotEmptyTest);
   });
@@ -23,15 +23,15 @@ class UseIsNotEmptyTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.prefer_is_not_empty;
 
-  test_notIsEmpty() async {
+  Future<void> test_notIsEmpty() async {
     await resolveTestUnit('''
-f(c) {
-  if (/*LINT*/!c.isEmpty) {}
+f(List<int> l) {
+  if (!l.isEmpty) {}
 }
 ''');
     await assertHasFix('''
-f(c) {
-  if (/*LINT*/c.isNotEmpty) {}
+f(List<int> l) {
+  if (l.isNotEmpty) {}
 }
 ''');
   }

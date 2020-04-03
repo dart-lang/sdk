@@ -1,13 +1,3 @@
-//
-// Problems in component:
-//
-// pkg/front_end/testcases/rasta/mandatory_parameter_initializer.dart:5:18: Error: Can't have a non-constant List literal within a const context.
-// main(arguments = [x]) {
-//                  ^
-// pkg/front_end/testcases/rasta/mandatory_parameter_initializer.dart:5:6: Context: While analyzing:
-// main(arguments = [x]) {
-//      ^
-//
 library;
 //
 // Problems in library:
@@ -17,10 +7,15 @@ library;
 // main(arguments = [x]) {
 //                ^
 //
+// pkg/front_end/testcases/rasta/mandatory_parameter_initializer.dart:5:18: Error: Constant expression expected.
+// Try inserting 'const'.
+// main(arguments = [x]) {
+//                  ^
+//
 // pkg/front_end/testcases/rasta/mandatory_parameter_initializer.dart:5:19: Error: Getter not found: 'x'.
 // main(arguments = [x]) {
 //                   ^
 //
 import self as self;
 
-static method main(dynamic arguments = invalid-expression "Can't have a non-constant List literal within a const context.") → dynamic {}
+static method main(dynamic arguments = invalid-expression "Non-constant list literal") → dynamic {}

@@ -2,7 +2,7 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-class Foo extends core::Object {
+class Foo extends core::Object /*hasConstConstructor*/  {
   const constructor •(core::List<core::String*>* l) → self::Foo*
     : super core::Object::•()
     ;
@@ -10,12 +10,12 @@ class Foo extends core::Object {
     : super core::Object::•()
     ;
 }
-@self::Foo::•(const <dynamic>[])
+@self::Foo::•(const <core::String*>[])
 class Bar extends core::Object {
   synthetic constructor •() → self::Bar*
     ;
 }
-@self::Foo::named(const <dynamic>[])
+@self::Foo::named(const <core::String*>[])
 class Baz extends core::Object {
   synthetic constructor •() → self::Baz*
     ;

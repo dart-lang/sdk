@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /// Regression test for Issue #33761: is-checks and null-checks were assumed to
 /// be true even in nested non-condition contexts.
 
@@ -13,7 +15,7 @@ argIsNonNull1(/*[exact=JSUInt31]*/ x) {
 /*member: nonNull1:[null]*/
 void nonNull1() {
   var x = 1;
-  if (x == null) return;
+  if (x /*invoke: [null|subclass=JSInt]*/ == null) return;
   argIsNonNull1(x);
 }
 
@@ -25,7 +27,9 @@ argIsNonNull2(/*[exact=JSUInt31]*/ x) {
 /*member: nonNull2:[null]*/
 void nonNull2() {
   var x = 1;
-  if ((x == null) /*invoke: [exact=JSBool]*/ == true) return;
+  if ((x /*invoke: [null|subclass=JSInt]*/ ==
+          null) /*invoke: [exact=JSBool]*/ ==
+      true) return;
   argIsNonNull2(x);
 }
 
@@ -37,7 +41,9 @@ argIsNonNull3(/*[exact=JSUInt31]*/ x) {
 /*member: nonNull3:[null]*/
 void nonNull3() {
   var x = 1;
-  if ((x == null) /*invoke: [exact=JSBool]*/ != false) return;
+  if ((x /*invoke: [null|subclass=JSInt]*/ ==
+          null) /*invoke: [exact=JSBool]*/ !=
+      false) return;
   argIsNonNull3(x);
 }
 
@@ -52,7 +58,7 @@ discard(/*[exact=JSBool]*/ x) => false;
 /*member: nonNull4:[null]*/
 void nonNull4() {
   var x = 1;
-  if (discard(x != null)) return;
+  if (discard(x /*invoke: [null|subclass=JSInt]*/ != null)) return;
   argIsNonNull4(x);
 }
 
@@ -64,7 +70,7 @@ argIsNonNull5(/*[null|exact=JSUInt31]*/ x) {
 /*member: nonNull5:[null]*/
 void nonNull5() {
   var x = 1;
-  if (x != null ? false : false) return;
+  if (x /*invoke: [null|subclass=JSInt]*/ != null ? false : false) return;
   argIsNonNull5(x);
 }
 
@@ -76,8 +82,8 @@ argIsNonNull6(/*[exact=JSUInt31]*/ x) {
 /*member: nonNull6:[null]*/
 void nonNull6() {
   var x = 1;
-  if ((/*[exact=JSBool]*/ (/*[exact=JSBool]*/ y) => y && false)(x != null))
-    return;
+  if ((/*[exact=JSBool]*/ (/*[exact=JSBool]*/ y) =>
+      y && false)(x /*invoke: [null|subclass=JSInt]*/ != null)) return;
   argIsNonNull6(x);
 }
 
@@ -90,7 +96,7 @@ argIsNonNull7(/*[exact=JSUInt31]*/ x) {
 void nonNull7() {
   var f = false;
   var x = 1;
-  if (f ? (throw x != null) : false) return;
+  if (f ? (throw x /*invoke: [null|subclass=JSInt]*/ != null) : false) return;
   argIsNonNull7(x);
 }
 
@@ -103,7 +109,7 @@ argIsNonNull8(/*[exact=JSUInt31]*/ x) {
 void nonNull8() {
   var f = false;
   var x = 1;
-  if (f ?? (x != null)) return;
+  if (f ?? (x /*invoke: [null|subclass=JSInt]*/ != null)) return;
   argIsNonNull8(x);
 }
 

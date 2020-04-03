@@ -3,17 +3,14 @@ library test;
 // Problems in library:
 //
 // pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:11:89: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
-// Try changing the type of the left hand side, or casting the right hand side to 'String'.
 //       /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ 42
 //                                                                                         ^
 //
 // pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:19:50: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-// Try changing the type of the left hand side, or casting the right hand side to 'int'.
 //       /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"
 //                                                  ^
 //
 // pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:22:50: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-// Try changing the type of the left hand side, or casting the right hand side to 'int'.
 //       /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello",
 //                                                  ^
 //
@@ -30,7 +27,6 @@ library test;
 //                                                             ^
 //
 // pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:36:50: Error: A value of type 'String' can't be assigned to a variable of type 'num'.
-// Try changing the type of the left hand side, or casting the right hand side to 'num'.
 //       /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"
 //                                                  ^
 //
@@ -41,7 +37,6 @@ library test;
 //                                                             ^
 //
 // pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:39:50: Error: A value of type 'String' can't be assigned to a variable of type 'num'.
-// Try changing the type of the left hand side, or casting the right hand side to 'num'.
 //       /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello",
 //                                                  ^
 //
@@ -52,22 +47,18 @@ library test;
 //                                                             ^
 //
 // pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:47:50: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-// Try changing the type of the left hand side, or casting the right hand side to 'int'.
 //       /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"
 //                                                  ^
 //
 // pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:50:50: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-// Try changing the type of the left hand side, or casting the right hand side to 'int'.
 //       /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello",
 //                                                  ^
 //
 // pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:58:89: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-// Try changing the type of the left hand side, or casting the right hand side to 'int'.
 //       /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"
 //                                                                                         ^
 //
 // pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:61:89: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-// Try changing the type of the left hand side, or casting the right hand side to 'int'.
 //       /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello",
 //                                                                                         ^
 //
@@ -75,7 +66,6 @@ import self as self;
 import "dart:core" as core;
 
 static method foo([core::List<core::String*>* list1 = #C1, core::List<core::String*>* list2 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:11:89: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
-Try changing the type of the left hand side, or casting the right hand side to 'String'.
       /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ 42
                                                                                         ^"]) → void {}
 static method main() → void {
@@ -83,11 +73,9 @@ static method main() → void {
     core::List<core::int*>* l0 = <core::int*>[];
     core::List<core::int*>* l1 = <core::int*>[3];
     core::List<core::int*>* l2 = <core::int*>[let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:19:50: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-Try changing the type of the left hand side, or casting the right hand side to 'int'.
       /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"
                                                  ^" in "hello" as{TypeError} core::int*];
     core::List<core::int*>* l3 = <core::int*>[let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:22:50: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-Try changing the type of the left hand side, or casting the right hand side to 'int'.
       /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\",
                                                  ^" in "hello" as{TypeError} core::int*, 3];
   }
@@ -113,7 +101,6 @@ Change the type of the list literal or the context in which it is used.
 Change the type of the list literal or the context in which it is used.
     List<int> l2 = /*error:INVALID_CAST_LITERAL_LIST*/ <num>[
                                                             ^" in <core::num*>[let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:36:50: Error: A value of type 'String' can't be assigned to a variable of type 'num'.
-Try changing the type of the left hand side, or casting the right hand side to 'num'.
       /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"
                                                  ^" in "hello" as{TypeError} core::num*];
     core::List<core::int*>* l3 = let final<BottomType> #t7 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:38:61: Error: The list literal type 'List<num>' isn't of expected type 'List<int>'.
@@ -121,7 +108,6 @@ Try changing the type of the left hand side, or casting the right hand side to '
 Change the type of the list literal or the context in which it is used.
     List<int> l3 = /*error:INVALID_CAST_LITERAL_LIST*/ <num>[
                                                             ^" in <core::num*>[let final<BottomType> #t8 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:39:50: Error: A value of type 'String' can't be assigned to a variable of type 'num'.
-Try changing the type of the left hand side, or casting the right hand side to 'num'.
       /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\",
                                                  ^" in "hello" as{TypeError} core::num*, 3];
   }
@@ -129,21 +115,17 @@ Try changing the type of the left hand side, or casting the right hand side to '
     core::Iterable<core::int*>* i0 = <core::int*>[];
     core::Iterable<core::int*>* i1 = <core::int*>[3];
     core::Iterable<core::int*>* i2 = <core::int*>[let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:47:50: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-Try changing the type of the left hand side, or casting the right hand side to 'int'.
       /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"
                                                  ^" in "hello" as{TypeError} core::int*];
     core::Iterable<core::int*>* i3 = <core::int*>[let final<BottomType> #t10 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:50:50: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-Try changing the type of the left hand side, or casting the right hand side to 'int'.
       /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\",
                                                  ^" in "hello" as{TypeError} core::int*, 3];
   }
   {
     const core::List<core::int*>* c2 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:58:89: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-Try changing the type of the left hand side, or casting the right hand side to 'int'.
       /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"
                                                                                         ^";
     const core::List<core::int*>* c3 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:61:89: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-Try changing the type of the left hand side, or casting the right hand side to 'int'.
       /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\",
                                                                                         ^";
   }

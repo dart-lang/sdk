@@ -36,7 +36,7 @@ int f() {
 import 'dart:async';
 Future<int> f() async {}
 ''', [
-      error(HintCode.MISSING_RETURN, 21, 11),
+      error(HintCode.MISSING_RETURN, 33, 1),
     ]);
   }
 
@@ -81,33 +81,39 @@ class A {
     await assertErrorsInCode(r'''
 int f() {}
 ''', [
-      error(HintCode.MISSING_RETURN, 0, 3),
+      error(HintCode.MISSING_RETURN, 4, 1),
     ]);
   }
 
   test_functionExpression_declared() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   f() {} // no hint
 }
-''');
+''', [
+      error(HintCode.UNUSED_ELEMENT, 11, 1),
+    ]);
   }
 
   test_functionExpression_expression() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   int Function() f = () => null; // no hint
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 26, 1),
+    ]);
   }
 
   test_functionExpression_futureOrDynamic() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'dart:async';
 main() {
   FutureOr<dynamic> Function() f = () { print(42); };
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 61, 1),
+    ]);
   }
 
   test_functionExpression_futureOrInt() async {
@@ -134,11 +140,13 @@ main() {
   }
 
   test_functionExpression_inferred_dynamic() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   Function() f = () { print(42); }; // no hint
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 22, 1),
+    ]);
   }
 
   test_functionExpressionAsync_inferred() async {
@@ -153,11 +161,13 @@ main() {
   }
 
   test_functionExpressionAsync_inferred_dynamic() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   Future Function() f = () async { print(42); }; // no hint
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 29, 1),
+    ]);
   }
 
   test_method() async {
@@ -166,7 +176,21 @@ class A {
   int m() {}
 }
 ''', [
-      error(HintCode.MISSING_RETURN, 12, 3),
+      error(HintCode.MISSING_RETURN, 16, 1),
+    ]);
+  }
+
+  test_method_annotation() async {
+    await assertErrorsInCode(r'''
+abstract class A {
+  int m();
+}
+@override
+class B extends A {
+  m() {}
+}
+''', [
+      error(HintCode.MISSING_RETURN, 64, 1),
     ]);
   }
 
@@ -186,7 +210,7 @@ class A {
   FutureOr<int> m() {}
 }
 ''', [
-      error(HintCode.MISSING_RETURN, 33, 13),
+      error(HintCode.MISSING_RETURN, 47, 1),
     ]);
   }
 
@@ -199,7 +223,7 @@ class B extends A {
   m() {}
 }
 ''', [
-      error(HintCode.MISSING_RETURN, 54, 6),
+      error(HintCode.MISSING_RETURN, 54, 1),
     ]);
   }
 

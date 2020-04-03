@@ -41,11 +41,18 @@ class CallSpecializer : public FlowGraphVisitor {
 
   FlowGraph* flow_graph() const { return flow_graph_; }
 
+  void set_flow_graph(FlowGraph* flow_graph) {
+    flow_graph_ = flow_graph;
+    set_block_order(flow_graph->reverse_postorder());
+  }
+
   // Use ICData to optimize, replace or eliminate instructions.
   void ApplyICData();
 
   // Use propagated class ids to optimize, replace or eliminate instructions.
   void ApplyClassIds();
+
+  virtual void ReplaceInstanceCallsWithDispatchTableCalls();
 
   void InsertBefore(Instruction* next,
                     Instruction* instr,
@@ -67,8 +74,7 @@ class CallSpecializer : public FlowGraphVisitor {
   Zone* zone() const { return flow_graph_->zone(); }
   const Function& function() const { return flow_graph_->function(); }
 
-  bool TryReplaceWithIndexedOp(InstanceCallInstr* call,
-                               const ICData* unary_checks);
+  bool TryReplaceWithIndexedOp(InstanceCallInstr* call);
 
   bool TryReplaceWithBinaryOp(InstanceCallInstr* call, Token::Kind op_kind);
   bool TryReplaceWithUnaryOp(InstanceCallInstr* call, Token::Kind op_kind);
@@ -77,8 +83,7 @@ class CallSpecializer : public FlowGraphVisitor {
   bool TryReplaceWithRelationalOp(InstanceCallInstr* call, Token::Kind op_kind);
 
   bool TryInlineInstanceGetter(InstanceCallInstr* call);
-  bool TryInlineInstanceSetter(InstanceCallInstr* call,
-                               const ICData& unary_ic_data);
+  bool TryInlineInstanceSetter(InstanceCallInstr* call);
 
   bool TryInlineInstanceMethod(InstanceCallInstr* call);
   void ReplaceWithInstanceOf(InstanceCallInstr* instr);
@@ -93,8 +98,8 @@ class CallSpecializer : public FlowGraphVisitor {
 
   // Add a class check for the call's first argument (receiver).
   void AddReceiverCheck(InstanceCallInstr* call) {
-    AddChecksForArgNr(call, call->Receiver()->definition(),
-                      /* argument_number = */ 0);
+    AddCheckClass(call->Receiver()->definition(), call->Targets(),
+                  call->deopt_id(), call->env(), call);
   }
 
   // Insert a null check if needed.
@@ -107,8 +112,6 @@ class CallSpecializer : public FlowGraphVisitor {
   // Attempt to build ICData for call using propagated class-ids.
   virtual bool TryCreateICData(InstanceCallInstr* call);
 
-  static bool HasOnlyTwoOf(const ICData& ic_data, intptr_t cid);
-
   virtual bool TryReplaceInstanceOfWithRangeCheck(InstanceCallInstr* call,
                                                   const AbstractType& type);
 
@@ -116,12 +119,6 @@ class CallSpecializer : public FlowGraphVisitor {
 
  protected:
   void InlineImplicitInstanceGetter(Definition* call, const Field& field);
-
-  SpeculativeInliningPolicy* speculative_policy_;
-  const bool should_clone_fields_;
-
- private:
-  bool TypeCheckAsClassEquality(const AbstractType& type);
 
   // Insert a check of 'to_check' determined by 'unary_checks'.  If the
   // check fails it will deoptimize to 'deopt_id' using the deoptimization
@@ -133,6 +130,12 @@ class CallSpecializer : public FlowGraphVisitor {
                      Environment* deopt_environment,
                      Instruction* insert_before);
 
+  SpeculativeInliningPolicy* speculative_policy_;
+  const bool should_clone_fields_;
+
+ private:
+  bool TypeCheckAsClassEquality(const AbstractType& type);
+
   // Insert a Smi check if needed.
   void AddCheckSmi(Definition* to_check,
                    intptr_t deopt_id,
@@ -143,7 +146,7 @@ class CallSpecializer : public FlowGraphVisitor {
   // call, using the call's IC data to determine the check, and the call's
   // deopt ID and deoptimization environment if the check fails.
   void AddChecksForArgNr(InstanceCallInstr* call,
-                         Definition* instr,
+                         Definition* argument,
                          int argument_number);
 
   bool InlineSimdBinaryOp(InstanceCallInstr* call,
@@ -163,8 +166,6 @@ class CallSpecializer : public FlowGraphVisitor {
                                 MethodRecognizer::Kind recognized_kind);
 
   bool TryStringLengthOneEquality(InstanceCallInstr* call, Token::Kind op_kind);
-
-  RawField* GetField(intptr_t class_id, const String& field_name);
 
   void SpecializePolymorphicInstanceCall(PolymorphicInstanceCallInstr* call);
 

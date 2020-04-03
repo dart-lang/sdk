@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ListPostfixCompletionTemplatesTest);
   });
@@ -17,9 +17,9 @@ main() {
 @reflectiveTest
 class ListPostfixCompletionTemplatesTest
     extends AbstractAnalysisServerIntegrationTest {
-  test_list_postfix_completion_templates() async {
-    String pathname = sourcePath('test.dart');
-    String text = r'''
+  Future<void> test_list_postfix_completion_templates() async {
+    var pathname = sourcePath('test.dart');
+    var text = r'''
 void bar() {
   foo();.tryon
 }
@@ -32,8 +32,7 @@ void foo() { }
     await analysisFinished;
 
     // expect a postfix template list result
-    EditListPostfixCompletionTemplatesResult result =
-        await sendEditListPostfixCompletionTemplates();
+    var result = await sendEditListPostfixCompletionTemplates();
     expect(result.templates, isNotNull);
     expect(result.templates.length, greaterThan(15));
     expect(result.templates[0].runtimeType, PostfixTemplateDescriptor);

@@ -1,17 +1,18 @@
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--verbose_debug --async_debugger
+// VMOptions=--async-debugger --verbose-debug --no-causal-async-stacks --lazy-async-stacks
+// VMOptions=--async-debugger --verbose-debug --causal-async-stacks --no-lazy-async-stacks
 
 import 'dart:developer';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-const LINE_A = 17;
-const LINE_B = 18;
-const LINE_C = 23;
-const LINE_D = 24;
-const LINE_E = 25;
+const LINE_A = 18;
+const LINE_B = 19;
+const LINE_C = 24;
+const LINE_D = 25;
+const LINE_E = 26;
 
 helper() async {
   print('helper'); // LINE_A.
@@ -34,6 +35,12 @@ var tests = <IsolateTest>[
   stoppedAtLine(LINE_D), // await helper
   stepInto,
 
+  ...ifLazyAsyncStacks(<IsolateTest>[
+    hasStoppedAtBreakpoint,
+    stoppedAtLine(17), // helper() async {}
+    stepInto,
+  ]),
+
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A), // print.
   stepOver,
@@ -43,11 +50,11 @@ var tests = <IsolateTest>[
   stepInto, // exit helper via a single step.
 
   hasStoppedAtBreakpoint,
-  stoppedAtLine(19), // return null (weird dispatching)
+  stoppedAtLine(20), // return null (weird dispatching)
   stepInto, // exit helper via a single step.
 
   hasStoppedAtBreakpoint,
-  stoppedAtLine(24), // await helper (weird dispatching)
+  stoppedAtLine(25), // await helper (weird dispatching)
   smartNext,
 
   hasStoppedAtBreakpoint, //19
@@ -55,4 +62,5 @@ var tests = <IsolateTest>[
   resumeIsolate
 ];
 
-main(args) => runIsolateTests(args, tests, testeeConcurrent: testMain);
+main(args) => runIsolateTests(args, tests,
+    testeeConcurrent: testMain, extraArgs: extraDebuggingArgs);

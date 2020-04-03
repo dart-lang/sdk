@@ -73,13 +73,14 @@ _logger = logging.getLogger('dartdomgenerator')
 class GeneratorOptions(object):
 
     def __init__(self, templates, database, type_registry, renamer, metadata,
-                 dart_js_interop):
+                 dart_js_interop, nnbd):
         self.templates = templates
         self.database = database
         self.type_registry = type_registry
         self.renamer = renamer
         self.metadata = metadata
         self.dart_js_interop = dart_js_interop
+        self.nnbd = nnbd
 
 
 def LoadDatabase(database_dir, use_database_cache):
@@ -95,14 +96,18 @@ def GenerateFromDatabase(common_database,
                          dart2js_output_dir,
                          update_dom_metadata=False,
                          logging_level=logging.WARNING,
-                         dart_js_interop=False):
+                         dart_js_interop=False,
+                         nnbd=False):
     print '\n ----- Accessing DOM using %s -----\n' % (
         'dart:js' if dart_js_interop else 'C++')
 
     start_time = time.time()
 
     current_dir = os.path.dirname(__file__)
-    auxiliary_dir = os.path.join(current_dir, '..', 'src')
+    if nnbd:
+        auxiliary_dir = os.path.join(current_dir, '..', 'nnbd_src')
+    else:
+        auxiliary_dir = os.path.join(current_dir, '..', 'src')
     template_dir = os.path.join(current_dir, '..', 'templates')
 
     _logger.setLevel(logging_level)
@@ -137,7 +142,7 @@ def GenerateFromDatabase(common_database,
                      backend_factory, dart_js_interop):
         options = GeneratorOptions(template_loader, webkit_database,
                                    type_registry, renamer, metadata,
-                                   dart_js_interop)
+                                   dart_js_interop, nnbd)
         dart_library_emitter = DartLibraryEmitter(emitters, dart_output_dir,
                                                   dart_libraries)
         event_generator = HtmlEventGenerator(webkit_database, renamer, metadata,
@@ -161,11 +166,12 @@ def GenerateFromDatabase(common_database,
         template_loader = TemplateLoader(template_dir, template_paths, {
             'DARTIUM': False,
             'DART2JS': True,
-            'JSINTEROP': False
+            'JSINTEROP': False,
+            'NNBD': nnbd
         })
         backend_options = GeneratorOptions(template_loader, webkit_database,
                                            type_registry, renamer, metadata,
-                                           dart_js_interop)
+                                           dart_js_interop, nnbd)
         backend_factory = lambda interface:\
             Dart2JSBackend(interface, backend_options, logging_level)
 
@@ -173,6 +179,9 @@ def GenerateFromDatabase(common_database,
         dart_libraries = DartLibraries(HTML_LIBRARY_NAMES, template_loader,
                                        'dart2js', dart2js_output_dir,
                                        dart_js_interop)
+        for file in generator._auxiliary_files.values():
+            if file.endswith('darttemplate'):
+                dart_libraries._libraries['html'].AddFile(file)
 
         print '\nGenerating dart2js:\n'
         start_time = time.time()
@@ -191,15 +200,16 @@ def GenerateFromDatabase(common_database,
     monitored.FinishMonitoring(dart2js_output_dir, _logger)
 
 
-def GenerateSingleFile(library_path, output_dir, generated_output_dir=None):
+def GenerateSingleFile(library_path, output_dir, generated_output_dir=None, prefix=None):
     library_dir = os.path.dirname(library_path)
     library_filename = os.path.basename(library_path)
     copy_dart_script = os.path.relpath('../../copy_dart.py', library_dir)
     output_dir = os.path.relpath(output_dir, library_dir)
     if not os.path.exists(library_dir):
         os.makedirs(library_dir)
+    prefix_arg = 'export DART_HTML_PREFIX="' + prefix + '";' if prefix else ""
     command = ' '.join([
-        'cd', library_dir, ';', copy_dart_script, output_dir, library_filename
+        prefix_arg, 'cd', library_dir, ';', copy_dart_script, output_dir, library_filename
     ])
     subprocess.call([command], shell=True)
     prebuilt_dartfmt = os.path.join(utils.CheckedInSdkPath(), 'bin', 'dartfmt')
@@ -257,6 +267,12 @@ def main():
         type='string',
         default=None,
         help='Directory to put the generated files')
+    parser.add_option(
+        '--nnbd',
+        dest='nnbd',
+        action='store_true',
+        default=False,
+        help='Generate code with non-nullability annotations')
     parser.add_option(
         '--use-database-cache',
         dest='use_database_cache',
@@ -332,19 +348,20 @@ def main():
 
     GenerateFromDatabase(database, dart2js_output_dir,
                          options.update_dom_metadata, logging_level,
-                         options.dart_js_interop)
+                         options.dart_js_interop, options.nnbd)
 
     file_generation_start_time = time.time()
 
     if 'htmldart2js' in systems:
         _logger.info('Generating dart2js single files.')
+        sdk_dir = 'sdk_nnbd' if options.nnbd else 'sdk'
 
         for library_name in HTML_LIBRARY_NAMES:
+            source = os.path.join(dart2js_output_dir,
+                                  '%s_dart2js.dart' % library_name)
             GenerateSingleFile(
-                os.path.join(dart2js_output_dir,
-                             '%s_dart2js.dart' % library_name),
-                os.path.join('..', '..', '..', 'sdk', 'lib', library_name,
-                             'dart2js'))
+                source, os.path.join('..', '..', '..', sdk_dir, 'lib',
+                                     library_name, 'dart2js'))
 
     print '\nGenerating single file %s seconds' % round(
         time.time() - file_generation_start_time, 2)

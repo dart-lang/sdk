@@ -1,0 +1,10 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+static method foo() → Never {
+  while (true) {
+  }
+}
+static method bar() → Never?
+  return null;
+static method main() → dynamic {}

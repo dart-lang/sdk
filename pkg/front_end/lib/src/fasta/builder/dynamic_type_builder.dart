@@ -6,7 +6,8 @@ library fasta.dynamic_type_builder;
 
 import 'package:kernel/ast.dart' show DartType;
 
-import 'builder.dart' show LibraryBuilder, BuiltinTypeBuilder;
+import 'builtin_type_builder.dart';
+import 'library_builder.dart';
 
 class DynamicTypeBuilder extends BuiltinTypeBuilder {
   DynamicTypeBuilder(

@@ -35,10 +35,10 @@ worlds:
     expectedContent:
       org-dartlang-test:///main.dart:
         - Procedure main
-        - Field lalala_SimulateTransformer
+        - Field unique_SimulateTransformer
       package:foo/foo.dart:
         - Field foo
-        - Field lalala_SimulateTransformer
+        - Field unique_SimulateTransformer
     neededDillLibraries:
       - package:foo/foo.dart
   - entry: main.dart
@@ -61,7 +61,7 @@ worlds:
     expectedContent:
       org-dartlang-test:///main.dart:
         - Procedure main
-        - Field lalala_SimulateTransformer
+        - Field unique_SimulateTransformer
       package:foo/foo.dart:
         - Field foo2
-        - Field lalala_SimulateTransformer
+        - Field unique_SimulateTransformer

@@ -14,8 +14,7 @@
 
 namespace dart {
 
-#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&                  \
-    !defined(TARGET_ARCH_IA32)
+#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
 
 // Represents a pc-relative call which has not been patched up with the final
 // destination.
@@ -179,6 +178,8 @@ class CodeRelocator : public StackResource {
   intptr_t FindDestinationInText(const RawInstructions* destination,
                                  intptr_t offset_into_target);
 
+  static intptr_t AdjustPayloadOffset(intptr_t payload_offset);
+
   bool IsTargetInRangeFor(UnresolvedCall* unresolved_call,
                           intptr_t target_text_offset);
 
@@ -208,8 +209,7 @@ class CodeRelocator : public StackResource {
   Code& destination_;
 };
 
-#endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&           \
-        // !defined(TARGET_ARCH_IA32)
+#endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
 
 }  // namespace dart
 

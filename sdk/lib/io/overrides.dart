@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.io;
 
 final _ioOverridesToken = new Object();
@@ -87,9 +89,10 @@ abstract class IOOverrides {
               {dynamic sourceAddress})
           socketStartConnect,
 
-      // Optional Zone parameters
-      ZoneSpecification zoneSpecification,
-      Function onError}) {
+      // ServerSocket
+      Future<ServerSocket> Function(dynamic, int,
+              {int backlog, bool v6Only, bool shared})
+          serverSocketBind}) {
     IOOverrides overrides = new _IOOverridesScope(
       // Directory
       createDirectory,
@@ -120,23 +123,19 @@ abstract class IOOverrides {
       // Socket
       socketConnect,
       socketStartConnect,
+
+      // ServerSocket
+      serverSocketBind,
     );
-    return _asyncRunZoned<R>(body,
-        zoneValues: {_ioOverridesToken: overrides},
-        zoneSpecification: zoneSpecification,
-        onError: onError);
+    return _asyncRunZoned<R>(body, zoneValues: {_ioOverridesToken: overrides});
   }
 
   /// Runs [body] in a fresh [Zone] using the overrides found in [overrides].
   ///
   /// Note that [overrides] should be an instance of a class that extends
   /// [IOOverrides].
-  static R runWithIOOverrides<R>(R body(), IOOverrides overrides,
-      {ZoneSpecification zoneSpecification, Function onError}) {
-    return _asyncRunZoned<R>(body,
-        zoneValues: {_ioOverridesToken: overrides},
-        zoneSpecification: zoneSpecification,
-        onError: onError);
+  static R runWithIOOverrides<R>(R body(), IOOverrides overrides) {
+    return _asyncRunZoned<R>(body, zoneValues: {_ioOverridesToken: overrides});
   }
 
   // Directory
@@ -274,6 +273,19 @@ abstract class IOOverrides {
       {sourceAddress}) {
     return Socket._startConnect(host, port, sourceAddress: sourceAddress);
   }
+
+  // ServerSocket
+
+  /// Asynchronously returns a [ServerSocket] that connects to the given address
+  /// and port when successful.
+  ///
+  /// When this override is installed, this functions overrides the behavior of
+  /// `ServerSocket.bind(...)`.
+  Future<ServerSocket> serverSocketBind(address, int port,
+      {int backlog: 0, bool v6Only: false, bool shared: false}) {
+    return ServerSocket._bind(address, port,
+        backlog: backlog, v6Only: v6Only, shared: shared);
+  }
 }
 
 class _IOOverridesScope extends IOOverrides {
@@ -311,6 +323,10 @@ class _IOOverridesScope extends IOOverrides {
   Future<ConnectionTask<Socket>> Function(dynamic, int, {dynamic sourceAddress})
       _socketStartConnect;
 
+  // ServerSocket
+  Future<ServerSocket> Function(dynamic, int,
+      {int backlog, bool v6Only, bool shared}) _serverSocketBind;
+
   _IOOverridesScope(
     // Directory
     this._createDirectory,
@@ -341,6 +357,9 @@ class _IOOverridesScope extends IOOverrides {
     // Socket
     this._socketConnect,
     this._socketStartConnect,
+
+    // ServerSocket
+    this._serverSocketBind,
   );
 
   // Directory
@@ -477,5 +496,21 @@ class _IOOverridesScope extends IOOverrides {
           sourceAddress: sourceAddress);
     }
     return super.socketStartConnect(host, port, sourceAddress: sourceAddress);
+  }
+
+  // ServerSocket
+  @override
+  Future<ServerSocket> serverSocketBind(address, int port,
+      {int backlog: 0, bool v6Only: false, bool shared: false}) {
+    if (_serverSocketBind != null) {
+      return _serverSocketBind(address, port,
+          backlog: backlog, v6Only: v6Only, shared: shared);
+    }
+    if (_previous != null) {
+      return _previous.serverSocketBind(address, port,
+          backlog: backlog, v6Only: v6Only, shared: shared);
+    }
+    return super.serverSocketBind(address, port,
+        backlog: backlog, v6Only: v6Only, shared: shared);
   }
 }

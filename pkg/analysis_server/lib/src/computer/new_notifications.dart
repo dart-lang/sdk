@@ -15,11 +15,11 @@ void new_sendDartNotificationNavigation(
     AnalysisServer analysisServer, ResolvedUnitResult result) {
   var unit = result.unit;
   if (unit != null) {
-    NavigationCollectorImpl collector = new NavigationCollectorImpl();
+    var collector = NavigationCollectorImpl();
     computeDartNavigation(
         analysisServer.resourceProvider, collector, unit, null, null);
     collector.createRegions();
-    var params = new protocol.AnalysisNavigationParams(
+    var params = protocol.AnalysisNavigationParams(
         result.path, collector.regions, collector.targets, collector.files);
     analysisServer.sendNotification(params.toNotification());
   }
@@ -29,9 +29,9 @@ void new_sendDartNotificationOccurrences(
     AnalysisServer analysisServer, ResolvedUnitResult result) {
   var unit = result.unit;
   if (unit != null) {
-    OccurrencesCollectorImpl collector = new OccurrencesCollectorImpl();
+    var collector = OccurrencesCollectorImpl();
     addDartOccurrences(collector, unit);
-    var params = new protocol.AnalysisOccurrencesParams(
+    var params = protocol.AnalysisOccurrencesParams(
         result.path, collector.allOccurrences);
     analysisServer.sendNotification(params.toNotification());
   }
@@ -40,6 +40,6 @@ void new_sendDartNotificationOccurrences(
 void new_sendErrorNotification(
     AnalysisServer analysisServer, ResolvedUnitResult result) {
   var serverErrors = protocol.doAnalysisError_listFromEngine(result);
-  var params = new protocol.AnalysisErrorsParams(result.path, serverErrors);
+  var params = protocol.AnalysisErrorsParams(result.path, serverErrors);
   analysisServer.sendNotification(params.toNotification());
 }

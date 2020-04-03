@@ -9,5 +9,5 @@ part /*error: LanguageVersionMismatchInPart*/ 'part.dart';
 /*library: languageVersion=2.5*/
 
 main() {
-  /*error: MethodNotFound*/ foo();
+  foo();
 }

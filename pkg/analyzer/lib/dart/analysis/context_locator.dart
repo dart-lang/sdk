@@ -38,10 +38,10 @@ abstract class ContextLocator {
   @deprecated
   List<AnalysisContext> locateContexts(
       {@required List<String> includedPaths,
-      List<String> excludedPaths: const <String>[],
-      String optionsFile: null,
-      String packagesFile: null,
-      String sdkPath: null});
+      List<String> excludedPaths = const <String>[],
+      String optionsFile,
+      String packagesFile,
+      String sdkPath});
 
   /// Return a list of the context roots that should be used to analyze the
   /// files that are included by the list of [includedPaths] and not excluded by
@@ -57,7 +57,7 @@ abstract class ContextLocator {
   /// found by looking in the directories containing the context roots.
   List<ContextRoot> locateRoots(
       {@required List<String> includedPaths,
-      List<String> excludedPaths: null,
-      String optionsFile: null,
-      String packagesFile: null});
+      List<String> excludedPaths,
+      String optionsFile,
+      String packagesFile});
 }

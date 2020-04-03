@@ -5,26 +5,15 @@
 # Tests using the multitest feature where failure is expected should *also* be
 # listed in tests/lib/analyzer/analyze_tests.status without the "standalone"
 # prefix.
+io/http_linklocal_ipv6_test: SkipByDesign # This needs manual test.
 io/non_utf8_directory_test: Skip # Issue 33519. Temp files causing bots to go purple.
 io/non_utf8_file_test: Skip # Issue 33519. Temp files causing bots to go purple.
 io/non_utf8_link_test: Skip # Issue 33519. Temp files causing bots to go purple.
-io/raw_socket_test: Pass, RuntimeError # Issue 28288
-issue14236_test: Pass # Do not remove this line. It serves as a marker for Issue 14516 comment #4.
-package/invalid_uri_test: Fail, OK # CompileTimeErrors intentionally
-package/package1_test: Fail # imports 'package:foo.dart' which is no longer valid
-package/package_test: Fail # imports 'package:foo.dart' which is no longer valid
-package/scenarios/empty_packages_file/empty_packages_file_discovery_test: Fail, OK # CompileTimeErrors intentionally
-package/scenarios/empty_packages_file/empty_packages_file_option_test: Fail, OK # CompileTimeErrors intentionally
-package/scenarios/invalid/invalid_package_name_test: RuntimeError, CompileTimeError # Errors intentionally
-package/scenarios/invalid/same_package_twice_test.dart: RuntimeError, CompileTimeError # Errors intentionally
-package/scenarios/packages_dir_only/packages_dir_only_test: Fail # Confirm this no longer works for now. TODO(mfairhurst): delete this test.
-package/scenarios/packages_file_strange_formatting/empty_package_dir_test: Fail, OK # CompileTimeErrors intentionally
 packages_file_test: Skip # Issue 26715
 packages_file_test/none: Skip # contains no tests.
 
 [ $builder_tag == asan ]
-io/named_pipe_script_test: RuntimeError
-io/process_detached_test: Pass, Slow
+io/process_detached_test: Slow, Pass
 
 [ $builder_tag == no_ipv6 ]
 io/http_ipv6_test: SkipByDesign
@@ -66,72 +55,43 @@ io/wait_for_event_timer_test: SkipByDesign # Uses mirrors.
 io/wait_for_event_zone_caught_error_test: SkipByDesign # Uses mirrors.
 io/wait_for_event_zone_test: SkipByDesign # Uses mirrors.
 io/wait_for_test: SkipByDesign # Uses mirrors.
+verbose_gc_to_bmu_test: Skip # Attempts to spawn dart using Platform.executable
 
 [ $builder_tag == swarming && $system == macos ]
 io/*: Skip # Issue 30618
-
-# All static_tests have expected compile-time errors.
-[ $compiler != app_jitk && $compiler != dart2analyzer && $compiler != dartdevc && $compiler != dartk && $compiler != dartkb && $compiler != dartkp && $runtime != none ]
-float_array_static_test: MissingCompileTimeError
 
 [ $compiler == none && $runtime == vm && $system == fuchsia ]
 *: Skip # Not yet triaged.
 
 [ $compiler != none && $runtime != dart_precompiled && $runtime != vm ]
 env_test: Skip # This is testing a vm command line parsing scenario.
-no_assert_test: Fail, OK # This is testing a vm flag.
-
-[ $mode == product && $runtime == dart_precompiled ]
-dwarf_stack_trace_test: SkipByDesign # Due to instruction canonicalization we can end up having the wrong names in stack traces.
-
-[ $mode == release && $runtime == vm && $system == macos ]
-io/named_pipe_script_test: Pass, RuntimeError # Issue 28737
 
 [ $runtime == vm && $system == linux ]
-io/http_basic_test: Pass, Slow, Timeout # Issue 28046, These tests might be slow on an opt counter threshold bot. They also time out on the bot occasionally => flaky test issue 28046
-io/http_launch_test: Pass, Slow, Timeout # Issue 28046, These tests might be slow on an opt counter threshold bot. They also time out on the bot occasionally => flaky test issue 28046
+io/http_basic_test: Slow, Pass # Issue 28046, These tests might be slow on an opt counter threshold bot. They also time out on the bot occasionally => flaky test issue 28046
+io/http_launch_test: Slow, Pass # Issue 28046, These tests might be slow on an opt counter threshold bot. They also time out on the bot occasionally => flaky test issue 28046
 
 [ $system == macos && ($runtime == dart_precompiled || $runtime == vm) ]
-io/raw_secure_server_socket_test: Pass, Crash # Issue 29524
+io/raw_secure_server_socket_test: Crash
 io/raw_server_socket_cancel_test: Skip # Issue 28182 # This test sometimes hangs on Mac.
 io/secure_server_client_certificate_test: Skip # Re-enable once the bots have been updated. Issue #26057
-io/socket_connect_stream_data_close_cancel_test: Pass, Timeout # Issue 27453
 io/socket_many_connections_test: Skip # This test fails with "Too many open files" on the Mac OS buildbot. This is expected as MacOS by default runs with a very low number of allowed open files ('ulimit -n' says something like 256).
 
-[ !$preview_dart_2 && ($runtime == dart_precompiled || $runtime == vm) ]
-*: SkipByDesign # Deprecating all Dart1 modes of execution
-
-[ $arch == arm || $arch == arm64 || $runtime != vm || $mode == debug && $system == windows ]
-fragmentation_test: Skip
+[ $arch == arm || $arch == arm64 || $runtime != vm || $system == android ]
+fragmentation_test: SkipSlow
+fragmentation_typed_data_test: SkipSlow
 
 [ $compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk ]
 *: SkipByDesign
-
-[ $compiler == dartk || $compiler == dartkb || $compiler == dartkp ]
-io/file_error_test: RuntimeError
-io/file_test: RuntimeError
-io/regress_10026_test: RuntimeError
-io/web_socket_pipe_test: RuntimeError
-io/zlib_test: RuntimeError
 
 [ $mode == product || $runtime == dart_precompiled ]
 no_assert_test: SkipByDesign
 
 [ $runtime == dart_precompiled || $runtime == vm ]
 deferred_transitive_import_error_test: Skip
-io/https_client_certificate_test: RuntimeError # Issue 24070 Failures in secure networking while NSS is replaced with BoringSSL
-io/non_utf8_output_test: NonUtf8Output, OK # This test checks that the test runner correctly detects and reports non-utf8 output from a test.
-io/secure_socket_bad_data_test: RuntimeError # An error in a secure connection just puts a READ_CLOSED on the stream, rather than signaling an error on the stream.
-io/secure_socket_renegotiate_test: RuntimeError
-package/package_isolate_test: Fail # Issue 12474
-package/scenarios/invalid/same_package_twice_test: Pass # Issue 24119
 
 [ $hot_reload || $hot_reload_rollback ]
-deferred_transitive_import_error_test: Crash
-fragmentation_test: Pass, Crash # Issue 31421
-io/addlatexhash_test: Pass, Crash # Issue 31252
+io/addlatexhash_test: Crash # Issue 31252
 io/many_directory_operations_test: SkipSlow
 io/many_file_operations_test: SkipSlow
-io/raw_datagram_read_all_test: Pass, Fail # Timing dependent.
 package/*: SkipByDesign # Launches VMs in interesting ways.
 typed_data_isolate_test: SkipSlow

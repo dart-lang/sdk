@@ -28,10 +28,11 @@ namespace dart {
   V(Code)                                                                      \
   V(Bytecode)                                                                  \
   V(Instructions)                                                              \
+  V(InstructionsSection)                                                       \
   V(ObjectPool)                                                                \
   V(PcDescriptors)                                                             \
   V(CodeSourceMap)                                                             \
-  V(StackMap)                                                                  \
+  V(CompressedStackMaps)                                                       \
   V(LocalVarDescriptors)                                                       \
   V(ExceptionHandlers)                                                         \
   V(Context)                                                                   \
@@ -39,6 +40,7 @@ namespace dart {
   V(ParameterTypeCheck)                                                        \
   V(SingleTargetCache)                                                         \
   V(UnlinkedCall)                                                              \
+  V(MonomorphicSmiableCall)                                                    \
   V(ICData)                                                                    \
   V(MegamorphicCache)                                                          \
   V(SubtypeTestCache)                                                          \
@@ -79,8 +81,10 @@ namespace dart {
   V(WeakProperty)                                                              \
   V(MirrorReference)                                                           \
   V(LinkedHashMap)                                                             \
+  V(FutureOr)                                                                  \
   V(UserTag)                                                                   \
-  V(TransferableTypedData)
+  V(TransferableTypedData)                                                     \
+  V(WeakSerializationReference)
 
 #define CLASS_LIST_ARRAYS(V)                                                   \
   V(Array)                                                                     \
@@ -109,7 +113,7 @@ namespace dart {
   V(Int32x4Array)                                                              \
   V(Float64x2Array)
 
-#define CLASS_LIST_FFI_TYPE_MARKER(V)                                          \
+#define CLASS_LIST_FFI_NUMERIC(V)                                              \
   V(Int8)                                                                      \
   V(Int16)                                                                     \
   V(Int32)                                                                     \
@@ -120,7 +124,10 @@ namespace dart {
   V(Uint64)                                                                    \
   V(IntPtr)                                                                    \
   V(Float)                                                                     \
-  V(Double)                                                                    \
+  V(Double)
+
+#define CLASS_LIST_FFI_TYPE_MARKER(V)                                          \
+  CLASS_LIST_FFI_NUMERIC(V)                                                    \
   V(Void)
 
 #define CLASS_LIST_FFI(V)                                                      \
@@ -130,6 +137,13 @@ namespace dart {
   V(NativeType)                                                                \
   V(DynamicLibrary)                                                            \
   V(Struct)
+
+#define CLASS_LIST_WASM(V)                                                     \
+  V(WasmInt32)                                                                 \
+  V(WasmInt64)                                                                 \
+  V(WasmFloat)                                                                 \
+  V(WasmDouble)                                                                \
+  V(WasmVoid)
 
 #define DART_CLASS_LIST_TYPED_DATA(V)                                          \
   V(Int8)                                                                      \
@@ -165,10 +179,6 @@ enum ClassId {
   // Illegal class id.
   kIllegalCid = 0,
 
-  // A sentinel used by the vm service's heap snapshots to represent references
-  // from the stack.
-  kStackCid = 1,
-
   // The following entries describes classes for pseudo-objects in the heap
   // that should never be reachable from live objects. Free list elements
   // maintain the free list for old space, and forwarding corpses are used to
@@ -186,6 +196,10 @@ enum ClassId {
   CLASS_LIST_FFI(DEFINE_OBJECT_KIND)
 #undef DEFINE_OBJECT_KIND
 
+#define DEFINE_OBJECT_KIND(clazz) k##clazz##Cid,
+  CLASS_LIST_WASM(DEFINE_OBJECT_KIND)
+#undef DEFINE_OBJECT_KIND
+
 #define DEFINE_OBJECT_KIND(clazz)                                              \
   kTypedData##clazz##Cid,                                                      \
   kTypedData##clazz##ViewCid,                                                  \
@@ -198,10 +212,11 @@ enum ClassId {
   // clang-format on
 
   // The following entries do not describe a predefined class, but instead
-  // are class indexes for pre-allocated instances (Null, dynamic and Void).
+  // are class indexes for pre-allocated instances (Null, dynamic, void, Never).
   kNullCid,
   kDynamicCid,
   kVoidCid,
+  kNeverCid,
 
   kNumPredefinedCids,
 };

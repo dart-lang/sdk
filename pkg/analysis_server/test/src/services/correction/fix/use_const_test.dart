@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UseConstTest);
   });
@@ -19,7 +19,7 @@ class UseConstTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.USE_CONST;
 
-  test_explicitNew() async {
+  Future<void> test_explicitNew() async {
     await resolveTestUnit('''
 class A {
   const A();

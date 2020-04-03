@@ -3,5 +3,3 @@
 # BSD-style license that can be found in the LICENSE file.
 
 math_runtime_cc_files = [ "math.cc" ]
-
-math_runtime_dart_files = [ "math_patch.dart" ]

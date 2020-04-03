@@ -13,7 +13,7 @@ Dart is:
   * **Fast on all platforms**:
   Compile to ARM & x64 machine code for mobile,  desktop, and backend. Or compile to JavaScript for the web
 
-Dart has flexible compiler technology lets you run Dart code in different ways,
+Dart's flexible compiler technology lets you run Dart code in different ways,
 depending on your target platform and goals:
 
   * **Dart Native**: For programs targeting devices (mobile, desktop, server, and more),
@@ -23,7 +23,7 @@ depending on your target platform and goals:
   * **Dart Web**: For programs targeting the web, Dart Web includes both a development time
   compiler (dartdevc) and a production time compiler (dart2js).  
 
-![Dart platforms illustration](https://dart.dev/assets/platforms-7f4d540acf9fe801b456ad74f9f855230a385014d05d9f5997c878b889a67a0f.svg)
+![Dart platforms illustration](docs/assets/Dart-platforms.svg)
 
 ## License & patents
 
@@ -61,6 +61,6 @@ You can also contribute patches, as described in [Contributing][contrib].
 [tools]: https://www.dartlang.org/tools/
 [codelab]: https://dart.dev/codelabs
 [dartbug]: http://dartbug.com
-[contrib]: https://github.com/dart-lang/sdk/wiki/Contributing
+[contrib]: https://github.com/dart-lang/sdk/blob/master/CONTRIBUTING.md
 [pubsite]: https://pub.dev
 [patent_grant]: https://github.com/dart-lang/sdk/blob/master/PATENT_GRANT

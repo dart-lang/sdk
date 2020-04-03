@@ -1,0 +1,40 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class<E extends core::Object? = dynamic> extends core::Object {
+  final field self::Class::E% field;
+  constructor •(self::Class::E% field) → self::Class<self::Class::E%>
+    : self::Class::field = field, super core::Object::•()
+    ;
+  method returnTypeVariable() → self::Class::E% {
+    function #result#initializer() → self::Class::E%
+      return this.{self::Class::field};
+    late self::Class::E% result = #result#initializer.call();
+    return result;
+  }
+}
+static method returnNonNullable(core::int value) → core::int {
+  function #result#initializer() → core::int
+    return value;
+  late core::int result = #result#initializer.call();
+  return result;
+}
+static method returnNullable(core::int? value) → core::int? {
+  function #result#initializer() → core::int?
+    return value;
+  late core::int? result = #result#initializer.call();
+  return result;
+}
+static method main() → dynamic {
+  self::expect(42, new self::Class::•<core::int>(42).{self::Class::returnTypeVariable}());
+  self::expect(87, new self::Class::•<core::int?>(87).{self::Class::returnTypeVariable}());
+  self::expect(null, new self::Class::•<core::int?>(null).{self::Class::returnTypeVariable}());
+  self::expect(42, self::returnNonNullable(42));
+  self::expect(87, self::returnNullable(87));
+  self::expect(null, self::returnNullable(null));
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!expected.{core::Object::==}(actual))
+    throw "Expected ${expected}, actual ${actual}";
+}

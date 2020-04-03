@@ -9,13 +9,9 @@ library;
 //   factory B.foo() = B<T>;
 //           ^^^^^
 //
-// pkg/front_end/testcases/regress/issue_35266.dart:13:11: Error: Can't use 'B.foo' because it is declared more than once.
+// pkg/front_end/testcases/regress/issue_35266.dart:13:21: Error: Can't use 'B.foo' because it is declared more than once.
 //   factory C.bar() = B<K>.foo;
-//           ^
-//
-// pkg/front_end/testcases/regress/issue_35266.dart:13:11: Error: Method not found: 'B.foo'.
-//   factory C.bar() = B<K>.foo;
-//           ^^^
+//                     ^
 //
 import self as self;
 import "dart:core" as core;
@@ -37,7 +33,7 @@ class C<K extends core::Object* = dynamic> extends core::Object {
     let dynamic #redirecting_factory = "B.foo" in invalid-expression;
 }
 static method main() → dynamic {
-  invalid-expression "pkg/front_end/testcases/regress/issue_35266.dart:13:11: Error: Method not found: 'B.foo'.
-  factory C.bar() = B<K>.foo;
-          ^^^";
+  invalid-expression "pkg/front_end/testcases/regress/issue_35266.dart:17:7: Error: Method not found: 'B.foo'.
+  new C.bar();
+      ^";
 }

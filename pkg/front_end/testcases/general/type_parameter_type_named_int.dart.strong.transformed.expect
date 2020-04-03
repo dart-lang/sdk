@@ -6,7 +6,6 @@ library;
 //  - 'List' is from 'dart:core'.
 //  - 'int/*1*/' is from 'pkg/front_end/testcases/general/type_parameter_type_named_int.dart'.
 //  - 'int/*2*/' is from 'dart:core'.
-// Try changing the type of the left hand side, or casting the right hand side to 'List<int/*2*/>'.
 //     list = value;
 //            ^
 //
@@ -30,7 +29,6 @@ class Bar extends core::Object implements self::Foo<core::int*> {
  - 'List' is from 'dart:core'.
  - 'int/*1*/' is from 'pkg/front_end/testcases/general/type_parameter_type_named_int.dart'.
  - 'int/*2*/' is from 'dart:core'.
-Try changing the type of the left hand side, or casting the right hand side to 'List<int/*2*/>'.
     list = value;
            ^" in value as{TypeError} core::List<core::int*>*;
   }

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -23,7 +24,7 @@ class EqualElementsInConstSetTest extends DriverResolutionTest {
 var c = const {1, 2, 1};
 ''', [
       error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 21, 1,
-          expectedMessages: [
+          contextMessages: [
             message(resourceProvider.convertPath('/test/lib/test.dart'), 15, 1)
           ]),
     ]);
@@ -37,7 +38,7 @@ var c = const {1, if (1 < 0) 2 else 1};
         analysisOptions.experimentStatus.constant_update_2018
             ? [
                 error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 36, 1,
-                    expectedMessages: [
+                    contextMessages: [
                       message(
                           resourceProvider.convertPath('/test/lib/test.dart'),
                           15,
@@ -105,7 +106,7 @@ var c = const {1, if (0 < 1) 1};
         analysisOptions.experimentStatus.constant_update_2018
             ? [
                 error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 29, 1,
-                    expectedMessages: [
+                    contextMessages: [
                       message(
                           resourceProvider.convertPath('/test/lib/test.dart'),
                           15,
@@ -126,7 +127,7 @@ class A<T> {
 var c = const {const A<int>(), const A<int>()};
 ''', [
       error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 60, 14,
-          expectedMessages: [
+          contextMessages: [
             message(resourceProvider.convertPath('/test/lib/test.dart'), 44, 14)
           ]),
     ]);
@@ -163,7 +164,7 @@ var c = const {1, ...{1}};
         analysisOptions.experimentStatus.constant_update_2018
             ? [
                 error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 21, 3,
-                    expectedMessages: [
+                    contextMessages: [
                       message(
                           resourceProvider.convertPath('/test/lib/test.dart'),
                           15,
@@ -176,9 +177,12 @@ var c = const {1, ...{1}};
   }
 
   test_nonConst_entry() async {
-    await assertNoErrorsInCode('''
+    // No error, but there is a hint.
+    await assertErrorsInCode('''
 var c = {1, 2, 1};
-''');
+''', [
+      error(HintCode.EQUAL_ELEMENTS_IN_SET, 15, 1),
+    ]);
   }
 }
 
@@ -187,5 +191,7 @@ class EqualElementsInConstSetWithConstantsTest
     extends EqualElementsInConstSetTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [EnableString.constant_update_2018];
+    ..contextFeatures = FeatureSet.fromEnableFlags(
+      [EnableString.constant_update_2018],
+    );
 }

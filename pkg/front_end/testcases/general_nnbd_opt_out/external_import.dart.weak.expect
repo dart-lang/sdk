@@ -1,0 +1,17 @@
+@#C2
+@#C4
+@#C6
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:_internal" as _in;
+
+static method main() → dynamic {}
+
+constants  {
+  #C1 = "dart-ext:here"
+  #C2 = _in::ExternalName {name:#C1}
+  #C3 = "dart-ext:foo/../there"
+  #C4 = _in::ExternalName {name:#C3}
+  #C5 = "dart-ext:/usr/local/somewhere"
+  #C6 = _in::ExternalName {name:#C5}
+}

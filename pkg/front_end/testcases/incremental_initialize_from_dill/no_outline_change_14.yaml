@@ -1,0 +1,55 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application, change a file, but don't change the outline.
+# Class hierarchy through implements.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    useExperimentalInvalidation: true
+    sources:
+      main.dart: |
+        import "lib1.dart";
+        abstract class Foo implements Bar {
+          @override
+          Foo get x;
+        }
+      lib1.dart: |
+        import "lib2.dart";
+        abstract class Bar implements Baz {
+        }
+      lib2.dart: |
+        abstract class Baz {
+          Baz get x;
+        }
+    expectedLibraryCount: 3
+  - entry: main.dart
+    useExperimentalInvalidation: true
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - lib2.dart
+    sources:
+      lib2.dart: |
+        abstract class Baz {
+          Baz get x;
+        }
+    expectedLibraryCount: 3
+    expectsRebuildBodiesOnly: true
+  - entry: main.dart
+    useExperimentalInvalidation: true
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        import "lib1.dart";
+        abstract class Foo implements Bar {
+          @override
+          Foo get x;
+        }
+    expectedLibraryCount: 3
+    expectsRebuildBodiesOnly: true

@@ -1,0 +1,47 @@
+main() {
+dynamic foo = new X();
+var bar = foo.late;
+late();
+bar();
+new X().late();
+new Y().late;
+}
+
+late() {
+print("hello");
+}
+
+class X {
+late() {
+print("hello");
+}
+}
+
+class Y {
+int late = 42;
+}
+
+
+main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+dynamic[KeywordToken] foo[StringToken] =[SimpleToken] new[KeywordToken] X[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] bar[StringToken] =[SimpleToken] foo[StringToken].[SimpleToken]late[KeywordToken];[SimpleToken]
+late[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+bar[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+new[KeywordToken] X[StringToken]([BeginToken])[SimpleToken].[SimpleToken]late[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+new[KeywordToken] Y[StringToken]([BeginToken])[SimpleToken].[SimpleToken]late[KeywordToken];[SimpleToken]
+}[SimpleToken]
+
+late[KeywordToken]([BeginToken])[SimpleToken] {[BeginToken]
+print[StringToken]([BeginToken]"hello"[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] X[StringToken] {[BeginToken]
+late[KeywordToken]([BeginToken])[SimpleToken] {[BeginToken]
+print[StringToken]([BeginToken]"hello"[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] Y[StringToken] {[BeginToken]
+int[StringToken] late[KeywordToken] =[SimpleToken] 42[StringToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

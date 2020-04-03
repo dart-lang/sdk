@@ -153,4 +153,16 @@ class D<T> {
   }
 }
 
+abstract class E {
+  int Function(int x, int y) foo1;
+  int Function<T>(T x, T y) get foo2;
+  int evalArg1();
+  int evalArg2();
+  E getE();
+
+  int testCallThroughGetter1() => foo1(evalArg1(), evalArg2());
+  int testCallThroughGetter2() => foo2<int>(evalArg1(), evalArg2());
+  int testCallThroughGetter3() => getE().foo2<int>(evalArg1(), evalArg2());
+}
+
 main() {}

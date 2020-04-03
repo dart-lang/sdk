@@ -10,6 +10,7 @@
 #include "bin/file.h"
 #include "bin/loader.h"
 #include "bin/platform.h"
+#include "bin/process.h"
 #include "bin/snapshot_utils.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
@@ -30,15 +31,11 @@ extern const uint8_t kDartCoreIsolateSnapshotInstructions[];
 namespace dart {
 
 // Snapshot pieces when we link in a snapshot.
-#if defined(DART_NO_SNAPSHOT)
-#error "run_vm_tests must be built with a snapshot"
-#else
 const uint8_t* bin::vm_snapshot_data = kDartVmSnapshotData;
 const uint8_t* bin::vm_snapshot_instructions = kDartVmSnapshotInstructions;
 const uint8_t* bin::core_isolate_snapshot_data = kDartCoreIsolateSnapshotData;
 const uint8_t* bin::core_isolate_snapshot_instructions =
     kDartCoreIsolateSnapshotInstructions;
-#endif
 
 // Only run tests that match the filter string. The default does not match any
 // tests.
@@ -151,7 +148,9 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   // Load embedder specific bits and return.
   if (!bin::VmService::Setup("127.0.0.1", 0,
                              /*dev_mode=*/false, /*auth_disabled=*/true,
-                             /*trace_loading=*/false, /*deterministic=*/true)) {
+                             /*write_service_info_filename*/ "",
+                             /*trace_loading=*/false, /*deterministic=*/true,
+                             /*enable_service_port_fallback=*/false)) {
     *error = strdup(bin::VmService::GetErrorMessage());
     return nullptr;
   }
@@ -206,8 +205,7 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
                                   app_snapshot, app_snapshot != nullptr);
     isolate = Dart_CreateIsolateGroup(
         DART_KERNEL_ISOLATE_NAME, DART_KERNEL_ISOLATE_NAME,
-        isolate_snapshot_data, isolate_snapshot_instructions,
-        /*shared_data=*/nullptr, /*shared_instructions=*/nullptr, flags,
+        isolate_snapshot_data, isolate_snapshot_instructions, flags,
         isolate_group_data, /*isolate_data=*/nullptr, error);
     if (*error != nullptr) {
       OS::PrintErr("Error creating isolate group: %s\n", *error);
@@ -253,7 +251,7 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
   CHECK_RESULT(result);
 
   // Setup kernel service as the main script for this isolate.
-  if (kernel_service_buffer) {
+  if (kernel_service_buffer != nullptr) {
     result = Dart_LoadScriptFromKernel(kernel_service_buffer,
                                        kernel_service_buffer_size);
     CHECK_RESULT(result);
@@ -358,6 +356,7 @@ static int Main(int argc, const char** argv) {
   }
 
   bin::TimerUtils::InitOnce();
+  bin::Process::Init();
   bin::EventHandler::Start();
 
   char* error = Flags::ProcessCommandLineFlags(dart_argc, dart_argv);
@@ -396,6 +395,7 @@ static int Main(int argc, const char** argv) {
   // Apply the filter to all registered benchmarks.
   Benchmark::RunAll(argv[0]);
 
+  bin::Process::TerminateExitCodeHandler();
   error = Dart::Cleanup();
   if (error != nullptr) {
     Syslog::PrintErr("Failed shutdown VM: %s\n", error);
@@ -406,6 +406,7 @@ static int Main(int argc, const char** argv) {
   TestCaseBase::RunAllRaw();
 
   bin::EventHandler::Stop();
+  bin::Process::Cleanup();
 
   // Print a warning message if no tests or benchmarks were matched.
   if (run_matches == 0) {

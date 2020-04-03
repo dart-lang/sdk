@@ -1,3 +1,0 @@
-pkg/front_end/testcases/general/closure.dart:18:7: Context: Write to x@336
-    x = new Foo();
-      ^

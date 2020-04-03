@@ -687,10 +687,6 @@ void ARMDecoder::DecodeType01(Instr* instr) {
             break;
           }
           case 2: {
-            if (TargetCPUFeatures::arm_version() == ARMv5TE) {
-              Unknown(instr);
-              return;
-            }
             // Registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
             Format(instr, "umaal'cond's 'rd, 'rn, 'rm, 'rs");
             break;
@@ -725,11 +721,6 @@ void ARMDecoder::DecodeType01(Instr* instr) {
           }
         }
       } else {
-        if (TargetCPUFeatures::arm_version() == ARMv5TE) {
-          // strex and ldrex are only supported after ARMv6.
-          Unknown(instr);
-          return;
-        }
         // synchronization primitives
         switch (instr->Bits(20, 4)) {
           case 8: {
@@ -1433,8 +1424,7 @@ void ARMDecoder::InstructionDecode(uword pc) {
   Instr* instr = Instr::At(pc);
 
   if (instr->ConditionField() == kSpecialCondition) {
-    if ((instr->InstructionBits() == static_cast<int32_t>(0xf57ff01f)) &&
-        (TargetCPUFeatures::arm_version() != ARMv5TE)) {
+    if (instr->InstructionBits() == static_cast<int32_t>(0xf57ff01f)) {
       Format(instr, "clrex");
     } else {
       if (instr->IsSIMDDataProcessing()) {

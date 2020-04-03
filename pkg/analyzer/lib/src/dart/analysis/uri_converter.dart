@@ -34,7 +34,7 @@ class DriverBasedUriConverter implements UriConverter {
         String relativePath =
             context.relative(path, from: context.dirname(containingPath));
         if (context.isRelative(relativePath)) {
-          return new Uri.file(relativePath);
+          return Uri.file(relativePath);
         }
       }
     }

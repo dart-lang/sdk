@@ -17,7 +17,7 @@ import 'lsp_server/test_all.dart' as lsp_server;
 import 'search/test_all.dart' as search;
 import 'server/test_all.dart' as server;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     analysis.main();
     analytics.main();

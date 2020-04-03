@@ -2,33 +2,32 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-//    defineReflectiveTests(StaticAccessToInstanceMemberTest);
-    defineReflectiveTests(StaticAccessToInstanceMemberWithExtensionMethodsTest);
+    defineReflectiveTests(StaticAccessToInstanceMemberTest);
   });
 }
 
 @reflectiveTest
-class StaticAccessToInstanceMemberTest extends DriverResolutionTest {}
+class StaticAccessToInstanceMemberTest extends DriverResolutionTest {
+  test_annotation() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  const A.name();
+}
+@A.name()
+main() {
+}
+''');
+  }
 
-@reflectiveTest
-class StaticAccessToInstanceMemberWithExtensionMethodsTest
-    extends StaticAccessToInstanceMemberTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
-
-  test_getter() async {
-    assertErrorsInCode('''
+  test_extension_getter() async {
+    await assertErrorsInCode('''
 extension E on int {
   int get g => 0;
 }
@@ -40,8 +39,8 @@ f() {
     ]);
   }
 
-  test_method() async {
-    assertErrorsInCode('''
+  test_extension_method() async {
+    await assertErrorsInCode('''
 extension E on int {
   void m() {}
 }
@@ -53,8 +52,8 @@ f() {
     ]);
   }
 
-  test_setter() async {
-    assertErrorsInCode('''
+  test_extension_setter() async {
+    await assertErrorsInCode('''
 extension E on int {
   void set s(int i) {}
 }
@@ -64,5 +63,102 @@ f() {
 ''', [
       error(StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, 56, 1),
     ]);
+  }
+
+  test_method_invocation() async {
+    await assertErrorsInCode('''
+class A {
+  m() {}
+}
+main() {
+  A.m();
+}''', [
+      error(StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, 34, 1),
+    ]);
+  }
+
+  test_method_reference() async {
+    await assertErrorsInCode('''
+class A {
+  m() {}
+}
+main() {
+  A.m;
+}''', [
+      error(StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, 34, 1),
+    ]);
+  }
+
+  test_propertyAccess_field() async {
+    await assertErrorsInCode('''
+class A {
+  var f;
+}
+main() {
+  A.f;
+}''', [
+      error(StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, 34, 1),
+    ]);
+  }
+
+  test_propertyAccess_getter() async {
+    await assertErrorsInCode('''
+class A {
+  get f => 42;
+}
+main() {
+  A.f;
+}''', [
+      error(StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, 40, 1),
+    ]);
+  }
+
+  test_propertyAccess_setter() async {
+    await assertErrorsInCode('''
+class A {
+  set f(x) {}
+}
+main() {
+  A.f = 42;
+}''', [
+      error(StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, 39, 1),
+    ]);
+  }
+
+  test_static_method() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  static m() {}
+}
+main() {
+  A.m;
+  A.m();
+}
+''');
+  }
+
+  test_static_propertyAccess_field() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  static var f;
+}
+main() {
+  A.f;
+  A.f = 1;
+}
+''');
+  }
+
+  test_static_propertyAccess_propertyAccessor() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  static get f => 42;
+  static set f(x) {}
+}
+main() {
+  A.f;
+  A.f = 1;
+}
+''');
   }
 }

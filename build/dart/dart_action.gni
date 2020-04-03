@@ -3,7 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 import("../executable_suffix.gni")
-import("dart_host_sdk_toolchain.gni")
 import("prebuilt_dart_sdk.gni")
 
 _is_fuchsia = defined(is_fuchsia_tree) && is_fuchsia_tree
@@ -62,7 +61,7 @@ template("_compiled_action") {
     outputs = invoker.outputs
 
     # Construct the host toolchain version of the tool.
-    host_tool = invoker.tool + "($dart_host_toolchain)"
+    host_tool = invoker.tool + "($host_toolchain)"
 
     # Get the path to the executable. Currently, this assumes that the tool
     # does not specify output_name so that the target name is the name to use.
@@ -75,9 +74,7 @@ template("_compiled_action") {
     # Add the executable itself as an input.
     inputs += [ host_executable ]
 
-    deps = [
-      host_tool,
-    ]
+    deps = [ host_tool ]
     if (defined(invoker.deps)) {
       deps += invoker.deps
     }

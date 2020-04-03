@@ -112,6 +112,9 @@ class FlowGraph : public ZoneAllocated {
   // the arguments descriptor.
   intptr_t num_direct_parameters() const { return num_direct_parameters_; }
 
+  // The number of words on the stack used by the direct parameters.
+  intptr_t direct_parameters_size() const { return direct_parameters_size_; }
+
   // The number of variables (or boxes) which code can load from / store to.
   // The SSA renaming will insert phi's for them (and only them - i.e. there
   // will be no phi insertion for [LocalVariable]s pointing to the expression
@@ -126,6 +129,19 @@ class FlowGraph : public ZoneAllocated {
     ASSERT(IsCompiledForOsr());
     return variable_count() + graph_entry()->osr_entry()->stack_depth();
   }
+
+  // This function returns the offset (in words) of the [index]th
+  // parameter, relative to the first parameter.
+  // If [last_slot] is true it gives the offset of the last slot of that
+  // location, otherwise it returns the first one.
+  static intptr_t ParameterOffsetAt(const Function& function,
+                                    intptr_t index,
+                                    bool last_slot = true);
+
+  static Representation ParameterRepresentationAt(const Function& function,
+                                                  intptr_t index);
+
+  static Representation ReturnRepresentationOf(const Function& function);
 
   // The number of variables (or boxes) inside the functions frame - meaning
   // below the frame pointer.  This does not include the expression stack.
@@ -159,6 +175,11 @@ class FlowGraph : public ZoneAllocated {
   intptr_t EnvIndex(const LocalVariable* variable) const {
     ASSERT(!variable->is_captured());
     return num_direct_parameters_ - variable->index().value();
+  }
+
+  static bool NeedsPairLocation(Representation representation) {
+    return representation == kUnboxedInt64 &&
+           compiler::target::kIntSpillFactor == 2;
   }
 
   // Flow graph orders.
@@ -289,6 +310,10 @@ class FlowGraph : public ZoneAllocated {
   // Remove the redefinition instructions inserted to inhibit code motion.
   void RemoveRedefinitions(bool keep_checks = false);
 
+  // Insert PushArgument instructions and remove explicit def-use
+  // relations between calls and their arguments.
+  void InsertPushArguments();
+
   // Copy deoptimization target from one instruction to another if we still
   // have to keep deoptimization environment at gotos for LICM purposes.
   void CopyDeoptTarget(Instruction* to, Instruction* from) {
@@ -340,12 +365,6 @@ class FlowGraph : public ZoneAllocated {
   }
 
   bool IsCompiledForOsr() const { return graph_entry()->IsCompiledForOsr(); }
-
-  void AddToDeferredPrefixes(ZoneGrowableArray<const LibraryPrefix*>* from);
-
-  ZoneGrowableArray<const LibraryPrefix*>* deferred_prefixes() const {
-    return deferred_prefixes_;
-  }
 
   BitVector* captured_parameters() const { return captured_parameters_; }
 
@@ -435,6 +454,8 @@ class FlowGraph : public ZoneAllocated {
                     GrowableArray<intptr_t>* parent,
                     GrowableArray<intptr_t>* label);
 
+  void AddSyntheticPhis(BlockEntryInstr* block);
+
   void Rename(GrowableArray<PhiInstr*>* live_phis,
               VariableLivenessAnalysis* variable_liveness,
               ZoneGrowableArray<Definition*>* inlining_parameters);
@@ -516,6 +537,7 @@ class FlowGraph : public ZoneAllocated {
   // Flow graph fields.
   const ParsedFunction& parsed_function_;
   intptr_t num_direct_parameters_;
+  intptr_t direct_parameters_size_;
   GraphEntryInstr* graph_entry_;
   GrowableArray<BlockEntryInstr*> preorder_;
   GrowableArray<BlockEntryInstr*> postorder_;
@@ -532,7 +554,6 @@ class FlowGraph : public ZoneAllocated {
   LoopHierarchy* loop_hierarchy_;
   ZoneGrowableArray<BitVector*>* loop_invariant_loads_;
 
-  ZoneGrowableArray<const LibraryPrefix*>* deferred_prefixes_;
   DirectChainedHashMap<ConstantPoolTrait> constant_instr_pool_;
   BitVector* captured_parameters_;
 

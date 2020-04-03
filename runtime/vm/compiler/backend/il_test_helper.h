@@ -58,8 +58,12 @@ RawLibrary* LoadTestScript(const char* script,
                            const char* lib_uri = RESOLVED_USER_TEST_URI);
 
 RawFunction* GetFunction(const Library& lib, const char* name);
+RawClass* GetClass(const Library& lib, const char* name);
+RawTypeParameter* GetClassTypeParameter(const Class& klass, const char* name);
+RawTypeParameter* GetFunctionTypeParameter(const Function& fun,
+                                           const char* name);
 
-void Invoke(const Library& lib, const char* name);
+RawObject* Invoke(const Library& lib, const char* name);
 
 class TestPipeline : public ValueObject {
  public:
@@ -67,7 +71,7 @@ class TestPipeline : public ValueObject {
                         CompilerPass::PipelineMode mode)
       : function_(function),
         thread_(Thread::Current()),
-        compiler_state_(thread_),
+        compiler_state_(thread_, mode == CompilerPass::PipelineMode::kAOT),
         mode_(mode) {}
   ~TestPipeline() { delete pass_state_; }
 
@@ -242,12 +246,11 @@ class FlowGraphBuilderHelper {
 
   ConstantInstr* IntConstant(int64_t value) const {
     return flow_graph_.GetConstant(
-        Integer::Handle(Integer::New(value, Heap::kOld)));
+        Integer::Handle(Integer::NewCanonical(value)));
   }
 
   ConstantInstr* DoubleConstant(double value) {
-    return flow_graph_.GetConstant(
-        Double::Handle(Double::New(value, Heap::kOld)));
+    return flow_graph_.GetConstant(Double::Handle(Double::NewCanonical(value)));
   }
 
   PhiInstr* Phi(JoinEntryInstr* join,

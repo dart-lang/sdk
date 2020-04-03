@@ -1,0 +1,57 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/switch_redesign_fall_over.dart:23:5: Error: Switch case may fall through to the next case.
+//     case -42: // Error.
+//     ^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  method foo(core::int x, core::bool b) → dynamic {
+    switch(x) {
+      #L1:
+      case #C1:
+        {
+          this.{self::A::neverReturn}();
+        }
+      #L2:
+      default:
+        {
+          self::bar();
+        }
+    }
+  }
+  abstract method neverReturn() → Never;
+}
+static method bar() → dynamic {}
+static method foo(core::int x, core::bool b) → dynamic {
+  switch(x) {
+    #L3:
+    case #C1:
+      {
+        b ?{Never} throw "hest" : throw "fisk";
+      }
+    #L4:
+    case #C2:
+      {
+        self::bar();
+      }
+    #L5:
+    default:
+      {
+        self::bar();
+      }
+  }
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = 42
+  #C2 = -42
+}

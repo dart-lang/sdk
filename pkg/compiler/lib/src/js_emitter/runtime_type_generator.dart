@@ -17,6 +17,7 @@ import '../js_backend/runtime_types.dart'
 import '../js_backend/runtime_types_codegen.dart'
     show ClassChecks, ClassFunctionType, Substitution, TypeCheck;
 import '../js_emitter/sorter.dart';
+import '../options.dart';
 import '../util/util.dart' show Setlet;
 
 import 'code_emitter_task.dart' show CodeEmitterTask, Emitter;
@@ -92,6 +93,8 @@ class RuntimeTypeGenerator {
   final RuntimeTypesChecks _rtiChecks;
   final RuntimeTypesEncoder _rtiEncoder;
   final _TypeContainedInOutputUnitVisitor _outputUnitVisitor;
+
+  CompilerOptions get _options => emitterTask.options;
 
   RuntimeTypeGenerator(this._commonElements, this._outputUnitData,
       this.emitterTask, this._namer, this._rtiChecks, this._rtiEncoder)
@@ -181,7 +184,7 @@ class RuntimeTypeGenerator {
             checkedClass, _namer.operatorIs(checkedClass), js('1'));
       }
       Substitution substitution = check.substitution;
-      if (substitution != null) {
+      if (substitution != null && !_options.useNewRti) {
         jsAst.Expression body =
             _getSubstitutionCode(emitterTask.emitter, substitution);
         result.addSubstitution(
@@ -193,7 +196,8 @@ class RuntimeTypeGenerator {
         classElement, generateFunctionTypeSignature, generateTypeCheck);
 
     if (classElement == _commonElements.jsJavaScriptFunctionClass) {
-      var type = jsInteropAnalysis.buildJsFunctionType();
+      var type =
+          jsInteropAnalysis.buildJsFunctionType(_commonElements.dartTypes);
       if (type != null) {
         jsAst.Expression thisAccess = new jsAst.This();
         jsAst.Expression encoding = _rtiEncoder.getSignatureEncoding(
@@ -237,7 +241,7 @@ class RuntimeTypeGenerator {
       return new jsAst.VariableUse(_getVariableName(variable.element.name));
     }
 
-    if (substitution.arguments.every((DartType type) => type.isDynamic)) {
+    if (substitution.arguments.every((DartType type) => type is DynamicType)) {
       return emitter.generateFunctionThatReturnsNull();
     } else {
       jsAst.Expression value =
@@ -320,6 +324,17 @@ class _TypeContainedInOutputUnitVisitor
   }
 
   @override
+  bool visitLegacyType(LegacyType type, OutputUnit argument) =>
+      visit(type.baseType, argument);
+
+  @override
+  bool visitNullableType(NullableType type, OutputUnit argument) =>
+      visit(type.baseType, argument);
+
+  @override
+  bool visitNeverType(NeverType type, OutputUnit argument) => true;
+
+  @override
   bool visitFutureOrType(FutureOrType type, OutputUnit argument) {
     if (_outputUnitData.outputUnitForClass(_commonElements.functionClass) !=
         argument) {
@@ -332,9 +347,10 @@ class _TypeContainedInOutputUnitVisitor
   bool visitDynamicType(DynamicType type, OutputUnit argument) => true;
 
   @override
-  bool visitTypedefType(TypedefType type, OutputUnit argument) {
-    return visit(type.unaliased, argument);
-  }
+  bool visitErasedType(ErasedType type, OutputUnit argument) => true;
+
+  @override
+  bool visitAnyType(AnyType type, OutputUnit argument) => true;
 
   @override
   bool visitInterfaceType(InterfaceType type, OutputUnit argument) {

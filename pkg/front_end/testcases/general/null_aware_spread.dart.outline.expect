@@ -1,0 +1,12 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method nullAwareListSpread(core::List<core::String*>* list) → dynamic
+  ;
+static method nullAwareSetSpread(core::Set<core::String*>* set) → dynamic
+  ;
+static method nullAwareMapSpread(core::Map<core::int*, core::String*>* map) → dynamic
+  ;
+static method main() → dynamic
+  ;

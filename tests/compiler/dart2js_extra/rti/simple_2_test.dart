@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'dart:_rti' as rti;
 import "package:expect/expect.dart";
 
@@ -11,21 +13,10 @@ void checkToString(String expected, Object rti1) {
   Expect.equals(expected, result.replaceAll('minified:', ''));
 }
 
-testDynamic1() {
+testDynamic() {
   var universe = rti.testingCreateUniverse();
 
-  var rti1 = rti.testingUniverseEval(universe, 'dynamic');
-  var rti2 = rti.testingUniverseEval(universe, ',,dynamic,,');
-
-  Expect.isTrue(identical(rti1, rti2), 'dynamic should be identical');
-  Expect.isFalse(rti1 is String);
-  checkToString('dynamic', rti1);
-}
-
-testDynamic2() {
-  var universe = rti.testingCreateUniverse();
-
-  var rti1 = rti.testingUniverseEval(universe, 'dynamic');
+  var rti1 = rti.testingUniverseEval(universe, '@');
   var rti2 = rti.testingUniverseEval(universe, ',,@,,');
 
   Expect.isTrue(identical(rti1, rti2), 'dynamic should be identical');
@@ -127,8 +118,7 @@ testInterface4() {
 }
 
 main() {
-  testDynamic1();
-  testDynamic2();
+  testDynamic();
   testVoid();
   testNever();
   testAny();

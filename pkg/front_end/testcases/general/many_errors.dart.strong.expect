@@ -53,7 +53,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class A extends core::Object {
+class A extends core::Object /*hasConstConstructor*/  {
   final field dynamic x = null;
   constructor named1() → self::A*
     : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/many_errors.dart:8:26: Error: Constructor bodies can't use 'async', 'async*', or 'sync*'.
@@ -77,7 +77,7 @@ class C extends core::Object {
     : super core::Object::•()
     ;
 }
-abstract class AbstractClass extends core::Object {
+abstract class AbstractClass extends core::Object /*hasConstConstructor*/  {
   const constructor id() → self::AbstractClass*
     : super core::Object::•()
     ;

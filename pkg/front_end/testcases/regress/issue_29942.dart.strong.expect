@@ -16,4 +16,4 @@ import "dart:core" as core;
 
 static method main() → dynamic {}
 static method f() → dynamic
-  return let final () →* core::Null* h = () → core::Null* => null in h;
+  return let final () →* core::Null? h = () → core::Null? => null in h;

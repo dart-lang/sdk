@@ -1,0 +1,11 @@
+main = <No Member>;
+library from "org-dartlang-test:///lib.dart" as lib {
+
+  typedef F<unrelated T extends dart.core::Object* = dynamic> = () →* dynamic;
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///lib.dart";
+
+  typedef G<unrelated T extends dart.core::Object* = dynamic> = (() →* dynamic) →* dynamic;
+}

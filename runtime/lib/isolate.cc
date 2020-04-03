@@ -123,7 +123,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
   }
 
   ~SpawnIsolateTask() override {
-    if (parent_isolate_) {
+    if (parent_isolate_ != nullptr) {
       parent_isolate_->DecrementSpawnCount();
     }
   }
@@ -152,7 +152,8 @@ class SpawnIsolateTask : public ThreadPool::Task {
     // Create a new isolate.
     char* error = nullptr;
     Isolate* isolate = nullptr;
-    if (group == nullptr || initialize_callback == nullptr) {
+    if (!FLAG_enable_isolate_groups || group == nullptr ||
+        initialize_callback == nullptr) {
       // Make a copy of the state's isolate flags and hand it to the callback.
       Dart_IsolateFlags api_flags = *(state_->isolate_flags());
       isolate = reinterpret_cast<Isolate*>((create_group_callback)(

@@ -44,8 +44,6 @@ class Base {
 
 class Application = Base with Mixin;
 
-class Application2 extends Base with Mixin {}
-
 main() {
   Expect.equals(42, new Application.c1(42).m);
   Expect.equals(42, new Application.c2(42).m);
@@ -63,43 +61,16 @@ main() {
   Expect.equals(42, new Application.c14(42).m);
   Expect.equals(42, new Application.c15(x: 42).m);
 
-  Expect.equals(37, new Application.c2().m);
+  Expect.equals(37, new Application.c2().m); //# issue38304: ok
   Expect.equals(37, new Application.c3().m);
-  Expect.equals(37, new Application.c5().m);
+  Expect.equals(37, new Application.c5().m); //# issue38304: continued
   Expect.equals(37, new Application.c6().m);
-  Expect.equals(87, new Application.c8().m);
+  Expect.equals(87, new Application.c8().m); //# issue38304: continued
   Expect.equals(87, new Application.c9().m);
-  Expect.equals(87, new Application.c11().m);
+  Expect.equals(87, new Application.c11().m); //# issue38304: continued
   Expect.equals(87, new Application.c12().m);
-  Expect.equals(87, new Application.c14().m);
+  Expect.equals(87, new Application.c14().m); //# issue38304: continued
   Expect.equals(87, new Application.c15().m);
-
-  Expect.equals(42, new Application2.c1(42).m);
-  Expect.equals(42, new Application2.c2(42).m);
-  Expect.equals(42, new Application2.c3(x: 42).m);
-  Expect.equals(42, new Application2.c4(42).m);
-  Expect.equals(42, new Application2.c5(42).m);
-  Expect.equals(42, new Application2.c6(x: 42).m);
-  Expect.equals(42, new Application2.c7(42).m);
-  Expect.equals(42, new Application2.c8(42).m);
-  Expect.equals(42, new Application2.c9(x: 42).m);
-  Expect.equals(42, new Application2.c10(42).m);
-  Expect.equals(42, new Application2.c11(42).m);
-  Expect.equals(42, new Application2.c12(x: 42).m);
-  Expect.equals(42, new Application2.c13(42).m);
-  Expect.equals(42, new Application2.c14(42).m);
-  Expect.equals(42, new Application2.c15(x: 42).m);
-
-  Expect.equals(37, new Application2.c2().m);
-  Expect.equals(37, new Application2.c3().m);
-  Expect.equals(37, new Application2.c5().m);
-  Expect.equals(37, new Application2.c6().m);
-  Expect.equals(87, new Application2.c8().m);
-  Expect.equals(87, new Application2.c9().m);
-  Expect.equals(87, new Application2.c11().m);
-  Expect.equals(87, new Application2.c12().m);
-  Expect.equals(87, new Application2.c14().m);
-  Expect.equals(87, new Application2.c15().m);
 
   // Don't make constructors const if mixin declares instance variable.
   const Application.c4(42); //# 00: compile-time error
@@ -115,20 +86,6 @@ main() {
   const Application.c14(42); //# 10: compile-time error
   const Application.c15(x: 42); //# 11: compile-time error
 
-  const Application2.c4(42); //# 12: compile-time error
-  const Application2.c5(42); //# 13: compile-time error
-  const Application2.c6(x: 42); //# 14: compile-time error
-  const Application2.c7(42); //# 15: compile-time error
-  const Application2.c8(42); //# 16: compile-time error
-  const Application2.c9(x: 42); //# 17: compile-time error
-  const Application2.c10(42); //# 18: compile-time error
-  const Application2.c11(42); //# 19: compile-time error
-  const Application2.c12(x: 42); //# 20: compile-time error
-  const Application2.c13(42); //# 21: compile-time error
-  const Application2.c14(42); //# 22: compile-time error
-  const Application2.c15(x: 42); //# 23: compile-time error
-
   // Only insert forwarders for generative constructors.
-  new Application(); //# 24: compile-time error
-  new Application2(); //# 25: compile-time error
+  new Application(); //# 12: compile-time error
 }

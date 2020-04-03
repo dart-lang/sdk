@@ -3,7 +3,6 @@ library test;
 // Problems in library:
 //
 // pkg/front_end/testcases/inference/constructors_infer_from_arguments.dart:26:56: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-// Try changing the type of the left hand side, or casting the right hand side to 'int'.
 //   x. /*@target=C::t*/ t = /*error:INVALID_ASSIGNMENT*/ 'hello';
 //                                                        ^
 //
@@ -21,10 +20,9 @@ static method test() → dynamic {
   core::num* y;
   self::C<core::int*>* c_int = new self::C::•<core::int*>(y as{TypeError} core::int*);
   self::C<core::num*>* c_num = new self::C::•<core::num*>(123);
-  self::C<core::num*>* c_num2 = let final self::C<core::num*>* #t1 = new self::C::•<core::num*>(456) in let final core::double* #t2 = #t1.{self::C::t} = 1.0 in #t1;
+  self::C<core::num*>* c_num2 = let final self::C<core::num*>* #t1 = new self::C::•<core::num*>(456) in let final void #t2 = #t1.{self::C::t} = 1.0 in #t1;
   self::C<dynamic>* c_dynamic = new self::C::•<dynamic>(42);
   x.{self::C::t} = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/inference/constructors_infer_from_arguments.dart:26:56: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-Try changing the type of the left hand side, or casting the right hand side to 'int'.
   x. /*@target=C::t*/ t = /*error:INVALID_ASSIGNMENT*/ 'hello';
                                                        ^" in "hello" as{TypeError} core::int*;
 }

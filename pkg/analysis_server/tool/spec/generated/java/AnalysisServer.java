@@ -439,6 +439,8 @@ public interface AnalysisServer {
    *         the client is interested in receiving completion suggestions. If one configured path is
    *         beneath another, the descendent will override the ancestors' configured libraries of
    *         interest.
+   *
+   * @deprecated
    */
   public void completion_registerLibraryPaths(List<LibraryPathSet> paths);
 
@@ -478,11 +480,11 @@ public interface AnalysisServer {
    * those sources. These edits may include changes to sources outside the set of specified sources
    * if a change in a specified source requires it.
    *
-   * If includedFixes is specified, then those fixes will be applied. If includeRequiredFixes is
-   * specified, then "required" fixes will be applied in addition to whatever fixes are specified in
-   * includedFixes if any. If neither includedFixes nor includeRequiredFixes is specified, then all
-   * fixes will be applied. If excludedFixes is specified, then those fixes will not be applied
-   * regardless of whether they are "required" or specified in includedFixes.
+   * If includedFixes is specified, then those fixes will be applied. If includePedanticFixes is
+   * specified, then fixes associated with the pedantic rule set will be applied in addition to
+   * whatever fixes are specified in includedFixes if any. If neither includedFixes nor
+   * includePedanticFixes is specified, then no fixes will be applied. If excludedFixes is specified,
+   * then those fixes will not be applied regardless of whether they are specified in includedFixes.
    *
    * @param included A list of the files and directories for which edits should be suggested. If a
    *         request is made with a path that is invalid, e.g. is not absolute and normalized, an
@@ -493,13 +495,14 @@ public interface AnalysisServer {
    * @param includedFixes A list of names indicating which fixes should be applied. If a name is
    *         specified that does not match the name of a known fix, an error of type UNKNOWN_FIX will
    *         be generated.
-   * @param includePedanticFixes A flag indicating that "pedantic" fixes should be applied.
-   * @param includeRequiredFixes A flag indicating that "required" fixes should be applied.
+   * @param includePedanticFixes A flag indicating whether "pedantic" fixes should be applied.
    * @param excludedFixes A list of names indicating which fixes should not be applied. If a name is
    *         specified that does not match the name of a known fix, an error of type UNKNOWN_FIX will
    *         be generated.
+   * @param port Deprecated: This field is now ignored by server.
+   * @param outputDir Deprecated: This field is now ignored by server.
    */
-  public void edit_dartfix(List<String> included, List<String> includedFixes, boolean includePedanticFixes, boolean includeRequiredFixes, List<String> excludedFixes, DartfixConsumer consumer);
+  public void edit_dartfix(List<String> included, List<String> includedFixes, boolean includePedanticFixes, List<String> excludedFixes, int port, String outputDir, DartfixConsumer consumer);
 
   /**
    * {@code edit.format}
@@ -787,6 +790,9 @@ public interface AnalysisServer {
    * If the location does not have a support widget, an error of type
    * FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET will be generated.
    *
+   * If a change to a file happens while widget descriptions are computed, an error of type
+   * FLUTTER_GET_WIDGET_DESCRIPTION_CONTENT_MODIFIED will be generated.
+   *
    * @param file The file where the widget instance is created.
    * @param offset The offset in the file where the widget instance is created.
    */
@@ -837,7 +843,9 @@ public interface AnalysisServer {
    * @param value The new value to set for the property. If absent, indicates that the property
    *         should be removed. If the property corresponds to an optional parameter, the
    *         corresponding named argument is removed. If the property isRequired is true,
-   *         FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED error is generated.
+   *         FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED error is generated. If the expression is
+   *         not a syntactically valid Dart code, then
+   *         FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION is reported.
    */
   public void flutter_setWidgetPropertyValue(int id, FlutterWidgetPropertyValue value, SetWidgetPropertyValueConsumer consumer);
 

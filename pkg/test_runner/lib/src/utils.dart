@@ -27,8 +27,19 @@ const testPackages = [
   "matcher",
   "meta",
   "path",
-  "stack_trace",
-  "unittest"
+  "stack_trace"
+];
+
+// TODO(nshahan): Grow this list until it matches the list above. We are
+// temporarily using a reduced set of packages in tests until they are compliant
+// or we can simply opt them out of the null safety feature without build
+// errors. This list should be consistent with the build target
+// utils/dartdevc:dartdevc_test_kernel_pkg
+const testPackagesNnbd = [
+  "async_helper",
+  "expect",
+  "js",
+  "meta",
 ];
 
 /// Gets the file extension for a shell script on the host OS.
@@ -91,7 +102,7 @@ class DebugLogger {
 
 String prettifyJson(Object json,
     {int startIndentation = 0, int shiftWidth = 6}) {
-  int currentIndentation = startIndentation;
+  var currentIndentation = startIndentation;
   var buffer = StringBuffer();
 
   String indentationString() {
@@ -162,9 +173,9 @@ bool areByteArraysEqual(
 /// Returns `true` if [pattern] was found in [data].
 int findBytes(List<int> data, List<int> pattern, [int startPos = 0]) {
   // TODO(kustermann): Use one of the fast string-matching algorithms!
-  for (int i = startPos; i < (data.length - pattern.length); i++) {
-    bool found = true;
-    for (int j = 0; j < pattern.length; j++) {
+  for (var i = startPos; i < (data.length - pattern.length); i++) {
+    var found = true;
+    for (var j = 0; j < pattern.length; j++) {
       if (data[i + j] != pattern[j]) {
         found = false;
         break;
@@ -276,7 +287,7 @@ bool deepJsonCompare(Object a, Object b) {
     if (b is List) {
       if (a.length != b.length) return false;
 
-      for (int i = 0; i < a.length; i++) {
+      for (var i = 0; i < a.length; i++) {
         if (!deepJsonCompare(a[i], b[i])) return false;
       }
       return true;
@@ -297,17 +308,6 @@ bool deepJsonCompare(Object a, Object b) {
     throw Exception("Can't compare two non json-like objects "
         "(a: ${a.runtimeType}, b: ${b.runtimeType})");
   }
-}
-
-class UniqueObject {
-  static int _nextId = 1;
-  final int _hashCode;
-
-  int get hashCode => _hashCode;
-  operator ==(Object other) =>
-      other is UniqueObject && _hashCode == other._hashCode;
-
-  UniqueObject() : _hashCode = ++_nextId;
 }
 
 class LastModifiedCache {
@@ -358,10 +358,10 @@ class TestUtils {
     if (relativePath.isAbsolute) {
       base = Path('/');
     }
-    Directory dir = Directory(base.toNativePath());
+    var dir = Directory(base.toNativePath());
     assert(dir.existsSync());
     var segments = relativePath.segments();
-    for (String segment in segments) {
+    for (var segment in segments) {
       base = base.append(segment);
       if (base.toString() == "/$segment" &&
           segment.length == 2 &&
@@ -432,12 +432,10 @@ class TestUtils {
         configuration.compiler == Compiler.dartkb ||
         configuration.compiler == Compiler.dartkp) {
       var checked = configuration.isChecked ? '-checked' : '';
-      var legacy = configuration.noPreviewDart2 ? '-legacy' : '';
       var minified = configuration.isMinified ? '-minified' : '';
       var csp = configuration.isCsp ? '-csp' : '';
       var sdk = configuration.useSdk ? '-sdk' : '';
-      var dirName = "${configuration.compiler.name}"
-          "$checked$legacy$minified$csp$sdk";
+      var dirName = "${configuration.compiler.name}$checked$minified$csp$sdk";
       var generatedPath =
           configuration.buildDirectory + "/generated_compilations/$dirName";
       if (FileSystemEntity.isDirectorySync(generatedPath)) {
@@ -451,10 +449,6 @@ class TestUtils {
   /// If test.py was invoked with '--write-results' it will write
   /// test outcomes to this file in the '--output-directory'.
   static const resultsFileName = "results.json";
-
-  /// If test.py was invoked with '--write-results' it will write
-  /// data about this run of test.py to this file in the '--output-directory'.
-  static const resultsInstanceFileName = "run.json";
 
   /// If test.py was invoked with '--write-results' and '--write-logs", save
   /// the stdout and stderr to this file in the '--output-directory'.

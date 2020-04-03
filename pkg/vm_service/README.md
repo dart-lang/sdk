@@ -1,6 +1,6 @@
 # vm_service
 
-[![pub package](https://img.shields.io/pub/v/vm_service.svg)](https://pub.dartlang.org/packages/vm_service)
+[![pub package](https://img.shields.io/pub/v/vm_service.svg)](https://pub.dev/packages/vm_service)
 
 A library to access the VM Service Protocol.
 

@@ -5,29 +5,19 @@
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 
-/**
- * An object used to provide context information for Dart assist contributors.
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// An object used to provide context information for Dart assist contributors.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class DartAssistContext {
-  /**
-   * The resolution result in which assist operates.
-   */
+  /// The resolution result in which assist operates.
   ResolvedUnitResult get resolveResult;
 
-  /**
-   * The length of the selection.
-   */
+  /// The length of the selection.
   int get selectionLength;
 
-  /**
-   * The start of the selection.
-   */
+  /// The start of the selection.
   int get selectionOffset;
 
-  /**
-   * The workspace in which the fix contributor operates.
-   */
+  /// The workspace in which the fix contributor operates.
   ChangeWorkspace get workspace;
 }

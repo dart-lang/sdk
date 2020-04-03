@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /*member: main:[null]*/
 main() {
   switchWithoutDefault();
@@ -15,7 +17,7 @@ main() {
 // Switch statement without default case.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _switchWithoutDefault:Union([exact=JSUInt31], [null|exact=JSString])*/
+/*member: _switchWithoutDefault:Union(null, [exact=JSString], [exact=JSUInt31])*/
 _switchWithoutDefault(/*[exact=JSUInt31]*/ o) {
   var local;
   switch (o) {
@@ -88,7 +90,7 @@ switchWithDefaultWithoutBreak() {
 // Switch statement with continue.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _switchWithContinue:Union([exact=JSBool], [exact=JSString], [null|exact=JSUInt31])*/
+/*member: _switchWithContinue:Union(null, [exact=JSBool], [exact=JSString], [exact=JSUInt31])*/
 _switchWithContinue(/*[exact=JSUInt31]*/ o) {
   dynamic local;
   switch (o) {
@@ -98,7 +100,7 @@ _switchWithContinue(/*[exact=JSUInt31]*/ o) {
     label:
     case 1:
       local = local
-          . /*Union([exact=JSBool], [exact=JSString], [null|exact=JSUInt31])*/ isEven;
+          . /*Union(null, [exact=JSBool], [exact=JSString], [exact=JSUInt31])*/ isEven;
       break;
     case 2:
     default:

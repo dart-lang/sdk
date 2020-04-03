@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:smith/smith.dart';
 
 import 'compiler_configuration.dart';
+import 'feature.dart';
 import 'path.dart';
 import 'repository.dart';
 import 'runtime_configuration.dart';
@@ -41,7 +42,6 @@ class TestConfiguration {
       this.reportInJson,
       this.resetBrowser,
       this.skipCompilation,
-      this.useKernelBytecode,
       this.writeDebugLog,
       this.writeResults,
       this.writeLogs,
@@ -63,7 +63,6 @@ class TestConfiguration {
       this.keepGeneratedFiles,
       this.sharedOptions,
       String packages,
-      this.packageRoot,
       this.suiteDirectory,
       this.outputDirectory,
       this.reproducingArguments,
@@ -93,7 +92,6 @@ class TestConfiguration {
   final bool reportInJson;
   final bool resetBrowser;
   final bool skipCompilation;
-  final bool useKernelBytecode;
   final bool writeDebugLog;
   final bool writeResults;
   final bool writeLogs;
@@ -104,6 +102,8 @@ class TestConfiguration {
   Mode get mode => configuration.mode;
   Runtime get runtime => configuration.runtime;
   System get system => configuration.system;
+  NnbdMode get nnbdMode => configuration.nnbdMode;
+  Sanitizer get sanitizer => configuration.sanitizer;
 
   // Boolean getters
   bool get hotReload => configuration.useHotReload;
@@ -112,13 +112,12 @@ class TestConfiguration {
   bool get isHostChecked => configuration.isHostChecked;
   bool get isCsp => configuration.isCsp;
   bool get isMinified => configuration.isMinified;
-  bool get noPreviewDart2 => !configuration.previewDart2;
   bool get useAnalyzerCfe => configuration.useAnalyzerCfe;
   bool get useAnalyzerFastaParser => configuration.useAnalyzerFastaParser;
-  bool get useBlobs => configuration.useBlobs;
   bool get useElf => configuration.useElf;
   bool get useSdk => configuration.useSdk;
-  bool get useEnableAsserts => configuration.enableAsserts;
+  bool get enableAsserts => configuration.enableAsserts;
+  bool get useQemu => configuration.useQemu;
 
   // Various file paths.
 
@@ -146,8 +145,22 @@ class TestConfiguration {
   /// Extra dart2js options passed to the testing script.
   List<String> get dart2jsOptions => configuration.dart2jsOptions;
 
+  /// Extra gen_kernel options passed to the testing script.
+  List<String> get genKernelOptions => configuration.genKernelOptions;
+
   /// Extra VM options passed to the testing script.
   List<String> get vmOptions => configuration.vmOptions;
+
+  /// The names of the experiments to enable while running tests.
+  ///
+  /// A test may *require* an experiment to always be enabled by containing a
+  /// comment like:
+  ///
+  ///     // SharedOptions=--enable-experiment=extension-methods
+  ///
+  /// Enabling an experiment here in the configuration allows running the same
+  /// test both with an experiment on and off.
+  List<String> get experiments => configuration.experiments;
 
   /// Extra general options passed to the testing script.
   final List<String> sharedOptions;
@@ -156,15 +169,12 @@ class TestConfiguration {
 
   String get packages {
     // If the .packages file path wasn't given, find it.
-    if (packageRoot == null && _packages == null) {
-      _packages = Repository.uri.resolve('.packages').toFilePath();
-    }
+    _packages ??= Repository.uri.resolve('.packages').toFilePath();
 
     return _packages;
   }
 
   final String outputDirectory;
-  final String packageRoot;
   final String suiteDirectory;
   String get babel => configuration.babel;
   String get builderTag => configuration.builderTag;
@@ -196,7 +206,7 @@ class TestConfiguration {
 
   /// The base directory named for this configuration, like:
   ///
-  ///     none_vm_release_x64
+  ///     ReleaseX64
   String _configurationDirectory;
 
   String get configurationDirectory {
@@ -206,7 +216,7 @@ class TestConfiguration {
 
   /// The build directory path for this configuration, like:
   ///
-  ///     build/none_vm_release_x64
+  ///     build/ReleaseX64
   String get buildDirectory => system.outputDirectory + configurationDirectory;
 
   int _timeout;
@@ -244,7 +254,7 @@ class TestConfiguration {
 
     if (isMinified) args.add("--minify");
     if (isCsp) args.add("--csp");
-    if (useEnableAsserts) args.add("--enable-asserts");
+    if (enableAsserts) args.add("--enable-asserts");
     return args;
   }
 
@@ -336,6 +346,33 @@ class TestConfiguration {
   CompilerConfiguration get compilerConfiguration =>
       _compilerConfiguration ??= CompilerConfiguration(this);
 
+  Set<Feature> _supportedFeatures;
+
+  /// The set of [Feature]s supported by this configuration.
+  Set<Feature> get supportedFeatures {
+    if (_supportedFeatures != null) return _supportedFeatures;
+
+    _supportedFeatures = {};
+    switch (nnbdMode) {
+      case NnbdMode.legacy:
+        _supportedFeatures.add(Feature.nnbdLegacy);
+        break;
+      case NnbdMode.weak:
+        _supportedFeatures.add(Feature.nnbd);
+        _supportedFeatures.add(Feature.nnbdWeak);
+        break;
+      case NnbdMode.strong:
+        _supportedFeatures.add(Feature.nnbd);
+        _supportedFeatures.add(Feature.nnbdStrong);
+        break;
+    }
+
+    // TODO(rnystrom): Define more features for things like "dart:io", separate
+    // int/double representation, etc.
+
+    return _supportedFeatures;
+  }
+
   /// Determines if this configuration has a compatible compiler and runtime
   /// and other valid fields.
   ///
@@ -369,9 +406,10 @@ class TestConfiguration {
         !(architecture == Architecture.ia32 ||
             architecture == Architecture.x64 ||
             architecture == Architecture.arm ||
+            architecture == Architecture.arm_x64 ||
             architecture == Architecture.arm64)) {
       print("Warning: Android only supports the following "
-          "architectures: ia32/x64/arm/arm64.");
+          "architectures: ia32/x64/arm/arm64/arm_x64.");
       isValid = false;
     }
 
@@ -389,8 +427,7 @@ class TestConfiguration {
   /// server for cross-domain tests can be found by calling
   /// `getCrossOriginPortNumber()`.
   Future startServers() {
-    _servers = TestingServers(
-        buildDirectory, isCsp, runtime, null, packageRoot, packages);
+    _servers = TestingServers(buildDirectory, isCsp, runtime, null, packages);
     var future = servers.startServers(localIP,
         port: testServerPort, crossOriginPort: testServerCrossOriginPort);
 
@@ -416,15 +453,28 @@ class TestConfiguration {
   /// build_directory).
   String _calculateDirectory() {
     // Capitalize the mode name.
-    var modeName =
+    var result =
         mode.name.substring(0, 1).toUpperCase() + mode.name.substring(1);
 
-    var os = '';
-    if (system == System.android) os = "Android";
+    if (system == System.android) result += "Android";
+
+    if (sanitizer != Sanitizer.none) {
+      result += sanitizer.name.toUpperCase();
+    }
 
     var arch = architecture.name.toUpperCase();
-    var normal = '$modeName$os$arch';
-    var cross = '$modeName${os}X$arch';
+    var normal = '$result$arch';
+    var cross = '${result}X$arch';
+
+    // TODO(38701): When enabling the NNBD experiment, we need to use the
+    // forked version of the SDK core libraries that have NNBD support. Remove
+    // this once the forked SDK at `<repo>/sdk_nnbd` has been merged back with
+    // `<repo>/sdk`.
+    if (experiments.contains("non-nullable")) {
+      normal += "NNBD";
+      cross += "NNBD";
+    }
+
     var outDir = system.outputDirectory;
     var normalDir = Directory(Path('$outDir$normal').toNativePath());
     var crossDir = Directory(Path('$outDir$cross').toNativePath());
@@ -434,45 +484,7 @@ class TestConfiguration {
           " binary to use.";
     }
 
-    if (crossDir.existsSync()) return cross;
-
-    return normal;
-  }
-
-  Map _summaryMap;
-
-  /// [toSummaryMap] returns a map of configurations important to the running
-  /// of a test. Flags and properties used for output are not included.
-  /// The summary map can be used to serialize to json for test-output logging.
-  Map toSummaryMap() {
-    return _summaryMap ??= {
-      'mode': mode.name,
-      'arch': architecture.name,
-      'compiler': compiler.name,
-      'runtime': runtime.name,
-      'checked': isChecked,
-      'host_checked': isHostChecked,
-      'minified': isMinified,
-      'csp': isCsp,
-      'system': system.name,
-      'vm_options': vmOptions,
-      'dart2js_options': dart2jsOptions,
-      'fasta': usesFasta,
-      'use_sdk': useSdk,
-      'builder_tag': builderTag,
-      'timeout': timeout,
-      'no_preview_dart_2': noPreviewDart2,
-      'use_cfe': useAnalyzerCfe,
-      'analyzer_use_fasta_parser': useAnalyzerFastaParser,
-      'enable_asserts': useEnableAsserts,
-      'hot_reload': hotReload,
-      'hot_reload_rollback': hotReloadRollback,
-      'batch': batch,
-      'batch_dart2js': batchDart2JS,
-      'reset_browser_configuration': resetBrowser,
-      'selectors': selectors.keys.toList(),
-      'use_kernel_bytecode': useKernelBytecode,
-    };
+    return crossDir.existsSync() ? cross : normal;
   }
 }
 

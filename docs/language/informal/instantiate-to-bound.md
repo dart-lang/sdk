@@ -4,7 +4,7 @@
 
 **Version**: 0.10 (2018-10-31)
 
-**Status**: Implemented.
+**Status**: Background material, normative language now in dartLangSpec.tex.
 
 Based on [this description](https://github.com/dart-lang/sdk/issues/27526#issuecomment-260021397) by leafp@.
 

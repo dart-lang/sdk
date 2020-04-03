@@ -6,89 +6,115 @@ import "dart:convert";
 import "dart:io";
 
 import "package:expect/expect.dart";
+import 'package:path/path.dart' as path;
 import "package:vm/v8_snapshot_profile.dart";
 
-String path(List<String> segments) {
-  return "/" + segments.join("/");
-}
+import 'use_flag_test_helper.dart';
 
-test(String sdkRoot, {bool useElf: false}) async {
-  if (Platform.isMacOS && useElf) return;
+test(
+    {String dillPath,
+    bool useAsm,
+    bool useBare,
+    bool stripFlag,
+    bool stripUtil}) async {
+  // The assembler may add extra unnecessary information to the compiled
+  // snapshot whether or not we generate DWARF information in the assembly, so
+  // we force the use of a utility when generating assembly.
+  if (useAsm) Expect.isTrue(stripUtil);
 
-  // Generate the snapshot profile.
-  final String thisTestPath =
-      "$sdkRoot/runtime/tests/vm/dart/v8_snapshot_profile_writer_test.dart";
+  // We must strip the output in some way when generating ELF snapshots,
+  // else the debugging information added will cause the test to fail.
+  if (!stripUtil) Expect.isTrue(stripFlag);
 
-  final Directory temp = await Directory.systemTemp.createTemp();
-  final String snapshotPath = temp.path + "/test.snap";
+  final tempDirPrefix = 'v8-snapshot-profile' +
+      (useAsm ? '-assembly' : '-elf') +
+      (useBare ? '-bare' : '-nonbare') +
+      (stripFlag ? '-intstrip' : '') +
+      (stripUtil ? '-extstrip' : '');
 
-  final List<String> precompiler2Args = [
-    "--write-v8-snapshot-profile-to=${temp.path}/profile.heapsnapshot",
-    thisTestPath,
-    snapshotPath,
-  ];
+  await withTempDir(tempDirPrefix, (String tempDir) async {
+    // Generate the snapshot profile.
+    final profilePath = path.join(tempDir, 'profile.heapsnapshot');
+    final snapshotPath = path.join(tempDir, 'test.snap');
+    final commonSnapshotArgs = [
+      if (stripFlag) '--strip',
+      useBare ? '--use-bare-instructions' : '--no-use-bare-instructions',
+      "--write-v8-snapshot-profile-to=$profilePath",
+      // Regression test for dartbug.com/41149. We don't assume forced
+      // disassembler support in Product mode.
+      if (!const bool.fromEnvironment('dart.vm.product'))
+        '--disassemble',
+      '--ignore-unrecognized-flags',
+      dillPath,
+    ];
 
-  if (useElf) {
-    precompiler2Args.insert(0, "--build-elf");
-  }
+    if (useAsm) {
+      final assemblyPath = path.join(tempDir, 'test.S');
 
-  final ProcessResult result = await Process.run(
-    "pkg/vm/tool/precompiler2",
-    precompiler2Args,
-    workingDirectory: sdkRoot,
-    runInShell: true,
-  );
+      await run(genSnapshot, <String>[
+        '--snapshot-kind=app-aot-assembly',
+        '--assembly=$assemblyPath',
+        ...commonSnapshotArgs,
+      ]);
 
-  // The precompiler2 script tried using GCC for the wrong architecture. We
-  // don't have a workaround for this now.
-  if (useElf &&
-      result.exitCode != 0 &&
-      result.stderr.contains("Assembler messages")) {
-    return;
-  }
-
-  print(precompiler2Args);
-  print(result.stderr);
-  print(result.stdout);
-
-  Expect.equals(result.exitCode, 0);
-  Expect.equals(result.stderr, "");
-  Expect.equals(result.stdout, "");
-
-  final V8SnapshotProfile profile = V8SnapshotProfile.fromJson(JsonDecoder()
-      .convert(File("${temp.path}/profile.heapsnapshot").readAsStringSync()));
-
-  // Verify that there are no "unknown" nodes. These are emitted when we see a
-  // reference to an some object but no other metadata about the object was
-  // recorded. We should at least record the type for every object in the graph
-  // (in some cases the shallow size can legitimately be 0, e.g. for "base
-  // objects").
-  for (final int node in profile.nodes) {
-    if (profile[node].type == "Unknown") {
-      print(profile[node].id);
+      await assembleSnapshot(assemblyPath, snapshotPath);
+    } else {
+      await run(genSnapshot, <String>[
+        '--snapshot-kind=app-aot-elf',
+        '--elf=$snapshotPath',
+        ...commonSnapshotArgs,
+      ]);
     }
-    Expect.notEquals(profile[node].type, "Unknown");
-  }
 
-  // Verify that all nodes are reachable from the declared roots.
-  int unreachableNodes = 0;
-  Set<int> nodesReachableFromRoots = profile.preOrder(profile.root).toSet();
-  for (final int node in profile.nodes) {
-    if (!nodesReachableFromRoots.contains(node)) {
-      ++unreachableNodes;
+    String strippedPath;
+    if (stripUtil) {
+      strippedPath = snapshotPath + '.stripped';
+      await stripSnapshot(snapshotPath, strippedPath, forceElf: !useAsm);
+    } else {
+      strippedPath = snapshotPath;
     }
-  }
-  Expect.equals(unreachableNodes, 0);
 
-  // Verify that the actual size of the snapshot is close to the sum of the
-  // shallow sizes of all objects in the profile. They will not be exactly equal
-  // because of global headers and padding.
-  if (useElf) {
-    await Process.run("strip", [snapshotPath]);
-  }
-  final int actual = await File(snapshotPath).length();
-  final int expected = profile.accountedBytes;
-  Expect.isTrue((actual - expected).abs() / actual < 0.01);
+    final V8SnapshotProfile profile = V8SnapshotProfile.fromJson(
+        JsonDecoder().convert(File(profilePath).readAsStringSync()));
+
+    // Verify that there are no "unknown" nodes. These are emitted when we see a
+    // reference to an some object but no other metadata about the object was
+    // recorded. We should at least record the type for every object in the
+    // graph (in some cases the shallow size can legitimately be 0, e.g. for
+    // "base objects").
+    for (final int node in profile.nodes) {
+      Expect.notEquals("Unknown", profile[node].type,
+          "unknown node at ID ${profile[node].id}");
+    }
+
+    // Verify that all nodes are reachable from the declared roots.
+    int unreachableNodes = 0;
+    Set<int> nodesReachableFromRoots = profile.preOrder(profile.root).toSet();
+    for (final int node in profile.nodes) {
+      Expect.isTrue(nodesReachableFromRoots.contains(node),
+          "unreachable node at ID ${profile[node].id}");
+    }
+
+    // Verify that the actual size of the snapshot is close to the sum of the
+    // shallow sizes of all objects in the profile. They will not be exactly
+    // equal because of global headers and padding.
+    final actual = await File(strippedPath).length();
+    final expected = profile.accountedBytes;
+
+    final bareUsed = useBare ? "bare" : "non-bare";
+    final fileType = useAsm ? "assembly" : "ELF";
+    String stripPrefix = "";
+    if (stripFlag && stripUtil) {
+      stripPrefix = "internally and externally stripped ";
+    } else if (stripFlag) {
+      stripPrefix = "internally stripped ";
+    } else if (stripUtil) {
+      stripPrefix = "externally stripped ";
+    }
+
+    Expect.approxEquals(expected, actual, 0.03 * actual,
+        "failed on $bareUsed $stripPrefix$fileType snapshot type.");
+  });
 }
 
 Match matchComplete(RegExp regexp, String line) {
@@ -101,14 +127,15 @@ Match matchComplete(RegExp regexp, String line) {
 // All fields of "Raw..." classes defined in "raw_object.h" must be included in
 // the giant macro in "raw_object_fields.cc". This function attempts to check
 // that with some basic regexes.
-testMacros(String sdkRoot) async {
+testMacros() async {
   const String className = "([a-z0-9A-Z]+)";
   const String rawClass = "Raw$className";
   const String fieldName = "([a-z0-9A-Z_]+)";
 
   final Map<String, Set<String>> fields = {};
 
-  final String rawObjectFieldsPath = "$sdkRoot/runtime/vm/raw_object_fields.cc";
+  final String rawObjectFieldsPath =
+      path.join(sdkDir, 'runtime', 'vm', 'raw_object_fields.cc');
   final RegExp fieldEntry = RegExp(" *F\\($className, $fieldName\\) *\\\\?");
 
   await for (String line in File(rawObjectFieldsPath)
@@ -128,7 +155,8 @@ testMacros(String sdkRoot) async {
   final RegExp classEnd = RegExp("}");
   final RegExp field = RegExp("  $rawClass. +$fieldName;.*");
 
-  final String rawObjectPath = "$sdkRoot/runtime/vm/raw_object.h";
+  final String rawObjectPath =
+      path.join(sdkDir, 'runtime', 'vm', 'raw_object.h');
 
   String currentClass;
   bool hasMissingFields = false;
@@ -164,21 +192,111 @@ testMacros(String sdkRoot) async {
   }
 
   if (hasMissingFields) {
-    Expect.fail(
-        "runtime/vm/raw_object_fields.cc misses some fields. Please update it to match raw_object.h.");
+    Expect.fail("$rawObjectFieldsPath is missing some fields. "
+        "Please update it to match $rawObjectPath.");
   }
 }
 
 main() async {
-  if (Platform.isWindows) return;
+  void printSkip(String description) =>
+      print('Skipping $description for ${path.basename(buildDir)} '
+              'on ${Platform.operatingSystem}' +
+          (clangBuildToolsDir == null ? ' without //buildtools' : ''));
 
-  final List<String> sdkBaseSegments =
-      Uri.file(Platform.resolvedExecutable).pathSegments.toList();
-  sdkBaseSegments
-      .replaceRange(sdkBaseSegments.length - 3, sdkBaseSegments.length, []);
-  String sdkRoot = path(sdkBaseSegments);
+  // We don't have access to the SDK on Android.
+  if (Platform.isAndroid) {
+    printSkip('all tests');
+    return;
+  }
 
-  test(sdkRoot, useElf: false);
-  test(sdkRoot, useElf: true);
-  testMacros(sdkRoot);
+  await testMacros();
+
+  await withTempDir('v8-snapshot-profile-writer', (String tempDir) async {
+    // We only need to generate the dill file once.
+    final _thisTestPath = path.join(sdkDir, 'runtime', 'tests', 'vm', 'dart',
+        'v8_snapshot_profile_writer_test.dart');
+    final dillPath = path.join(tempDir, 'test.dill');
+    await run(genKernel, <String>[
+      '--aot',
+      '--platform',
+      platformDill,
+      '-o',
+      dillPath,
+      _thisTestPath
+    ]);
+
+    // Test stripped ELF generation directly.
+    await test(
+        dillPath: dillPath,
+        stripFlag: true,
+        stripUtil: false,
+        useAsm: false,
+        useBare: false);
+    await test(
+        dillPath: dillPath,
+        stripFlag: true,
+        stripUtil: false,
+        useAsm: false,
+        useBare: true);
+
+    // We neither generate assembly nor have a stripping utility on Windows.
+    if (Platform.isWindows) {
+      printSkip('external stripping and assembly tests');
+      return;
+    }
+
+    // The native strip utility on Mac OS X doesn't recognize ELF files.
+    if (Platform.isMacOS && clangBuildToolsDir == null) {
+      printSkip('ELF external stripping test');
+    } else {
+      // Test unstripped ELF generation that is then stripped externally.
+      await test(
+          dillPath: dillPath,
+          stripFlag: false,
+          stripUtil: true,
+          useAsm: false,
+          useBare: false);
+      await test(
+          dillPath: dillPath,
+          stripFlag: false,
+          stripUtil: true,
+          useAsm: false,
+          useBare: true);
+    }
+
+    // TODO(sstrickl): Currently we can't assemble for SIMARM64 on MacOSX.
+    // For example, the test runner still uses blobs for dartkp-mac-*-simarm64.
+    // Change assembleSnapshot and remove this check when we can.
+    if (Platform.isMacOS && buildDir.endsWith('SIMARM64')) {
+      printSkip('assembly tests');
+      return;
+    }
+
+    // Test stripped assembly generation that is then compiled and stripped.
+    await test(
+        dillPath: dillPath,
+        stripFlag: true,
+        stripUtil: true,
+        useAsm: true,
+        useBare: false);
+    await test(
+        dillPath: dillPath,
+        stripFlag: true,
+        stripUtil: true,
+        useAsm: true,
+        useBare: true);
+    // Test unstripped assembly generation that is then compiled and stripped.
+    await test(
+        dillPath: dillPath,
+        stripFlag: false,
+        stripUtil: true,
+        useAsm: true,
+        useBare: false);
+    await test(
+        dillPath: dillPath,
+        stripFlag: false,
+        stripUtil: true,
+        useAsm: true,
+        useBare: true);
+  });
 }

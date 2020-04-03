@@ -4,7 +4,6 @@
 
 library main;
 
-//@MirrorsUsed(targets: const ['C1', 'C2', '_privateGlobalField', '_privateGlobalMethod'])
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 import 'private_symbol_mangling_lib.dart';

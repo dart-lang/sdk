@@ -1,0 +1,54 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/spread_collection.dart:23:21: Error: Not enough type information to disambiguate between literal set and literal map.
+// Try providing type arguments for the literal explicitly to disambiguate it.
+//   final aSetOrMap = {...foo()};
+//                     ^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+static method main() → dynamic {
+  final core::List<core::int*>* aList = block {
+    final core::List<core::int*>* #t1 = <core::int*>[];
+    #t1.{core::List::add}(1);
+    for (final core::int* #t2 in <core::int*>[2])
+      #t1.{core::List::add}(#t2);
+    final core::Iterable<core::int*>* #t3 = <core::int*>[3];
+    if(!#t3.{core::Object::==}(null))
+      for (final core::int* #t4 in #t3)
+        #t1.{core::List::add}(#t4);
+  } =>#t1;
+  final core::Map<core::int*, core::int*>* aMap = block {
+    final core::Map<core::int*, core::int*>* #t5 = <core::int*, core::int*>{};
+    #t5.{core::Map::[]=}(1, 1);
+    for (final core::MapEntry<core::int*, core::int*>* #t6 in <core::int*, core::int*>{2: 2}.{core::Map::entries})
+      #t5.{core::Map::[]=}(#t6.{core::MapEntry::key}, #t6.{core::MapEntry::value});
+    final core::Map<core::int*, core::int*>* #t7 = <core::int*, core::int*>{3: 3};
+    if(!#t7.{core::Object::==}(null))
+      for (final core::MapEntry<core::int*, core::int*>* #t8 in #t7.{core::Map::entries})
+        #t5.{core::Map::[]=}(#t8.{core::MapEntry::key}, #t8.{core::MapEntry::value});
+  } =>#t5;
+  final core::Set<core::int*>* aSet = block {
+    final core::Set<core::int*>* #t9 = col::LinkedHashSet::•<core::int*>();
+    #t9.{core::Set::add}(1);
+    for (final core::int* #t10 in <core::int*>[2])
+      #t9.{core::Set::add}(#t10);
+    final core::Iterable<core::int*>* #t11 = <core::int*>[3];
+    if(!#t11.{core::Object::==}(null))
+      for (final core::int* #t12 in #t11)
+        #t9.{core::Set::add}(#t12);
+  } =>#t9;
+  final dynamic aSetOrMap = invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/spread_collection.dart:23:21: Error: Not enough type information to disambiguate between literal set and literal map.
+Try providing type arguments for the literal explicitly to disambiguate it.
+  final aSetOrMap = {...foo()};
+                    ^";
+  core::print(aList);
+  core::print(aSet);
+  core::print(aMap);
+}
+static method foo() → dynamic
+  return null;

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
@@ -102,6 +104,11 @@ class TypeTextVisitor implements ir.DartTypeVisitor1<void, StringBuffer> {
   @override
   void visitBottomType(ir.BottomType node, StringBuffer sb) {
     sb.write('<bottom>');
+  }
+
+  @override
+  void visitNeverType(ir.NeverType node, StringBuffer sb) {
+    sb.write('Never');
   }
 
   @override

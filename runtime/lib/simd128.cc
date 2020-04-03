@@ -18,13 +18,11 @@ static void ThrowMaskRangeException(int64_t m) {
   }
 }
 
-DEFINE_NATIVE_ENTRY(Float32x4_fromDoubles, 0, 5) {
-  ASSERT(
-      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0)).IsNull());
-  GET_NON_NULL_NATIVE_ARGUMENT(Double, x, arguments->NativeArgAt(1));
-  GET_NON_NULL_NATIVE_ARGUMENT(Double, y, arguments->NativeArgAt(2));
-  GET_NON_NULL_NATIVE_ARGUMENT(Double, z, arguments->NativeArgAt(3));
-  GET_NON_NULL_NATIVE_ARGUMENT(Double, w, arguments->NativeArgAt(4));
+DEFINE_NATIVE_ENTRY(Float32x4_fromDoubles, 0, 4) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Double, x, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Double, y, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Double, z, arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(Double, w, arguments->NativeArgAt(3));
   float _x = static_cast<float>(x.value());
   float _y = static_cast<float>(y.value());
   float _z = static_cast<float>(z.value());
@@ -32,10 +30,8 @@ DEFINE_NATIVE_ENTRY(Float32x4_fromDoubles, 0, 5) {
   return Float32x4::New(_x, _y, _z, _w);
 }
 
-DEFINE_NATIVE_ENTRY(Float32x4_splat, 0, 2) {
-  ASSERT(
-      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0)).IsNull());
-  GET_NON_NULL_NATIVE_ARGUMENT(Double, v, arguments->NativeArgAt(1));
+DEFINE_NATIVE_ENTRY(Float32x4_splat, 0, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Double, v, arguments->NativeArgAt(0));
   float _v = v.value();
   return Float32x4::New(_v, _v, _v, _v);
 }
@@ -193,14 +189,31 @@ DEFINE_NATIVE_ENTRY(Float32x4_clamp, 0, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, hi, arguments->NativeArgAt(2));
   // The order of the clamping must match the order of the optimized code:
   // MAX(MIN(self, hi), lo).
-  float _x = self.x() < hi.x() ? self.x() : hi.x();
-  float _y = self.y() < hi.y() ? self.y() : hi.y();
-  float _z = self.z() < hi.z() ? self.z() : hi.z();
-  float _w = self.w() < hi.w() ? self.w() : hi.w();
-  _x = _x < lo.x() ? lo.x() : _x;
-  _y = _y < lo.y() ? lo.y() : _y;
-  _z = _z < lo.z() ? lo.z() : _z;
-  _w = _w < lo.w() ? lo.w() : _w;
+  float _x;
+  float _y;
+  float _z;
+  float _w;
+  // ARM semantics are different from X86/X64 at an instruction level. Ensure
+  // that we match the semantics of the architecture in the C version.
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+  _x = self.x() < hi.x() ? self.x() : hi.x();
+  _y = self.y() < hi.y() ? self.y() : hi.y();
+  _z = self.z() < hi.z() ? self.z() : hi.z();
+  _w = self.w() < hi.w() ? self.w() : hi.w();
+  _x = lo.x() < _x ? _x : lo.x();
+  _y = lo.y() < _y ? _y : lo.y();
+  _z = lo.z() < _z ? _z : lo.z();
+  _w = lo.w() < _w ? _w : lo.w();
+#else
+  _x = fminf(self.x(), hi.x());
+  _y = fminf(self.y(), hi.y());
+  _z = fminf(self.z(), hi.z());
+  _w = fminf(self.w(), hi.w());
+  _x = fmaxf(_x, lo.x());
+  _y = fmaxf(_y, lo.y());
+  _z = fmaxf(_z, lo.z());
+  _w = fmaxf(_w, lo.w());
+#endif
   return Float32x4::New(_x, _y, _z, _w);
 }
 
@@ -363,13 +376,11 @@ DEFINE_NATIVE_ENTRY(Float32x4_reciprocalSqrt, 0, 1) {
   return Float32x4::New(_x, _y, _z, _w);
 }
 
-DEFINE_NATIVE_ENTRY(Int32x4_fromInts, 0, 5) {
-  ASSERT(
-      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0)).IsNull());
-  GET_NON_NULL_NATIVE_ARGUMENT(Integer, x, arguments->NativeArgAt(1));
-  GET_NON_NULL_NATIVE_ARGUMENT(Integer, y, arguments->NativeArgAt(2));
-  GET_NON_NULL_NATIVE_ARGUMENT(Integer, z, arguments->NativeArgAt(3));
-  GET_NON_NULL_NATIVE_ARGUMENT(Integer, w, arguments->NativeArgAt(4));
+DEFINE_NATIVE_ENTRY(Int32x4_fromInts, 0, 4) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, x, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, y, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, z, arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, w, arguments->NativeArgAt(3));
   int32_t _x = static_cast<int32_t>(x.AsTruncatedUint32Value());
   int32_t _y = static_cast<int32_t>(y.AsTruncatedUint32Value());
   int32_t _z = static_cast<int32_t>(z.AsTruncatedUint32Value());
@@ -377,13 +388,11 @@ DEFINE_NATIVE_ENTRY(Int32x4_fromInts, 0, 5) {
   return Int32x4::New(_x, _y, _z, _w);
 }
 
-DEFINE_NATIVE_ENTRY(Int32x4_fromBools, 0, 5) {
-  ASSERT(
-      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0)).IsNull());
-  GET_NON_NULL_NATIVE_ARGUMENT(Bool, x, arguments->NativeArgAt(1));
-  GET_NON_NULL_NATIVE_ARGUMENT(Bool, y, arguments->NativeArgAt(2));
-  GET_NON_NULL_NATIVE_ARGUMENT(Bool, z, arguments->NativeArgAt(3));
-  GET_NON_NULL_NATIVE_ARGUMENT(Bool, w, arguments->NativeArgAt(4));
+DEFINE_NATIVE_ENTRY(Int32x4_fromBools, 0, 4) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Bool, x, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Bool, y, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Bool, z, arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(Bool, w, arguments->NativeArgAt(3));
   int32_t _x = x.value() ? 0xFFFFFFFF : 0x0;
   int32_t _y = y.value() ? 0xFFFFFFFF : 0x0;
   int32_t _z = z.value() ? 0xFFFFFFFF : 0x0;
@@ -640,18 +649,14 @@ DEFINE_NATIVE_ENTRY(Int32x4_select, 0, 3) {
   return Float32x4::New(tempX.f, tempY.f, tempZ.f, tempW.f);
 }
 
-DEFINE_NATIVE_ENTRY(Float64x2_fromDoubles, 0, 3) {
-  ASSERT(
-      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0)).IsNull());
-  GET_NON_NULL_NATIVE_ARGUMENT(Double, x, arguments->NativeArgAt(1));
-  GET_NON_NULL_NATIVE_ARGUMENT(Double, y, arguments->NativeArgAt(2));
+DEFINE_NATIVE_ENTRY(Float64x2_fromDoubles, 0, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Double, x, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Double, y, arguments->NativeArgAt(1));
   return Float64x2::New(x.value(), y.value());
 }
 
-DEFINE_NATIVE_ENTRY(Float64x2_splat, 0, 2) {
-  ASSERT(
-      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0)).IsNull());
-  GET_NON_NULL_NATIVE_ARGUMENT(Double, v, arguments->NativeArgAt(1));
+DEFINE_NATIVE_ENTRY(Float64x2_splat, 0, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Double, v, arguments->NativeArgAt(0));
   return Float64x2::New(v.value(), v.value());
 }
 
@@ -731,10 +736,22 @@ DEFINE_NATIVE_ENTRY(Float64x2_clamp, 0, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, hi, arguments->NativeArgAt(2));
   // The order of the clamping must match the order of the optimized code:
   // MAX(MIN(self, hi), lo).
-  double _x = self.x() < hi.x() ? self.x() : hi.x();
-  double _y = self.y() < hi.y() ? self.y() : hi.y();
-  _x = _x < lo.x() ? lo.x() : _x;
-  _y = _y < lo.y() ? lo.y() : _y;
+  double _x;
+  double _y;
+
+  // ARM semantics are different from X86/X64 at an instruction level. Ensure
+  // that we match the semantics of the architecture in the C version.
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+  _x = self.x() < hi.x() ? self.x() : hi.x();
+  _y = self.y() < hi.y() ? self.y() : hi.y();
+  _x = lo.x() < _x ? _x : lo.x();
+  _y = lo.y() < _y ? _y : lo.y();
+#else
+  _x = fmin(self.x(), hi.x());
+  _y = fmin(self.y(), hi.y());
+  _x = fmax(_x, lo.x());
+  _y = fmax(_y, lo.y());
+#endif
   return Float64x2::New(_x, _y);
 }
 

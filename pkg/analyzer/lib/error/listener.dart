@@ -4,14 +4,16 @@
 
 import 'dart:collection';
 
-import 'package:analyzer/dart/ast/ast.dart' show AstNode;
+import 'package:_fe_analyzer_shared/src/messages/codes.dart' show Message;
+import 'package:analyzer/dart/ast/ast.dart'
+    show AstNode, ConstructorDeclaration;
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:front_end/src/fasta/fasta_codes.dart' show Message;
 import 'package:source_span/source_span.dart';
 
 /**
@@ -22,7 +24,7 @@ abstract class AnalysisErrorListener {
   /**
    * An error listener that ignores errors that are reported to it.
    */
-  static final AnalysisErrorListener NULL_LISTENER = new _NullErrorListener();
+  static final AnalysisErrorListener NULL_LISTENER = _NullErrorListener();
 
   /**
    * This method is invoked when an [error] has been found by the analysis
@@ -68,6 +70,11 @@ class ErrorReporter {
   final Source _defaultSource;
 
   /**
+   * Is `true` if the library being analyzed is non-nullable by default.
+   */
+  final bool isNonNullableByDefault;
+
+  /**
    * The source to be used when reporting errors.
    */
   Source _source;
@@ -77,11 +84,12 @@ class ErrorReporter {
    * given [_errorListener]. Errors will be reported against the
    * [_defaultSource] unless another source is provided later.
    */
-  ErrorReporter(this._errorListener, this._defaultSource) {
+  ErrorReporter(this._errorListener, this._defaultSource,
+      {this.isNonNullableByDefault = false}) {
     if (_errorListener == null) {
-      throw new ArgumentError("An error listener must be provided");
+      throw ArgumentError("An error listener must be provided");
     } else if (_defaultSource == null) {
-      throw new ArgumentError("A default source must be provided");
+      throw ArgumentError("A default source must be provided");
     }
     this._source = _defaultSource;
   }
@@ -92,7 +100,8 @@ class ErrorReporter {
    * Set the source to be used when reporting errors to the given [source].
    * Setting the source to `null` will cause the default source to be used.
    */
-  void set source(Source source) {
+  @Deprecated('Create separate reporters for separate files')
+  set source(Source source) {
     this._source = source ?? _defaultSource;
   }
 
@@ -109,24 +118,29 @@ class ErrorReporter {
    */
   void reportErrorForElement(ErrorCode errorCode, Element element,
       [List<Object> arguments]) {
-    int length = 0;
-    if (element is ImportElement) {
-      length = 6; // 'import'.length
-    } else if (element is ExportElement) {
-      length = 6; // 'export'.length
+    reportErrorForOffset(
+        errorCode, element.nameOffset, element.nameLength, arguments);
+  }
+
+  /// Report a diagnostic with the given [code] and [arguments]. The
+  /// location of the diagnostic will be the name of the [constructor].
+  void reportErrorForName(ErrorCode code, ConstructorDeclaration constructor,
+      {List<Object> arguments}) {
+    // TODO(brianwilkerson) Consider extending this method to take any
+    //  declaration and compute the correct range for the name of that
+    //  declaration. This might make it easier to be consistent.
+    if (constructor.name != null) {
+      var offset = constructor.returnType.offset;
+      reportErrorForOffset(
+          code, offset, constructor.name.end - offset, arguments);
     } else {
-      length = element.nameLength;
+      reportErrorForNode(code, constructor.returnType, arguments);
     }
-    reportErrorForOffset(errorCode, element.nameOffset, length, arguments);
   }
 
   /**
    * Report an error with the given [errorCode] and [arguments].
    * The [node] is used to compute the location of the error.
-   *
-   * If the arguments contain the names of two or more types, the method
-   * [reportTypeErrorForNode] should be used and the types
-   * themselves (rather than their names) should be passed as arguments.
    */
   void reportErrorForNode(ErrorCode errorCode, AstNode node,
       [List<Object> arguments]) {
@@ -139,8 +153,10 @@ class ErrorReporter {
    */
   void reportErrorForOffset(ErrorCode errorCode, int offset, int length,
       [List<Object> arguments]) {
+    _convertElements(arguments);
+    var messages = _convertTypeNames(arguments);
     _errorListener.onError(
-        new AnalysisError(_source, offset, length, errorCode, arguments));
+        AnalysisError(_source, offset, length, errorCode, arguments, messages));
   }
 
   /**
@@ -167,7 +183,7 @@ class ErrorReporter {
    */
   void reportErrorMessage(
       ErrorCode errorCode, int offset, int length, Message message) {
-    _errorListener.onError(new AnalysisError.forValues(
+    _errorListener.onError(AnalysisError.forValues(
         _source, offset, length, errorCode, message.message, message.tip));
   }
 
@@ -182,10 +198,26 @@ class ErrorReporter {
    * If there are not two or more types in the argument list, the method
    * [reportErrorForNode] should be used instead.
    */
+  @Deprecated('Use reportErrorForNode(), it will convert types as well')
   void reportTypeErrorForNode(
       ErrorCode errorCode, AstNode node, List<Object> arguments) {
-    _convertTypeNames(arguments);
     reportErrorForOffset(errorCode, node.offset, node.length, arguments);
+  }
+
+  /// Convert all [Element]s in the [arguments] into their display strings.
+  void _convertElements(List<Object> arguments) {
+    if (arguments == null) {
+      return;
+    }
+
+    for (var i = 0; i < arguments.length; i++) {
+      var argument = arguments[i];
+      if (argument is Element) {
+        arguments[i] = argument.getDisplayString(
+          withNullability: isNonNullableByDefault,
+        );
+      }
+    }
   }
 
   /**
@@ -195,28 +227,22 @@ class ErrorReporter {
    * case the extended display names of the types will be used in order to
    * clarify the message.
    */
-  void _convertTypeNames(List<Object> arguments) {
-    String computeDisplayName(DartType type) {
-      if (type is FunctionType) {
-        String name = type.name;
-        if (name != null && name.isNotEmpty) {
-          StringBuffer buffer = new StringBuffer();
-          buffer.write(name);
-          (type as TypeImpl).appendTo(buffer, new Set.identity());
-          return buffer.toString();
-        }
-      }
-      return type.displayName;
+  List<DiagnosticMessage> _convertTypeNames(List<Object> arguments) {
+    var messages = <DiagnosticMessage>[];
+    if (arguments == null) {
+      return messages;
     }
 
     Map<String, List<_TypeToConvert>> typeGroups = {};
     for (int i = 0; i < arguments.length; i++) {
       Object argument = arguments[i];
       if (argument is DartType) {
-        String displayName = computeDisplayName(argument);
+        String displayName = argument.getDisplayString(
+          withNullability: isNonNullableByDefault,
+        );
         List<_TypeToConvert> types =
             typeGroups.putIfAbsent(displayName, () => <_TypeToConvert>[]);
-        types.add(new _TypeToConvert(i, argument, displayName));
+        types.add(_TypeToConvert(i, argument, displayName));
       }
     }
     for (List<_TypeToConvert> typeGroup in typeGroups.values) {
@@ -229,27 +255,31 @@ class ErrorReporter {
         Map<String, Set<Element>> nameToElementMap = {};
         for (_TypeToConvert typeToConvert in typeGroup) {
           for (Element element in typeToConvert.allElements()) {
-            Set<Element> elements = nameToElementMap.putIfAbsent(
-                element.name, () => new Set<Element>());
+            Set<Element> elements =
+                nameToElementMap.putIfAbsent(element.name, () => <Element>{});
             elements.add(element);
           }
         }
         for (_TypeToConvert typeToConvert in typeGroup) {
-          // TODO(brianwilkerson) When analyzer supports info or context
-          //  messages, expose the additional information that way (rather
-          //  than being poorly inserted into the problem message).
+          // TODO(brianwilkerson) When clients do a better job of displaying
+          // context messages, remove the extra text added to the buffer.
           StringBuffer buffer;
           for (Element element in typeToConvert.allElements()) {
             String name = element.name;
             if (nameToElementMap[name].length > 1) {
               if (buffer == null) {
-                buffer = new StringBuffer();
+                buffer = StringBuffer();
                 buffer.write('where ');
               } else {
                 buffer.write(', ');
               }
               buffer.write('$name is defined in ${element.source.fullName}');
             }
+            messages.add(DiagnosticMessageImpl(
+                filePath: element.source.fullName,
+                length: element.nameLength,
+                message: '$name is defined in ${element.source.fullName}',
+                offset: element.nameOffset));
           }
 
           if (buffer != null) {
@@ -261,6 +291,7 @@ class ErrorReporter {
         }
       }
     }
+    return messages;
   }
 }
 
@@ -293,7 +324,7 @@ class RecordingErrorListener implements AnalysisErrorListener {
 
   @override
   void onError(AnalysisError error) {
-    _errors ??= new HashSet<AnalysisError>();
+    _errors ??= HashSet<AnalysisError>();
     _errors.add(error);
   }
 }
@@ -323,7 +354,7 @@ class _TypeToConvert {
 
   List<Element> allElements() {
     if (_allElements == null) {
-      Set<Element> elements = new Set<Element>();
+      Set<Element> elements = <Element>{};
 
       void addElementsFrom(DartType type) {
         if (type is FunctionType) {

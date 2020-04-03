@@ -11,6 +11,7 @@ class AllocationProfile implements M.AllocationProfile {
   final DateTime lastAccumulatorReset;
   final S.HeapSpace newSpace;
   final S.HeapSpace oldSpace;
+  final S.HeapSpace totalSpace;
   final Iterable<M.ClassHeapStats> members;
 
   AllocationProfile(S.ServiceMap map, {Map/*<String, List<String>>*/ defaults})
@@ -18,7 +19,11 @@ class AllocationProfile implements M.AllocationProfile {
         lastServiceGC = _intString2DateTime(map[_lastServiceGC]),
         oldSpace = new S.HeapSpace()..update(map['_heaps']['old']),
         newSpace = new S.HeapSpace()..update(map['_heaps']['new']),
-        members = _convertMembers(map['members'], defaults: defaults);
+        totalSpace = new S.HeapSpace(),
+        members = _convertMembers(map['members'], defaults: defaults) {
+    totalSpace.add(oldSpace);
+    totalSpace.add(newSpace);
+  }
 
   static DateTime _intString2DateTime(String milliseconds) {
     if ((milliseconds == null) || milliseconds == '') {
@@ -66,15 +71,11 @@ class ClassHeapStats implements M.ClassHeapStats {
   final String displayName = null;
   final S.Allocations newSpace;
   final S.Allocations oldSpace;
-  final int promotedInstances;
-  final int promotedBytes;
 
   ClassHeapStats(Map map)
       : clazz = map['class'],
         oldSpace = new S.Allocations()..update(map['_old']),
-        newSpace = new S.Allocations()..update(map['_new']),
-        promotedInstances = map['_promotedInstances'],
-        promotedBytes = map['_promotedBytes'];
+        newSpace = new S.Allocations()..update(map['_new']);
 }
 
 class ClassesHeapStats implements M.ClassHeapStats {
@@ -82,12 +83,8 @@ class ClassesHeapStats implements M.ClassHeapStats {
   final String displayName;
   final S.Allocations newSpace;
   final S.Allocations oldSpace;
-  final int promotedInstances;
-  final int promotedBytes;
 
   ClassesHeapStats(this.displayName, Iterable<ClassHeapStats> classes)
       : oldSpace = new S.Allocations()..combine(classes.map((m) => m.oldSpace)),
-        newSpace = new S.Allocations()..combine(classes.map((m) => m.newSpace)),
-        promotedInstances = classes.fold(0, (v, m) => v + m.promotedInstances),
-        promotedBytes = classes.fold(0, (v, m) => v + m.promotedBytes);
+        newSpace = new S.Allocations()..combine(classes.map((m) => m.newSpace));
 }

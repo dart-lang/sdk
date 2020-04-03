@@ -77,6 +77,13 @@ void main() {
   expectSplit("foo?bar", false, ["foo?bar"], [0]);
   expectSplit("foo?bar", true, ["foo", "bar"], [0, 4]);
 
+  expectSplit("foo%bar", false, ["foo%bar"], [0]);
+  expectSplit("foo%bar", true, ["foo", "bar"], [0, 4]);
+
+  expectAlternative(
+      "explicitley", ["explicitly"], {"foo", "explicitly", "bar"});
+  expectAlternative("explicitlqqqqy", null, {"foo", "explicitly", "bar"});
+
   print("OK");
 }
 
@@ -85,15 +92,26 @@ void expectSplit(String s, bool splitAsCode, List<String> expectedWords,
   List<int> actualOffsets = new List<int>();
   List<String> actualWords =
       splitStringIntoWords(s, actualOffsets, splitAsCode: splitAsCode);
-  if (actualWords.length != expectedWords.length) {
-    throw "Not the same ($actualWords vs $expectedWords)";
+  compareLists(actualWords, expectedWords);
+  compareLists(actualOffsets, expectedOffsets);
+}
+
+void compareLists(List<dynamic> actual, List<dynamic> expected) {
+  if (actual == null && expected == null) return;
+  if (actual == null) throw "Got null, expected $expected";
+  if (expected == null) throw "Expected null, got $actual";
+  if (actual.length != expected.length) {
+    throw "Not the same ($actual vs $expected)";
   }
-  for (int i = 0; i < actualWords.length; i++) {
-    if (actualWords[i] != expectedWords[i]) {
-      throw "Not the same ($actualWords vs $expectedWords)";
-    }
-    if (actualOffsets[i] != expectedOffsets[i]) {
-      throw "Not the same ($actualOffsets vs $expectedOffsets)";
+  for (int i = 0; i < actual.length; i++) {
+    if (actual[i] != expected[i]) {
+      throw "Not the same ($actual vs $expected)";
     }
   }
+}
+
+void expectAlternative(
+    String word, List<String> expected, Set<String> dictionary) {
+  List<String> alternatives = findAlternatives(word, [dictionary]);
+  compareLists(alternatives, expected);
 }

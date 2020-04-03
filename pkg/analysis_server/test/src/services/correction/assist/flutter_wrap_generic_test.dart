@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FlutterWrapGenericTest);
   });
@@ -19,7 +19,7 @@ class FlutterWrapGenericTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.FLUTTER_WRAP_GENERIC;
 
-  test_minimal() async {
+  Future<void> test_minimal() async {
     addFlutterPackage();
     await resolveTestUnit('''
 /*caret*/x(){}
@@ -27,7 +27,7 @@ class FlutterWrapGenericTest extends AssistProcessorTest {
     await assertNoAssist();
   }
 
-  test_multiLine() async {
+  Future<void> test_multiLine() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
@@ -63,7 +63,7 @@ build() {
 ''');
   }
 
-  test_multiLine_inListLiteral() async {
+  Future<void> test_multiLine_inListLiteral() async {
     verifyNoTestUnitErrors = false;
     addFlutterPackage();
     await resolveTestUnit('''
@@ -85,7 +85,7 @@ build() {
     await assertNoAssist();
   }
 
-  test_multiLines() async {
+  Future<void> test_multiLines() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
@@ -125,7 +125,7 @@ class FakeFlutter {
 ''');
   }
 
-  test_multiLines_eol2() async {
+  Future<void> test_multiLines_eol2() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
@@ -165,7 +165,7 @@ class FakeFlutter {\r
 ''');
   }
 
-  test_prefixedIdentifier_identifier() async {
+  Future<void> test_prefixedIdentifier_identifier() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
@@ -191,7 +191,7 @@ main(Foo foo) {
 ''');
   }
 
-  test_prefixedIdentifier_prefix() async {
+  Future<void> test_prefixedIdentifier_prefix() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
@@ -217,7 +217,7 @@ main(Foo foo) {
 ''');
   }
 
-  test_singleLine() async {
+  Future<void> test_singleLine() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
@@ -231,7 +231,7 @@ class FakeFlutter {
     await assertNoAssist();
   }
 
-  test_singleLine1() async {
+  Future<void> test_singleLine1() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
@@ -251,7 +251,7 @@ class FakeFlutter {
 ''');
   }
 
-  test_singleLine2() async {
+  Future<void> test_singleLine2() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
@@ -271,7 +271,7 @@ class FakeFlutter {
 ''');
   }
 
-  test_variable() async {
+  Future<void> test_variable() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';

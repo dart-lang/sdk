@@ -7,7 +7,7 @@
 import 'package:observatory/sample_profile.dart';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 
 void verifyHelper(var root, bool exclusive) {
@@ -15,12 +15,12 @@ void verifyHelper(var root, bool exclusive) {
     return;
   }
 
-/*  if (!(root is FunctionCallTreeNode)) {
+  if (!(root is FunctionCallTreeNode)) {
     print('${root.profileCode.code.name}');
   } else {
     print('${root.profileFunction.function.name}');
   }
-*/
+
   int inclusiveAllocations = 0;
   int exclusiveAllocations = 0;
 
@@ -57,7 +57,7 @@ var tests = <VMTest>[
   // Verify inclusive tries.
   (VM vm) async {
     var response =
-        await vm.invokeRpc('_getNativeAllocationSamples', {'tags': 'None'});
+        await vm.invokeRpc('_getNativeAllocationSamples', {'_code': true});
     SampleProfile cpuProfile = new SampleProfile();
     await cpuProfile.load(vm, response);
     var codeTree = cpuProfile.loadCodeTree(M.ProfileTreeDirection.inclusive);
@@ -69,7 +69,7 @@ var tests = <VMTest>[
   // Verify exclusive tries.
   (VM vm) async {
     var response =
-        await vm.invokeRpc('_getNativeAllocationSamples', {'tags': 'None'});
+        await vm.invokeRpc('_getNativeAllocationSamples', {'_code': true});
     SampleProfile cpuProfile = new SampleProfile();
     await cpuProfile.load(vm, response);
     var codeTreeExclusive =

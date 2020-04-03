@@ -120,16 +120,12 @@ void AsmIntrinsifier::GrowableArray_Allocate(Assembler* assembler,
   __ cmp(R1, Operand(IP));                                                     \
   __ b(normal_ir_body, CS);                                                    \
                                                                                \
-  /* Successfully allocated the object(s), now update top to point to */       \
-  /* next object start and initialize the object. */                           \
-  NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R4, cid));                      \
   __ str(R1, Address(THR, target::Thread::top_offset()));                      \
   __ AddImmediate(R0, kHeapObjectTag);                                         \
   /* Initialize the tags. */                                                   \
   /* R0: new object start as a tagged pointer. */                              \
   /* R1: new object end address. */                                            \
   /* R2: allocation size. */                                                   \
-  /* R4: allocation stats address */                                           \
   {                                                                            \
     __ CompareImmediate(R2, target::RawObject::kSizeTagMaxSizeTag);            \
     __ mov(R3,                                                                 \
@@ -150,7 +146,6 @@ void AsmIntrinsifier::GrowableArray_Allocate(Assembler* assembler,
   /* R0: new object start as a tagged pointer. */                              \
   /* R1: new object end address. */                                            \
   /* R2: allocation size. */                                                   \
-  /* R4: allocation stats address. */                                          \
   __ ldr(R3, Address(SP, kArrayLengthStackOffset)); /* Array length. */        \
   __ StoreIntoObjectNoBarrier(                                                 \
       R0, FieldAddress(R0, target::TypedDataBase::length_offset()), R3);       \
@@ -159,7 +154,6 @@ void AsmIntrinsifier::GrowableArray_Allocate(Assembler* assembler,
   /* R1: new object end address. */                                            \
   /* R2: allocation size. */                                                   \
   /* R3: iterator which initially points to the start of the variable */       \
-  /* R4: allocation stats address */                                           \
   /* R8, R9: zero. */                                                          \
   /* data area to be initialized. */                                           \
   __ LoadImmediate(R8, 0);                                                     \
@@ -175,7 +169,6 @@ void AsmIntrinsifier::GrowableArray_Allocate(Assembler* assembler,
   __ b(&init_loop, CC);                                                        \
   __ str(R8, Address(R3, -2 * target::kWordSize), HI);                         \
                                                                                \
-  NOT_IN_PRODUCT(__ IncrementAllocationStatsWithSize(R4, R2));                 \
   __ Ret();                                                                    \
   __ Bind(normal_ir_body);
 
@@ -453,21 +446,21 @@ void AsmIntrinsifier::Integer_shl(Assembler* assembler, Label* normal_ir_body) {
   // ((1 << R0) - 1), shifting it to the left, masking R1, then shifting back.
   // high bits = (((1 << R0) - 1) << (32 - R0)) & R1) >> (32 - R0)
   // lo bits = R1 << R0
-  __ LoadImmediate(NOTFP, 1);
-  __ mov(NOTFP, Operand(NOTFP, LSL, R0));  // NOTFP <- 1 << R0
-  __ sub(NOTFP, NOTFP, Operand(1));        // NOTFP <- NOTFP - 1
+  __ LoadImmediate(R8, 1);
+  __ mov(R8, Operand(R8, LSL, R0));        // R8 <- 1 << R0
+  __ sub(R8, R8, Operand(1));              // R8 <- R8 - 1
   __ rsb(R3, R0, Operand(32));             // R3 <- 32 - R0
-  __ mov(NOTFP, Operand(NOTFP, LSL, R3));  // NOTFP <- NOTFP << R3
-  __ and_(NOTFP, R1, Operand(NOTFP));      // NOTFP <- NOTFP & R1
-  __ mov(NOTFP, Operand(NOTFP, LSR, R3));  // NOTFP <- NOTFP >> R3
-  // Now NOTFP has the bits that fall off of R1 on a left shift.
+  __ mov(R8, Operand(R8, LSL, R3));        // R8 <- R8 << R3
+  __ and_(R8, R1, Operand(R8));            // R8 <- R8 & R1
+  __ mov(R8, Operand(R8, LSR, R3));        // R8 <- R8 >> R3
+  // Now R8 has the bits that fall off of R1 on a left shift.
   __ mov(R1, Operand(R1, LSL, R0));  // R1 gets the low bits.
 
   const Class& mint_class = MintClass();
   __ TryAllocate(mint_class, normal_ir_body, R0, R2);
 
   __ str(R1, FieldAddress(R0, target::Mint::value_offset()));
-  __ str(NOTFP,
+  __ str(R8,
          FieldAddress(R0, target::Mint::value_offset() + target::kWordSize));
   __ Ret();
   __ Bind(normal_ir_body);
@@ -539,13 +532,13 @@ static void CompareIntegers(Assembler* assembler,
   // Get left as 64 bit integer.
   Get64SmiOrMint(assembler, R3, R2, R1, normal_ir_body);
   // Get right as 64 bit integer.
-  Get64SmiOrMint(assembler, NOTFP, R8, R0, normal_ir_body);
+  Get64SmiOrMint(assembler, R1, R8, R0, normal_ir_body);
   // R3: left high.
   // R2: left low.
-  // NOTFP: right high.
+  // R1: right high.
   // R8: right low.
 
-  __ cmp(R3, Operand(NOTFP));  // Compare left hi, right high.
+  __ cmp(R3, Operand(R1));  // Compare left hi, right high.
   __ b(&is_false, hi_false_cond);
   __ b(&is_true, hi_true_cond);
   __ cmp(R2, Operand(R8));  // Compare left lo, right lo.
@@ -696,12 +689,12 @@ void AsmIntrinsifier::Bigint_lsh(Assembler* assembler, Label* normal_ir_body) {
   __ Asr(R4, R3, Operand(5));
   // R8 = &x_digits[0]
   __ add(R8, R1, Operand(target::TypedData::data_offset() - kHeapObjectTag));
-  // NOTFP = &x_digits[x_used]
-  __ add(NOTFP, R8, Operand(R0, LSL, 1));
   // R6 = &r_digits[1]
   __ add(R6, R2,
          Operand(target::TypedData::data_offset() - kHeapObjectTag +
                  kBytesPerBigIntDigit));
+  // R2 = &x_digits[x_used]
+  __ add(R2, R8, Operand(R0, LSL, 1));
   // R6 = &r_digits[x_used + n ~/ _DIGIT_BITS + 1]
   __ add(R4, R4, Operand(R0, ASR, 1));
   __ add(R6, R6, Operand(R4, LSL, 2));
@@ -712,11 +705,11 @@ void AsmIntrinsifier::Bigint_lsh(Assembler* assembler, Label* normal_ir_body) {
   __ mov(R9, Operand(0));
   Label loop;
   __ Bind(&loop);
-  __ ldr(R4, Address(NOTFP, -kBytesPerBigIntDigit, Address::PreIndex));
+  __ ldr(R4, Address(R2, -kBytesPerBigIntDigit, Address::PreIndex));
   __ orr(R9, R9, Operand(R4, LSR, R0));
   __ str(R9, Address(R6, -kBytesPerBigIntDigit, Address::PreIndex));
   __ mov(R9, Operand(R4, LSL, R1));
-  __ teq(NOTFP, Operand(R8));
+  __ teq(R2, Operand(R8));
   __ b(&loop, NE);
   __ str(R9, Address(R6, -kBytesPerBigIntDigit, Address::PreIndex));
   __ LoadObject(R0, NullObject());
@@ -736,9 +729,9 @@ void AsmIntrinsifier::Bigint_rsh(Assembler* assembler, Label* normal_ir_body) {
   __ Asr(R4, R3, Operand(5));
   // R6 = &r_digits[0]
   __ add(R6, R2, Operand(target::TypedData::data_offset() - kHeapObjectTag));
-  // NOTFP = &x_digits[n ~/ _DIGIT_BITS]
-  __ add(NOTFP, R1, Operand(target::TypedData::data_offset() - kHeapObjectTag));
-  __ add(NOTFP, NOTFP, Operand(R4, LSL, 2));
+  // R2 = &x_digits[n ~/ _DIGIT_BITS]
+  __ add(R2, R1, Operand(target::TypedData::data_offset() - kHeapObjectTag));
+  __ add(R2, R2, Operand(R4, LSL, 2));
   // R8 = &r_digits[x_used - n ~/ _DIGIT_BITS - 1]
   __ add(R4, R4, Operand(1));
   __ rsb(R4, R4, Operand(R0, ASR, 1));
@@ -748,13 +741,13 @@ void AsmIntrinsifier::Bigint_rsh(Assembler* assembler, Label* normal_ir_body) {
   // R0 = 32 - R1
   __ rsb(R0, R1, Operand(32));
   // R9 = x_digits[n ~/ _DIGIT_BITS] >> (n % _DIGIT_BITS)
-  __ ldr(R9, Address(NOTFP, kBytesPerBigIntDigit, Address::PostIndex));
+  __ ldr(R9, Address(R2, kBytesPerBigIntDigit, Address::PostIndex));
   __ mov(R9, Operand(R9, LSR, R1));
   Label loop_entry;
   __ b(&loop_entry);
   Label loop;
   __ Bind(&loop);
-  __ ldr(R4, Address(NOTFP, kBytesPerBigIntDigit, Address::PostIndex));
+  __ ldr(R4, Address(R2, kBytesPerBigIntDigit, Address::PostIndex));
   __ orr(R9, R9, Operand(R4, LSL, R0));
   __ str(R9, Address(R6, kBytesPerBigIntDigit, Address::PostIndex));
   __ mov(R9, Operand(R4, LSR, R1));
@@ -787,8 +780,8 @@ void AsmIntrinsifier::Bigint_absAdd(Assembler* assembler,
   // R8 = &r_digits[0]
   __ add(R8, R8, Operand(target::TypedData::data_offset() - kHeapObjectTag));
 
-  // NOTFP = &digits[a_used >> 1], a_used is Smi.
-  __ add(NOTFP, R1, Operand(R2, LSL, 1));
+  // R2 = &digits[a_used >> 1], a_used is Smi.
+  __ add(R2, R1, Operand(R2, LSL, 1));
 
   // R6 = &digits[used >> 1], used is Smi.
   __ add(R6, R1, Operand(R0, LSL, 1));
@@ -800,7 +793,7 @@ void AsmIntrinsifier::Bigint_absAdd(Assembler* assembler,
   __ ldr(R4, Address(R1, kBytesPerBigIntDigit, Address::PostIndex));
   __ ldr(R9, Address(R3, kBytesPerBigIntDigit, Address::PostIndex));
   __ adcs(R4, R4, Operand(R9));
-  __ teq(R1, Operand(NOTFP));  // Does not affect carry flag.
+  __ teq(R1, Operand(R2));  // Does not affect carry flag.
   __ str(R4, Address(R8, kBytesPerBigIntDigit, Address::PostIndex));
   __ b(&add_loop, NE);
 
@@ -847,8 +840,8 @@ void AsmIntrinsifier::Bigint_absSub(Assembler* assembler,
   // R8 = &r_digits[0]
   __ add(R8, R8, Operand(target::TypedData::data_offset() - kHeapObjectTag));
 
-  // NOTFP = &digits[a_used >> 1], a_used is Smi.
-  __ add(NOTFP, R1, Operand(R2, LSL, 1));
+  // R2 = &digits[a_used >> 1], a_used is Smi.
+  __ add(R2, R1, Operand(R2, LSL, 1));
 
   // R6 = &digits[used >> 1], used is Smi.
   __ add(R6, R1, Operand(R0, LSL, 1));
@@ -860,7 +853,7 @@ void AsmIntrinsifier::Bigint_absSub(Assembler* assembler,
   __ ldr(R4, Address(R1, kBytesPerBigIntDigit, Address::PostIndex));
   __ ldr(R9, Address(R3, kBytesPerBigIntDigit, Address::PostIndex));
   __ sbcs(R4, R4, Operand(R9));
-  __ teq(R1, Operand(NOTFP));  // Does not affect carry flag.
+  __ teq(R1, Operand(R2));  // Does not affect carry flag.
   __ str(R4, Address(R8, kBytesPerBigIntDigit, Address::PostIndex));
   __ b(&sub_loop, NE);
 
@@ -1012,6 +1005,8 @@ void AsmIntrinsifier::Bigint_sqrAdd(Assembler* assembler,
   //   return 1;
   // }
 
+  // The code has no bailout path, so we can use R6 (CODE_REG) freely.
+
   // R4 = xip = &x_digits[i >> 1]
   __ ldrd(R2, R3, SP, 2 * target::kWordSize);  // R2 = i as Smi, R3 = x_digits
   __ add(R3, R3, Operand(R2, LSL, 1));
@@ -1023,18 +1018,18 @@ void AsmIntrinsifier::Bigint_sqrAdd(Assembler* assembler,
   __ tst(R3, Operand(R3));
   __ b(&x_zero, EQ);
 
-  // NOTFP = ajp = &a_digits[i]
+  // R6 = ajp = &a_digits[i]
   __ ldr(R1, Address(SP, 1 * target::kWordSize));  // a_digits
   __ add(R1, R1, Operand(R2, LSL, 2));             // j == 2*i, i is Smi.
-  __ add(NOTFP, R1, Operand(target::TypedData::data_offset() - kHeapObjectTag));
+  __ add(R6, R1, Operand(target::TypedData::data_offset() - kHeapObjectTag));
 
   // R8:R0 = t = x*x + *ajp
-  __ ldr(R0, Address(NOTFP, 0));
+  __ ldr(R0, Address(R6, 0));
   __ mov(R8, Operand(0));
   __ umaal(R0, R8, R3, R3);  // R8:R0 = R3*R3 + R8 + R0.
 
   // *ajp++ = low32(t) = R0
-  __ str(R0, Address(NOTFP, kBytesPerBigIntDigit, Address::PostIndex));
+  __ str(R0, Address(R6, kBytesPerBigIntDigit, Address::PostIndex));
 
   // R8 = low32(c) = high32(t)
   // R9 = high32(c) = 0
@@ -1042,9 +1037,9 @@ void AsmIntrinsifier::Bigint_sqrAdd(Assembler* assembler,
 
   // int n = used - i - 1; while (--n >= 0) ...
   __ ldr(R0, Address(SP, 0 * target::kWordSize));  // used is Smi
-  __ sub(R6, R0, Operand(R2));
+  __ sub(TMP, R0, Operand(R2));
   __ mov(R0, Operand(2));  // n = used - i - 2; if (n >= 0) ... while (--n >= 0)
-  __ rsbs(R6, R0, Operand(R6, ASR, kSmiTagSize));
+  __ rsbs(TMP, R0, Operand(TMP, ASR, kSmiTagSize));
 
   Label loop, done;
   __ b(&done, MI);
@@ -1052,10 +1047,10 @@ void AsmIntrinsifier::Bigint_sqrAdd(Assembler* assembler,
   __ Bind(&loop);
   // x:   R3
   // xip: R4
-  // ajp: NOTFP
+  // ajp: R6
   // c:   R9:R8
   // t:   R2:R1:R0 (not live at loop entry)
-  // n:   R6
+  // n:   TMP
 
   // uint32_t xi = *xip++
   __ ldr(R2, Address(R4, kBytesPerBigIntDigit, Address::PostIndex));
@@ -1068,22 +1063,22 @@ void AsmIntrinsifier::Bigint_sqrAdd(Assembler* assembler,
   __ adc(R2, R2, Operand(0));  // R2:R1:R0 = 2*x*xi.
   __ adds(R0, R0, Operand(R8));
   __ adcs(R1, R1, Operand(R9));
-  __ adc(R2, R2, Operand(0));     // R2:R1:R0 = 2*x*xi + c.
-  __ ldr(R8, Address(NOTFP, 0));  // R8 = aj = *ajp.
+  __ adc(R2, R2, Operand(0));  // R2:R1:R0 = 2*x*xi + c.
+  __ ldr(R8, Address(R6, 0));  // R8 = aj = *ajp.
   __ adds(R0, R0, Operand(R8));
   __ adcs(R8, R1, Operand(0));
   __ adc(R9, R2, Operand(0));  // R9:R8:R0 = 2*x*xi + c + aj.
 
   // *ajp++ = low32(t) = R0
-  __ str(R0, Address(NOTFP, kBytesPerBigIntDigit, Address::PostIndex));
+  __ str(R0, Address(R6, kBytesPerBigIntDigit, Address::PostIndex));
 
   // while (--n >= 0)
-  __ subs(R6, R6, Operand(1));  // --n
+  __ subs(TMP, TMP, Operand(1));  // --n
   __ b(&loop, PL);
 
   __ Bind(&done);
   // uint32_t aj = *ajp
-  __ ldr(R0, Address(NOTFP, 0));
+  __ ldr(R0, Address(R6, 0));
 
   // uint64_t t = aj + c
   __ adds(R8, R8, Operand(R0));
@@ -1091,7 +1086,7 @@ void AsmIntrinsifier::Bigint_sqrAdd(Assembler* assembler,
 
   // *ajp = low32(t) = R8
   // *(ajp + 1) = high32(t) = R9
-  __ strd(R8, R9, NOTFP, 0);
+  __ strd(R8, R9, R6, 0);
 
   __ Bind(&x_zero);
   __ mov(R0, Operand(target::ToRawSmi(1)));  // One digit processed.
@@ -1607,7 +1602,7 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ Ret();
 
   __ Bind(&use_declaration_type);
-  __ LoadClassById(R2, R1);  // Overwrites R1.
+  __ LoadClassById(R2, R1);
   __ ldrh(R3, FieldAddress(R2, target::Class::num_type_arguments_offset()));
   __ CompareImmediate(R3, 0);
   __ b(normal_ir_body, NE);
@@ -1620,54 +1615,79 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
+// Compares cid1 and cid2 to see if they're syntactically equivalent. If this
+// can be determined by this fast path, it jumps to either equal or not_equal,
+// otherwise it jumps to normal_ir_body. May clobber cid1, cid2, and scratch.
+static void EquivalentClassIds(Assembler* assembler,
+                               Label* normal_ir_body,
+                               Label* equal,
+                               Label* not_equal,
+                               Register cid1,
+                               Register cid2,
+                               Register scratch) {
+  Label different_cids, not_integer;
+
+  // Check if left hand side is a closure. Closures are handled in the runtime.
+  __ CompareImmediate(cid1, kClosureCid);
+  __ b(normal_ir_body, EQ);
+
+  // Check whether class ids match. If class ids don't match types may still be
+  // considered equivalent (e.g. multiple string implementation classes map to a
+  // single String type).
+  __ cmp(cid1, Operand(cid2));
+  __ b(&different_cids, NE);
+
+  // Types have the same class and neither is a closure type.
+  // Check if there are no type arguments. In this case we can return true.
+  // Otherwise fall through into the runtime to handle comparison.
+  __ LoadClassById(scratch, cid1);
+  __ ldrh(scratch,
+          FieldAddress(scratch, target::Class::num_type_arguments_offset()));
+  __ CompareImmediate(scratch, 0);
+  __ b(normal_ir_body, NE);
+  __ b(equal);
+
+  // Class ids are different. Check if we are comparing two string types (with
+  // different representations) or two integer types.
+  __ Bind(&different_cids);
+  __ CompareImmediate(cid1, kNumPredefinedCids);
+  __ b(not_equal, HI);
+
+  // Check if both are integer types.
+  JumpIfNotInteger(assembler, cid1, scratch, &not_integer);
+
+  // First type is an integer. Check if the second is an integer too.
+  // Otherwise types are unequiv because only integers have the same runtime
+  // type as other integers.
+  JumpIfInteger(assembler, cid2, scratch, equal);
+  __ b(not_equal);
+
+  __ Bind(&not_integer);
+  // Check if the first type is String. If it is not then types are not
+  // equivalent because they have different class ids and they are not strings
+  // or integers.
+  JumpIfNotString(assembler, cid1, scratch, not_equal);
+  // First type is String. Check if the second is a string too.
+  JumpIfString(assembler, cid2, scratch, equal);
+  // String types are only equivalent to other String types.
+  __ b(not_equal);
+}
+
 void AsmIntrinsifier::ObjectHaveSameRuntimeType(Assembler* assembler,
                                                 Label* normal_ir_body) {
-  Label different_cids, equal, not_equal, not_integer;
   __ ldr(R0, Address(SP, 0 * target::kWordSize));
   __ LoadClassIdMayBeSmi(R1, R0);
-
-  // Check if left hand size is a closure. Closures are handled in the runtime.
-  __ CompareImmediate(R1, kClosureCid);
-  __ b(normal_ir_body, EQ);
 
   __ ldr(R0, Address(SP, 1 * target::kWordSize));
   __ LoadClassIdMayBeSmi(R2, R0);
 
-  // Check whether class ids match. If class ids don't match objects can still
-  // have the same runtime type (e.g. multiple string implementation classes
-  // map to a single String type).
-  __ cmp(R1, Operand(R2));
-  __ b(&different_cids, NE);
-
-  // Objects have the same class and neither is a closure.
-  // Check if there are no type arguments. In this case we can return true.
-  // Otherwise fall through into the runtime to handle comparison.
-  __ LoadClassById(R3, R1);
-  __ ldrh(R3, FieldAddress(R3, target::Class::num_type_arguments_offset()));
-  __ CompareImmediate(R3, 0);
-  __ b(normal_ir_body, NE);
+  Label equal, not_equal;
+  EquivalentClassIds(assembler, normal_ir_body, &equal, &not_equal, R1, R2, R0);
 
   __ Bind(&equal);
   __ LoadObject(R0, CastHandle<Object>(TrueObject()));
   __ Ret();
 
-  // Class ids are different. Check if we are comparing runtime types of
-  // two strings (with different representations) or two integers.
-  __ Bind(&different_cids);
-  __ CompareImmediate(R1, kNumPredefinedCids);
-  __ b(&not_equal, HI);
-
-  // Check if both are integers.
-  JumpIfNotInteger(assembler, R1, R0, &not_integer);
-  JumpIfInteger(assembler, R2, R0, &equal);
-  __ b(&not_equal);
-
-  __ Bind(&not_integer);
-  // Check if both are strings.
-  JumpIfNotString(assembler, R1, R0, &not_equal);
-  JumpIfString(assembler, R2, R0, &equal);
-
-  // Neither strings nor integers and have different class ids.
   __ Bind(&not_equal);
   __ LoadObject(R0, CastHandle<Object>(FalseObject()));
   __ Ret();
@@ -1692,6 +1712,58 @@ void AsmIntrinsifier::Type_getHashCode(Assembler* assembler,
   __ cmp(R0, Operand(0));
   __ bx(LR, NE);
   // Hash not yet computed.
+  __ Bind(normal_ir_body);
+}
+
+void AsmIntrinsifier::Type_equality(Assembler* assembler,
+                                    Label* normal_ir_body) {
+  Label equal, not_equal, equiv_cids, check_legacy;
+
+  __ ldm(IA, SP, (1 << R1 | 1 << R2));
+  __ cmp(R1, Operand(R2));
+  __ b(&equal, EQ);
+
+  // R1 might not be a Type object, so check that first (R2 should be though,
+  // since this is a method on the Type class).
+  __ LoadClassIdMayBeSmi(R0, R1);
+  __ CompareImmediate(R0, kTypeCid);
+  __ b(normal_ir_body, NE);
+
+  // Check if types are syntactically equal.
+  __ ldr(R3, FieldAddress(R1, target::Type::type_class_id_offset()));
+  __ SmiUntag(R3);
+  __ ldr(R4, FieldAddress(R2, target::Type::type_class_id_offset()));
+  __ SmiUntag(R4);
+  EquivalentClassIds(assembler, normal_ir_body, &equiv_cids, &not_equal, R3, R4,
+                     R0);
+
+  // Check nullability.
+  __ Bind(&equiv_cids);
+  __ ldrb(R1, FieldAddress(R1, target::Type::nullability_offset()));
+  __ ldrb(R2, FieldAddress(R2, target::Type::nullability_offset()));
+  __ cmp(R1, Operand(R2));
+  __ b(&check_legacy, NE);
+  // Fall through to equal case if nullability is strictly equal.
+
+  __ Bind(&equal);
+  __ LoadObject(R0, CastHandle<Object>(TrueObject()));
+  __ Ret();
+
+  // At this point the nullabilities are different, so they can only be
+  // syntactically equivalent if they're both either kNonNullable or kLegacy.
+  // These are the two largest values of the enum, so we can just do a < check.
+  ASSERT(target::Nullability::kNullable < target::Nullability::kNonNullable &&
+         target::Nullability::kNonNullable < target::Nullability::kLegacy);
+  __ Bind(&check_legacy);
+  __ CompareImmediate(R1, target::Nullability::kNonNullable);
+  __ b(&not_equal, LT);
+  __ CompareImmediate(R2, target::Nullability::kNonNullable);
+  __ b(&equal, GE);
+
+  __ Bind(&not_equal);
+  __ LoadObject(R0, CastHandle<Object>(FalseObject()));
+  __ Ret();
+
   __ Bind(normal_ir_body);
 }
 
@@ -1749,11 +1821,11 @@ void GenerateSubstringMatchesSpecialization(Assembler* assembler,
     __ ldrh(R4, Address(R0, 0));  // this.codeUnitAt(i + start)
   }
   if (other_cid == kOneByteStringCid) {
-    __ ldrb(NOTFP, Address(R2, 0));  // other.codeUnitAt(i)
+    __ ldrb(TMP, Address(R2, 0));  // other.codeUnitAt(i)
   } else {
-    __ ldrh(NOTFP, Address(R2, 0));  // other.codeUnitAt(i)
+    __ ldrh(TMP, Address(R2, 0));  // other.codeUnitAt(i)
   }
-  __ cmp(R4, Operand(NOTFP));
+  __ cmp(R4, Operand(TMP));
   __ b(return_false, NE);
 
   // i++, while (i < len)
@@ -1906,11 +1978,11 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
   // hash_ ^= hash_ >> 6;
   // Get one characters (ch).
   __ Bind(&loop);
-  __ ldrb(NOTFP, Address(R8, 0));
-  // NOTFP: ch.
+  __ ldrb(TMP, Address(R8, 0));
+  // TMP: ch.
   __ add(R3, R3, Operand(1));
   __ add(R8, R8, Operand(1));
-  __ add(R0, R0, Operand(NOTFP));
+  __ add(R0, R0, Operand(TMP));
   __ add(R0, R0, Operand(R0, LSL, 10));
   __ eor(R0, R0, Operand(R0, LSR, 6));
   __ cmp(R3, Operand(R2));
@@ -1936,19 +2008,22 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
   __ Ret();
 }
 
-// Allocates one-byte string of length 'end - start'. The content is not
-// initialized.
-// 'length-reg' (R2) contains tagged length.
+// Allocates a _OneByteString. The content is not initialized.
+// 'length-reg' (R2) contains the desired length as a _Smi or _Mint.
 // Returns new string as tagged pointer in R0.
-static void TryAllocateOnebyteString(Assembler* assembler,
+static void TryAllocateOneByteString(Assembler* assembler,
                                      Label* ok,
                                      Label* failure) {
   const Register length_reg = R2;
-  Label fail;
+  // _Mint length: call to runtime to produce error.
+  __ BranchIfNotSmi(length_reg, failure);
+  // Negative length: call to runtime to produce error.
+  __ cmp(length_reg, Operand(0));
+  __ b(failure, LT);
+
   NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R0, kOneByteStringCid));
   NOT_IN_PRODUCT(__ MaybeTraceAllocation(R0, failure));
   __ mov(R8, Operand(length_reg));  // Save the length register.
-  // TODO(koda): Protect against negative length and overflow here.
   __ SmiUntag(length_reg);
   const intptr_t fixed_size_plus_alignment_padding =
       target::String::InstanceSize() +
@@ -1962,19 +2037,18 @@ static void TryAllocateOnebyteString(Assembler* assembler,
 
   // length_reg: allocation size.
   __ adds(R1, R0, Operand(length_reg));
-  __ b(&fail, CS);  // Fail on unsigned overflow.
+  __ b(failure, CS);  // Fail on unsigned overflow.
 
   // Check if the allocation fits into the remaining space.
   // R0: potential new object start.
   // R1: potential next object start.
   // R2: allocation size.
-  __ ldr(NOTFP, Address(THR, target::Thread::end_offset()));
-  __ cmp(R1, Operand(NOTFP));
-  __ b(&fail, CS);
+  __ ldr(TMP, Address(THR, target::Thread::end_offset()));
+  __ cmp(R1, Operand(TMP));
+  __ b(failure, CS);
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
-  NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R4, cid));
   __ str(R1, Address(THR, target::Thread::top_offset()));
   __ AddImmediate(R0, kHeapObjectTag);
 
@@ -1982,7 +2056,6 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   // R0: new object start as a tagged pointer.
   // R1: new object end address.
   // R2: allocation size.
-  // R4: allocation stats address.
   {
     const intptr_t shift = target::RawObject::kTagBitsSizeTagPos -
                            target::ObjectAlignment::kObjectAlignmentLog2;
@@ -2008,11 +2081,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ StoreIntoObjectNoBarrier(
       R0, FieldAddress(R0, target::String::hash_offset()), TMP);
 
-  NOT_IN_PRODUCT(__ IncrementAllocationStatsWithSize(R4, R2));
   __ b(ok);
-
-  __ Bind(&fail);
-  __ b(failure);
 }
 
 // Arg0: OneByteString (receiver).
@@ -2033,7 +2102,7 @@ void AsmIntrinsifier::OneByteString_substringUnchecked(Assembler* assembler,
   __ b(normal_ir_body, NE);  // 'start', 'end' not Smi.
 
   __ sub(R2, R2, Operand(TMP));
-  TryAllocateOnebyteString(assembler, &ok, normal_ir_body);
+  TryAllocateOneByteString(assembler, &ok, normal_ir_body);
   __ Bind(&ok);
   // R0: new string as tagged pointer.
   // Copy string.
@@ -2054,20 +2123,19 @@ void AsmIntrinsifier::OneByteString_substringUnchecked(Assembler* assembler,
   // R2: Untagged number of bytes to copy.
   // R0: Tagged result string.
   // R8: Pointer into R3.
-  // NOTFP: Pointer into R0.
-  // R1: Scratch register.
+  // R1: Pointer into R0.
+  // TMP: Scratch register.
   Label loop, done;
   __ cmp(R2, Operand(0));
   __ b(&done, LE);
   __ mov(R8, Operand(R3));
-  __ mov(NOTFP, Operand(R0));
+  __ mov(R1, Operand(R0));
   __ Bind(&loop);
-  __ ldrb(R1, Address(R8, 0));
-  __ AddImmediate(R8, 1);
+  __ ldrb(TMP, Address(R8, 1, Address::PostIndex));
   __ sub(R2, R2, Operand(1));
   __ cmp(R2, Operand(0));
-  __ strb(R1, FieldAddress(NOTFP, target::OneByteString::data_offset()));
-  __ AddImmediate(NOTFP, 1);
+  __ strb(TMP, FieldAddress(R1, target::OneByteString::data_offset()));
+  __ add(R1, R1, Operand(1));
   __ b(&loop, GT);
 
   __ Bind(&done);
@@ -2092,7 +2160,7 @@ void AsmIntrinsifier::OneByteString_allocate(Assembler* assembler,
                                              Label* normal_ir_body) {
   __ ldr(R2, Address(SP, 0 * target::kWordSize));  // Length.
   Label ok;
-  TryAllocateOnebyteString(assembler, &ok, normal_ir_body);
+  TryAllocateOneByteString(assembler, &ok, normal_ir_body);
 
   __ Bind(&ok);
   __ Ret();

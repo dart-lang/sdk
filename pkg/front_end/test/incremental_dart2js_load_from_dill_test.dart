@@ -16,7 +16,7 @@ import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 import 'package:kernel/kernel.dart' show Component;
 import 'package:kernel/target/targets.dart';
 
-import 'incremental_load_from_dill_test.dart'
+import 'incremental_load_from_dill_suite.dart'
     show checkIsEqual, getOptions, initializedCompile, normalCompile;
 
 Directory outDir;
@@ -34,7 +34,8 @@ main() async {
 
 Future<void> testDart2jsCompile() async {
   final Uri dart2jsUrl = Uri.base.resolve("pkg/compiler/bin/dart2js.dart");
-  final Uri invalidateUri = Uri.parse("package:compiler/src/filenames.dart");
+  final Uri invalidateUri =
+      Uri.parse("package:_fe_analyzer_shared/src/util/filenames.dart");
   Uri normalDill = outDir.uri.resolve("dart2js.full.dill");
   Uri fullDillFromInitialized =
       outDir.uri.resolve("dart2js.full_from_initialized.dill");
@@ -84,7 +85,7 @@ Future<void> testDart2jsCompile() async {
     bool initializeResult = await initializedCompile(
         dart2jsUrl, fullDillFromInitialized, initializeWith, [invalidateUri],
         options: getOptions()..target = new NoneTarget(new TargetFlags()));
-    Expect.equals(initializeResult, initializeExpect);
+    Expect.equals(initializeExpect, initializeResult);
     print("Initialized compile(s) from ${initializeWith.pathSegments.last} "
         "took ${stopwatch.elapsedMilliseconds} ms");
 

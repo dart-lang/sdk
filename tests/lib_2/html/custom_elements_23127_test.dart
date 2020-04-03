@@ -10,8 +10,7 @@ library custom_elements_23127_test;
 
 import 'dart:async';
 import 'dart:html';
-import 'package:unittest/html_individual_config.dart';
-import 'package:unittest/unittest.dart';
+import 'package:async_helper/async_minitest.dart';
 import 'utils.dart';
 
 abstract class B1 extends HtmlElement {
@@ -87,10 +86,8 @@ class C2T extends B2T {
 
 var callTwice;
 
-main() {
-  useHtmlIndividualConfiguration();
-
-  setUp(() => customElementsReady);
+main() async {
+  await customElementsReady;
 
   callTwice = (f) {
     f();

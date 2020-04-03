@@ -9,6 +9,8 @@ enum Dictionaries {
   cfeMessages,
   cfeCode,
   cfeTests,
+  // The blacklist is special and is always loaded!
+  blacklist,
 }
 
 Map<Dictionaries, Set<String>> loadedDictionaries;
@@ -19,17 +21,26 @@ SpellingResult spellcheckString(String s,
   ensureDictionariesLoaded(dictionaries);
 
   List<String> wrongWords;
+  List<List<String>> wrongWordsAlternatives;
   List<int> wrongWordsOffset;
+  List<bool> wrongWordBlacklisted;
   List<int> wordOffsets = new List<int>();
   List<String> words =
       splitStringIntoWords(s, wordOffsets, splitAsCode: splitAsCode);
+  List<Set<String>> dictionariesUnpacked = [];
+  for (int j = 0; j < dictionaries.length; j++) {
+    Dictionaries dictionaryType = dictionaries[j];
+    if (dictionaryType == Dictionaries.blacklist) continue;
+    Set<String> dictionary = loadedDictionaries[dictionaryType];
+    dictionariesUnpacked.add(dictionary);
+  }
   for (int i = 0; i < words.length; i++) {
     String word = words[i].toLowerCase();
     int offset = wordOffsets[i];
     bool found = false;
-    for (int j = 0; j < dictionaries.length; j++) {
-      Dictionaries dictionaryType = dictionaries[j];
-      Set<String> dictionary = loadedDictionaries[dictionaryType];
+
+    for (int j = 0; j < dictionariesUnpacked.length; j++) {
+      Set<String> dictionary = dictionariesUnpacked[j];
       if (dictionary.contains(word)) {
         found = true;
         break;
@@ -38,18 +49,69 @@ SpellingResult spellcheckString(String s,
     if (!found) {
       wrongWords ??= new List<String>();
       wrongWords.add(word);
+      wrongWordsAlternatives ??= new List<List<String>>();
+      wrongWordsAlternatives.add(findAlternatives(word, dictionariesUnpacked));
       wrongWordsOffset ??= new List<int>();
       wrongWordsOffset.add(offset);
+      wrongWordBlacklisted ??= new List<bool>();
+      wrongWordBlacklisted
+          .add(loadedDictionaries[Dictionaries.blacklist].contains(word));
     }
   }
-  return new SpellingResult(wrongWords, wrongWordsOffset);
+
+  return new SpellingResult(wrongWords, wrongWordsOffset, wrongWordBlacklisted,
+      wrongWordsAlternatives);
+}
+
+List<String> findAlternatives(String word, List<Set<String>> dictionaries) {
+  List<String> result;
+
+  bool check(String w) {
+    for (int j = 0; j < dictionaries.length; j++) {
+      Set<String> dictionary = dictionaries[j];
+      if (dictionary.contains(w)) return true;
+    }
+    return false;
+  }
+
+  void ok(String w) {
+    result ??= new List<String>();
+    result.add(w);
+  }
+
+  // Delete a letter, insert a letter or change a letter and lookup.
+  for (int i = 0; i < word.length; i++) {
+    String before = word.substring(0, i);
+    String after = word.substring(i + 1);
+    String afterIncluding = word.substring(i);
+
+    {
+      String deletedLetter = before + after;
+      if (check(deletedLetter)) ok(deletedLetter);
+    }
+    for (int j = 0; j < 25; j++) {
+      String c = new String.fromCharCode(97 + j);
+      String insertedLetter = before + c + afterIncluding;
+      if (check(insertedLetter)) ok(insertedLetter);
+    }
+    for (int j = 0; j < 25; j++) {
+      String c = new String.fromCharCode(97 + j);
+      String replacedLetter = before + c + after;
+      if (check(replacedLetter)) ok(replacedLetter);
+    }
+  }
+
+  return result;
 }
 
 class SpellingResult {
   final List<String> misspelledWords;
   final List<int> misspelledWordsOffset;
+  final List<bool> misspelledWordsBlacklisted;
+  final List<List<String>> misspelledWordsAlternatives;
 
-  SpellingResult(this.misspelledWords, this.misspelledWordsOffset);
+  SpellingResult(this.misspelledWords, this.misspelledWordsOffset,
+      this.misspelledWordsBlacklisted, this.misspelledWordsAlternatives);
 }
 
 void ensureDictionariesLoaded(List<Dictionaries> dictionaries) {
@@ -71,6 +133,14 @@ void ensureDictionariesLoaded(List<Dictionaries> dictionaries) {
   }
 
   loadedDictionaries ??= new Map<Dictionaries, Set<String>>();
+  // Ensure the blacklist is loaded.
+  Set<String> blacklistDictionary = loadedDictionaries[Dictionaries.blacklist];
+  if (blacklistDictionary == null) {
+    blacklistDictionary = new Set<String>();
+    loadedDictionaries[Dictionaries.blacklist] = blacklistDictionary;
+    addWords(dictionaryToUri(Dictionaries.blacklist), blacklistDictionary);
+  }
+
   for (int j = 0; j < dictionaries.length; j++) {
     Dictionaries dictionaryType = dictionaries[j];
     Set<String> dictionary = loadedDictionaries[dictionaryType];
@@ -78,6 +148,13 @@ void ensureDictionariesLoaded(List<Dictionaries> dictionaries) {
       dictionary = new Set<String>();
       loadedDictionaries[dictionaryType] = dictionary;
       addWords(dictionaryToUri(dictionaryType), dictionary);
+      // Check that no good words occur in the blacklist.
+      for (String s in dictionary) {
+        if (blacklistDictionary.contains(s)) {
+          throw "Word '$s' in dictionary $dictionaryType "
+              "is also in the blacklist.";
+        }
+      }
     }
   }
 }
@@ -96,6 +173,9 @@ Uri dictionaryToUri(Dictionaries dictionaryType) {
     case Dictionaries.cfeTests:
       return Uri.base
           .resolve("pkg/front_end/test/spell_checking_list_tests.txt");
+    case Dictionaries.blacklist:
+      return Uri.base
+          .resolve("pkg/front_end/test/spell_checking_list_blacklist.txt");
   }
   throw "Unknown Dictionary";
 }
@@ -107,9 +187,9 @@ List<String> splitStringIntoWords(String s, List<int> splitOffsets,
   String regExpStringInner = r"\s-=\|\/,";
   if (splitAsCode) {
     // If splitting as code also split by "_", ":", ".", "(", ")", "<", ">",
-    // "[", "]", "{", "}", "@", "&", "#", "?". (As well as doing stuff to camel
-    // casing further below).
-    regExpStringInner = "${regExpStringInner}_:\\.\\(\\)<>\\[\\]\{\}@&#\\?";
+    // "[", "]", "{", "}", "@", "&", "#", "?", "%", "`".
+    // (As well as doing stuff to camel casing further below).
+    regExpStringInner = "${regExpStringInner}_:\\.\\(\\)<>\\[\\]\{\}@&#\\?%`";
   }
   // Match one or more of the characters specified above.
   String regExp = "[$regExpStringInner]+";

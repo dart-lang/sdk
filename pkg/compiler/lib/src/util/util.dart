@@ -103,6 +103,18 @@ class Hashing {
   }
 }
 
+bool identicalElements<E>(List<E> a, List<E> b) {
+  if (identical(a, b)) return true;
+  if (a == null || b == null) return false;
+  if (a.length != b.length) return false;
+  for (int index = 0; index < a.length; index++) {
+    if (!identical(a[index], b[index])) {
+      return false;
+    }
+  }
+  return true;
+}
+
 bool equalElements<E>(List<E> a, List<E> b) {
   if (identical(a, b)) return true;
   if (a == null || b == null) return false;

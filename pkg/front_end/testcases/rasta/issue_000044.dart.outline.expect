@@ -17,18 +17,18 @@ library;
 //   C notEvenAConstructor(a) = h;
 //                            ^
 //
-// pkg/front_end/testcases/rasta/issue_000044.dart:7:1: Warning: Type 'a' not found.
+// pkg/front_end/testcases/rasta/issue_000044.dart:7:1: Error: Type 'a' not found.
 // a b(c) = d;
 // ^
 //
-// pkg/front_end/testcases/rasta/issue_000044.dart:21:30: Warning: Couldn't find constructor 'h'.
+// pkg/front_end/testcases/rasta/issue_000044.dart:21:30: Error: Couldn't find constructor 'h'.
 //   C notEvenAConstructor(a) = h;
 //                              ^
 //
 import self as self;
 import "dart:core" as core;
 
-class C extends core::Object {
+class C extends core::Object /*hasConstConstructor*/  {
   static field dynamic _redirecting# = <dynamic>[self::C::good];
   const constructor constant() → self::C*
     : super core::Object::•()

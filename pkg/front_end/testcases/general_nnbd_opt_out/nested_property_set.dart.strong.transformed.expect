@@ -1,0 +1,37 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class NumField extends core::Object {
+  field core::num* field = null;
+  synthetic constructor •() → self::NumField*
+    : super core::Object::•()
+    ;
+}
+class IntField extends core::Object {
+  field core::int* field = null;
+  synthetic constructor •() → self::IntField*
+    : super core::Object::•()
+    ;
+}
+class DoubleField extends core::Object {
+  field core::double* field = null;
+  synthetic constructor •() → self::DoubleField*
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {
+  self::IntField* intField1 = new self::IntField::•();
+  self::IntField* intField2 = new self::IntField::•();
+  self::NumField* numField = new self::NumField::•();
+  self::DoubleField* doubleField = new self::DoubleField::•();
+  intField1.{self::IntField::field} = (intField2.{self::IntField::field} = numField.{self::NumField::field} as{TypeError} core::int*) as{TypeError} core::int*;
+  intField1.{self::IntField::field} = numField.{self::NumField::field} = intField2.{self::IntField::field};
+  try {
+    numField.{self::NumField::field} = 0.5;
+    intField1.{self::IntField::field} = (doubleField.{self::DoubleField::field} = numField.{self::NumField::field} as{TypeError} core::double*) as{TypeError} core::int*;
+    throw "Should fail";
+  }
+  on dynamic catch(final dynamic _) {
+  }
+}

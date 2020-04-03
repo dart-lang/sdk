@@ -29,9 +29,7 @@ class Zone::Segment {
 
   // Allocate or delete individual segments.
   static Segment* New(intptr_t size, Segment* next);
-  static Segment* NewLarge(intptr_t size, Segment* next);
   static void DeleteSegmentList(Segment* segment);
-  static void DeleteLargeSegmentList(Segment* segment);
   static void IncrementMemoryCapacity(uintptr_t size);
   static void DecrementMemoryCapacity(uintptr_t size);
 
@@ -47,34 +45,54 @@ class Zone::Segment {
   DISALLOW_IMPLICIT_CONSTRUCTORS(Segment);
 };
 
-Zone::Segment* Zone::Segment::New(intptr_t size, Zone::Segment* next) {
-  ASSERT(size >= 0);
-  Segment* result = reinterpret_cast<Segment*>(malloc(size));
-  if (result == NULL) {
-    OUT_OF_MEMORY();
-  }
-#ifdef DEBUG
-  // Zap the entire allocated segment (including the header).
-  memset(result, kZapUninitializedByte, size);
-#endif
-  result->next_ = next;
-  result->size_ = size;
-  result->memory_ = nullptr;
-  result->alignment_ = nullptr;  // Avoid unused variable warnings.
-  IncrementMemoryCapacity(size);
-  return result;
+// tcmalloc and jemalloc have both been observed to hold onto lots of free'd
+// zone segments (jemalloc to the point of causing OOM), so instead of using
+// malloc to allocate segments, we allocate directly from mmap/zx_vmo_create/
+// VirtualAlloc, and cache a small number of the normal sized segments.
+static constexpr intptr_t kSegmentCacheCapacity = 16;  // 1 MB of Segments
+static Mutex* segment_cache_mutex = nullptr;
+static VirtualMemory* segment_cache[kSegmentCacheCapacity] = {nullptr};
+static intptr_t segment_cache_size = 0;
+
+void Zone::Init() {
+  ASSERT(segment_cache_mutex == nullptr);
+  segment_cache_mutex = new Mutex(NOT_IN_PRODUCT("segment_cache_mutex"));
 }
 
-Zone::Segment* Zone::Segment::NewLarge(intptr_t size, Zone::Segment* next) {
+void Zone::Cleanup() {
+  {
+    MutexLocker ml(segment_cache_mutex);
+    ASSERT(segment_cache_size >= 0);
+    ASSERT(segment_cache_size <= kSegmentCacheCapacity);
+    while (segment_cache_size > 0) {
+      delete segment_cache[--segment_cache_size];
+    }
+  }
+  delete segment_cache_mutex;
+  segment_cache_mutex = nullptr;
+}
+
+Zone::Segment* Zone::Segment::New(intptr_t size, Zone::Segment* next) {
   size = Utils::RoundUp(size, VirtualMemory::PageSize());
-  VirtualMemory* memory = VirtualMemory::Allocate(size, false, "dart-zone");
-  if (memory == NULL) {
+  VirtualMemory* memory = nullptr;
+  if (size == kSegmentSize) {
+    MutexLocker ml(segment_cache_mutex);
+    ASSERT(segment_cache_size >= 0);
+    ASSERT(segment_cache_size <= kSegmentCacheCapacity);
+    if (segment_cache_size > 0) {
+      memory = segment_cache[--segment_cache_size];
+    }
+  }
+  if (memory == nullptr) {
+    memory = VirtualMemory::Allocate(size, false, "dart-zone");
+  }
+  if (memory == nullptr) {
     OUT_OF_MEMORY();
   }
   Segment* result = reinterpret_cast<Segment*>(memory->start());
 #ifdef DEBUG
   // Zap the entire allocated segment (including the header).
-  memset(result, kZapUninitializedByte, size);
+  memset(reinterpret_cast<void*>(result), kZapUninitializedByte, size);
 #endif
   result->next_ = next;
   result->size_ = size;
@@ -90,28 +108,25 @@ Zone::Segment* Zone::Segment::NewLarge(intptr_t size, Zone::Segment* next) {
 void Zone::Segment::DeleteSegmentList(Segment* head) {
   Segment* current = head;
   while (current != NULL) {
-    DecrementMemoryCapacity(current->size());
-    Segment* next = current->next();
-#ifdef DEBUG
-    // Zap the entire current segment (including the header).
-    memset(current, kZapDeletedByte, current->size());
-#endif
-    free(current);
-    current = next;
-  }
-}
-
-void Zone::Segment::DeleteLargeSegmentList(Segment* head) {
-  Segment* current = head;
-  while (current != NULL) {
-    DecrementMemoryCapacity(current->size());
+    intptr_t size = current->size();
+    DecrementMemoryCapacity(size);
     Segment* next = current->next();
     VirtualMemory* memory = current->memory();
 #ifdef DEBUG
     // Zap the entire current segment (including the header).
-    memset(current, kZapDeletedByte, current->size());
+    memset(reinterpret_cast<void*>(current), kZapDeletedByte, current->size());
 #endif
     LSAN_UNREGISTER_ROOT_REGION(current, sizeof(*current));
+
+    if (size == kSegmentSize) {
+      MutexLocker ml(segment_cache_mutex);
+      ASSERT(segment_cache_size >= 0);
+      ASSERT(segment_cache_size <= kSegmentCacheCapacity);
+      if (segment_cache_size < kSegmentCacheCapacity) {
+        segment_cache[segment_cache_size++] = memory;
+        memory = nullptr;
+      }
+    }
     delete memory;
     current = next;
   }
@@ -172,7 +187,7 @@ void Zone::DeleteAll() {
     Segment::DeleteSegmentList(head_);
   }
   if (large_segments_ != NULL) {
-    Segment::DeleteLargeSegmentList(large_segments_);
+    Segment::DeleteSegmentList(large_segments_);
   }
 // Reset zone state.
 #ifdef DEBUG
@@ -259,7 +274,7 @@ uword Zone::AllocateLargeSegment(intptr_t size) {
   // Create a new large segment and chain it up.
   // Account for book keeping fields in size.
   size += Utils::RoundUp(sizeof(Segment), kAlignment);
-  large_segments_ = Segment::NewLarge(size, large_segments_);
+  large_segments_ = Segment::New(size, large_segments_);
 
   uword result = Utils::RoundUp(large_segments_->start(), kAlignment);
   return result;

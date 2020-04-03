@@ -9,15 +9,11 @@ main.dart.patch: |
   toplevel() {
     print('v1');
   }
-  ==== {"messages":["threw"]}
+  ==== {"messages":[],"hasCompileTimeError":1}
   >>>>
   class C {
     m() {
-      try {
-        toplevel();
-      } catch (e) {
-        print('threw');
-      }
+      toplevel();
     }
   }
   var instance;

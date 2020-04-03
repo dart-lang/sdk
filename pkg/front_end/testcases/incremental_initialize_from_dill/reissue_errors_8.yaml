@@ -1,0 +1,59 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application with a const class with a initializer assert that would
+# fail once evaluated. Everything should be fine as there is no usage.
+# Add a new file with usage of it. An error should occur.
+# Remove said file again and the error should go away.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import 'lib.dart';
+        main() {
+          foo();
+        }
+      lib.dart: |
+        class Foo {
+          const Foo(int i) : assert(i > 0);
+        }
+        foo() {
+          new Foo(0);
+        }
+    expectedLibraryCount: 2
+    errors: false
+  - entry: main.dart
+    errors: true
+    worldType: updated
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        import 'lib.dart';
+        import 'lib2.dart';
+        main() {
+          foo();
+        }
+      lib2.dart: |
+        import 'lib.dart';
+        bar() {
+          const Foo(0);
+        }
+    expectInitializeFromDill: false
+    expectedLibraryCount: 3
+  - entry: main.dart
+    errors: false
+    worldType: updated
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        import 'lib.dart';
+        main() {
+          foo();
+        }
+    expectInitializeFromDill: false
+    expectedLibraryCount: 2

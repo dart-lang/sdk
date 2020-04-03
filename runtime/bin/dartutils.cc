@@ -208,7 +208,7 @@ bool DartUtils::IsHttpSchemeURL(const char* url_name) {
 
 bool DartUtils::IsDartExtensionSchemeURL(const char* url_name) {
   static const intptr_t kDartExtensionSchemeLen = strlen(kDartExtensionScheme);
-  // If the URL starts with "dartext:" then it is considered as a special
+  // If the URL starts with "dart-ext:" then it is considered as a special
   // extension library URL which is handled differently from other URLs.
   return (strncmp(url_name, kDartExtensionScheme, kDartExtensionSchemeLen) ==
           0);
@@ -514,31 +514,10 @@ Dart_Handle DartUtils::PrepareCLILibrary(Dart_Handle cli_lib) {
                        wait_for_event_handle);
 }
 
-Dart_Handle DartUtils::SetupServiceLoadPort() {
-  // Wait for the service isolate to initialize the load port.
-  Dart_Port load_port = Dart_ServiceWaitForLoadPort();
-  if (load_port == ILLEGAL_PORT) {
-    return Dart_NewUnhandledExceptionError(
-        NewDartUnsupportedError("Service did not return load port."));
-  }
-  return Builtin::SetLoadPort(load_port);
-}
-
-Dart_Handle DartUtils::SetupPackageRoot(const char* package_root,
-                                        const char* packages_config) {
+Dart_Handle DartUtils::SetupPackageConfig(const char* packages_config) {
   Dart_Handle result = Dart_Null();
 
-  // Set up package root if specified.
-  if (package_root != NULL) {
-    ASSERT(packages_config == NULL);
-    result = NewString(package_root);
-    RETURN_IF_ERROR(result);
-    const int kNumArgs = 1;
-    Dart_Handle dart_args[kNumArgs];
-    dart_args[0] = result;
-    result = Dart_Invoke(DartUtils::LookupBuiltinLib(),
-                         NewString("_setPackageRoot"), kNumArgs, dart_args);
-  } else if (packages_config != NULL) {
+  if (packages_config != NULL) {
     result = NewString(packages_config);
     RETURN_IF_ERROR(result);
     const int kNumArgs = 1;
@@ -634,6 +613,16 @@ Dart_Handle DartUtils::SetupIOLibrary(const char* namespc_path,
   Dart_Handle set_script_name =
       Dart_SetField(platform_type, script_name, dart_script);
   RETURN_IF_ERROR(set_script_name);
+
+#if !defined(PRODUCT)
+  Dart_Handle network_profiling_type =
+      GetDartType(DartUtils::kIOLibURL, "_NetworkProfiling");
+  RETURN_IF_ERROR(network_profiling_type);
+  Dart_Handle result =
+      Dart_Invoke(network_profiling_type,
+                  NewString("_registerServiceExtension"), 0, nullptr);
+  RETURN_IF_ERROR(result);
+#endif  // !defined(PRODUCT)
   return Dart_Null();
 }
 
@@ -798,7 +787,7 @@ Dart_Handle DartUtils::EnvironmentCallback(Dart_Handle name) {
 // objects. As these will be used by different threads the use of
 // these depends on the fact that the marking internally in the
 // Dart_CObject structure is not marking simple value objects.
-Dart_CObject CObject::api_null_ = {Dart_CObject_kNull, {0}};
+Dart_CObject CObject::api_null_ = {Dart_CObject_kNull, {false}};
 Dart_CObject CObject::api_true_ = {Dart_CObject_kBool, {true}};
 Dart_CObject CObject::api_false_ = {Dart_CObject_kBool, {false}};
 CObject CObject::null_(&api_null_);

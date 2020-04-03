@@ -275,7 +275,7 @@ const char* Platform::ResolveExecutablePath() {
   // Ensure no last error before calling GetModuleFileNameW.
   SetLastError(ERROR_SUCCESS);
   // Get the required length of the buffer.
-  int path_length = GetModuleFileNameW(NULL, tmp_buffer, kTmpBufferSize);
+  GetModuleFileNameW(nullptr, tmp_buffer, kTmpBufferSize);
   if (GetLastError() != ERROR_SUCCESS) {
     return NULL;
   }
@@ -283,6 +283,24 @@ const char* Platform::ResolveExecutablePath() {
   // Return the canonical path as the returned path might contain symlinks.
   const char* canon_path = File::GetCanonicalPath(NULL, path);
   return canon_path;
+}
+
+intptr_t Platform::ResolveExecutablePathInto(char* result, size_t result_size) {
+  // Ensure no last error before calling GetModuleFileNameW.
+  SetLastError(ERROR_SUCCESS);
+  const int kTmpBufferSize = 32768;
+  wchar_t tmp_buffer[kTmpBufferSize];
+  // Get the required length of the buffer.
+  GetModuleFileNameW(nullptr, tmp_buffer, kTmpBufferSize);
+  if (GetLastError() != ERROR_SUCCESS) {
+    return -1;
+  }
+  WideToUtf8Scope wide_to_utf8_scope(tmp_buffer);
+  if (wide_to_utf8_scope.length() <= result_size) {
+    strncpy(result, wide_to_utf8_scope.utf8(), result_size);
+    return wide_to_utf8_scope.length();
+  }
+  return -1;
 }
 
 void Platform::Exit(int exit_code) {

@@ -5,7 +5,11 @@
 #ifndef RUNTIME_VM_STACK_FRAME_X64_H_
 #define RUNTIME_VM_STACK_FRAME_X64_H_
 
-#include "vm/constants_x64.h"
+#if !defined(RUNTIME_VM_STACK_FRAME_H_)
+#error Do not include stack_frame_x64.h directly; use stack_frame.h instead.
+#endif
+
+#include "vm/constants.h"
 
 namespace dart {
 
@@ -58,6 +62,9 @@ static const int kExitLinkSlotFromEntryFp = -10;
 // passed on stack and arguments saved in callback prologue. 2 = return adddress
 // (1) + saved frame pointer (1). Also add slots for the shadow space, if
 // present.
+//
+// If NativeCallbackTrampolines::Enabled(), then
+// kNativeCallbackTrampolineStackDelta must be added as well.
 constexpr intptr_t kCallbackSlotsBeforeSavedArguments =
     2 + CallingConventions::kShadowSpaceBytes / kWordSize;
 

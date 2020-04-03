@@ -388,7 +388,6 @@ List<String> extractBuilderPattern(List<String> builders) {
         'simarm64',
         'arm',
         'arm64',
-        'simdbc64'
       ]);
     }
   }

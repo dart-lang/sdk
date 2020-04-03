@@ -17,17 +17,15 @@ main() {
 /// to this class.
 @reflectiveTest
 class VariableTypeMismatchTest extends DriverResolutionTest {
-  @FailingTest(reason: 'Workaround for #35993 is too broad')
   test_int_to_double_variable_reference_is_not_promoted() async {
     // Note: in the following code, the declaration of `y` should produce an
     // error because we should only promote literal ints to doubles; we
     // shouldn't promote the reference to the variable `x`.
-    addTestFile('''
+    await assertErrorsInCode('''
 const Object x = 0;
 const double y = x;
-    ''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes(
-        [CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH]);
+''', [
+      error(CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, 37, 1),
+    ]);
   }
 }

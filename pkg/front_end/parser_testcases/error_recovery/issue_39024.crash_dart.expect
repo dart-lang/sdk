@@ -1,0 +1,45 @@
+Problems reported:
+
+parser/error_recovery/issue_39024.crash:1:3: Expected '>' after this.
+n<S e(
+  ^
+
+parser/error_recovery/issue_39024.crash:1:7: Expected an identifier, but got ''.
+n<S e(
+      ^...
+
+parser/error_recovery/issue_39024.crash:1:7: A function declaration needs an explicit list of parameters.
+n<S e(
+      ^...
+
+parser/error_recovery/issue_39024.crash:1:7: Expected a function body, but got ''.
+n<S e(
+      ^...
+
+beginCompilationUnit(n)
+  beginMetadataStar(n)
+  endMetadataStar(0)
+  beginTopLevelMember(n)
+    beginTopLevelMethod(UnmatchedToken(<), null)
+      handleIdentifier(n, typeReference)
+      beginTypeArguments(<)
+        handleIdentifier(S, typeReference)
+        handleNoTypeArguments(e)
+        handleType(S, null)
+        handleRecoverableError(Message[ExpectedAfterButGot, Expected '>' after this., null, {string: >}], S, S)
+      endTypeArguments(1, <, >)
+      handleType(n, null)
+      handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got ''., null, {token: }], , )
+      handleIdentifier(, topLevelFunctionDeclaration)
+      handleNoTypeVariables()
+      handleRecoverableError(MissingFunctionParameters, , )
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got ''., null, {token: }], , )
+      handleInvalidFunctionBody({)
+    endTopLevelMethod(n, null, })
+  endTopLevelDeclaration()
+  handleErrorToken(UnmatchedToken(())
+  handleErrorToken(UnmatchedToken(<))
+endCompilationUnit(1, )

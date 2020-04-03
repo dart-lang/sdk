@@ -322,7 +322,7 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
   }
 
   void registerIsCheck(covariant DartType type) {
-    _isChecks.add(type.unaliased);
+    _isChecks.add(type);
   }
 
   void registerNamedTypeVariableNewRti(TypeVariableType type) {
@@ -806,20 +806,6 @@ class CodegenWorldImpl implements CodegenWorld {
   void forEachInvokedSetter(
       f(String name, Map<Selector, SelectorConstraints> selectors)) {
     _invokedSetters.forEach(f);
-  }
-
-  bool _hasMatchingSelector(Map<Selector, SelectorConstraints> selectors,
-      MemberEntity member, JClosedWorld world) {
-    if (selectors == null) return false;
-    for (Selector selector in selectors.keys) {
-      if (selector.appliesUnnamed(member)) {
-        SelectorConstraints masks = selectors[selector];
-        if (masks.canHit(member, selector.memberName, world)) {
-          return true;
-        }
-      }
-    }
-    return false;
   }
 
   @override

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/summary2/ast_text_printer.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -11,6 +13,7 @@ import '../dart/ast/parse_base.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AstTextPrinterTest);
+    defineReflectiveTests(AstTextPrinterWithExtensionMethodsTest);
   });
 }
 
@@ -19,7 +22,7 @@ main() {
 ///
 /// Whitespaces and newlines are normalized and ignored.
 void assertParseCodeAndPrintAst(ParseBase base, String code,
-    {bool mightHasParseErrors: false}) {
+    {bool mightHasParseErrors = false}) {
   code = code.trimRight();
   code = code.replaceAll('\t', ' ');
   code = code.replaceAll('\r\n', '\n');
@@ -106,6 +109,24 @@ var _ = [1, ...[2, 3], 4];
   test_spreadElement_nullable() async {
     assertParseCodeAndPrintAst(this, r'''
 var _ = [1, ...?[2, 3], 4];
+''');
+  }
+}
+
+@reflectiveTest
+class AstTextPrinterWithExtensionMethodsTest extends ParseBase {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.forTesting(
+        sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
+
+  test_extensionOverride() async {
+    await assertParseCodeAndPrintAst(this, '''
+extension E on Object {
+  int f() => 0;
+}
+
+const e = E(null).f();
 ''');
   }
 }

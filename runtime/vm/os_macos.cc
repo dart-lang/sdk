@@ -139,8 +139,6 @@ intptr_t OS::ActivationFrameAlignment() {
   return 16;  // iOS simulator
 #elif TARGET_ARCH_X64
   return 16;  // iOS simulator
-#elif TARGET_ARCH_DBC
-  return 16;  // Should be at least as much as any host architecture.
 #else
 #error Unimplemented
 #endif
@@ -149,25 +147,6 @@ intptr_t OS::ActivationFrameAlignment() {
   // Function Call Guide".
   return 16;
 #endif  // HOST_OS_IOS
-}
-
-intptr_t OS::PreferredCodeAlignment() {
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
-    defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_DBC)
-  const int kMinimumAlignment = 32;
-#elif defined(TARGET_ARCH_ARM)
-  const int kMinimumAlignment = 16;
-#else
-#error Unsupported architecture.
-#endif
-  intptr_t alignment = kMinimumAlignment;
-  // TODO(5411554): Allow overriding default code alignment for
-  // testing purposes.
-  // Flags::DebugIsInt("codealign", &alignment);
-  ASSERT(Utils::IsPowerOfTwo(alignment));
-  ASSERT(alignment >= kMinimumAlignment);
-  ASSERT(alignment <= OS::kMaxPreferredCodeAlignment);
-  return alignment;
 }
 
 int OS::NumberOfAvailableProcessors() {

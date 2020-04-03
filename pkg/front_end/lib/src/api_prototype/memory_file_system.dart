@@ -26,7 +26,9 @@ class MemoryFileSystem implements FileSystem {
   Uri currentDirectory;
 
   MemoryFileSystem(Uri currentDirectory)
-      : currentDirectory = _addTrailingSlash(currentDirectory);
+      : currentDirectory = _addTrailingSlash(currentDirectory) {
+    _directories.add(currentDirectory);
+  }
 
   @override
   MemoryFileSystemEntity entityForUri(Uri uri) {

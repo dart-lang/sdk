@@ -12,11 +12,21 @@ import 'dart:math' show min;
 
 import 'dart:typed_data' show Uint8List;
 
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show Severity, severityPrefixes;
+
+import 'package:_fe_analyzer_shared/src/scanner/characters.dart'
+    show $CARET, $SPACE, $TAB;
+
+import 'package:_fe_analyzer_shared/src/util/colors.dart'
+    show enableColors, green, magenta, red;
+
+import 'package:_fe_analyzer_shared/src/util/relativize.dart'
+    show isWindows, relativizeUri;
+
 import 'package:kernel/ast.dart' show Location, TreeNode;
 
 import '../compute_platform_binaries_location.dart' show translateSdk;
-
-import 'colors.dart' show green, magenta, red;
 
 import 'compiler_context.dart' show CompilerContext;
 
@@ -27,14 +37,6 @@ import 'fasta_codes.dart' show LocatedMessage;
 import 'messages.dart' show getLocation, getSourceLine;
 
 import 'problems.dart' show unhandled;
-
-import 'resolve_input_uri.dart' show isWindows;
-
-import 'severity.dart' show Severity, severityPrefixes;
-
-import 'scanner/characters.dart' show $CARET, $SPACE, $TAB;
-
-import 'util/relativize.dart' show relativizeUri;
 
 const bool hideWarnings = false;
 
@@ -55,7 +57,7 @@ String format(LocatedMessage message, Severity severity, {Location location}) {
     if (message.tip != null) {
       messageText += "\n${message.tip}";
     }
-    if (CompilerContext.enableColors) {
+    if (enableColors) {
       switch (severity) {
         case Severity.error:
         case Severity.internalProblem:
@@ -178,9 +180,6 @@ bool isCompileTimeError(Severity severity) {
     case Severity.error:
     case Severity.internalProblem:
       return true;
-
-    case Severity.errorLegacyWarning:
-      return !CompilerContext.current.options.legacyMode;
 
     case Severity.warning:
     case Severity.context:

@@ -76,7 +76,7 @@ char* ProcCpuInfo::FieldStart(const char* field) {
 
   // Skip to the first colon followed by a space.
   p = strchr(p + fieldlen, ':');
-  if (p == NULL || !isspace(p[1])) {
+  if (p == NULL || (isspace(p[1]) == 0)) {
     return NULL;
   }
   p += 2;

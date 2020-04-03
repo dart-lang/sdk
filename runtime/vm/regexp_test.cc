@@ -17,7 +17,7 @@ static RawArray* Match(const String& pat, const String& str) {
   Zone* zone = thread->zone();
   const RegExp& regexp =
       RegExp::Handle(RegExpEngine::CreateRegExp(thread, pat, RegExpFlags()));
-  const Smi& idx = Smi::Handle(Smi::New(0));
+  const Smi& idx = Object::smi_zero();
   return IRRegExpMacroAssembler::Execute(regexp, str, idx, /*sticky=*/false,
                                          zone);
 }

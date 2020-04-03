@@ -6,7 +6,7 @@
 library test;
 
 test1() {
-  var /*@ type=List<Null*>* */ x = /*@ typeArgs=Null* */ [null];
+  var /*@ type=List<Null?>* */ x = /*@ typeArgs=Null? */ [null];
   x. /*@target=List::add*/ add(/*error:INVALID_CAST_LITERAL*/ 42);
 }
 

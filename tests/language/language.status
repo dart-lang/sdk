@@ -1,0 +1,46 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+[ $compiler != dart2analyzer ]
+switch/case_warn_test: Skip # Analyzer only, see language_analyzer2.status
+
+[ $compiler != fasta ]
+nonfunction_type_aliases/*: Skip # github.com/dart-lang/language/issues/115
+
+[ $compiler == none ]
+invalid_returns/*: Skip # https://github.com/dart-lang/sdk/issues/34013
+void/*: Skip # https://github.com/dart-lang/sdk/issues/34013
+
+[ $compiler == spec_parser ]
+double_literals/*: Skip # https://github.com/dart-lang/sdk/issues/34355
+invalid_returns/*: Skip # https://github.com/dart-lang/sdk/issues/34015
+mixin_declaration/*: Skip # See https://github.com/dart-lang/language/issues/7
+void/*: Skip # https://github.com/dart-lang/sdk/issues/34015
+
+[ $mode == debug ]
+class/large_class_declaration_test: Slow, Pass
+
+[ $mode == product ]
+assert/assert_test: SkipByDesign # Requires checked mode.
+generic/generic_test: SkipByDesign # Requires checked mode.
+map/literal4_test: SkipByDesign # Requires checked mode.
+parameter/named_type_test/01: SkipByDesign # Requires checked mode.
+parameter/named_type_test/02: SkipByDesign # Requires checked mode.
+parameter/named_type_test/03: SkipByDesign # Requires checked mode.
+parameter/positional_type_test/01: SkipByDesign # Requires checked mode.
+parameter/positional_type_test/02: SkipByDesign # Requires checked mode.
+regress/regress13474_test: SkipByDesign # Requires checked mode.
+regress/regress29784_test/02: SkipByDesign # Requires checked mode.
+stack_trace/demangle_ctors_test: SkipByDesign # Names are not scrubbed.
+type/checks_in_factory_method_test: SkipByDesign # Requires checked mode.
+
+[ $compiler != dart2js && $compiler != dartdevc && !$checked ]
+function_type/*: Skip # Needs checked mode.
+
+[ $compiler != dartk && $compiler != dartkb && $compiler != dartkp && $mode == debug && $runtime == vm ]
+identifier/built_in_type_annotation_test/set: Crash # Not supported by legacy VM front-end.
+
+[ $hot_reload || $hot_reload_rollback ]
+regress/regress22780_test/01: Crash # Issue 29094
+vm/optimized_stacktrace_test: Slow, Pass

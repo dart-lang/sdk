@@ -4,13 +4,17 @@
 
 library fasta.scope_listener;
 
-import '../../scanner/token.dart' show Token;
+import 'package:_fe_analyzer_shared/src/parser/block_kind.dart' show BlockKind;
+
+import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
+    show NullValue;
+
+import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
 import '../scope.dart' show Scope;
+import 'stack_listener_impl.dart';
 
-import 'stack_listener.dart' show NullValue, StackListener;
-
-export 'stack_listener.dart'
+export 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show FixedNullableList, GrowableList, NullValue, ParserRecovery;
 
 enum JumpTargetKind {
@@ -19,7 +23,7 @@ enum JumpTargetKind {
   Goto, // Continue label in switch.
 }
 
-abstract class ScopeListener<J> extends StackListener {
+abstract class ScopeListener<J> extends StackListenerImpl {
   Scope scope;
 
   J breakTarget;
@@ -100,7 +104,7 @@ abstract class ScopeListener<J> extends StackListener {
   }
 
   @override
-  void beginBlock(Token token) {
+  void beginBlock(Token token, BlockKind blockKind) {
     debugEvent("beginBlock");
     enterLocalScope("block");
   }
@@ -133,7 +137,7 @@ abstract class ScopeListener<J> extends StackListener {
   @override
   void endDoWhileStatementBody(Token token) {
     debugEvent("endDoWhileStatementBody");
-    var body = pop();
+    Object body = pop();
     exitLocalScope();
     push(body);
   }
@@ -147,7 +151,7 @@ abstract class ScopeListener<J> extends StackListener {
   @override
   void endWhileStatementBody(Token token) {
     debugEvent("endWhileStatementBody");
-    var body = pop();
+    Object body = pop();
     exitLocalScope();
     push(body);
   }
@@ -161,7 +165,7 @@ abstract class ScopeListener<J> extends StackListener {
   @override
   void endForStatementBody(Token token) {
     debugEvent("endForStatementBody");
-    var body = pop();
+    Object body = pop();
     exitLocalScope();
     push(body);
   }
@@ -175,7 +179,7 @@ abstract class ScopeListener<J> extends StackListener {
   @override
   void endForInBody(Token token) {
     debugEvent("endForInBody");
-    var body = pop();
+    Object body = pop();
     exitLocalScope();
     push(body);
   }
@@ -189,7 +193,7 @@ abstract class ScopeListener<J> extends StackListener {
   @override
   void endThenStatement(Token token) {
     debugEvent("endThenStatement");
-    var body = pop();
+    Object body = pop();
     exitLocalScope();
     push(body);
   }
@@ -203,7 +207,7 @@ abstract class ScopeListener<J> extends StackListener {
   @override
   void endElseStatement(Token token) {
     debugEvent("endElseStatement");
-    var body = pop();
+    Object body = pop();
     exitLocalScope();
     push(body);
   }

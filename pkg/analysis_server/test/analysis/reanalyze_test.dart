@@ -11,7 +11,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReanalyzeTest);
   });
@@ -24,12 +24,12 @@ class ReanalyzeTest extends AbstractAnalysisTest {
   @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
-      var decoded = new AnalysisErrorsParams.fromNotification(notification);
+      var decoded = AnalysisErrorsParams.fromNotification(notification);
       filesErrors[decoded.file] = decoded.errors;
     }
   }
 
-  test_reanalyze() async {
+  Future<void> test_reanalyze() async {
     var b = convertPath('/other/b.dart');
 
     newFile(testFile, content: r'''

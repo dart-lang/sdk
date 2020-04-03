@@ -5,6 +5,9 @@
 [ $arch == arm ]
 sample_extension/test/*: Skip # Issue 14705
 
+[ $builder_tag == asan ]
+ffi/samples_test: SkipByDesign # FFI skips, see ffi.status
+
 [ $builder_tag == optimization_counter_threshold ]
 sample_extension/test/sample_extension_app_snapshot_test: SkipByDesign # This test is too slow for testing with low optimization counter threshold.
 
@@ -17,19 +20,19 @@ sample_extension/test/sample_extension_app_snapshot_test: Pass, RuntimeError # I
 [ $compiler == none && $runtime == vm && $system == fuchsia ]
 *: Skip # Not yet triaged.
 
-[ !$preview_dart_2 && ($runtime == dart_precompiled || $runtime == vm) ]
-*: SkipByDesign # Deprecating all Dart1 modes of execution
+[ $arch == simarm || $arch == simarm64 ]
+ffi/*: SkipByDesign # FFI skips, see ffi.status
 
 [ $arch != x64 || $compiler != dartk || $system != linux || $hot_reload || $hot_reload_rollback ]
-ffi/sqlite/test/sqlite_test: Skip # FFI not supported or libsqlite3.so not available.
+ffi/sqlite/test/sqlite_test: SkipByDesign # FFI not supported or libsqlite3.so not available.
 
 [ $compiler == app_jitk || $compiler == dartkp ]
 sample_extension/test/sample_extension_app_snapshot_test: SkipByDesign
 sample_extension/test/sample_extension_test: SkipByDesign
 
-# Skip tests that use dart:io
 [ $runtime == d8 || $browser ]
-sample_extension/*: Skip
+ffi/*: SkipByDesign # Skip tests that use dart:ffi.
+sample_extension/*: SkipByDesign # Skip tests that use dart:io.
 
 [ $hot_reload || $hot_reload_rollback ]
 sample_extension/test/sample_extension_app_snapshot_test: SkipByDesign # Cannot reload with URI pointing to app snapshot.

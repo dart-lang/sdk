@@ -5,5 +5,3 @@
 dependencies:
   main: [module1, module2, expect]
   module2: [module1]
-flags:
-  - constant-update-2018

@@ -106,8 +106,6 @@ class TestFragment {
   SuccessorAddressArray* false_successor_addresses = nullptr;
 };
 
-typedef ZoneGrowableArray<PushArgumentInstr*>* ArgumentArray;
-
 // Indicates which form of the unchecked entrypoint we are compiling.
 //
 // kNone:
@@ -154,19 +152,24 @@ class BaseFlowGraphBuilder {
         current_try_index_(kInvalidTryIndex),
         next_used_try_index_(0),
         stack_(NULL),
-        pending_argument_count_(0),
         exit_collector_(exit_collector),
         inlining_unchecked_entry_(inlining_unchecked_entry) {}
 
   Fragment LoadField(const Field& field);
   Fragment LoadNativeField(const Slot& native_field);
   Fragment LoadIndexed(intptr_t index_scale);
+  // Takes a [class_id] valid for StoreIndexed.
+  Fragment LoadIndexedTypedData(classid_t class_id,
+                                intptr_t index_scale,
+                                bool index_unboxed);
 
   Fragment LoadUntagged(intptr_t offset);
   Fragment StoreUntagged(intptr_t offset);
-  Fragment ConvertUntaggedToIntptr();
-  Fragment ConvertIntptrToUntagged();
+  Fragment ConvertUntaggedToUnboxed(Representation to);
+  Fragment ConvertUnboxedToUntagged(Representation from);
   Fragment UnboxSmiToIntptr();
+  Fragment FloatToDouble();
+  Fragment DoubleToFloat();
 
   Fragment AddIntptrIntegers();
 
@@ -182,17 +185,29 @@ class BaseFlowGraphBuilder {
   Fragment StoreInstanceField(
       TokenPosition position,
       const Slot& field,
+      StoreInstanceFieldInstr::Kind kind =
+          StoreInstanceFieldInstr::Kind::kOther,
       StoreBarrierType emit_store_barrier = kEmitStoreBarrier);
   Fragment StoreInstanceField(
       const Field& field,
-      bool is_initialization_store,
+      StoreInstanceFieldInstr::Kind kind =
+          StoreInstanceFieldInstr::Kind::kOther,
       StoreBarrierType emit_store_barrier = kEmitStoreBarrier);
   Fragment StoreInstanceFieldGuarded(const Field& field,
-                                     bool is_initialization_store);
-  Fragment LoadStaticField();
+                                     StoreInstanceFieldInstr::Kind kind =
+                                         StoreInstanceFieldInstr::Kind::kOther);
+  Fragment LoadStaticField(const Field& field);
   Fragment RedefinitionWithType(const AbstractType& type);
+  Fragment ReachabilityFence();
   Fragment StoreStaticField(TokenPosition position, const Field& field);
-  Fragment StoreIndexed(intptr_t class_id);
+  Fragment StoreIndexed(classid_t class_id);
+  // Takes a [class_id] valid for StoreIndexed.
+  Fragment StoreIndexedTypedData(classid_t class_id,
+                                 intptr_t index_scale,
+                                 bool index_unboxed);
+
+  // Sign-extends kUnboxedInt32 and zero-extends kUnboxedUint32.
+  Fragment Box(Representation from);
 
   void Push(Definition* definition);
   Definition* Peek(intptr_t depth = 0);
@@ -223,13 +238,14 @@ class BaseFlowGraphBuilder {
   //
   LocalVariable* MakeTemporary();
 
-  Fragment PushArgument();
-  ArgumentArray GetArguments(int count);
+  InputsArray* GetArguments(int count);
 
   TargetEntryInstr* BuildTargetEntry();
   FunctionEntryInstr* BuildFunctionEntry(GraphEntryInstr* graph_entry);
   JoinEntryInstr* BuildJoinEntry();
   JoinEntryInstr* BuildJoinEntry(intptr_t try_index);
+  IndirectEntryInstr* BuildIndirectEntry(intptr_t indirect_id,
+                                         intptr_t try_index);
 
   Fragment StrictCompare(TokenPosition position,
                          Token::Kind kind,
@@ -241,7 +257,12 @@ class BaseFlowGraphBuilder {
   Fragment NullConstant();
   Fragment SmiRelationalOp(Token::Kind kind);
   Fragment SmiBinaryOp(Token::Kind op, bool is_truncating = false);
-  Fragment LoadFpRelativeSlot(intptr_t offset, CompileType result_type);
+  Fragment BinaryIntegerOp(Token::Kind op,
+                           Representation representation,
+                           bool is_truncating = false);
+  Fragment LoadFpRelativeSlot(intptr_t offset,
+                              CompileType result_type,
+                              Representation representation = kTagged);
   Fragment StoreFpRelativeSlot(intptr_t offset);
   Fragment BranchIfTrue(TargetEntryInstr** then_entry,
                         TargetEntryInstr** otherwise_entry,
@@ -254,12 +275,12 @@ class BaseFlowGraphBuilder {
                          bool negate = false);
   Fragment BranchIfStrictEqual(TargetEntryInstr** then_entry,
                                TargetEntryInstr** otherwise_entry);
-  Fragment Return(TokenPosition position);
+  Fragment Return(TokenPosition position,
+                  intptr_t yield_index = RawPcDescriptors::kInvalidYieldIndex);
   Fragment CheckStackOverflow(TokenPosition position,
                               intptr_t stack_depth,
                               intptr_t loop_depth);
   Fragment CheckStackOverflowInPrologue(TokenPosition position);
-  Fragment ThrowException(TokenPosition position);
   Fragment TailCall(const Code& code);
 
   intptr_t GetNextDeoptId() {
@@ -333,10 +354,22 @@ class BaseFlowGraphBuilder {
   // 'function_name' is a selector which is being called (reported in
   // NoSuchMethod message).
   // Sets 'receiver' to 'null' after the check if 'clear_the_temp'.
+  // Note that this does _not_ use the result of the CheckNullInstr, so it does
+  // not create a data depedency and might break with code motion.
   Fragment CheckNull(TokenPosition position,
                      LocalVariable* receiver,
                      const String& function_name,
                      bool clear_the_temp = true);
+
+  // Pops the top of the stack, checks it for null, and pushes the result on
+  // the stack to create a data dependency.
+  // 'function_name' is a selector which is being called (reported in
+  // NoSuchMethod message).
+  // Note that the result can currently only be used in optimized code, because
+  // optimized code uses FlowGraph::RemoveRedefinitions to remove the
+  // redefinitions, while unoptimized code does not.
+  Fragment CheckNullOptimized(TokenPosition position,
+                              const String& function_name);
 
   // Records extra unchecked entry point 'unchecked_entry' in 'graph_entry'.
   void RecordUncheckedEntryPoint(GraphEntryInstr* graph_entry,
@@ -361,6 +394,14 @@ class BaseFlowGraphBuilder {
   // _StringBase._interpolate call.
   Fragment StringInterpolate(TokenPosition position);
 
+  // Pops function type arguments, instantiator type arguments and value; and
+  // type checks value against the type arguments.
+  Fragment AssertAssignable(
+      TokenPosition position,
+      const AbstractType& dst_type,
+      const String& dst_name,
+      AssertAssignableInstr::Kind kind = AssertAssignableInstr::kUnknown);
+
   // Returns true if we're currently recording deopt_id -> context level
   // mapping.
   bool is_recording_context_levels() const {
@@ -375,6 +416,9 @@ class BaseFlowGraphBuilder {
 
   // Reset context level for the given deopt id (which was allocated earlier).
   void reset_context_depth_for_deopt_id(intptr_t deopt_id);
+
+  // Sets raw parameter variables to inferred constant values.
+  Fragment InitConstantParameters();
 
  protected:
   intptr_t AllocateBlockId() { return ++last_used_block_id_; }
@@ -393,7 +437,6 @@ class BaseFlowGraphBuilder {
   intptr_t next_used_try_index_;
 
   Value* stack_;
-  intptr_t pending_argument_count_;
   InlineExitCollector* exit_collector_;
 
   const bool inlining_unchecked_entry_;

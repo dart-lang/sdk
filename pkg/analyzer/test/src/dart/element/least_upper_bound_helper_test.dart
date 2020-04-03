@@ -5,14 +5,13 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/test_support.dart';
+import '../../../generated/elements_types_mixin.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -21,17 +20,9 @@ main() {
 }
 
 @reflectiveTest
-class InterfaceLeastUpperBoundHelperTest extends EngineTestCase {
-  /**
-   * The type provider used to access the types.
-   */
-  TestTypeProvider _typeProvider;
-
+class InterfaceLeastUpperBoundHelperTest with ElementsTypesMixin {
   @override
-  void setUp() {
-    super.setUp();
-    _typeProvider = new TestTypeProvider();
-  }
+  final TestTypeProvider typeProvider = TestTypeProvider();
 
   void test_computeLongestInheritancePathToObject_multipleInterfacePaths() {
     //
@@ -50,10 +41,13 @@ class InterfaceLeastUpperBoundHelperTest extends EngineTestCase {
     ClassElementImpl classC = ElementFactory.classElement2("C");
     ClassElementImpl classD = ElementFactory.classElement2("D");
     ClassElementImpl classE = ElementFactory.classElement2("E");
-    classB.interfaces = <InterfaceType>[classA.type];
-    classC.interfaces = <InterfaceType>[classA.type];
-    classD.interfaces = <InterfaceType>[classC.type];
-    classE.interfaces = <InterfaceType>[classB.type, classD.type];
+    classB.interfaces = <InterfaceType>[interfaceTypeStar(classA)];
+    classC.interfaces = <InterfaceType>[interfaceTypeStar(classA)];
+    classD.interfaces = <InterfaceType>[interfaceTypeStar(classC)];
+    classE.interfaces = <InterfaceType>[
+      interfaceTypeStar(classB),
+      interfaceTypeStar(classD)
+    ];
     // assertion: even though the longest path to Object for typeB is 2, and
     // typeE implements typeB, the longest path for typeE is 4 since it also
     // implements typeD
@@ -74,11 +68,15 @@ class InterfaceLeastUpperBoundHelperTest extends EngineTestCase {
     //     E
     //
     ClassElement classA = ElementFactory.classElement2("A");
-    ClassElement classB = ElementFactory.classElement("B", classA.type);
-    ClassElement classC = ElementFactory.classElement("C", classA.type);
-    ClassElement classD = ElementFactory.classElement("D", classC.type);
-    ClassElementImpl classE = ElementFactory.classElement("E", classB.type);
-    classE.interfaces = <InterfaceType>[classD.type];
+    ClassElement classB =
+        ElementFactory.classElement("B", interfaceTypeStar(classA));
+    ClassElement classC =
+        ElementFactory.classElement("C", interfaceTypeStar(classA));
+    ClassElement classD =
+        ElementFactory.classElement("D", interfaceTypeStar(classC));
+    ClassElementImpl classE =
+        ElementFactory.classElement("E", interfaceTypeStar(classB));
+    classE.interfaces = <InterfaceType>[interfaceTypeStar(classD)];
     // assertion: even though the longest path to Object for typeB is 2, and
     // typeE extends typeB, the longest path for typeE is 4 since it also
     // implements typeD
@@ -87,13 +85,14 @@ class InterfaceLeastUpperBoundHelperTest extends EngineTestCase {
   }
 
   void test_computeLongestInheritancePathToObject_object() {
-    expect(_longestPathToObject(_typeProvider.objectType.element), 0);
+    expect(_longestPathToObject(typeProvider.objectType.element), 0);
   }
 
   void test_computeLongestInheritancePathToObject_recursion() {
     ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
-    classA.supertype = classB.type;
+    ClassElementImpl classB =
+        ElementFactory.classElement("B", interfaceTypeStar(classA));
+    classA.supertype = interfaceTypeStar(classB);
     expect(_longestPathToObject(classA), 2);
   }
 
@@ -110,8 +109,8 @@ class InterfaceLeastUpperBoundHelperTest extends EngineTestCase {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     ClassElementImpl classB = ElementFactory.classElement2("B");
     ClassElementImpl classC = ElementFactory.classElement2("C");
-    classB.interfaces = <InterfaceType>[classA.type];
-    classC.interfaces = <InterfaceType>[classB.type];
+    classB.interfaces = <InterfaceType>[interfaceTypeStar(classA)];
+    classC.interfaces = <InterfaceType>[interfaceTypeStar(classB)];
     expect(_longestPathToObject(classA), 1);
     expect(_longestPathToObject(classB), 2);
     expect(_longestPathToObject(classC), 3);
@@ -128,8 +127,10 @@ class InterfaceLeastUpperBoundHelperTest extends EngineTestCase {
     //     C
     //
     ClassElement classA = ElementFactory.classElement2("A");
-    ClassElement classB = ElementFactory.classElement("B", classA.type);
-    ClassElement classC = ElementFactory.classElement("C", classB.type);
+    ClassElement classB =
+        ElementFactory.classElement("B", interfaceTypeStar(classA));
+    ClassElement classC =
+        ElementFactory.classElement("C", interfaceTypeStar(classB));
     expect(_longestPathToObject(classA), 1);
     expect(_longestPathToObject(classB), 2);
     expect(_longestPathToObject(classC), 3);
@@ -146,35 +147,31 @@ class InterfaceLeastUpperBoundHelperTest extends EngineTestCase {
     //  D
     //
 
-    var instObject = InstantiatedClass.of(_typeProvider.objectType);
+    var instObject = InstantiatedClass.of(typeProvider.objectType);
 
-    ClassElementImpl classA = ElementFactory.classElement2('A');
+    ClassElementImpl classA = class_(name: 'A');
     var instA = InstantiatedClass(classA, const []);
 
-    var classB = ElementFactory.classElement3(
+    var BT = typeParameter('T');
+    var classB = class_(
       name: 'B',
-      typeParameterNames: ['T'],
+      typeParameters: [BT],
       interfaces: [instA.withNullabilitySuffixNone],
     );
 
-    var typeParametersC = ElementFactory.typeParameters(['T']);
-    var classC = ElementFactory.classElement3(
-      name: 'B',
-      typeParameters: typeParametersC,
+    var CT = typeParameter('T');
+    var classC = class_(
+      name: 'C',
+      typeParameters: [CT],
       interfaces: [
         InstantiatedClass(
           classB,
-          [typeParametersC[0].type],
+          [typeParameterType(CT)],
         ).withNullabilitySuffixNone,
       ],
     );
 
-    var classD = ElementFactory.classElement2('D');
-
-    InterfaceTypeImpl typeBT = new InterfaceTypeImpl(classB);
-    DartType typeT = classC.type.typeArguments[0];
-    typeBT.typeArguments = <DartType>[typeT];
-    classC.interfaces = <InterfaceType>[typeBT];
+    var classD = class_(name: 'D');
 
     // A
     expect(
@@ -185,7 +182,7 @@ class InterfaceLeastUpperBoundHelperTest extends EngineTestCase {
     // B<D>
     expect(
       _superInterfaces(
-        InstantiatedClass(classB, [classD.type]),
+        InstantiatedClass(classB, [interfaceTypeStar(classD)]),
       ),
       unorderedEquals([instObject, instA]),
     );
@@ -193,12 +190,12 @@ class InterfaceLeastUpperBoundHelperTest extends EngineTestCase {
     // C<D>
     expect(
       _superInterfaces(
-        InstantiatedClass(classC, [classD.type]),
+        InstantiatedClass(classC, [interfaceTypeStar(classD)]),
       ),
       unorderedEquals([
         instObject,
         instA,
-        InstantiatedClass(classB, [classD.type]),
+        InstantiatedClass(classB, [interfaceTypeStar(classD)]),
       ]),
     );
   }
@@ -214,7 +211,7 @@ class InterfaceLeastUpperBoundHelperTest extends EngineTestCase {
     //  D
     //
 
-    var instObject = InstantiatedClass.of(_typeProvider.objectType);
+    var instObject = InstantiatedClass.of(typeProvider.objectType);
 
     ClassElementImpl classA = ElementFactory.classElement2('A');
     var instA = InstantiatedClass(classA, const []);
@@ -231,7 +228,7 @@ class InterfaceLeastUpperBoundHelperTest extends EngineTestCase {
       typeParameters: typeParametersC,
       supertype: InstantiatedClass(
         classB,
-        [typeParametersC[0].type],
+        [typeParameterType(typeParametersC[0])],
       ).withNullabilitySuffixNone,
     );
 
@@ -246,7 +243,7 @@ class InterfaceLeastUpperBoundHelperTest extends EngineTestCase {
     // B<D>
     expect(
       _superInterfaces(
-        InstantiatedClass(classB, [classD.type]),
+        InstantiatedClass(classB, [interfaceTypeStar(classD)]),
       ),
       unorderedEquals([instObject, instA]),
     );
@@ -254,18 +251,18 @@ class InterfaceLeastUpperBoundHelperTest extends EngineTestCase {
     // C<D>
     expect(
       _superInterfaces(
-        InstantiatedClass(classC, [classD.type]),
+        InstantiatedClass(classC, [interfaceTypeStar(classD)]),
       ),
       unorderedEquals([
         instObject,
         instA,
-        InstantiatedClass(classB, [classD.type]),
+        InstantiatedClass(classB, [interfaceTypeStar(classD)]),
       ]),
     );
   }
 
   void test_computeSuperinterfaceSet_mixin_constraints() {
-    var instObject = InstantiatedClass.of(_typeProvider.objectType);
+    var instObject = InstantiatedClass.of(typeProvider.objectType);
 
     var classA = ElementFactory.classElement3(name: 'A');
     var instA = InstantiatedClass(classA, const []);
@@ -279,7 +276,7 @@ class InterfaceLeastUpperBoundHelperTest extends EngineTestCase {
     var classC = ElementFactory.classElement3(name: 'C');
     var instC = InstantiatedClass(classC, const []);
 
-    var mixinM = ElementFactory.mixinElement(
+    var mixinM = mixin_(
       name: 'M',
       constraints: [
         instB.withNullabilitySuffixNone,
@@ -295,9 +292,9 @@ class InterfaceLeastUpperBoundHelperTest extends EngineTestCase {
   }
 
   void test_computeSuperinterfaceSet_mixin_constraints_object() {
-    var instObject = InstantiatedClass.of(_typeProvider.objectType);
+    var instObject = InstantiatedClass.of(typeProvider.objectType);
 
-    var mixinM = ElementFactory.mixinElement(name: 'M');
+    var mixinM = mixin_(name: 'M');
     var instM = InstantiatedClass(mixinM, const []);
 
     expect(
@@ -307,7 +304,7 @@ class InterfaceLeastUpperBoundHelperTest extends EngineTestCase {
   }
 
   void test_computeSuperinterfaceSet_mixin_interfaces() {
-    var instObject = InstantiatedClass.of(_typeProvider.objectType);
+    var instObject = InstantiatedClass.of(typeProvider.objectType);
 
     var classA = ElementFactory.classElement3(name: 'A');
     var instA = InstantiatedClass(classA, const []);
@@ -321,7 +318,7 @@ class InterfaceLeastUpperBoundHelperTest extends EngineTestCase {
     var classC = ElementFactory.classElement3(name: 'C');
     var instC = InstantiatedClass(classC, const []);
 
-    var mixinM = ElementFactory.mixinElement(
+    var mixinM = mixin_(
       name: 'M',
       interfaces: [
         instB.withNullabilitySuffixNone,
@@ -337,7 +334,7 @@ class InterfaceLeastUpperBoundHelperTest extends EngineTestCase {
   }
 
   void test_computeSuperinterfaceSet_multipleInterfacePaths() {
-    var instObject = InstantiatedClass.of(_typeProvider.objectType);
+    var instObject = InstantiatedClass.of(typeProvider.objectType);
 
     var classA = ElementFactory.classElement3(name: 'A');
     var instA = InstantiatedClass(classA, const []);
@@ -383,7 +380,7 @@ class InterfaceLeastUpperBoundHelperTest extends EngineTestCase {
   }
 
   void test_computeSuperinterfaceSet_multipleSuperclassPaths() {
-    var instObject = InstantiatedClass.of(_typeProvider.objectType);
+    var instObject = InstantiatedClass.of(typeProvider.objectType);
 
     var classA = ElementFactory.classElement3(name: 'A');
     var instA = InstantiatedClass(classA, const []);
@@ -452,7 +449,7 @@ class InterfaceLeastUpperBoundHelperTest extends EngineTestCase {
   }
 
   void test_computeSuperinterfaceSet_singleInterfacePath() {
-    var instObject = InstantiatedClass.of(_typeProvider.objectType);
+    var instObject = InstantiatedClass.of(typeProvider.objectType);
 
     var classA = ElementFactory.classElement3(name: 'A');
     var instA = InstantiatedClass(classA, const []);
@@ -496,7 +493,7 @@ class InterfaceLeastUpperBoundHelperTest extends EngineTestCase {
     //  |
     //  C
     //
-    var instObject = InstantiatedClass.of(_typeProvider.objectType);
+    var instObject = InstantiatedClass.of(typeProvider.objectType);
 
     var classA = ElementFactory.classElement3(name: 'A');
     var instA = InstantiatedClass(classA, const []);

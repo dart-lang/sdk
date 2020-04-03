@@ -10,9 +10,7 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/rename.dart';
 import 'package:analyzer/dart/element/element.dart';
 
-/**
- * A [Refactoring] for renaming [LibraryElement]s.
- */
+/// A [Refactoring] for renaming [LibraryElement]s.
 class RenameLibraryRefactoringImpl extends RenameRefactoringImpl {
   RenameLibraryRefactoringImpl(
       RefactoringWorkspace workspace, LibraryElement element)
@@ -23,25 +21,25 @@ class RenameLibraryRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   String get refactoringName {
-    return "Rename Library";
+    return 'Rename Library';
   }
 
   @override
   Future<RefactoringStatus> checkFinalConditions() {
-    RefactoringStatus result = new RefactoringStatus();
-    return new Future.value(result);
+    var result = RefactoringStatus();
+    return Future.value(result);
   }
 
   @override
   RefactoringStatus checkNewName() {
-    RefactoringStatus result = super.checkNewName();
+    var result = super.checkNewName();
     result.addStatus(validateLibraryName(newName));
     return result;
   }
 
   @override
   Future<void> fillChange() async {
-    var processor = new RenameProcessor(workspace, change, newName);
+    var processor = RenameProcessor(workspace, change, newName);
     await processor.renameElement(element);
   }
 }

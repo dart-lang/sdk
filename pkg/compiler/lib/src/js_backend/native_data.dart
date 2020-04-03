@@ -46,6 +46,15 @@ abstract class NativeBasicData {
   /// Returns `true` if js interop features are used.
   bool get isJsInteropUsed;
 
+  /// Returns `true` if `allowInterop()` is invoked.
+  bool get isAllowInteropUsed;
+
+  /// Marks `allowInterop()` as used.
+  ///
+  /// [isAllowInteropUsed] is initially false on the closed world, and is only
+  /// set during codegen enqueuing.
+  void registerAllowInterop();
+
   /// Returns `true` if [element] is a JsInterop library.
   bool isJsInteropLibrary(LibraryEntity element);
 
@@ -258,6 +267,7 @@ class NativeBasicDataBuilderImpl implements NativeBasicDataBuilder {
     _closed = true;
     return new NativeBasicDataImpl(
         environment,
+        false,
         nativeClassTagInfo,
         jsInteropLibraries,
         jsInteropClasses,
@@ -277,6 +287,8 @@ class NativeBasicDataImpl implements NativeBasicData {
 
   final ElementEnvironment _env;
 
+  bool _isAllowInteropUsed;
+
   /// Tag info for native JavaScript classes names. See
   /// [setNativeClassTagInfo].
   final Map<ClassEntity, NativeClassTag> nativeClassTagInfo;
@@ -295,6 +307,7 @@ class NativeBasicDataImpl implements NativeBasicData {
 
   NativeBasicDataImpl(
       this._env,
+      this._isAllowInteropUsed,
       this.nativeClassTagInfo,
       this.jsInteropLibraries,
       this.jsInteropClasses,
@@ -329,13 +342,20 @@ class NativeBasicDataImpl implements NativeBasicData {
       jsInteropMembers[map.getMember(node)] = name;
     });
 
-    return new NativeBasicDataImpl(env, nativeClassTagInfo, jsInteropLibraries,
-        jsInteropClasses, anonymousJsInteropClasses, jsInteropMembers);
+    return new NativeBasicDataImpl(
+        env,
+        false,
+        nativeClassTagInfo,
+        jsInteropLibraries,
+        jsInteropClasses,
+        anonymousJsInteropClasses,
+        jsInteropMembers);
   }
 
   factory NativeBasicDataImpl.readFromDataSource(
       DataSource source, ElementEnvironment elementEnvironment) {
     source.begin(tag);
+    bool isAllowInteropUsed = source.readBool();
     Map<ClassEntity, NativeClassTag> nativeClassTagInfo =
         source.readClassMap(() {
       List<String> names = source.readStrings();
@@ -352,6 +372,7 @@ class NativeBasicDataImpl implements NativeBasicData {
     source.end(tag);
     return new NativeBasicDataImpl(
         elementEnvironment,
+        isAllowInteropUsed,
         nativeClassTagInfo,
         jsInteropLibraries,
         jsInteropClasses,
@@ -362,6 +383,7 @@ class NativeBasicDataImpl implements NativeBasicData {
   @override
   void writeToDataSink(DataSink sink) {
     sink.begin(tag);
+    sink.writeBool(isAllowInteropUsed);
     sink.writeClassMap(nativeClassTagInfo, (NativeClassTag tag) {
       sink.writeStrings(tag.names);
       sink.writeBool(tag.isNonLeaf);
@@ -372,6 +394,14 @@ class NativeBasicDataImpl implements NativeBasicData {
     sink.writeMemberMap(jsInteropMembers,
         (MemberEntity member, String name) => sink.writeString(name));
     sink.end(tag);
+  }
+
+  @override
+  bool get isAllowInteropUsed => _isAllowInteropUsed;
+
+  @override
+  void registerAllowInterop() {
+    _isAllowInteropUsed = true;
   }
 
   @override
@@ -620,6 +650,19 @@ class NativeDataImpl implements NativeData, NativeBasicDataImpl {
 
     sink.end(tag);
   }
+
+  @override
+  bool get _isAllowInteropUsed => _nativeBasicData._isAllowInteropUsed;
+
+  @override
+  set _isAllowInteropUsed(bool value) =>
+      _nativeBasicData._isAllowInteropUsed = value;
+
+  @override
+  bool get isAllowInteropUsed => _nativeBasicData.isAllowInteropUsed;
+
+  @override
+  void registerAllowInterop() => _nativeBasicData.registerAllowInterop();
 
   @override
   Map<LibraryEntity, String> get jsInteropLibraries =>

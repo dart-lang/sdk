@@ -49,6 +49,10 @@ class AotCallSpecializer : public CallSpecializer {
 
   virtual bool TryOptimizeStaticCallUsingStaticTypes(StaticCallInstr* call);
 
+  // If a call can be dispatched through the global dispatch table, replace
+  // it by a dispatch table call.
+  void TryReplaceWithDispatchTableCall(InstanceCallBaseInstr* call);
+
   // Try to replace a call with a more specialized instruction working on
   // integers (e.g. BinaryInt64OpInstr, CheckedSmiComparisonInstr,
   // RelationalOpInstr)
@@ -70,6 +74,8 @@ class AotCallSpecializer : public CallSpecializer {
                              Token::Kind op_kind,
                              Value* left_value,
                              Value* right_value);
+
+  virtual void ReplaceInstanceCallsWithDispatchTableCalls();
 
   Precompiler* precompiler_;
 

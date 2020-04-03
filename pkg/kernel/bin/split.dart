@@ -8,7 +8,6 @@ import 'dart:io';
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
-import 'package:kernel/binary/limited_ast_to_binary.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/src/tool/command_line_util.dart';
 
@@ -28,26 +27,24 @@ main(args) async {
   Component binary = CommandLineHelper.tryLoadDill(args[0]);
 
   int part = 1;
-  binary.libraries.forEach((lib) => lib.isExternal = true);
   for (int i = 0; i < binary.libraries.length; ++i) {
     Library lib = binary.libraries[i];
     if (lib.name?.startsWith("dart.") == true ||
         lib.name == "builtin" ||
         lib.name == "nativewrappers") continue;
-    lib.isExternal = false;
     String path = args[0] + ".part${part++}.dill";
-    await writeComponentToFile(binary, path);
+    await writeComponentToFile(binary, path, lib);
     print("Wrote $path");
-    lib.isExternal = true;
   }
 }
 
-Future<Null> writeComponentToFile(Component component, String path) async {
+Future<Null> writeComponentToFile(
+    Component component, String path, Library wantedLibrary) async {
   File output = new File(path);
   IOSink sink = output.openWrite();
   try {
     BinaryPrinter printer =
-        new LimitedBinaryPrinter(sink, (lib) => !lib.isExternal, false);
+        new BinaryPrinter(sink, libraryFilter: (lib) => lib == wantedLibrary);
     printer.writeComponentFile(component);
   } finally {
     await sink.close();

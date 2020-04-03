@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.core;
 
 /**
@@ -42,7 +44,8 @@ abstract class int extends num {
   // Disable those static errors.
   //ignore: const_constructor_with_body
   //ignore: const_factory
-  external const factory int.fromEnvironment(String name, {int defaultValue});
+  external const factory int.fromEnvironment(String name,
+      {int defaultValue = 0});
 
   /**
    * Bit-wise and operator.

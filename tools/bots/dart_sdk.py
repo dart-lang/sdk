@@ -25,6 +25,8 @@ CHANNEL = bot_utils.GetChannelFromName(bot_name)
 def BuildArchitectures():
     if BUILD_OS == 'linux':
         return ['ia32', 'x64', 'arm', 'arm64']
+    elif BUILD_OS == 'macos':
+        return ['x64']
     else:
         return ['ia32', 'x64']
 
@@ -81,6 +83,11 @@ def CopyAotBinaries(arch, sdk_path):
                         GuessExtension('gen_snapshot'))
             CopyBetween(product_sdk_path, sdk_path, 'bin',
                         GuessExtension('dartaotruntime'))
+            shutil.copy2(
+                os.path.join(product_sdk_path, 'lib', '_internal',
+                             'vm_platform_strong.dill'),
+                os.path.join(sdk_path, 'lib', '_internal',
+                             'vm_platform_strong_product.dill'))
 
 
 def DartArchiveUploadSDKs(system, arch, sdk_zip):

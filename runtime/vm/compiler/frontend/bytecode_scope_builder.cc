@@ -73,7 +73,7 @@ void BytecodeScopeBuilder::BuildScopes() {
 
       // Type check all parameters by default.
       // This may be overridden with parameter flags in
-      // BytecodeReaderHelper::ParseImplicitClosureFunction.
+      // BytecodeReaderHelper::ParseForwarderFunction.
       AddParameters(function, LocalVariable::kDoTypeCheck);
       break;
     }
@@ -82,6 +82,7 @@ void BytecodeScopeBuilder::BuildScopes() {
     case RawFunction::kImplicitSetter: {
       const bool is_setter = function.IsImplicitSetterFunction();
       const bool is_method = !function.IsStaticFunction();
+      const Field& field = Field::Handle(Z, function.accessor_field());
       intptr_t pos = 0;
       if (is_method) {
         MakeReceiverVariable(/* is_parameter = */ true);
@@ -94,27 +95,43 @@ void BytecodeScopeBuilder::BuildScopes() {
         scope_->InsertParameterAt(pos++, setter_value);
 
         if (is_method) {
-          const Field& field = Field::Handle(Z, function.accessor_field());
           if (field.is_covariant()) {
             setter_value->set_is_explicit_covariant_parameter();
-          } else if (!field.is_generic_covariant_impl()) {
-            setter_value->set_type_check_mode(
-                LocalVariable::kTypeCheckedByCaller);
+          } else {
+            const bool needs_type_check =
+                field.is_generic_covariant_impl() &&
+                kernel::ProcedureAttributesOf(field, Z).has_non_this_uses;
+            if (!needs_type_check) {
+              setter_value->set_type_check_mode(
+                  LocalVariable::kTypeCheckedByCaller);
+            }
           }
+        }
+      } else {
+        if (field.is_late()) {
+          // LoadLateField uses expression_temp_var.
+          needs_expr_temp = true;
         }
       }
       break;
     }
-    case RawFunction::kImplicitStaticGetter:
+    case RawFunction::kImplicitStaticGetter: {
       ASSERT(!IsStaticFieldGetterGeneratedAsInitializer(function, Z));
+      const Field& field = Field::Handle(Z, function.accessor_field());
+      const bool lib_is_nnbd = function.nnbd_mode() == NNBDMode::kOptedInLib;
+      if (field.is_late() || lib_is_nnbd) {
+        // LoadLateField uses expression_temp_var.
+        needs_expr_temp = true;
+      }
       break;
+    }
     case RawFunction::kDynamicInvocationForwarder: {
       // Create [this] variable.
       MakeReceiverVariable(/* is_parameter = */ true);
 
       // Type check all parameters by default.
       // This may be overridden with parameter flags in
-      // BytecodeReaderHelper::ParseImplicitClosureFunction.
+      // BytecodeReaderHelper::ParseForwarderFunction.
       AddParameters(function, LocalVariable::kDoTypeCheck);
       break;
     }

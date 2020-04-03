@@ -7,7 +7,7 @@ class NullEquality extends core::Object {
     : super core::Object::•()
     ;
   @#C1
-  operator ==(core::Object* other) → core::Null*
+  operator ==(core::Object* other) → core::Null?
     return null;
 }
 class SubNullEquality extends self::NullEquality {

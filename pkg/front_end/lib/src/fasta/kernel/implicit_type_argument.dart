@@ -5,7 +5,8 @@
 library fasta.implicit_type_argument;
 
 import 'package:kernel/ast.dart'
-    show DartType, DartTypeVisitor, DartTypeVisitor1, Visitor;
+    show DartType, DartTypeVisitor, DartTypeVisitor1, Nullability, Visitor;
+import 'package:kernel/src/assumptions.dart';
 
 import '../problems.dart' show unhandled, unsupported;
 
@@ -18,20 +19,38 @@ class ImplicitTypeArgument extends DartType {
   const ImplicitTypeArgument();
 
   @override
-  get nullability => unsupported("nullability", -1, null);
+  Nullability get nullability => unsupported("nullability", -1, null);
 
   @override
-  accept(DartTypeVisitor<Object> v) {
-    unhandled("$runtimeType", "${v.runtimeType}", -1, null);
+  R accept<R>(DartTypeVisitor<R> v) {
+    throw unhandled("$runtimeType", "${v.runtimeType}", -1, null);
   }
 
   @override
-  accept1(DartTypeVisitor1<Object, Object> v, arg) {
-    unhandled("$runtimeType", "${v.runtimeType}", -1, null);
+  R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) {
+    throw unhandled("$runtimeType", "${v.runtimeType}", -1, null);
   }
 
   @override
   visitChildren(Visitor<Object> v) {
     unhandled("$runtimeType", "${v.runtimeType}", -1, null);
+  }
+
+  @override
+  ImplicitTypeArgument withNullability(Nullability nullability) {
+    return unsupported("withNullability", -1, null);
+  }
+
+  @override
+  bool equals(Object other, Assumptions assumptions) => this == other;
+
+  @override
+  String toString() {
+    return "ImplicitTypeArgument(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }

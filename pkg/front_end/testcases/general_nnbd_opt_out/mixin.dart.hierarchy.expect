@@ -1,0 +1,336 @@
+Object:
+  superclasses:
+  interfaces:
+  classMembers:
+    Object._haveSameRuntimeType
+    Object.toString
+    Object.runtimeType
+    Object._toString
+    Object._simpleInstanceOf
+    Object._hashCodeRnd
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._objectHashCode
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+
+M1:
+  superclasses:
+    Object
+  interfaces:
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    M1.m
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+
+M2:
+  superclasses:
+    Object
+  interfaces:
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    M2.m
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+
+Object with M1:
+  Longest path to Object: 2
+  superclasses:
+    Object
+  interfaces: M1
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    M1.m
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    M1.m
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+_C&Object&M1 with M2:
+  Longest path to Object: 3
+  superclasses:
+    Object
+      -> _C&Object&M1
+  interfaces: M1, M2
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    M2.m
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    M2.m
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+C:
+  Longest path to Object: 4
+  superclasses:
+    Object
+      -> _C&Object&M1
+        -> _C&Object&M1&M2
+  interfaces: M1, M2
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    M2.m
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    M2.m
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+G1:
+  superclasses:
+    Object
+  interfaces:
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    G1.m
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+
+Object with G1<S>:
+  Longest path to Object: 2
+  superclasses:
+    Object
+  interfaces: G1<S>
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    G1.m
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    G1.m
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+D:
+  Longest path to Object: 3
+  superclasses:
+    Object
+      -> _D&Object&G1<S>
+  interfaces: G1<S>
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    G1.m
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    G1.m
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+Object with M1:
+  Longest path to Object: 2
+  superclasses:
+    Object
+  interfaces: M1
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    M1.m
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    M1.m
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+_B&Object&M1 with M2:
+  Longest path to Object: 3
+  superclasses:
+    Object
+      -> _B&Object&M1
+  interfaces: M1, M2
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    M2.m
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    M2.m
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+B:
+  Longest path to Object: 4
+  superclasses:
+    Object
+      -> _B&Object&M1
+        -> _B&Object&M1&M2
+  interfaces: M1, M2
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    M2.m
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    M2.m
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:

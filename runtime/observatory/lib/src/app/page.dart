@@ -32,7 +32,6 @@ final _stronglyReachangleInstancesRepository =
     new StronglyReachableInstancesRepository();
 final _subtypeTestCacheRepository = new SubtypeTestCacheRepository();
 final _timelineRepository = new TimelineRepository();
-final _topRetainingInstancesRepository = new TopRetainingInstancesRepository();
 final _typeArgumentsRepository = new TypeArgumentsRepository();
 final _unlinkedCallRepository = new UnlinkedCallRepository();
 final _vmrepository = new VMRepository();
@@ -173,13 +172,20 @@ class VMPage extends MatchingPage {
     app.vm.reload().then((serviceObject) {
       VM vm = serviceObject;
       container.children = <Element>[
-        new VMViewElement(vm, _vmrepository, app.events, app.notifications,
-                new IsolateRepository(app.vm), _scriptRepository,
+        new VMViewElement(
+                vm,
+                _vmrepository,
+                app.events,
+                app.notifications,
+                new IsolateRepository(app.vm),
+                new IsolateGroupRepository(app.vm),
+                _scriptRepository,
                 queue: app.queue)
             .element
       ];
     }).catchError((e, stack) {
       Logger.root.severe('VMPage visit error: $e');
+      Logger.root.severe('Stack: $stack');
       // Reroute to vm-connect.
       app.locationManager.go(Uris.vmConnect());
     });
@@ -266,7 +272,6 @@ class InspectPage extends MatchingPage {
                 _objectRepository,
                 _evalRepository,
                 _stronglyReachangleInstancesRepository,
-                _topRetainingInstancesRepository,
                 _classSampleProfileRepository,
                 queue: app.queue)
             .element
@@ -701,60 +706,6 @@ class AllocationProfilerPage extends MatchingPage {
                 queue: app.queue)
             .element
       ];
-    });
-  }
-
-  void onInstall() {
-    if (element == null) {
-      element = container;
-    }
-    app.startGCEventListener();
-  }
-
-  @override
-  void onUninstall() {
-    super.onUninstall();
-    app.stopGCEventListener();
-    container.children = const [];
-  }
-}
-
-class MemoryDashboardPage extends MatchingPage {
-  MemoryDashboardPage(app) : super('memory-dashboard', app);
-
-  final DivElement container = new DivElement();
-
-  void _visit(Uri uri) {
-    super._visit(uri);
-    if (app.vm == null) {
-      Logger.root.severe('MemoryDashboard has no VM');
-      // Reroute to vm-connect.
-      app.locationManager.go(Uris.vmConnect());
-      return;
-    }
-    final editor = getEditor(uri);
-    app.vm.reload().then((serviceObject) async {
-      VM vm = serviceObject;
-      // Preload all isolates to avoid sorting problems.
-      await Future.wait(vm.isolates.map((i) => i.load()));
-      container.children = <Element>[
-        new MemoryDashboardElement(
-                vm,
-                _vmrepository,
-                new IsolateRepository(vm),
-                editor,
-                _allocationProfileRepository,
-                _heapSnapshotRepository,
-                _objectRepository,
-                app.events,
-                app.notifications,
-                queue: app.queue)
-            .element
-      ];
-    }).catchError((e, stack) {
-      Logger.root.severe('MemoryDashboard visit error: $e');
-      // Reroute to vm-connect.
-      app.locationManager.go(Uris.vmConnect());
     });
   }
 

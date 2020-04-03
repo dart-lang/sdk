@@ -6,7 +6,7 @@ main.dart.patch: |
   // Test that static methods can be added
 
   class C {
-  <<<< "threw"
+  <<<< "v1"
   ==== "v2"
     static foo() {
       print('v2');
@@ -15,10 +15,9 @@ main.dart.patch: |
   }
 
   main() {
-    new C(); // TODO(ahe): Work around dart2js assertion in World.subclassesOf
-    try {
+  <<<<
+    print("v1");
+  ====
       C.foo();
-    } catch(e) {
-      print('threw');
-    }
+  >>>>
   }

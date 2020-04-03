@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import '../helpers/memory_compiler.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/apiimpl.dart' show CompilerImpl;
@@ -28,9 +30,9 @@ main() {
     Uri entryPoint = Uri.parse('memory:main.dill');
 
     var options = new CompilerOptions()
-      ..target = new Dart2jsTarget("dart2js", new TargetFlags(legacyMode: true))
+      ..target = new Dart2jsTarget("dart2js", new TargetFlags())
       ..packagesFileUri = Uri.base.resolve('.packages')
-      ..linkedDependencies = <Uri>[
+      ..additionalDills = <Uri>[
         computePlatformBinariesLocation().resolve("dart2js_platform.dill"),
       ]
       ..setExitCodeOnProblem = true

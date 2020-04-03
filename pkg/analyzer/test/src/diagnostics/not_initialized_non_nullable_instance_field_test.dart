@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -18,20 +19,12 @@ main() {
 @reflectiveTest
 class NotInitializedNonNullableInstanceFieldTest extends DriverResolutionTest {
   @override
-  AnalysisOptionsImpl get analysisOptions =>
-      AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.fromEnableFlags(
+      [EnableString.non_nullable],
+    );
 
-  test_constructorFieldInitializer() async {
-    await assertNoErrorsInCode('''
-class A {
-  int x;
-
-  A() : x = 0;
-}
-''');
-  }
-
-  test_factoryConstructor() async {
+  test_class_factoryConstructor() async {
     await assertNoErrorsInCode('''
 class A {
   int x = 0;
@@ -39,6 +32,37 @@ class A {
   A(this.x);
 
   factory A.named() => A(0);
+}
+''');
+  }
+
+  test_class_notNullable_factoryConstructor_only() async {
+    await assertErrorsInCode('''
+class A {
+  int x;
+
+  factory A() => throw 0;
+}
+''', [
+      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+          16, 1),
+    ]);
+  }
+
+  test_class_notNullable_late() async {
+    await assertNoErrorsInCode('''
+class A {
+  late int x;
+}
+''');
+  }
+
+  test_constructorFieldInitializer() async {
+    await assertNoErrorsInCode('''
+class A {
+  int x;
+
+  A() : x = 0;
 }
 ''');
   }
@@ -84,6 +108,25 @@ class B extends A {
       error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
           61, 1),
     ]);
+  }
+
+  test_mixin_notNullable() async {
+    await assertErrorsInCode('''
+mixin M {
+  int x;
+}
+''', [
+      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+          16, 1),
+    ]);
+  }
+
+  test_mixin_notNullable_late() async {
+    await assertNoErrorsInCode('''
+mixin M {
+  late int x;
+}
+''');
   }
 
   test_notAllConstructors() async {

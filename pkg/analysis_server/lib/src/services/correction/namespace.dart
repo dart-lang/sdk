@@ -3,13 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 
-/**
- * Returns the [Element] exported from the given [LibraryElement].
- */
+/// Returns the [Element] exported from the given [LibraryElement].
 Element getExportedElement(LibraryElement library, String name) {
   if (library == null) {
     return null;
@@ -17,36 +14,29 @@ Element getExportedElement(LibraryElement library, String name) {
   return getExportNamespaceForLibrary(library)[name];
 }
 
-/**
- * Returns the export namespace of the given [LibraryElement].
- */
+/// Returns the export namespace of the given [LibraryElement].
 Map<String, Element> getExportNamespaceForLibrary(LibraryElement library) {
-  Namespace namespace =
-      new NamespaceBuilder().createExportNamespaceForLibrary(library);
+  var namespace = NamespaceBuilder().createExportNamespaceForLibrary(library);
   return namespace.definedNames;
 }
 
-/**
- * Return the [ImportElement] that is referenced by [prefixNode], or `null` if
- * the node does not reference a prefix or if we cannot determine which import
- * is being referenced.
- */
+/// Return the [ImportElement] that is referenced by [prefixNode], or `null` if
+/// the node does not reference a prefix or if we cannot determine which import
+/// is being referenced.
 ImportElement getImportElement(SimpleIdentifier prefixNode) {
-  AstNode parent = prefixNode.parent;
+  var parent = prefixNode.parent;
   if (parent is ImportDirective) {
     return parent.element;
   }
   return internal_getImportElementInfo(prefixNode);
 }
 
-/**
- * Return the [ImportElement] that declared [prefix] and imports [element].
- *
- * [libraryElement] - the [LibraryElement] where reference is.
- * [prefix] - the import prefix, maybe `null`.
- * [element] - the referenced element.
- * [importElementsMap] - the cache of [Element]s imported by [ImportElement]s.
- */
+/// Return the [ImportElement] that declared [prefix] and imports [element].
+///
+/// [libraryElement] - the [LibraryElement] where reference is.
+/// [prefix] - the import prefix, maybe `null`.
+/// [element] - the referenced element.
+/// [importElementsMap] - the cache of [Element]s imported by [ImportElement]s.
 ImportElement internal_getImportElement(
     LibraryElement libraryElement,
     String prefix,
@@ -59,16 +49,16 @@ ImportElement internal_getImportElement(
   if (element.enclosingElement is! CompilationUnitElement) {
     return null;
   }
-  LibraryElement usedLibrary = element.library;
+  var usedLibrary = element.library;
   // find ImportElement that imports used library with used prefix
-  List<ImportElement> candidates = null;
-  for (ImportElement importElement in libraryElement.imports) {
+  List<ImportElement> candidates;
+  for (var importElement in libraryElement.imports) {
     // required library
     if (importElement.importedLibrary != usedLibrary) {
       continue;
     }
     // required prefix
-    PrefixElement prefixElement = importElement.prefix;
+    var prefixElement = importElement.prefix;
     if (prefix == null) {
       if (prefixElement != null) {
         continue;
@@ -86,9 +76,7 @@ ImportElement internal_getImportElement(
       return importElement;
     }
     // OK, we have candidate
-    if (candidates == null) {
-      candidates = [];
-    }
+    candidates ??= [];
     candidates.add(importElement);
   }
   // no candidates, probably element is defined in this library
@@ -100,17 +88,17 @@ ImportElement internal_getImportElement(
     return candidates[0];
   }
   // ensure that each ImportElement has set of elements
-  for (ImportElement importElement in candidates) {
+  for (var importElement in candidates) {
     if (importElementsMap.containsKey(importElement)) {
       continue;
     }
-    Namespace namespace = importElement.namespace;
-    Set<Element> elements = new Set.from(namespace.definedNames.values);
+    var namespace = importElement.namespace;
+    var elements = Set<Element>.from(namespace.definedNames.values);
     importElementsMap[importElement] = elements;
   }
   // use import namespace to choose correct one
-  for (ImportElement importElement in importElementsMap.keys) {
-    Set<Element> elements = importElementsMap[importElement];
+  for (var importElement in importElementsMap.keys) {
+    var elements = importElementsMap[importElement];
     if (elements.contains(element)) {
       return importElement;
     }
@@ -119,26 +107,23 @@ ImportElement internal_getImportElement(
   return null;
 }
 
-/**
- * Returns the [ImportElement] that is referenced by [prefixNode] with a
- * [PrefixElement], maybe `null`.
- */
+/// Returns the [ImportElement] that is referenced by [prefixNode] with a
+/// [PrefixElement], maybe `null`.
 ImportElement internal_getImportElementInfo(SimpleIdentifier prefixNode) {
   // prepare environment
-  AstNode parent = prefixNode.parent;
-  CompilationUnit unit = prefixNode.thisOrAncestorOfType<CompilationUnit>();
-  LibraryElement libraryElement =
-      resolutionMap.elementDeclaredByCompilationUnit(unit).library;
+  var parent = prefixNode.parent;
+  var unit = prefixNode.thisOrAncestorOfType<CompilationUnit>();
+  var libraryElement = unit.declaredElement.library;
   // prepare used element
-  Element usedElement = null;
+  Element usedElement;
   if (parent is PrefixedIdentifier) {
-    PrefixedIdentifier prefixed = parent;
+    var prefixed = parent;
     if (prefixed.prefix == prefixNode) {
       usedElement = prefixed.staticElement;
     }
   }
   if (parent is MethodInvocation) {
-    MethodInvocation invocation = parent;
+    var invocation = parent;
     if (invocation.target == prefixNode) {
       usedElement = invocation.methodName.staticElement;
     }
@@ -148,16 +133,14 @@ ImportElement internal_getImportElementInfo(SimpleIdentifier prefixNode) {
     return null;
   }
   // find ImportElement
-  String prefix = prefixNode.name;
-  Map<ImportElement, Set<Element>> importElementsMap = {};
+  var prefix = prefixNode.name;
+  var importElementsMap = <ImportElement, Set<Element>>{};
   return internal_getImportElement(
       libraryElement, prefix, usedElement, importElementsMap);
 }
 
-/**
- * Information about [ImportElement] and place where it is referenced using
- * [PrefixElement].
- */
+/// Information about [ImportElement] and place where it is referenced using
+/// [PrefixElement].
 class ImportElementInfo {
   ImportElement element;
 }

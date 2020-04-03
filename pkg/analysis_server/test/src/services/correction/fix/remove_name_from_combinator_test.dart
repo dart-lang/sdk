@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveNameFromCombinatorTest);
   });
@@ -19,7 +19,7 @@ class RemoveNameFromCombinatorTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_NAME_FROM_COMBINATOR;
 
-  test_duplicateHiddenName_last() async {
+  Future<void> test_duplicateHiddenName_last() async {
     await resolveTestUnit('''
 import 'dart:math' hide cos, sin, sin;
 
@@ -36,7 +36,7 @@ main() {
 ''');
   }
 
-  test_duplicateHiddenName_middle() async {
+  Future<void> test_duplicateHiddenName_middle() async {
     await resolveTestUnit('''
 import 'dart:math' hide cos, cos, sin;
 
@@ -54,7 +54,7 @@ main() {
   }
 
   @failingTest
-  test_duplicateHiddenName_only_last() async {
+  Future<void> test_duplicateHiddenName_only_last() async {
     // It appears that the hint does not detect names that are duplicated across
     // multiple combinators.
     await resolveTestUnit('''
@@ -74,7 +74,7 @@ main() {
   }
 
   @failingTest
-  test_duplicateHiddenName_only_middle() async {
+  Future<void> test_duplicateHiddenName_only_middle() async {
     // It appears that the hint does not detect names that are duplicated across
     // multiple combinators.
     await resolveTestUnit('''
@@ -93,7 +93,7 @@ main() {
 ''');
   }
 
-  test_duplicateShownName_last() async {
+  Future<void> test_duplicateShownName_last() async {
     await resolveTestUnit(
       '''
 import 'dart:math' show cos, sin, sin;
@@ -112,7 +112,7 @@ f(x) {
 ''');
   }
 
-  test_duplicateShownName_middle() async {
+  Future<void> test_duplicateShownName_middle() async {
     await resolveTestUnit('''
 import 'dart:math' show cos, cos, sin;
 
@@ -129,7 +129,7 @@ f(x) {
 ''');
   }
 
-  test_undefinedHiddenName_first() async {
+  Future<void> test_undefinedHiddenName_first() async {
     await resolveTestUnit('''
 import 'dart:math' hide aaa, sin, tan;
 
@@ -146,7 +146,7 @@ f(x) {
 ''');
   }
 
-  test_undefinedHiddenName_last() async {
+  Future<void> test_undefinedHiddenName_last() async {
     await resolveTestUnit('''
 import 'dart:math' hide cos, sin, xxx;
 
@@ -163,7 +163,7 @@ f(x) {
 ''');
   }
 
-  test_undefinedHiddenName_middle() async {
+  Future<void> test_undefinedHiddenName_middle() async {
     await resolveTestUnit('''
 import 'dart:math' hide cos, mmm, tan;
 
@@ -180,7 +180,7 @@ f(x) {
 ''');
   }
 
-  test_undefinedHiddenName_only_first() async {
+  Future<void> test_undefinedHiddenName_only_first() async {
     await resolveTestUnit('''
 import 'dart:math' hide aaa hide cos, sin;
 
@@ -197,7 +197,7 @@ main() {
 ''');
   }
 
-  test_undefinedHiddenName_only_last() async {
+  Future<void> test_undefinedHiddenName_only_last() async {
     await resolveTestUnit('''
 import 'dart:math' hide cos, sin hide aaa;
 
@@ -214,7 +214,7 @@ main() {
 ''');
   }
 
-  test_undefinedHiddenName_only_middle() async {
+  Future<void> test_undefinedHiddenName_only_middle() async {
     await resolveTestUnit('''
 import 'dart:math' hide cos hide aaa hide sin;
 
@@ -231,7 +231,7 @@ main() {
 ''');
   }
 
-  test_undefinedHiddenName_only_only() async {
+  Future<void> test_undefinedHiddenName_only_only() async {
     await resolveTestUnit('''
 import 'dart:math' hide aaa;
 var c = sin(0.3);
@@ -242,7 +242,7 @@ var c = sin(0.3);
 ''');
   }
 
-  test_undefinedHiddenName_only_only_withAs() async {
+  Future<void> test_undefinedHiddenName_only_only_withAs() async {
     await resolveTestUnit('''
 import 'dart:math' as math hide aaa;
 var c = math.sin(0.3);
@@ -253,7 +253,7 @@ var c = math.sin(0.3);
 ''');
   }
 
-  test_undefinedShownName_first() async {
+  Future<void> test_undefinedShownName_first() async {
     await resolveTestUnit('''
 import 'dart:math' show aaa, sin, tan;
 
@@ -270,7 +270,7 @@ f(x) {
 ''');
   }
 
-  test_undefinedShownName_last() async {
+  Future<void> test_undefinedShownName_last() async {
     await resolveTestUnit('''
 import 'dart:math' show cos, sin, xxx;
 
@@ -287,7 +287,7 @@ f(x) {
 ''');
   }
 
-  test_undefinedShownName_middle() async {
+  Future<void> test_undefinedShownName_middle() async {
     await resolveTestUnit('''
 import 'dart:math' show cos, mmm, tan;
 
@@ -304,7 +304,7 @@ f(x) {
 ''');
   }
 
-  test_unusedShownName_first() async {
+  Future<void> test_unusedShownName_first() async {
     await resolveTestUnit('''
 import 'dart:math' show cos, sin, tan;
 
@@ -321,7 +321,7 @@ f(x) {
 ''');
   }
 
-  test_unusedShownName_last() async {
+  Future<void> test_unusedShownName_last() async {
     await resolveTestUnit('''
 import 'dart:math' show cos, sin, tan;
 
@@ -338,7 +338,7 @@ f(x) {
 ''');
   }
 
-  test_unusedShownName_middle() async {
+  Future<void> test_unusedShownName_middle() async {
     await resolveTestUnit('''
 import 'dart:math' show cos, sin, tan;
 

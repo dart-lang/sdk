@@ -70,6 +70,10 @@ abstract class JClosedWorld implements World {
 
   Iterable<MemberEntity> get processedMembers;
 
+  /// Returns the set of interfaces passed as type arguments to the internal
+  /// `extractTypeArguments` function.
+  Set<ClassEntity> get extractTypeArgumentsInterfacesNewRti;
+
   ClassHierarchy get classHierarchy;
 
   AnnotationsData get annotationsData;
@@ -202,15 +206,15 @@ abstract class JClosedWorld implements World {
   /// Returns the set of read, write, and invocation accesses found on [member]
   /// during the closed world computation.
   MemberAccess getMemberAccess(MemberEntity member);
+
+  /// Registers [interface] as a type argument to `extractTypeArguments`.
+  void registerExtractTypeArguments(ClassEntity interface);
 }
 
 abstract class OpenWorld implements World {
   void registerUsedElement(MemberEntity element);
 
   KClosedWorld closeWorld(DiagnosticReporter reporter);
-
-  /// Returns an iterable over all mixin applications that mixin [cls].
-  Iterable<ClassEntity> allMixinUsesOf(ClassEntity cls);
 
   /// Returns `true` if [member] is inherited into a subtype of [type].
   ///

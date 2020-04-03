@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // This program has many similar constants that should all have distinct
 // identities. They are sufficiently similar to have name collisions and need
 // ordering by constant value.

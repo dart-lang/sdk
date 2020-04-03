@@ -9,8 +9,6 @@ extension A2<T> on A1<T> {
     return this;
   }
 
-  // TODO(johnniwinther): Resolve type variable uses correctly. Currently use
-  // `T` here resolve to `A2.T` and the synthetically inserted type variable.
   A1<T> method2<S extends A1<T>>(S o) {
     print(o);
     print(T);
@@ -19,7 +17,11 @@ extension A2<T> on A1<T> {
   }
 }
 
-// TODO(johnniwinther): Support F-bounded extensions. Currently the type
-// variable is not recognized as a type within the bound.
+extension A3<T extends A1<T>> on A1<T> {
+}
+
+extension A4<T> on A1<T> {
+  method<T>() {}
+}
 
 main() {}

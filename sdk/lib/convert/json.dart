@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.convert;
 
 /// Error thrown by JSON serialization if an object cannot be serialized.
@@ -74,10 +76,10 @@ const JsonCodec json = JsonCodec();
 /// If [toEncodable] is omitted, it defaults to a function that returns the
 /// result of calling `.toJson()` on the unencodable object.
 ///
-/// Shorthand for [json.encode]. Useful if a local variable shadows the global
+/// Shorthand for `json.encode`. Useful if a local variable shadows the global
 /// [json] constant.
-String jsonEncode(Object object, {Object toEncodable(Object nonEncodable)}) =>
-    json.encode(object, toEncodable: toEncodable);
+String jsonEncode(Object value, {Object toEncodable(Object nonEncodable)}) =>
+    json.encode(value, toEncodable: toEncodable);
 
 /// Parses the string and returns the resulting Json object.
 ///
@@ -88,7 +90,7 @@ String jsonEncode(Object object, {Object toEncodable(Object nonEncodable)}) =>
 ///
 /// The default [reviver] (when not provided) is the identity function.
 ///
-/// Shorthand for [json.decode]. Useful if a local variable shadows the global
+/// Shorthand for `json.decode`. Useful if a local variable shadows the global
 /// [json] constant.
 dynamic jsonDecode(String source, {Object reviver(Object key, Object value)}) =>
     json.decode(source, reviver: reviver);
@@ -179,6 +181,9 @@ class JsonCodec extends Codec<Object, String> {
 }
 
 /// This class converts JSON objects to strings.
+///
+/// When used as a [StreamTransformer], this converter does not promise
+/// that the input object is emitted as a single string event.
 class JsonEncoder extends Converter<Object, String> {
   /// The string used for indention.
   ///
@@ -279,7 +284,7 @@ class JsonEncoder extends Converter<Object, String> {
   Stream<String> bind(Stream<Object> stream) => super.bind(stream);
 
   Converter<Object, T> fuse<T>(Converter<String, T> other) {
-    if (other is Utf8Encoder && T is List<int>) {
+    if (other is Utf8Encoder) {
       // The instance check guarantees that `T` is (a subtype of) List<int>,
       // but the static type system doesn't know that, and so we cast.
       // Cast through dynamic to keep the cast implicit for builds using
@@ -468,7 +473,14 @@ class _JsonUtf8EncoderSink extends ChunkedConversionSink<Object> {
   }
 }
 
-/// This class parses JSON strings and builds the corresponding objects.
+/// This class parses JSON strings and builds the corresponding value.
+///
+/// A JSON input must be the JSON encoding of a single JSON value,
+/// which can be a list or map containing other values.
+///
+/// When used as a [StreamTransformer], the input stream may emit
+/// multiple strings. The concatenation of all of these strings must
+/// be a valid JSON encoding of a single JSON value.
 class JsonDecoder extends Converter<String, Object> {
   final Function(Object key, Object value) _reviver;
 
@@ -502,7 +514,7 @@ class JsonDecoder extends Converter<String, Object> {
 }
 
 // Internal optimized JSON parsing implementation.
-external _parseJson(String source, reviver(key, value));
+external dynamic _parseJson(String source, reviver(key, value));
 
 // Implementation of encoder/stringifier.
 

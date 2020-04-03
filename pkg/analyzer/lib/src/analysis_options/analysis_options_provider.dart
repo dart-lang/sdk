@@ -21,16 +21,15 @@ class AnalysisOptionsProvider {
 
   AnalysisOptionsProvider([this.sourceFactory]);
 
-  /// Provide the options found in either
-  /// [root]/[AnalysisEngine.ANALYSIS_OPTIONS_FILE] or
+  /// Provide the options found in
   /// [root]/[AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE].
   /// Recursively merge options referenced by an include directive
   /// and remove the include directive from the resulting options map.
   /// Return an empty options map if the file does not exist.
-  YamlMap getOptions(Folder root, {bool crawlUp: false}) {
+  YamlMap getOptions(Folder root, {bool crawlUp = false}) {
     File optionsFile = getOptionsFile(root, crawlUp: crawlUp);
     if (optionsFile == null) {
-      return new YamlMap();
+      return YamlMap();
     }
     return getOptionsFromFile(optionsFile);
   }
@@ -40,13 +39,9 @@ class AnalysisOptionsProvider {
   ///
   /// The given [root] directory will be searched first. If no file is found and
   /// if [crawlUp] is `true`, then enclosing directories will be searched.
-  File getOptionsFile(Folder root, {bool crawlUp: false}) {
-    Resource resource = null;
+  File getOptionsFile(Folder root, {bool crawlUp = false}) {
+    Resource resource;
     for (Folder folder = root; folder != null; folder = folder.parent) {
-      resource = folder.getChild(AnalysisEngine.ANALYSIS_OPTIONS_FILE);
-      if (resource.exists) {
-        break;
-      }
       resource = folder.getChild(AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
       if (resource.exists || !crawlUp) {
         break;
@@ -63,7 +58,7 @@ class AnalysisOptionsProvider {
   /// and remove the include directive from the resulting options map.
   /// Return an empty options map if the file does not exist.
   YamlMap getOptionsFromFile(File file) {
-    return getOptionsFromSource(new FileSource(file));
+    return getOptionsFromSource(FileSource(file));
   }
 
   /// Provide the options found in [source].
@@ -89,18 +84,18 @@ class AnalysisOptionsProvider {
   /// Return an empty options map if the source is null.
   YamlMap getOptionsFromString(String optionsSource) {
     if (optionsSource == null) {
-      return new YamlMap();
+      return YamlMap();
     }
     try {
       YamlNode doc = loadYamlNode(optionsSource);
       if (doc is YamlMap) {
         return doc;
       }
-      return new YamlMap();
+      return YamlMap();
     } on YamlException catch (e) {
-      throw new OptionsFormatException(e.message, e.span);
+      throw OptionsFormatException(e.message, e.span);
     } catch (e) {
-      throw new OptionsFormatException('Unable to parse YAML document.');
+      throw OptionsFormatException('Unable to parse YAML document.');
     }
   }
 
@@ -117,7 +112,7 @@ class AnalysisOptionsProvider {
   ///   * if map values cannot be merged, the overriding value is taken.
   ///
   YamlMap merge(YamlMap defaults, YamlMap overrides) =>
-      new Merger().mergeMap(defaults, overrides);
+      Merger().mergeMap(defaults, overrides);
 
   /// Read the contents of [source] as a string.
   /// Returns null if source is null or does not exist.

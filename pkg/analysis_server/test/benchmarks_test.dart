@@ -13,26 +13,26 @@ import 'package:test/test.dart';
 void main() => defineTests();
 
 String get _serverSourcePath {
-  String script = Platform.script.toFilePath(windows: Platform.isWindows);
-  String pkgPath = path.normalize(path.join(path.dirname(script), '..', '..'));
+  var script = Platform.script.toFilePath(windows: Platform.isWindows);
+  var pkgPath = path.normalize(path.join(path.dirname(script), '..', '..'));
   return path.join(pkgPath, 'analysis_server');
 }
 
 void defineTests() {
   group('benchmarks', () {
-    final List<String> benchmarks = _listBenchmarks();
+    var benchmarks = _listBenchmarks();
 
     test('can list', () {
       expect(benchmarks, isNotEmpty);
     });
 
-    for (String benchmarkId in benchmarks) {
+    for (var benchmarkId in benchmarks) {
       if (benchmarkId == 'analysis-flutter-analyze') {
         continue;
       }
 
       test(benchmarkId, () {
-        ProcessResult r = Process.runSync(
+        var r = Process.runSync(
           Platform.resolvedExecutable,
           [
             path.join('benchmark', 'benchmarks.dart'),
@@ -51,7 +51,7 @@ void defineTests() {
 }
 
 List<String> _listBenchmarks() {
-  ProcessResult result = Process.runSync(
+  var result = Process.runSync(
     Platform.resolvedExecutable,
     [path.join('benchmark', 'benchmarks.dart'), 'list', '--machine'],
     workingDirectory: _serverSourcePath,

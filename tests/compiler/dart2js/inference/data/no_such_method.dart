@@ -1,6 +1,8 @@
 /*member: main:[null]*/
 main() {
   missingGetter();
+
+// @dart = 2.7
   missingMethod();
   closureThroughMissingMethod();
   closureThroughMissingSetter();

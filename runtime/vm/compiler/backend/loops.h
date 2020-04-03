@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_COMPILER_BACKEND_LOOPS_H_
 #define RUNTIME_VM_COMPILER_BACKEND_LOOPS_H_
 
+#include <utility>
+
 #include "vm/allocation.h"
 #include "vm/compiler/backend/il.h"
 
@@ -31,7 +33,7 @@ class InductionVar : public ZoneAllocated {
     kPeriodic,
   };
 
-  // Strict bound on unit stride linear induction:
+  // Strict (exclusive) upper or lower bound on unit stride linear induction:
   //   i < U (i++)
   //   i > L (i--)
   struct Bound {
@@ -42,14 +44,16 @@ class InductionVar : public ZoneAllocated {
 
   // Constructor for an invariant.
   InductionVar(int64_t offset, int64_t mult, Definition* def)
-      : kind_(kInvariant), offset_(offset), mult_(mult), def_(def) {}
+      : kind_(kInvariant), offset_(offset), mult_(mult), def_(def), bounds_() {
+    ASSERT(mult_ == 0 || def != nullptr);
+  }
 
   // Constructor for a constant.
   explicit InductionVar(int64_t offset) : InductionVar(offset, 0, nullptr) {}
 
   // Constructor for an induction.
   InductionVar(Kind kind, InductionVar* initial, InductionVar* next)
-      : kind_(kind), initial_(initial), next_(next) {
+      : kind_(kind), initial_(initial), next_(next), bounds_() {
     ASSERT(IsInvariant(initial));
     switch (kind) {
       case kLinear:
@@ -65,7 +69,7 @@ class InductionVar : public ZoneAllocated {
   }
 
   // Returns true if the other induction is structually equivalent.
-  bool IsEqual(InductionVar* other) const {
+  bool IsEqual(const InductionVar* other) const {
     ASSERT(other != nullptr);
     if (kind_ == other->kind_) {
       switch (kind_) {
@@ -81,6 +85,19 @@ class InductionVar : public ZoneAllocated {
     }
     return false;
   }
+
+  // Returns true if a fixed difference between this and the other induction
+  // can be computed. Sets the output parameter diff on success.
+  bool CanComputeDifferenceWith(const InductionVar* other, int64_t* diff) const;
+
+  // Returns true if this induction in the given loop can be bounded as
+  // min <= this <= max by using bounds of more outer loops. On success
+  // the output parameters min and max are set, which are always loop
+  // invariant expressions inside the given loop.
+  bool CanComputeBounds(LoopInfo* loop,
+                        Instruction* pos,
+                        InductionVar** min,
+                        InductionVar** max);
 
   // Getters.
   Kind kind() const { return kind_; }
@@ -110,17 +127,17 @@ class InductionVar : public ZoneAllocated {
   const char* ToCString() const;
 
   // Returns true if x is invariant.
-  static bool IsInvariant(InductionVar* x) {
+  static bool IsInvariant(const InductionVar* x) {
     return x != nullptr && x->kind_ == kInvariant;
   }
 
   // Returns true if x is a constant (and invariant).
-  static bool IsConstant(InductionVar* x) {
+  static bool IsConstant(const InductionVar* x) {
     return x != nullptr && x->kind_ == kInvariant && x->mult_ == 0;
   }
 
   // Returns true if x is a constant. Sets the value.
-  static bool IsConstant(InductionVar* x, int64_t* c) {
+  static bool IsConstant(const InductionVar* x, int64_t* c) {
     if (IsConstant(x)) {
       *c = x->offset_;
       return true;
@@ -129,12 +146,12 @@ class InductionVar : public ZoneAllocated {
   }
 
   // Returns true if x is linear.
-  static bool IsLinear(InductionVar* x) {
+  static bool IsLinear(const InductionVar* x) {
     return x != nullptr && x->kind_ == kLinear;
   }
 
   // Returns true if x is linear with constant stride. Sets the stride.
-  static bool IsLinear(InductionVar* x, int64_t* s) {
+  static bool IsLinear(const InductionVar* x, int64_t* s) {
     if (IsLinear(x)) {
       return IsConstant(x->next_, s);
     }
@@ -142,17 +159,17 @@ class InductionVar : public ZoneAllocated {
   }
 
   // Returns true if x is wrap-around.
-  static bool IsWrapAround(InductionVar* x) {
+  static bool IsWrapAround(const InductionVar* x) {
     return x != nullptr && x->kind_ == kWrapAround;
   }
 
   // Returns true if x is periodic.
-  static bool IsPeriodic(InductionVar* x) {
+  static bool IsPeriodic(const InductionVar* x) {
     return x != nullptr && x->kind_ == kPeriodic;
   }
 
   // Returns true if x is any induction.
-  static bool IsInduction(InductionVar* x) {
+  static bool IsInduction(const InductionVar* x) {
     return x != nullptr && x->kind_ != kInvariant;
   }
 
@@ -172,6 +189,11 @@ class InductionVar : public ZoneAllocated {
       InductionVar* next_;
     };
   };
+
+  bool CanComputeBoundsImpl(LoopInfo* loop,
+                            Instruction* pos,
+                            InductionVar** min,
+                            InductionVar** max);
 
   // Bounds on induction.
   GrowableArray<Bound> bounds_;
@@ -217,6 +239,9 @@ class LoopInfo : public ZoneAllocated {
   // Looks up induction.
   InductionVar* LookupInduction(Definition* def) const;
 
+  // Tests if index stays in [0,length) range in this loop at given position.
+  bool IsInRange(Instruction* pos, Value* index, Value* length);
+
   // Getters.
   intptr_t id() const { return id_; }
   BlockEntryInstr* header() const { return header_; }
@@ -232,10 +257,23 @@ class LoopInfo : public ZoneAllocated {
   const char* ToCString() const;
 
  private:
+  friend class InductionVar;
   friend class InductionVarAnalysis;
   friend class LoopHierarchy;
 
+  // Mapping from definition to induction.
   typedef RawPointerKeyValueTrait<Definition, InductionVar*> InductionKV;
+
+  // Mapping from induction to mapping from instruction to induction pair.
+  class MemoVal : public ZoneAllocated {
+   public:
+    typedef RawPointerKeyValueTrait<Instruction,
+                                    std::pair<InductionVar*, InductionVar*>>
+        PosKV;
+    MemoVal() : memo_() {}
+    DirectChainedHashMap<PosKV> memo_;
+  };
+  typedef RawPointerKeyValueTrait<InductionVar, MemoVal*> MemoKV;
 
   // Unique id of loop. We use its index in the
   // loop header array for this.
@@ -253,6 +291,10 @@ class LoopInfo : public ZoneAllocated {
 
   // Map definition -> induction for this loop.
   DirectChainedHashMap<InductionKV> induction_;
+
+  // A small, per-loop memoization cache, to avoid costly
+  // recomputations while traversing very deeply nested loops.
+  DirectChainedHashMap<MemoKV> memo_cache_;
 
   // Constraint on a header phi.
   // TODO(ajcbik): very specific to smi range analysis,
@@ -290,7 +332,7 @@ class LoopHierarchy : public ZoneAllocated {
 
  private:
   void Build();
-  void Print(LoopInfo* loop);
+  void Print(LoopInfo* loop) const;
 
   ZoneGrowableArray<BlockEntryInstr*>* headers_;
   const GrowableArray<BlockEntryInstr*>& preorder_;

@@ -104,8 +104,8 @@ class IgnoredTestMonitor extends EventListener {
     if (test.lastCommandOutput.result(test) == Expectation.ignore) {
       countIgnored++;
       if (countIgnored > maxIgnored) {
-        print("/nMore than $maxIgnored tests were ignored due to flakes in");
-        print("the test infrastructure. Notify whesse@google.com.");
+        print("\nMore than $maxIgnored tests were ignored due to flakes in");
+        print("the test infrastructure. Notify dart-engprod@.");
         print("Output of the last ignored test was:");
         print(_buildFailureOutput(test));
         exit(1);
@@ -255,7 +255,6 @@ class TimingPrinter extends EventListener {
 
 class StatusFileUpdatePrinter extends EventListener {
   final Map<String, List<String>> statusToConfigs = {};
-  final List<String> _failureSummary = [];
 
   void done(TestCase test) {
     if (test.unexpectedOutput) {
@@ -268,9 +267,8 @@ class StatusFileUpdatePrinter extends EventListener {
   }
 
   void _printFailureOutput(TestCase test) {
-    String status = '${test.displayName}: ${test.result}';
-    List<String> configs =
-        statusToConfigs.putIfAbsent(status, () => <String>[]);
+    var status = '${test.displayName}: ${test.result}';
+    var configs = statusToConfigs.putIfAbsent(status, () => <String>[]);
     configs.add(test.configurationString);
     if (test.lastCommandOutput.hasTimedOut) {
       print('\n${test.displayName} timed out on ${test.configurationString}');
@@ -280,7 +278,7 @@ class StatusFileUpdatePrinter extends EventListener {
   String _extractRuntime(String configuration) {
     // Extract runtime from a configuration, for example,
     // 'none-vm-checked release_ia32'.
-    List<String> runtime = configuration.split(' ')[0].split('-');
+    var runtime = configuration.split(' ')[0].split('-');
     return '${runtime[0]}-${runtime[1]}';
   }
 
@@ -391,7 +389,6 @@ class TestFailurePrinter extends EventListener {
 
 class PassingStdoutPrinter extends EventListener {
   final Formatter _formatter;
-  final _failureSummary = <String>[];
 
   PassingStdoutPrinter([this._formatter = Formatter.normal]);
 
@@ -540,7 +537,7 @@ class BuildbotProgressIndicator extends ProgressIndicator {
       if (stepName != null) {
         print('@@@BUILD_STEP $stepName failures@@@');
       }
-      for (String line in _failureSummary) {
+      for (var line in _failureSummary) {
         print(line);
       }
       print('');
@@ -707,18 +704,12 @@ String _buildSummaryEnd(Formatter formatter, int failedTests) {
 
 /// Writes a results.json file with a line for each test.
 /// Each line is a json map with the test name and result and expected result.
-/// Also writes a run.json file with a json map containing the configuration
-/// and the start time and duration of the run.
 class ResultWriter extends EventListener {
-  final TestConfiguration _configuration;
   final List<Map> _results = [];
   final List<Map> _logs = [];
   final String _outputDirectory;
-  final Stopwatch _startStopwatch;
-  final DateTime _startTime;
 
-  ResultWriter(this._configuration, this._startTime, this._startStopwatch)
-      : _outputDirectory = _configuration.outputDirectory;
+  ResultWriter(this._outputDirectory);
 
   void allTestsKnown() {
     // Write an empty result log file, that will be overwritten if any tests
@@ -731,20 +722,16 @@ class ResultWriter extends EventListener {
       lines.map((l) => l + '\n').join();
 
   void done(TestCase test) {
-    if (_configuration != test.configuration) {
-      throw Exception("Two configurations in the same run. "
-          "Cannot output results for multiple configurations.");
-    }
-    final name = test.displayName;
-    final index = name.indexOf('/');
-    final suite = name.substring(0, index);
-    final testName = name.substring(index + 1);
-    Duration time =
+    var name = test.displayName;
+    var index = name.indexOf('/');
+    var suite = name.substring(0, index);
+    var testName = name.substring(index + 1);
+    var time =
         test.commandOutputs.values.fold(Duration.zero, (d, o) => d + o.time);
 
-    final record = {
+    var record = {
       "name": name,
-      "configuration": _configuration.configuration.name,
+      "configuration": test.configuration.configuration.name,
       "suite": suite,
       "test_name": testName,
       "time_ms": time.inMilliseconds,
@@ -754,7 +741,7 @@ class ResultWriter extends EventListener {
     };
     _results.add(record);
     if (test.configuration.writeLogs && record['matches'] != true) {
-      final log = {
+      var log = {
         'name': name,
         'configuration': record['configuration'],
         'result': record['result'],
@@ -767,28 +754,12 @@ class ResultWriter extends EventListener {
   void allDone() {
     writeOutputFile(_results, TestUtils.resultsFileName);
     writeOutputFile(_logs, TestUtils.logsFileName);
-    writeRunFile();
   }
 
   void writeOutputFile(List<Map> results, String fileName) {
     if (_outputDirectory == null) return;
-    final path = Uri.directory(_outputDirectory).resolve(fileName);
+    var path = Uri.directory(_outputDirectory).resolve(fileName);
     File.fromUri(path)
         .writeAsStringSync(newlineTerminated(results.map(jsonEncode)));
-  }
-
-  void writeRunFile() {
-    _startStopwatch.stop();
-    if (_outputDirectory == null) return;
-    var suites = _configuration.selectors.keys.toList();
-    var run = {
-      "start_time": _startTime.millisecondsSinceEpoch ~/ 1000,
-      "duration": _startStopwatch.elapsed.inSeconds,
-      "configuration": _configuration.configuration.name,
-      "suites": suites
-    };
-    final path = Uri.directory(_outputDirectory)
-        .resolve(TestUtils.resultsInstanceFileName);
-    File.fromUri(path).writeAsStringSync(jsonEncode(run) + '\n');
   }
 }

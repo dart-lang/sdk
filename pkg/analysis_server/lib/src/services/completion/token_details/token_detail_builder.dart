@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -21,15 +20,30 @@ class TokenDetailBuilder {
   /// Visit a [node] in the AST structure to build details for all of the tokens
   /// contained by that node.
   void visitNode(AstNode node) {
-    for (SyntacticEntity entity in node.childEntities) {
+    for (var entity in node.childEntities) {
       if (entity is Token) {
         _createDetails(entity, null, null);
       } else if (entity is SimpleIdentifier) {
-        String type = _getType(entity);
-        if (_isTypeName(entity)) {
-          type = 'dart:core;Type<$type>';
+        String type;
+        var typeNameNode = _getTypeName(entity);
+        if (typeNameNode != null) {
+          var typeStr = _typeStr(typeNameNode.type);
+          type = 'dart:core;Type<$typeStr>';
+        } else if (entity.staticElement is ClassElement) {
+          type = 'Type';
+        } else if (entity.inDeclarationContext()) {
+          var element = entity.staticElement;
+          if (element is FunctionElement) {
+            type = _typeStr(element.type);
+          } else if (element is MethodElement) {
+            type = _typeStr(element.type);
+          } else if (element is VariableElement) {
+            type = _typeStr(element.type);
+          }
+        } else {
+          type = _typeStr(entity.staticType);
         }
-        List<String> kinds = [];
+        var kinds = <String>[];
         if (entity.inDeclarationContext()) {
           kinds.add('declaration');
         } else {
@@ -37,13 +51,13 @@ class TokenDetailBuilder {
         }
         _createDetails(entity.token, type, kinds);
       } else if (entity is BooleanLiteral) {
-        _createDetails(entity.literal, _getType(entity), null);
+        _createDetails(entity.literal, _typeStr(entity.staticType), null);
       } else if (entity is DoubleLiteral) {
-        _createDetails(entity.literal, _getType(entity), null);
+        _createDetails(entity.literal, _typeStr(entity.staticType), null);
       } else if (entity is IntegerLiteral) {
-        _createDetails(entity.literal, _getType(entity), null);
+        _createDetails(entity.literal, _typeStr(entity.staticType), null);
       } else if (entity is SimpleStringLiteral) {
-        _createDetails(entity.literal, _getType(entity), null);
+        _createDetails(entity.literal, _typeStr(entity.staticType), null);
       } else if (entity is Comment) {
         // Ignore comments and the references within them.
       } else if (entity is AstNode) {
@@ -54,30 +68,30 @@ class TokenDetailBuilder {
 
   /// Create the details for a single [token], using the given list of [kinds].
   void _createDetails(Token token, String type, List<String> kinds) {
-    details.add(
-        new TokenDetails(token.lexeme, type: type, validElementKinds: kinds));
+    details.add(TokenDetails(token.lexeme, token.offset,
+        type: type, validElementKinds: kinds));
   }
 
-  /// Return a unique identifier for the type of the given [expression].
-  String _getType(Expression expression) {
-    StringBuffer buffer = new StringBuffer();
-    _writeType(buffer, expression.staticType);
-    return buffer.toString();
-  }
-
-  /// Return `true` if the [identifier] represents the name of a type.
-  bool _isTypeName(SimpleIdentifier identifier) {
-    AstNode parent = identifier.parent;
+  /// Return the [TypeName] with the [identifier].
+  TypeName _getTypeName(SimpleIdentifier identifier) {
+    var parent = identifier.parent;
     if (parent is TypeName && identifier == parent.name) {
-      return true;
+      return parent;
     } else if (parent is PrefixedIdentifier &&
         parent.identifier == identifier) {
-      AstNode parent2 = parent.parent;
+      var parent2 = parent.parent;
       if (parent2 is TypeName && parent == parent2.name) {
-        return true;
+        return parent2;
       }
     }
-    return false;
+    return null;
+  }
+
+  /// Return a unique identifier for the [type].
+  String _typeStr(DartType type) {
+    var buffer = StringBuffer();
+    _writeType(buffer, type);
+    return buffer.toString();
   }
 
   /// Return a unique identifier for the type of the given [expression].
@@ -88,7 +102,7 @@ class TokenDetailBuilder {
     } else if (type is FunctionType) {
       _writeType(buffer, type.returnType);
       buffer.write(' Function(');
-      bool first = true;
+      var first = true;
       for (var parameter in type.parameters) {
         if (first) {
           first = false;
@@ -101,12 +115,12 @@ class TokenDetailBuilder {
     } else if (type is InterfaceType) {
       Element element = type.element;
       if (element == null || element.isSynthetic) {
-        buffer.write(type.displayName);
+        buffer.write(type.getDisplayString(withNullability: false));
       } else {
 //        String uri = element.library.source.uri.toString();
-        String name = element.name;
+        var name = element.name;
         if (element is ClassMemberElement) {
-          String className = element.enclosingElement.name;
+          var className = element.enclosingElement.name;
           // TODO(brianwilkerson) Figure out why the uri is a file: URI when it
           //  ought to be a package: URI and restore the code below to include
           //  the URI in the string.
@@ -119,7 +133,7 @@ class TokenDetailBuilder {
       }
     } else {
       // Handle `void` and `dynamic`.
-      buffer.write(type.displayName);
+      buffer.write(type.getDisplayString(withNullability: false));
     }
   }
 }

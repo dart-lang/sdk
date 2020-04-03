@@ -128,7 +128,8 @@ class FlowGraphAllocator : public ValueObject {
 
   void ProcessInitialDefinition(Definition* defn,
                                 LiveRange* range,
-                                BlockEntryInstr* block);
+                                BlockEntryInstr* block,
+                                bool second_location_for_definition = false);
   void ConnectIncomingPhiMoves(JoinEntryInstr* join);
   void BlockLocation(Location loc, intptr_t from, intptr_t to);
   void BlockRegisterLocation(Location loc,
@@ -294,10 +295,6 @@ class FlowGraphAllocator : public ValueObject {
   Location::Kind register_kind_;
 
   intptr_t number_of_registers_;
-
-#if defined(TARGET_ARCH_DBC)
-  intptr_t last_used_register_;
-#endif
 
   // Per register lists of allocated live ranges.  Contain only those
   // ranges that can be affected by future allocation decisions.

@@ -1,0 +1,2 @@
+strong=tests/compiler/dart2js/static_type/type_promotion_test.dart
+omit=tests/compiler/dart2js/static_type/type_promotion_test.dart

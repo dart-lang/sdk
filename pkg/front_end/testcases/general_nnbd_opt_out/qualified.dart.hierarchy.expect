@@ -1,0 +1,198 @@
+Object:
+  superclasses:
+  interfaces:
+  classMembers:
+    Object._haveSameRuntimeType
+    Object.toString
+    Object.runtimeType
+    Object._toString
+    Object._simpleInstanceOf
+    Object._hashCodeRnd
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._objectHashCode
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+
+Bad:
+  superclasses:
+    qualified-name(lib, Missing)
+  interfaces:
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Bad.method
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+
+IllegalSupertype:
+  superclasses:
+    qualified-name(lib, VoidFunction)
+  interfaces:
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+
+C:
+  superclasses:
+    Object
+  interfaces:
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    C._redirecting#
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+    C._redirecting#
+
+C:
+  superclasses:
+    Object
+      -> qualified-name(main, C)<T>
+  interfaces:
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    C._redirecting#
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+    C._redirecting#
+
+Supertype:
+  superclasses:
+    Object
+  interfaces:
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    Object.noSuchMethod
+    Supertype.supertypeMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+
+Mixin:
+  superclasses:
+    Object
+  interfaces:
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    Mixin.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+
+qualified-name(lib, Supertype) with qualified-name(lib, Mixin):
+  superclasses:
+    Object
+      -> qualified-name(lib, Supertype)
+  interfaces: qualified-name(lib, Mixin)
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    Mixin.foo
+    Object.noSuchMethod
+    Supertype.supertypeMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    Mixin.foo
+    Object.noSuchMethod
+    Supertype.supertypeMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+WithMixin:
+  superclasses:
+    Object
+      -> qualified-name(lib, Supertype)
+        -> _WithMixin&Supertype&Mixin
+  interfaces: qualified-name(lib, Mixin)
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    Mixin.foo
+    Object.noSuchMethod
+    Supertype.supertypeMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    Mixin.foo
+    Object.noSuchMethod
+    Supertype.supertypeMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:

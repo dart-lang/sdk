@@ -172,7 +172,7 @@ class C5<T extends num> {
   List<T> get argList5 => <T>[];
   List<Object> get argDynList5 => <T>[];
   List<Object> get selfList5 {
-    var result = [this];
+    var result = [self];
     return result;
   }
 }

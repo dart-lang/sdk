@@ -47,17 +47,14 @@ verbose_gc_to_bmu_test: Skip
 [ $arch == arm && $mode == release && $runtime == dart_precompiled && $system == android ]
 io/stdout_stderr_non_blocking_test: Pass, Timeout # Issue 28426
 
-[ $arch == simdbc64 && $mode == debug && $checked ]
-io/web_socket_test: Pass, RuntimeError # Issue 26814.
-
 [ $arch == x64 && $compiler == dartkb && $runtime == vm && $system == linux ]
 io/stdout_stderr_non_blocking_test: Pass, Timeout # Issue 35192
 
+[ $arch == x64 && $mode == release && $runtime == vm && $system == linux ]
+io/http_bind_test: Pass, Timeout # Issue 35192
+
 [ $compiler != dart2analyzer && $system == windows ]
 io/platform_resolved_executable_test/06: RuntimeError # Issue 23641
-
-[ $mode == release && $runtime == vm && $system == linux && ($arch == simdbc64 || $arch == x64) ]
-io/http_bind_test: Pass, Timeout # Issue 35192
 
 [ $mode == release && $runtime == vm && $system == macos ]
 io/http_server_close_response_after_error_test: Pass, Timeout # Issue 28370: timeout.
@@ -81,7 +78,18 @@ io/dart_std_io_pipe_test: Timeout, Pass
 io/http_client_stays_alive_test: Skip # Spawns process in Dart2 mode.
 io/process_sync_test: Timeout, Pass
 
-[ $arch == simdbc || $arch == simdbc64 ]
-full_coverage_test: Skip # TODO(vegorov) SIMDBC interpreter doesn't support coverage yet.
-link_natives_lazily_test: SkipByDesign # SIMDBC interpreter doesn't support lazy linking of natives.
-no_lazy_dispatchers_test: SkipByDesign # SIMDBC interpreter doesn't support --no_lazy_dispatchers
+[ $hot_reload || $hot_reload_rollback ]
+io/file_system_watcher_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+io/platform_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+io/raw_synchronous_socket_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+io/shared_socket_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+io/socket_finalizer_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+io/socket_many_connections_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+io/stdio_socket_finalizer_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+io/wait_for_event_isolate_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+regress_26031_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+regress_28854_1_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+regress_28854_2_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+typed_array_int64_uint64_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+typed_array_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+typed_data_isolate_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.

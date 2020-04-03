@@ -11,10 +11,10 @@ static method test() → dynamic async {
   }
   core::int* y;
   for (final dynamic #t1 in o as{TypeError} core::Iterable<dynamic>*) {
-    y = #t1 as{TypeError} core::int*;
+    y = #t1 as{TypeError,ForDynamic} core::int*;
   }
   await for (final dynamic #t2 in o as{TypeError} asy::Stream<dynamic>*) {
-    y = #t2 as{TypeError} core::int*;
+    y = #t2 as{TypeError,ForDynamic} core::int*;
   }
 }
 static method main() → dynamic {}

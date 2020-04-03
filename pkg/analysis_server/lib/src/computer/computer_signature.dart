@@ -12,21 +12,18 @@ import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 
-/**
- * A computer for the signature at the specified offset of a Dart [CompilationUnit].
- */
+/// A computer for the signature at the specified offset of a Dart
+/// [CompilationUnit].
 class DartUnitSignatureComputer {
   final DartdocDirectiveInfo _dartdocInfo;
   final AstNode _node;
   DartUnitSignatureComputer(
       this._dartdocInfo, CompilationUnit _unit, int _offset)
-      : _node = new NodeLocator(_offset).searchWithin(_unit);
+      : _node = NodeLocator(_offset).searchWithin(_unit);
 
   bool get offsetIsValid => _node != null;
 
-  /**
-   * Returns the computed signature information, maybe `null`.
-   */
+  /// Returns the computed signature information, maybe `null`.
   AnalysisGetSignatureResult compute() {
     if (_node == null) {
       return null;
@@ -58,7 +55,7 @@ class DartUnitSignatureComputer {
       InstanceCreationExpression constructor = args.parent;
       name = constructor.constructorName.type.name.name;
       if (constructor.constructorName.name != null) {
-        name += ".${constructor.constructorName.name.name}";
+        name += '.${constructor.constructorName.name.name}';
       }
       execElement = ElementLocator.locate(constructor) as ExecutableElement;
     }
@@ -70,18 +67,18 @@ class DartUnitSignatureComputer {
     final parameters =
         execElement.parameters.map((p) => _convertParam(p)).toList();
 
-    return new AnalysisGetSignatureResult(name, parameters,
+    return AnalysisGetSignatureResult(name, parameters,
         dartdoc: DartUnitHoverComputer.computeDocumentation(
             _dartdocInfo, execElement));
   }
 
   ParameterInfo _convertParam(ParameterElement param) {
-    return new ParameterInfo(
+    return ParameterInfo(
         param.isOptionalPositional
             ? ParameterKind.OPTIONAL
             : param.isPositional ? ParameterKind.REQUIRED : ParameterKind.NAMED,
         param.displayName,
-        param.type.displayName,
+        param.type.getDisplayString(withNullability: false),
         defaultValue: param.defaultValueCode);
   }
 }

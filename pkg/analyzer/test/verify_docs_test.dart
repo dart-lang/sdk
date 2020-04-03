@@ -12,8 +12,9 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:front_end/src/testing/package_root.dart' as package_root;
 import 'package:test/test.dart';
+
+import 'utils/package_root.dart' as package_root;
 
 main() async {
   SnippetTester tester = SnippetTester();
@@ -108,7 +109,7 @@ $snippet
 ''',
         modificationStamp: 1);
     try {
-      AnalysisContextCollection collection = new AnalysisContextCollection(
+      AnalysisContextCollection collection = AnalysisContextCollection(
           includedPaths: <String>[snippetDirPath], resourceProvider: provider);
       List<AnalysisContext> contexts = collection.contexts;
       if (contexts.length != 1) {

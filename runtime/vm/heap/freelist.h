@@ -6,6 +6,7 @@
 #define RUNTIME_VM_HEAP_FREELIST_H_
 
 #include "platform/assert.h"
+#include "platform/atomic.h"
 #include "vm/allocation.h"
 #include "vm/bit_set.h"
 #include "vm/os_thread.h"
@@ -56,7 +57,7 @@ class FreeListElement {
 
  private:
   // This layout mirrors the layout of RawObject.
-  uint32_t tags_;
+  RelaxedAtomic<uint32_t> tags_;
 #if defined(HASH_IN_OBJECT_HEADER)
   uint32_t hash_;
 #endif
@@ -115,6 +116,8 @@ class FreeList {
     }
     return 0;
   }
+
+  void MergeOtherFreelist(FreeList* freelist, bool is_protected);
 
  private:
   static const int kNumLists = 128;

@@ -52,17 +52,14 @@ class OverlayResourceProvider implements ResourceProvider {
   pathos.Context get pathContext => baseProvider.pathContext;
 
   @override
-  File getFile(String path) =>
-      new _OverlayFile(this, baseProvider.getFile(path));
+  File getFile(String path) => _OverlayFile(this, baseProvider.getFile(path));
 
   @override
   Folder getFolder(String path) =>
-      new _OverlayFolder(this, baseProvider.getFolder(path));
+      _OverlayFolder(this, baseProvider.getFolder(path));
 
   @override
   Future<List<int>> getModificationTimes(List<Source> sources) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     return sources.map((source) {
       String path = source.fullName;
       return _overlayModificationStamps[path] ??
@@ -73,16 +70,16 @@ class OverlayResourceProvider implements ResourceProvider {
   @override
   Resource getResource(String path) {
     if (hasOverlay(path)) {
-      return new _OverlayResource._from(this, baseProvider.getFile(path));
+      return _OverlayResource._from(this, baseProvider.getFile(path));
     } else if (_hasOverlayIn(path)) {
-      return new _OverlayResource._from(this, baseProvider.getFolder(path));
+      return _OverlayResource._from(this, baseProvider.getFolder(path));
     }
-    return new _OverlayResource._from(this, baseProvider.getResource(path));
+    return _OverlayResource._from(this, baseProvider.getResource(path));
   }
 
   @override
   Folder getStateLocation(String pluginId) =>
-      new _OverlayFolder(this, baseProvider.getStateLocation(pluginId));
+      _OverlayFolder(this, baseProvider.getStateLocation(pluginId));
 
   /**
    * Return `true` if there is an overlay associated with the file at the given
@@ -109,10 +106,10 @@ class OverlayResourceProvider implements ResourceProvider {
   void setOverlay(String path,
       {@required String content, @required int modificationStamp}) {
     if (content == null) {
-      throw new ArgumentError(
+      throw ArgumentError(
           'OverlayResourceProvider.setOverlay: content cannot be null');
     } else if (modificationStamp == null) {
-      throw new ArgumentError(
+      throw ArgumentError(
           'OverlayResourceProvider.setOverlay: modificationStamp cannot be null');
     }
     _overlayContent[path] = content;
@@ -208,18 +205,17 @@ class _OverlayFile extends _OverlayResource implements File {
     _provider._copyOverlay(path, newPath);
     if (_file.exists) {
       if (parentFolder is _OverlayFolder) {
-        return new _OverlayFile(_provider, _file.copyTo(parentFolder._folder));
+        return _OverlayFile(_provider, _file.copyTo(parentFolder._folder));
       }
-      return new _OverlayFile(_provider, _file.copyTo(parentFolder));
+      return _OverlayFile(_provider, _file.copyTo(parentFolder));
     } else {
-      return new _OverlayFile(
-          _provider, _provider.baseProvider.getFile(newPath));
+      return _OverlayFile(_provider, _provider.baseProvider.getFile(newPath));
     }
   }
 
   @override
   Source createSource([Uri uri]) =>
-      new FileSource(this, uri ?? _provider.pathContext.toUri(path));
+      FileSource(this, uri ?? _provider.pathContext.toUri(path));
 
   @override
   void delete() {
@@ -227,7 +223,7 @@ class _OverlayFile extends _OverlayResource implements File {
     if (_resource.exists) {
       _resource.delete();
     } else if (!hadOverlay) {
-      throw new FileSystemException(path, 'does not exist');
+      throw FileSystemException(path, 'does not exist');
     }
   }
 
@@ -258,19 +254,18 @@ class _OverlayFile extends _OverlayResource implements File {
           modificationStamp: _provider._getOverlayModificationStamp(path));
       _provider.removeOverlay(path);
     }
-    return new _OverlayFile(_provider, newFile);
+    return _OverlayFile(_provider, newFile);
   }
 
   @override
   void writeAsBytesSync(List<int> bytes) {
-    writeAsStringSync(new String.fromCharCodes(bytes));
+    writeAsStringSync(String.fromCharCodes(bytes));
   }
 
   @override
   void writeAsStringSync(String content) {
     if (_provider.hasOverlay(path)) {
-      throw new FileSystemException(
-          path, 'Cannot write a file with an overlay');
+      throw FileSystemException(path, 'Cannot write a file with an overlay');
     }
     _file.writeAsStringSync(content);
   }
@@ -329,22 +324,22 @@ class _OverlayFolder extends _OverlayResource implements Folder {
 
   @override
   Resource getChild(String relPath) =>
-      new _OverlayResource._from(_provider, _folder.getChild(relPath));
+      _OverlayResource._from(_provider, _folder.getChild(relPath));
 
   @override
   File getChildAssumingFile(String relPath) =>
-      new _OverlayFile(_provider, _folder.getChildAssumingFile(relPath));
+      _OverlayFile(_provider, _folder.getChildAssumingFile(relPath));
 
   @override
   Folder getChildAssumingFolder(String relPath) =>
-      new _OverlayFolder(_provider, _folder.getChildAssumingFolder(relPath));
+      _OverlayFolder(_provider, _folder.getChildAssumingFolder(relPath));
 
   @override
   List<Resource> getChildren() {
     Map<String, Resource> children = {};
     try {
       for (final child in _folder.getChildren()) {
-        children[child.path] = new _OverlayResource._from(_provider, child);
+        children[child.path] = _OverlayResource._from(_provider, child);
       }
     } on FileSystemException {
       // We don't want to throw if we're a folder that only exists in the overlay
@@ -395,11 +390,11 @@ abstract class _OverlayResource implements Resource {
   factory _OverlayResource._from(
       OverlayResourceProvider provider, Resource resource) {
     if (resource is Folder) {
-      return new _OverlayFolder(provider, resource);
+      return _OverlayFolder(provider, resource);
     } else if (resource is File) {
-      return new _OverlayFile(provider, resource);
+      return _OverlayFile(provider, resource);
     }
-    throw new ArgumentError('Unknown resource type: ${resource.runtimeType}');
+    throw ArgumentError('Unknown resource type: ${resource.runtimeType}');
   }
 
   @override
@@ -411,7 +406,7 @@ abstract class _OverlayResource implements Resource {
     if (parent == null) {
       return null;
     }
-    return new _OverlayFolder(_provider, parent);
+    return _OverlayFolder(_provider, parent);
   }
 
   @override
@@ -439,8 +434,8 @@ abstract class _OverlayResource implements Resource {
   }
 
   @override
-  Resource resolveSymbolicLinksSync() => new _OverlayResource._from(
-      _provider, _resource.resolveSymbolicLinksSync());
+  Resource resolveSymbolicLinksSync() =>
+      _OverlayResource._from(_provider, _resource.resolveSymbolicLinksSync());
 
   @override
   Uri toUri() => _resource.toUri();

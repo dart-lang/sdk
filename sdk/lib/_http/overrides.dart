@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart._http;
 
 final _httpOverridesToken = new Object();
@@ -49,27 +51,20 @@ abstract class HttpOverrides {
   static R runZoned<R>(R body(),
       {HttpClient Function(SecurityContext) createHttpClient,
       String Function(Uri uri, Map<String, String> environment)
-          findProxyFromEnvironment,
-      ZoneSpecification zoneSpecification,
-      Function onError}) {
+          findProxyFromEnvironment}) {
     HttpOverrides overrides =
         new _HttpOverridesScope(createHttpClient, findProxyFromEnvironment);
     return _asyncRunZoned<R>(body,
-        zoneValues: {_httpOverridesToken: overrides},
-        zoneSpecification: zoneSpecification,
-        onError: onError);
+        zoneValues: {_httpOverridesToken: overrides});
   }
 
   /// Runs [body] in a fresh [Zone] using the overrides found in [overrides].
   ///
   /// Note that [overrides] should be an instance of a class that extends
   /// [HttpOverrides].
-  static R runWithHttpOverrides<R>(R body(), HttpOverrides overrides,
-      {ZoneSpecification zoneSpecification, Function onError}) {
+  static R runWithHttpOverrides<R>(R body(), HttpOverrides overrides) {
     return _asyncRunZoned<R>(body,
-        zoneValues: {_httpOverridesToken: overrides},
-        zoneSpecification: zoneSpecification,
-        onError: onError);
+        zoneValues: {_httpOverridesToken: overrides});
   }
 
   /// Returns a new [HttpClient] using the given [context].

@@ -9,6 +9,7 @@
 
 #include "vm/bit_vector.h"
 #include "vm/compiler/frontend/bytecode_reader.h"
+#include "vm/compiler/frontend/constant_reader.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/hash_map.h"
 #include "vm/kernel.h"
@@ -105,11 +106,6 @@ class LibraryIndex {
     }
     UNREACHABLE();
     return -1;
-  }
-
-  bool HasSourceReferences() {
-    if (binary_version_ < 25) return false;
-    return true;
   }
 
   intptr_t SourceReferencesOffset() { return source_references_offset_; }
@@ -228,6 +224,7 @@ class KernelLoader : public ValueObject {
 
   void ReadObfuscationProhibitions();
 
+ private:
   // Check for the presence of a (possibly const) constructor for the
   // 'ExternalName' class. If found, returns the name parameter to the
   // constructor.
@@ -250,14 +247,6 @@ class KernelLoader : public ValueObject {
                          bool* is_potential_native,
                          bool* has_pragma_annotation);
 
-  const String& DartSymbolPlain(StringIndex index) {
-    return translation_helper_.DartSymbolPlain(index);
-  }
-  const String& DartSymbolObfuscate(StringIndex index) {
-    return translation_helper_.DartSymbolObfuscate(index);
-  }
-
- private:
   KernelLoader(const Script& script,
                const ExternalTypedData& kernel_data,
                intptr_t data_program_offset,
@@ -290,10 +279,8 @@ class KernelLoader : public ValueObject {
     // Start reading library.
     // Note that this needs to be keep in sync with LibraryHelper.
     reader.ReadFlags();
-    if (program_->binary_version() >= 27) {
-      reader.ReadUInt();  // Read major language version.
-      reader.ReadUInt();  // Read minor language version.
-    }
+    reader.ReadUInt();  // Read major language version.
+    reader.ReadUInt();  // Read minor language version.
     return reader.ReadCanonicalNameReference();
   }
 
@@ -347,6 +334,7 @@ class KernelLoader : public ValueObject {
   void GenerateFieldAccessors(const Class& klass,
                               const Field& field,
                               FieldHelper* field_helper);
+  bool FieldNeedsSetter(FieldHelper* field_helper);
 
   void LoadLibraryImportsAndExports(Library* library,
                                     const Class& toplevel_class);
@@ -418,6 +406,7 @@ class KernelLoader : public ValueObject {
   KernelProgramInfo& kernel_program_info_;
   BuildingTranslationHelper translation_helper_;
   KernelReaderHelper helper_;
+  ConstantReader constant_reader_;
   TypeTranslator type_translator_;
   InferredTypeMetadataHelper inferred_type_metadata_helper_;
   BytecodeMetadataHelper bytecode_metadata_helper_;
@@ -470,8 +459,6 @@ class KernelLoader : public ValueObject {
 RawFunction* CreateFieldInitializerFunction(Thread* thread,
                                             Zone* zone,
                                             const Field& field);
-
-ParsedFunction* ParseStaticFieldInitializer(Zone* zone, const Field& field);
 
 }  // namespace kernel
 }  // namespace dart

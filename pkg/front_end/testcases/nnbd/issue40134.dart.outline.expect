@@ -1,0 +1,24 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class GenericMethodBounds<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::GenericMethodBounds<self::GenericMethodBounds::T%>
+    ;
+  get t() → core::Type
+    ;
+  method foo<generic-covariant-impl E extends self::GenericMethodBounds::T% = self::GenericMethodBounds::T%>() → self::GenericMethodBounds<self::GenericMethodBounds::foo::E%>
+    ;
+  method bar<E extends (self::GenericMethodBounds::T%) → void = (self::GenericMethodBounds::T%) → void>() → self::GenericMethodBounds<self::GenericMethodBounds::bar::E>
+    ;
+}
+class GenericMethodBoundsDerived extends self::GenericMethodBounds<core::num> {
+  synthetic constructor •() → self::GenericMethodBoundsDerived
+    ;
+  method foo<generic-covariant-impl E extends core::num = core::num>() → self::GenericMethodBounds<self::GenericMethodBoundsDerived::foo::E>
+    ;
+  method bar<E extends (core::num) → void = (core::num) → void>() → self::GenericMethodBounds<self::GenericMethodBoundsDerived::bar::E>
+    ;
+}
+static method main() → dynamic
+  ;

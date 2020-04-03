@@ -496,8 +496,7 @@ int64_t OS::GetCurrentThreadCPUMicros() {
 // into a architecture specific file e.g: os_ia32_linux.cc
 intptr_t OS::ActivationFrameAlignment() {
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
-    defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_DBC)
-  // DBC alignment should be at least as much as host architecture.
+    defined(TARGET_ARCH_ARM64)
   const int kMinimumAlignment = 16;
 #elif defined(TARGET_ARCH_ARM)
   const int kMinimumAlignment = 8;
@@ -510,25 +509,6 @@ intptr_t OS::ActivationFrameAlignment() {
   // Flags::DebugIsInt("stackalign", &alignment);
   ASSERT(Utils::IsPowerOfTwo(alignment));
   ASSERT(alignment >= kMinimumAlignment);
-  return alignment;
-}
-
-intptr_t OS::PreferredCodeAlignment() {
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
-    defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_DBC)
-  const int kMinimumAlignment = 32;
-#elif defined(TARGET_ARCH_ARM)
-  const int kMinimumAlignment = 16;
-#else
-#error Unsupported architecture.
-#endif
-  intptr_t alignment = kMinimumAlignment;
-  // TODO(5411554): Allow overriding default code alignment for
-  // testing purposes.
-  // Flags::DebugIsInt("codealign", &alignment);
-  ASSERT(Utils::IsPowerOfTwo(alignment));
-  ASSERT(alignment >= kMinimumAlignment);
-  ASSERT(alignment <= OS::kMaxPreferredCodeAlignment);
   return alignment;
 }
 
@@ -599,7 +579,7 @@ char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
   va_end(measure_args);
 
   char* buffer;
-  if (zone) {
+  if (zone != nullptr) {
     buffer = zone->Alloc<char>(len + 1);
   } else {
     buffer = reinterpret_cast<char*>(malloc(len + 1));

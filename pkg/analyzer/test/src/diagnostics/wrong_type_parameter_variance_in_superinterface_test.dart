@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -310,34 +309,16 @@ mixin B<X> on A<X> {}
   }
 
   test_typeParameter_bound() async {
-    try {
-      await assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A<X> {}
 class B<X> extends A<void Function<Y extends X>()> {}
 ''', [
-        error(
-            CompileTimeErrorCode
-                .WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
-            22,
-            1),
-        error(
-            CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
-            35,
-            28),
-      ]);
-      if (!AnalysisDriver.useSummary2) {
-        throw 'Test passed - expected to fail.';
-      }
-    } on String {
-      rethrow;
-    } catch (_) {
-      // TODO(scheglov) This code crashes with summary1.
-//    NoSuchMethodError: The getter 'bound' was called on null.
-//    Receiver: null
-//    Tried calling: bound
-//    #0      Object.noSuchMethod (dart:core-patch/object_patch.dart:50:5)
-//    #1      ErrorVerifier._checkForTypeParameterSupertypeOfItsBound (error_verifier.dart:5438:30)
-      if (AnalysisDriver.useSummary2) rethrow;
-    }
+      error(
+          CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+          22,
+          1),
+      error(CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
+          35, 28),
+    ]);
   }
 }

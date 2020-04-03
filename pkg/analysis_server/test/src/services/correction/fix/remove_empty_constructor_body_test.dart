@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveEmptyConstructorBodyTest);
   });
@@ -23,10 +23,10 @@ class RemoveEmptyConstructorBodyTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.empty_constructor_bodies;
 
-  test_empty() async {
+  Future<void> test_empty() async {
     await resolveTestUnit('''
 class C {
-  C() {/*LINT*/}
+  C() {}
 }
 ''');
     await assertHasFix('''

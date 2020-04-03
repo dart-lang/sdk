@@ -17,7 +17,7 @@ class AnalyzerError implements Exception {
 
   @override
   String toString() {
-    var builder = new StringBuffer();
+    var builder = StringBuffer();
 
     // Print a less friendly string representation to ensure that
     // error.source.contents is not executed, as .contents it isn't async
@@ -80,11 +80,11 @@ class AnalyzerErrorGroup implements Exception {
   /// Creates an [AnalyzerErrorGroup] from a list of lower-level
   /// [AnalysisError]s.
   AnalyzerErrorGroup.fromAnalysisErrors(Iterable<AnalysisError> errors)
-      : this(errors.map((e) => new AnalyzerError(e)));
+      : this(errors.map((e) => AnalyzerError(e)));
 
   /// The errors in this collection.
   List<AnalyzerError> get errors =>
-      new UnmodifiableListView<AnalyzerError>(_errors);
+      UnmodifiableListView<AnalyzerError>(_errors);
 
   String get message => toString();
   @override

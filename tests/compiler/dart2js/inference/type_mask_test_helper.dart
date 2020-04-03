@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 library type_mask_test_helper;
 
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
@@ -13,7 +15,8 @@ TypeMask simplify(TypeMask mask, JClosedWorld closedWorld) {
   if (mask is ForwardingTypeMask) {
     return simplify(mask.forwardTo, closedWorld);
   } else if (mask is UnionTypeMask) {
-    return UnionTypeMask.flatten(mask.disjointMasks, closedWorld);
+    return UnionTypeMask.flatten(
+        mask.disjointMasks, mask.isNullable, closedWorld);
   } else {
     return mask;
   }

@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SortMembersTest);
   });
@@ -17,38 +15,38 @@ main() {
 
 @reflectiveTest
 class SortMembersTest extends AbstractAnalysisServerIntegrationTest {
-  test_sort() async {
-    String pathname = sourcePath('test.dart');
-    String text = r'''
+  Future<void> test_sort() async {
+    var pathname = sourcePath('test.dart');
+    var text = r'''
 int foo;
 int bar;
 ''';
     writeFile(pathname, text);
     standardAnalysisSetup();
 
-    EditSortMembersResult result = await sendEditSortMembers(pathname);
-    SourceFileEdit edit = result.edit;
+    var result = await sendEditSortMembers(pathname);
+    var edit = result.edit;
     expect(edit.edits, hasLength(1));
-    expect(edit.edits.first.replacement, "bar;\nint foo");
+    expect(edit.edits.first.replacement, 'bar;\nint foo');
   }
 
-  test_sort_no_changes() async {
-    String pathname = sourcePath('test.dart');
-    String text = r'''
+  Future<void> test_sort_no_changes() async {
+    var pathname = sourcePath('test.dart');
+    var text = r'''
 int bar;
 int foo;
 ''';
     writeFile(pathname, text);
     standardAnalysisSetup();
 
-    EditSortMembersResult result = await sendEditSortMembers(pathname);
-    SourceFileEdit edit = result.edit;
+    var result = await sendEditSortMembers(pathname);
+    var edit = result.edit;
     expect(edit.edits, isEmpty);
   }
 
-  test_sort_with_errors() async {
-    String pathname = sourcePath('test.dart');
-    String text = r'''
+  Future<void> test_sort_with_errors() async {
+    var pathname = sourcePath('test.dart');
+    var text = r'''
 int foo
 int bar;
 ''';

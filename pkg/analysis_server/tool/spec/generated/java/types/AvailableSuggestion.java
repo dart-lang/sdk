@@ -67,18 +67,6 @@ public class AvailableSuggestion {
   private final int[] defaultArgumentListTextRanges;
 
   /**
-   * The Dartdoc associated with the element being suggested. This field is omitted if there is no
-   * Dartdoc associated with the element.
-   */
-  private final String docComplete;
-
-  /**
-   * An abbreviated version of the Dartdoc associated with the element being suggested. This field is
-   * omitted if there is no Dartdoc associated with the element.
-   */
-  private final String docSummary;
-
-  /**
    * If the element is an executable, the names of the formal parameters of all kinds - required,
    * optional positional, and optional named. The names of positional parameters are empty strings.
    * Omitted if the element is not an executable.
@@ -102,14 +90,12 @@ public class AvailableSuggestion {
   /**
    * Constructor for {@link AvailableSuggestion}.
    */
-  public AvailableSuggestion(String label, String declaringLibraryUri, Element element, String defaultArgumentListString, int[] defaultArgumentListTextRanges, String docComplete, String docSummary, List<String> parameterNames, List<String> parameterTypes, List<String> relevanceTags, Integer requiredParameterCount) {
+  public AvailableSuggestion(String label, String declaringLibraryUri, Element element, String defaultArgumentListString, int[] defaultArgumentListTextRanges, List<String> parameterNames, List<String> parameterTypes, List<String> relevanceTags, Integer requiredParameterCount) {
     this.label = label;
     this.declaringLibraryUri = declaringLibraryUri;
     this.element = element;
     this.defaultArgumentListString = defaultArgumentListString;
     this.defaultArgumentListTextRanges = defaultArgumentListTextRanges;
-    this.docComplete = docComplete;
-    this.docSummary = docSummary;
     this.parameterNames = parameterNames;
     this.parameterTypes = parameterTypes;
     this.relevanceTags = relevanceTags;
@@ -126,8 +112,6 @@ public class AvailableSuggestion {
         ObjectUtilities.equals(other.element, element) &&
         ObjectUtilities.equals(other.defaultArgumentListString, defaultArgumentListString) &&
         Arrays.equals(other.defaultArgumentListTextRanges, defaultArgumentListTextRanges) &&
-        ObjectUtilities.equals(other.docComplete, docComplete) &&
-        ObjectUtilities.equals(other.docSummary, docSummary) &&
         ObjectUtilities.equals(other.parameterNames, parameterNames) &&
         ObjectUtilities.equals(other.parameterTypes, parameterTypes) &&
         ObjectUtilities.equals(other.relevanceTags, relevanceTags) &&
@@ -142,13 +126,11 @@ public class AvailableSuggestion {
     Element element = Element.fromJson(jsonObject.get("element").getAsJsonObject());
     String defaultArgumentListString = jsonObject.get("defaultArgumentListString") == null ? null : jsonObject.get("defaultArgumentListString").getAsString();
     int[] defaultArgumentListTextRanges = jsonObject.get("defaultArgumentListTextRanges") == null ? null : JsonUtilities.decodeIntArray(jsonObject.get("defaultArgumentListTextRanges").getAsJsonArray());
-    String docComplete = jsonObject.get("docComplete") == null ? null : jsonObject.get("docComplete").getAsString();
-    String docSummary = jsonObject.get("docSummary") == null ? null : jsonObject.get("docSummary").getAsString();
     List<String> parameterNames = jsonObject.get("parameterNames") == null ? null : JsonUtilities.decodeStringList(jsonObject.get("parameterNames").getAsJsonArray());
     List<String> parameterTypes = jsonObject.get("parameterTypes") == null ? null : JsonUtilities.decodeStringList(jsonObject.get("parameterTypes").getAsJsonArray());
     List<String> relevanceTags = jsonObject.get("relevanceTags") == null ? null : JsonUtilities.decodeStringList(jsonObject.get("relevanceTags").getAsJsonArray());
     Integer requiredParameterCount = jsonObject.get("requiredParameterCount") == null ? null : jsonObject.get("requiredParameterCount").getAsInt();
-    return new AvailableSuggestion(label, declaringLibraryUri, element, defaultArgumentListString, defaultArgumentListTextRanges, docComplete, docSummary, parameterNames, parameterTypes, relevanceTags, requiredParameterCount);
+    return new AvailableSuggestion(label, declaringLibraryUri, element, defaultArgumentListString, defaultArgumentListTextRanges, parameterNames, parameterTypes, relevanceTags, requiredParameterCount);
   }
 
   public static List<AvailableSuggestion> fromJsonArray(JsonArray jsonArray) {
@@ -187,22 +169,6 @@ public class AvailableSuggestion {
    */
   public int[] getDefaultArgumentListTextRanges() {
     return defaultArgumentListTextRanges;
-  }
-
-  /**
-   * The Dartdoc associated with the element being suggested. This field is omitted if there is no
-   * Dartdoc associated with the element.
-   */
-  public String getDocComplete() {
-    return docComplete;
-  }
-
-  /**
-   * An abbreviated version of the Dartdoc associated with the element being suggested. This field is
-   * omitted if there is no Dartdoc associated with the element.
-   */
-  public String getDocSummary() {
-    return docSummary;
   }
 
   /**
@@ -256,8 +222,6 @@ public class AvailableSuggestion {
     builder.append(element);
     builder.append(defaultArgumentListString);
     builder.append(defaultArgumentListTextRanges);
-    builder.append(docComplete);
-    builder.append(docSummary);
     builder.append(parameterNames);
     builder.append(parameterTypes);
     builder.append(relevanceTags);
@@ -279,12 +243,6 @@ public class AvailableSuggestion {
         jsonArrayDefaultArgumentListTextRanges.add(new JsonPrimitive(elt));
       }
       jsonObject.add("defaultArgumentListTextRanges", jsonArrayDefaultArgumentListTextRanges);
-    }
-    if (docComplete != null) {
-      jsonObject.addProperty("docComplete", docComplete);
-    }
-    if (docSummary != null) {
-      jsonObject.addProperty("docSummary", docSummary);
     }
     if (parameterNames != null) {
       JsonArray jsonArrayParameterNames = new JsonArray();
@@ -327,10 +285,6 @@ public class AvailableSuggestion {
     builder.append(defaultArgumentListString + ", ");
     builder.append("defaultArgumentListTextRanges=");
     builder.append(StringUtils.join(defaultArgumentListTextRanges, ", ") + ", ");
-    builder.append("docComplete=");
-    builder.append(docComplete + ", ");
-    builder.append("docSummary=");
-    builder.append(docSummary + ", ");
     builder.append("parameterNames=");
     builder.append(StringUtils.join(parameterNames, ", ") + ", ");
     builder.append("parameterTypes=");

@@ -7,7 +7,7 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'partial_code_support.dart';
 
 main() {
-  new YieldStatementTest().buildAll();
+  YieldStatementTest().buildAll();
 }
 
 class YieldStatementTest extends PartialCodeTest {
@@ -15,7 +15,7 @@ class YieldStatementTest extends PartialCodeTest {
     buildTests(
         'yield_statement',
         [
-          new TestDescriptor(
+          TestDescriptor(
               'keyword',
               'yield',
               [
@@ -31,9 +31,9 @@ class YieldStatementTest extends PartialCodeTest {
                 'localFunctionVoid',
                 'return',
               ]),
-          new TestDescriptor('expression', 'yield a',
+          TestDescriptor('expression', 'yield a',
               [ParserErrorCode.EXPECTED_TOKEN], "yield a;"),
-          new TestDescriptor(
+          TestDescriptor(
               'star',
               'yield *',
               [
@@ -49,7 +49,7 @@ class YieldStatementTest extends PartialCodeTest {
                 'localFunctionVoid',
                 'return',
               ]),
-          new TestDescriptor('star_expression', 'yield * a',
+          TestDescriptor('star_expression', 'yield * a',
               [ParserErrorCode.EXPECTED_TOKEN], "yield * a;"),
         ],
         PartialCodeTest.statementSuffixes,

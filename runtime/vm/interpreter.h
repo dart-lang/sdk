@@ -13,21 +13,23 @@
 
 namespace dart {
 
-class Isolate;
-class RawObject;
-class InterpreterSetjmpBuffer;
-class Thread;
-class Code;
 class Array;
+class Code;
+class InterpreterSetjmpBuffer;
+class Isolate;
+class ObjectPointerVisitor;
+class RawArray;
+class RawField;
+class RawFunction;
 class RawICData;
 class RawImmutableArray;
-class RawArray;
+class RawInstance;
+class RawObject;
 class RawObjectPool;
-class RawFunction;
 class RawString;
 class RawSubtypeTestCache;
 class RawTypeArguments;
-class ObjectPointerVisitor;
+class Thread;
 
 class LookupCache : public ValueObject {
  public:
@@ -40,17 +42,19 @@ class LookupCache : public ValueObject {
   void Clear();
   bool Lookup(intptr_t receiver_cid,
               RawString* function_name,
+              RawArray* arguments_descriptor,
               RawFunction** target) const;
   void Insert(intptr_t receiver_cid,
               RawString* function_name,
+              RawArray* arguments_descriptor,
               RawFunction* target);
 
  private:
   struct Entry {
     intptr_t receiver_cid;
     RawString* function_name;
+    RawArray* arguments_descriptor;
     RawFunction* target;
-    intptr_t padding;
   };
 
   static const intptr_t kNumEntries = 1024;
@@ -120,7 +124,7 @@ class Interpreter {
   void Unexit(Thread* thread);
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
-  void MajorGC() { lookup_cache_.Clear(); }
+  void ClearLookupCache() { lookup_cache_.Clear(); }
 
 #ifndef PRODUCT
   void set_is_debugging(bool value) { is_debugging_ = value; }
@@ -174,40 +178,13 @@ class Interpreter {
                       RawObject*** FP,
                       RawObject*** SP);
 
-  void InlineCacheMiss(int checked_args,
-                       Thread* thread,
-                       RawICData* icdata,
-                       RawObject** call_base,
-                       RawObject** top,
-                       const KBCInstr* pc,
-                       RawObject** FP,
-                       RawObject** SP);
-
-  bool InterfaceCall(Thread* thread,
-                     RawString* target_name,
-                     RawObject** call_base,
-                     RawObject** call_top,
-                     const KBCInstr** pc,
-                     RawObject*** FP,
-                     RawObject*** SP);
-
-  bool InstanceCall1(Thread* thread,
-                     RawICData* icdata,
-                     RawObject** call_base,
-                     RawObject** call_top,
-                     const KBCInstr** pc,
-                     RawObject*** FP,
-                     RawObject*** SP,
-                     bool optimized);
-
-  bool InstanceCall2(Thread* thread,
-                     RawICData* icdata,
-                     RawObject** call_base,
-                     RawObject** call_top,
-                     const KBCInstr** pc,
-                     RawObject*** FP,
-                     RawObject*** SP,
-                     bool optimized);
+  bool InstanceCall(Thread* thread,
+                    RawString* target_name,
+                    RawObject** call_base,
+                    RawObject** call_top,
+                    const KBCInstr** pc,
+                    RawObject*** FP,
+                    RawObject*** SP);
 
   bool CopyParameters(Thread* thread,
                       const KBCInstr** pc,
@@ -223,6 +200,14 @@ class Interpreter {
                         RawObject** call_top,
                         RawObject** args,
                         RawSubtypeTestCache* cache);
+  template <bool is_getter>
+  bool AssertAssignableField(Thread* thread,
+                             const KBCInstr* pc,
+                             RawObject** FP,
+                             RawObject** SP,
+                             RawInstance* instance,
+                             RawField* field,
+                             RawInstance* value);
 
   bool AllocateMint(Thread* thread,
                     int64_t value,
@@ -288,10 +273,14 @@ class Interpreter {
   }
 
 #ifndef PRODUCT
-  bool is_debugging_;
+  bool is_debugging_ = false;
 #endif  // !PRODUCT
 
+  bool supports_unboxed_doubles_;
+  bool supports_unboxed_simd128_;
+
   friend class InterpreterSetjmpBuffer;
+
   DISALLOW_COPY_AND_ASSIGN(Interpreter);
 };
 

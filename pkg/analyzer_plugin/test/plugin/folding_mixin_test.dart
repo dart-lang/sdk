@@ -34,24 +34,23 @@ class FoldingMixinTest with ResourceProviderMixin {
     packagePath1 = convertPath('/package1');
     filePath1 = join(packagePath1, 'lib', 'test.dart');
     newFile(filePath1);
-    contextRoot1 = new ContextRoot(packagePath1, <String>[]);
+    contextRoot1 = ContextRoot(packagePath1, <String>[]);
 
-    channel = new MockChannel();
-    plugin = new _TestServerPlugin(resourceProvider);
+    channel = MockChannel();
+    plugin = _TestServerPlugin(resourceProvider);
     plugin.start(channel);
   }
 
-  test_sendFoldingNotification() async {
+  Future<void> test_sendFoldingNotification() async {
     await plugin.handleAnalysisSetContextRoots(
-        new AnalysisSetContextRootsParams([contextRoot1]));
+        AnalysisSetContextRootsParams([contextRoot1]));
 
-    Completer<void> notificationReceived = new Completer<void>();
+    var notificationReceived = Completer<void>();
     channel.listen(null, onNotification: (Notification notification) {
       expect(notification, isNotNull);
-      AnalysisFoldingParams params =
-          new AnalysisFoldingParams.fromNotification(notification);
+      var params = AnalysisFoldingParams.fromNotification(notification);
       expect(params.file, filePath1);
-      List<FoldingRegion> regions = params.regions;
+      var regions = params.regions;
       expect(regions, hasLength(7));
       notificationReceived.complete();
     });
@@ -67,7 +66,7 @@ class _TestFoldingContributor implements FoldingContributor {
 
   @override
   void computeFolding(FoldingRequest request, FoldingCollector collector) {
-    for (int i = 0; i < regionCount; i++) {
+    for (var i = 0; i < regionCount; i++) {
       collector.addRegion(i * 20, 10, FoldingKind.FILE_HEADER);
     }
   }
@@ -80,14 +79,14 @@ class _TestServerPlugin extends MockServerPlugin with FoldingMixin {
   @override
   List<FoldingContributor> getFoldingContributors(String path) {
     return <FoldingContributor>[
-      new _TestFoldingContributor(3),
-      new _TestFoldingContributor(4)
+      _TestFoldingContributor(3),
+      _TestFoldingContributor(4)
     ];
   }
 
   @override
   Future<FoldingRequest> getFoldingRequest(String path) async {
-    var result = new MockResolvedUnitResult(path: path);
-    return new DartFoldingRequestImpl(resourceProvider, result);
+    var result = MockResolvedUnitResult(path: path);
+    return DartFoldingRequestImpl(resourceProvider, result);
   }
 }

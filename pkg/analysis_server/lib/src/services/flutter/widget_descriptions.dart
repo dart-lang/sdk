@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:dart_style/dart_style.dart';
 
 /// The result of [WidgetDescriptions.setPropertyValue] invocation.
 class SetPropertyValueResult {
@@ -30,6 +31,12 @@ class WidgetDescriptions {
 
   /// The mapping of identifiers of previously returned properties.
   final Map<int, PropertyDescription> _properties = {};
+
+  /// Flush all data, because there was a change to a file.
+  void flush() {
+    _classRegistry.flush();
+    _properties.clear();
+  }
 
   /// Return the description of the widget with [InstanceCreationExpression] in
   /// the [resolvedUnit] at the [offset], or `null` if the location does not
@@ -77,8 +84,15 @@ class WidgetDescriptions {
       var change = await property.removeValue();
       return SetPropertyValueResult._(change: change);
     } else {
-      var change = await property.changeValue(value);
-      return SetPropertyValueResult._(change: change);
+      try {
+        var change = await property.changeValue(value);
+        return SetPropertyValueResult._(change: change);
+      } on FormatterException {
+        return SetPropertyValueResult._(
+          errorCode: protocol.RequestErrorCode
+              .FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION,
+        );
+      }
     }
   }
 
@@ -109,7 +123,7 @@ class _WidgetDescriptionComputer {
 
   /// The set of classes for which we are currently adding properties,
   /// used to prevent infinite recursion.
-  final Set<ClassElement> classesBeingProcessed = Set<ClassElement>();
+  final Set<ClassElement> classesBeingProcessed = <ClassElement>{};
 
   /// The resolved unit with the widget [InstanceCreationExpression].
   final ResolvedUnitResult resolvedUnit;
@@ -199,7 +213,7 @@ class _WidgetDescriptionComputer {
         (property) => property.name == 'child',
       );
     } else {
-      var containerDescription = classRegistry.get(_classContainer.type);
+      var containerDescription = classRegistry.get(_classContainer);
       containerProperty = PropertyDescription(
         resolvedUnit: resolvedUnit,
         classDescription: containerDescription,
@@ -260,7 +274,7 @@ class _WidgetDescriptionComputer {
     var classElement = constructorElement.enclosingElement;
     if (!classesBeingProcessed.add(classElement)) return;
 
-    var existingNamed = Set<ParameterElement>();
+    var existingNamed = <ParameterElement>{};
     if (instanceCreation != null) {
       for (var argumentExpression in instanceCreation.argumentList.arguments) {
         var parameter = argumentExpression.staticParameterElement;
@@ -364,15 +378,18 @@ class _WidgetDescriptionComputer {
         );
       }
     } else if (valueExpression == null) {
-      var classDescription = classRegistry.get(
-        parameter.type,
-      );
-      if (classDescription != null) {
-        _addProperties(
-          properties: propertyDescription.children,
-          parent: propertyDescription,
-          classDescription: classDescription,
+      var type = parameter.type;
+      if (type is InterfaceType) {
+        var classDescription = classRegistry.get(
+          type.element,
         );
+        if (classDescription != null) {
+          _addProperties(
+            properties: propertyDescription.children,
+            parent: propertyDescription,
+            classDescription: classDescription,
+          );
+        }
       }
     }
   }

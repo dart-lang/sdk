@@ -6,11 +6,6 @@
 // class A extends Object with M0, M1<int> {}
 //       ^
 //
-// pkg/front_end/testcases/inference/mixin_inference_outwards_3.dart:13:7: Error: 'A' can't implement both 'I<dynamic>' and 'I<int>'
-//  - 'I' is from 'pkg/front_end/testcases/inference/mixin_inference_outwards_3.dart'.
-// class A extends Object with M0, M1<int> {}
-//       ^
-//
 library;
 import self as self;
 import "dart:core" as core;
@@ -30,12 +25,12 @@ class M1<T extends core::Object* = dynamic> extends self::I<self::M1::T*> {
     : super self::I::•()
     ;
 }
-abstract class _A&Object&M0 = core::Object with self::M0<dynamic> {
+abstract class _A&Object&M0 = core::Object with self::M0<dynamic> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_A&Object&M0*
     : super core::Object::•()
     ;
 }
-abstract class _A&Object&M0&M1 = self::_A&Object&M0 with self::M1<core::int*> {
+abstract class _A&Object&M0&M1 = self::_A&Object&M0 with self::M1<core::int*> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_A&Object&M0&M1*
     : super self::_A&Object&M0::•()
     ;

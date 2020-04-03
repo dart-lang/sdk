@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 library libraries;
 
 /**
@@ -84,11 +86,12 @@ const Map<String, LibraryInfo> libraries = const {
       categories: "Client,Server",
       maturity: Maturity.STABLE,
       dart2jsPatchPath: "_internal/js_runtime/lib/isolate_patch.dart"),
-  "js": const LibraryInfo("js/dart2js/js_dart2js.dart",
+  "js": const LibraryInfo("js/js.dart",
       categories: "Client",
       maturity: Maturity.STABLE,
-      platforms: DART2JS_PLATFORM),
-  "js_util": const LibraryInfo("js_util/dart2js/js_util_dart2js.dart",
+      platforms: DART2JS_PLATFORM,
+      dart2jsPatchPath: "_internal/js_runtime/lib/js_patch.dart"),
+  "js_util": const LibraryInfo("js_util/js_util.dart",
       categories: "Client",
       maturity: Maturity.STABLE,
       platforms: DART2JS_PLATFORM),

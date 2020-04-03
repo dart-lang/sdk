@@ -117,7 +117,7 @@ void main() async {
 }
 
 class Node {
-  final List<Node> nested;
+  final List<Node>? nested;
   final String name;
 
   Node(this.name, [this.nested]) {

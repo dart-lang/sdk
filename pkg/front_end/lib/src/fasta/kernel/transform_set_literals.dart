@@ -9,19 +9,12 @@ import 'dart:core' hide MapEntry;
 import 'package:kernel/ast.dart'
     show
         Arguments,
-        Class,
-        Constructor,
-        ConstructorInvocation,
-        DartType,
         Expression,
         InterfaceType,
         Let,
         Library,
-        MapEntry,
-        MapLiteral,
         MethodInvocation,
         Name,
-        NullLiteral,
         Procedure,
         SetLiteral,
         StaticInvocation,
@@ -40,11 +33,14 @@ import 'redirecting_factory_body.dart' show RedirectingFactoryBody;
 // TODO(askesc): Delete this class when all backends support set literals.
 class SetLiteralTransformer extends Transformer {
   final CoreTypes coreTypes;
-  final DartType nullType;
   final Procedure setFactory;
   final Procedure addMethod;
-  final Constructor unmodifiableSetConstructor;
-  final bool transformConst;
+
+  /// Library that contains the transformed nodes.
+  ///
+  /// The transformation of the nodes is affected by the NNBD opt-in status of
+  /// the library.
+  Library _currentLibrary;
 
   static Procedure _findSetFactory(CoreTypes coreTypes) {
     Procedure factory = coreTypes.index.getMember('dart:core', 'Set', '');
@@ -56,68 +52,47 @@ class SetLiteralTransformer extends Transformer {
     return coreTypes.index.getMember('dart:core', 'Set', 'add');
   }
 
-  static Constructor _findUnmodifiableSetConstructor(SourceLoader loader) {
-    // We should not generally dig into libraries like this, and we should
-    // avoid dependencies on libraries other than the ones indexed by
-    // CoreTypes. This is a temporary solution until all backends have
-    // implemented support for set literals.
-    Uri collectionUri = Uri.parse("dart:collection");
-    Library collectionLibrary = loader.builders[collectionUri].target;
-    for (int i = 0; i < collectionLibrary.classes.length; i++) {
-      Class classNode = collectionLibrary.classes[i];
-      if (classNode.name == "_UnmodifiableSet") {
-        for (int j = 0; j < collectionLibrary.classes.length; j++) {
-          Constructor constructor = classNode.constructors[j];
-          if (constructor.name.name.isEmpty) {
-            return constructor;
-          }
-        }
-      }
-    }
-    return null;
-  }
-
-  SetLiteralTransformer(SourceLoader loader, {this.transformConst: true})
+  SetLiteralTransformer(SourceLoader loader)
       : coreTypes = loader.coreTypes,
-        nullType = new InterfaceType(loader.coreTypes.nullClass, []),
         setFactory = _findSetFactory(loader.coreTypes),
-        addMethod = _findAddMethod(loader.coreTypes),
-        unmodifiableSetConstructor = _findUnmodifiableSetConstructor(loader);
+        addMethod = _findAddMethod(loader.coreTypes);
 
   TreeNode visitSetLiteral(SetLiteral node) {
-    if (node.isConst) {
-      if (!transformConst) return node;
-      List<MapEntry> entries = new List<MapEntry>(node.expressions.length);
-      for (int i = 0; i < node.expressions.length; i++) {
-        // expression_i: null
-        Expression entry = node.expressions[i].accept(this);
-        entries[i] = new MapEntry(entry, new NullLiteral());
-      }
-      Expression mapExp = new MapLiteral(entries,
-          keyType: node.typeArgument, valueType: nullType, isConst: true);
-      return new ConstructorInvocation(unmodifiableSetConstructor,
-          new Arguments([mapExp], types: [node.typeArgument]),
-          isConst: true);
-    } else {
-      // Outermost declaration of let chain: Set<E> setVar = new Set<E>();
-      VariableDeclaration setVar = new VariableDeclaration.forValue(
-          new StaticInvocation(
-              setFactory, new Arguments([], types: [node.typeArgument])),
-          type: new InterfaceType(coreTypes.setClass, [node.typeArgument]));
-      // Innermost body of let chain: setVar
-      Expression setExp = new VariableGet(setVar);
-      for (int i = node.expressions.length - 1; i >= 0; i--) {
-        // let _ = setVar.add(expression) in rest
-        Expression entry = node.expressions[i].accept(this);
-        setExp = new Let(
-            new VariableDeclaration.forValue(new MethodInvocation(
-                new VariableGet(setVar),
-                new Name("add"),
-                new Arguments([entry]),
-                addMethod)),
-            setExp);
-      }
-      return new Let(setVar, setExp);
+    if (node.isConst) return node;
+
+    // Outermost declaration of let chain: Set<E> setVar = new Set<E>();
+    VariableDeclaration setVar = new VariableDeclaration.forValue(
+        new StaticInvocation(
+            setFactory, new Arguments([], types: [node.typeArgument])),
+        type: new InterfaceType(coreTypes.setClass, _currentLibrary.nonNullable,
+            [node.typeArgument]));
+    // Innermost body of let chain: setVar
+    Expression setExp = new VariableGet(setVar);
+    for (int i = node.expressions.length - 1; i >= 0; i--) {
+      // let _ = setVar.add(expression) in rest
+      Expression entry = node.expressions[i].accept<TreeNode>(this);
+      setExp = new Let(
+          new VariableDeclaration.forValue(new MethodInvocation(
+              new VariableGet(setVar),
+              new Name("add"),
+              new Arguments([entry]),
+              addMethod)),
+          setExp);
     }
+    return new Let(setVar, setExp);
+  }
+
+  void enterLibrary(Library library) {
+    assert(
+        _currentLibrary == null,
+        "Attempting to enter library '${library.fileUri}' "
+        "without having exited library '${_currentLibrary.fileUri}'.");
+    _currentLibrary = library;
+  }
+
+  void exitLibrary() {
+    assert(_currentLibrary != null,
+        "Attempting to exit a library without having entered one.");
+    _currentLibrary = null;
   }
 }

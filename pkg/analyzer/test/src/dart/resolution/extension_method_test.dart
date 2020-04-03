@@ -3,9 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -14,15 +16,20 @@ import 'driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtensionMethodsDeclarationTest);
+    defineReflectiveTests(ExtensionMethodsDeclarationWithNnbdTest);
+    defineReflectiveTests(ExtensionMethodsExtendedTypeTest);
+    defineReflectiveTests(ExtensionMethodsExtendedTypeWithNnbdTest);
     defineReflectiveTests(ExtensionMethodsExternalReferenceTest);
+    defineReflectiveTests(ExtensionMethodsExternalReferenceWithNnbdTest);
     defineReflectiveTests(ExtensionMethodsInternalReferenceTest);
+    defineReflectiveTests(ExtensionMethodsInternalReferenceWithNnbdTest);
   });
 }
 
 abstract class BaseExtensionMethodsTest extends DriverResolutionTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
+    ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
 }
 
@@ -30,7 +37,60 @@ abstract class BaseExtensionMethodsTest extends DriverResolutionTest {
 /// resolved correctly.
 @reflectiveTest
 class ExtensionMethodsDeclarationTest extends BaseExtensionMethodsTest {
-  @failingTest
+  @override
+  List<MockSdkLibrary> get additionalMockSdkLibraries => [
+        MockSdkLibrary([
+          MockSdkLibraryUnit('dart:test1', 'test1/test1.dart', r'''
+extension E on Object {
+  int get a => 1;
+}
+
+class A {}
+'''),
+          MockSdkLibraryUnit('dart:test2', 'test2/test2.dart', r'''
+extension E on Object {
+  int get a => 1;
+}
+'''),
+        ])
+      ];
+
+  test_constructor() async {
+    await assertErrorsInCode('''
+extension E {
+  E() {}
+}
+''', [
+      error(ParserErrorCode.EXPECTED_TOKEN, 10, 1),
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 12, 0),
+      error(ParserErrorCode.EXPECTED_TYPE_NAME, 12, 1),
+      error(ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR, 16, 1),
+    ]);
+  }
+
+  test_factory() async {
+    await assertErrorsInCode('''
+extension E {
+  factory S() {}
+}
+''', [
+      error(ParserErrorCode.EXPECTED_TOKEN, 10, 1),
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 12, 0),
+      error(ParserErrorCode.EXPECTED_TYPE_NAME, 12, 1),
+      error(ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR, 16, 7),
+    ]);
+  }
+
+  test_fromPlatform() async {
+    await assertNoErrorsInCode('''
+import 'dart:test2';
+
+f(Object o) {
+  o.a;
+}
+''');
+  }
+
   test_metadata() async {
     await assertNoErrorsInCode('''
 const int ann = 1;
@@ -39,7 +99,7 @@ class C {}
 extension E on C {}
 ''');
     var annotation = findNode.annotation('@ann');
-    assertElement(annotation, findElement.topVar('ann'));
+    assertElement(annotation, findElement.topVar('ann').getter);
   }
 
   test_multipleExtensions_noConflict() async {
@@ -50,108 +110,37 @@ extension E2 on C {}
 ''');
   }
 
-  test_named_generic() async {
+  test_this_type_interface() async {
     await assertNoErrorsInCode('''
-class C<T> {}
-extension E<S> on C<S> {}
+extension E on int {
+  void foo() {
+    this;
+  }
+}
 ''');
-    var extendedType = findNode.typeAnnotation('C<S>');
-    assertElement(extendedType, findElement.class_('C'));
-    assertType(extendedType, 'C<S>');
+    assertType(findNode.this_('this;'), 'int');
   }
 
-  test_named_onDynamic() async {
+  test_this_type_typeParameter() async {
     await assertNoErrorsInCode('''
-extension E on dynamic {}
+extension E<T> on T {
+  void foo() {
+    this;
+  }
+}
 ''');
-    var extendedType = findNode.typeAnnotation('dynamic');
-    assertType(extendedType, 'dynamic');
+    assertType(findNode.this_('this;'), 'T');
   }
 
-  test_named_onEnum() async {
+  test_this_type_typeParameter_withBound() async {
     await assertNoErrorsInCode('''
-enum A {a, b, c}
-extension E on A {}
-''');
-    var extendedType = findNode.typeAnnotation('A {}');
-    assertElement(extendedType, findElement.enum_('A'));
-    assertType(extendedType, 'A');
+extension E<T extends Object> on T {
+  void foo() {
+    this;
   }
-
-  test_named_onFunctionType() async {
-    try {
-      await assertNoErrorsInCode('''
-extension E on int Function(int) {}
+}
 ''');
-      var extendedType = findNode.typeAnnotation('Function');
-      assertType(extendedType, 'int Function(int)');
-      if (!AnalysisDriver.useSummary2) {
-        throw 'Test passed - expected to fail.';
-      }
-    } on String {
-      rethrow;
-    } catch (e) {
-      if (AnalysisDriver.useSummary2) {
-        rethrow;
-      }
-    }
-  }
-
-  test_named_onInterface() async {
-    await assertNoErrorsInCode('''
-class C { }
-extension E on C {}
-''');
-    var extendedType = findNode.typeAnnotation('C {}');
-    assertElement(extendedType, findElement.class_('C'));
-    assertType(extendedType, 'C');
-  }
-
-  test_unnamed_generic() async {
-    await assertNoErrorsInCode('''
-class C<T> {}
-extension<S> on C<S> {}
-''');
-    var extendedType = findNode.typeAnnotation('C<S>');
-    assertElement(extendedType, findElement.class_('C'));
-    assertType(extendedType, 'C<S>');
-  }
-
-  test_unnamed_onDynamic() async {
-    await assertNoErrorsInCode('''
-extension on dynamic {}
-''');
-    var extendedType = findNode.typeAnnotation('dynamic');
-    assertType(extendedType, 'dynamic');
-  }
-
-  test_unnamed_onEnum() async {
-    await assertNoErrorsInCode('''
-enum A {a, b, c}
-extension on A {}
-''');
-    var extendedType = findNode.typeAnnotation('A {}');
-    assertElement(extendedType, findElement.enum_('A'));
-    assertType(extendedType, 'A');
-  }
-
-  @failingTest
-  test_unnamed_onFunctionType() async {
-    await assertNoErrorsInCode('''
-extension on int Function(int) {}
-''');
-    var extendedType = findNode.typeAnnotation('int ');
-    assertType(extendedType, 'int Function(int)');
-  }
-
-  test_unnamed_onInterface() async {
-    await assertNoErrorsInCode('''
-class C { }
-extension on C {}
-''');
-    var extendedType = findNode.typeAnnotation('C {}');
-    assertElement(extendedType, findElement.class_('C'));
-    assertType(extendedType, 'C');
+    assertType(findNode.this_('this;'), 'T');
   }
 
   test_visibility_hidden() async {
@@ -189,6 +178,327 @@ f(C c) {
       error(StaticTypeWarningCode.UNDEFINED_GETTER, 40, 1),
     ]);
   }
+
+  test_visibility_shadowed_byClass() async {
+    newFile('/test/lib/lib.dart', content: '''
+class C {}
+extension E on C {
+  int get a => 1;
+}
+''');
+    await assertNoErrorsInCode('''
+import 'lib.dart';
+
+class E {}
+f(C c) {
+  c.a;
+}
+''');
+    var access = findNode.prefixed('c.a');
+    var import = findElement.importFind('package:test/lib.dart');
+    assertElement(access, import.extension_('E').getGetter('a'));
+    assertType(access, 'int');
+  }
+
+  test_visibility_shadowed_byImport() async {
+    newFile('/test/lib/lib1.dart', content: '''
+extension E on Object {
+  int get a => 1;
+}
+''');
+    newFile('/test/lib/lib2.dart', content: '''
+class E {}
+class A {}
+''');
+    await assertNoErrorsInCode('''
+import 'lib1.dart';
+import 'lib2.dart';
+
+f(Object o, A a) {
+  o.a;
+}
+''');
+    var access = findNode.prefixed('o.a');
+    var import = findElement.importFind('package:test/lib1.dart');
+    assertElement(access, import.extension_('E').getGetter('a'));
+    assertType(access, 'int');
+  }
+
+  test_visibility_shadowed_byLocal_imported() async {
+    newFile('/test/lib/lib.dart', content: '''
+class C {}
+extension E on C {
+  int get a => 1;
+}
+''');
+    await assertErrorsInCode('''
+import 'lib.dart';
+
+f(C c) {
+  double E = 2.71;
+  c.a;
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 38, 1),
+    ]);
+    var access = findNode.prefixed('c.a');
+    var import = findElement.importFind('package:test/lib.dart');
+    assertElement(access, import.extension_('E').getGetter('a'));
+    assertType(access, 'int');
+  }
+
+  test_visibility_shadowed_byLocal_local() async {
+    await assertErrorsInCode('''
+class C {}
+extension E on C {
+  int get a => 1;
+}
+f(C c) {
+  double E = 2.71;
+  c.a;
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 68, 1),
+    ]);
+    var access = findNode.prefixed('c.a');
+    assertElement(access, findElement.getter('a'));
+    assertType(access, 'int');
+  }
+
+  test_visibility_shadowed_byTopLevelVariable() async {
+    newFile('/test/lib/lib.dart', content: '''
+class C {}
+extension E on C {
+  int get a => 1;
+}
+''');
+    await assertNoErrorsInCode('''
+import 'lib.dart';
+
+double E = 2.71;
+f(C c) {
+  c.a;
+}
+''');
+    var access = findNode.prefixed('c.a');
+    var import = findElement.importFind('package:test/lib.dart');
+    assertElement(access, import.extension_('E').getGetter('a'));
+    assertType(access, 'int');
+  }
+
+  test_visibility_shadowed_platformByNonPlatform() async {
+    newFile('/test/lib/lib.dart', content: '''
+extension E on Object {
+  int get a => 1;
+}
+class B {}
+''');
+    await assertNoErrorsInCode('''
+import 'dart:test1';
+import 'lib.dart';
+
+f(Object o, A a, B b) {
+  o.a;
+}
+''');
+  }
+
+  test_visibility_withPrefix() async {
+    newFile('/test/lib/lib.dart', content: '''
+class C {}
+extension E on C {
+  int get a => 1;
+}
+''');
+    await assertNoErrorsInCode('''
+import 'lib.dart' as p;
+
+f(p.C c) {
+  c.a;
+}
+''');
+  }
+}
+
+/// Tests that show that extension declarations and the members inside them are
+/// resolved correctly.
+@reflectiveTest
+class ExtensionMethodsDeclarationWithNnbdTest extends BaseExtensionMethodsTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.forTesting(
+        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
+
+  @override
+  bool get typeToStringWithNullability => true;
+
+  test_this_type_interface() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  void foo() {
+    this;
+  }
+}
+''');
+    assertType(findNode.this_('this;'), 'int');
+  }
+
+  test_this_type_typeParameter() async {
+    await assertNoErrorsInCode('''
+extension E<T> on T {
+  void foo() {
+    this;
+  }
+}
+''');
+    assertType(findNode.this_('this;'), 'T');
+  }
+
+  test_this_type_typeParameter_withBound() async {
+    await assertNoErrorsInCode('''
+extension E<T extends Object> on T {
+  void foo() {
+    this;
+  }
+}
+''');
+    assertType(findNode.this_('this;'), 'T');
+  }
+}
+
+/// Tests that show that extension declarations support all of the possible
+/// types in the `on` clause.
+@reflectiveTest
+class ExtensionMethodsExtendedTypeTest extends BaseExtensionMethodsTest {
+  test_named_generic() async {
+    await assertNoErrorsInCode('''
+class C<T> {}
+extension E<S> on C<S> {}
+''');
+    var extendedType = findNode.typeAnnotation('C<S>');
+    assertElement(extendedType, findElement.class_('C'));
+    assertType(extendedType, 'C<S>');
+  }
+
+  test_named_onDynamic() async {
+    await assertNoErrorsInCode('''
+extension E on dynamic {}
+''');
+    var extendedType = findNode.typeAnnotation('dynamic');
+    assertType(extendedType, 'dynamic');
+  }
+
+  test_named_onEnum() async {
+    await assertNoErrorsInCode('''
+enum A {a, b, c}
+extension E on A {}
+''');
+    var extendedType = findNode.typeAnnotation('A {}');
+    assertElement(extendedType, findElement.enum_('A'));
+    assertType(extendedType, 'A');
+  }
+
+  test_named_onFunctionType() async {
+    await assertNoErrorsInCode('''
+extension E on int Function(int) {}
+''');
+    var extendedType = findNode.typeAnnotation('Function');
+    assertType(extendedType, 'int Function(int)');
+  }
+
+  test_named_onInterface() async {
+    await assertNoErrorsInCode('''
+class C { }
+extension E on C {}
+''');
+    var extendedType = findNode.typeAnnotation('C {}');
+    assertElement(extendedType, findElement.class_('C'));
+    assertType(extendedType, 'C');
+  }
+
+  test_named_onMixin() async {
+    await assertNoErrorsInCode('''
+mixin M {
+}
+extension E on M {}
+''');
+    var extendedType = findNode.typeAnnotation('M {}');
+    assertElement(extendedType, findElement.mixin('M'));
+    assertType(extendedType, 'M');
+  }
+
+  test_unnamed_generic() async {
+    await assertNoErrorsInCode('''
+class C<T> {}
+extension<S> on C<S> {}
+''');
+    var extendedType = findNode.typeAnnotation('C<S>');
+    assertElement(extendedType, findElement.class_('C'));
+    assertType(extendedType, 'C<S>');
+  }
+
+  test_unnamed_onDynamic() async {
+    await assertNoErrorsInCode('''
+extension on dynamic {}
+''');
+    var extendedType = findNode.typeAnnotation('dynamic');
+    assertType(extendedType, 'dynamic');
+  }
+
+  test_unnamed_onEnum() async {
+    await assertNoErrorsInCode('''
+enum A {a, b, c}
+extension on A {}
+''');
+    var extendedType = findNode.typeAnnotation('A {}');
+    assertElement(extendedType, findElement.enum_('A'));
+    assertType(extendedType, 'A');
+  }
+
+  test_unnamed_onFunctionType() async {
+    await assertNoErrorsInCode('''
+extension on int Function(String) {}
+''');
+    var extendedType = findNode.typeAnnotation('Function');
+    assertType(extendedType, 'int Function(String)');
+    var returnType = findNode.typeAnnotation('int');
+    assertType(returnType, 'int');
+    var parameterType = findNode.typeAnnotation('String');
+    assertType(parameterType, 'String');
+  }
+
+  test_unnamed_onInterface() async {
+    await assertNoErrorsInCode('''
+class C { }
+extension on C {}
+''');
+    var extendedType = findNode.typeAnnotation('C {}');
+    assertElement(extendedType, findElement.class_('C'));
+    assertType(extendedType, 'C');
+  }
+
+  test_unnamed_onMixin() async {
+    await assertNoErrorsInCode('''
+mixin M {
+}
+extension on M {}
+''');
+    var extendedType = findNode.typeAnnotation('M {}');
+    assertElement(extendedType, findElement.mixin('M'));
+    assertType(extendedType, 'M');
+  }
+}
+
+@reflectiveTest
+class ExtensionMethodsExtendedTypeWithNnbdTest
+    extends ExtensionMethodsExtendedTypeTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.forTesting(
+        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
+
+  @override
+  bool get typeToStringWithNullability => true;
 }
 
 /// Tests that extension members can be correctly resolved when referenced
@@ -229,10 +539,14 @@ f(C c) {
   c(2);
 }
 ''');
-    var invocation = findNode.methodInvocation('c(2)');
-    expect(invocation.staticInvokeType.element,
-        same(findElement.method('call', of: 'C')));
+    var invocation = findNode.functionExpressionInvocation('c(2)');
+    assertElement(invocation, findElement.method('call', of: 'C'));
     assertInvokeType(invocation, 'int Function(int)');
+    assertType(invocation, 'int');
+
+    var cRef = invocation.function as SimpleIdentifier;
+    assertElement(cRef, findElement.parameter('c'));
+    assertType(cRef, 'C');
   }
 
   test_instance_call_fromExtension() async {
@@ -247,10 +561,14 @@ f(C c) {
   c(2);
 }
 ''');
-    var invocation = findNode.methodInvocation('c(2)');
-    expect(invocation.staticInvokeType.element,
-        same(findElement.method('call', of: 'E')));
+    var invocation = findNode.functionExpressionInvocation('c(2)');
+    assertElement(invocation, findElement.method('call', of: 'E'));
     assertInvokeType(invocation, 'int Function(int)');
+    assertType(invocation, 'int');
+
+    var cRef = invocation.function as SimpleIdentifier;
+    assertElement(cRef, findElement.parameter('c'));
+    assertType(cRef, 'C');
   }
 
   test_instance_call_fromExtension_int() async {
@@ -406,13 +724,14 @@ f(C c) {
   c.a(0);
 }
 ''');
-    var invocation = findNode.methodInvocation('a(0);');
-    assertMethodInvocation(
-      invocation,
-      findElement.getter('a'),
-      'double Function(int)',
-      expectedMethodNameType: 'double Function(int) Function()',
-    );
+    var invocation = findNode.functionExpressionInvocation('c.a(0)');
+    assertElementNull(invocation);
+    assertInvokeType(invocation, 'double Function(int)');
+    assertType(invocation, 'double');
+
+    var function = invocation.function as PropertyAccess;
+    assertElement(function.propertyName, findElement.getter('a', of: 'E'));
+    assertType(function.propertyName, 'double Function(int)');
   }
 
   test_instance_getter_specificSubtypeMatchLocal() async {
@@ -436,27 +755,6 @@ f(B b) {
     assertType(access, 'int');
   }
 
-  test_instance_getter_with_setter() async {
-    await assertNoErrorsInCode('''
-class C {}
-
-extension E on C {
-  int get a => 1;
-}
-
-extension E2 on C {
-  set a(int v) { }
-}
-
-f(C c) {
-  print(c.a);
-}
-''');
-    var access = findNode.prefixed('c.a');
-    assertElement(access, findElement.getter('a'));
-    assertType(access, 'int');
-  }
-
   test_instance_getterInvoked_fromExtension_functionType() async {
     await assertNoErrorsInCode('''
 extension E on int Function(int) {
@@ -466,9 +764,14 @@ g(int Function(int) f) {
   f.a();
 }
 ''');
-    var invocation = findNode.methodInvocation('f.a()');
-    assertElement(invocation, findElement.getter('a'));
+    var invocation = findNode.functionExpressionInvocation('f.a()');
+    assertElementNull(invocation);
+    assertInvokeType(invocation, 'String Function()');
     assertType(invocation, 'String');
+
+    var function = invocation.function as PropertyAccess;
+    assertElement(function.propertyName, findElement.getter('a', of: 'E'));
+    assertType(function.propertyName, 'String Function()');
   }
 
   test_instance_method_fromDifferentExtension_usingBounds() async {
@@ -568,42 +871,6 @@ f(B b) {
     assertInvokeType(invocation, 'void Function()');
   }
 
-  test_instance_method_moreSpecificThanPlatform() async {
-    //
-    // An extension with on type clause T1 is more specific than another
-    // extension with on type clause T2 iff
-    //
-    // 1. The latter extension is declared in a platform library, and the former
-    //    extension is not
-    //
-    newFile('/test/lib/core.dart', content: '''
-library dart.core;
-
-class Core {}
-''');
-
-    await assertNoErrorsInCode('''
-import 'core.dart' as platform;
-
-class Core2 extends platform.Core {}
-
-extension Core_Ext on platform.Core {
-  void a() {}
-}
-
-extension Core2_Ext on Core2 {
-  void a() {}
-}
-
-f(Core2 c) {
-  c.a();
-}
-''');
-    var invocation = findNode.methodInvocation('c.a()');
-    assertElement(invocation, findElement.method('a', of: 'Core2_Ext'));
-    assertInvokeType(invocation, 'void Function()');
-  }
-
   test_instance_method_specificSubtypeMatchLocal() async {
     await assertNoErrorsInCode('''
 class A {}
@@ -655,34 +922,6 @@ f(B<C> x, C o) {
     assertInvokeType(invocation, 'void Function(C)');
   }
 
-  test_instance_method_specificSubtypeMatchPlatform() async {
-    newFile('/test/lib/core.dart', content: '''
-library dart.core;
-
-class Core {}
-
-class Core2 extends Core {}
-''');
-    await assertNoErrorsInCode('''
-import 'core.dart';
-
-extension Core_Ext on Core {
-  void a() {}
-}
-
-extension Core2_Ext on Core2 {
-  void a() => 0;
-}
-
-f(Core2 c) {
-  c.a();
-}
-''');
-    var invocation = findNode.methodInvocation('c.a()');
-    assertElement(invocation, findElement.method('a', of: 'Core2_Ext'));
-    assertInvokeType(invocation, 'void Function()');
-  }
-
   test_instance_operator_binary_fromExtendedType() async {
     await assertNoErrorsInCode('''
 class C {
@@ -724,6 +963,17 @@ f(C c) {
 ''');
     var binary = findNode.binary('+ ');
     assertElement(binary, findElement.method('+', of: 'E'));
+  }
+
+  test_instance_operator_binary_undefinedTarget() async {
+    // Ensure that there is no exception thrown while resolving the code.
+    await assertErrorsInCode('''
+extension on Object {}
+var a = b + c;
+''', [
+      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 31, 1),
+      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 35, 1),
+    ]);
   }
 
   test_instance_operator_index_fromExtendedType() async {
@@ -815,10 +1065,10 @@ f(C c) {
   test_instance_operator_postfix_fromExtendedType() async {
     await assertNoErrorsInCode('''
 class C {
-  void operator +(int i) {}
+  C operator +(int i) => this;
 }
 extension E on C {
-  void operator +(int i) {}
+  C operator +(int i) => this;
 }
 f(C c) {
   c++;
@@ -831,7 +1081,7 @@ f(C c) {
   test_instance_operator_postfix_fromExtension_functionType() async {
     await assertNoErrorsInCode('''
 extension E on int Function(int) {
-  void operator +(int i) {}
+  int Function(int) operator +(int i) => this;
 }
 g(int Function(int) f) {
   f++;
@@ -845,7 +1095,7 @@ g(int Function(int) f) {
     await assertNoErrorsInCode('''
 class C {}
 extension E on C {
-  void operator +(int i) {}
+  C operator +(int i) => this;
 }
 f(C c) {
   c++;
@@ -858,10 +1108,10 @@ f(C c) {
   test_instance_operator_prefix_fromExtendedType() async {
     await assertNoErrorsInCode('''
 class C {
-  void operator +(int i) {}
+  C operator +(int i) => this;
 }
 extension E on C {
-  void operator +(int i) {}
+  C operator +(int i) => this;
 }
 f(C c) {
   ++c;
@@ -874,7 +1124,7 @@ f(C c) {
   test_instance_operator_prefix_fromExtension_functionType() async {
     await assertNoErrorsInCode('''
 extension E on int Function(int) {
-  void operator +(int i) {}
+  int Function(int) operator +(int i) => this;
 }
 g(int Function(int) f) {
   ++f;
@@ -888,7 +1138,7 @@ g(int Function(int) f) {
     await assertNoErrorsInCode('''
 class C {}
 extension E on C {
-  void operator +(int i) {}
+  C operator +(int i) => this;
 }
 f(C c) {
   ++c;
@@ -901,10 +1151,10 @@ f(C c) {
   test_instance_operator_unary_fromExtendedType() async {
     await assertNoErrorsInCode('''
 class C {
-  void operator -() {}
+  C operator -() => this;
 }
 extension E on C {
-  void operator -() {}
+  C operator -() => this;
 }
 f(C c) {
   -c;
@@ -931,7 +1181,7 @@ g(int Function(int) f) {
     await assertNoErrorsInCode('''
 class C {}
 extension E on C {
-  void operator -() {}
+  C operator -() => this;
 }
 f(C c) {
   -c;
@@ -968,27 +1218,6 @@ f(C c) {
 ''');
     var access = findNode.prefixed('c.a');
     assertElement(access, findElement.setter('a'));
-  }
-
-  test_instance_setter_with_getter() async {
-    await assertNoErrorsInCode('''
-class C {}
-
-extension E on C {
-  int get a => 1;
-}
-
-extension E2 on C {
-  set a(int v) { }
-}
-
-f(C c) {
-  print(c.a = 1);
-}
-''');
-    var access = findNode.prefixed('c.a');
-    assertElement(access, findElement.setter('a'));
-    assertType(access, 'int');
   }
 
   test_instance_tearoff_fromExtension_functionType() async {
@@ -1210,6 +1439,236 @@ extension on Function {
   }
 }
 ''');
+  }
+}
+
+@reflectiveTest
+class ExtensionMethodsExternalReferenceWithNnbdTest
+    extends ExtensionMethodsExternalReferenceTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.forTesting(
+        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
+
+  @override
+  bool get typeToStringWithNullability => true;
+
+  test_instance_getter_fromInstance_nullable() async {
+    await assertNoErrorsInCode('''
+extension E on int? {
+  int get foo => 0;
+}
+
+f(int? a) {
+  a.foo;
+}
+''');
+    var access = findNode.prefixed('a.foo');
+    assertElement(access, findElement.getter('foo', of: 'E'));
+    assertType(access, 'int');
+  }
+
+  test_instance_getter_fromInstance_nullAware() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  int get foo => 0;
+}
+
+f(int? a) {
+  a?.foo;
+}
+''');
+    var identifier = findNode.simple('foo;');
+    assertElement(identifier, findElement.getter('foo', of: 'E'));
+    assertType(identifier, 'int');
+  }
+
+  test_instance_method_fromInstance_nullable() async {
+    await assertNoErrorsInCode('''
+extension E on int? {
+  void foo() {}
+}
+
+f(int? a) {
+  a.foo();
+}
+''');
+    var invocation = findNode.methodInvocation('a.foo()');
+    assertElement(invocation, findElement.method('foo', of: 'E'));
+    assertInvokeType(invocation, 'void Function()');
+  }
+
+  test_instance_method_fromInstance_nullable_nullLiteral() async {
+    await assertNoErrorsInCode('''
+extension E on int? {
+  void foo() {}
+}
+
+f(int? a) {
+  null.foo();
+}
+''');
+    var invocation = findNode.methodInvocation('null.foo()');
+    assertElement(invocation, findElement.method('foo', of: 'E'));
+    assertInvokeType(invocation, 'void Function()');
+  }
+
+  test_instance_method_fromInstance_nullAware() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  void foo() {}
+}
+
+f(int? a) {
+  a?.foo();
+}
+''');
+    var invocation = findNode.methodInvocation('a?.foo()');
+    assertElement(invocation, findElement.method('foo', of: 'E'));
+    assertInvokeType(invocation, 'void Function()');
+  }
+
+  test_instance_method_fromInstance_nullLiteral() async {
+    await assertNoErrorsInCode('''
+extension E<T> on T {
+  void foo() {}
+}
+
+f() {
+  null.foo();
+}
+''');
+    var invocation = findNode.methodInvocation('null.foo()');
+    assertMember(
+      invocation,
+      findElement.method('foo', of: 'E'),
+      {'T': 'Null'},
+    );
+    assertInvokeType(invocation, 'void Function()');
+  }
+
+  test_instance_operator_binary_fromInstance_nullable() async {
+    await assertNoErrorsInCode('''
+class A {}
+
+extension E on A? {
+  int operator +(int _) => 0;
+}
+
+f(A? a) {
+  a + 1;
+}
+''');
+    var binary = findNode.binary('a + 1');
+    assertElement(binary, findElement.method('+'));
+    assertType(binary, 'int');
+  }
+
+  test_instance_operator_index_fromInstance_nullable() async {
+    await assertNoErrorsInCode('''
+extension E on int? {
+  int operator [](int index) => 0;
+}
+
+f(int? a) {
+  a[0];
+}
+''');
+    var index = findNode.index('a[0]');
+    assertElement(index, findElement.method('[]'));
+  }
+
+  test_instance_operator_index_fromInstance_nullAware() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  int operator [](int index) => 0;
+}
+
+f(int? a) {
+  a?.[0];
+}
+''');
+    var index = findNode.index('a?.[0]');
+    assertElement(index, findElement.method('[]'));
+  }
+
+  test_instance_operator_postfixInc_fromInstance_nullable() async {
+    await assertNoErrorsInCode('''
+class A {}
+
+extension E on A? {
+  A? operator +(int _) => this;
+}
+
+f(A? a) {
+  a++;
+}
+''');
+    var expression = findNode.postfix('a++');
+    assertElement(expression, findElement.method('+'));
+    assertType(expression, 'A?');
+  }
+
+  test_instance_operator_prefixInc_fromInstance_nullable() async {
+    await assertNoErrorsInCode('''
+class A {}
+
+extension E on A? {
+  A? operator +(int _) => this;
+}
+
+f(A? a) {
+  ++a;
+}
+''');
+    var expression = findNode.prefix('++a');
+    assertElement(expression, findElement.method('+'));
+    assertType(expression, 'A?');
+  }
+
+  test_instance_operator_unaryMinus_fromInstance_nullable() async {
+    await assertNoErrorsInCode('''
+class A {}
+
+extension E on A? {
+  A? operator -() => this;
+}
+
+f(A? a) {
+  -a;
+}
+''');
+    var expression = findNode.prefix('-a');
+    assertElement(expression, findElement.method('unary-'));
+    assertType(expression, 'A?');
+  }
+
+  test_instance_setter_fromInstance_nullable() async {
+    await assertNoErrorsInCode('''
+extension E on int? {
+  set foo(int _) {}
+}
+
+f(int? a) {
+  a.foo = 1;
+}
+''');
+    var access = findNode.prefixed('a.foo');
+    assertElement(access, findElement.setter('foo'));
+  }
+
+  test_instance_setter_fromInstance_nullAware() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  set foo(int _) {}
+}
+
+f(int? a) {
+  a?.foo = 1;
+}
+''');
+    var access = findNode.propertyAccess('a?.foo');
+    assertElement(access, findElement.setter('foo'));
   }
 }
 
@@ -1750,4 +2209,16 @@ extension E on C {
     var identifier = findNode.simple('a = 0;');
     assertElement(identifier, findElement.topSet('a'));
   }
+}
+
+@reflectiveTest
+class ExtensionMethodsInternalReferenceWithNnbdTest
+    extends ExtensionMethodsInternalReferenceTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.forTesting(
+        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
+
+  @override
+  bool get typeToStringWithNullability => true;
 }

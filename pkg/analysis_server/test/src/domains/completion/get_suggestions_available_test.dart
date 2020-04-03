@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'available_suggestions_base.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExistingImportsNotification);
     defineReflectiveTests(GetSuggestionAvailableTest);
@@ -17,7 +17,7 @@ main() {
 
 @reflectiveTest
 class ExistingImportsNotification extends GetSuggestionsBase {
-  test_dart() async {
+  Future<void> test_dart() async {
     addTestFile(r'''
 import 'dart:math';
 ''');
@@ -25,7 +25,7 @@ import 'dart:math';
     _assertHasImport('dart:math', 'dart:math', 'Random');
   }
 
-  test_invalidUri() async {
+  Future<void> test_invalidUri() async {
     addTestFile(r'''
 import 'ht:';
 ''');
@@ -54,7 +54,7 @@ import 'ht:';
 
 @reflectiveTest
 class GetSuggestionAvailableTest extends GetSuggestionsBase {
-  test_dart() async {
+  Future<void> test_dart() async {
     addTestFile('');
     var mathSet = await waitForSetWithUri('dart:math');
     var asyncSet = await waitForSetWithUri('dart:async');
@@ -67,7 +67,7 @@ class GetSuggestionAvailableTest extends GetSuggestionsBase {
     expect(includedIdSet, contains(asyncSet.id));
   }
 
-  test_dart_instanceCreationExpression() async {
+  Future<void> test_dart_instanceCreationExpression() async {
     addTestFile(r'''
 main() {
   new ; // ref
@@ -88,7 +88,7 @@ main() {
     expect(includedIdSet, contains(asyncSet.id));
   }
 
-  test_defaultArgumentListString() async {
+  Future<void> test_defaultArgumentListString() async {
     newFile('/home/test/lib/a.dart', content: r'''
 void fff(int aaa, int bbb) {}
 
@@ -106,7 +106,7 @@ void ggg({int aaa, @required int bbb, @required int ccc}) {}
     expect(ggg.defaultArgumentListTextRanges, [5, 4, 16, 4]);
   }
 
-  test_displayUri_file() async {
+  Future<void> test_displayUri_file() async {
     var aPath = '/home/test/test/a.dart';
     newFile(aPath, content: 'class A {}');
 
@@ -123,7 +123,7 @@ void ggg({int aaa, @required int bbb, @required int ccc}) {}
     );
   }
 
-  test_displayUri_package() async {
+  Future<void> test_displayUri_package() async {
     var aPath = '/home/test/lib/a.dart';
     newFile(aPath, content: 'class A {}');
 
@@ -139,7 +139,7 @@ void ggg({int aaa, @required int bbb, @required int ccc}) {}
     );
   }
 
-  test_includedElementKinds_type() async {
+  Future<void> test_includedElementKinds_type() async {
     addTestFile(r'''
 class X extends {} // ref
 ''');
@@ -161,7 +161,7 @@ class X extends {} // ref
     );
   }
 
-  test_includedElementKinds_value() async {
+  Future<void> test_includedElementKinds_value() async {
     addTestFile(r'''
 main() {
   print(); // ref
@@ -181,15 +181,19 @@ main() {
         ElementKind.CONSTRUCTOR,
         ElementKind.ENUM,
         ElementKind.ENUM_CONSTANT,
+        ElementKind.EXTENSION,
+        ElementKind.FIELD,
         ElementKind.FUNCTION,
         ElementKind.FUNCTION_TYPE_ALIAS,
+        ElementKind.GETTER,
         ElementKind.MIXIN,
+        ElementKind.SETTER,
         ElementKind.TOP_LEVEL_VARIABLE,
       ]),
     );
   }
 
-  test_inHtml() async {
+  Future<void> test_inHtml() async {
     newFile('/home/test/lib/a.dart', content: 'class A {}');
 
     var path = convertPath('/home/test/doc/a.html');
@@ -200,7 +204,7 @@ main() {
     );
   }
 
-  test_relevanceTags_enum() async {
+  Future<void> test_relevanceTags_enum() async {
     newFile('/home/test/lib/a.dart', content: r'''
 enum MyEnum {
   aaa, bbb
@@ -229,7 +233,7 @@ void f(MyEnum e) {
 ''');
   }
 
-  test_relevanceTags_location_argumentList_named() async {
+  Future<void> test_relevanceTags_location_argumentList_named() async {
     addTestFile(r'''
 void foo({int a, String b}) {}
 
@@ -253,7 +257,7 @@ main() {
 ''');
   }
 
-  test_relevanceTags_location_argumentList_positional() async {
+  Future<void> test_relevanceTags_location_argumentList_positional() async {
     addTestFile(r'''
 void foo(double a) {}
 
@@ -277,7 +281,7 @@ main() {
 ''');
   }
 
-  test_relevanceTags_location_assignment() async {
+  Future<void> test_relevanceTags_location_assignment() async {
     addTestFile(r'''
 main() {
   int v;
@@ -300,7 +304,27 @@ main() {
 ''');
   }
 
-  test_relevanceTags_location_listLiteral() async {
+  Future<void> test_relevanceTags_location_initializer() async {
+    addTestFile(r'''
+int v = // ref;
+''');
+
+    var results = await _getSuggestions(
+      testFile,
+      testCode.indexOf(' // ref'),
+    );
+
+    assertJsonText(results.includedSuggestionRelevanceTags, r'''
+[
+  {
+    "tag": "dart:core::int",
+    "relevanceBoost": 10
+  }
+]
+''');
+  }
+
+  Future<void> test_relevanceTags_location_listLiteral() async {
     addTestFile(r'''
 main() {
   var v = [0, ]; // ref

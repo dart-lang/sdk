@@ -10,7 +10,9 @@ import 'dart:convert' show LineSplitter, jsonDecode, jsonEncode, utf8;
 
 import 'dart:io' show File, Platform, exitCode, stderr, stdin, stdout;
 
-import 'package:front_end/src/fasta/resolve_input_uri.dart';
+import 'package:_fe_analyzer_shared/src/util/relativize.dart'
+    show isWindows, relativizeUri;
+
 import 'package:kernel/kernel.dart'
     show CanonicalName, Library, Component, Source, loadComponentFromBytes;
 
@@ -18,7 +20,10 @@ import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 
 import 'package:kernel/type_environment.dart' show SubtypeTester;
 
-import 'package:vm/bytecode/gen_bytecode.dart' show generateBytecode;
+import 'package:vm/bytecode/gen_bytecode.dart'
+    show createFreshComponentWithBytecode, generateBytecode;
+
+import 'package:vm/bytecode/options.dart' show BytecodeOptions;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
@@ -44,8 +49,6 @@ import 'package:front_end/src/fasta/kernel/utils.dart'
 import 'package:front_end/src/fasta/ticker.dart' show Ticker;
 
 import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
-
-import 'package:front_end/src/fasta/util/relativize.dart' show relativizeUri;
 
 import 'package:front_end/src/kernel_generator_impl.dart'
     show generateKernelInternal;
@@ -95,6 +98,17 @@ outlineEntryPoint(List<String> arguments) async {
       print("\n");
     }
     await outline(arguments);
+  }
+}
+
+depsEntryPoint(List<String> arguments) async {
+  installAdditionalTargets();
+
+  for (int i = 0; i < iterations; i++) {
+    if (i > 1) {
+      print("\n");
+    }
+    await deps(arguments);
   }
 }
 
@@ -225,6 +239,20 @@ Future<Uri> compile(List<String> arguments) async {
   });
 }
 
+Future<Uri> deps(List<String> arguments) async {
+  return await runProtectedFromAbort<Uri>(() async {
+    return await withGlobalOptions("deps", arguments, true,
+        (CompilerContext c, _) async {
+      if (c.options.verbose) {
+        print("Computing deps: ${arguments.join(' ')}");
+      }
+      CompileTask task =
+          new CompileTask(c, new Ticker(isVerbose: c.options.verbose));
+      return await task.buildDeps(c.options.output);
+    });
+  });
+}
+
 class CompileTask {
   final CompilerContext c;
   final Ticker ticker;
@@ -238,6 +266,30 @@ class CompileTask {
   KernelTarget createKernelTarget(
       DillTarget dillTarget, UriTranslator uriTranslator) {
     return new KernelTarget(c.fileSystem, false, dillTarget, uriTranslator);
+  }
+
+  Future<Uri> buildDeps([Uri output]) async {
+    UriTranslator uriTranslator = await c.options.getUriTranslator();
+    ticker.logMs("Read packages file");
+    DillTarget dillTarget = createDillTarget(uriTranslator);
+    KernelTarget kernelTarget = createKernelTarget(dillTarget, uriTranslator);
+    Uri platform = c.options.sdkSummary;
+    if (platform != null) {
+      // TODO(CFE-Team): Probably this should be read through the filesystem as
+      // well and the recording would be automatic.
+      _appendDillForUri(dillTarget, platform);
+      CompilerContext.recordDependency(platform);
+    }
+    kernelTarget.setEntryPoints(c.options.inputs);
+    await dillTarget.buildOutlines();
+    await kernelTarget.loader.buildOutlines();
+
+    Uri dFile;
+    if (output != null) {
+      dFile = new File(new File.fromUri(output).path + ".d").uri;
+      await writeDepsFile(output, dFile, c.dependencies);
+    }
+    return dFile;
   }
 
   Future<KernelTarget> buildOutline([Uri output]) async {
@@ -303,6 +355,7 @@ void _appendDillForUri(DillTarget dillTarget, Uri uri) {
 Future<void> compilePlatform(List<String> arguments) async {
   await withGlobalOptions("compile_platform", arguments, false,
       (CompilerContext c, List<String> restArguments) {
+    c.compilingPlatform = true;
     Uri hostPlatform = Uri.base.resolveUri(new Uri.file(restArguments[2]));
     Uri outlineOutput = Uri.base.resolveUri(new Uri.file(restArguments[4]));
     return compilePlatformInternal(
@@ -328,12 +381,18 @@ Future<void> compilePlatformInternal(CompilerContext c, Uri fullOutput,
   new File.fromUri(outlineOutput).writeAsBytesSync(result.summary);
   c.options.ticker.logMs("Wrote outline to ${outlineOutput.toFilePath()}");
 
+  Component component = result.component;
   if (c.options.bytecode) {
-    generateBytecode(result.component);
+    generateBytecode(component,
+        options: new BytecodeOptions(
+            enableAsserts: true,
+            emitSourceFiles: true,
+            emitSourcePositions: true,
+            environmentDefines: c.options.environmentDefines));
+    component = createFreshComponentWithBytecode(component);
   }
 
-  await writeComponentToFile(result.component, fullOutput,
-      filter: (lib) => !lib.isExternal);
+  await writeComponentToFile(component, fullOutput);
 
   c.options.ticker.logMs("Wrote component to ${fullOutput.toFilePath()}");
 

@@ -1,0 +1,7 @@
+library;
+import self as self;
+
+static method topLevel([dynamic a]) → dynamic
+  ;
+static method main() → dynamic
+  ;

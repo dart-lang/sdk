@@ -5,28 +5,24 @@ library test;
 // pkg/front_end/testcases/inference/downwards_inference_yield_yield_star.dart:16:69: Error: A value of type 'MyStream<dynamic>' can't be assigned to a variable of type 'List<int>'.
 //  - 'MyStream' is from 'pkg/front_end/testcases/inference/downwards_inference_yield_yield_star.dart'.
 //  - 'List' is from 'dart:core'.
-// Try changing the type of the left hand side, or casting the right hand side to 'List<int>'.
 //   yield /*error:YIELD_OF_INVALID_TYPE*/ new /*@ typeArgs=dynamic */ MyStream();
 //                                                                     ^
 //
 // pkg/front_end/testcases/inference/downwards_inference_yield_yield_star.dart:17:70: Error: A value of type 'List<dynamic>' can't be assigned to a variable of type 'Stream<List<int>>'.
 //  - 'List' is from 'dart:core'.
 //  - 'Stream' is from 'dart:async'.
-// Try changing the type of the left hand side, or casting the right hand side to 'Stream<List<int>>'.
 //   yield* /*error:YIELD_OF_INVALID_TYPE*/ new /*@ typeArgs=dynamic */ List();
 //                                                                      ^
 //
 // pkg/front_end/testcases/inference/downwards_inference_yield_yield_star.dart:23:69: Error: A value of type 'List<dynamic>' can't be assigned to a variable of type 'Map<int, int>'.
 //  - 'List' is from 'dart:core'.
 //  - 'Map' is from 'dart:core'.
-// Try changing the type of the left hand side, or casting the right hand side to 'Map<int, int>'.
 //   yield /*error:YIELD_OF_INVALID_TYPE*/ new /*@ typeArgs=dynamic */ List();
 //                                                                     ^
 //
 // pkg/front_end/testcases/inference/downwards_inference_yield_yield_star.dart:24:79: Error: A value of type 'Map<dynamic, dynamic>' can't be assigned to a variable of type 'Iterable<Map<int, int>>'.
 //  - 'Map' is from 'dart:core'.
 //  - 'Iterable' is from 'dart:core'.
-// Try changing the type of the left hand side, or casting the right hand side to 'Iterable<Map<int, int>>'.
 //   yield* /*error:YIELD_OF_INVALID_TYPE*/ new /*@ typeArgs=dynamic, dynamic */ Map();
 //                                                                               ^
 //
@@ -45,13 +41,11 @@ static method foo() → asy::Stream<core::List<core::int*>*>* async* {
   yield let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_yield_yield_star.dart:16:69: Error: A value of type 'MyStream<dynamic>' can't be assigned to a variable of type 'List<int>'.
  - 'MyStream' is from 'pkg/front_end/testcases/inference/downwards_inference_yield_yield_star.dart'.
  - 'List' is from 'dart:core'.
-Try changing the type of the left hand side, or casting the right hand side to 'List<int>'.
   yield /*error:YIELD_OF_INVALID_TYPE*/ new /*@ typeArgs=dynamic */ MyStream();
                                                                     ^" in self::MyStream::•<dynamic>() as{TypeError} core::List<core::int*>*;
   yield* let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_yield_yield_star.dart:17:70: Error: A value of type 'List<dynamic>' can't be assigned to a variable of type 'Stream<List<int>>'.
  - 'List' is from 'dart:core'.
  - 'Stream' is from 'dart:async'.
-Try changing the type of the left hand side, or casting the right hand side to 'Stream<List<int>>'.
   yield* /*error:YIELD_OF_INVALID_TYPE*/ new /*@ typeArgs=dynamic */ List();
                                                                      ^" in core::List::•<dynamic>() as{TypeError} asy::Stream<core::List<core::int*>*>*;
   yield* self::MyStream::•<core::List<core::int*>*>();
@@ -61,13 +55,11 @@ static method bar() → core::Iterable<core::Map<core::int*, core::int*>*>* sync
   yield let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_yield_yield_star.dart:23:69: Error: A value of type 'List<dynamic>' can't be assigned to a variable of type 'Map<int, int>'.
  - 'List' is from 'dart:core'.
  - 'Map' is from 'dart:core'.
-Try changing the type of the left hand side, or casting the right hand side to 'Map<int, int>'.
   yield /*error:YIELD_OF_INVALID_TYPE*/ new /*@ typeArgs=dynamic */ List();
                                                                     ^" in core::List::•<dynamic>() as{TypeError} core::Map<core::int*, core::int*>*;
   yield* let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_yield_yield_star.dart:24:79: Error: A value of type 'Map<dynamic, dynamic>' can't be assigned to a variable of type 'Iterable<Map<int, int>>'.
  - 'Map' is from 'dart:core'.
  - 'Iterable' is from 'dart:core'.
-Try changing the type of the left hand side, or casting the right hand side to 'Iterable<Map<int, int>>'.
   yield* /*error:YIELD_OF_INVALID_TYPE*/ new /*@ typeArgs=dynamic, dynamic */ Map();
                                                                               ^" in core::Map::•<dynamic, dynamic>() as{TypeError} core::Iterable<core::Map<core::int*, core::int*>*>*;
   yield* core::List::•<core::Map<core::int*, core::int*>*>();

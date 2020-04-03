@@ -13,6 +13,7 @@ import 'dart:indexed_db' show IdbFactory, KeyRange;
 import 'package:js/js.dart';
 import 'package:js/js_util.dart' as js_util;
 import 'package:expect/minitest.dart';
+import 'package:async_helper/async_helper.dart';
 
 _injectJs() {
   final script = new ScriptElement();
@@ -53,6 +54,12 @@ function checkMap(m, key, value) {
     return m[key] == value;
   else
     return false;
+}
+
+var rejectedPromise = new Promise((resolve, reject) => reject('rejected'));
+var resolvedPromise = new Promise(resolve => resolve('resolved'));
+function getResolvedPromise() {
+  return resolvedPromise;
 }
 
 """;
@@ -102,6 +109,18 @@ class ExampleTypedLiteral {
   external get JS$class;
   external set JS$class(v);
 }
+
+@JS()
+abstract class Promise<T> {}
+
+@JS()
+external Promise get resolvedPromise;
+
+@JS()
+external Promise get rejectedPromise;
+
+@JS()
+external Promise getResolvedPromise();
 
 @JS("Object.prototype.hasOwnProperty")
 external get _hasOwnProperty;
@@ -339,5 +358,30 @@ main() {
       Foo f = js_util.callConstructor(JSFooType, [42]);
       expect(f.a, equals(42));
     });
+  });
+
+  void testResolvedPromise() async {
+    final String result = await js_util.promiseToFuture(resolvedPromise);
+    expect(result, equals('resolved'));
+  }
+
+  void testRejectedPromise() async {
+    try {
+      final String result = await promiseToFuture(rejectedPromise);
+      fail('expected Future to throw an error');
+    } catch (error) {
+      expect(error, equals('rejected'));
+    }
+  }
+
+  void testReturnRejectedPromise() async {
+    final String result = await promiseToFuture(getResolvedPromise());
+    expect(result, equals('resolved'));
+  }
+
+  asyncTest(() async {
+    await testResolvedPromise();
+    await testRejectedPromise();
+    await testReturnRejectedPromise();
   });
 }

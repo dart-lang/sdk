@@ -12,7 +12,6 @@ import 'package:observatory/src/elements/inbound_references.dart';
 import 'package:observatory/src/elements/retaining_path.dart';
 import 'package:observatory/src/elements/sentinel_value.dart';
 import 'package:observatory/src/elements/strongly_reachable_instances.dart';
-import 'package:observatory/src/elements/top_retaining_instances.dart';
 import 'package:observatory/utils.dart';
 
 class ClassInstancesElement extends CustomElement implements Renderable {
@@ -21,7 +20,6 @@ class ClassInstancesElement extends CustomElement implements Renderable {
     ClassRefElement.tag,
     InboundReferencesElement.tag,
     RetainingPathElement.tag,
-    TopRetainingInstancesElement.tag
   ]);
 
   RenderingScheduler<ClassInstancesElement> _r;
@@ -33,7 +31,6 @@ class ClassInstancesElement extends CustomElement implements Renderable {
   M.RetainedSizeRepository _retainedSizes;
   M.ReachableSizeRepository _reachableSizes;
   M.StronglyReachableInstancesRepository _stronglyReachableInstances;
-  M.TopRetainingInstancesRepository _topRetainingInstances;
   M.ObjectRepository _objects;
   M.Guarded<M.Instance> _retainedSize = null;
   bool _loadingRetainedBytes = false;
@@ -49,7 +46,6 @@ class ClassInstancesElement extends CustomElement implements Renderable {
       M.RetainedSizeRepository retainedSizes,
       M.ReachableSizeRepository reachableSizes,
       M.StronglyReachableInstancesRepository stronglyReachableInstances,
-      M.TopRetainingInstancesRepository topRetainingInstances,
       M.ObjectRepository objects,
       {RenderingQueue queue}) {
     assert(isolate != null);
@@ -57,7 +53,6 @@ class ClassInstancesElement extends CustomElement implements Renderable {
     assert(retainedSizes != null);
     assert(reachableSizes != null);
     assert(stronglyReachableInstances != null);
-    assert(topRetainingInstances != null);
     assert(objects != null);
     ClassInstancesElement e = new ClassInstancesElement.created();
     e._r = new RenderingScheduler<ClassInstancesElement>(e, queue: queue);
@@ -66,7 +61,6 @@ class ClassInstancesElement extends CustomElement implements Renderable {
     e._retainedSizes = retainedSizes;
     e._reachableSizes = reachableSizes;
     e._stronglyReachableInstances = stronglyReachableInstances;
-    e._topRetainingInstances = topRetainingInstances;
     e._objects = objects;
     return e;
   }
@@ -87,21 +81,14 @@ class ClassInstancesElement extends CustomElement implements Renderable {
   }
 
   StronglyReachableInstancesElement _strong;
-  TopRetainingInstancesElement _topRetainig;
 
   void render() {
     _strong = _strong ??
         new StronglyReachableInstancesElement(
             _isolate, _cls, _stronglyReachableInstances, _objects,
             queue: _r.queue);
-    _topRetainig = _topRetainig ??
-        new TopRetainingInstancesElement(
-            _isolate, _cls, _topRetainingInstances, _objects,
-            queue: _r.queue);
-    final instanceCount =
-        _cls.newSpace.current.instances + _cls.oldSpace.current.instances;
-    final size = Utils.formatSize(
-        _cls.newSpace.current.bytes + _cls.oldSpace.current.bytes);
+    final instanceCount = _cls.newSpace.instances + _cls.oldSpace.instances;
+    final size = Utils.formatSize(_cls.newSpace.size + _cls.oldSpace.size);
     children = <Element>[
       new DivElement()
         ..classes = ['memberList']
@@ -150,16 +137,6 @@ class ClassInstancesElement extends CustomElement implements Renderable {
                 ..classes = ['memberValue']
                 ..children = _createRetainedSizeValue()
             ],
-          new DivElement()
-            ..classes = ['memberItem']
-            ..children = <Element>[
-              new DivElement()
-                ..classes = ['memberName']
-                ..text = 'toplist by retained memory ',
-              new DivElement()
-                ..classes = ['memberValue']
-                ..children = <Element>[_topRetainig.element]
-            ]
         ]
     ];
   }

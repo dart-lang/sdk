@@ -1,0 +1,13 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class C<T extends core::num* = core::num*> extends core::Object {
+  generic-covariant-impl field self::C::T* a;
+  synthetic constructor •() → self::C<self::C::T*>*
+    ;
+  method op(core::double* b) → void
+    ;
+}
+static method main() → dynamic
+  ;

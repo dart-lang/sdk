@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -12,7 +11,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'abstract_search_domain.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TopLevelDeclarationsTest);
   });
@@ -36,20 +35,18 @@ class TopLevelDeclarationsTest extends AbstractSearchDomainTest {
 
   Future findTopLevelDeclarations(String pattern) async {
     await waitForTasksFinished();
-    Request request =
-        new SearchFindTopLevelDeclarationsParams(pattern).toRequest('0');
-    Response response = await waitResponse(request);
+    var request = SearchFindTopLevelDeclarationsParams(pattern).toRequest('0');
+    var response = await waitResponse(request);
     if (response.error != null) {
       return response.error;
     }
-    searchId =
-        new SearchFindTopLevelDeclarationsResult.fromResponse(response).id;
+    searchId = SearchFindTopLevelDeclarationsResult.fromResponse(response).id;
     return waitForSearchResults();
   }
 
   SearchResult findTopLevelResult(ElementKind kind, String name) {
-    for (SearchResult result in results) {
-      Element element = result.path[0];
+    for (var result in results) {
+      var element = result.path[0];
       if (element.kind == kind && element.name == name) {
         return result;
       }
@@ -57,7 +54,7 @@ class TopLevelDeclarationsTest extends AbstractSearchDomainTest {
     return null;
   }
 
-  test_extensionDeclaration() async {
+  Future<void> test_extensionDeclaration() async {
     createAnalysisOptionsFile(experiments: ['extension-methods']);
     addTestFile('''
 extension MyExtension on int {}
@@ -66,12 +63,12 @@ extension MyExtension on int {}
     assertHasDeclaration(ElementKind.EXTENSION, 'MyExtension');
   }
 
-  test_invalidRegex() async {
+  Future<void> test_invalidRegex() async {
     var result = await findTopLevelDeclarations('[A');
     expect(result, const TypeMatcher<RequestError>());
   }
 
-  test_startEndPattern() async {
+  Future<void> test_startEndPattern() async {
     addTestFile('''
 class A {} // A
 class B = Object with A;

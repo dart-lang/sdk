@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:meta/meta.dart';
 
@@ -32,6 +34,17 @@ abstract class TypeSystem {
   ///
   /// Other type systems may define this operation differently.
   DartType flatten(DartType type);
+
+  /// Instantiate the given generic element using the type arguments that
+  /// correspond to the bounds of its type parameters.
+  ///
+  /// One and only one of [classElement] or [functionTypeAliasElement] must
+  /// be provided.
+  DartType instantiateToBounds2({
+    ClassElement classElement,
+    FunctionTypeAliasElement functionTypeAliasElement,
+    @required NullabilitySuffix nullabilitySuffix,
+  });
 
   /// Return `true` if the [leftType] is assignable to the [rightType].
   ///
@@ -105,6 +118,23 @@ abstract class TypeSystem {
   /// is not enabled.
   @experimental
   bool isPotentiallyNullable(DartType type);
+
+  /// Return `true` if the [type] is a strictly non-nullable type.
+  ///
+  /// We say that a type `T` is strictly non-nullable if `T <: Object` and not
+  /// `Null <: T`. This is equivalent to the syntactic criterion that `T` is
+  /// any of:
+  /// - `Never`
+  /// - Any function type (including `Function`)
+  /// - Any interface type except `Null`
+  /// - `FutureOr<S>` where `S` is strictly non-nullable
+  /// - `X extends S` where `S` is strictly non-nullable
+  /// - `X & S` where `S` is strictly non-nullable
+  ///
+  /// The result of this method is undefined when the experiment 'non-nullable'
+  /// is not enabled.
+  @experimental
+  bool isStrictlyNonNullable(DartType type);
 
   /// Return `true` if the [leftType] is a subtype of the [rightType].
   ///

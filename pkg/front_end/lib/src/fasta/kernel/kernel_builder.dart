@@ -14,18 +14,14 @@ import 'package:kernel/ast.dart'
 
 import '../combinator.dart' as fasta;
 
-export '../builder/builder.dart';
-
 export 'class_hierarchy_builder.dart'
-    show ClassHierarchyBuilder, DelayedMember, DelayedOverrideCheck;
+    show ClassHierarchyBuilder, ClassMember, DelayedOverrideCheck;
 
 export 'implicit_field_type.dart' show ImplicitFieldType;
 
-export 'kernel_variable_builder.dart' show VariableBuilder;
+export 'kernel_variable_builder.dart' show VariableBuilderImpl;
 
 export 'load_library_builder.dart' show LoadLibraryBuilder;
-
-export 'unlinked_scope.dart' show UnlinkedDeclaration;
 
 int compareProcedures(Procedure a, Procedure b) {
   int i = "${a.fileUri}".compareTo("${b.fileUri}");

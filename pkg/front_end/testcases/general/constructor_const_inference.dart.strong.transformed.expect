@@ -2,7 +2,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class _Y<T extends core::Object* = dynamic> extends core::Object {
+class _Y<T extends core::Object* = dynamic> extends core::Object /*hasConstConstructor*/  {
   const constructor •() → self::_Y<self::_Y::T*>*
     : super core::Object::•()
     ;
@@ -20,11 +20,11 @@ class B<T extends core::Object* = dynamic> extends self::A<self::B::T*> {
 }
 static method main() → dynamic {
   dynamic x = new self::B::•<dynamic>().{self::A::x};
-  if(!(x is self::_Y<core::Null*>*)) {
+  if(!(x is self::_Y<core::Null?>*)) {
     throw "Unexpected run-time type: `new B().x` is ${x.{core::Object::runtimeType}}, but `_Y<Null>` expected";
   }
 }
 
 constants  {
-  #C1 = self::_Y<core::Null*> {}
+  #C1 = self::_Y<core::Null?> {}
 }

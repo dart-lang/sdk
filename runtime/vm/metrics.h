@@ -10,10 +10,11 @@
 namespace dart {
 
 class Isolate;
+class IsolateGroup;
 class JSONStream;
 
-// Metrics for each isolate.
-#define ISOLATE_METRIC_LIST(V)                                                 \
+// Metrics for each isolate group.
+#define ISOLATE_GROUP_METRIC_LIST(V)                                           \
   V(MetricHeapOldUsed, HeapOldUsed, "heap.old.used", kByte)                    \
   V(MaxMetric, HeapOldUsedMax, "heap.old.used.max", kByte)                     \
   V(MetricHeapOldCapacity, HeapOldCapacity, "heap.old.capacity", kByte)        \
@@ -25,7 +26,10 @@ class JSONStream;
   V(MaxMetric, HeapNewCapacityMax, "heap.new.capacity.max", kByte)             \
   V(MetricHeapNewExternal, HeapNewExternal, "heap.new.external", kByte)        \
   V(MetricHeapUsed, HeapGlobalUsed, "heap.global.used", kByte)                 \
-  V(MaxMetric, HeapGlobalUsedMax, "heap.global.used.max", kByte)               \
+  V(MaxMetric, HeapGlobalUsedMax, "heap.global.used.max", kByte)
+
+// Metrics for each isolate.
+#define ISOLATE_METRIC_LIST(V)                                                 \
   V(Metric, RunnableLatency, "isolate.runnable.latency", kMicrosecond)         \
   V(Metric, RunnableHeapSize, "isolate.runnable.heap", kByte)
 
@@ -48,16 +52,20 @@ class Metric {
 
   static void Cleanup();
 
-  // Initialize and register a metric for an isolate.
+  // Initialize a metric for an isolate.
   void InitInstance(Isolate* isolate,
                     const char* name,
                     const char* description,
                     Unit unit);
 
-  // Initialize and register a metric for the VM.
-  void InitInstance(const char* name, const char* description, Unit unit);
+  // Initialize a metric for an isolate group.
+  void InitInstance(IsolateGroup* isolate_group,
+                    const char* name,
+                    const char* description,
+                    Unit unit);
 
-  void CleanupInstance();
+  // Initialize a metric for the VM.
+  void InitInstance(const char* name, const char* description, Unit unit);
 
   virtual ~Metric();
 
@@ -76,37 +84,29 @@ class Metric {
 
   void increment() { value_++; }
 
-  Metric* next() const { return next_; }
-  void set_next(Metric* next) { next_ = next; }
-
   const char* name() const { return name_; }
   const char* description() const { return description_; }
   Unit unit() const { return unit_; }
 
-  // Will be NULL for Metric that is VM-global.
+  // Only non-null for isolate specific metrics.
   Isolate* isolate() const { return isolate_; }
+
+  // Only non-null for isolate group specific metrics.
+  IsolateGroup* isolate_group() const { return isolate_group_; }
 
   static Metric* vm_head() { return vm_list_head_; }
 
- protected:
   // Override to get a callback when value is serialized to JSON.
   // Use this for metrics that produce their value on demand.
   virtual int64_t Value() const { return value(); }
 
  private:
-  Isolate* isolate_;
-  const char* name_;
-  const char* description_;
+  Isolate* isolate_ = nullptr;
+  IsolateGroup* isolate_group_ = nullptr;
+  const char* name_ = nullptr;
+  const char* description_ = nullptr;
   Unit unit_;
   int64_t value_;
-  Metric* next_;
-
-  static bool NameExists(Metric* head, const char* name);
-
-  void RegisterWithIsolate();
-  void DeregisterWithIsolate();
-  void RegisterWithVM();
-  void DeregisterWithVM();
 
   static Metric* vm_list_head_;
   DISALLOW_COPY_AND_ASSIGN(Metric);
@@ -131,52 +131,52 @@ class MinMetric : public Metric {
 };
 
 class MetricHeapOldUsed : public Metric {
- protected:
+ public:
   virtual int64_t Value() const;
 };
 
 class MetricHeapOldCapacity : public Metric {
- protected:
+ public:
   virtual int64_t Value() const;
 };
 
 class MetricHeapOldExternal : public Metric {
- protected:
+ public:
   virtual int64_t Value() const;
 };
 
 class MetricHeapNewUsed : public Metric {
- protected:
+ public:
   virtual int64_t Value() const;
 };
 
 class MetricHeapNewCapacity : public Metric {
- protected:
+ public:
   virtual int64_t Value() const;
 };
 
 class MetricHeapNewExternal : public Metric {
- protected:
+ public:
   virtual int64_t Value() const;
 };
 
 class MetricIsolateCount : public Metric {
- protected:
+ public:
   virtual int64_t Value() const;
 };
 
 class MetricCurrentRSS : public Metric {
- protected:
+ public:
   virtual int64_t Value() const;
 };
 
 class MetricPeakRSS : public Metric {
- protected:
+ public:
   virtual int64_t Value() const;
 };
 
 class MetricHeapUsed : public Metric {
- protected:
+ public:
   virtual int64_t Value() const;
 };
 

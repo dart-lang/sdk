@@ -4,9 +4,15 @@
 
 library vm.bytecode.declarations;
 
-import 'package:kernel/ast.dart';
+import 'package:kernel/ast.dart' show TreeNode, listHashCode, listEquals;
+import 'package:kernel/core_types.dart' show CoreTypes;
 import 'bytecode_serialization.dart'
-    show BufferedWriter, BufferedReader, BytecodeSizeStatistics, StringTable;
+    show
+        BufferedWriter,
+        BufferedReader,
+        BytecodeDeclaration,
+        BytecodeSizeStatistics,
+        StringTable;
 import 'constant_pool.dart' show ConstantPool;
 import 'dbc.dart' show currentBytecodeFormatVersion;
 import 'disassembler.dart' show BytecodeDisassembler;
@@ -15,10 +21,13 @@ import 'local_variable_table.dart' show LocalVariableTable;
 import 'object_table.dart' show ObjectTable, ObjectHandle, NameAndType;
 import 'source_positions.dart' show LineStarts, SourcePositions;
 
-class LibraryDeclaration {
+import 'dart:typed_data' show Uint8List;
+
+class LibraryDeclaration extends BytecodeDeclaration {
   static const usesDartMirrorsFlag = 1 << 0;
   static const usesDartFfiFlag = 1 << 1;
   static const hasExtensionsFlag = 1 << 2;
+  static const isNonNullableByDefaultFlag = 1 << 3;
 
   ObjectHandle importUri;
   final int flags;
@@ -77,6 +86,9 @@ class LibraryDeclaration {
     if ((flags & hasExtensionsFlag) != 0) {
       sb.writeln('    extensions: $extensionUris');
     }
+    if ((flags & isNonNullableByDefaultFlag) != 0) {
+      sb.writeln('    is nnbd');
+    }
     sb.writeln();
     for (var cls in classes) {
       sb.write(cls);
@@ -85,7 +97,7 @@ class LibraryDeclaration {
   }
 }
 
-class ClassDeclaration {
+class ClassDeclaration extends BytecodeDeclaration {
   static const isAbstractFlag = 1 << 0;
   static const isEnumFlag = 1 << 1;
   static const hasTypeParamsFlag = 1 << 2;
@@ -216,26 +228,24 @@ class ClassDeclaration {
   }
 }
 
-class SourceFile {
+class SourceFile extends BytecodeDeclaration {
   static const hasLineStartsFlag = 1 << 0;
   static const hasSourceFlag = 1 << 1;
 
-  int flags;
   final ObjectHandle importUri;
-  final LineStarts lineStarts;
-  final String source;
+  LineStarts lineStarts;
+  String source;
 
-  SourceFile(this.importUri, this.lineStarts, this.source) {
-    flags = 0;
+  SourceFile(this.importUri, [this.lineStarts, this.source]);
+
+  void write(BufferedWriter writer) {
+    int flags = 0;
     if (lineStarts != null) {
       flags |= hasLineStartsFlag;
     }
     if (source != null && source != '') {
       flags |= hasSourceFlag;
     }
-  }
-
-  void write(BufferedWriter writer) {
     writer.writePackedUInt30(flags);
     writer.writePackedObject(importUri);
     if ((flags & hasLineStartsFlag) != 0) {
@@ -261,16 +271,18 @@ class SourceFile {
   @override
   String toString() {
     final StringBuffer sb = new StringBuffer();
-    sb.writeln('SourceFile $importUri');
-    sb.writeln('------------------------------------------------');
-    sb.write(source);
-    sb.writeln('------------------------------------------------');
-    sb.writeln(lineStarts);
+    sb.write('source: import-uri $importUri');
+    if (source != null && source != '') {
+      sb.write(', ${source.length} text chars');
+    }
+    if (lineStarts != null) {
+      sb.write(', ${lineStarts.lineStarts.length} line starts');
+    }
     return sb.toString();
   }
 }
 
-class Members {
+class Members extends BytecodeDeclaration {
   final List<FieldDeclaration> fields;
   final List<FunctionDeclaration> functions;
 
@@ -318,7 +330,7 @@ class Members {
 }
 
 class FieldDeclaration {
-  static const hasInitializerFlag = 1 << 0;
+  static const hasNontrivialInitializerFlag = 1 << 0;
   static const hasGetterFlag = 1 << 1;
   static const hasSetterFlag = 1 << 2;
   static const isReflectableFlag = 1 << 3;
@@ -332,6 +344,10 @@ class FieldDeclaration {
   static const hasPragmaFlag = 1 << 11;
   static const hasCustomScriptFlag = 1 << 12;
   static const hasInitializerCodeFlag = 1 << 13;
+  static const hasAttributesFlag = 1 << 14;
+  static const isLateFlag = 1 << 15;
+  static const isExtensionMemberFlag = 1 << 16;
+  static const hasInitializerFlag = 1 << 17;
 
   final int flags;
   final ObjectHandle name;
@@ -344,6 +360,7 @@ class FieldDeclaration {
   final ObjectHandle setterName;
   final Code initializerCode;
   final AnnotationsDeclaration annotations;
+  final ObjectHandle attributes;
 
   FieldDeclaration(
       this.flags,
@@ -356,7 +373,8 @@ class FieldDeclaration {
       this.getterName,
       this.setterName,
       this.initializerCode,
-      this.annotations);
+      this.annotations,
+      this.attributes);
 
   void write(BufferedWriter writer) {
     writer.writePackedUInt30(flags);
@@ -373,7 +391,7 @@ class FieldDeclaration {
     if ((flags & hasInitializerCodeFlag) != 0) {
       writer.writeLinkOffset(initializerCode);
     }
-    if ((flags & hasInitializerFlag) == 0) {
+    if ((flags & hasNontrivialInitializerFlag) == 0) {
       writer.writePackedObject(value);
     }
     if ((flags & hasGetterFlag) != 0) {
@@ -384,6 +402,9 @@ class FieldDeclaration {
     }
     if ((flags & hasAnnotationsFlag) != 0) {
       writer.writeLinkOffset(annotations);
+    }
+    if ((flags & hasAttributesFlag) != 0) {
+      writer.writePackedObject(attributes);
     }
   }
 
@@ -402,8 +423,9 @@ class FieldDeclaration {
     final initializerCode = ((flags & hasInitializerCodeFlag) != 0)
         ? reader.readLinkOffset<Code>()
         : null;
-    final value =
-        ((flags & hasInitializerFlag) == 0) ? reader.readPackedObject() : null;
+    final value = ((flags & hasNontrivialInitializerFlag) == 0)
+        ? reader.readPackedObject()
+        : null;
     final getterName =
         ((flags & hasGetterFlag) != 0) ? reader.readPackedObject() : null;
     final setterName =
@@ -411,8 +433,21 @@ class FieldDeclaration {
     final annotations = ((flags & hasAnnotationsFlag) != 0)
         ? reader.readLinkOffset<AnnotationsDeclaration>()
         : null;
-    return new FieldDeclaration(flags, name, type, value, script, position,
-        endPosition, getterName, setterName, initializerCode, annotations);
+    final attributes =
+        ((flags & hasAttributesFlag) != 0) ? reader.readPackedObject() : null;
+    return new FieldDeclaration(
+        flags,
+        name,
+        type,
+        value,
+        script,
+        position,
+        endPosition,
+        getterName,
+        setterName,
+        initializerCode,
+        annotations,
+        attributes);
   }
 
   @override
@@ -437,6 +472,12 @@ class FieldDeclaration {
     if ((flags & isFinalFlag) != 0) {
       sb.write(', final');
     }
+    if ((flags & isLateFlag) != 0) {
+      sb.write(', is-late');
+    }
+    if ((flags & isExtensionMemberFlag) != 0) {
+      sb.write(', extension-member');
+    }
     if ((flags & hasPragmaFlag) != 0) {
       sb.write(', has-pragma');
     }
@@ -446,15 +487,21 @@ class FieldDeclaration {
     if ((flags & hasSourcePositionsFlag) != 0) {
       sb.write(', pos = $position, end-pos = $endPosition');
     }
+    if ((flags & hasInitializerFlag) != 0) {
+      sb.write(', has-initializer');
+    }
     sb.writeln();
     if ((flags & hasInitializerCodeFlag) != 0) {
       sb.write('    initializer\n$initializerCode\n');
     }
-    if ((flags & hasInitializerFlag) == 0) {
+    if ((flags & hasNontrivialInitializerFlag) == 0) {
       sb.write('    value = $value\n');
     }
     if ((flags & hasAnnotationsFlag) != 0) {
       sb.write('    annotations $annotations\n');
+    }
+    if ((flags & hasAttributesFlag) != 0) {
+      sb.write('    attributes $attributes\n');
     }
     return sb.toString();
   }
@@ -484,6 +531,8 @@ class FunctionDeclaration {
   static const hasAnnotationsFlag = 1 << 20;
   static const hasPragmaFlag = 1 << 21;
   static const hasCustomScriptFlag = 1 << 22;
+  static const hasAttributesFlag = 1 << 23;
+  static const isExtensionMemberFlag = 1 << 24;
 
   final int flags;
   final ObjectHandle name;
@@ -497,6 +546,7 @@ class FunctionDeclaration {
   final ObjectHandle nativeName;
   final Code code;
   final AnnotationsDeclaration annotations;
+  final ObjectHandle attributes;
 
   FunctionDeclaration(
       this.flags,
@@ -510,7 +560,8 @@ class FunctionDeclaration {
       this.returnType,
       this.nativeName,
       this.code,
-      this.annotations);
+      this.annotations,
+      this.attributes);
 
   void write(BufferedWriter writer) {
     writer.writePackedUInt30(flags);
@@ -542,6 +593,9 @@ class FunctionDeclaration {
     }
     if ((flags & hasAnnotationsFlag) != 0) {
       writer.writeLinkOffset(annotations);
+    }
+    if ((flags & hasAttributesFlag) != 0) {
+      writer.writePackedObject(attributes);
     }
   }
 
@@ -578,6 +632,8 @@ class FunctionDeclaration {
     final annotations = ((flags & hasAnnotationsFlag) != 0)
         ? reader.readLinkOffset<AnnotationsDeclaration>()
         : null;
+    final attributes =
+        ((flags & hasAttributesFlag) != 0) ? reader.readPackedObject() : null;
     return new FunctionDeclaration(
         flags,
         name,
@@ -590,7 +646,8 @@ class FunctionDeclaration {
         returnType,
         nativeName,
         code,
-        annotations);
+        annotations,
+        attributes);
   }
 
   @override
@@ -617,6 +674,9 @@ class FunctionDeclaration {
     }
     if ((flags & isConstFlag) != 0) {
       sb.write(', const');
+    }
+    if ((flags & isExtensionMemberFlag) != 0) {
+      sb.write(', extension-member');
     }
     if ((flags & hasOptionalPositionalParamsFlag) != 0) {
       sb.write(', has-optional-positional-params');
@@ -668,6 +728,9 @@ class FunctionDeclaration {
     sb.write('    return-type $returnType\n');
     if ((flags & hasAnnotationsFlag) != 0) {
       sb.write('    annotations $annotations\n');
+    }
+    if ((flags & hasAttributesFlag) != 0) {
+      sb.write('    attributes $attributes\n');
     }
     if ((flags & isAbstractFlag) == 0 && (flags & isExternalFlag) == 0) {
       sb.write('\n$code\n');
@@ -739,7 +802,7 @@ class ParameterDeclaration {
   String toString() => '$type $name';
 }
 
-class Code {
+class Code extends BytecodeDeclaration {
   static const hasExceptionsTableFlag = 1 << 0;
   static const hasSourcePositionsFlag = 1 << 1;
   static const hasNullableFieldsFlag = 1 << 2;
@@ -750,7 +813,7 @@ class Code {
   static const hasLocalVariablesFlag = 1 << 7;
 
   final ConstantPool constantPool;
-  final List<int> bytecodes;
+  final Uint8List bytecodes;
   final ExceptionsTable exceptionsTable;
   final SourcePositions sourcePositions;
   final LocalVariableTable localVariables;
@@ -848,7 +911,7 @@ class Code {
             (_) => new ClosureDeclaration.read(reader))
         : const <ClosureDeclaration>[];
     final ConstantPool constantPool = new ConstantPool.read(reader);
-    final List<int> bytecodes = _readBytecodeInstructions(reader);
+    final Uint8List bytecodes = _readBytecodeInstructions(reader);
     final exceptionsTable = ((flags & hasExceptionsTableFlag) != 0)
         ? new ExceptionsTable.read(reader)
         : new ExceptionsTable();
@@ -899,15 +962,17 @@ class Code {
 }
 
 class ClosureDeclaration {
-  static const int hasOptionalPositionalParamsFlag = 1 << 0;
-  static const int hasOptionalNamedParamsFlag = 1 << 1;
-  static const int hasTypeParamsFlag = 1 << 2;
-  static const int hasSourcePositionsFlag = 1 << 3;
-  static const int isAsyncFlag = 1 << 4;
-  static const int isAsyncStarFlag = 1 << 5;
-  static const int isSyncStarFlag = 1 << 6;
+  static const hasOptionalPositionalParamsFlag = 1 << 0;
+  static const hasOptionalNamedParamsFlag = 1 << 1;
+  static const hasTypeParamsFlag = 1 << 2;
+  static const hasSourcePositionsFlag = 1 << 3;
+  static const isAsyncFlag = 1 << 4;
+  static const isAsyncStarFlag = 1 << 5;
+  static const isSyncStarFlag = 1 << 6;
+  static const isDebuggableFlag = 1 << 7;
+  static const hasAttributesFlag = 1 << 8;
 
-  final int flags;
+  int flags;
   final ObjectHandle parent;
   final ObjectHandle name;
   final int position;
@@ -917,6 +982,7 @@ class ClosureDeclaration {
   final int numNamedParams;
   final List<NameAndType> parameters;
   final ObjectHandle returnType;
+  ObjectHandle attributes;
   ClosureCode code;
 
   ClosureDeclaration(
@@ -929,7 +995,8 @@ class ClosureDeclaration {
       this.numRequiredParams,
       this.numNamedParams,
       this.parameters,
-      this.returnType);
+      this.returnType,
+      [this.attributes]);
 
   void write(BufferedWriter writer) {
     writer.writePackedUInt30(flags);
@@ -961,6 +1028,9 @@ class ClosureDeclaration {
       writer.writePackedObject(param.type);
     }
     writer.writePackedObject(returnType);
+    if ((flags & hasAttributesFlag) != 0) {
+      writer.writePackedObject(attributes);
+    }
   }
 
   factory ClosureDeclaration.read(BufferedReader reader) {
@@ -1000,8 +1070,20 @@ class ClosureDeclaration {
         (_) => new NameAndType(
             reader.readPackedObject(), reader.readPackedObject()));
     final returnType = reader.readPackedObject();
-    return new ClosureDeclaration(flags, parent, name, position, endPosition,
-        typeParams, numRequiredParams, numNamedParams, parameters, returnType);
+    final attributes =
+        ((flags & hasAttributesFlag) != 0) ? reader.readPackedObject() : null;
+    return new ClosureDeclaration(
+        flags,
+        parent,
+        name,
+        position,
+        endPosition,
+        typeParams,
+        numRequiredParams,
+        numNamedParams,
+        parameters,
+        returnType,
+        attributes);
   }
 
   @override
@@ -1037,6 +1119,9 @@ class ClosureDeclaration {
     }
     sb.write(') -> ');
     sb.writeln(returnType);
+    if ((flags & hasAttributesFlag) != 0) {
+      sb.write('    attributes $attributes\n');
+    }
     if (code != null) {
       sb.write(code.toString());
     }
@@ -1051,7 +1136,7 @@ class ClosureCode {
   static const hasSourcePositionsFlag = 1 << 1;
   static const hasLocalVariablesFlag = 1 << 2;
 
-  final List<int> bytecodes;
+  final Uint8List bytecodes;
   final ExceptionsTable exceptionsTable;
   final SourcePositions sourcePositions;
   final LocalVariableTable localVariables;
@@ -1086,7 +1171,7 @@ class ClosureCode {
 
   factory ClosureCode.read(BufferedReader reader) {
     final int flags = reader.readPackedUInt30();
-    final List<int> bytecodes = _readBytecodeInstructions(reader);
+    final Uint8List bytecodes = _readBytecodeInstructions(reader);
     final exceptionsTable = ((flags & hasExceptionsTableFlag) != 0)
         ? new ExceptionsTable.read(reader)
         : new ExceptionsTable();
@@ -1118,7 +1203,7 @@ class ClosureCode {
   }
 }
 
-class AnnotationsDeclaration {
+class AnnotationsDeclaration extends BytecodeDeclaration {
   final ObjectHandle object;
 
   AnnotationsDeclaration(this.object);
@@ -1130,6 +1215,9 @@ class AnnotationsDeclaration {
   factory AnnotationsDeclaration.read(BufferedReader reader) {
     return new AnnotationsDeclaration(reader.readPackedObject());
   }
+
+  @override
+  String toString() => object.toString();
 }
 
 class _Section {
@@ -1144,7 +1232,7 @@ class _Section {
 
 class Component {
   static const int magicValue = 0x44424332; // 'DBC2'
-  static const int numSections = 13;
+  static const int numSections = 14;
   static const int sectionAlignment = 4;
 
   //  UInt32 magic, version, numSections x (numItems, offset)
@@ -1163,17 +1251,25 @@ class Component {
   final Map<Uri, SourceFile> uriToSource = <Uri, SourceFile>{};
   final List<LocalVariableTable> localVariables = <LocalVariableTable>[];
   final List<AnnotationsDeclaration> annotations = <AnnotationsDeclaration>[];
+  Set<String> protectedNames;
   ObjectHandle mainLibrary;
 
-  Component(this.version)
+  Component(this.version, CoreTypes coreTypes)
       : stringTable = new StringTable(),
-        objectTable = new ObjectTable();
+        objectTable = new ObjectTable(coreTypes);
 
   void write(BufferedWriter writer) {
     objectTable.allocateIndexTable();
 
     // Write sections to their own buffers in reverse order as section may
     // reference data structures from successor sections by offsets.
+
+    final protectedNamesWriter = new BufferedWriter.fromWriter(writer);
+    if (protectedNames != null && protectedNames.isNotEmpty) {
+      for (var name in protectedNames) {
+        protectedNamesWriter.writePackedStringReference(name);
+      }
+    }
 
     final annotationsWriter = new BufferedWriter.fromWriter(writer);
     for (var annot in annotations) {
@@ -1267,13 +1363,14 @@ class Component {
       new _Section(lineStarts.length, lineStartsWriter),
       new _Section(localVariables.length, localVariablesWriter),
       new _Section(annotations.length, annotationsWriter),
+      new _Section(protectedNames != null ? protectedNames.length : 0,
+          protectedNamesWriter),
     ];
     assert(sections.length == numSections);
 
     int offset = headerSize;
     for (var section in sections) {
       if (section.writer != null) {
-        offset = (offset + sectionAlignment - 1) & ~(sectionAlignment - 1);
         section.offset = offset;
         offset += section.size;
       } else {
@@ -1292,9 +1389,8 @@ class Component {
     assert(writer.offset - start == headerSize);
     for (var section in sections) {
       if (section.writer != null) {
-        writer.align(sectionAlignment);
         assert(writer.offset - start == section.offset);
-        writer.writeBytes(section.writer.takeBytes());
+        writer.appendWriter(section.writer);
       }
     }
 
@@ -1355,6 +1451,9 @@ class Component {
     final annotationsNum = reader.readUInt32();
     final annotationsOffset = reader.readUInt32();
 
+    final protectedNamesNum = reader.readUInt32();
+    final protectedNamesOffset = reader.readUInt32();
+
     reader.offset = start + stringTableOffset;
     stringTable = new StringTable.read(reader);
     reader.stringReader = stringTable;
@@ -1365,6 +1464,14 @@ class Component {
 
     // Read sections in the reverse order as section may reference
     // successor sections by offsets.
+
+    if (protectedNamesNum != 0) {
+      protectedNames = new Set<String>();
+      reader.offset = start + protectedNamesOffset;
+      for (int i = 0; i < protectedNamesNum; ++i) {
+        protectedNames.add(reader.readPackedStringReference());
+      }
+    }
 
     final annotationsStart = start + annotationsOffset;
     reader.offset = annotationsStart;
@@ -1481,13 +1588,13 @@ class Component {
   }
 }
 
-void _writeBytecodeInstructions(BufferedWriter writer, List<int> bytecodes) {
+void _writeBytecodeInstructions(BufferedWriter writer, Uint8List bytecodes) {
   writer.writePackedUInt30(bytecodes.length);
-  writer.writeBytes(bytecodes);
+  writer.appendUint8List(bytecodes);
   BytecodeSizeStatistics.instructionsSize += bytecodes.length;
 }
 
-List<int> _readBytecodeInstructions(BufferedReader reader) {
+Uint8List _readBytecodeInstructions(BufferedReader reader) {
   int len = reader.readPackedUInt30();
   return reader.readBytesAsUint8List(len);
 }

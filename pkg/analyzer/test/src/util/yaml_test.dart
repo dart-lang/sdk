@@ -97,14 +97,14 @@ main() {
   });
 }
 
-final Merger merger = new Merger();
+final Merger merger = Merger();
 
 bool containsKey(Map<dynamic, YamlNode> map, dynamic key) =>
     _getValue(map, key) != null;
 
 void expectEquals(YamlNode actual, YamlNode expected) {
   if (expected is YamlScalar) {
-    expect(actual, new TypeMatcher<YamlScalar>());
+    expect(actual, TypeMatcher<YamlScalar>());
     expect(expected.value, actual.value);
   } else if (expected is YamlList) {
     if (actual is YamlList) {
@@ -151,16 +151,15 @@ Object valueOf(Object object) => object is YamlNode ? object.value : object;
 YamlNode wrap(Object value) {
   if (value is List) {
     List wrappedElements = value.map((e) => wrap(e)).toList();
-    return new YamlList.internal(wrappedElements, null, CollectionStyle.BLOCK);
+    return YamlList.internal(wrappedElements, null, CollectionStyle.BLOCK);
   } else if (value is Map) {
     Map<dynamic, YamlNode> wrappedEntries = <dynamic, YamlNode>{};
     value.forEach((k, v) {
       wrappedEntries[wrap(k)] = wrap(v);
     });
-    return new YamlMap.internal(wrappedEntries, null, CollectionStyle.BLOCK);
+    return YamlMap.internal(wrappedEntries, null, CollectionStyle.BLOCK);
   } else {
-    return new YamlScalar.internal(
-        value, new ScalarEvent(null, '', ScalarStyle.PLAIN));
+    return YamlScalar.internal(value, ScalarEvent(null, '', ScalarStyle.PLAIN));
   }
 }
 

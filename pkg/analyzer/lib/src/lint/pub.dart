@@ -23,8 +23,8 @@ PSDependencyList _processDependencies(YamlScalar key, YamlNode v) {
   }
   YamlMap depsMap = v;
 
-  _PSDependencyList deps = new _PSDependencyList(new _PSNode(key));
-  depsMap.nodes.forEach((k, v) => deps.add(new _PSDependency(k, v)));
+  _PSDependencyList deps = _PSDependencyList(_PSNode(key));
+  depsMap.nodes.forEach((k, v) => deps.add(_PSDependency(k, v)));
   return deps;
 }
 
@@ -35,8 +35,8 @@ PSGitRepo _processGitRepo(YamlScalar key, YamlNode v) {
   YamlMap hostMap = v;
   // url: git://github.com/munificent/kittens.git
   // ref: some-branch
-  _PSGitRepo repo = new _PSGitRepo();
-  repo.token = new _PSNode(key);
+  _PSGitRepo repo = _PSGitRepo();
+  repo.token = _PSNode(key);
   repo.ref = _findEntry(hostMap, 'ref');
   repo.url = _findEntry(hostMap, 'url');
   return repo;
@@ -49,8 +49,8 @@ PSHost _processHost(YamlScalar key, YamlNode v) {
   YamlMap hostMap = v;
   // name: transmogrify
   // url: http://your-package-server.com
-  _PSHost host = new _PSHost();
-  host.token = new _PSNode(key);
+  _PSHost host = _PSHost();
+  host.token = _PSNode(key);
   host.name = _findEntry(hostMap, 'name');
   host.url = _findEntry(hostMap, 'url');
   return host;
@@ -62,8 +62,7 @@ PSNodeList _processList(YamlScalar key, YamlNode v) {
   }
   YamlList nodeList = v;
 
-  return new _PSNodeList(
-      new _PSNode(key), nodeList.nodes.map((n) => new _PSNode(n)));
+  return _PSNodeList(_PSNode(key), nodeList.nodes.map((n) => _PSNode(n)));
 }
 
 PSEntry _processScalar(YamlScalar key, YamlNode value) {
@@ -71,13 +70,14 @@ PSEntry _processScalar(YamlScalar key, YamlNode value) {
     return null;
     //WARN?
   }
-  return new PSEntry(new _PSNode(key), new _PSNode(value));
+  return PSEntry(_PSNode(key), _PSNode(value));
 }
 
 abstract class PSDependency {
   PSGitRepo get git;
   PSHost get host;
   PSNode get name;
+  PSEntry get path;
   PSEntry get version;
 }
 
@@ -117,7 +117,7 @@ abstract class PSNodeList with IterableMixin<PSNode> {
 
 abstract class Pubspec {
   factory Pubspec.parse(String source, {Uri sourceUrl}) =>
-      new _Pubspec(source, sourceUrl: sourceUrl);
+      _Pubspec(source, sourceUrl: sourceUrl);
   PSEntry get author;
   PSNodeList get authors;
   PSDependencyList get dependencies;
@@ -151,6 +151,8 @@ class _PSDependency extends PSDependency {
   @override
   PSNode name;
   @override
+  PSEntry path;
+  @override
   PSEntry version;
   @override
   PSHost host;
@@ -163,13 +165,13 @@ class _PSDependency extends PSDependency {
     }
     YamlScalar key = k;
 
-    _PSDependency dep = new _PSDependency._();
+    _PSDependency dep = _PSDependency._();
 
-    dep.name = new _PSNode(key);
+    dep.name = _PSNode(key);
 
     if (v is YamlScalar) {
       // Simple version
-      dep.version = new PSEntry(null, new _PSNode(v));
+      dep.version = PSEntry(null, _PSNode(v));
     } else if (v is YamlMap) {
       // hosted:
       //   name: transmogrify
@@ -182,6 +184,9 @@ class _PSDependency extends PSDependency {
         }
         YamlScalar key = k;
         switch (key.toString()) {
+          case 'path':
+            dep.path = _processScalar(key, v);
+            break;
           case 'version':
             dep.version = _processScalar(key, v);
             break;
@@ -201,7 +206,7 @@ class _PSDependency extends PSDependency {
 
   @override
   String toString() {
-    var sb = new StringBuffer();
+    var sb = StringBuffer();
     if (name != null) {
       sb.write('$name:');
     }
@@ -370,7 +375,7 @@ class _Pubspec implements Pubspec {
 
   @override
   String toString() {
-    var sb = new _StringBuilder();
+    var sb = _StringBuilder();
     sb.writelin(name);
     sb.writelin(version);
     sb.writelin(author);
@@ -431,7 +436,7 @@ class _Pubspec implements Pubspec {
 }
 
 class _StringBuilder {
-  StringBuffer buffer = new StringBuffer();
+  StringBuffer buffer = StringBuffer();
   @override
   String toString() => buffer.toString();
   writelin(Object value) {

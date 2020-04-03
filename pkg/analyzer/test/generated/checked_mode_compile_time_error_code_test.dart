@@ -55,7 +55,7 @@ class A {
 }
 var v = const A(null);
 ''', [
-      error(StaticWarningCode.UNDEFINED_CLASS, 18, 10),
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 18, 10),
     ]);
   }
 
@@ -165,6 +165,10 @@ foo(x) => 1;
 var v = const A(foo);
 ''', [
       error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 116, 3),
+      error(
+          CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+          116,
+          3),
     ]);
   }
 
@@ -245,7 +249,7 @@ class A {
 }
 var v = const A('foo');
 ''', [
-      error(StaticWarningCode.UNDEFINED_CLASS, 18, 10),
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 18, 10),
     ]);
   }
 
@@ -418,7 +422,7 @@ class A {
 }
 var v = const A('foo');
 ''', [
-      error(StaticWarningCode.UNDEFINED_CLASS, 40, 10),
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 40, 10),
     ]);
   }
 
@@ -458,7 +462,7 @@ class A {
 }
 var v = const A(null);
 ''', [
-      error(StaticWarningCode.UNDEFINED_CLASS, 40, 10),
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 40, 10),
     ]);
   }
 
@@ -475,7 +479,7 @@ var v = const <String> [42];
 const Object x = [1];
 const List<String> y = x;
 ''', [
-      error(CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, 41, 1),
+      error(CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, 45, 1),
     ]);
   }
 
@@ -484,7 +488,7 @@ const List<String> y = x;
 const Object x = {1: 1};
 const Map<String, dynamic> y = x;
 ''', [
-      error(CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, 52, 1),
+      error(CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, 56, 1),
     ]);
   }
 
@@ -493,7 +497,7 @@ const Map<String, dynamic> y = x;
 const Object x = {1: 1};
 const Map<dynamic, String> y = x;
 ''', [
-      error(CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, 52, 1),
+      error(CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, 56, 1),
     ]);
   }
 
@@ -523,7 +527,7 @@ class A {
 }
 var v = const A(null);
 ''', [
-      error(StaticWarningCode.UNDEFINED_CLASS, 20, 10),
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 20, 10),
     ]);
   }
 
@@ -564,7 +568,7 @@ class A {
 }
 var v = const A('foo');
 ''', [
-      error(StaticWarningCode.UNDEFINED_CLASS, 20, 10),
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 20, 10),
     ]);
   }
 
@@ -607,7 +611,7 @@ const int x = null;
     await assertErrorsInCode('''
 const Unresolved x = null;
 ''', [
-      error(StaticWarningCode.UNDEFINED_CLASS, 6, 10),
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 6, 10),
     ]);
   }
 
@@ -615,7 +619,7 @@ const Unresolved x = null;
     await assertErrorsInCode('''
 const int x = 'foo';
 ''', [
-      error(CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, 10, 1),
+      error(CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, 14, 5),
       error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 14, 5),
     ]);
   }
@@ -624,7 +628,7 @@ const int x = 'foo';
     await assertErrorsInCode('''
 const Unresolved x = 'foo';
 ''', [
-      error(StaticWarningCode.UNDEFINED_CLASS, 6, 10),
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 6, 10),
     ]);
   }
 }

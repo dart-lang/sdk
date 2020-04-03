@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/extract_widget.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -13,7 +12,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'abstract_refactoring.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtractWidgetTest);
   });
@@ -21,9 +20,10 @@ main() {
 
 @reflectiveTest
 class ExtractWidgetTest extends RefactoringTest {
+  @override
   ExtractWidgetRefactoringImpl refactoring;
 
-  test_checkAllConditions_selection() async {
+  Future<void> test_checkAllConditions_selection() async {
     addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
@@ -31,11 +31,11 @@ class C {}
 ''');
     _createRefactoringForStringOffset('class C');
 
-    RefactoringStatus status = await refactoring.checkAllConditions();
+    var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL);
   }
 
-  test_checkName() async {
+  Future<void> test_checkName() async {
     addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
@@ -66,7 +66,7 @@ class MyWidget extends StatelessWidget {
     assertRefactoringStatusOK(refactoring.checkName());
   }
 
-  test_checkName_alreadyDeclared() async {
+  Future<void> test_checkName_alreadyDeclared() async {
     addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
@@ -88,7 +88,7 @@ class Test {}
         expectedMessage: "Library already declares class with name 'Test'.");
   }
 
-  test_expression() async {
+  Future<void> test_expression() async {
     addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
@@ -121,7 +121,7 @@ class MyWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return new Row(
       children: <Widget>[
-        new Test(),
+        Test(),
         new Text('CCC'),
         new Text('DDD'),
       ],
@@ -147,7 +147,7 @@ class Test extends StatelessWidget {
 ''');
   }
 
-  test_expression_localFunction() async {
+  Future<void> test_expression_localFunction() async {
     addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
@@ -173,7 +173,7 @@ Widget main() {
   Widget foo() {
     return new Row(
       children: <Widget>[
-        new Test(),
+        Test(),
         new Text('BBB'),
       ],
     );
@@ -194,7 +194,7 @@ class Test extends StatelessWidget {
 ''');
   }
 
-  test_expression_onTypeName() async {
+  Future<void> test_expression_onTypeName() async {
     addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
@@ -214,7 +214,7 @@ import 'package:flutter/material.dart';
 class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return new Test();
+    return Test();
   }
 }
 
@@ -231,7 +231,7 @@ class Test extends StatelessWidget {
 ''');
   }
 
-  test_expression_selection() async {
+  Future<void> test_expression_selection() async {
     addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
@@ -242,14 +242,14 @@ Widget main() {
 ''');
 
     Future<void> assertResult(String str) async {
-      int offset = findOffset(str);
+      var offset = findOffset(str);
       _createRefactoring(offset, str.length);
 
       await _assertSuccessfulRefactoring('''
 import 'package:flutter/material.dart';
 
 Widget main() {
-  return new Test();
+  return Test();
 }
 
 class Test extends StatelessWidget {
@@ -279,7 +279,7 @@ class Test extends StatelessWidget {
     await assertResult('return new Container();');
   }
 
-  test_expression_topFunction() async {
+  Future<void> test_expression_topFunction() async {
     addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
@@ -301,7 +301,7 @@ import 'package:flutter/material.dart';
 Widget main() {
   return new Row(
     children: <Widget>[
-      new Test(),
+      Test(),
       new Text('BBB'),
     ],
   );
@@ -320,7 +320,7 @@ class Test extends StatelessWidget {
 ''');
   }
 
-  test_invocation_enclosingClass() async {
+  Future<void> test_invocation_enclosingClass() async {
     addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -341,11 +341,11 @@ class MyWidget extends StatelessWidget {
 ''');
     _createRefactoringForStringOffset('new GestureDetector');
 
-    RefactoringStatus status = await refactoring.checkAllConditions();
+    var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR);
   }
 
-  test_invocation_enclosingSuperClass() async {
+  Future<void> test_invocation_enclosingSuperClass() async {
     addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -368,11 +368,11 @@ abstract class MyWidget extends StatelessWidget implements MyInterface {
 ''');
     _createRefactoringForStringOffset('new GestureDetector');
 
-    RefactoringStatus status = await refactoring.checkAllConditions();
+    var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR);
   }
 
-  test_invocation_otherClass() async {
+  Future<void> test_invocation_otherClass() async {
     addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -409,7 +409,7 @@ class MyWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new Test(c: c);
+    return Test(c: c);
   }
 }
 
@@ -434,7 +434,7 @@ class Test extends StatelessWidget {
 ''');
   }
 
-  test_method() async {
+  Future<void> test_method() async {
     addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
@@ -462,7 +462,7 @@ import 'package:flutter/material.dart';
 class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return new Test();
+    return Test();
   }
 }
 
@@ -483,7 +483,7 @@ class Test extends StatelessWidget {
 ''');
   }
 
-  test_method_parameters() async {
+  Future<void> test_method_parameters() async {
     addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -524,8 +524,8 @@ class MyWidget extends StatelessWidget {
     int bar = 1;
     return new Row(
       children: <Widget>[
-        new Test(foo: foo, p1: 'aaa', p2: bar),
-        new Test(foo: foo, p1: 'bbb', p2: 2),
+        Test(foo: foo, p1: 'aaa', p2: bar),
+        Test(foo: foo, p1: 'bbb', p2: 2),
       ],
     );
   }
@@ -555,7 +555,7 @@ class Test extends StatelessWidget {
 ''');
   }
 
-  test_method_parameters_named() async {
+  Future<void> test_method_parameters_named() async {
     addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -596,8 +596,8 @@ class MyWidget extends StatelessWidget {
     int bar = 1;
     return new Row(
       children: <Widget>[
-        new Test(foo: foo, p1: 'aaa', p2: bar),
-        new Test(foo: foo, p1: 'bbb', p2: 2),
+        Test(foo: foo, p1: 'aaa', p2: bar),
+        Test(foo: foo, p1: 'bbb', p2: 2),
       ],
     );
   }
@@ -627,7 +627,7 @@ class Test extends StatelessWidget {
 ''');
   }
 
-  test_parameters_field_read_enclosingClass() async {
+  Future<void> test_parameters_field_read_enclosingClass() async {
     addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -651,7 +651,7 @@ class MyWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new Test(field: field);
+    return Test(field: field);
   }
 }
 
@@ -671,7 +671,7 @@ class Test extends StatelessWidget {
 ''');
   }
 
-  test_parameters_field_read_otherClass() async {
+  Future<void> test_parameters_field_read_otherClass() async {
     addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -703,7 +703,7 @@ class MyWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new Test(c: c);
+    return Test(c: c);
   }
 }
 
@@ -723,7 +723,7 @@ class Test extends StatelessWidget {
 ''');
   }
 
-  test_parameters_field_read_topLevelVariable() async {
+  Future<void> test_parameters_field_read_topLevelVariable() async {
     addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -747,7 +747,7 @@ String field;
 class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return new Test();
+    return Test();
   }
 }
 
@@ -764,7 +764,7 @@ class Test extends StatelessWidget {
 ''');
   }
 
-  test_parameters_field_write_enclosingClass() async {
+  Future<void> test_parameters_field_write_enclosingClass() async {
     addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -785,11 +785,11 @@ class MyWidget extends StatelessWidget {
 ''');
     _createRefactoringForStringOffset('new GestureDetector');
 
-    RefactoringStatus status = await refactoring.checkAllConditions();
+    var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR);
   }
 
-  test_parameters_field_write_enclosingSuperClass() async {
+  Future<void> test_parameters_field_write_enclosingSuperClass() async {
     addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -812,11 +812,11 @@ class MyWidget extends MySuperWidget {
 ''');
     _createRefactoringForStringOffset('new GestureDetector');
 
-    RefactoringStatus status = await refactoring.checkAllConditions();
+    var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR);
   }
 
-  test_parameters_field_write_otherClass() async {
+  Future<void> test_parameters_field_write_otherClass() async {
     addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -853,7 +853,7 @@ class MyWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new Test(c: c);
+    return Test(c: c);
   }
 }
 
@@ -878,7 +878,7 @@ class Test extends StatelessWidget {
 ''');
   }
 
-  test_parameters_key() async {
+  Future<void> test_parameters_key() async {
     addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -893,11 +893,11 @@ class MyWidget extends StatelessWidget {
 ''');
     _createRefactoringForStringOffset('new Text');
 
-    RefactoringStatus status = await refactoring.checkAllConditions();
+    var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR);
   }
 
-  test_parameters_local_read_enclosingScope() async {
+  Future<void> test_parameters_local_read_enclosingScope() async {
     addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -919,7 +919,7 @@ class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String local;
-    return new Test(local: local);
+    return Test(local: local);
   }
 }
 
@@ -939,7 +939,7 @@ class Test extends StatelessWidget {
 ''');
   }
 
-  test_parameters_local_write_enclosingScope() async {
+  Future<void> test_parameters_local_write_enclosingScope() async {
     addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -959,11 +959,11 @@ class MyWidget extends StatelessWidget {
 ''');
     _createRefactoringForStringOffset('new GestureDetector');
 
-    RefactoringStatus status = await refactoring.checkAllConditions();
+    var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR);
   }
 
-  test_parameters_private() async {
+  Future<void> test_parameters_private() async {
     addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -987,7 +987,7 @@ class MyWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new Test(field: _field);
+    return Test(field: _field);
   }
 }
 
@@ -1007,7 +1007,7 @@ class Test extends StatelessWidget {
 ''');
   }
 
-  test_parameters_private_conflictWithPublic() async {
+  Future<void> test_parameters_private_conflictWithPublic() async {
     addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -1033,7 +1033,7 @@ class MyWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new Test(field: field, field2: _field);
+    return Test(field: field, field2: _field);
   }
 }
 
@@ -1055,7 +1055,7 @@ class Test extends StatelessWidget {
 ''');
   }
 
-  test_parameters_readField_readLocal() async {
+  Future<void> test_parameters_readField_readLocal() async {
     addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -1086,7 +1086,7 @@ class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String local;
-    return new Test(field: field, local: local);
+    return Test(field: field, local: local);
   }
 }
 
@@ -1113,7 +1113,7 @@ class Test extends StatelessWidget {
 ''');
   }
 
-  test_refactoringName() async {
+  Future<void> test_refactoringName() async {
     addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
@@ -1129,7 +1129,7 @@ class MyWidget extends StatelessWidget {
     expect(refactoring.refactoringName, 'Extract Widget');
   }
 
-  test_statements() async {
+  Future<void> test_statements() async {
     addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -1157,7 +1157,7 @@ Widget main() {
   var index = 0;
   var a = 'a $index';
 // start
-  return new Test(index: index, a: a);
+  return Test(index: index, a: a);
 // end
 }
 
@@ -1185,7 +1185,7 @@ class Test extends StatelessWidget {
 ''');
   }
 
-  test_statements_BAD_emptySelection() async {
+  Future<void> test_statements_BAD_emptySelection() async {
     addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -1201,7 +1201,7 @@ void main() {
         RefactoringProblemSeverity.FATAL);
   }
 
-  test_statements_BAD_notReturnStatement() async {
+  Future<void> test_statements_BAD_notReturnStatement() async {
     addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -1219,38 +1219,34 @@ void main() {
   }
 
   Future<void> _assertRefactoringChange(String expectedCode) async {
-    SourceChange refactoringChange = await refactoring.createChange();
+    var refactoringChange = await refactoring.createChange();
     this.refactoringChange = refactoringChange;
     assertTestChangeResult(expectedCode);
   }
 
-  /**
-   * Checks that all conditions are OK and the result of applying the change
-   * to [testUnit] is [expectedCode].
-   */
+  /// Checks that all conditions are OK and the result of applying the change
+  /// to [testUnit] is [expectedCode].
   Future<void> _assertSuccessfulRefactoring(String expectedCode) async {
     await assertRefactoringConditionsOK();
     await _assertRefactoringChange(expectedCode);
   }
 
   void _createRefactoring(int offset, int length) {
-    refactoring = new ExtractWidgetRefactoring(
+    refactoring = ExtractWidgetRefactoring(
         searchEngine, testAnalysisResult, offset, length);
     refactoring.name = 'Test';
   }
 
   void _createRefactoringForStartEnd() {
-    int offset = findOffset('// start\n') + '// start\n'.length;
-    int length = findOffset('// end') - offset;
+    var offset = findOffset('// start\n') + '// start\n'.length;
+    var length = findOffset('// end') - offset;
     _createRefactoring(offset, length);
   }
 
-  /**
-   * Creates a new refactoring in [refactoring] at the offset of the given
-   * [search] pattern.
-   */
+  /// Creates a new refactoring in [refactoring] at the offset of the given
+  /// [search] pattern.
   void _createRefactoringForStringOffset(String search) {
-    int offset = findOffset(search);
+    var offset = findOffset(search);
     _createRefactoring(offset, 0);
   }
 }

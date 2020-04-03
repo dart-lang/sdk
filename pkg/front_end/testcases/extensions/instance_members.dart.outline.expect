@@ -1,61 +1,4 @@
 library;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/extensions/instance_members.dart:7:1: Error: This requires the 'extension-methods' experiment to be enabled.
-// Try enabling this experiment by adding it to the command line when compiling and running.
-// extension A2 on A1 {
-// ^^^^^^^^^
-//
-// pkg/front_end/testcases/extensions/instance_members.dart:7:17: Error: A function declaration needs an explicit list of parameters.
-// Try adding a parameter list to the function declaration.
-// extension A2 on A1 {
-//                 ^^
-//
-// pkg/front_end/testcases/extensions/instance_members.dart:7:17: Error: 'A1' is already declared in this scope.
-// extension A2 on A1 {
-//                 ^^
-// pkg/front_end/testcases/extensions/instance_members.dart:5:7: Context: Previous declaration of 'A1'.
-// class A1 {}
-//       ^^
-//
-// pkg/front_end/testcases/extensions/instance_members.dart:30:11: Error: A function declaration needs an explicit list of parameters.
-// Try adding a parameter list to the function declaration.
-// extension B2<T> on B1<T> {
-//           ^^
-//
-// pkg/front_end/testcases/extensions/instance_members.dart:30:17: Error: Expected '{' before this.
-// extension B2<T> on B1<T> {
-//                 ^^
-//
-// pkg/front_end/testcases/extensions/instance_members.dart:30:20: Error: A function declaration needs an explicit list of parameters.
-// Try adding a parameter list to the function declaration.
-// extension B2<T> on B1<T> {
-//                    ^^
-//
-// pkg/front_end/testcases/extensions/instance_members.dart:30:20: Error: 'B1' is already declared in this scope.
-// extension B2<T> on B1<T> {
-//                    ^^
-// pkg/front_end/testcases/extensions/instance_members.dart:28:7: Context: Previous declaration of 'B1'.
-// class B1<T> {}
-//       ^^
-//
-// pkg/front_end/testcases/extensions/instance_members.dart:7:1: Warning: Type 'extension' not found.
-// extension A2 on A1 {
-// ^^^^^^^^^
-//
-// pkg/front_end/testcases/extensions/instance_members.dart:7:14: Warning: Type 'on' not found.
-// extension A2 on A1 {
-//              ^^
-//
-// pkg/front_end/testcases/extensions/instance_members.dart:30:1: Warning: Type 'extension' not found.
-// extension B2<T> on B1<T> {
-// ^^^^^^^^^
-//
-// pkg/front_end/testcases/extensions/instance_members.dart:30:17: Warning: Type 'on' not found.
-// extension B2<T> on B1<T> {
-//                 ^^
-//
 import self as self;
 import "dart:core" as core;
 
@@ -67,8 +10,45 @@ class B1<T extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::B1<self::B1::T*>*
     ;
 }
-static field invalid-type A2;
-static method B2<T extends core::Object* = dynamic>() → invalid-type
+extension A2 on self::A1* {
+  method method1 = self::A2|method1;
+  tearoff method1 = self::A2|get#method1;
+  method method2 = self::A2|method2;
+  tearoff method2 = self::A2|get#method2;
+  method method3 = self::A2|method3;
+  tearoff method3 = self::A2|get#method3;
+  method method4 = self::A2|method4;
+  tearoff method4 = self::A2|get#method4;
+}
+extension B2<T extends core::Object* = dynamic> on self::B1<T*>* {
+  method method1 = self::B2|method1;
+  tearoff method1 = self::B2|get#method1;
+  method method2 = self::B2|method2;
+  tearoff method2 = self::B2|get#method2;
+}
+static method A2|method1(final self::A1* #this) → self::A1*
   ;
+static method A2|get#method1(final self::A1* #this) → () →* self::A1*
+  return () → self::A1* => self::A2|method1(#this);
+static method A2|method2<T extends core::Object* = dynamic>(final self::A1* #this, self::A2|method2::T* o) → self::A1*
+  ;
+static method A2|get#method2(final self::A1* #this) → <T extends core::Object* = dynamic>(T*) →* self::A1*
+  return <T extends core::Object* = dynamic>(T* o) → self::A1* => self::A2|method2<T*>(#this, o);
+static method A2|method3<T extends core::Object* = dynamic>(final self::A1* #this, [self::A2|method3::T* o]) → self::A1*
+  ;
+static method A2|get#method3(final self::A1* #this) → <T extends core::Object* = dynamic>([T*]) →* self::A1*
+  return <T extends core::Object* = dynamic>([T* o]) → self::A1* => self::A2|method3<T*>(#this, o);
+static method A2|method4<T extends core::Object* = dynamic>(final self::A1* #this, {self::A2|method4::T* o}) → self::A1*
+  ;
+static method A2|get#method4(final self::A1* #this) → <T extends core::Object* = dynamic>({o: T*}) →* self::A1*
+  return <T extends core::Object* = dynamic>({T* o}) → self::A1* => self::A2|method4<T*>(#this, o: o);
+static method B2|method1<T extends core::Object* = dynamic>(final self::B1<self::B2|method1::T*>* #this) → self::B1<self::B2|method1::T*>*
+  ;
+static method B2|get#method1<T extends core::Object* = dynamic>(final self::B1<self::B2|get#method1::T*>* #this) → () →* self::B1<self::B2|get#method1::T*>*
+  return () → self::B1<self::B2|get#method1::T*>* => self::B2|method1<self::B2|get#method1::T*>(#this);
+static method B2|method2<T extends core::Object* = dynamic, S extends core::Object* = dynamic>(final self::B1<self::B2|method2::T*>* #this, self::B2|method2::S* o) → self::B1<self::B2|method2::T*>*
+  ;
+static method B2|get#method2<T extends core::Object* = dynamic>(final self::B1<self::B2|get#method2::T*>* #this) → <S extends core::Object* = dynamic>(S*) →* self::B1<self::B2|get#method2::T*>*
+  return <S extends core::Object* = dynamic>(S* o) → self::B1<self::B2|get#method2::T*>* => self::B2|method2<self::B2|get#method2::T*, S*>(#this, o);
 static method main() → dynamic
   ;

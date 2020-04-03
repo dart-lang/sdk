@@ -45,8 +45,19 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   @override
   LinkedNodeBuilder visitAnnotation(Annotation node) {
     var elementComponents = _componentsOfElement(node.element);
+
+    LinkedNodeBuilder storedArguments;
+    var arguments = node.arguments;
+    if (arguments != null) {
+      if (arguments.arguments.every(_isSerializableExpression)) {
+        storedArguments = arguments.accept(this);
+      } else {
+        storedArguments = LinkedNodeBuilder.argumentList();
+      }
+    }
+
     return LinkedNodeBuilder.annotation(
-      annotation_arguments: node.arguments?.accept(this),
+      annotation_arguments: storedArguments,
       annotation_constructorName: node.constructorName?.accept(this),
       annotation_element: elementComponents.rawElement,
       annotation_substitution: elementComponents.substitution,
@@ -271,9 +282,12 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
   @override
   LinkedNodeBuilder visitCompilationUnit(CompilationUnit node) {
+    var nodeImpl = node as CompilationUnitImpl;
     var builder = LinkedNodeBuilder.compilationUnit(
       compilationUnit_declarations: _writeNodeList(node.declarations),
       compilationUnit_directives: _writeNodeList(node.directives),
+      compilationUnit_languageVersionMajor: nodeImpl.languageVersionMajor,
+      compilationUnit_languageVersionMinor: nodeImpl.languageVersionMinor,
       compilationUnit_scriptTag: node.scriptTag?.accept(this),
       informativeId: getInformativeId(node),
     );
@@ -509,6 +523,21 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   }
 
   @override
+  LinkedNodeBuilder visitExtensionOverride(ExtensionOverride node) {
+    var builder = LinkedNodeBuilder.extensionOverride(
+      extensionOverride_arguments: _writeNodeList(
+        node.argumentList.arguments,
+      ),
+      extensionOverride_extensionName: node.extensionName.accept(this),
+      extensionOverride_typeArguments: node.typeArguments?.accept(this),
+      extensionOverride_typeArgumentTypes:
+          node.typeArgumentTypes.map(_writeType).toList(),
+      extensionOverride_extendedType: _writeType(node.extendedType),
+    );
+    return builder;
+  }
+
+  @override
   LinkedNodeBuilder visitFieldDeclaration(FieldDeclaration node) {
     var builder = LinkedNodeBuilder.fieldDeclaration(
       fieldDeclaration_fields: node.fields.accept(this),
@@ -531,6 +560,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       fieldFormalParameter_typeParameters: node.typeParameters?.accept(this),
     );
     _storeNormalFormalParameter(builder, node, node.keyword);
+    builder.flags |= AstBinaryFlags.encode(hasQuestion: node.question != null);
     return builder;
   }
 
@@ -796,6 +826,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     );
     builder.flags = AstBinaryFlags.encode(
       hasPeriod: node.period != null,
+      hasQuestion: node.question != null,
     );
     return builder;
   }
@@ -824,6 +855,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   @override
   LinkedNodeBuilder visitIntegerLiteral(IntegerLiteral node) {
     return LinkedNodeBuilder.integerLiteral(
+      expression_type: _writeType(node.staticType),
       integerLiteral_value: node.value,
     );
   }
@@ -917,6 +949,8 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       methodDeclaration_returnType: node.returnType?.accept(this),
       methodDeclaration_typeParameters: node.typeParameters?.accept(this),
       methodDeclaration_formalParameters: node.parameters?.accept(this),
+      methodDeclaration_hasOperatorEqualWithParameterTypeFromObject:
+          LazyAst.hasOperatorEqualParameterTypeFromObject(node),
     );
     builder.name = node.name.name;
     builder.flags = AstBinaryFlags.encode(
@@ -1324,6 +1358,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     var builder = LinkedNodeBuilder.typeParameter(
       typeParameter_bound: node.bound?.accept(this),
       typeParameter_defaultType: _writeType(LazyAst.getDefaultType(node)),
+      typeParameter_variance: _getVarianceToken(node),
       informativeId: getInformativeId(node),
     );
     builder.name = node.name.name;
@@ -1354,6 +1389,10 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
               _hasConstConstructor)) {
         initializer = null;
       }
+    }
+
+    if (!_isSerializableExpression(initializer)) {
+      initializer = null;
     }
 
     var builder = LinkedNodeBuilder.variableDeclaration(
@@ -1431,12 +1470,12 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   }
 
   _ElementComponents _componentsOfElement(Element element) {
-    while (element is ParameterMember) {
-      element = (element as ParameterMember).baseElement;
+    if (element is ParameterMember) {
+      element = element.declaration;
     }
 
     if (element is Member) {
-      var elementIndex = _indexOfElement(element.baseElement);
+      var elementIndex = _indexOfElement(element.declaration);
       var substitution = element.substitution.map;
       var substitutionBuilder = LinkedNodeTypeSubstitutionBuilder(
         typeParameters: substitution.keys.map(_indexOfElement).toList(),
@@ -1447,6 +1486,15 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
     var elementIndex = _indexOfElement(element);
     return _ElementComponents(elementIndex, null);
+  }
+
+  UnlinkedTokenType _getVarianceToken(TypeParameter parameter) {
+    // TODO (kallentu) : Clean up TypeParameterImpl casting once variance is
+    // added to the interface.
+    var parameterImpl = parameter as TypeParameterImpl;
+    return parameterImpl.varianceKeyword != null
+        ? TokensWriter.astToBinaryTokenType(parameterImpl.varianceKeyword.type)
+        : null;
   }
 
   int _indexOfElement(Element element) {
@@ -1589,7 +1637,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   }
 
   void _storeTypedLiteral(LinkedNodeBuilder builder, TypedLiteral node,
-      {bool isMap: false, bool isSet: false}) {
+      {bool isMap = false, bool isSet = false}) {
     _storeExpression(builder, node);
     builder
       ..flags = AstBinaryFlags.encode(
@@ -1668,7 +1716,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     } else if (node.isOptionalNamed) {
       return LinkedNodeFormalParameterKind.optionalNamed;
     } else {
-      throw new StateError('Unknown kind of parameter');
+      throw StateError('Unknown kind of parameter');
     }
   }
 }

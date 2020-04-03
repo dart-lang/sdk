@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=extension-methods
-
 import "package:expect/expect.dart";
 import "class_no_shadow.dart";
 
@@ -20,6 +18,7 @@ extension ExtraExt on A {
   set setterInGlobalScope(double x) {
     checkOtherExtensionValue(x);
   }
+
   double methodInGlobalScope() => otherExtensionValue;
 
   double get fieldInInstanceScope => otherExtensionValue;
@@ -27,6 +26,7 @@ extension ExtraExt on A {
   set setterInInstanceScope(double x) {
     checkOtherExtensionValue(x);
   }
+
   double methodInInstanceScope() => otherExtensionValue;
 
   double get fieldInOtherExtensionScope => otherExtensionValue;
@@ -34,6 +34,6 @@ extension ExtraExt on A {
   set setterInOtherExtensionScope(double x) {
     checkOtherExtensionValue(x);
   }
-  double methodInOtherExtensionScope() => otherExtensionValue;
 
+  double methodInOtherExtensionScope() => otherExtensionValue;
 }

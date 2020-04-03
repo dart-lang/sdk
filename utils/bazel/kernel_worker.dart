@@ -18,7 +18,7 @@ import 'package:bazel_worker/bazel_worker.dart';
 import 'package:build_integration/file_system/multi_root.dart';
 import 'package:dev_compiler/src/kernel/target.dart';
 import 'package:front_end/src/api_unstable/bazel_worker.dart' as fe;
-import 'package:kernel/ast.dart' show Component, Library;
+import 'package:kernel/ast.dart' show Component, Library, Reference;
 import 'package:kernel/target/targets.dart';
 import 'package:vm/target/vm.dart';
 import 'package:vm/target/flutter.dart';
@@ -142,7 +142,8 @@ final summaryArgsParser = new ArgParser()
   ..addOption('used-inputs')
   ..addFlag('track-widget-creation', defaultsTo: false)
   ..addMultiOption('enable-experiment',
-      help: 'Enable a language experiment when invoking the CFE.');
+      help: 'Enable a language experiment when invoking the CFE.')
+  ..addMultiOption('define', abbr: 'D');
 
 class ComputeKernelResult {
   final bool succeeded;
@@ -166,6 +167,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
     fe.InitializedCompilerState previousState}) async {
   dynamic out = outputBuffer ?? stderr;
   bool succeeded = true;
+
   var parsedArgs = summaryArgsParser.parse(args);
 
   if (parsedArgs['help']) {
@@ -244,29 +246,51 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   fe.InitializedCompilerState state;
   bool usingIncrementalCompiler = false;
   bool recordUsedInputs = parsedArgs["used-inputs"] != null;
-  if (parsedArgs['use-incremental-compiler'] &&
-      linkedInputs.isEmpty &&
-      isWorker) {
+  var environmentDefines = _parseEnvironmentDefines(parsedArgs['define']);
+
+  if (parsedArgs['use-incremental-compiler']) {
     usingIncrementalCompiler = true;
 
     /// Build a map of uris to digests.
     final inputDigests = <Uri, List<int>>{};
-    for (var input in inputs) {
-      inputDigests[_toUri(input.path)] = input.digest;
+    if (inputs != null) {
+      for (var input in inputs) {
+        inputDigests[_toUri(input.path)] = input.digest;
+      }
     }
 
-    // TODO(sigmund): add support for experiments with the incremental compiler.
+    // If digests weren't given and if not in worker mode, create fake data and
+    // ensure we don't have a previous state (as that wouldn't be safe with
+    // fake input digests).
+    if (!isWorker && inputDigests.isEmpty) {
+      previousState = null;
+      inputDigests[_toUri(parsedArgs['dart-sdk-summary'])] = const [0];
+      for (Uri uri in summaryInputs) {
+        inputDigests[uri] = const [0];
+      }
+      for (Uri uri in linkedInputs) {
+        inputDigests[uri] = const [0];
+      }
+    }
+
     state = await fe.initializeIncrementalCompiler(
         previousState,
+        {
+          "target=$targetName",
+          "trackWidgetCreation=$trackWidgetCreation",
+          "multiRootScheme=${fileSystem.markerScheme}",
+          "multiRootRoots=${fileSystem.roots}",
+        },
         _toUri(parsedArgs['dart-sdk-summary']),
         _toUri(parsedArgs['packages-file']),
         _toUri(parsedArgs['libraries-file']),
-        summaryInputs,
+        [...summaryInputs, ...linkedInputs],
         inputDigests,
         target,
         fileSystem,
         (parsedArgs['enable-experiment'] as List<String>),
         summaryOnly,
+        environmentDefines,
         trackNeededDillLibraries: recordUsedInputs);
   } else {
     state = await fe.initializeCompiler(
@@ -275,11 +299,11 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         _toUri(parsedArgs['dart-sdk-summary']),
         _toUri(parsedArgs['libraries-file']),
         _toUri(parsedArgs['packages-file']),
-        summaryInputs,
-        linkedInputs,
+        [...summaryInputs, ...linkedInputs],
         target,
         fileSystem,
-        (parsedArgs['enable-experiment'] as List<String>));
+        parsedArgs['enable-experiment'] as List<String>,
+        environmentDefines);
   }
 
   void onDiagnostic(fe.DiagnosticMessage message) {
@@ -317,9 +341,12 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         incrementalComponent.problemsAsJson = null;
         incrementalComponent.mainMethod = null;
         target.performOutlineTransformations(incrementalComponent);
+        makeStable(incrementalComponent);
         return Future.value(fe.serializeComponent(incrementalComponent,
             includeSources: false, includeOffsets: false));
       }
+
+      makeStable(incrementalComponent);
 
       return Future.value(fe.serializeComponent(incrementalComponent,
           filter: excludeNonSources
@@ -359,6 +386,22 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   }
 
   return new ComputeKernelResult(succeeded, state);
+}
+
+/// Make sure the output is stable by sorting libraries and additional exports.
+void makeStable(Component c) {
+  // Make sure the output is stable.
+  c.libraries.sort((l1, l2) {
+    return "${l1.fileUri}".compareTo("${l2.fileUri}");
+  });
+  c.problemsAsJson?.sort();
+  c.computeCanonicalNames();
+  for (Library library in c.libraries) {
+    library.additionalExports.sort((Reference r1, Reference r2) {
+      return "${r1.canonicalName}".compareTo("${r2.canonicalName}");
+    });
+    library.problemsAsJson?.sort();
+  }
 }
 
 /// Extends the DevCompilerTarget to transform outlines to meet the requirements
@@ -409,4 +452,21 @@ Uri _toUri(String uriString) {
   // Windows-style paths use '\', so convert them to '/' in case they've been
   // concatenated with Unix-style paths.
   return Uri.base.resolve(uriString.replaceAll("\\", "/"));
+}
+
+Map<String, String> _parseEnvironmentDefines(List<String> args) {
+  var environment = <String, String>{};
+
+  for (var arg in args) {
+    var eq = arg.indexOf('=');
+    if (eq <= 0) {
+      var kind = eq == 0 ? 'name' : 'value';
+      throw FormatException('no $kind given to -D option `$arg`');
+    }
+    var name = arg.substring(0, eq);
+    var value = arg.substring(eq + 1);
+    environment[name] = value;
+  }
+
+  return environment;
 }

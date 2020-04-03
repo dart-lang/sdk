@@ -5,6 +5,8 @@
 import "dart:async";
 import "dart:ffi";
 
+import 'package:ffi/ffi.dart';
+
 /// [Arena] manages allocated C memory.
 ///
 /// Arenas are zoned.
@@ -22,7 +24,7 @@ class Arena {
   /// Frees all memory pointed to by [Pointer]s in this arena.
   void finalize() {
     for (final ptr in _allocations) {
-      ptr.free();
+      free(ptr);
     }
   }
 

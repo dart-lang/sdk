@@ -8,56 +8,38 @@ import '../log/log.dart';
 import '../server.dart';
 import 'page_writer.dart';
 
-/**
- * A page writer that will produce the page containing access to the full
- * content of the log.
- */
+/// A page writer that will produce the page containing access to the full
+/// content of the log.
 class LogPage extends PageWriter {
-  /**
-   * The instrumentation log to be written.
-   */
+  /// The instrumentation log to be written.
   InstrumentationLog log;
 
-  /**
-   * The id of the entry groups to be displayed.
-   */
+  /// The id of the entry groups to be displayed.
   EntryGroup selectedGroup;
 
-  /**
-   * The entries in the selected group.
-   */
+  /// The entries in the selected group.
   List<LogEntry> entries;
 
-  /**
-   * The index of the first entry to be written.
-   */
+  /// The index of the first entry to be written.
   int pageStart = 0;
 
-  /**
-   * The number of entries to be written, or `null` if all of the entries should
-   * be written.
-   */
-  int pageLength = null;
+  /// The number of entries to be written, or `null` if all of the entries
+  /// should be written.
+  int pageLength;
 
-  /**
-   * The number of digits in the event stamps that are the same for every entry.
-   */
+  /// The number of digits in the event stamps that are the same for every
+  /// entry.
   int prefixLength;
 
-  /**
-   * A table mapping the ids of plugins to an index for the plugin.
-   */
+  /// A table mapping the ids of plugins to an index for the plugin.
   Map<String, int> pluginIdMap = <String, int>{};
 
-  /**
-   * Initialize a newly created writer to write the content of the given
-   * [instrumentationLog].
-   */
+  /// Initialize a newly created writer to write the content of the given
+  /// [instrumentationLog].
   LogPage(this.log);
 
-  /**
-   * Return the encoding for the given [pluginId] that is used to build anchors.
-   */
+  /// Return the encoding for the given [pluginId] that is used to build
+  /// anchors.
   int getPluginId(String pluginId) {
     return pluginIdMap.putIfAbsent(pluginId, () => pluginIdMap.length);
   }
@@ -108,19 +90,16 @@ function selectEntryGroup(pageStart) {
 ''');
   }
 
-  /**
-   * Write the content of the style sheet (without the 'script' tag) for the
-   * page to the given [sink].
-   */
+  /// Write the content of the style sheet (without the 'script' tag) for the
+  /// page to the given [sink].
+  @override
   void writeStyleSheet(StringSink sink) {
     super.writeStyleSheet(sink);
     writeTwoColumnStyles(sink, 'leftColumn', 'rightColumn');
   }
 
-  /**
-   * Return the number of milliseconds elapsed between the [startEntry] and the
-   * [endEntry], or a question .
-   */
+  /// Return the number of milliseconds elapsed between the [startEntry] and the
+  /// [endEntry], or a question .
   String _getDuration(LogEntry startEntry, LogEntry endEntry) {
     if (startEntry != null && endEntry != null) {
       return (endEntry.timeStamp - startEntry.timeStamp).toString();
@@ -128,36 +107,34 @@ function selectEntryGroup(pageStart) {
     return '?';
   }
 
-  /**
-   * Write the given log [entry] to the given [sink].
-   */
+  /// Write the given log [entry] to the given [sink].
   void _writeEntry(StringSink sink, LogEntry entry) {
-    String id = null;
-    String clickHandler = 'clearHighlight()';
-    String icon = '';
-    String description = entry.kindName;
+    String id;
+    var clickHandler = 'clearHighlight()';
+    var icon = '';
+    var description = entry.kindName;
     if (entry is RequestEntry) {
-      String entryId = entry.id;
+      var entryId = entry.id;
       id = 'req$entryId';
       clickHandler = 'highlight(\'req$entryId\', \'res$entryId\')';
       icon = '&rarr;';
       description = entry.method;
     } else if (entry is ResponseEntry) {
-      String entryId = entry.id;
-      RequestEntry request = log.requestFor(entry);
+      var entryId = entry.id;
+      var request = log.requestFor(entry);
       id = 'res$entryId';
       clickHandler = 'highlight(\'req$entryId\', \'res$entryId\')';
       icon = '&larr;';
       if (request != null) {
-        int latency = entry.timeStamp - request.timeStamp;
+        var latency = entry.timeStamp - request.timeStamp;
         description =
             '${request.method} <span class="gray">($latency ms)</span>';
       }
     } else if (entry is NotificationEntry) {
       id = 'e${entry.index}';
-      LogEntry pairedEntry = log.pairedEntry(entry);
+      var pairedEntry = log.pairedEntry(entry);
       if (pairedEntry != null) {
-        String pairedId = 'e${pairedEntry.index}';
+        var pairedId = 'e${pairedEntry.index}';
         clickHandler = 'highlight(\'$id\', \'$pairedId\')';
       }
       icon = '&larr;';
@@ -166,10 +143,9 @@ function selectEntryGroup(pageStart) {
         var analysisStatus = entry.param('analysis');
         if (analysisStatus is Map) {
           if (analysisStatus['isAnalyzing']) {
-            description =
-                '$description <span class="gray">(analysis)</span> (<a href="${WebServer.taskPath}?analysisStart=${entry.index}">tasks</a>)';
+            description = '$description <span class="gray">(analyzing)</span>';
           } else {
-            String duration = _getDuration(pairedEntry, entry);
+            var duration = _getDuration(pairedEntry, entry);
             description =
                 '$description <span class="gray">(analysis - $duration ms)</span>';
           }
@@ -179,38 +155,38 @@ function selectEntryGroup(pageStart) {
           if (pubStatus['isListingPackageDirs']) {
             description = '$description <span class="gray">(pub)</span>';
           } else {
-            String duration = _getDuration(pairedEntry, entry);
+            var duration = _getDuration(pairedEntry, entry);
             description =
                 '$description <span class="gray">(pub - $duration ms)</span>';
           }
         }
       }
     } else if (entry is PluginRequestEntry) {
-      String entryId = entry.id;
-      int pluginId = getPluginId(entry.pluginId);
+      var entryId = entry.id;
+      var pluginId = getPluginId(entry.pluginId);
       id = 'req$pluginId.$entryId';
       clickHandler =
           'highlight(\'req$pluginId.$entryId\', \'res$pluginId.$entryId\')';
       icon = '&rarr;';
       description = '${entry.method} (${entry.shortPluginId})';
     } else if (entry is PluginResponseEntry) {
-      String entryId = entry.id;
-      int pluginId = getPluginId(entry.pluginId);
-      PluginRequestEntry request = log.pluginRequestFor(entry);
+      var entryId = entry.id;
+      var pluginId = getPluginId(entry.pluginId);
+      var request = log.pluginRequestFor(entry);
       id = 'res$pluginId.$entryId';
       clickHandler =
           'highlight(\'req$pluginId.$entryId\', \'res$pluginId.$entryId\')';
       icon = '&larr;';
       if (request != null) {
-        int latency = entry.timeStamp - request.timeStamp;
+        var latency = entry.timeStamp - request.timeStamp;
         description =
             '${request.method} <span class="gray">($latency ms)</span> (${entry.shortPluginId})';
       }
     } else if (entry is PluginNotificationEntry) {
       id = 'e${entry.index}';
-      LogEntry pairedEntry = log.pairedEntry(entry);
+      var pairedEntry = log.pairedEntry(entry);
       if (pairedEntry != null) {
-        String pairedId = 'e${pairedEntry.index}';
+        var pairedId = 'e${pairedEntry.index}';
         clickHandler = 'highlight(\'$id\', \'$pairedId\')';
       }
       icon = '&larr;';
@@ -229,7 +205,7 @@ function selectEntryGroup(pageStart) {
     }
     id = id == null ? '' : 'id="$id" ';
     clickHandler = '$clickHandler; setDetails(\'${escape(entry.details())}\')';
-    String timeStamp = entry.timeStamp.toString();
+    var timeStamp = entry.timeStamp.toString();
     if (prefixLength > 0) {
       timeStamp = timeStamp.substring(prefixLength);
     }
@@ -245,12 +221,10 @@ function selectEntryGroup(pageStart) {
     sink.writeln('</tr>');
   }
 
-  /**
-   * Write the entries in the instrumentation log to the given [sink].
-   */
+  /// Write the entries in the instrumentation log to the given [sink].
   void _writeLeftColumn(StringSink sink) {
-    int length = entries.length;
-    int pageEnd =
+    var length = entries.length;
+    var pageEnd =
         pageLength == null ? length : math.min(pageStart + pageLength, length);
     //
     // Write the header of the column.
@@ -258,7 +232,7 @@ function selectEntryGroup(pageStart) {
     sink.writeln('<div class="columnHeader">');
     sink.writeln('<div style="float: left">');
     sink.writeln('<select id="entryGroup" onchange="selectEntryGroup()">');
-    for (EntryGroup group in EntryGroup.groups) {
+    for (var group in EntryGroup.groups) {
       sink.write('<option value="');
       sink.write(group.id);
       sink.write('"');
@@ -308,17 +282,15 @@ function selectEntryGroup(pageStart) {
     sink.writeln('<th>Time</th>');
     sink.writeln('<th>Kind</th>');
     sink.writeln('</tr>');
-    for (int i = pageStart; i < pageEnd; i++) {
-      LogEntry entry = entries[i];
+    for (var i = pageStart; i < pageEnd; i++) {
+      var entry = entries[i];
       _writeEntry(sink, entry);
     }
     sink.writeln('</table>');
   }
 
-  /**
-   * Write a placeholder to the given [sink] where the details of a selected
-   * entry can be displayed.
-   */
+  /// Write a placeholder to the given [sink] where the details of a selected
+  /// entry can be displayed.
   void _writeRightColumn(StringSink sink) {
     //
     // Write the header of the column.

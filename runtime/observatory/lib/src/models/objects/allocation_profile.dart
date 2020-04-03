@@ -9,6 +9,7 @@ abstract class AllocationProfile {
   DateTime get lastAccumulatorReset;
   HeapSpace get newSpace;
   HeapSpace get oldSpace;
+  HeapSpace get totalSpace;
   Iterable<ClassHeapStats> get members;
 }
 
@@ -20,16 +21,11 @@ abstract class ClassHeapStats {
   String get displayName;
   Allocations get newSpace;
   Allocations get oldSpace;
-  int get promotedInstances;
-  int get promotedBytes;
 }
 
 abstract class Allocations {
-  AllocationCount get accumulated;
-  AllocationCount get current;
-}
-
-abstract class AllocationCount {
-  int get instances;
-  int get bytes;
+  int instances = 0;
+  int internalSize = 0;
+  int externalSize = 0;
+  int size = 0;
 }

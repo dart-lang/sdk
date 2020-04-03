@@ -7,7 +7,7 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'partial_code_support.dart';
 
 main() {
-  new ParameterTest().buildAll();
+  ParameterTest().buildAll();
 }
 
 class ParameterTest extends PartialCodeTest {
@@ -15,7 +15,7 @@ class ParameterTest extends PartialCodeTest {
     buildTests(
       'required',
       [
-        new TestDescriptor(
+        TestDescriptor(
           'functionType_noIdentifier',
           'f(Function(void)) {}',
           [
@@ -24,7 +24,7 @@ class ParameterTest extends PartialCodeTest {
           'f(Function(void) _s_) {}',
           failing: ['eof'],
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'typeArgument_noGt',
           '''
           class C<E> {}

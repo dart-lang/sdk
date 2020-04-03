@@ -71,7 +71,7 @@ class CustomTestSuite extends TestSuite {
   CustomTestSuite(TestConfiguration configuration)
       : super(configuration, "CustomTestSuite", []);
 
-  Future forEachTest(TestCaseEvent onTest, Map testCache, [onDone]) async {
+  void findTestCases(TestCaseEvent onTest, Map testCache) {
     void enqueueTestCase(TestCase testCase) {
       TestController.numTests++;
       onTest(testCase);
@@ -89,22 +89,18 @@ class CustomTestSuite extends TestSuite {
     enqueueTestCase(testCaseFail);
     enqueueTestCase(testCaseTimeout);
     enqueueTestCase(testCaseFailUnexpected);
-
-    if (onDone != null) {
-      onDone();
-    }
   }
 
   TestCase _makeNormalTestCase(
       String name, Iterable<Expectation> expectations) {
     var args = packageOptions();
     args.addAll([Platform.script.toFilePath(), name]);
-    var command = Command.process('custom', Platform.executable, args, {});
+    var command = ProcessCommand('custom', Platform.executable, args, {});
     return _makeTestCase(name, DEFAULT_TIMEOUT, command, expectations);
   }
 
   TestCase _makeCrashTestCase(String name, Iterable<Expectation> expectations) {
-    var crashCommand = Command.process(
+    var crashCommand = ProcessCommand(
         'custom_crash', getProcessTestFileName(), ["0", "0", "1", "1"], {});
     // The crash test sometimes times out. Run it with a large timeout
     // to help diagnose the delay.

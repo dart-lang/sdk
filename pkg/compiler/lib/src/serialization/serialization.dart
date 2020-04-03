@@ -22,6 +22,7 @@ import '../ir/static_type_base.dart';
 import '../js/js.dart' as js;
 import '../js_model/closure.dart';
 import '../js_model/locals.dart';
+import '../js_model/type_recipe.dart' show TypeRecipe;
 
 part 'abstract_sink.dart';
 part 'abstract_source.dart';
@@ -300,9 +301,6 @@ abstract class DataSink {
   void writeClassMap<V>(Map<ClassEntity, V> map, void f(V value),
       {bool allowNull: false});
 
-  /// Writes a reference to the indexed typedef [value] to this data sink.
-  void writeTypedef(IndexedTypedef value);
-
   /// Writes a reference to the indexed member [value] to this data sink.
   void writeMember(IndexedMember value);
 
@@ -431,6 +429,11 @@ abstract class DataSink {
   ///
   /// This feature is only available a [CodegenWriter] has been registered.
   void writeJsNodeOrNull(js.Node value);
+
+  /// Writes TypeRecipe [value] to this data sink.
+  ///
+  /// This feature is only available a [CodegenWriter] has been registered.
+  void writeTypeRecipe(TypeRecipe value);
 
   /// Register an [EntityWriter] with this data sink for non-default encoding
   /// of entity references.
@@ -715,9 +718,6 @@ abstract class DataSource {
   Map<K, V> readClassMap<K extends ClassEntity, V>(V f(),
       {bool emptyAsNull: false});
 
-  /// Reads a reference to an indexed typedef from this data source.
-  IndexedTypedef readTypedef();
-
   /// Reads a reference to an indexed member from this data source.
   IndexedMember readMember();
 
@@ -836,6 +836,11 @@ abstract class DataSource {
   ///
   /// This feature is only available a [CodegenReader] has been registered.
   js.Node readJsNodeOrNull();
+
+  /// Reads a [TypeRecipe] value from this data source.
+  ///
+  /// This feature is only available a [CodegenReader] has been registered.
+  TypeRecipe readTypeRecipe();
 }
 
 /// Interface used for looking up entities by index during deserialization.
@@ -845,9 +850,6 @@ abstract class EntityLookup {
 
   /// Returns the indexed class corresponding to [index].
   IndexedClass getClassByIndex(int index);
-
-  /// Returns the indexed typedef corresponding to [index].
-  IndexedTypedef getTypedefByIndex(int index);
 
   /// Returns the indexed member corresponding to [index].
   IndexedMember getMemberByIndex(int index);
@@ -868,11 +870,6 @@ class EntityReader {
   IndexedClass readClassFromDataSource(
       DataSource source, EntityLookup entityLookup) {
     return entityLookup.getClassByIndex(source.readInt());
-  }
-
-  IndexedTypedef readTypedefFromDataSource(
-      DataSource source, EntityLookup entityLookup) {
-    return entityLookup.getTypedefByIndex(source.readInt());
   }
 
   IndexedMember readMemberFromDataSource(
@@ -898,10 +895,6 @@ class EntityWriter {
     sink.writeInt(value.classIndex);
   }
 
-  void writeTypedefToDataSink(DataSink sink, IndexedTypedef value) {
-    sink.writeInt(value.typedefIndex);
-  }
-
   void writeMemberToDataSink(DataSink sink, IndexedMember value) {
     sink.writeInt(value.memberIndex);
   }
@@ -921,6 +914,7 @@ abstract class CodegenReader {
   AbstractValue readAbstractValue(DataSource source);
   OutputUnit readOutputUnitReference(DataSource source);
   js.Node readJsNode(DataSource source);
+  TypeRecipe readTypeRecipe(DataSource source);
 }
 
 /// Interface used for writing codegen only data during serialization.
@@ -928,4 +922,5 @@ abstract class CodegenWriter {
   void writeAbstractValue(DataSink sink, AbstractValue value);
   void writeOutputUnitReference(DataSink sink, OutputUnit value);
   void writeJsNode(DataSink sink, js.Node node);
+  void writeTypeRecipe(DataSink sink, TypeRecipe recipe);
 }

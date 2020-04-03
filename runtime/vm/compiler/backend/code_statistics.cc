@@ -167,9 +167,10 @@ void CodeStatistics::Finalize() {
   intptr_t function_size = assembler_->CodeSize();
   unaccounted_bytes_ = function_size - instruction_bytes_;
   ASSERT(unaccounted_bytes_ >= 0);
+
+  const intptr_t unaligned_bytes = Instructions::HeaderSize() + function_size;
   alignment_bytes_ =
-      Utils::RoundUp(function_size, OS::PreferredCodeAlignment()) -
-      function_size;
+      Utils::RoundUp(unaligned_bytes, kObjectAlignment) - unaligned_bytes;
   assembler_ = NULL;
 }
 

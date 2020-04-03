@@ -145,6 +145,20 @@ hr {
   flex-wrap: wrap;
 }
 
+.flex-row-wrap-right {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.flex-row-spaced {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
 .inline-flex-row {
   display: inline-flex;
   flex-direction: row;
@@ -283,6 +297,12 @@ hr {
   flex-basis: 90%;
 }
 
+.flex-item-even {
+  flex-grow: 1;
+  flex-shrink: 0;
+  padding: 5px;
+}
+
 .indent {
   margin-left: 1.5em;
   font: 400 14px 'Montserrat', sans-serif;
@@ -399,7 +419,7 @@ button.big {
 
 .allocation-profile .heap-space {
   display: inline-block;
-  width: 50%;
+  width: 33%;
 }
 
 .allocation-profile .heap-space.right,
@@ -499,33 +519,41 @@ button.big {
 }
 
 .allocation-profile .collection-item :nth-child(2n+2).group,
-.allocation-profile .collection-item :nth-child(4n+3),
-.allocation-profile .collection-item :nth-child(4n+4) {
+.allocation-profile .collection-item :nth-child(8n+1),
+.allocation-profile .collection-item :nth-child(8n+2),
+.allocation-profile .collection-item :nth-child(8n+3),
+.allocation-profile .collection-item :nth-child(8n+4) {
   background-color: #EEEEEE;
 }
 
-.allocation-profile .collection-item:hover :nth-child(2n+2).group,
-.allocation-profile .collection-item:hover :nth-child(4n+3),
-.allocation-profile .collection-item:hover :nth-child(4n+4) {
+.allocation-profile .collection-item:hover :nth-child(2n+1).group,
+.allocation-profile .collection-item:hover :nth-child(8n+1),
+.allocation-profile .collection-item:hover :nth-child(8n+2),
+.allocation-profile .collection-item:hover :nth-child(8n+3),
+.allocation-profile .collection-item:hover :nth-child(8n+4) {
   background-color: #afd5fd;
 }
 
-.allocation-profile .header .collection-item :nth-child(2n+1).group,
-.allocation-profile .header .collection-item :nth-child(4n+1),
-.allocation-profile .header .collection-item :nth-child(4n+2) {
+.allocation-profile .header .collection-item :nth-child(2n+2).group,
+.allocation-profile .header .collection-item :nth-child(8n+5),
+.allocation-profile .header .collection-item :nth-child(8n+6),
+.allocation-profile .header .collection-item :nth-child(8n+7),
+.allocation-profile .header .collection-item :nth-child(8n+8) {
   background-color: #FFFFFF;
 }
 
-.allocation-profile .header .collection-item :nth-child(2n+2).group,
-.allocation-profile .header .collection-item :nth-child(4n+3),
-.allocation-profile .header .collection-item :nth-child(4n+4) {
+.allocation-profile .header .collection-item :nth-child(2n+1).group,
+.allocation-profile .header .collection-item :nth-child(8n+1),
+.allocation-profile .header .collection-item :nth-child(8n+2),
+.allocation-profile .header .collection-item :nth-child(8n+3),
+.allocation-profile .header .collection-item :nth-child(8n+4) {
   background-color: #DDDDDD;
 }
 
 .allocation-profile .collection-item .group {
   display: inline-block;
-  width: 12em;
-  text-align: right;
+  width: 24em;
+  text-align: center;
   padding-right: 0.5em;
   line-height: 20px;
   border-right: solid 1px #AAAAAA;
@@ -1321,20 +1349,38 @@ eval-box .historyDelete button:hover {
   height: 30px;
   padding-left: 5%;
   padding-right: 5%;
+
+  display: flex;
+  flex-direction: row;
 }
 .heap-snapshot .tree-item > .size,
 .heap-snapshot .tree-item > .percentage {
-  display: inline-block;
   text-align: right;
-  width: 4em;
   margin-left: 0.25em;
   margin-right: 0.25em;
+  flex-basis: 5em;
+  flex-grow: 0;
+  flex-shrink: 0;
 }
-
+.heap-snapshot .tree-item > .edge {
+  margin-left: 0.25em;
+  margin-right: 0.25em;
+  flex-basis: 0;
+  flex-grow: 1;
+  flex-shrink: 1;
+}
 .heap-snapshot .tree-item > .name {
-  display: inline;
   margin-left: 0.5em;
   margin-right: 0.5em;
+  flex-basis: 0;
+  flex-grow: 4;
+  flex-shrink: 4;
+}
+.heap-snapshot .tree-item > .link {
+  margin-left: 0.25em;
+  margin-right: 0.25em;
+  flex-grow: 0;
+  flex-shrink: 0;
 }
 
 
@@ -1480,11 +1526,12 @@ eval-box .historyDelete button:hover {
 .isolate-ref-container {
   overflow: hidden;
   text-overflow: ellipsis;
+  padding: 5px;
+  font-weight: bolder;
 }
 
 .isolate-state-container {
   display: inline-block;
-  min-width: 18ex;
 }
 
 .isolate-shared-summary > .summary {
@@ -2720,7 +2767,7 @@ li.nav-menu, .nav-menu_label {
 
 .virtual-collection .header.attached > div,
 .virtual-collection .buffer > div {
-  display: inline-block;
+/*  display: inline-block;*/
 }
 
 .virtual-collection .buffer > div {
@@ -2818,4 +2865,15 @@ li.nav-menu, .nav-menu_label {
 
 .vm-connect ul {
   list-style-type: none;
+}
+
+.treemapTile {
+  position: absolute;
+  box-sizing: border-box;
+  border: solid 1px;
+  font-size: 10px;
+  text-align: center;
+  overflow: hidden;
+  white-space: nowrap;
+  cursor: default;
 }

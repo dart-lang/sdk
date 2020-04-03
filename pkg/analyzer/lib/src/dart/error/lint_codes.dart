@@ -19,6 +19,12 @@ class LintCode extends ErrorCode {
   ErrorSeverity get errorSeverity => ErrorSeverity.INFO;
 
   @override
+  int get hashCode => uniqueName.hashCode;
+
+  @override
+  bool operator ==(other) => uniqueName == other.uniqueName;
+
+  @override
   ErrorType get type => ErrorType.LINT;
 
   /**
@@ -26,9 +32,9 @@ class LintCode extends ErrorCode {
    * pattern (we know how to identify a lint even if we don't know the specific
    * subclass the lint's code is defined in.
    */
+  @override
   String get uniqueName => "LintCode.$name";
 
   @override
-  String get url =>
-      'https://dart-lang.github.io/linter/lints/${name.toLowerCase()}.html';
+  String get url => 'https://dart-lang.github.io/linter/lints/$name.html';
 }

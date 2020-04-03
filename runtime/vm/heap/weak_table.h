@@ -8,6 +8,7 @@
 #include "vm/globals.h"
 
 #include "platform/assert.h"
+#include "vm/lockers.h"
 #include "vm/raw_object.h"
 
 namespace dart {
@@ -46,70 +47,90 @@ class WeakTable {
   intptr_t used() const { return used_; }
   intptr_t count() const { return count_; }
 
-  bool IsValidEntryAt(intptr_t i) const {
-    ASSERT(((ValueAt(i) == 0) && ((ObjectAt(i) == NULL) ||
-                                  (data_[ObjectIndex(i)] == kDeletedEntry))) ||
-           ((ValueAt(i) != 0) && (ObjectAt(i) != NULL) &&
-            (data_[ObjectIndex(i)] != kDeletedEntry)));
+  // The following methods can be called concurrently and are guarded by a lock.
+
+  intptr_t GetValue(RawObject* key) {
+    MutexLocker ml(&mutex_);
+    return GetValueExclusive(key);
+  }
+
+  void SetValue(RawObject* key, intptr_t val) {
+    MutexLocker ml(&mutex_);
+    return SetValueExclusive(key, val);
+  }
+
+  // The following "exclusive" methods must only be called from call sites
+  // which are known to have exclusive access to the weak table.
+  //
+  // This is mostly limited to GC related code (e.g. scavenger, marker, ...)
+
+  bool IsValidEntryAtExclusive(intptr_t i) const {
+    ASSERT((ValueAtExclusive(i) == 0 &&
+            (ObjectAtExclusive(i) == NULL ||
+             data_[ObjectIndex(i)] == kDeletedEntry)) ||
+           (ValueAtExclusive(i) != 0 && ObjectAtExclusive(i) != NULL &&
+            data_[ObjectIndex(i)] != kDeletedEntry));
     return (data_[ValueIndex(i)] != 0);
   }
 
-  void InvalidateAt(intptr_t i) {
-    ASSERT(IsValidEntryAt(i));
+  void InvalidateAtExclusive(intptr_t i) {
+    ASSERT(IsValidEntryAtExclusive(i));
     SetValueAt(i, 0);
   }
 
-  RawObject* ObjectAt(intptr_t i) const {
+  RawObject* ObjectAtExclusive(intptr_t i) const {
     ASSERT(i >= 0);
     ASSERT(i < size());
     return reinterpret_cast<RawObject*>(data_[ObjectIndex(i)]);
   }
 
-  intptr_t ValueAt(intptr_t i) const {
+  intptr_t ValueAtExclusive(intptr_t i) const {
     ASSERT(i >= 0);
     ASSERT(i < size());
     return data_[ValueIndex(i)];
   }
 
-  void SetValue(RawObject* key, intptr_t val);
+  void SetValueExclusive(RawObject* key, intptr_t val);
 
-  intptr_t GetValue(RawObject* key) const {
+  intptr_t GetValueExclusive(RawObject* key) const {
     intptr_t mask = size() - 1;
     intptr_t idx = Hash(key) & mask;
-    RawObject* obj = ObjectAt(idx);
+    RawObject* obj = ObjectAtExclusive(idx);
     while (obj != NULL) {
       if (obj == key) {
-        return ValueAt(idx);
+        return ValueAtExclusive(idx);
       }
       idx = (idx + 1) & mask;
-      obj = ObjectAt(idx);
+      obj = ObjectAtExclusive(idx);
     }
-    ASSERT(ValueAt(idx) == 0);
+    ASSERT(ValueAtExclusive(idx) == 0);
     return 0;
   }
 
   // Removes and returns the value associated with |key|. Returns 0 if there is
   // no value associated with |key|.
-  intptr_t RemoveValue(RawObject* key) {
+  intptr_t RemoveValueExclusive(RawObject* key) {
     intptr_t mask = size() - 1;
     intptr_t idx = Hash(key) & mask;
-    RawObject* obj = ObjectAt(idx);
+    RawObject* obj = ObjectAtExclusive(idx);
     while (obj != NULL) {
       if (obj == key) {
-        intptr_t result = ValueAt(idx);
-        InvalidateAt(idx);
+        intptr_t result = ValueAtExclusive(idx);
+        InvalidateAtExclusive(idx);
         return result;
       }
       idx = (idx + 1) & mask;
-      obj = ObjectAt(idx);
+      obj = ObjectAtExclusive(idx);
     }
-    ASSERT(ValueAt(idx) == 0);
+    ASSERT(ValueAtExclusive(idx) == 0);
     return 0;
   }
 
   void Forward(ObjectPointerVisitor* visitor);
 
   void Reset();
+
+  void MergeOtherWeakTable(WeakTable* other);
 
  private:
   enum {
@@ -173,6 +194,8 @@ class WeakTable {
   static intptr_t Hash(RawObject* key) {
     return reinterpret_cast<uintptr_t>(key) * 92821;
   }
+
+  Mutex mutex_;
 
   // data_ contains size_ tuples of key/value.
   intptr_t* data_;

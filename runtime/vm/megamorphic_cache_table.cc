@@ -5,6 +5,7 @@
 #include "vm/megamorphic_cache_table.h"
 
 #include <stdlib.h>
+#include "vm/compiler/jit/compiler.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/stub_code.h"
@@ -12,9 +13,10 @@
 
 namespace dart {
 
-RawMegamorphicCache* MegamorphicCacheTable::Lookup(Isolate* isolate,
+RawMegamorphicCache* MegamorphicCacheTable::Lookup(Thread* thread,
                                                    const String& name,
                                                    const Array& descriptor) {
+  Isolate* isolate = thread->isolate();
   // Multiple compilation threads could access this lookup.
   SafepointMutexLocker ml(isolate->megamorphic_mutex());
   ASSERT(name.IsSymbol());

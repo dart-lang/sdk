@@ -15,12 +15,19 @@ class InitializedCompilerState {
   final CompilerOptions options;
   final ProcessedOptions processedOpts;
   final Map<Uri, WorkerInputComponent> workerInputCache;
+
+  /// A map from library import uri to dill uri, i.e. where a library came from,
+  /// for all cached libraries.
+  final Map<Uri, Uri> workerInputCacheLibs;
   final IncrementalCompiler incrementalCompiler;
+  final Set<String> tags;
   final Map<Uri, Uri> libraryToInputDill;
 
   InitializedCompilerState(this.options, this.processedOpts,
       {this.workerInputCache,
+      this.workerInputCacheLibs,
       this.incrementalCompiler,
+      this.tags,
       this.libraryToInputDill});
 }
 
@@ -31,12 +38,7 @@ class InitializedCompilerState {
 class WorkerInputComponent {
   final List<int> digest;
   final Component component;
-  final Set<Uri> externalLibs;
-  WorkerInputComponent(this.digest, this.component)
-      : externalLibs = component.libraries
-            .where((lib) => lib.isExternal)
-            .map((lib) => lib.importUri)
-            .toSet();
+  WorkerInputComponent(this.digest, this.component);
 }
 
 bool digestsEqual(List<int> a, List<int> b) {

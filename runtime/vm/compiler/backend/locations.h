@@ -17,35 +17,28 @@ namespace dart {
 class BufferFormatter;
 class ConstantInstr;
 class Definition;
+class PairLocation;
 class Value;
 
-template <class Location>
-class TemplatePairLocation;
+#define FOR_EACH_REPRESENTATION_KIND(M)                                        \
+  M(NoRepresentation)                                                          \
+  M(Tagged)                                                                    \
+  M(Untagged)                                                                  \
+  M(UnboxedDouble)                                                             \
+  M(UnboxedFloat)                                                              \
+  M(UnboxedInt32)                                                              \
+  M(UnboxedUint32)                                                             \
+  M(UnboxedInt64)                                                              \
+  M(UnboxedFloat32x4)                                                          \
+  M(UnboxedInt32x4)                                                            \
+  M(UnboxedFloat64x2)                                                          \
+  M(PairOfTagged)
 
 enum Representation {
-  kNoRepresentation,
-  kTagged,
-  kUntagged,
-  kUnboxedDouble,
-  kUnboxedFloat,
-  kUnboxedInt32,
-  kUnboxedUint32,
-  kUnboxedInt64,
-  kUnboxedFloat32x4,
-  kUnboxedInt32x4,
-  kUnboxedFloat64x2,
-  kPairOfTagged,
-  kNumRepresentations
-};
-
-// The representation of 8 and 16 bit integers in 32 bit. SmallRepresentation
-// tracks the real representation of these small integers.
-enum SmallRepresentation {
-  kNoSmallRepresentation,
-  kSmallUnboxedInt8,
-  kSmallUnboxedUint8,
-  kSmallUnboxedInt16,
-  kSmallUnboxedUint16,
+#define DECLARE_REPRESENTATION(name) k##name,
+  FOR_EACH_REPRESENTATION_KIND(DECLARE_REPRESENTATION)
+#undef DECLARE_REPRESENTATION
+      kNumRepresentations
 };
 
 // 'UnboxedFfiIntPtr' should be able to hold a pointer of the target word-size.
@@ -62,8 +55,6 @@ static constexpr Representation kUnboxedFfiIntPtr =
 static constexpr Representation kUnboxedIntPtr =
     compiler::target::kWordSize == 4 ? kUnboxedInt32 : kUnboxedInt64;
 
-class FrameRebase;
-
 // Location objects are used to connect register allocator and code generator.
 // Instruction templates used by code generator have a corresponding
 // LocationSummary object which specifies expected location for every input
@@ -78,8 +69,7 @@ class FrameRebase;
 // are bitwise unequal then these two locations are guaranteed to be disjoint.
 // Properties like representation belong to the value that is stored in
 // the location not to the location itself.
-template <class Register, class FpuRegister>
-class TemplateLocation : public ValueObject {
+class Location : public ValueObject {
  private:
   enum {
     // Number of bits required to encode Kind value.
@@ -94,13 +84,8 @@ class TemplateLocation : public ValueObject {
   static const uword kLocationTagMask = 0x3;
 
  public:
-#if defined(TARGET_ARCH_DBC)
-  enum SpecialDbcRegister{
-      kArgsDescriptorReg,
-      kExceptionReg,
-      kStackTraceReg,
-  };
-#endif
+  static bool ParseRepresentation(const char* str, Representation* out);
+  static const char* RepresentationToCString(Representation repr);
 
   // Constant payload can overlap with kind field so Kind values
   // have to be chosen in a way that their last 2 bits are never
@@ -137,15 +122,9 @@ class TemplateLocation : public ValueObject {
     // FpuRegister location represents a fixed fpu register.  Payload contains
     // its code.
     kFpuRegister = 12,
-
-#ifdef TARGET_ARCH_DBC
-    // We use this to signify a special `Location` where the different
-    // [SpecialDbcRegister]s can be found on DBC.
-    kSpecialDbcRegister = 15,
-#endif
   };
 
-  TemplateLocation() : value_(kInvalidLocation) {
+  Location() : value_(kInvalidLocation) {
     // Verify that non-tagged location kinds do not interfere with location tags
     // (kConstantTag and kPairLocationTag).
     COMPILE_ASSERT((kInvalid & kLocationTagMask) != kConstantTag);
@@ -169,12 +148,6 @@ class TemplateLocation : public ValueObject {
     COMPILE_ASSERT((kFpuRegister & kLocationTagMask) != kConstantTag);
     COMPILE_ASSERT((kFpuRegister & kLocationTagMask) != kPairLocationTag);
 
-#ifdef TARGET_ARCH_DBC
-    COMPILE_ASSERT((kSpecialDbcRegister & kLocationTagMask) != kConstantTag);
-    COMPILE_ASSERT((kSpecialDbcRegister & kLocationTagMask) !=
-                   kPairLocationTag);
-#endif
-
     // Verify tags and tagmask.
     COMPILE_ASSERT((kConstantTag & kLocationTagMask) == kConstantTag);
 
@@ -183,10 +156,9 @@ class TemplateLocation : public ValueObject {
     ASSERT(IsInvalid());
   }
 
-  TemplateLocation(const TemplateLocation& other)
-      : ValueObject(), value_(other.value_) {}
+  Location(const Location& other) : ValueObject(), value_(other.value_) {}
 
-  TemplateLocation& operator=(const TemplateLocation& other) {
+  Location& operator=(const Location& other) {
     value_ = other.value_;
     return *this;
   }
@@ -198,8 +170,8 @@ class TemplateLocation : public ValueObject {
     return (value_ & kLocationTagMask) == kConstantTag;
   }
 
-  static TemplateLocation Constant(const ConstantInstr* obj) {
-    TemplateLocation loc(reinterpret_cast<uword>(obj) | kConstantTag);
+  static Location Constant(const ConstantInstr* obj) {
+    Location loc(reinterpret_cast<uword>(obj) | kConstantTag);
     ASSERT(obj == loc.constant_instruction());
     return loc;
   }
@@ -215,15 +187,12 @@ class TemplateLocation : public ValueObject {
     return (value_ & kLocationTagMask) == kPairLocationTag;
   }
 
-  static TemplateLocation Pair(TemplateLocation first, TemplateLocation second);
+  static Location Pair(Location first, Location second);
 
-  TemplatePairLocation<TemplateLocation<Register, FpuRegister>>*
-  AsPairLocation() const;
+  PairLocation* AsPairLocation() const;
 
   // For pair locations, returns the ith component (for i in {0, 1}).
-  TemplateLocation<Register, FpuRegister> Component(intptr_t i) const {
-    return AsPairLocation()->At(i);
-  }
+  Location Component(intptr_t i) const;
 
   // Unallocated locations.
   enum Policy {
@@ -239,37 +208,37 @@ class TemplateLocation : public ValueObject {
 
   bool IsRegisterBeneficial() { return !Equals(Any()); }
 
-  static TemplateLocation UnallocatedLocation(Policy policy) {
-    return TemplateLocation(kUnallocated, PolicyField::encode(policy));
+  static Location UnallocatedLocation(Policy policy) {
+    return Location(kUnallocated, PolicyField::encode(policy));
   }
 
   // Any free register is suitable to replace this unallocated location.
-  static TemplateLocation Any() { return UnallocatedLocation(kAny); }
+  static Location Any() { return UnallocatedLocation(kAny); }
 
-  static TemplateLocation PrefersRegister() {
+  static Location PrefersRegister() {
     return UnallocatedLocation(kPrefersRegister);
   }
 
-  static TemplateLocation RequiresRegister() {
+  static Location RequiresRegister() {
     return UnallocatedLocation(kRequiresRegister);
   }
 
-  static TemplateLocation RequiresFpuRegister() {
+  static Location RequiresFpuRegister() {
     return UnallocatedLocation(kRequiresFpuRegister);
   }
 
-  static TemplateLocation WritableRegister() {
+  static Location WritableRegister() {
     return UnallocatedLocation(kWritableRegister);
   }
 
   // The location of the first input to the instruction will be
   // used to replace this unallocated location.
-  static TemplateLocation SameAsFirstInput() {
+  static Location SameAsFirstInput() {
     return UnallocatedLocation(kSameAsFirstInput);
   }
 
   // Empty location. Used if there the location should be ignored.
-  static TemplateLocation NoLocation() { return TemplateLocation(); }
+  static Location NoLocation() { return Location(); }
 
   Policy policy() const {
     ASSERT(IsUnallocated());
@@ -277,8 +246,8 @@ class TemplateLocation : public ValueObject {
   }
 
   // Register locations.
-  static TemplateLocation RegisterLocation(Register reg) {
-    return TemplateLocation(kRegister, reg);
+  static Location RegisterLocation(Register reg) {
+    return Location(kRegister, reg);
   }
 
   bool IsRegister() const { return kind() == kRegister; }
@@ -289,27 +258,11 @@ class TemplateLocation : public ValueObject {
   }
 
   // FpuRegister locations.
-  static TemplateLocation FpuRegisterLocation(FpuRegister reg) {
-    return TemplateLocation(kFpuRegister, reg);
+  static Location FpuRegisterLocation(FpuRegister reg) {
+    return Location(kFpuRegister, reg);
   }
 
   bool IsFpuRegister() const { return kind() == kFpuRegister; }
-
-#ifdef TARGET_ARCH_DBC
-  bool IsArgsDescRegister() const {
-    return IsSpecialDbcRegister(kArgsDescriptorReg);
-  }
-  bool IsExceptionRegister() const {
-    return IsSpecialDbcRegister(kExceptionReg);
-  }
-  bool IsStackTraceRegister() const {
-    return IsSpecialDbcRegister(kStackTraceReg);
-  }
-
-  bool IsSpecialDbcRegister(SpecialDbcRegister reg) const {
-    return kind() == kSpecialDbcRegister && payload() == reg;
-  }
-#endif
 
   FpuRegister fpu_reg() const {
     ASSERT(IsFpuRegister());
@@ -320,7 +273,7 @@ class TemplateLocation : public ValueObject {
     return (kind == kRegister) || (kind == kFpuRegister);
   }
 
-  static TemplateLocation MachineRegisterLocation(Kind kind, intptr_t reg) {
+  static Location MachineRegisterLocation(Kind kind, intptr_t reg) {
     if (kind == kRegister) {
       return RegisterLocation(static_cast<Register>(reg));
     } else {
@@ -342,10 +295,10 @@ class TemplateLocation : public ValueObject {
     return static_cast<uword>(kStackIndexBias + stack_index);
   }
 
-  static TemplateLocation StackSlot(intptr_t stack_index, Register base) {
+  static Location StackSlot(intptr_t stack_index, Register base) {
     uword payload = StackSlotBaseField::encode(base) |
                     StackIndexField::encode(EncodeStackIndex(stack_index));
-    TemplateLocation loc(kStackSlot, payload);
+    Location loc(kStackSlot, payload);
     // Ensure that sign is preserved.
     ASSERT(loc.stack_index() == stack_index);
     return loc;
@@ -353,10 +306,10 @@ class TemplateLocation : public ValueObject {
 
   bool IsStackSlot() const { return kind() == kStackSlot; }
 
-  static TemplateLocation DoubleStackSlot(intptr_t stack_index, Register base) {
+  static Location DoubleStackSlot(intptr_t stack_index, Register base) {
     uword payload = StackSlotBaseField::encode(base) |
                     StackIndexField::encode(EncodeStackIndex(stack_index));
-    TemplateLocation loc(kDoubleStackSlot, payload);
+    Location loc(kDoubleStackSlot, payload);
     // Ensure that sign is preserved.
     ASSERT(loc.stack_index() == stack_index);
     return loc;
@@ -364,10 +317,10 @@ class TemplateLocation : public ValueObject {
 
   bool IsDoubleStackSlot() const { return kind() == kDoubleStackSlot; }
 
-  static TemplateLocation QuadStackSlot(intptr_t stack_index, Register base) {
+  static Location QuadStackSlot(intptr_t stack_index, Register base) {
     uword payload = StackSlotBaseField::encode(base) |
                     StackIndexField::encode(EncodeStackIndex(stack_index));
-    TemplateLocation loc(kQuadStackSlot, payload);
+    Location loc(kQuadStackSlot, payload);
     // Ensure that sign is preserved.
     ASSERT(loc.stack_index() == stack_index);
     return loc;
@@ -399,19 +352,19 @@ class TemplateLocation : public ValueObject {
   const char* ToCString() const;
 
   // Compare two locations.
-  bool Equals(TemplateLocation other) const { return value_ == other.value_; }
+  bool Equals(Location other) const { return value_ == other.value_; }
 
   // If current location is constant might return something that
   // is not equal to any Kind.
   Kind kind() const { return KindField::decode(value_); }
 
-  TemplateLocation Copy() const;
+  Location Copy() const;
 
-  static TemplateLocation read(uword value) { return TemplateLocation(value); }
+  static Location read(uword value) { return Location(value); }
   uword write() const { return value_; }
 
  private:
-  explicit TemplateLocation(uword value) : value_(value) {}
+  explicit Location(uword value) : value_(value) {}
 
   void set_stack_index(intptr_t index) {
     ASSERT(HasStackIndex());
@@ -425,12 +378,10 @@ class TemplateLocation : public ValueObject {
                                   value_);
   }
 
-  TemplateLocation(Kind kind, uword payload)
+  Location(Kind kind, uword payload)
       : value_(KindField::encode(kind) | PayloadField::encode(payload)) {}
 
   uword payload() const { return PayloadField::decode(value_); }
-
-  friend class FrameRebase;
 
   class KindField : public BitField<uword, Kind, kKindBitsPos, kKindBitsSize> {
   };
@@ -461,22 +412,8 @@ class TemplateLocation : public ValueObject {
   // a constant locations. Values of enumeration Kind are selected in such a
   // way that none of them can be interpreted as a kConstant tag.
   uword value_;
-
-  // The following functions are only defined for Location, not for
-  // HostLocation, but they do need access to private fields or constructors.
-  friend TemplateLocation<dart::Register, dart::FpuRegister>
-  LocationArgumentsDescriptorLocation();
-  friend TemplateLocation<dart::Register, dart::FpuRegister>
-  LocationExceptionLocation();
-  friend TemplateLocation<dart::Register, dart::FpuRegister>
-  LocationStackTraceLocation();
 };
 
-using Location = TemplateLocation<dart::Register, dart::FpuRegister>;
-using HostLocation =
-    TemplateLocation<dart::host::Register, dart::host::FpuRegister>;
-
-// The following functions are only defined for Location, not for HostLocation.
 Location LocationArgumentsDescriptorLocation();
 Location LocationExceptionLocation();
 Location LocationStackTraceLocation();
@@ -493,16 +430,12 @@ Location LocationRemapForSlowPath(Location loc,
                                   intptr_t* cpu_reg_slots,
                                   intptr_t* fpu_reg_slots);
 
-// DBC does not have an notion of 'address' in its instruction set.
-#if !defined(TARGET_ARCH_DBC)
 // Return a memory operand for stack slot locations.
 compiler::Address LocationToStackSlotAddress(Location loc);
-#endif
 
-template <class Location>
-class TemplatePairLocation : public ZoneAllocated {
+class PairLocation : public ZoneAllocated {
  public:
-  TemplatePairLocation() {
+  PairLocation() {
     for (intptr_t i = 0; i < kPairLength; i++) {
       ASSERT(locations_[i].IsInvalid());
     }
@@ -532,9 +465,6 @@ class TemplatePairLocation : public ZoneAllocated {
   static const intptr_t kPairLength = 2;
   Location locations_[kPairLength];
 };
-
-using PairLocation = TemplatePairLocation<Location>;
-using HostPairLocation = TemplatePairLocation<HostLocation>;
 
 template <typename T>
 class SmallSet {
@@ -572,7 +502,7 @@ class RegisterSet : public ValueObject {
 
   void AddAllNonReservedRegisters(bool include_fpu_registers) {
     for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
-      if (kReservedCpuRegisters & (1 << i)) continue;
+      if ((kReservedCpuRegisters & (1 << i)) != 0u) continue;
       Add(Location::RegisterLocation(static_cast<Register>(i)));
     }
 
@@ -604,6 +534,24 @@ class RegisterSet : public ValueObject {
         Add(Location::FpuRegisterLocation(static_cast<FpuRegister>(i)));
       }
 #if defined(TARGET_ARCH_ARM)
+    }
+#endif
+  }
+
+  void AddAllArgumentRegisters() {
+    // All (native) arguments are passed on the stack in IA32.
+#if !defined(TARGET_ARCH_IA32)
+    for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
+      const Register reg = static_cast<Register>(i);
+      if (IsArgumentRegister(reg)) {
+        Add(Location::RegisterLocation(reg));
+      }
+    }
+    for (intptr_t i = 0; i < kNumberOfFpuRegisters; ++i) {
+      const FpuRegister reg = static_cast<FpuRegister>(i);
+      if (IsFpuArgumentRegister(reg)) {
+        Add(Location::FpuRegisterLocation(reg));
+      }
     }
 #endif
   }
@@ -765,12 +713,8 @@ class LocationSummary : public ZoneAllocated {
 
   void set_out(intptr_t index, Location loc) {
     ASSERT(index == 0);
-// DBC calls are different from call on other architectures so this
-// assert doesn't make sense.
-#if !defined(TARGET_ARCH_DBC)
     ASSERT(!always_calls() || (loc.IsMachineRegister() || loc.IsInvalid() ||
                                loc.IsPairLocation()));
-#endif
     output_location_ = loc;
   }
 
@@ -827,36 +771,6 @@ class LocationSummary : public ZoneAllocated {
 #if defined(DEBUG)
   intptr_t writable_inputs_;
 #endif
-};
-
-// Describes a change of stack frame where the stack or base register or stack
-// offset may change. This class allows easily rebasing stack locations across
-// frame manipulations.
-//
-// If the stack offset register matches 'old_base', it is changed to 'new_base'
-// and 'stack_delta' (# of slots) is applied.
-class FrameRebase : public ValueObject {
- public:
-  FrameRebase(Register old_base, Register new_base, intptr_t stack_delta)
-      : old_base_(old_base), new_base_(new_base), stack_delta_(stack_delta) {}
-
-  Location Rebase(Location loc) {
-    if (loc.IsPairLocation()) {
-      return Location::Pair(Rebase(loc.Component(0)), Rebase(loc.Component(1)));
-    }
-    if (!loc.HasStackIndex() || loc.base_reg() != old_base_) {
-      return loc;
-    }
-
-    loc.set_base_reg(new_base_);
-    loc.set_stack_index(loc.stack_index() + stack_delta_);
-    return loc;
-  }
-
- private:
-  Register old_base_;
-  Register new_base_;
-  intptr_t stack_delta_;
 };
 
 }  // namespace dart

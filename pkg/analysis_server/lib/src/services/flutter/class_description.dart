@@ -44,21 +44,17 @@ class ClassDescriptionRegistry {
     _map.clear();
   }
 
-  /// If the [type] is a class, and we know how to materialize it, return its
-  /// [ClassDescription]. Otherwise return `null`.
-  ClassDescription get(DartType type) {
-    if (type is InterfaceType) {
-      var element = type.element;
-      var description = _map[element];
-      if (description == null) {
-        description = _classDescription(element);
-        if (description != null) {
-          _map[element] = description;
-        }
+  /// If we know how to materialize the [element], return [ClassDescription].
+  /// Otherwise return `null`.
+  ClassDescription get(ClassElement element) {
+    var description = _map[element];
+    if (description == null) {
+      description = _classDescription(element);
+      if (description != null) {
+        _map[element] = description;
       }
-      return description;
     }
-    return null;
+    return description;
   }
 
   /// Return `true` if properties should be created for instances of [type].

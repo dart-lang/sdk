@@ -7,7 +7,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:front_end/src/api_prototype/constant_evaluator.dart'
-    as constants show SimpleErrorReporter, transformComponent;
+    as constants show EvaluationMode, SimpleErrorReporter, transformComponent;
 
 import 'package:args/args.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -18,9 +18,8 @@ import 'package:kernel/target/targets.dart';
 
 import 'package:kernel/transformations/continuation.dart' as cont;
 import 'package:kernel/transformations/empty.dart' as empty;
-import 'package:kernel/transformations/method_call.dart' as method_call;
 import 'package:kernel/transformations/mixin_full_resolution.dart' as mix;
-import 'package:kernel/transformations/coq.dart' as coq;
+import 'package:kernel/type_environment.dart';
 import 'package:kernel/vm/constants_native_effects.dart';
 
 ArgParser parser = new ArgParser()
@@ -87,28 +86,26 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
   var component = loadComponentFromBinary(input);
 
   final coreTypes = new CoreTypes(component);
-  final hierarchy = new ClassHierarchy(component);
+  final hierarchy = new ClassHierarchy(component, coreTypes);
+  final typeEnvironment = new TypeEnvironment(coreTypes, hierarchy);
   switch (options['transformation']) {
     case 'continuation':
       bool productMode = defines["dart.vm.product"] == "true";
-      component = cont.transformComponent(coreTypes, component,
+      component = cont.transformComponent(typeEnvironment, component,
           productMode: productMode);
       break;
     case 'resolve-mixins':
-      mix.transformLibraries(
-          new NoneTarget(null), coreTypes, hierarchy, component.libraries);
-      break;
-    case 'coq':
-      component = coq.transformComponent(coreTypes, component);
+      mix.transformLibraries(new NoneTarget(null), coreTypes, hierarchy,
+          component.libraries, null);
       break;
     case 'constants':
       final VmConstantsBackend backend = new VmConstantsBackend(coreTypes);
       component = constants.transformComponent(
-          component, backend, defines, const constants.SimpleErrorReporter());
-      break;
-    case 'methodcall':
-      component =
-          method_call.transformComponent(coreTypes, hierarchy, component);
+          component,
+          backend,
+          defines,
+          const constants.SimpleErrorReporter(),
+          constants.EvaluationMode.legacy);
       break;
     case 'empty':
       component = empty.transformComponent(component);

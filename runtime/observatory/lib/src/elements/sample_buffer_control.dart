@@ -160,7 +160,7 @@ class SampleBufferControlElement extends CustomElement implements Renderable {
     final loadT = Utils.formatDurationInSeconds(_progress.loadingTime);
     final sampleCount = _progress.profile.sampleCount;
     final refreshT = new DateTime.now();
-    final stackDepth = _progress.profile.stackDepth;
+    final maxStackDepth = _progress.profile.maxStackDepth;
     final sampleRate = _progress.profile.sampleRate.toStringAsFixed(0);
     final timeSpan = _progress.profile.sampleCount == 0
         ? '0s'
@@ -195,7 +195,7 @@ class SampleBufferControlElement extends CustomElement implements Renderable {
             ..text = 'Sampling',
           new DivElement()
             ..classes = ['memberValue']
-            ..text = '$stackDepth stack frames @ ${sampleRate}Hz'
+            ..text = '$maxStackDepth stack frames @ ${sampleRate}Hz'
         ],
     ];
     if (_showTag) {
