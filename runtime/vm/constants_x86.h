@@ -5,8 +5,6 @@
 #ifndef RUNTIME_VM_CONSTANTS_X86_H_
 #define RUNTIME_VM_CONSTANTS_X86_H_
 
-#include "platform/assert.h"
-
 namespace dart {
 
 enum Condition {
@@ -46,21 +44,8 @@ enum Condition {
   UNSIGNED_GREATER = ABOVE,
   UNSIGNED_GREATER_EQUAL = ABOVE_EQUAL,
 
-  kInvalidCondition = 16
+  INVALID_CONDITION = 16
 };
-
-static inline Condition InvertCondition(Condition c) {
-  COMPILE_ASSERT((OVERFLOW ^ NO_OVERFLOW) == 1);
-  COMPILE_ASSERT((BELOW ^ ABOVE_EQUAL) == 1);
-  COMPILE_ASSERT((EQUAL ^ NOT_EQUAL) == 1);
-  COMPILE_ASSERT((BELOW_EQUAL ^ ABOVE) == 1);
-  COMPILE_ASSERT((SIGN ^ NOT_SIGN) == 1);
-  COMPILE_ASSERT((PARITY_EVEN ^ PARITY_ODD) == 1);
-  COMPILE_ASSERT((LESS ^ GREATER_EQUAL) == 1);
-  COMPILE_ASSERT((LESS_EQUAL ^ GREATER) == 1);
-  ASSERT(c != kInvalidCondition);
-  return static_cast<Condition>(c ^ 1);
-}
 
 #define X86_ZERO_OPERAND_1_BYTE_INSTRUCTIONS(F)                                \
   F(ret, 0xC3)                                                                 \

@@ -515,10 +515,6 @@ Value* AssertAssignableInstr::RedefinedValue() const {
   return value();
 }
 
-Value* AssertBooleanInstr::RedefinedValue() const {
-  return value();
-}
-
 Value* CheckBoundBase::RedefinedValue() const {
   return index();
 }
@@ -4321,50 +4317,6 @@ StrictCompareInstr::StrictCompareInstr(TokenPosition token_pos,
   ASSERT((kind == Token::kEQ_STRICT) || (kind == Token::kNE_STRICT));
   SetInputAt(0, left);
   SetInputAt(1, right);
-}
-
-Condition StrictCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
-                                                 BranchLabels labels) {
-  Location left = locs()->in(0);
-  Location right = locs()->in(1);
-  ASSERT(!left.IsConstant() || !right.IsConstant());
-  Condition true_condition;
-  if (left.IsConstant()) {
-    if (TryEmitBoolTest(compiler, labels, 1, left.constant(),
-                        &true_condition)) {
-      return true_condition;
-    }
-    true_condition = EmitComparisonCodeRegConstant(
-        compiler, labels, right.reg(), left.constant());
-  } else if (right.IsConstant()) {
-    if (TryEmitBoolTest(compiler, labels, 0, right.constant(),
-                        &true_condition)) {
-      return true_condition;
-    }
-    true_condition = EmitComparisonCodeRegConstant(compiler, labels, left.reg(),
-                                                   right.constant());
-  } else {
-    true_condition = compiler->EmitEqualityRegRegCompare(
-        left.reg(), right.reg(), needs_number_check(), token_pos(), deopt_id());
-  }
-  return true_condition != kInvalidCondition && (kind() != Token::kEQ_STRICT)
-             ? InvertCondition(true_condition)
-             : true_condition;
-}
-
-bool StrictCompareInstr::TryEmitBoolTest(FlowGraphCompiler* compiler,
-                                         BranchLabels labels,
-                                         intptr_t input_index,
-                                         const Object& obj,
-                                         Condition* true_condition_out) {
-  CompileType* input_type = InputAt(input_index)->Type();
-  if (input_type->ToCid() == kBoolCid && obj.GetClassId() == kBoolCid) {
-    bool invert = (kind() != Token::kEQ_STRICT) ^ !Bool::Cast(obj).value();
-    *true_condition_out =
-        compiler->EmitBoolTest(locs()->in(input_index).reg(), labels, invert);
-    return true;
-  }
-  return false;
 }
 
 LocationSummary* LoadClassIdInstr::MakeLocationSummary(Zone* zone,

@@ -264,7 +264,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     ASSERT(T != NULL);
     StackZone zone(T);
     HandleScope handle_scope(T);
-    Object::InitNullAndBool(vm_isolate_);
+    Object::InitNull(vm_isolate_);
     ObjectStore::Init(vm_isolate_);
     TargetCPUFeatures::Init();
     Object::Init(vm_isolate_);

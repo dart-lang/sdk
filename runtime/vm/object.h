@@ -524,7 +524,7 @@ class Object {
   }
 
   // Initialize the VM isolate.
-  static void InitNullAndBool(Isolate* isolate);
+  static void InitNull(Isolate* isolate);
   static void Init(Isolate* isolate);
   static void InitVtables();
   static void FinishInit(Isolate* isolate);
@@ -752,8 +752,6 @@ class Object {
   // The static values below are singletons shared between the different
   // isolates. They are all allocated in the non-GC'd Dart::vm_isolate_.
   static RawObject* null_;
-  static RawBool* true_;
-  static RawBool* false_;
 
   static RawClass* class_class_;           // Class of the Class vm object.
   static RawClass* dynamic_class_;         // Class of the 'dynamic' type.

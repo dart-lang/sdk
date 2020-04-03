@@ -296,6 +296,38 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ set_constant_pool_allowed(true);
 }
 
+static Condition NegateCondition(Condition condition) {
+  switch (condition) {
+    case EQ:
+      return NE;
+    case NE:
+      return EQ;
+    case LT:
+      return GE;
+    case LE:
+      return GT;
+    case GT:
+      return LE;
+    case GE:
+      return LT;
+    case CC:
+      return CS;
+    case LS:
+      return HI;
+    case HI:
+      return LS;
+    case CS:
+      return CC;
+    case VS:
+      return VC;
+    case VC:
+      return VS;
+    default:
+      UNREACHABLE();
+      return EQ;
+  }
+}
+
 // Detect pattern when one value is zero and another is a power of 2.
 static bool IsPowerOfTwoKind(intptr_t v1, intptr_t v2) {
   return (Utils::IsPowerOfTwo(v1) && (v2 == 0)) ||
@@ -330,7 +362,7 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (is_power_of_two_kind) {
     if (true_value == 0) {
       // We need to have zero in result on true_condition.
-      true_condition = InvertCondition(true_condition);
+      true_condition = NegateCondition(true_condition);
     }
   } else {
     if (true_value == 0) {
@@ -339,7 +371,7 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       true_value = false_value;
       false_value = temp;
     } else {
-      true_condition = InvertCondition(true_condition);
+      true_condition = NegateCondition(true_condition);
     }
   }
 
@@ -698,7 +730,7 @@ static void EmitBranchOnCondition(FlowGraphCompiler* compiler,
     __ b(labels.true_label, true_condition);
   } else {
     // If the next block is not the false successor we will branch to it.
-    Condition false_condition = InvertCondition(true_condition);
+    Condition false_condition = NegateCondition(true_condition);
     __ b(labels.false_label, false_condition);
 
     // Fall through or jump to the true successor.
@@ -730,7 +762,7 @@ static void EmitCbzTbz(Register reg,
     __ GenerateXCbzTbz(reg, true_condition, labels.true_label);
   } else {
     // If the next block is not the false successor we will branch to it.
-    Condition false_condition = InvertCondition(true_condition);
+    Condition false_condition = NegateCondition(true_condition);
     __ GenerateXCbzTbz(reg, false_condition, labels.false_label);
 
     // Fall through or jump to the true successor.
@@ -6449,20 +6481,47 @@ LocationSummary* StrictCompareInstr::MakeLocationSummary(Zone* zone,
   return locs;
 }
 
-Condition StrictCompareInstr::EmitComparisonCodeRegConstant(
-    FlowGraphCompiler* compiler,
-    BranchLabels labels,
-    Register reg,
-    const Object& obj) {
-  Condition orig_cond = (kind() == Token::kEQ_STRICT) ? EQ : NE;
-  if (!needs_number_check() && compiler::target::IsSmi(obj) &&
+static Condition EmitComparisonCodeRegConstant(FlowGraphCompiler* compiler,
+                                               Token::Kind kind,
+                                               BranchLabels labels,
+                                               Register reg,
+                                               const Object& obj,
+                                               bool needs_number_check,
+                                               TokenPosition token_pos,
+                                               intptr_t deopt_id) {
+  Condition orig_cond = (kind == Token::kEQ_STRICT) ? EQ : NE;
+  if (!needs_number_check && compiler::target::IsSmi(obj) &&
       compiler::target::ToRawSmi(obj) == 0 &&
       CanUseCbzTbzForComparison(compiler, reg, orig_cond, labels)) {
     EmitCbzTbz(reg, compiler, orig_cond, labels);
     return kInvalidCondition;
   } else {
-    return compiler->EmitEqualityRegConstCompare(reg, obj, needs_number_check(),
-                                                 token_pos(), deopt_id());
+    Condition true_condition = compiler->EmitEqualityRegConstCompare(
+        reg, obj, needs_number_check, token_pos, deopt_id);
+    return (kind != Token::kEQ_STRICT) ? NegateCondition(true_condition)
+                                       : true_condition;
+  }
+}
+
+Condition StrictCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
+                                                 BranchLabels labels) {
+  Location left = locs()->in(0);
+  Location right = locs()->in(1);
+  ASSERT(!left.IsConstant() || !right.IsConstant());
+  Condition true_condition;
+  if (left.IsConstant()) {
+    return EmitComparisonCodeRegConstant(compiler, kind(), labels, right.reg(),
+                                         left.constant(), needs_number_check(),
+                                         token_pos(), deopt_id_);
+  } else if (right.IsConstant()) {
+    return EmitComparisonCodeRegConstant(compiler, kind(), labels, left.reg(),
+                                         right.constant(), needs_number_check(),
+                                         token_pos(), deopt_id_);
+  } else {
+    true_condition = compiler->EmitEqualityRegRegCompare(
+        left.reg(), right.reg(), needs_number_check(), token_pos(), deopt_id_);
+    return (kind() != Token::kEQ_STRICT) ? NegateCondition(true_condition)
+                                         : true_condition;
   }
 }
 
@@ -6501,19 +6560,13 @@ LocationSummary* BooleanNegateInstr::MakeLocationSummary(Zone* zone,
 }
 
 void BooleanNegateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register input = locs()->in(0).reg();
+  const Register value = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
 
-  if (value()->Type()->ToCid() == kBoolCid) {
-    __ eori(
-        result, input,
-        compiler::Immediate(compiler::target::ObjectAlignment::kBoolValueMask));
-  } else {
-    __ LoadObject(result, Bool::True());
-    __ LoadObject(TMP, Bool::False());
-    __ CompareRegisters(result, input);
-    __ csel(result, TMP, result, EQ);
-  }
+  __ LoadObject(result, Bool::True());
+  __ LoadObject(TMP, Bool::False());
+  __ CompareRegisters(result, value);
+  __ csel(result, TMP, result, EQ);
 }
 
 LocationSummary* AllocateObjectInstr::MakeLocationSummary(Zone* zone,

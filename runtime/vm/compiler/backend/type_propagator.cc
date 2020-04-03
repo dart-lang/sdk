@@ -370,11 +370,6 @@ void FlowGraphTypePropagator::VisitAssertAssignable(
             new (zone()) CompileType(instr->ComputeType()));
 }
 
-void FlowGraphTypePropagator::VisitAssertBoolean(AssertBooleanInstr* instr) {
-  SetTypeOf(instr->value()->definition(),
-            new (zone()) CompileType(CompileType::Bool()));
-}
-
 void FlowGraphTypePropagator::VisitAssertSubtype(AssertSubtypeInstr* instr) {}
 
 void FlowGraphTypePropagator::VisitBranch(BranchInstr* instr) {

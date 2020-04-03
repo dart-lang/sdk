@@ -467,11 +467,6 @@ void Assembler::LoadObjectHelper(Register dst,
   word offset = 0;
   if (IsSameObject(compiler::NullObject(), object)) {
     mov(dst, NULL_REG);
-  } else if (IsSameObject(CastHandle<Object>(compiler::TrueObject()), object)) {
-    AddImmediate(dst, NULL_REG, kTrueOffsetFromNull);
-  } else if (IsSameObject(CastHandle<Object>(compiler::FalseObject()),
-                          object)) {
-    AddImmediate(dst, NULL_REG, kFalseOffsetFromNull);
   } else if (target::CanLoadFromThread(object, &offset)) {
     ldr(dst, Address(THR, offset));
   } else if (CanLoadFromObjectPool(object)) {

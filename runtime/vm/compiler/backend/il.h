@@ -3587,8 +3587,6 @@ class AssertBooleanInstr : public TemplateDefinition<1, Throws, Pure> {
 
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
-  virtual Value* RedefinedValue() const;
-
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
@@ -4228,16 +4226,6 @@ class StrictCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
   ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT;
 
  private:
-  Condition EmitComparisonCodeRegConstant(FlowGraphCompiler* compiler,
-                                          BranchLabels labels,
-                                          Register reg,
-                                          const Object& obj);
-  bool TryEmitBoolTest(FlowGraphCompiler* compiler,
-                       BranchLabels labels,
-                       intptr_t input_index,
-                       const Object& obj,
-                       Condition* condition_out);
-
   // True if the comparison must check for double or Mint and
   // use value comparison instead.
   bool needs_number_check_;
