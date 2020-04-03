@@ -528,7 +528,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
     if (_doIncludeSimpleIdentifier(node)) {
       var elementKind;
       if (node.staticElement?.kind != null) {
-        elementKind = protocol.convertElementKind(node.staticElement?.kind);
+        elementKind = protocol.convertElementKind(node.staticElement.kind);
 
         // If the completed element kind is a getter or setter set the element
         // kind to null as the exact kind from the DAS is unknown at this
@@ -550,6 +550,18 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
         // PARAMETER).
         if (node.parent is FieldFormalParameter) {
           elementKind = protocol.ElementKind.FIELD;
+        }
+
+        // Class references that are constructor calls are constructor kinds,
+        // unless the constructor is a named constructor.
+        if (elementKind == protocol.ElementKind.CLASS) {
+          if (node.parent?.parent is ConstructorName) {
+            var constructorName = node.parent.parent as ConstructorName;
+            if (constructorName.type.name == node &&
+                constructorName.name == null) {
+              elementKind = protocol.ElementKind.CONSTRUCTOR;
+            }
+          }
         }
       }
       safelyRecordEntity(node, elementKind: elementKind);
