@@ -25,15 +25,25 @@ enum ModuleFormat {
 }
 
 /// Parses a string into a [ModuleFormat].
-ModuleFormat parseModuleFormat(String s) => {
-      'es6': ModuleFormat.es6,
-      'common': ModuleFormat.common,
-      'amd': ModuleFormat.amd,
-      'ddc': ModuleFormat.ddc,
-      // Deprecated:
-      'node': ModuleFormat.common,
-      'legacy': ModuleFormat.ddc
-    }[s];
+///
+/// Throws an [ArgumentError] if the module format is not recognized.
+ModuleFormat parseModuleFormat(String s) {
+  var formats = const {
+    'es6': ModuleFormat.es6,
+    'common': ModuleFormat.common,
+    'amd': ModuleFormat.amd,
+    'ddc': ModuleFormat.ddc,
+    // Deprecated:
+    'node': ModuleFormat.common,
+    'legacy': ModuleFormat.ddc
+  };
+  var selected = formats[s];
+  if (selected == null) {
+    throw ArgumentError('Invalid module format `$s`, allowed formats are: '
+        '`${formats.keys.join(', ')}`');
+  }
+  return selected;
+}
 
 /// Parse the module format option added by [addModuleFormatOptions].
 List<ModuleFormat> parseModuleFormatOption(ArgResults args) {

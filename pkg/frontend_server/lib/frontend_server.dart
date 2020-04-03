@@ -162,7 +162,10 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addOption('libraries-spec',
       help: 'A path or uri to the libraries specification JSON file')
   ..addFlag('debugger-module-names',
-      help: 'Use debugger-friendly modules names', defaultsTo: false);
+      help: 'Use debugger-friendly modules names', defaultsTo: false)
+  ..addOption('dartdevc-module-format',
+      help: 'The module format to use on for the dartdevc compiler',
+      defaultsTo: 'amd');
 
 String usage = '''
 Usage: server [options] [input.dart]
@@ -520,8 +523,8 @@ class FrontendCompiler implements CompilerInterface {
       transformer?.transform(results.component);
 
       if (_compilerOptions.target.name == 'dartdevc') {
-        await writeJavascriptBundle(
-            results, _kernelBinaryFilename, options['filesystem-scheme']);
+        await writeJavascriptBundle(results, _kernelBinaryFilename,
+            options['filesystem-scheme'], options['dartdevc-module-format']);
       }
       await writeDillFile(results, _kernelBinaryFilename,
           filterExternal: importDill != null,
@@ -591,7 +594,7 @@ class FrontendCompiler implements CompilerInterface {
 
   /// Write a JavaScript bundle containg the provided component.
   Future<void> writeJavascriptBundle(KernelCompilationResults results,
-      String filename, String fileSystemScheme) async {
+      String filename, String fileSystemScheme, String moduleFormat) async {
     var packageConfig = await loadPackageConfigUri(
         _compilerOptions.packagesFileUri ?? File('.packages').absolute.uri);
     final Component component = results.component;
@@ -609,7 +612,8 @@ class FrontendCompiler implements CompilerInterface {
     }
     _bundler = JavaScriptBundler(
         component, strongComponents, fileSystemScheme, packageConfig,
-        useDebuggerModuleNames: useDebuggerModuleNames);
+        useDebuggerModuleNames: useDebuggerModuleNames,
+        moduleFormat: moduleFormat);
     final sourceFileSink = sourceFile.openWrite();
     final manifestFileSink = manifestFile.openWrite();
     final sourceMapsFileSink = sourceMapsFile.openWrite();
@@ -853,8 +857,8 @@ class FrontendCompiler implements CompilerInterface {
         deltaProgram.uriToSource.keys);
 
     if (_compilerOptions.target.name == 'dartdevc') {
-      await writeJavascriptBundle(
-          results, _kernelBinaryFilename, _options['filesystem-scheme']);
+      await writeJavascriptBundle(results, _kernelBinaryFilename,
+          _options['filesystem-scheme'], _options['dartdevc-module-format']);
     } else {
       await writeDillFile(results, _kernelBinaryFilename,
           incrementalSerializer: _generator.incrementalSerializer);
