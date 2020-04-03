@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library entered_left_view_test;
 
 import 'dart:async';
@@ -35,7 +33,7 @@ main() async {
 
     test('Entered document without a view', () {
       setUp();
-      docB.body.append(a);
+      docB.body!.append(a);
       expect(invocations, [],
           reason: 'attached callback should not be invoked when entering a '
               'document without a view');
@@ -51,7 +49,7 @@ main() async {
 
     test('Entered document with a view', () {
       setUp();
-      document.body.append(a);
+      document.body!.append(a);
       customElementsTakeRecords();
       expect(invocations, ['attached'],
           reason:
@@ -70,8 +68,8 @@ main() async {
 
     test('Created in a document without a view', () {
       setUp();
-      docB.body.setInnerHtml('<x-a></x-a>', treeSanitizer: nullSanitizer);
-      upgradeCustomElements(docB.body);
+      docB.body!.setInnerHtml('<x-a></x-a>', treeSanitizer: nullSanitizer);
+      upgradeCustomElements(docB.body!);
 
       expect(invocations, ['created'],
           reason: 'only created callback should be invoked when parsing a '

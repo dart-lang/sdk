@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library attribute_changed_callback_test;
 
 import 'dart:async';
@@ -16,7 +14,7 @@ import 'utils.dart';
 
 class A extends HtmlElement {
   static final tag = 'x-a';
-  factory A() => new Element.tag(tag);
+  factory A() => new Element.tag(tag) as A;
   A.created() : super.created();
 
   static var attributeChangedInvocations = 0;
@@ -28,19 +26,19 @@ class A extends HtmlElement {
 
 class B extends HtmlElement {
   static final tag = 'x-b';
-  factory B() => new Element.tag(tag);
+  factory B() => new Element.tag(tag) as B;
   B.created() : super.created() {
     invocations.add('created');
   }
 
   static var invocations = [];
 
-  Completer completer;
+  Completer? completer;
 
   void attributeChanged(name, oldValue, newValue) {
     invocations.add('$name: $oldValue => $newValue');
     if (completer != null) {
-      completer.complete('value changed to $newValue');
+      completer!.complete('value changed to $newValue');
       completer = null;
     }
   }

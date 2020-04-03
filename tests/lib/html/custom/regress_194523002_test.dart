@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 // Regression test for CL 194523002.
 import 'dart:html';
 
@@ -13,7 +11,7 @@ import 'utils.dart';
 
 class A extends HtmlElement {
   static final tag = 'x-a';
-  factory A() => new Element.tag(tag);
+  factory A() => new Element.tag(tag) as A;
   A.created() : super.created();
 }
 

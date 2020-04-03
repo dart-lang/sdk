@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:html';
 
 import 'package:async_helper/async_minitest.dart';
@@ -17,7 +15,7 @@ main() async {
     document.registerElement2(
         'my-element', {'prototype': MyElement, 'extends': 'template'});
     dynamic e = new Element.tag('template', 'my-element');
-    document.body.append(e);
+    document.body!.append(e);
     expect(e is TemplateElement, isTrue);
     expect(e.method(), 'value');
   });

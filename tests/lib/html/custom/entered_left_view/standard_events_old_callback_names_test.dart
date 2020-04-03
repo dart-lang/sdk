@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library entered_left_view_test;
 
 import 'dart:async';
@@ -32,7 +30,7 @@ main() async {
 
     test('enteredView', () {
       setUp();
-      document.body.append(a);
+      document.body!.append(a);
       customElementsTakeRecords();
       expect(invocations, ['enteredView']);
     });
@@ -54,7 +52,7 @@ main() async {
 
     test('nested entering triggers enteredView', () {
       setUp();
-      document.body.append(div);
+      document.body!.append(div);
       customElementsTakeRecords();
       expect(invocations, ['enteredView']);
     });

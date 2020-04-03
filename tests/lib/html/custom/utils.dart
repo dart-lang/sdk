@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:async';
 import 'dart:html';
 import 'dart:js' as js;
@@ -145,7 +143,7 @@ void validateNodeTree(Node a, Node b, [String path = '']) {
   expect(a.nodes.length, b.nodes.length, reason: '$path nodes.lengths differ');
 
   if (a is Element) {
-    Element bE = b;
+    Element bE = b as Element;
     Element aE = a;
 
     expect(aE.tagName, bE.tagName, reason: '$path tagNames differ');
@@ -219,7 +217,7 @@ bool get _isReady {
  * This method can be used to resolve differences in timing between native and
  * polyfilled custom elements.
  */
-void customElementsTakeRecords([Node node]) {
+void customElementsTakeRecords([Node? node]) {
   var customElements = js.context['CustomElements'];
   if (customElements == null) return;
   customElements.callMethod('takeRecords', [node]);

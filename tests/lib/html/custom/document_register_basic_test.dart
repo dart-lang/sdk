@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library document_register_basic_test;
 
 import 'dart:html';
@@ -14,7 +12,7 @@ import 'utils.dart';
 
 class Foo extends HtmlElement {
   static final tag = 'x-foo';
-  factory Foo() => new Element.tag(tag);
+  factory Foo() => new Element.tag(tag) as Foo;
   Foo.created() : super.created();
 
   get thisIsACustomClass => true;
@@ -22,7 +20,7 @@ class Foo extends HtmlElement {
 
 class Bar extends HtmlElement {
   static final tag = 'x-bar';
-  factory Bar() => new Element.tag(tag);
+  factory Bar() => new Element.tag(tag) as Bar;
   Bar.created() : super.created();
 
   get thisIsACustomClass => true;
@@ -30,7 +28,7 @@ class Bar extends HtmlElement {
 
 class Baz extends Foo {
   static final tag = 'x-baz';
-  factory Baz() => new Element.tag(tag);
+  factory Baz() => new Element.tag(tag) as Baz;
   Baz.created() : super.created();
 
   get thisIsAlsoACustomClass => true;
@@ -94,7 +92,7 @@ main() async {
 
     // Parser initiated instantiation
     var container = new DivElement()..id = "container";
-    document.body.append(container);
+    document.body!.append(container);
     container.setInnerHtml("<x-foo></x-foo>",
         treeSanitizer: new NullTreeSanitizer());
     upgradeCustomElements(container);
@@ -107,7 +105,7 @@ main() async {
     var someProperty = new Expando();
     someProperty[parsedFoo] = "hello";
     expect(container.firstChild, parsedFoo);
-    expect(someProperty[container.firstChild], someProperty[parsedFoo]);
+    expect(someProperty[container.firstChild!], someProperty[parsedFoo]);
 
     // Having another constructor
     document.registerElement2(Bar.tag, {'prototype': Bar});

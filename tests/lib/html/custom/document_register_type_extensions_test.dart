@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:html';
 
 import 'package:async_helper/async_minitest.dart';
@@ -12,46 +10,46 @@ import 'utils.dart';
 
 class Foo extends HtmlElement {
   static const tag = 'x-foo';
-  static final List outerHtmlStrings = [
+  static final List<String> outerHtmlStrings = [
     '<x-foo></x-foo>',
     '<?XML:NAMESPACE PREFIX = PUBLIC NS = "URN:COMPONENT" /><x-foo></x-foo>'
   ];
-  factory Foo() => new Element.tag(tag);
+  factory Foo() => new Element.tag(tag) as Foo;
   Foo.created() : super.created();
 }
 
 class Bar extends InputElement {
   static const tag = 'x-bar';
   static const outerHtmlString = '<input is="x-bar">';
-  factory Bar() => new Element.tag('input', tag);
+  factory Bar() => new Element.tag('input', tag) as Bar;
   Bar.created() : super.created();
 }
 
 class Baz extends Foo {
   static const tag = 'x-baz';
-  static final List outerHtmlStrings = [
+  static final List<String> outerHtmlStrings = [
     '<x-baz></x-baz>',
     '<?XML:NAMESPACE PREFIX = PUBLIC NS = "URN:COMPONENT" /><x-baz></x-baz>'
   ];
-  factory Baz() => new Element.tag(tag);
+  factory Baz() => new Element.tag(tag) as Baz;
   Baz.created() : super.created();
 }
 
 class Qux extends Bar {
   static const tag = 'x-qux';
-  factory Qux() => new Element.tag('input', tag);
+  factory Qux() => new Element.tag('input', tag) as Qux;
   Qux.created() : super.created();
 }
 
 class FooBad extends DivElement {
   static const tag = 'x-foo';
-  factory FooBad() => new Element.tag('div', tag);
+  factory FooBad() => new Element.tag('div', tag) as FooBad;
   FooBad.created() : super.created();
 }
 
 class MyCanvas extends CanvasElement {
   static const tag = 'my-canvas';
-  factory MyCanvas() => new Element.tag('canvas', tag);
+  factory MyCanvas() => new Element.tag('canvas', tag) as MyCanvas;
 
   MyCanvas.created() : super.created();
 
@@ -59,7 +57,8 @@ class MyCanvas extends CanvasElement {
     width = 100;
     height = 100;
 
-    CanvasRenderingContext2D context = this.getContext('2d');
+    CanvasRenderingContext2D context =
+        this.getContext('2d') as CanvasRenderingContext2D;
     context.fillStyle = 'red';
     context.fillRect(0, 0, width, height);
     context.fill();
@@ -82,7 +81,7 @@ main() async {
   // Adapted from Blink's fast/dom/custom/document-register-type-extension test.
 
   var testForm = new FormElement()..id = 'testForm';
-  document.body.append(testForm);
+  document.body!.append(testForm);
 
   var isFormControl = (element) {
     testForm.append(element);

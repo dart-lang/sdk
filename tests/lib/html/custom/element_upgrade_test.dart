@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:html';
 import 'dart:js' as js;
 
@@ -15,12 +13,10 @@ class FooElement extends HtmlElement {
   static final tag = 'x-foo';
 
   final int initializedField = 666;
-  js.JsObject _proxy;
+  late js.JsObject _proxy = new js.JsObject.fromBrowserObject(this);
 
-  factory FooElement() => new Element.tag(tag);
-  FooElement.created() : super.created() {
-    _proxy = new js.JsObject.fromBrowserObject(this);
-  }
+  factory FooElement() => new Element.tag(tag) as FooElement;
+  FooElement.created() : super.created();
 
   String doSomething() => _proxy.callMethod('doSomething');
 
@@ -44,8 +40,8 @@ main() async {
 
     js.context.callMethod('validateIsFoo', [element]);
 
-    expect((element as FooElement).doSomething(), 'didSomething');
-    expect((element as FooElement).fooCreated, true);
+    expect(element.doSomething(), 'didSomething');
+    expect(element.fooCreated, true);
   });
 
   test('dart constructor works', () {
@@ -102,6 +98,7 @@ class CustomDiv extends DivElement {
 }
 
 class CustomElement extends HtmlElement {
-  factory CustomElement() => document.createElement('custom-element');
+  factory CustomElement() =>
+      document.createElement('custom-element') as CustomElement;
   CustomElement.created() : super.created();
 }

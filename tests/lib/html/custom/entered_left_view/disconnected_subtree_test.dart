@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library entered_left_view_test;
 
 import 'dart:async';
@@ -48,7 +46,7 @@ main() async {
       div.setInnerHtml('<x-a></x-a>', treeSanitizer: nullSanitizer);
       upgradeCustomElements(div);
       invocations = [];
-      document.body.append(div);
+      document.body!.append(div);
       customElementsTakeRecords();
       expect(invocations, ['attached'],
           reason:

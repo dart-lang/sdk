@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library created_callback_test;
 
 import 'dart:html';
@@ -15,7 +13,7 @@ import 'utils.dart';
 
 class A extends HtmlElement {
   static final tag = 'x-a';
-  factory A() => new Element.tag(tag);
+  factory A() => new Element.tag(tag) as A;
   A.created() : super.created() {
     createdInvocations++;
   }
@@ -25,13 +23,13 @@ class A extends HtmlElement {
 
 class B extends HtmlElement {
   static final tag = 'x-b';
-  factory B() => new Element.tag(tag);
+  factory B() => new Element.tag(tag) as B;
   B.created() : super.created();
 }
 
 class C extends HtmlElement {
   static final tag = 'x-c';
-  factory C() => new Element.tag(tag);
+  factory C() => new Element.tag(tag) as C;
   C.created() : super.created() {
     createdInvocations++;
 
@@ -162,7 +160,7 @@ class NestedElement extends HtmlElement {
 
   final Element b = new B();
 
-  factory NestedElement() => new Element.tag(tag);
+  factory NestedElement() => new Element.tag(tag) as NestedElement;
   NestedElement.created() : super.created();
 
   static void register() {
@@ -182,16 +180,17 @@ class NestedElement extends HtmlElement {
 class AccessWhileUpgradingElement extends HtmlElement {
   static final tag = 'x-access-while-upgrading';
 
-  static Element upgradingContext;
-  static Element upgradingContextChild;
+  static late Element upgradingContext;
+  static late Element upgradingContextChild;
 
   final foo = runInitializerCode();
 
-  factory AccessWhileUpgradingElement() => new Element.tag(tag);
+  factory AccessWhileUpgradingElement() =>
+      new Element.tag(tag) as AccessWhileUpgradingElement;
   AccessWhileUpgradingElement.created() : super.created();
 
   static runInitializerCode() {
-    upgradingContextChild = upgradingContext.firstChild;
+    upgradingContextChild = upgradingContext.firstChild as Element;
 
     return 666;
   }
@@ -218,14 +217,16 @@ class AccessWhileUpgradingElement extends HtmlElement {
 class MissingCreatedElement extends HtmlElement {
   static final tag = 'x-missing-created';
 
-  factory MissingCreatedElement() => new Element.tag(tag);
+  factory MissingCreatedElement() =>
+      new Element.tag(tag) as MissingCreatedElement;
 }
 
 class ErrorConstructorElement extends HtmlElement {
   static final tag = 'x-throws-in-constructor';
   static int callCount = 0;
 
-  factory ErrorConstructorElement() => new Element.tag(tag);
+  factory ErrorConstructorElement() =>
+      new Element.tag(tag) as ErrorConstructorElement;
 
   ErrorConstructorElement.created() : super.created() {
     ++callCount;
@@ -242,9 +243,10 @@ class NestedCreatedConstructorElement extends HtmlElement {
 
   // Should not be able to call this here.
   final B b = constructB();
-  static B constructedB;
+  static B? constructedB;
 
-  factory NestedCreatedConstructorElement() => new Element.tag(tag);
+  factory NestedCreatedConstructorElement() =>
+      new Element.tag(tag) as NestedCreatedConstructorElement;
   NestedCreatedConstructorElement.created() : super.created();
 
   static void register() {
