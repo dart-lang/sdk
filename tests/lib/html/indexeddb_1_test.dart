@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library IndexedDB1Test;
 
 import 'package:async_helper/async_minitest.dart';
@@ -25,13 +23,14 @@ Future testUpgrade() {
   var upgraded = false;
 
   // Delete any existing DBs.
-  return html.window.indexedDB.deleteDatabase(dbName).then((_) {
-    return html.window.indexedDB
+  return html.window.indexedDB!.deleteDatabase(dbName).then((_) {
+    return html.window.indexedDB!
         .open(dbName, version: 1, onUpgradeNeeded: (e) {});
   }).then((db) {
     db.close();
   }).then((_) {
-    return html.window.indexedDB.open(dbName, version: 2, onUpgradeNeeded: (e) {
+    return html.window.indexedDB!.open(dbName, version: 2,
+        onUpgradeNeeded: (e) {
       expect(e.oldVersion, 1);
       expect(e.newVersion, 2);
       upgraded = true;
@@ -55,9 +54,9 @@ testReadWrite(key, value, matcher,
         expect(store, isNotNull);
       }
 
-      idb.Database db;
-      return html.window.indexedDB.deleteDatabase(dbName).then((_) {
-        return html.window.indexedDB
+      late idb.Database db;
+      return html.window.indexedDB!.deleteDatabase(dbName).then((_) {
+        return html.window.indexedDB!
             .open(dbName, version: version, onUpgradeNeeded: createObjectStore);
       }).then((idb.Database result) {
         db = result;
@@ -77,10 +76,7 @@ testReadWrite(key, value, matcher,
           expect(object, matcher);
         }
       }).whenComplete(() {
-        if (db != null) {
-          db.close();
-        }
-        return html.window.indexedDB.deleteDatabase(dbName);
+        return html.window.indexedDB!.deleteDatabase(dbName);
       });
     };
 
@@ -98,10 +94,10 @@ testReadWriteTyped(key, value, matcher,
         expect(store, isNotNull);
       }
 
-      idb.Database db;
+      late idb.Database db;
       // Delete any existing DBs.
-      return html.window.indexedDB.deleteDatabase(dbName).then((_) {
-        return html.window.indexedDB
+      return html.window.indexedDB!.deleteDatabase(dbName).then((_) {
+        return html.window.indexedDB!
             .open(dbName, version: version, onUpgradeNeeded: createObjectStore);
       }).then((idb.Database result) {
         db = result;
@@ -123,10 +119,7 @@ testReadWriteTyped(key, value, matcher,
           expect(object, matcher);
         }
       }).whenComplete(() {
-        if (db != null) {
-          db.close();
-        }
-        return html.window.indexedDB.deleteDatabase(dbName);
+        return html.window.indexedDB!.deleteDatabase(dbName);
       });
     };
 
@@ -173,7 +166,7 @@ main() {
       var expectation = idb.IdbFactory.supported ? returnsNormally : throws;
 
       expect(() {
-        var db = html.window.indexedDB;
+        var db = html.window.indexedDB!;
         db.open('random_db');
       }, expectation);
     });

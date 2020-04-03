@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library IndexedDB4Test;
 
 import 'package:async_helper/async_minitest.dart';
@@ -18,8 +16,8 @@ const String STORE_NAME = 'TEST';
 const int VERSION = 1;
 
 Future<Database> createAndOpenDb() {
-  return html.window.indexedDB.deleteDatabase(DB_NAME).then((_) {
-    return html.window.indexedDB.open(DB_NAME, version: VERSION,
+  return html.window.indexedDB!.deleteDatabase(DB_NAME).then((_) {
+    return html.window.indexedDB!.open(DB_NAME, version: VERSION,
         onUpgradeNeeded: (e) {
       var db = e.target.result;
       db.createObjectStore(STORE_NAME);
@@ -28,11 +26,11 @@ Future<Database> createAndOpenDb() {
 }
 
 Future<Database> writeItems(Database db) {
-  Future<Object> write(index) {
+  Future<Object?> write(index) {
     var transaction = db.transaction(STORE_NAME, 'readwrite');
     return transaction
         .objectStore(STORE_NAME)
-        .put({'content': 'Item $index'}, index);
+        .put({'content': 'Item $index'}, index) as Future<Object?>;
   }
 
   var future = write(0);
@@ -55,9 +53,9 @@ testRange(db, range, expectedFirst, expectedLast) {
       .openCursor(range: range, autoAdvance: true)
       .asBroadcastStream();
 
-  int lastKey;
+  int lastKey = 0;
   cursors.listen((cursor) {
-    lastKey = cursor.key;
+    lastKey = cursor.key as int;
     var value = cursor.value;
     expect(value['content'], 'Item ${cursor.key}');
   });

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library IndexedDB1Test;
 
 import 'package:async_helper/async_helper.dart';
@@ -27,14 +25,14 @@ testReadWrite(key, value, check,
     expect(store, isNotNull);
   }
 
-  idb.Database db;
+  idb.Database? db;
   // Delete any existing DBs.
   try {
-    await html.window.indexedDB.deleteDatabase(dbName);
-    idb.Database db = await html.window.indexedDB
+    await html.window.indexedDB!.deleteDatabase(dbName);
+    db = await html.window.indexedDB!
         .open(dbName, version: version, onUpgradeNeeded: createObjectStore);
 
-    idb.Transaction transaction = db.transactionList([storeName], 'readwrite');
+    idb.Transaction transaction = db!.transactionList([storeName], 'readwrite');
     transaction.objectStore(storeName).put(value, key);
 
     db = await transaction.completed;
@@ -52,7 +50,7 @@ testReadWrite(key, value, check,
 }
 
 List<String> get nonNativeListData {
-  var list = new List<String>();
+  List<String> list = [];
   list.add("data");
   list.add("clone");
   list.add("error");

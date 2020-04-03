@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library IndexedDB3Test;
 
 import 'package:async_helper/async_helper.dart';
@@ -19,8 +17,8 @@ const String STORE_NAME = 'TEST';
 const int VERSION = 1;
 
 Future<Database> createAndOpenDb() {
-  return html.window.indexedDB.deleteDatabase(DB_NAME).then((_) {
-    return html.window.indexedDB.open(DB_NAME, version: VERSION,
+  return html.window.indexedDB!.deleteDatabase(DB_NAME).then((_) {
+    return html.window.indexedDB!.open(DB_NAME, version: VERSION,
         onUpgradeNeeded: (VersionChangeEvent e) {
       var db = e.target.result;
       db.createObjectStore(STORE_NAME);
@@ -59,7 +57,7 @@ Future<Database> readAllViaCursor(Database db) {
   cursors.listen((cursor) {
     ++itemCount;
     lastKey = cursor.key;
-    sumKeys += cursor.key;
+    sumKeys += cursor.key as int;
     expect(cursor.value, 'Item ${cursor.key}');
     cursor.next();
   });
@@ -83,7 +81,7 @@ Future<Database> readAllReversedViaCursor(Database db) {
   cursors.listen((cursor) {
     ++itemCount;
     lastKey = cursor.key;
-    sumKeys += cursor.key;
+    sumKeys += cursor.key as int;
     expect(cursor.value, 'Item ${cursor.key}');
     cursor.next();
   });

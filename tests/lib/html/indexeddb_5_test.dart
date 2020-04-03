@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library IndexedDB1Test;
 
 import 'package:async_helper/async_helper.dart';
@@ -19,8 +17,8 @@ var db;
 var value = {'name_index': 'one', 'value': 'add_value'};
 
 Future testInit() async {
-  await html.window.indexedDB.deleteDatabase(dbName);
-  db = await html.window.indexedDB.open(dbName, version: 1,
+  await html.window.indexedDB!.deleteDatabase(dbName);
+  db = await html.window.indexedDB!.open(dbName, version: 1,
       onUpgradeNeeded: (idb.VersionChangeEvent e) {
     var db = e.target.result;
     var objectStore = db.createObjectStore(storeName, autoIncrement: true);
