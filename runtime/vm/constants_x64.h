@@ -155,6 +155,11 @@ struct TypeTestABI {
       (1 << kSubtypeTestCacheReg);
 };
 
+// ABI for InitStaticFieldStub.
+struct InitStaticFieldABI {
+  static const Register kFieldReg = RAX;
+};
+
 // Registers used inside the implementation of type testing stubs.
 struct TTSInternalRegs {
   static const Register kInstanceTypeArgumentsReg = RSI;

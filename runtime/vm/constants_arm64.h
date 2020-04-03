@@ -174,6 +174,11 @@ struct TTSInternalRegs {
       (1 << kInstanceTypeArgumentsReg) | (1 << kScratchReg);
 };
 
+// ABI for InitStaticFieldStub.
+struct InitStaticFieldABI {
+  static const Register kFieldReg = R0;
+};
+
 // TODO(regis): Add ABIs for type testing stubs and is-type test stubs instead
 // of reusing the constants of the instantiation stubs ABI.
 

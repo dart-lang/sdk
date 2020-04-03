@@ -662,7 +662,11 @@ compiler.''',
     var dart2jsOptions = listOption("dart2js_options");
     var vmOptions = listOption("vm_options");
     var sharedOptions = listOption("shared_options");
-    var experiments = listOption("enable-experiment");
+
+    var experimentNames = data["enable-experiment"] as String;
+    var experiments = [
+      if (experimentNames != null) ...experimentNames.split(",")
+    ];
 
     // JSON reporting implies listing and reporting.
     if (data['report_in_json'] as bool) {

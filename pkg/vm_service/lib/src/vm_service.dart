@@ -932,7 +932,15 @@ abstract class VmServiceInterface {
   /// clients which need to provide resume approval for this pause type have
   /// done so.
   ///
-  /// Important Notes:<strong>Important Notes:</strong>
+  /// **Important Notes:**
+  ///
+  /// - All clients with the same client name share resume permissions. Only a
+  /// single client of a given name is required to provide resume approval.
+  /// - When a client requiring approval disconnects from the service, a paused
+  /// isolate may resume if all other clients requiring resume approval have
+  /// already given approval. In the case that no other client requires resume
+  /// approval for the current pause event, the isolate will be resumed if at
+  /// least one other client has attempted to [resume] the isolate.
   Future<Success> requirePermissionToResume(
       {bool onPauseStart, bool onPauseReload, bool onPauseExit});
 
@@ -999,6 +1007,23 @@ abstract class VmServiceInterface {
   /// value is of the wrong type for the flag.
   ///
   /// The following flags may be set at runtime:
+  ///
+  /// - pause_isolates_on_start
+  /// - pause_isolates_on_exit
+  /// - pause_isolates_on_unhandled_exceptions
+  /// - profile_period
+  /// - profiler
+  ///
+  /// Notes:
+  ///
+  /// - `profile_period` can be set to a minimum value of 50. Attempting to set
+  /// `profile_period` to a lower value will result in a value of 50 being set.
+  /// - Setting `profiler` will enable or disable the profiler depending on the
+  /// provided value. If set to false when the profiler is already running, the
+  /// profiler will be stopped but may not free its sample buffer depending on
+  /// platform limitations.
+  ///
+  /// See [Success].
   ///
   /// The return value can be one of [Success] or [Error].
   Future<Response> setFlag(String name, String value);
@@ -2454,6 +2479,7 @@ class AllocationProfile extends Response {
     this.dateLastAccumulatorReset,
     this.dateLastServiceGC,
   });
+
   AllocationProfile._fromJson(Map<String, dynamic> json)
       : super._fromJson(json) {
     members = List<ClassHeapStats>.from(
@@ -2506,6 +2532,7 @@ class BoundField {
     @required this.decl,
     @required this.value,
   });
+
   BoundField._fromJson(Map<String, dynamic> json) {
     decl = createServiceObject(json['decl'], const ['FieldRef']);
     value =
@@ -2560,6 +2587,7 @@ class BoundVariable extends Response {
     @required this.scopeStartTokenPos,
     @required this.scopeEndTokenPos,
   });
+
   BoundVariable._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
     value = createServiceObject(
@@ -2621,6 +2649,7 @@ class Breakpoint extends Obj {
     @required this.location,
     this.isSyntheticAsyncContinuation,
   });
+
   Breakpoint._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     breakpointNumber = json['breakpointNumber'];
     resolved = json['resolved'];
@@ -2663,6 +2692,7 @@ class ClassRef extends ObjRef {
   ClassRef({
     @required this.name,
   });
+
   ClassRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
   }
@@ -2755,6 +2785,7 @@ class Class extends Obj implements ClassRef {
     this.superType,
     this.mixin,
   });
+
   Class._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
     error = createServiceObject(json['error'], const ['ErrorRef']);
@@ -2832,6 +2863,7 @@ class ClassHeapStats extends Response {
     @required this.instancesAccumulated,
     @required this.instancesCurrent,
   });
+
   ClassHeapStats._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     classRef = createServiceObject(json['class'], const ['ClassRef']);
     accumulatedSize = json['accumulatedSize'];
@@ -2868,6 +2900,7 @@ class ClassList extends Response {
   ClassList({
     @required this.classes,
   });
+
   ClassList._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     classes = List<ClassRef>.from(
         createServiceObject(json['classes'], const ['ClassRef']) ?? []);
@@ -2897,6 +2930,7 @@ class ClientName extends Response {
   ClientName({
     @required this.name,
   });
+
   ClientName._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
   }
@@ -2929,6 +2963,7 @@ class CodeRef extends ObjRef {
     @required this.name,
     @required this.kind,
   });
+
   CodeRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
     kind = json['kind'];
@@ -2968,6 +3003,7 @@ class Code extends ObjRef implements CodeRef {
     @required this.name,
     @required this.kind,
   });
+
   Code._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
     kind = json['kind'];
@@ -3002,6 +3038,7 @@ class ContextRef extends ObjRef {
   ContextRef({
     @required this.length,
   });
+
   ContextRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     length = json['length'];
   }
@@ -3045,6 +3082,7 @@ class Context extends Obj implements ContextRef {
     @required this.variables,
     this.parent,
   });
+
   Context._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     length = json['length'];
     parent = createServiceObject(json['parent'], const ['Context']);
@@ -3082,6 +3120,7 @@ class ContextElement {
   ContextElement({
     @required this.value,
   });
+
   ContextElement._fromJson(Map<String, dynamic> json) {
     value =
         createServiceObject(json['value'], const ['InstanceRef', 'Sentinel']);
@@ -3145,6 +3184,7 @@ class CpuSamples extends Response {
     @required this.functions,
     @required this.samples,
   });
+
   CpuSamples._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     samplePeriod = json['samplePeriod'];
     maxStackDepth = json['maxStackDepth'];
@@ -3226,6 +3266,7 @@ class CpuSample {
     this.userTag,
     this.truncated,
   });
+
   CpuSample._fromJson(Map<String, dynamic> json) {
     tid = json['tid'];
     timestamp = json['timestamp'];
@@ -3267,6 +3308,7 @@ class ErrorRef extends ObjRef {
     @required this.kind,
     @required this.message,
   });
+
   ErrorRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     kind = json['kind'];
     message = json['message'];
@@ -3319,6 +3361,7 @@ class Error extends Obj implements ErrorRef {
     this.exception,
     this.stacktrace,
   });
+
   Error._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     kind = json['kind'];
     message = json['message'];
@@ -3558,6 +3601,7 @@ class Event extends Response {
     this.last,
     this.data,
   });
+
   Event._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     kind = json['kind'];
     isolate = createServiceObject(json['isolate'], const ['IsolateRef']);
@@ -3664,6 +3708,7 @@ class FieldRef extends ObjRef {
     @required this.isFinal,
     @required this.isStatic,
   });
+
   FieldRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
     owner = createServiceObject(json['owner'], const ['ObjRef']);
@@ -3740,6 +3785,7 @@ class Field extends Obj implements FieldRef {
     this.staticValue,
     this.location,
   });
+
   Field._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
     owner = createServiceObject(json['owner'], const ['ObjRef']);
@@ -3803,6 +3849,7 @@ class Flag {
     @required this.modified,
     this.valueAsString,
   });
+
   Flag._fromJson(Map<String, dynamic> json) {
     name = json['name'];
     comment = json['comment'];
@@ -3836,6 +3883,7 @@ class FlagList extends Response {
   FlagList({
     @required this.flags,
   });
+
   FlagList._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     flags = List<Flag>.from(
         createServiceObject(json['flags'], const ['Flag']) ?? []);
@@ -3884,6 +3932,7 @@ class Frame extends Response {
     this.vars,
     this.kind,
   });
+
   Frame._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     index = json['index'];
     function = createServiceObject(json['function'], const ['FuncRef']);
@@ -3939,6 +3988,7 @@ class FuncRef extends ObjRef {
     @required this.isStatic,
     @required this.isConst,
   });
+
   FuncRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
     owner = createServiceObject(
@@ -4004,6 +4054,7 @@ class Func extends Obj implements FuncRef {
     this.location,
     this.code,
   });
+
   Func._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
     owner = createServiceObject(
@@ -4152,6 +4203,7 @@ class InstanceRef extends ObjRef {
     this.closureFunction,
     this.closureContext,
   });
+
   InstanceRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     kind = json['kind'];
     classRef = createServiceObject(json['class'], const ['ClassRef']);
@@ -4481,6 +4533,7 @@ class Instance extends Obj implements InstanceRef {
     this.targetType,
     this.bound,
   });
+
   Instance._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     kind = json['kind'];
     classRef = createServiceObject(json['class'], const ['ClassRef']);
@@ -4591,6 +4644,7 @@ class IsolateRef extends Response {
     @required this.number,
     @required this.name,
   });
+
   IsolateRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     id = json['id'];
     number = json['number'];
@@ -4691,6 +4745,7 @@ class Isolate extends Response implements IsolateRef {
     this.error,
     this.extensionRPCs,
   });
+
   Isolate._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     id = json['id'];
     number = json['number'];
@@ -4763,6 +4818,7 @@ class IsolateGroupRef extends Response {
     @required this.number,
     @required this.name,
   });
+
   IsolateGroupRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     id = json['id'];
     number = json['number'];
@@ -4812,6 +4868,7 @@ class IsolateGroup extends Response implements IsolateGroupRef {
     @required this.name,
     @required this.isolates,
   });
+
   IsolateGroup._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     id = json['id'];
     number = json['number'];
@@ -4853,6 +4910,7 @@ class InboundReferences extends Response {
   InboundReferences({
     @required this.references,
   });
+
   InboundReferences._fromJson(Map<String, dynamic> json)
       : super._fromJson(json) {
     references = List<InboundReference>.from(
@@ -4897,6 +4955,7 @@ class InboundReference {
     this.parentListIndex,
     this.parentField,
   });
+
   InboundReference._fromJson(Map<String, dynamic> json) {
     source = createServiceObject(json['source'], const ['ObjRef']);
     parentListIndex = json['parentListIndex'];
@@ -4931,6 +4990,7 @@ class InstanceSet extends Response {
     @required this.totalCount,
     @required this.instances,
   });
+
   InstanceSet._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     totalCount = json['totalCount'];
     instances = List<ObjRef>.from(createServiceObject(
@@ -4967,6 +5027,7 @@ class LibraryRef extends ObjRef {
     @required this.name,
     @required this.uri,
   });
+
   LibraryRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
     uri = json['uri'];
@@ -5032,6 +5093,7 @@ class Library extends Obj implements LibraryRef {
     @required this.functions,
     @required this.classes,
   });
+
   Library._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
     uri = json['uri'];
@@ -5095,6 +5157,7 @@ class LibraryDependency {
     @required this.prefix,
     @required this.target,
   });
+
   LibraryDependency._fromJson(Map<String, dynamic> json) {
     isImport = json['isImport'];
     isDeferred = json['isDeferred'];
@@ -5159,6 +5222,7 @@ class LogRecord extends Response {
     @required this.error,
     @required this.stackTrace,
   });
+
   LogRecord._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     message = createServiceObject(json['message'], const ['InstanceRef']);
     time = json['time'];
@@ -5204,6 +5268,7 @@ class MapAssociation {
     @required this.key,
     @required this.value,
   });
+
   MapAssociation._fromJson(Map<String, dynamic> json) {
     key = createServiceObject(json['key'], const ['InstanceRef', 'Sentinel']);
     value =
@@ -5249,6 +5314,7 @@ class MemoryUsage extends Response {
     @required this.heapCapacity,
     @required this.heapUsage,
   });
+
   MemoryUsage._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     externalUsage = json['externalUsage'];
     heapCapacity = json['heapCapacity'];
@@ -5308,6 +5374,7 @@ class Message extends Response {
     this.handler,
     this.location,
   });
+
   Message._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     index = json['index'];
     name = json['name'];
@@ -5349,6 +5416,7 @@ class NativeFunction {
   NativeFunction({
     @required this.name,
   });
+
   NativeFunction._fromJson(Map<String, dynamic> json) {
     name = json['name'];
   }
@@ -5376,6 +5444,7 @@ class NullValRef extends InstanceRef {
   NullValRef({
     @required this.valueAsString,
   });
+
   NullValRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     valueAsString = json['valueAsString'];
   }
@@ -5411,6 +5480,7 @@ class NullVal extends Instance implements NullValRef {
   NullVal({
     @required this.valueAsString,
   });
+
   NullVal._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     valueAsString = json['valueAsString'];
   }
@@ -5453,6 +5523,7 @@ class ObjRef extends Response {
     @required this.id,
     this.fixedId,
   });
+
   ObjRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     id = json['id'];
     fixedId = json['fixedId'];
@@ -5520,6 +5591,7 @@ class Obj extends Response implements ObjRef {
     this.classRef,
     this.size,
   });
+
   Obj._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     id = json['id'];
     fixedId = json['fixedId'];
@@ -5578,6 +5650,7 @@ class ProfileFunction {
     @required this.resolvedUrl,
     @required this.function,
   });
+
   ProfileFunction._fromJson(Map<String, dynamic> json) {
     kind = json['kind'];
     inclusiveTicks = json['inclusiveTicks'];
@@ -5613,6 +5686,7 @@ class ReloadReport extends Response {
   ReloadReport({
     @required this.success,
   });
+
   ReloadReport._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     success = json['success'];
   }
@@ -5656,6 +5730,7 @@ class RetainingObject {
     this.parentMapKey,
     this.parentField,
   });
+
   RetainingObject._fromJson(Map<String, dynamic> json) {
     value = createServiceObject(json['value'], const ['ObjRef']);
     parentListIndex = json['parentListIndex'];
@@ -5698,6 +5773,7 @@ class RetainingPath extends Response {
     @required this.gcRootType,
     @required this.elements,
   });
+
   RetainingPath._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     length = json['length'];
     gcRootType = json['gcRootType'];
@@ -5738,6 +5814,7 @@ class Response {
   Response({
     @required this.type,
   });
+
   Response._fromJson(this.json) {
     type = json['type'];
   }
@@ -5769,6 +5846,7 @@ class Sentinel extends Response {
     @required this.kind,
     @required this.valueAsString,
   });
+
   Sentinel._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     kind = json['kind'];
     valueAsString = json['valueAsString'];
@@ -5800,6 +5878,7 @@ class ScriptRef extends ObjRef {
   ScriptRef({
     @required this.uri,
   });
+
   ScriptRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     uri = json['uri'];
   }
@@ -5888,6 +5967,7 @@ class Script extends Obj implements ScriptRef {
     this.source,
     this.tokenPosTable,
   });
+
   Script._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     uri = json['uri'];
     library = createServiceObject(json['library'], const ['LibraryRef']);
@@ -5961,6 +6041,7 @@ class ScriptList extends Response {
   ScriptList({
     @required this.scripts,
   });
+
   ScriptList._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     scripts = List<ScriptRef>.from(
         createServiceObject(json['scripts'], const ['ScriptRef']) ?? []);
@@ -6000,6 +6081,7 @@ class SourceLocation extends Response {
     @required this.tokenPos,
     this.endTokenPos,
   });
+
   SourceLocation._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     script = createServiceObject(json['script'], const ['ScriptRef']);
     tokenPos = json['tokenPos'];
@@ -6045,6 +6127,7 @@ class SourceReport extends Response {
     @required this.ranges,
     @required this.scripts,
   });
+
   SourceReport._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     ranges = List<SourceReportRange>.from(
         _createSpecificObject(json['ranges'], SourceReportRange.parse));
@@ -6088,6 +6171,7 @@ class SourceReportCoverage {
     @required this.hits,
     @required this.misses,
   });
+
   SourceReportCoverage._fromJson(Map<String, dynamic> json) {
     hits = List<int>.from(json['hits']);
     misses = List<int>.from(json['misses']);
@@ -6155,6 +6239,7 @@ class SourceReportRange {
     this.coverage,
     this.possibleBreakpoints,
   });
+
   SourceReportRange._fromJson(Map<String, dynamic> json) {
     scriptIndex = json['scriptIndex'];
     startPos = json['startPos'];
@@ -6208,6 +6293,7 @@ class Stack extends Response {
     this.asyncCausalFrames,
     this.awaiterFrames,
   });
+
   Stack._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     frames = List<Frame>.from(
         createServiceObject(json['frames'], const ['Frame']) ?? []);
@@ -6249,6 +6335,7 @@ class Success extends Response {
       json == null ? null : Success._fromJson(json);
 
   Success();
+
   Success._fromJson(Map<String, dynamic> json) : super._fromJson(json);
 
   @override
@@ -6279,6 +6366,7 @@ class Timeline extends Response {
     @required this.timeOriginMicros,
     @required this.timeExtentMicros,
   });
+
   Timeline._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     traceEvents = List<TimelineEvent>.from(
         createServiceObject(json['traceEvents'], const ['TimelineEvent']) ??
@@ -6313,6 +6401,7 @@ class TimelineEvent {
   Map<String, dynamic> json;
 
   TimelineEvent();
+
   TimelineEvent._fromJson(this.json);
 
   Map<String, dynamic> toJson() {
@@ -6344,6 +6433,7 @@ class TimelineFlags extends Response {
     @required this.availableStreams,
     @required this.recordedStreams,
   });
+
   TimelineFlags._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     recorderName = json['recorderName'];
     availableStreams = List<String>.from(json['availableStreams']);
@@ -6377,6 +6467,7 @@ class Timestamp extends Response {
   Timestamp({
     @required this.timestamp,
   });
+
   Timestamp._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     timestamp = json['timestamp'];
   }
@@ -6405,6 +6496,7 @@ class TypeArgumentsRef extends ObjRef {
   TypeArgumentsRef({
     @required this.name,
   });
+
   TypeArgumentsRef._fromJson(Map<String, dynamic> json)
       : super._fromJson(json) {
     name = json['name'];
@@ -6447,6 +6539,7 @@ class TypeArguments extends Obj implements TypeArgumentsRef {
     @required this.name,
     @required this.types,
   });
+
   TypeArguments._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
     types = List<InstanceRef>.from(
@@ -6517,6 +6610,7 @@ class UnresolvedSourceLocation extends Response {
     this.line,
     this.column,
   });
+
   UnresolvedSourceLocation._fromJson(Map<String, dynamic> json)
       : super._fromJson(json) {
     script = createServiceObject(json['script'], const ['ScriptRef']);
@@ -6558,6 +6652,7 @@ class Version extends Response {
     @required this.major,
     @required this.minor,
   });
+
   Version._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     major = json['major'];
     minor = json['minor'];
@@ -6589,6 +6684,7 @@ class VMRef extends Response {
   VMRef({
     @required this.name,
   });
+
   VMRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
   }
@@ -6654,6 +6750,7 @@ class VM extends Response implements VMRef {
     @required this.isolates,
     @required this.isolateGroups,
   });
+
   VM._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
     architectureBits = json['architectureBits'];

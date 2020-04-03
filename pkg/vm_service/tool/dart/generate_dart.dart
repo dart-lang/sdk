@@ -405,10 +405,13 @@ class Api extends Member with ApiParseUtil {
         String docs = '';
 
         while (i + 1 < nodes.length &&
-            (isPara(nodes[i + 1]) || isBlockquote(nodes[i + 1]))) {
+                (isPara(nodes[i + 1]) || isBlockquote(nodes[i + 1])) ||
+            isList(nodes[i + 1])) {
           Element p = nodes[++i];
           String str = TextOutputVisitor.printText(p);
-          if (!str.contains('|') && !str.contains('``')) {
+          if (!str.contains('|') &&
+              !str.contains('``') &&
+              !str.startsWith('- ')) {
             str = collapseWhitespace(str);
           }
           docs = '${docs}\n\n${str}';
@@ -1363,8 +1366,9 @@ class Type extends Member {
     if (docs != null) gen.writeDocs(docs);
     gen.write('class ${name} ');
     if (superName != null) gen.write('extends ${superName} ');
-    if (parent.getType('${name}Ref') != null)
+    if (parent.getType('${name}Ref') != null) {
       gen.write('implements ${name}Ref ');
+    }
     gen.writeln('{');
     gen.writeln('static ${name} parse(Map<String, dynamic> json) => '
         'json == null ? null : ${name}._fromJson(json);');
@@ -1399,6 +1403,7 @@ class Type extends Member {
     gen.writeln(');');
 
     // Build from JSON.
+    gen.writeln();
     String superCall = superName == null ? '' : ": super._fromJson(json) ";
     if (name == 'Response' || name == 'TimelineEvent') {
       gen.write('${name}._fromJson(this.json)');
@@ -1899,6 +1904,14 @@ class TextOutputVisitor implements NodeVisitor {
       _blockquote = true;
     } else if (element.tag == 'a') {
       _href = true;
+    } else if (element.tag == 'strong') {
+      buf.write('**');
+    } else if (element.tag == 'ul') {
+      // Nothing to do.
+    } else if (element.tag == 'li') {
+      buf.write('- ');
+    } else {
+      throw 'unknown node type: ${element.tag}';
     }
 
     return true;
@@ -1926,13 +1939,17 @@ class TextOutputVisitor implements NodeVisitor {
     } else if (element.tag == 'p') {
       buf.write('\n\n');
     } else if (element.tag == 'blockquote') {
-      //buf.write('```\n');
       _blockquote = false;
     } else if (element.tag == 'a') {
       _href = false;
+    } else if (element.tag == 'strong') {
+      buf.write('**');
+    } else if (element.tag == 'ul') {
+      // Nothing to do.
+    } else if (element.tag == 'li') {
+      buf.write('\n');
     } else {
-      print('             </${element.tag}>');
-      buf.write(renderToHtml([element]));
+      throw 'unknown node type: ${element.tag}';
     }
   }
 

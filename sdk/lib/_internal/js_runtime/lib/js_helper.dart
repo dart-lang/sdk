@@ -3543,3 +3543,12 @@ void registerGlobalObject(object) {}
 // Hook to register new browser classes.
 // This is currently a no-op in dart2js.
 void applyExtension(name, nativeObject) {}
+
+// See tests/compiler/dart2js_extra/platform_environment_variable1_test.dart
+const String testPlatformEnvironmentVariableValue = String.fromEnvironment(
+    'dart2js.test.platform.environment.variable',
+    defaultValue: 'not-specified');
+
+String testingGetPlatformEnvironmentVariable() {
+  return testPlatformEnvironmentVariableValue;
+}

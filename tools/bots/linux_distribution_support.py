@@ -101,7 +101,7 @@ def SrcSteps(build_info):
             sys.exit(1)
         if not "jessie" in stdout:
             print "Trying to build debian bits but not on debian Jessie"
-            print "You can't fix this, please contact whesse@"
+            print "You can't fix this, please contact dart-engprod@"
             sys.exit(1)
 
     with bot.BuildStep('Create src tarball'):

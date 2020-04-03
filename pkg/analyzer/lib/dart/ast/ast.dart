@@ -33,7 +33,6 @@
 /// the elements that they refer to and every expression in the AST will have a
 /// type associated with it.
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/language_version.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -1236,9 +1235,6 @@ abstract class CompilationUnit implements AstNode {
   /// Might be `null` if, for example, this [CompilationUnit] has been
   /// resynthesized from a summary.
   FeatureSet get featureSet;
-
-  @Deprecated("Use languageVersionToken")
-  LanguageVersion get languageVersion;
 
   /// The language version override specified for this compilation unit using a
   /// token like '// @dart = 2.7', or `null` if no override is specified.

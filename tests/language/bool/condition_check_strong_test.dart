@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Requirements=nnbd-strong
+
 // Check that passing `null` for a boolean typed parameter will still cause
 // a boolean conversion error when used in a condition.
 

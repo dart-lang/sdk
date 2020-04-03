@@ -205,6 +205,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// Current nesting depth of [visitTypeName]
   int _typeNameNesting = 0;
 
+  final Set<PromotableElement> _lateHintedLocals = {};
+
   EdgeBuilder(this.typeProvider, this._typeSystem, this._variables, this._graph,
       this.source, this.listener, this._decoratedClassHierarchy,
       {this.instrumentation})
@@ -504,7 +506,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
       _fieldsNotInitializedAtDeclaration = {
         for (var member in members)
-          if (member is FieldDeclaration)
+          if (member is FieldDeclaration &&
+              !_variables.isLateHinted(source, member.fields))
             for (var field in member.fields.variables)
               if (!field.declaredElement.isStatic && field.initializer == null)
                 field.declaredElement as FieldElement
@@ -1355,6 +1358,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       var type = getOrComputeElementType(staticElement);
       if (!node.inDeclarationContext() &&
           node.inGetterContext() &&
+          !_lateHintedLocals.contains(staticElement) &&
           !_flowAnalysis.isAssigned(staticElement)) {
         _graph.makeNullable(type.node, UninitializedReadOrigin(source, node));
       }
@@ -1633,6 +1637,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         _createFlowAnalysis(variable, null);
       } else {
         assert(_flowAnalysis != null);
+        if (declaredElement is PromotableElement &&
+            _variables.isLateHinted(source, node)) {
+          _lateHintedLocals.add(declaredElement);
+        }
       }
       var type = _variables.decoratedElementType(declaredElement);
       var enclosingElement = declaredElement.enclosingElement;
@@ -1668,6 +1676,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           // when processing variable reads (only if flow analysis indicates
           // the variable isn't definitely assigned).
           if (isTopLevel &&
+              !_variables.isLateHinted(source, node) &&
               !(declaredElement is FieldElement && !declaredElement.isStatic)) {
             _graph.makeNullable(
                 type.node, ImplicitNullInitializerOrigin(source, node));

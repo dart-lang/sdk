@@ -11,18 +11,38 @@ import 'package:analysis_server_client/protocol.dart';
 import 'package:analysis_server_client/server.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
-import 'package:path/path.dart' as path;
 import 'package:nnbd_migration/src/messages.dart';
+import 'package:path/path.dart' as path;
 
 import '../util.dart';
 import 'apply.dart';
 import 'display.dart';
 import 'options.dart';
 
-typedef LogProvider = Logger Function();
+String get _dartSdkVersion {
+  String version = Platform.version;
+
+  // Remove the build date and OS.
+  if (version.contains(' ')) {
+    version = version.substring(0, version.indexOf(' '));
+  }
+
+  // Convert a git hash to 8 chars.
+  // '2.8.0-edge.fd992e423ef69ece9f44bd3ac58fa2355b563212'
+  final RegExp versionRegExp = RegExp(r'^.*\.([0123456789abcdef]+)$');
+  RegExpMatch match = versionRegExp.firstMatch(version);
+  if (match != null && match.group(1).length == 40) {
+    String commit = match.group(1);
+    version = version.replaceAll(commit, commit.substring(0, 10));
+  }
+
+  return version;
+}
 
 // TODO(devoncarew): Over time, we should look to share code with the
 // implementation here and that in lib/src/driver.dart.
+
+typedef LogProvider = Logger Function();
 
 /// Perform null safety related migrations on the user's code.
 class MigrateCommand extends Command {
@@ -31,8 +51,9 @@ class MigrateCommand extends Command {
   @override
   final bool hidden;
 
-  @override
-  String get name => 'migrate';
+  MigrateCommand({this.logProvider, this.hidden = false}) {
+    MigrateOptions.defineOptions(argParser);
+  }
 
   @override
   String get description =>
@@ -43,9 +64,8 @@ class MigrateCommand extends Command {
     return '${super.invocation} [project or directory]';
   }
 
-  MigrateCommand({this.logProvider, this.hidden = false}) {
-    MigrateOptions.defineOptions(argParser);
-  }
+  @override
+  String get name => 'migrate';
 
   @override
   Future<int> run() async {
@@ -138,12 +158,14 @@ class MigrateCommand extends Command {
           fileErrors.values.map((list) => list.length).reduce((a, b) => a + b);
       logger.stdout(
           '$issueCount analysis ${pluralize('issue', issueCount)} found:');
+      List<AnalysisError> allErrors = fileErrors.values
+          .fold(<AnalysisError>[], (list, element) => list..addAll(element));
       _displayIssues(
         logger,
         options.directory,
-        fileErrors.values
-            .fold(<AnalysisError>[], (list, element) => list..addAll(element)),
+        allErrors,
       );
+      var importErrorCount = allErrors.where(_isUriError).length;
 
       logger.stdout('');
       logger.stdout(
@@ -152,9 +174,14 @@ class MigrateCommand extends Command {
       if (options.ignoreErrors) {
         logger.stdout('Continuing with migration suggestions due to the use of '
             '--${MigrateOptions.ignoreErrorsOption}.');
-      } else if (!options.ignoreErrors) {
+      } else {
         // Fail with how to continue.
         logger.stdout('');
+        if (importErrorCount != 0) {
+          logger.stdout(
+              'Unresolved URIs found.  Did you forget to run "pub get"?');
+          logger.stdout('');
+        }
         logger.stdout(
             'Please fix the analysis issues (or, force generation of migration '
             'suggestions by re-running with '
@@ -250,52 +277,39 @@ the tool with --${MigrateOptions.applyChangesOption}).
     return 0;
   }
 
-  /// Parse and validate the user's options; throw a UsageException if there are
-  /// issues, and return an [MigrateOptions] result otherwise.
-  MigrateOptions _parseAndValidateOptions() {
-    String dirPath;
-
-    if (argResults.rest.isNotEmpty) {
-      if (argResults.rest.length == 1) {
-        dirPath = argResults.rest.first;
-
-        if (FileSystemEntity.isFileSync(dirPath)) {
-          // Calling this will throw an exception.
-          usageException(
-              'Please provide a path to a package or directory to migrate.');
-        } else if (!FileSystemEntity.isDirectorySync(dirPath)) {
-          // Calling this will throw an exception.
-          usageException("'$dirPath' not found; "
-              'please provide a path to a package or directory to migrate.');
-        }
-      } else {
-        // Calling this will throw an exception.
-        usageException(
-            'Please provide a path to a package or directory to migrate.');
-      }
-    } else {
-      dirPath = Directory.current.path;
-    }
-
-    return MigrateOptions(argResults, dirPath);
-  }
-
-  void _displayIssues(
+  void _applyMigrationSuggestions(
     Logger logger,
     String directory,
-    List<AnalysisError> issues,
+    EditDartfixResult migrationResults,
   ) {
-    issues.sort((AnalysisError one, AnalysisError two) {
-      if (one.location.file != two.location.file) {
-        return one.location.file.compareTo(two.location.file);
-      }
-      return one.location.offset - two.location.offset;
-    });
+    // Apply the changes to disk.
+    for (SourceFileEdit sourceFileEdit in migrationResults.edits) {
+      String relPath = path.relative(sourceFileEdit.file, from: directory);
+      int count = sourceFileEdit.edits.length;
+      logger.stdout('  $relPath ($count ${pluralize('change', count)})');
 
-    IssueRenderer renderer = IssueRenderer(logger, directory);
-    for (AnalysisError issue in issues) {
-      renderer.render(issue);
+      String source;
+      try {
+        source = File(sourceFileEdit.file).readAsStringSync();
+      } catch (_) {}
+
+      if (source == null) {
+        logger.stdout('    Unable to retrieve source for file.');
+      } else {
+        source = applyEdits(sourceFileEdit, source);
+
+        try {
+          File(sourceFileEdit.file).writeAsStringSync(source);
+        } catch (e) {
+          logger.stdout('    Unable to write source for file: $e');
+        }
+      }
     }
+  }
+
+  Future _blockUntilSignalInterrupt() {
+    Stream<ProcessSignal> stream = ProcessSignal.sigint.watch();
+    return stream.first;
   }
 
   void _displayChangeSummary(
@@ -346,39 +360,65 @@ the tool with --${MigrateOptions.applyChangesOption}).
     }
   }
 
-  void _applyMigrationSuggestions(
+  void _displayIssues(
     Logger logger,
     String directory,
-    EditDartfixResult migrationResults,
+    List<AnalysisError> issues,
   ) {
-    // Apply the changes to disk.
-    for (SourceFileEdit sourceFileEdit in migrationResults.edits) {
-      String relPath = path.relative(sourceFileEdit.file, from: directory);
-      int count = sourceFileEdit.edits.length;
-      logger.stdout('  $relPath ($count ${pluralize('change', count)})');
-
-      String source;
-      try {
-        source = File(sourceFileEdit.file).readAsStringSync();
-      } catch (_) {}
-
-      if (source == null) {
-        logger.stdout('    Unable to retrieve source for file.');
-      } else {
-        source = applyEdits(sourceFileEdit, source);
-
-        try {
-          File(sourceFileEdit.file).writeAsStringSync(source);
-        } catch (e) {
-          logger.stdout('    Unable to write source for file: $e');
-        }
+    issues.sort((AnalysisError one, AnalysisError two) {
+      if (one.location.file != two.location.file) {
+        return one.location.file.compareTo(two.location.file);
       }
+      return one.location.offset - two.location.offset;
+    });
+
+    IssueRenderer renderer = IssueRenderer(logger, directory);
+    for (AnalysisError issue in issues) {
+      renderer.render(issue);
     }
   }
 
-  Future _blockUntilSignalInterrupt() {
-    Stream<ProcessSignal> stream = ProcessSignal.sigint.watch();
-    return stream.first;
+  bool _isUriError(AnalysisError error) => error.code == 'uri_does_not_exist';
+
+  /// Parse and validate the user's options; throw a UsageException if there are
+  /// issues, and return an [MigrateOptions] result otherwise.
+  MigrateOptions _parseAndValidateOptions() {
+    String dirPath;
+
+    if (argResults.rest.isNotEmpty) {
+      if (argResults.rest.length == 1) {
+        dirPath = argResults.rest.first;
+
+        if (FileSystemEntity.isFileSync(dirPath)) {
+          // Calling this will throw an exception.
+          usageException(
+              'Please provide a path to a package or directory to migrate.');
+        } else if (!FileSystemEntity.isDirectorySync(dirPath)) {
+          // Calling this will throw an exception.
+          usageException("'$dirPath' not found; "
+              'please provide a path to a package or directory to migrate.');
+        }
+      } else {
+        // Calling this will throw an exception.
+        usageException(
+            'Please provide a path to a package or directory to migrate.');
+      }
+    } else {
+      dirPath = Directory.current.path;
+    }
+
+    return MigrateOptions(argResults, dirPath);
+  }
+}
+
+class _ServerListener with ServerListener {
+  final Logger logger;
+
+  _ServerListener(this.logger);
+
+  @override
+  void log(String prefix, String details) {
+    logger.trace('[$prefix] $details');
   }
 }
 
@@ -393,25 +433,8 @@ class _ServerNotifications with NotificationHandler {
 
   _ServerNotifications(this.server);
 
-  Stream<ServerStatusParams> get serverStatusEvents =>
-      _serverStatusController.stream;
-
   Stream<AnalysisErrorsParams> get analysisErrorsEvents =>
       _analysisErrorsController.stream;
-
-  Future listenToServer(Server server) async {
-    server.listenToOutput(notificationProcessor: handleEvent);
-
-    await server.send(SERVER_REQUEST_SET_SUBSCRIPTIONS,
-        ServerSetSubscriptionsParams([ServerService.STATUS]).toJson());
-  }
-
-  @override
-  void onServerStatus(ServerStatusParams event) {
-    if (event.analysis != null) {
-      _serverStatusController.add(event);
-    }
-  }
 
   Future get onNextAnalysisComplete {
     Completer completer = Completer();
@@ -425,6 +448,16 @@ class _ServerNotifications with NotificationHandler {
     });
 
     return completer.future;
+  }
+
+  Stream<ServerStatusParams> get serverStatusEvents =>
+      _serverStatusController.stream;
+
+  Future listenToServer(Server server) async {
+    server.listenToOutput(notificationProcessor: handleEvent);
+
+    await server.send(SERVER_REQUEST_SET_SUBSCRIPTIONS,
+        ServerSetSubscriptionsParams([ServerService.STATUS]).toJson());
   }
 
   @override
@@ -443,35 +476,11 @@ class _ServerNotifications with NotificationHandler {
       }
     }
   }
-}
-
-class _ServerListener with ServerListener {
-  final Logger logger;
-
-  _ServerListener(this.logger);
 
   @override
-  void log(String prefix, String details) {
-    logger.trace('[$prefix] $details');
+  void onServerStatus(ServerStatusParams event) {
+    if (event.analysis != null) {
+      _serverStatusController.add(event);
+    }
   }
-}
-
-String get _dartSdkVersion {
-  String version = Platform.version;
-
-  // Remove the build date and OS.
-  if (version.contains(' ')) {
-    version = version.substring(0, version.indexOf(' '));
-  }
-
-  // Convert a git hash to 8 chars.
-  // '2.8.0-edge.fd992e423ef69ece9f44bd3ac58fa2355b563212'
-  final RegExp versionRegExp = RegExp(r'^.*\.([0123456789abcdef]+)$');
-  RegExpMatch match = versionRegExp.firstMatch(version);
-  if (match != null && match.group(1).length == 40) {
-    String commit = match.group(1);
-    version = version.replaceAll(commit, commit.substring(0, 10));
-  }
-
-  return version;
 }

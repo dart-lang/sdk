@@ -262,8 +262,7 @@ abstract class ListMixin<E> implements List<E> {
     int i = this.length;
     for (E element in iterable) {
       assert(this.length == i || (throw ConcurrentModificationError(this)));
-      this.length = i + 1;
-      this[i] = element;
+      add(element);
       i++;
     }
   }
@@ -424,6 +423,10 @@ abstract class ListMixin<E> implements List<E> {
 
   void replaceRange(int start, int end, Iterable<E> newContents) {
     RangeError.checkValidRange(start, end, this.length);
+    if (start == this.length) {
+      addAll(newContents);
+      return;
+    }
     if (newContents is! EfficientLengthIterable) {
       newContents = newContents.toList();
     }
@@ -435,12 +438,26 @@ abstract class ListMixin<E> implements List<E> {
       if (removeLength > insertLength) {
         _closeGap(insertEnd, end);
       }
+    } else if (end == this.length) {
+      int i = start;
+      for (E element in newContents) {
+        if (i < end) {
+          this[i] = element;
+        } else {
+          add(element);
+        }
+        i++;
+      }
     } else {
       int delta = insertLength - removeLength;
-      int newLength = this.length + delta;
+      int oldLength = this.length;
       int insertEnd = start + insertLength; // aka. end + delta.
-      this.length = newLength;
-      this.setRange(insertEnd, newLength, this, end);
+      for (int i = oldLength - delta; i < oldLength; ++i) {
+        add(this[i > 0 ? i : 0]);
+      }
+      if (insertEnd < oldLength) {
+        this.setRange(insertEnd, oldLength, this, end);
+      }
       this.setRange(start, insertEnd, newContents);
     }
   }
@@ -505,21 +522,34 @@ abstract class ListMixin<E> implements List<E> {
 
   void insertAll(int index, Iterable<E> iterable) {
     RangeError.checkValueInInterval(index, 0, length, "index");
+    if (index == length) {
+      addAll(iterable);
+      return;
+    }
     if (iterable is! EfficientLengthIterable || identical(iterable, this)) {
       iterable = iterable.toList();
     }
     int insertionLength = iterable.length;
+    if (insertionLength == 0) {
+      return;
+    }
     // There might be errors after the length change, in which case the list
     // will end up being modified but the operation not complete. Unless we
     // always go through a "toList" we can't really avoid that.
-    this.length += insertionLength;
+    int oldLength = length;
+    for (int i = oldLength - insertionLength; i < oldLength; ++i) {
+      add(this[i > 0 ? i : 0]);
+    }
     if (iterable.length != insertionLength) {
       // If the iterable's length is linked to this list's length somehow,
       // we can't insert one in the other.
       this.length -= insertionLength;
       throw ConcurrentModificationError(iterable);
     }
-    setRange(index + insertionLength, this.length, this, index);
+    int oldCopyStart = index + insertionLength;
+    if (oldCopyStart < oldLength) {
+      setRange(oldCopyStart, oldLength, this, index);
+    }
     setAll(index, iterable);
   }
 

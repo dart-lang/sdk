@@ -7,7 +7,6 @@ import 'dart:math' as math;
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/language_version.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -2030,12 +2029,6 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
 
   /// The minor component of the actual language version (not just override).
   int languageVersionMinor;
-
-  @override
-  LanguageVersion get languageVersion {
-    final token = languageVersionToken;
-    return LanguageVersion(token.major, token.minor);
-  }
 
   @override
   LanguageVersionToken get languageVersionToken {

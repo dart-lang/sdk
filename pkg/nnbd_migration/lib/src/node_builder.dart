@@ -545,6 +545,13 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     node.metadata.accept(this);
     var typeAnnotation = node.type;
     var type = typeAnnotation?.accept(this);
+    switch (getPrefixHint(node.firstTokenAfterCommentAndMetadata)) {
+      case PrefixHintComment.late_:
+        _variables.recordLateHint(source, node);
+        break;
+      case PrefixHintComment.none:
+        break;
+    }
     for (var variable in node.variables) {
       variable.metadata.accept(this);
       var declaredElement = variable.declaredElement;

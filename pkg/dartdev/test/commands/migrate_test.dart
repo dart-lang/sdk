@@ -7,15 +7,17 @@ import 'package:test/test.dart';
 
 import '../utils.dart';
 
-// TODO(jcollins-g): Set to true and/or remove when when NNBD is enabled in the
-//  SDK running this test.
-bool _nnbdIsEnabled = false;
-
 void main() {
   group('migrate', defineMigrateTests);
 }
 
+// TODO(jcollins-g): Set to true and/or remove when when NNBD is enabled in the
+//  SDK running this test.
+bool _nnbdIsEnabled = false;
+
 void defineMigrateTests() {
+  final didYouForgetToRunPubGet = contains('Did you forget to run "pub get"?');
+
   TestProject p;
 
   tearDown(() => p?.dispose());
@@ -66,5 +68,23 @@ void defineMigrateTests() {
     expect(result.stderr,
         contains('not found; please provide a path to a package or directory'));
     expect(result.stdout, isEmpty);
+  });
+
+  test('pub get needs running', () {
+    p = project(mainSrc: 'import "package:foo/foo.dart";\n');
+    var result = p.runSync('migrate',
+        ['--server-path=${p.absolutePathToAnalysisServerFile}', p.dirPath]);
+    expect(result.exitCode, 1);
+    expect(result.stderr, isEmpty);
+    expect(result.stdout, didYouForgetToRunPubGet);
+  });
+
+  test('non-pub-related error', () {
+    p = project(mainSrc: 'var missing = "semicolon"\n');
+    var result = p.runSync('migrate',
+        ['--server-path=${p.absolutePathToAnalysisServerFile}', p.dirPath]);
+    expect(result.exitCode, 1);
+    expect(result.stderr, isEmpty);
+    expect(result.stdout, isNot(didYouForgetToRunPubGet));
   });
 }

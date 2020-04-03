@@ -2539,6 +2539,10 @@ void Assembler::EnterStubFrame() {
   EnterDartFrame(0);
 }
 
+void Assembler::LeaveStubFrame() {
+  LeaveFrame();
+}
+
 void Assembler::EmitOperand(int rm, const Operand& operand) {
   ASSERT(rm >= 0 && rm < 8);
   const intptr_t length = operand.length_;

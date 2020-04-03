@@ -120,6 +120,11 @@ class InfoBuilder {
     return edges;
   }
 
+  void _addSimpleTrace(SimpleFixReasonInfo info, List<TraceInfo> traces) {
+    traces.add(TraceInfo(
+        'Reason', [_makeTraceEntry(info.description, info.codeReference)]));
+  }
+
   /// Return detail text for a fix built from an edge with origin info [origin]
   /// and [fixKind].
   ///
@@ -428,6 +433,8 @@ class InfoBuilder {
           assert(false, description);
           details.add(RegionDetail(description, null));
         }
+      } else if (reason is SimpleFixReasonInfo) {
+        details.add(RegionDetail(reason.description, null));
       } else {
         throw UnimplementedError(
             'Unexpected class of reason: ${reason.runtimeType}');
@@ -549,6 +556,8 @@ class InfoBuilder {
         assert(!reason.destinationNode.isNullable);
         _computeTraceNullableInfo(reason.sourceNode, traces);
         _computeTraceNonNullableInfo(reason.destinationNode, traces);
+      } else if (reason is SimpleFixReasonInfo) {
+        _addSimpleTrace(reason, traces);
       } else {
         assert(false, 'Unrecognized reason type: ${reason.runtimeType}');
       }

@@ -34,6 +34,10 @@ class MyList<T> extends ListBase<T> {
     list[index] = val;
   }
 
+  void add(T element) {
+    list.add(element);
+  }
+
   toString() => list.toString();
 }
 
@@ -74,6 +78,11 @@ main() {
   test(new MyList([1, 2, 3]), 3, [4, 5].map((x) => x));
   test(new MyList([1, 2, 3]), 2, [4].map((x) => x));
   test(new MyList([1, 2, 3]), 3, [].map((x) => x));
+  test(new MyList([]), 0, []);
+  test(new MyList([]), 0, [4]);
+  test(new MyList([]), 0, [4, 5]);
+  test(new MyList([1]), 0, [4, 5]);
+  test(new MyList([1]), 1, [4, 5]);
 
   Expect.throwsRangeError(() => test([1, 2, 3], -1, [4, 5]));
   Expect.throwsUnsupportedError(

@@ -35,6 +35,10 @@ class MyList<T> extends ListBase<T> {
     list[index] = val;
   }
 
+  void add(T element) {
+    list.add(element);
+  }
+
   toString() => list.toString();
 }
 
@@ -93,6 +97,11 @@ main() {
   test(new MyList([1, 2, 3]), 3, 3, new Iterable.generate(2, (x) => x + 4));
   test(new MyList([1, 2, 3]), 0, 3, new Iterable.generate(2, (x) => x + 4));
   test(new MyList([1, 2, 3]), 2, 3, new Iterable.generate(2, (x) => x + 4));
+  test(new MyList([]), 0, 0, []);
+  test(new MyList([]), 0, 0, [4]);
+  test(new MyList([]), 0, 0, [4, 5]);
+  test(new MyList([1]), 0, 1, [4, 5]);
+  test(new MyList([1]), 1, 1, [4, 5]);
 
   Expect.throwsRangeError(() => test([1, 2, 3], -1, 0, []));
   Expect.throwsRangeError(() => test([1, 2, 3], 2, 1, []));

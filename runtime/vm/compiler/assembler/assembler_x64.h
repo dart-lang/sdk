@@ -854,6 +854,9 @@ class Assembler : public AssemblerBase {
   void Jump(Label* label) { jmp(label); }
 
   void LoadField(Register dst, FieldAddress address) { movq(dst, address); }
+  void LoadMemoryValue(Register dst, Register base, int32_t offset) {
+    movq(dst, Address(base, offset));
+  }
 
   void CompareWithFieldValue(Register value, FieldAddress address) {
     cmpq(value, address);

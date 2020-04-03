@@ -111,6 +111,11 @@ struct TypeTestABI {
   static const Register kFunctionTypeArgumentsReg = ECX;
 };
 
+// ABI for InitStaticFieldStub.
+struct InitStaticFieldABI {
+  static const Register kFieldReg = EAX;
+};
+
 typedef uint32_t RegList;
 const RegList kAllCpuRegistersList = 0xFF;
 

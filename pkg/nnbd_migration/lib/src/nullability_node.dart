@@ -1512,7 +1512,9 @@ class _PropagationState {
       var step = pendingExactNullableSteps.removeLast();
       var edge = step.edge;
       var node = edge.sourceNode;
-      if (node is NullabilityNodeMutable && !edge.isCheckable) {
+      if (node is NullabilityNodeMutable &&
+          !edge.isCheckable &&
+          !node.nonNullIntent.isPresent) {
         assert(step.targetNode == null);
         step.targetNode = node;
         step.newState = Nullability.exactNullable;

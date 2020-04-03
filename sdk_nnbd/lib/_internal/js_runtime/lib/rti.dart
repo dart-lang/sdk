@@ -332,7 +332,7 @@ class Rti {
   Object? _canonicalRecipe;
 
   static String _getCanonicalRecipe(Rti rti) {
-    Object s = rti._canonicalRecipe!;
+    Object? s = rti._canonicalRecipe;
     assert(_Utils.isString(s), 'Missing canonical recipe');
     return _Utils.asString(s);
   }

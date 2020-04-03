@@ -57,6 +57,8 @@ class Variables {
 
   final _expressionChecks = <Source, Map<int, ExpressionChecks>>{};
 
+  final _lateHints = <Source, Set<int>>{};
+
   final _nullCheckHints = <Source, Set<int>>{};
 
   final _potentialModifications = <Source, List<PotentialModification>>{};
@@ -175,6 +177,12 @@ class Variables {
         .contains(uniqueIdentifierForSpan(expression.offset, expression.end));
   }
 
+  /// Queries whether the given [node] is preceded by a `/*late*/` hint.  See
+  /// [recordLateHint].
+  bool isLateHinted(Source source, VariableDeclarationList node) {
+    return (_lateHints[source] ?? {}).contains(node.offset);
+  }
+
   /// Records conditional discard information for the given AST node (which is
   /// an `if` statement or a conditional (`?:`) expression).
   void recordConditionalDiscard(
@@ -229,6 +237,11 @@ class Variables {
     (_expressionChecks[source] ??=
             {})[uniqueIdentifierForSpan(expression.offset, expression.end)] =
         origin.checks;
+  }
+
+  /// Records that the given [node] was preceded by a `/*late*/` hint.
+  void recordLateHint(Source source, VariableDeclarationList node) {
+    (_lateHints[source] ??= {}).add(node.offset);
   }
 
   /// Records that the given [expression] is followed by a null check hint

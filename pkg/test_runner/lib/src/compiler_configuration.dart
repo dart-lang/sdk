@@ -760,9 +760,9 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     String ccFlags;
     switch (_configuration.architecture) {
       case Architecture.x64:
-      case Architecture.simarm64:
         ccFlags = "-m64";
         break;
+      case Architecture.simarm64:
       case Architecture.ia32:
       case Architecture.simarm:
       case Architecture.arm:

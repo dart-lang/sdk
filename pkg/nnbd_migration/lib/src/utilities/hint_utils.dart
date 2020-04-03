@@ -23,6 +23,19 @@ NullabilityComment getPostfixHint(AstNode node) {
   return commentType;
 }
 
+PrefixHintComment getPrefixHint(Token token) {
+  Token commentToken = token.precedingComments;
+  if (commentToken != null) {
+    while (true) {
+      var nextComment = commentToken.next;
+      if (nextComment == null) break;
+      commentToken = nextComment;
+    }
+    if (commentToken.lexeme == '/*late*/') return PrefixHintComment.late_;
+  }
+  return PrefixHintComment.none;
+}
+
 /// Types of comments that can influence nullability
 enum NullabilityComment {
   /// The comment `/*!*/`, which indicates that the type should not have a `?`
@@ -34,5 +47,15 @@ enum NullabilityComment {
   question,
 
   /// No special comment.
+  none,
+}
+
+/// Types of comments that can appear before a token
+enum PrefixHintComment {
+  /// The comment `/*late*/`, which indicates that the variable declaration
+  /// should be late.
+  late_,
+
+  /// No special comment
   none,
 }

@@ -22,8 +22,7 @@ main() {
   } catch (e2) {
     var e = e2;
     hasThrown = true;
-    Expect.isTrue(
-        e.stackTrace is StackTrace, "$e doesn't have a non-null stack trace");
+    Expect.isTrue(e is StackOverflowError);
   }
   Expect.isTrue(hasThrown);
 }

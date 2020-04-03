@@ -568,9 +568,14 @@ class Assembler : public AssemblerBase {
    * Macros for High-level operations and implemented on all architectures.
    */
 
+  void Ret() { ret(); }
   void CompareRegisters(Register a, Register b);
   void BranchIf(Condition condition, Label* label) { j(condition, label); }
-  void LoadField(Register dst, FieldAddress address) { movw(dst, address); }
+
+  void LoadField(Register dst, FieldAddress address) { movl(dst, address); }
+  void LoadMemoryValue(Register dst, Register base, int32_t offset) {
+    movl(dst, Address(base, offset));
+  }
 
   // Issues a move instruction if 'to' is not the same as 'from'.
   void MoveRegister(Register to, Register from);
@@ -805,6 +810,7 @@ class Assembler : public AssemblerBase {
   //   pushl immediate(0)
   //   .....
   void EnterStubFrame();
+  void LeaveStubFrame();
   static const intptr_t kEnterStubFramePushedWords = 2;
 
   // Instruction pattern from entrypoint is used in dart frame prologs
