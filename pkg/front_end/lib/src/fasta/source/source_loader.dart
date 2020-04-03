@@ -1386,6 +1386,8 @@ class _AsyncAwaitCompleter implements Completer {
   complete([value]) {}
 
   completeError(error, [stackTrace]) {}
+
+  void start(void Function() f) {}
 }
 
 class Stream {}

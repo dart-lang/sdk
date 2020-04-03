@@ -382,14 +382,16 @@ class SyncStarFunctionRewriter extends ContinuationRewriterBase {
 }
 
 abstract class AsyncRewriterBase extends ContinuationRewriterBase {
-  final VariableDeclaration nestedClosureVariable =
-      new VariableDeclaration(":async_op");
-  final VariableDeclaration stackTraceVariable =
-      new VariableDeclaration(ContinuationVariables.asyncStackTraceVar);
-  final VariableDeclaration thenContinuationVariable =
-      new VariableDeclaration(":async_op_then");
-  final VariableDeclaration catchErrorContinuationVariable =
-      new VariableDeclaration(":async_op_error");
+  final VariableDeclaration stackTraceVariable;
+
+  // :async_op has type ([dynamic result, dynamic e, dynamic s]) -> dynamic
+  final VariableDeclaration nestedClosureVariable;
+
+  // :async_op_then has type (dynamic result) -> FutureOr<dynamic>
+  final VariableDeclaration thenContinuationVariable;
+
+  // :async_op_error has type (dynamic e, StackTrace s) -> FutureOr<dynamic>
+  final VariableDeclaration catchErrorContinuationVariable;
 
   LabeledStatement labeledBody;
 
@@ -397,7 +399,27 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
 
   AsyncRewriterBase(HelperNodes helper, FunctionNode enclosingFunction,
       StaticTypeContext staticTypeContext)
-      : super(helper, enclosingFunction, staticTypeContext) {}
+      : stackTraceVariable =
+            VariableDeclaration(ContinuationVariables.asyncStackTraceVar),
+        nestedClosureVariable = VariableDeclaration(":async_op",
+            type: FunctionType([
+              const DynamicType(),
+              const DynamicType(),
+              helper.coreTypes.stackTraceRawType(Nullability.legacy),
+            ], const DynamicType(), Nullability.legacy,
+                requiredParameterCount: 0)),
+        thenContinuationVariable = VariableDeclaration(":async_op_then",
+            type: FunctionType(
+                const [const DynamicType()],
+                InterfaceType(helper.coreTypes.futureOrClass,
+                    Nullability.legacy, const [DynamicType()]),
+                Nullability.legacy)),
+        catchErrorContinuationVariable = VariableDeclaration(":async_op_error",
+            type: FunctionType([
+              helper.coreTypes.objectRawType(Nullability.legacy),
+              helper.coreTypes.stackTraceRawType(Nullability.legacy),
+            ], const DynamicType(), Nullability.legacy)),
+        super(helper, enclosingFunction, staticTypeContext) {}
 
   void setupAsyncContinuations(List<Statement> statements) {
     expressionRewriter = new ExpressionLifter(this);
@@ -476,7 +498,8 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
     --currentTryDepth;
 
     var exceptionVariable = new VariableDeclaration(":exception");
-    var stackTraceVariable = new VariableDeclaration(":stack_trace");
+    var stackTraceVariable = new VariableDeclaration(":stack_trace",
+        type: helper.coreTypes.stackTraceRawType(Nullability.legacy));
 
     return new TryCatch(
       buildReturn(labeledBody),
@@ -845,8 +868,9 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
       //   }
       var valueVariable = stmt.variable;
 
-      var streamVariable =
-          new VariableDeclaration(':stream', initializer: stmt.iterable);
+      var streamVariable = new VariableDeclaration(':stream',
+          initializer: stmt.iterable,
+          type: stmt.iterable.getStaticType(staticTypeContext));
 
       var asyncStarListenHelper = new ExpressionStatement(new StaticInvocation(
           helper.asyncStarListenHelper,
@@ -1173,7 +1197,8 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
     var startStatement = new ExpressionStatement(new MethodInvocation(
         new VariableGet(completerVariable),
         new Name('start'),
-        new Arguments([new VariableGet(nestedClosureVariable)]))
+        new Arguments([new VariableGet(nestedClosureVariable)]),
+        helper.asyncAwaitCompleterStartProcedure)
       ..fileOffset = enclosingFunction.fileOffset);
     statements.add(startStatement);
     // return :async_completer.future;
@@ -1243,6 +1268,7 @@ class HelperNodes {
   final Class asyncAwaitCompleterClass;
   final Member completerCompleteError;
   final Member asyncAwaitCompleterConstructor;
+  final Member asyncAwaitCompleterStartProcedure;
   final Member completeOnAsyncReturn;
   final Member completerFuture;
   final Library coreLibrary;
@@ -1283,6 +1309,7 @@ class HelperNodes {
       this.asyncAwaitCompleterClass,
       this.completerCompleteError,
       this.asyncAwaitCompleterConstructor,
+      this.asyncAwaitCompleterStartProcedure,
       this.completeOnAsyncReturn,
       this.completerFuture,
       this.coreLibrary,
@@ -1323,6 +1350,7 @@ class HelperNodes {
         coreTypes.asyncAwaitCompleterClass,
         coreTypes.completerCompleteError,
         coreTypes.asyncAwaitCompleterConstructor,
+        coreTypes.asyncAwaitCompleterStartProcedure,
         coreTypes.completeOnAsyncReturn,
         coreTypes.completerFuture,
         coreTypes.coreLibrary,

@@ -45,7 +45,7 @@ class _AsyncAwaitCompleter<T> implements Completer<T> {
   }
 
   @pragma("vm:entry-point")
-  void start(f) {
+  void start(void Function() f) {
     f();
     isSync = true;
   }
@@ -56,8 +56,8 @@ class _AsyncAwaitCompleter<T> implements Completer<T> {
 
 // We need to pass the value as first argument and leave the second and third
 // arguments empty (used for error handling).
-// See vm/ast_transformer.cc for usage.
-Function _asyncThenWrapperHelper(continuation) {
+FutureOr<dynamic> Function(dynamic) _asyncThenWrapperHelper(
+    dynamic Function(dynamic) continuation) {
   // Any function that is used as an asynchronous callback must be registered
   // in the current Zone. Normally, this is done by the future when a
   // callback is registered (for example with `.then` or `.catchError`). In our
@@ -74,16 +74,18 @@ Function _asyncThenWrapperHelper(continuation) {
   // `Future` implementation could potentially invoke the callback with the
   // wrong number of arguments.
   if (Zone.current == Zone.root) return continuation;
-  return Zone.current.registerUnaryCallback(continuation);
+  return Zone.current.registerUnaryCallback<dynamic, dynamic>(continuation);
 }
 
 // We need to pass the exception and stack trace objects as second and third
-// parameter to the continuation.  See vm/ast_transformer.cc for usage.
-Function _asyncErrorWrapperHelper(continuation) {
+// parameter to the continuation.
+dynamic Function(Object, StackTrace) _asyncErrorWrapperHelper(
+    dynamic Function(dynamic, dynamic, StackTrace) continuation) {
   // See comments of `_asyncThenWrapperHelper`.
-  void errorCallback(Object e, StackTrace s) => continuation(null, e, s);
+  dynamic errorCallback(Object e, StackTrace s) => continuation(null, e, s);
   if (Zone.current == Zone.root) return errorCallback;
-  return Zone.current.registerBinaryCallback(errorCallback);
+  return Zone.current
+      .registerBinaryCallback<dynamic, Object, StackTrace>(errorCallback);
 }
 
 /// Registers the [thenCallback] and [errorCallback] on the given [object].
@@ -94,8 +96,8 @@ Function _asyncErrorWrapperHelper(continuation) {
 Future _awaitHelper(
     var object,
     FutureOr<dynamic> Function(dynamic) thenCallback,
-    Function errorCallback,
-    var awaiter) {
+    dynamic Function(dynamic, StackTrace) errorCallback,
+    Function awaiter) {
   late _Future future;
   if (object is! Future) {
     future = new _Future().._setValue(object);
@@ -113,7 +115,7 @@ Future _awaitHelper(
   // We can only do this for our internal futures (the default implementation of
   // all futures that are constructed by the `dart:async` library).
   future._awaiter = awaiter;
-  return future._thenAwait(thenCallback, errorCallback);
+  return future._thenAwait<dynamic>(thenCallback, errorCallback);
 }
 
 // Called as part of the 'await for (...)' construct. Registers the
