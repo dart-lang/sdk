@@ -699,7 +699,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     MethodInvocation invocation =
         AstTestFactory.methodInvocation(left, methodName);
     _resolveNode(invocation);
-    expect(invocation.methodName.staticElement,
+    expect(invocation.methodName.staticElement.declaration,
         same(numType.getMethod(methodName)));
     _listener.assertNoErrors();
   }

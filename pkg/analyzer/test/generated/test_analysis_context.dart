@@ -3,8 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
+import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -16,6 +17,7 @@ class TestAnalysisContext implements AnalysisContext {
   @override
   final SourceFactory sourceFactory = _MockSourceFactory();
 
+  _MockAnalysisSession _analysisSession = _MockAnalysisSession();
   AnalysisOptionsImpl _analysisOptions;
 
   TypeProvider _typeProviderLegacy;
@@ -28,12 +30,7 @@ class TestAnalysisContext implements AnalysisContext {
     _analysisOptions = AnalysisOptionsImpl()
       ..contextFeatures = featureSet ?? FeatureSet.forTesting();
 
-    var sdkElements = MockSdkElements(
-      this,
-      analysisOptions.contextFeatures.isEnabled(Feature.non_nullable)
-          ? NullabilitySuffix.none
-          : NullabilitySuffix.star,
-    );
+    var sdkElements = MockSdkElements(this, _analysisSession);
 
     _typeProviderLegacy = TypeProviderImpl(
       coreLibrary: sdkElements.coreLibrary,
@@ -68,6 +65,8 @@ class TestAnalysisContext implements AnalysisContext {
   @override
   AnalysisOptions get analysisOptions => _analysisOptions;
 
+  AnalysisSessionImpl get analysisSession => _analysisSession;
+
   @Deprecated('Use LibraryElement.typeProvider')
   @override
   TypeProvider get typeProvider => typeProviderLegacy;
@@ -96,9 +95,17 @@ class TestAnalysisContext implements AnalysisContext {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   void _setLibraryTypeSystem(LibraryElementImpl libraryElement) {
-    libraryElement.typeProvider = _typeProviderLegacy;
-    libraryElement.typeSystem = _typeSystemLegacy;
+    libraryElement.typeProvider = _typeProviderNonNullableByDefault;
+    libraryElement.typeSystem = _typeSystemNonNullableByDefault;
   }
+}
+
+class _MockAnalysisSession implements AnalysisSessionImpl {
+  @override
+  final ClassHierarchy classHierarchy = ClassHierarchy();
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _MockSource implements Source {

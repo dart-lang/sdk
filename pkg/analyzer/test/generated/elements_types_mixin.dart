@@ -6,13 +6,19 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
 
 mixin ElementsTypesMixin {
+  AnalysisSessionImpl get analysisSession => null;
+
   InterfaceType get boolNone {
     var element = typeProvider.boolElement;
     return interfaceTypeNone(element);
@@ -387,6 +393,30 @@ mixin ElementsTypesMixin {
     );
   }
 
+  LibraryElementImpl library_({
+    @required String uriStr,
+    @required TypeSystemImpl typeSystem,
+    AnalysisContext analysisContext,
+    AnalysisSessionImpl analysisSession,
+  }) {
+    var library = LibraryElementImpl(analysisContext, analysisSession, uriStr,
+        -1, 0, typeSystem.isNonNullableByDefault);
+    library.typeSystem = typeSystem;
+    library.typeProvider = typeSystem.typeProvider;
+
+    var uri = Uri.parse(uriStr);
+    var source = _MockSource(uri);
+
+    var definingUnit = CompilationUnitElementImpl();
+    definingUnit.source = source;
+    definingUnit.librarySource = source;
+
+    definingUnit.enclosingElement = library;
+    library.definingCompilationUnit = definingUnit;
+
+    return library;
+  }
+
   InterfaceType listNone(DartType type) {
     return typeProvider.listElement.instantiate(
       typeArguments: [type],
@@ -549,4 +579,14 @@ mixin ElementsTypesMixin {
   TypeParameterTypeImpl typeParameterTypeStar(TypeParameterElement element) {
     return element.instantiate(nullabilitySuffix: NullabilitySuffix.star);
   }
+}
+
+class _MockSource implements Source {
+  @override
+  final Uri uri;
+
+  _MockSource(this.uri);
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

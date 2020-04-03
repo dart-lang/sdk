@@ -300,11 +300,11 @@ class FunctionTypeTest with ElementsTypesMixin {
   test_synthetic_instantiate() {
     // T Function<T>(T x)
     var t = typeParameter('T');
-    var x = requiredParameter(name: 'x', type: typeParameterTypeStar(t));
+    var x = requiredParameter(name: 'x', type: typeParameterTypeNone(t));
     FunctionType f = FunctionTypeImpl(
       typeFormals: [t],
       parameters: [x],
-      returnType: typeParameterTypeStar(t),
+      returnType: typeParameterTypeNone(t),
       nullabilitySuffix: NullabilitySuffix.star,
     );
     FunctionType instantiated = f.instantiate([objectType]);
@@ -346,7 +346,7 @@ class FunctionTypeTest with ElementsTypesMixin {
     FunctionType f = FunctionTypeImpl(
       typeFormals: [t],
       parameters: [x],
-      returnType: typeParameterTypeStar(t),
+      returnType: typeParameterTypeNone(t),
       nullabilitySuffix: NullabilitySuffix.star,
     );
     FunctionType instantiated = f.instantiate([objectType]);
@@ -432,24 +432,24 @@ class FunctionTypeTest with ElementsTypesMixin {
   test_synthetic_substitute() {
     // Map<T, U> Function<U extends T>(T x, U y)
     var t = typeParameter('T');
-    var u = typeParameter('U', bound: typeParameterTypeStar(t));
-    var x = requiredParameter(name: 'x', type: typeParameterTypeStar(t));
-    var y = requiredParameter(name: 'y', type: typeParameterTypeStar(u));
+    var u = typeParameter('U', bound: typeParameterTypeNone(t));
+    var x = requiredParameter(name: 'x', type: typeParameterTypeNone(t));
+    var y = requiredParameter(name: 'y', type: typeParameterTypeNone(u));
     FunctionType f = FunctionTypeImpl.synthetic(
-        mapOf(typeParameterTypeStar(t), typeParameterTypeStar(u)), [u], [x, y],
+        mapOf(typeParameterTypeNone(t), typeParameterTypeNone(u)), [u], [x, y],
         nullabilitySuffix: NullabilitySuffix.star);
     FunctionType substituted =
-        f.substitute2([objectType], [typeParameterTypeStar(t)]);
+        f.substitute2([objectType], [typeParameterTypeNone(t)]);
     var uSubstituted = substituted.typeFormals[0];
     basicChecks(substituted,
         element: isNull,
         displayName: 'Map<Object, U> Function<U extends Object>(Object, U)',
-        returnType: mapOf(objectType, typeParameterTypeStar(uSubstituted)),
+        returnType: mapOf(objectType, typeParameterTypeNone(uSubstituted)),
         typeFormals: [uSubstituted],
         normalParameterNames: ['x', 'y'],
         normalParameterTypes: [
           same(objectType),
-          typeParameterTypeStar(uSubstituted)
+          typeParameterTypeNone(uSubstituted)
         ],
         parameters: hasLength(2));
   }
