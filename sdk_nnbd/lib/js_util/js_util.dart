@@ -76,10 +76,14 @@ dynamic setProperty(Object o, Object name, Object? value) =>
 dynamic callMethod(Object o, String method, List<Object?> args) =>
     JS('Object|Null', '#[#].apply(#, #)', o, method, o, args);
 
-bool instanceof(Object? o, Function type) =>
+/// Check whether [o] is an instance of [type].
+///
+/// The value in [type] is expected to be a JS-interop object that
+/// represents a valid JavaScript constructor function.
+bool instanceof(Object? o, Object type) =>
     JS('bool', '# instanceof #', o, type);
 
-dynamic callConstructor(Function constr, List<Object?> arguments) {
+dynamic callConstructor(Object constr, List<Object?> arguments) {
   if (arguments == null) {
     return JS('Object', 'new #()', constr);
   }
