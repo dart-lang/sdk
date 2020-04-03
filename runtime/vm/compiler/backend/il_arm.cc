@@ -7528,12 +7528,18 @@ LocationSummary* BooleanNegateInstr::MakeLocationSummary(Zone* zone,
 }
 
 void BooleanNegateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register value = locs()->in(0).reg();
+  const Register input = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
 
-  __ LoadObject(result, Bool::True());
-  __ cmp(result, compiler::Operand(value));
-  __ LoadObject(result, Bool::False(), EQ);
+  if (value()->Type()->ToCid() == kBoolCid) {
+    __ eor(
+        result, input,
+        compiler::Operand(compiler::target::ObjectAlignment::kBoolValueMask));
+  } else {
+    __ LoadObject(result, Bool::True());
+    __ cmp(result, compiler::Operand(input));
+    __ LoadObject(result, Bool::False(), EQ);
+  }
 }
 
 LocationSummary* AllocateObjectInstr::MakeLocationSummary(Zone* zone,

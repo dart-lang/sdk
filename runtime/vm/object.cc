@@ -128,6 +128,8 @@ SHARED_READONLY_HANDLES_LIST(DEFINE_SHARED_READONLY_HANDLE)
 #undef DEFINE_SHARED_READONLY_HANDLE
 
 RawObject* Object::null_ = reinterpret_cast<RawObject*>(RAW_NULL);
+RawBool* Object::true_ = reinterpret_cast<RawBool*>(RAW_NULL);
+RawBool* Object::false_ = reinterpret_cast<RawBool*>(RAW_NULL);
 RawClass* Object::class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::dynamic_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::void_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -534,7 +536,7 @@ static RawBytecode* CreateVMInternalBytecode(KernelBytecode::Opcode opcode) {
   return bytecode.raw();
 }
 
-void Object::InitNull(Isolate* isolate) {
+void Object::InitNullAndBool(Isolate* isolate) {
   // Should only be run by the vm isolate.
   ASSERT(isolate == Dart::vm_isolate());
 
@@ -552,6 +554,42 @@ void Object::InitNull(Isolate* isolate) {
     // The call below is using 'null_' to initialize itself.
     InitializeObject(address, kNullCid, Instance::InstanceSize());
   }
+
+  // Allocate and initialize the bool instances.
+  // These must be allocated such that at kBoolValueBitPosition, the address
+  // of true is 0 and the address of false is 1, and their addresses are
+  // otherwise identical.
+  {
+    // Allocate a dummy bool object to give true the desired alignment.
+    uword address = heap->Allocate(Bool::InstanceSize(), Heap::kOld);
+    InitializeObject(address, kBoolCid, Bool::InstanceSize());
+  }
+  {
+    // Allocate true.
+    uword address = heap->Allocate(Bool::InstanceSize(), Heap::kOld);
+    true_ = reinterpret_cast<RawBool*>(address + kHeapObjectTag);
+    InitializeObject(address, kBoolCid, Bool::InstanceSize());
+    true_->ptr()->value_ = true;
+    true_->SetCanonical();
+  }
+  {
+    // Allocate false.
+    uword address = heap->Allocate(Bool::InstanceSize(), Heap::kOld);
+    false_ = reinterpret_cast<RawBool*>(address + kHeapObjectTag);
+    InitializeObject(address, kBoolCid, Bool::InstanceSize());
+    false_->ptr()->value_ = false;
+    false_->SetCanonical();
+  }
+
+  // Check that the objects have been allocated at appropriate addresses.
+  ASSERT(reinterpret_cast<uword>(true_) ==
+         reinterpret_cast<uword>(null_) + kTrueOffsetFromNull);
+  ASSERT(reinterpret_cast<uword>(false_) ==
+         reinterpret_cast<uword>(null_) + kFalseOffsetFromNull);
+  ASSERT((reinterpret_cast<uword>(true_) & kBoolValueMask) == 0);
+  ASSERT((reinterpret_cast<uword>(false_) & kBoolValueMask) != 0);
+  ASSERT(reinterpret_cast<uword>(false_) ==
+         (reinterpret_cast<uword>(true_) | kBoolValueMask));
 }
 
 void Object::InitVtables() {
@@ -671,6 +709,8 @@ void Object::Init(Isolate* isolate) {
   *empty_type_arguments_ = TypeArguments::null();
   *null_abstract_type_ = AbstractType::null();
   *null_compressed_stack_maps_ = CompressedStackMaps::null();
+  *bool_true_ = true_;
+  *bool_false_ = false_;
 
   // Initialize the empty and zero array handles to null_ in order to be able to
   // check if the empty and zero arrays were allocated (RAW_NULL is not
@@ -1064,11 +1104,8 @@ void Object::Init(Isolate* isolate) {
   cls.SetFields(Object::empty_array());
   cls.SetFunctions(Object::empty_array());
 
-  // Allocate and initialize singleton true and false boolean objects.
   cls = Class::New<Bool, RTN::Bool>(isolate);
   isolate->object_store()->set_bool_class(cls);
-  *bool_true_ = Bool::New(true);
-  *bool_false_ = Bool::New(false);
 
   *smi_illegal_cid_ = Smi::New(kIllegalCid);
   *smi_zero_ = Smi::New(0);
@@ -1223,6 +1260,8 @@ void Object::FinishInit(Isolate* isolate) {
 
 void Object::Cleanup() {
   null_ = reinterpret_cast<RawObject*>(RAW_NULL);
+  true_ = reinterpret_cast<RawBool*>(RAW_NULL);
+  false_ = reinterpret_cast<RawBool*>(RAW_NULL);
   class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   dynamic_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   void_class_ = reinterpret_cast<RawClass*>(RAW_NULL);

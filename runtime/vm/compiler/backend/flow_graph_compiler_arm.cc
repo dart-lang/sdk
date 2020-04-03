@@ -214,8 +214,11 @@ void FlowGraphCompiler::GenerateBoolToJump(Register bool_register,
   compiler::Label fall_through;
   __ CompareObject(bool_register, Object::null_object());
   __ b(&fall_through, EQ);
-  __ CompareObject(bool_register, Bool::True());
-  __ b(is_true, EQ);
+  BranchLabels labels = {is_true, is_false, &fall_through};
+  Condition true_condition =
+      EmitBoolTest(bool_register, labels, /*invert=*/false);
+  ASSERT(true_condition != kInvalidCondition);
+  __ b(is_true, true_condition);
   __ b(is_false);
   __ Bind(&fall_through);
 }
@@ -1320,6 +1323,15 @@ Condition FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
     __ cmp(left, compiler::Operand(right));
   }
   return EQ;
+}
+
+Condition FlowGraphCompiler::EmitBoolTest(Register value,
+                                          BranchLabels labels,
+                                          bool invert) {
+  __ Comment("BoolTest");
+  __ tst(value,
+         compiler::Operand(compiler::target::ObjectAlignment::kBoolValueMask));
+  return invert ? NE : EQ;
 }
 
 // This function must be in sync with FlowGraphCompiler::RecordSafepoint and

@@ -515,6 +515,10 @@ Value* AssertAssignableInstr::RedefinedValue() const {
   return value();
 }
 
+Value* AssertBooleanInstr::RedefinedValue() const {
+  return value();
+}
+
 Value* CheckBoundBase::RedefinedValue() const {
   return index();
 }
@@ -4326,9 +4330,17 @@ Condition StrictCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   ASSERT(!left.IsConstant() || !right.IsConstant());
   Condition true_condition;
   if (left.IsConstant()) {
+    if (TryEmitBoolTest(compiler, labels, 1, left.constant(),
+                        &true_condition)) {
+      return true_condition;
+    }
     true_condition = EmitComparisonCodeRegConstant(
         compiler, labels, right.reg(), left.constant());
   } else if (right.IsConstant()) {
+    if (TryEmitBoolTest(compiler, labels, 0, right.constant(),
+                        &true_condition)) {
+      return true_condition;
+    }
     true_condition = EmitComparisonCodeRegConstant(compiler, labels, left.reg(),
                                                    right.constant());
   } else {
@@ -4338,6 +4350,21 @@ Condition StrictCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   return true_condition != kInvalidCondition && (kind() != Token::kEQ_STRICT)
              ? InvertCondition(true_condition)
              : true_condition;
+}
+
+bool StrictCompareInstr::TryEmitBoolTest(FlowGraphCompiler* compiler,
+                                         BranchLabels labels,
+                                         intptr_t input_index,
+                                         const Object& obj,
+                                         Condition* true_condition_out) {
+  CompileType* input_type = InputAt(input_index)->Type();
+  if (input_type->ToCid() == kBoolCid && obj.GetClassId() == kBoolCid) {
+    bool invert = (kind() != Token::kEQ_STRICT) ^ !Bool::Cast(obj).value();
+    *true_condition_out =
+        compiler->EmitBoolTest(locs()->in(input_index).reg(), labels, invert);
+    return true;
+  }
+  return false;
 }
 
 LocationSummary* LoadClassIdInstr::MakeLocationSummary(Zone* zone,

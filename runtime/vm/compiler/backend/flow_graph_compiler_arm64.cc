@@ -206,9 +206,10 @@ void FlowGraphCompiler::GenerateBoolToJump(Register bool_register,
   compiler::Label fall_through;
   __ CompareObject(bool_register, Object::null_object());
   __ b(&fall_through, EQ);
-  __ CompareObject(bool_register, Bool::True());
-  __ b(is_true, EQ);
-  __ b(is_false);
+  BranchLabels labels = {is_true, is_false, &fall_through};
+  Condition true_condition =
+      EmitBoolTest(bool_register, labels, /*invert=*/false);
+  ASSERT(true_condition == kInvalidCondition);
   __ Bind(&fall_through);
 }
 
@@ -1268,6 +1269,36 @@ Condition FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
     __ CompareRegisters(left, right);
   }
   return EQ;
+}
+
+Condition FlowGraphCompiler::EmitBoolTest(Register value,
+                                          BranchLabels labels,
+                                          bool invert) {
+  __ Comment("BoolTest");
+  if (labels.true_label == nullptr || labels.false_label == nullptr) {
+    __ tsti(value, compiler::Immediate(
+                       compiler::target::ObjectAlignment::kBoolValueMask));
+    return invert ? NE : EQ;
+  }
+  const intptr_t bool_bit =
+      compiler::target::ObjectAlignment::kBoolValueBitPosition;
+  if (labels.fall_through == labels.false_label) {
+    if (invert) {
+      __ tbnz(labels.true_label, value, bool_bit);
+    } else {
+      __ tbz(labels.true_label, value, bool_bit);
+    }
+  } else {
+    if (invert) {
+      __ tbz(labels.false_label, value, bool_bit);
+    } else {
+      __ tbnz(labels.false_label, value, bool_bit);
+    }
+    if (labels.fall_through != labels.true_label) {
+      __ b(labels.true_label);
+    }
+  }
+  return kInvalidCondition;
 }
 
 // This function must be in sync with FlowGraphCompiler::RecordSafepoint and
