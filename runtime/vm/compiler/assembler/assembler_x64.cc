@@ -1208,7 +1208,6 @@ void Assembler::Drop(intptr_t stack_elements, Register tmp) {
 
 bool Assembler::CanLoadFromObjectPool(const Object& object) const {
   ASSERT(IsOriginalObject(object));
-  ASSERT(!target::CanLoadFromThread(object));
   if (!constant_pool_allowed()) {
     return false;
   }
@@ -1243,18 +1242,23 @@ void Assembler::LoadObjectHelper(Register dst,
                                  bool is_unique) {
   ASSERT(IsOriginalObject(object));
 
-  intptr_t offset_from_thread;
-  if (target::CanLoadFromThread(object, &offset_from_thread)) {
-    movq(dst, Address(THR, offset_from_thread));
-  } else if (CanLoadFromObjectPool(object)) {
-    const intptr_t idx = is_unique ? object_pool_builder().AddObject(object)
-                                   : object_pool_builder().FindObject(object);
-    const int32_t offset = target::ObjectPool::element_offset(idx);
-    LoadWordFromPoolOffset(dst, offset - kHeapObjectTag);
-  } else {
-    ASSERT(target::IsSmi(object));
-    LoadImmediate(dst, Immediate(target::ToRawSmi(object)));
+  // `is_unique == true` effectively means object has to be patchable.
+  if (!is_unique) {
+    intptr_t offset;
+    if (target::CanLoadFromThread(object, &offset)) {
+      movq(dst, Address(THR, offset));
+      return;
+    }
   }
+  if (CanLoadFromObjectPool(object)) {
+    const int32_t offset = target::ObjectPool::element_offset(
+        is_unique ? object_pool_builder().AddObject(object)
+                  : object_pool_builder().FindObject(object));
+    LoadWordFromPoolOffset(dst, offset - kHeapObjectTag);
+    return;
+  }
+  ASSERT(target::IsSmi(object));
+  LoadImmediate(dst, Immediate(target::ToRawSmi(object)));
 }
 
 void Assembler::LoadObject(Register dst, const Object& object) {
@@ -1801,7 +1805,7 @@ void Assembler::MonomorphicCheckedEntryJIT() {
   intptr_t start = CodeSize();
   Label have_cid, miss;
   Bind(&miss);
-  jmp(Address(THR, target::Thread::monomorphic_miss_entry_offset()));
+  jmp(Address(THR, target::Thread::switchable_call_miss_entry_offset()));
 
   // Ensure the monomorphic entry is 2-byte aligned (so GC can see them if we
   // store them in ICData / MegamorphicCache arrays)
@@ -1829,12 +1833,14 @@ void Assembler::MonomorphicCheckedEntryJIT() {
   ASSERT(((CodeSize() - start) & kSmiTagMask) == kSmiTag);
 }
 
+// RBX - input: class id smi
+// RDX - input: receiver object
 void Assembler::MonomorphicCheckedEntryAOT() {
   has_monomorphic_entry_ = true;
   intptr_t start = CodeSize();
   Label have_cid, miss;
   Bind(&miss);
-  jmp(Address(THR, target::Thread::monomorphic_miss_entry_offset()));
+  jmp(Address(THR, target::Thread::switchable_call_miss_entry_offset()));
 
   // Ensure the monomorphic entry is 2-byte aligned (so GC can see them if we
   // store them in ICData / MegamorphicCache arrays)

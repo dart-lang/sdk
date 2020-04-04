@@ -1099,9 +1099,27 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   __ Comment("MegamorphicCall");
   // Load receiver into RDX.
   __ movq(RDX, compiler::Address(RSP, (args_desc.Count() - 1) * kWordSize));
-  __ LoadObject(RBX, cache);
-  __ call(
-      compiler::Address(THR, Thread::megamorphic_call_checked_entry_offset()));
+
+  // Use same code pattern as instance call so it can be parsed by code patcher.
+  if (FLAG_precompiled_mode) {
+    if (FLAG_use_bare_instructions) {
+      // The AOT runtime will replace the slot in the object pool with the
+      // entrypoint address - see clustered_snapshot.cc.
+      __ LoadUniqueObject(RCX, StubCode::MegamorphicCall());
+    } else {
+      __ LoadUniqueObject(CODE_REG, StubCode::MegamorphicCall());
+      __ movq(RCX, compiler::FieldAddress(CODE_REG,
+                                          Code::entry_point_offset(
+                                              Code::EntryKind::kMonomorphic)));
+    }
+    __ LoadUniqueObject(RBX, cache);
+    __ call(RCX);
+  } else {
+    __ LoadUniqueObject(RBX, cache);
+    __ LoadUniqueObject(CODE_REG, StubCode::MegamorphicCall());
+    __ call(compiler::FieldAddress(
+        CODE_REG, Code::entry_point_offset(Code::EntryKind::kMonomorphic)));
+  }
 
   RecordSafepoint(locs, slow_path_argument_count);
   const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
@@ -1136,7 +1154,7 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
   ASSERT(entry_kind == Code::EntryKind::kNormal ||
          entry_kind == Code::EntryKind::kUnchecked);
   ASSERT(ic_data.NumArgsTested() == 1);
-  const Code& initial_stub = StubCode::UnlinkedCall();
+  const Code& initial_stub = StubCode::SwitchableCallMiss();
   const char* switchable_call_mode = "smiable";
   if (!receiver_can_be_smi) {
     switchable_call_mode = "non-smi";

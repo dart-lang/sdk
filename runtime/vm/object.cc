@@ -14173,6 +14173,22 @@ const char* MonomorphicSmiableCall::ToCString() const {
   return "MonomorphicSmiableCall";
 }
 
+const char* CallSiteData::ToCString() const {
+  // CallSiteData is an abstract class.  We should never reach here.
+  UNREACHABLE();
+  return "CallSiteData";
+}
+
+void CallSiteData::set_target_name(const String& value) const {
+  ASSERT(!value.IsNull());
+  StorePointer(&raw_ptr()->target_name_, value.raw());
+}
+
+void CallSiteData::set_arguments_descriptor(const Array& value) const {
+  ASSERT(!value.IsNull());
+  StorePointer(&raw_ptr()->args_descriptor_, value.raw());
+}
+
 #if !defined(DART_PRECOMPILED_RUNTIME)
 void ICData::SetReceiversStaticType(const AbstractType& type) const {
   StorePointer(&raw_ptr()->receivers_static_type_, type.raw());
@@ -14234,16 +14250,6 @@ void ICData::SetOriginal(const ICData& value) const {
 
 void ICData::set_owner(const Function& value) const {
   StorePointer(&raw_ptr()->owner_, reinterpret_cast<RawObject*>(value.raw()));
-}
-
-void ICData::set_target_name(const String& value) const {
-  ASSERT(!value.IsNull());
-  StorePointer(&raw_ptr()->target_name_, value.raw());
-}
-
-void ICData::set_arguments_descriptor(const Array& value) const {
-  ASSERT(!value.IsNull());
-  StorePointer(&raw_ptr()->args_descriptor_, value.raw());
 }
 
 void ICData::set_deopt_id(intptr_t value) const {
@@ -16142,9 +16148,9 @@ void Code::GetInlinedFunctionsAtInstruction(
   const CodeSourceMap& map = CodeSourceMap::Handle(code_source_map());
   if (map.IsNull()) {
     ASSERT(!IsFunctionCode() ||
-           (Isolate::Current()->object_store()->megamorphic_miss_code() ==
+           (Isolate::Current()->object_store()->megamorphic_call_miss_code() ==
             this->raw()));
-    return;  // VM stub, allocation stub, or megamorphic miss function.
+    return;  // VM stub, allocation stub, or megamorphic call miss function.
   }
   const Array& id_map = Array::Handle(inlined_id_to_function());
   const Function& root = Function::Handle(function());
@@ -16684,14 +16690,6 @@ intptr_t MegamorphicCache::filled_entry_count() const {
 
 void MegamorphicCache::set_filled_entry_count(intptr_t count) const {
   StoreNonPointer(&raw_ptr()->filled_entry_count_, count);
-}
-
-void MegamorphicCache::set_target_name(const String& value) const {
-  StorePointer(&raw_ptr()->target_name_, value.raw());
-}
-
-void MegamorphicCache::set_arguments_descriptor(const Array& value) const {
-  StorePointer(&raw_ptr()->args_descriptor_, value.raw());
 }
 
 RawMegamorphicCache* MegamorphicCache::New() {

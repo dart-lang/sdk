@@ -61,6 +61,7 @@ class RawFloat32x4;
 class RawFloat64x2;
 class RawFunction;
 class RawGrowableObjectArray;
+class RawCallSiteData;
 class RawICData;
 class RawImmutableArray;
 class RawInstructions;

@@ -120,14 +120,12 @@ namespace dart {
   F(UnlinkedCall, args_descriptor_)                                            \
   F(MonomorphicSmiableCall, expected_cid_)                                     \
   F(MonomorphicSmiableCall, target_)                                           \
+  F(CallSiteData, target_name_)                                                \
+  F(CallSiteData, args_descriptor_)                                            \
   F(ICData, entries_)                                                          \
-  F(ICData, target_name_)                                                      \
-  F(ICData, args_descriptor_)                                                  \
   F(ICData, owner_)                                                            \
   F(MegamorphicCache, buckets_)                                                \
   F(MegamorphicCache, mask_)                                                   \
-  F(MegamorphicCache, target_name_)                                            \
-  F(MegamorphicCache, args_descriptor_)                                        \
   F(SubtypeTestCache, cache_)                                                  \
   F(ApiError, message_)                                                        \
   F(LanguageError, previous_error_)                                            \

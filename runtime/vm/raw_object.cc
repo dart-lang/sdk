@@ -575,6 +575,7 @@ VARIABLE_NULL_VISITOR(OneByteString, Smi::Value(raw_obj->ptr()->length_))
 VARIABLE_NULL_VISITOR(TwoByteString, Smi::Value(raw_obj->ptr()->length_))
 // Abstract types don't have their visitor called.
 UNREACHABLE_VISITOR(AbstractType)
+UNREACHABLE_VISITOR(CallSiteData)
 UNREACHABLE_VISITOR(TypedDataBase)
 UNREACHABLE_VISITOR(Error)
 UNREACHABLE_VISITOR(Number)

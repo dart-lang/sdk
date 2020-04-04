@@ -1757,9 +1757,9 @@ void ClassFinalizer::ClearAllCode(bool including_nonchanging_cids) {
     object_store->set_build_method_extractor_code(null_code);
 
     auto& miss_function =
-        Function::Handle(zone, object_store->megamorphic_miss_function());
+        Function::Handle(zone, object_store->megamorphic_call_miss_function());
     miss_function.ClearCode();
-    object_store->SetMegamorphicMissHandler(null_code, miss_function);
+    object_store->SetMegamorphicCallMissHandler(null_code, miss_function);
   }
 #endif  // !DART_PRECOMPILED_RUNTIME
 }

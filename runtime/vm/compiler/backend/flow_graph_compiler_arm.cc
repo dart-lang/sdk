@@ -1132,13 +1132,29 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   // Load receiver into R0.
   __ LoadFromOffset(kWord, R0, SP,
                     (args_desc.Count() - 1) * compiler::target::kWordSize);
-  __ LoadObject(R9, cache);
-  __ ldr(
-      LR,
-      compiler::Address(
-          THR,
-          compiler::target::Thread::megamorphic_call_checked_entry_offset()));
-  __ blx(LR);
+  // Use same code pattern as instance call so it can be parsed by code patcher.
+  if (FLAG_precompiled_mode) {
+    if (FLAG_use_bare_instructions) {
+      // The AOT runtime will replace the slot in the object pool with the
+      // entrypoint address - see clustered_snapshot.cc.
+      __ LoadUniqueObject(LR, StubCode::MegamorphicCall());
+    } else {
+      __ LoadUniqueObject(CODE_REG, StubCode::MegamorphicCall());
+      __ ldr(LR, compiler::FieldAddress(
+                     CODE_REG, compiler::target::Code::entry_point_offset(
+                                   Code::EntryKind::kMonomorphic)));
+    }
+    __ LoadUniqueObject(R9, cache);
+    __ blx(LR);
+
+  } else {
+    __ LoadUniqueObject(R9, cache);
+    __ LoadUniqueObject(CODE_REG, StubCode::MegamorphicCall());
+    __ ldr(LR, compiler::FieldAddress(
+                   CODE_REG,
+                   Code::entry_point_offset(Code::EntryKind::kMonomorphic)));
+    __ blx(LR);
+  }
 
   RecordSafepoint(locs, slow_path_argument_count);
   const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
@@ -1173,7 +1189,7 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
   ASSERT(entry_kind == Code::EntryKind::kNormal ||
          entry_kind == Code::EntryKind::kUnchecked);
   ASSERT(ic_data.NumArgsTested() == 1);
-  const Code& initial_stub = StubCode::UnlinkedCall();
+  const Code& initial_stub = StubCode::SwitchableCallMiss();
   const char* switchable_call_mode = "smiable";
   if (!receiver_can_be_smi) {
     switchable_call_mode = "non-smi";

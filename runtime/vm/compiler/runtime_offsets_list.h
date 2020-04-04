@@ -99,9 +99,9 @@
   FIELD(GrowableObjectArray, length_offset)                                    \
   FIELD(GrowableObjectArray, type_arguments_offset)                            \
   FIELD(HeapPage, card_table_offset)                                           \
+  FIELD(CallSiteData, arguments_descriptor_offset)                             \
   FIELD(ICData, NumArgsTestedMask)                                             \
   FIELD(ICData, NumArgsTestedShift)                                            \
-  FIELD(ICData, arguments_descriptor_offset)                                   \
   FIELD(ICData, entries_offset)                                                \
   PRECOMP_NO_CHECK(FIELD(ICData, owner_offset))                                \
   PRECOMP_NO_CHECK(FIELD(ICData, state_bits_offset))                           \
@@ -121,7 +121,6 @@
   FIELD(LinkedHashMap, used_data_offset)                                       \
   FIELD(MarkingStackBlock, pointers_offset)                                    \
   FIELD(MarkingStackBlock, top_offset)                                         \
-  FIELD(MegamorphicCache, arguments_descriptor_offset)                         \
   FIELD(MegamorphicCache, buckets_offset)                                      \
   FIELD(MegamorphicCache, mask_offset)                                         \
   FIELD(Mint, value_offset)                                                    \
@@ -191,8 +190,8 @@
   FIELD(Thread, lazy_specialize_type_test_stub_offset)                         \
   FIELD(Thread, marking_stack_block_offset)                                    \
   FIELD(Thread, megamorphic_call_checked_entry_offset)                         \
-  FIELD(Thread, monomorphic_miss_entry_offset)                                 \
-  FIELD(Thread, monomorphic_miss_stub_offset)                                  \
+  FIELD(Thread, switchable_call_miss_entry_offset)                             \
+  FIELD(Thread, switchable_call_miss_stub_offset)                              \
   FIELD(Thread, no_scope_native_wrapper_entry_point_offset)                    \
   FIELD(Thread, null_error_shared_with_fpu_regs_entry_point_offset)            \
   FIELD(Thread, null_error_shared_with_fpu_regs_stub_offset)                   \

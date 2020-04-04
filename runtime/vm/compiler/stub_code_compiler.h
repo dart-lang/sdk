@@ -32,7 +32,7 @@ class StubCodeCompiler : public AllStatic {
   VM_STUB_CODE_LIST(STUB_CODE_GENERATE)
 #undef STUB_CODE_GENERATE
 
-  static void GenerateMegamorphicMissStub(Assembler* assembler);
+  static void GenerateMegamorphicCallMissStub(Assembler* assembler);
   static void GenerateAllocationStubForClass(Assembler* assembler,
                                              const Class& cls);
 

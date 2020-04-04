@@ -1089,9 +1089,25 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   // Load receiver into R0.
   __ LoadFromOffset(R0, SP, (args_desc.Count() - 1) * kWordSize);
 
-  __ LoadObject(R5, cache);
-  __ ldr(LR, compiler::Address(
-                 THR, Thread::megamorphic_call_checked_entry_offset()));
+  // Use same code pattern as instance call so it can be parsed by code patcher.
+  compiler::ObjectPoolBuilder& op = __ object_pool_builder();
+  const intptr_t data_index =
+      op.AddObject(cache, ObjectPool::Patchability::kPatchable);
+  const intptr_t stub_index = op.AddObject(
+      StubCode::MegamorphicCall(), ObjectPool::Patchability::kPatchable);
+  ASSERT((data_index + 1) == stub_index);
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    // The AOT runtime will replace the slot in the object pool with the
+    // entrypoint address - see clustered_snapshot.cc.
+    __ LoadDoubleWordFromPoolOffset(R5, LR,
+                                    ObjectPool::element_offset(data_index));
+  } else {
+    __ LoadDoubleWordFromPoolOffset(R5, CODE_REG,
+                                    ObjectPool::element_offset(data_index));
+    __ ldr(LR, compiler::FieldAddress(
+                   CODE_REG,
+                   Code::entry_point_offset(Code::EntryKind::kMonomorphic)));
+  }
   __ blr(LR);
 
   RecordSafepoint(locs, slow_path_argument_count);
@@ -1125,7 +1141,7 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
                                             bool receiver_can_be_smi) {
   ASSERT(CanCallDart());
   ASSERT(ic_data.NumArgsTested() == 1);
-  const Code& initial_stub = StubCode::UnlinkedCall();
+  const Code& initial_stub = StubCode::SwitchableCallMiss();
   const char* switchable_call_mode = "smiable";
   if (!receiver_can_be_smi) {
     switchable_call_mode = "non-smi";
@@ -1137,6 +1153,9 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
   compiler::ObjectPoolBuilder& op = __ object_pool_builder();
 
   __ Comment("InstanceCallAOT (%s)", switchable_call_mode);
+  // Clear argument descriptor to keep gc happy when it gets pushed on to
+  // the stack.
+  __ LoadImmediate(R4, 0);
   __ LoadFromOffset(R0, SP, (ic_data.SizeWithoutTypeArgs() - 1) * kWordSize);
 
   const intptr_t data_index =

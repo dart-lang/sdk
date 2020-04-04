@@ -430,7 +430,6 @@ intptr_t Assembler::FindImmediate(int64_t imm) {
 
 bool Assembler::CanLoadFromObjectPool(const Object& object) const {
   ASSERT(IsOriginalObject(object));
-  ASSERT(!target::CanLoadFromThread(object));
   if (!constant_pool_allowed()) {
     return false;
   }
@@ -464,20 +463,28 @@ void Assembler::LoadObjectHelper(Register dst,
                                  const Object& object,
                                  bool is_unique) {
   ASSERT(IsOriginalObject(object));
-  word offset = 0;
-  if (IsSameObject(compiler::NullObject(), object)) {
-    mov(dst, NULL_REG);
-  } else if (target::CanLoadFromThread(object, &offset)) {
-    ldr(dst, Address(THR, offset));
-  } else if (CanLoadFromObjectPool(object)) {
+  // `is_unique == true` effectively means object has to be patchable.
+  // (even if the object is null)
+  if (!is_unique) {
+    if (IsSameObject(compiler::NullObject(), object)) {
+      mov(dst, NULL_REG);
+      return;
+    }
+    word offset = 0;
+    if (target::CanLoadFromThread(object, &offset)) {
+      ldr(dst, Address(THR, offset));
+      return;
+    }
+  }
+  if (CanLoadFromObjectPool(object)) {
     const int32_t offset = target::ObjectPool::element_offset(
         is_unique ? object_pool_builder().AddObject(object)
                   : object_pool_builder().FindObject(object));
     LoadWordFromPoolOffset(dst, offset);
-  } else {
-    ASSERT(target::IsSmi(object));
-    LoadImmediate(dst, target::ToRawSmi(object));
+    return;
   }
+  ASSERT(target::IsSmi(object));
+  LoadImmediate(dst, target::ToRawSmi(object));
 }
 
 void Assembler::LoadObject(Register dst, const Object& object) {
@@ -1549,7 +1556,7 @@ void Assembler::MonomorphicCheckedEntryJIT() {
 
   Label immediate, miss;
   Bind(&miss);
-  ldr(IP0, Address(THR, target::Thread::monomorphic_miss_entry_offset()));
+  ldr(IP0, Address(THR, target::Thread::switchable_call_miss_entry_offset()));
   br(IP0);
 
   Comment("MonomorphicCheckedEntry");
@@ -1567,7 +1574,7 @@ void Assembler::MonomorphicCheckedEntryJIT() {
   cmp(R1, Operand(IP0, LSL, 1));
   b(&miss, NE);
   str(R2, FieldAddress(R5, count_offset));
-  LoadImmediate(R4, 0);  // GC-safe for OptimizeInvokedFunction.
+  LoadImmediate(R4, 0);  // GC-safe for OptimizeInvokedFunction
 
   // Fall through to unchecked entry.
   ASSERT_EQUAL(CodeSize() - start,
@@ -1587,7 +1594,7 @@ void Assembler::MonomorphicCheckedEntryAOT() {
 
   Label immediate, miss;
   Bind(&miss);
-  ldr(IP0, Address(THR, target::Thread::monomorphic_miss_entry_offset()));
+  ldr(IP0, Address(THR, target::Thread::switchable_call_miss_entry_offset()));
   br(IP0);
 
   Comment("MonomorphicCheckedEntry");

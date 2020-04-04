@@ -181,8 +181,8 @@ class ObjectPointerVisitor;
   RW(Code, stack_overflow_stub_without_fpu_regs_stub)                          \
   RW(Code, write_barrier_wrappers_stub)                                        \
   RW(Code, array_write_barrier_stub)                                           \
-  R_(Code, megamorphic_miss_code)                                              \
-  R_(Function, megamorphic_miss_function)                                      \
+  R_(Code, megamorphic_call_miss_code)                                         \
+  R_(Function, megamorphic_call_miss_function)                                 \
   R_(GrowableObjectArray, resume_capabilities)                                 \
   R_(GrowableObjectArray, exit_listeners)                                      \
   R_(GrowableObjectArray, error_listeners)                                     \
@@ -247,10 +247,10 @@ class ObjectStore {
     }
   }
 
-  void SetMegamorphicMissHandler(const Code& code, const Function& func) {
+  void SetMegamorphicCallMissHandler(const Code& code, const Function& func) {
     // Hold onto the code so it is traced and not detached from the function.
-    megamorphic_miss_code_ = code.raw();
-    megamorphic_miss_function_ = func.raw();
+    megamorphic_call_miss_code_ = code.raw();
+    megamorphic_call_miss_function_ = func.raw();
   }
 
   // Visit all object pointers.
@@ -291,7 +291,7 @@ class ObjectStore {
         return reinterpret_cast<RawObject**>(&global_object_pool_);
       case Snapshot::kFullJIT:
       case Snapshot::kFullAOT:
-        return reinterpret_cast<RawObject**>(&megamorphic_miss_function_);
+        return reinterpret_cast<RawObject**>(&megamorphic_call_miss_function_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:

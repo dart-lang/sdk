@@ -946,21 +946,13 @@ void StubCodeCompiler::GenerateDeoptimizeStub(Assembler* assembler) {
   __ ret();
 }
 
-static void GenerateDispatcherCode(Assembler* assembler,
-                                   Label* call_target_function) {
-  __ Comment("NoSuchMethodDispatch");
-  // When lazily generated invocation dispatchers are disabled, the
-  // miss-handler may return null.
-  __ CompareObject(RAX, NullObject());
-  __ j(NOT_EQUAL, call_target_function);
-  __ EnterStubFrame();
-  // Load the receiver.
-  __ movq(RDI, FieldAddress(R10, target::ArgumentsDescriptor::size_offset()));
-  __ movq(RAX,
-          Address(RBP, RDI, TIMES_HALF_WORD_SIZE,
-                  target::frame_layout.param_end_from_fp * target::kWordSize));
+// Input:
+//   RBX - icdata/megamorphic_cache
+//   RDI - arguments descriptor size
+static void GenerateNoSuchMethodDispatcherBody(Assembler* assembler,
+                                               Register receiver_reg) {
   __ pushq(Immediate(0));  // Setup space on stack for result.
-  __ pushq(RAX);           // Receiver.
+  __ pushq(receiver_reg);  // Receiver.
   __ pushq(RBX);           // ICData/MegamorphicCache.
   __ pushq(R10);           // Arguments descriptor array.
 
@@ -984,43 +976,39 @@ static void GenerateDispatcherCode(Assembler* assembler,
   __ ret();
 }
 
-void StubCodeCompiler::GenerateMegamorphicMissStub(Assembler* assembler) {
-  __ EnterStubFrame();
-  // Load the receiver into RAX.  The argument count in the arguments
-  // descriptor in R10 is a smi.
-  __ movq(RAX, FieldAddress(R10, target::ArgumentsDescriptor::size_offset()));
-  // Three words (saved pp, saved fp, stub's pc marker)
-  // in the stack above the return address.
-  __ movq(RAX,
-          Address(RSP, RAX, TIMES_4,
-                  target::frame_layout.saved_below_pc() * target::kWordSize));
-  // Preserve IC data and arguments descriptor.
-  __ pushq(RBX);
-  __ pushq(R10);
+// Input:
+//   RBX - icdata/megamorphic_cache
+//   R10 - argument descriptor
+static void GenerateDispatcherCode(Assembler* assembler,
+                                   Label* call_target_function) {
+  __ Comment("NoSuchMethodDispatch");
+  // When lazily generated invocation dispatchers are disabled, the
+  // miss-handler may return null.
+  __ CompareObject(RAX, NullObject());
+  __ j(NOT_EQUAL, call_target_function);
 
-  // Space for the result of the runtime call.
-  __ pushq(Immediate(0));
-  __ pushq(RDX);  // Receiver.
-  __ pushq(RBX);  // IC data.
-  __ pushq(R10);  // Arguments descriptor.
-  __ CallRuntime(kMegamorphicCacheMissHandlerRuntimeEntry, 3);
-  // Discard arguments.
-  __ popq(RAX);
-  __ popq(RAX);
-  __ popq(RAX);
-  __ popq(RAX);  // Return value from the runtime call (function).
-  __ popq(R10);  // Restore arguments descriptor.
-  __ popq(RBX);  // Restore IC data.
-  __ RestoreCodePointer();
-  __ LeaveStubFrame();
-  if (!FLAG_lazy_dispatchers) {
-    Label call_target_function;
-    GenerateDispatcherCode(assembler, &call_target_function);
-    __ Bind(&call_target_function);
-  }
-  __ movq(CODE_REG, FieldAddress(RAX, target::Function::code_offset()));
-  __ movq(RCX, FieldAddress(RAX, target::Function::entry_point_offset()));
-  __ jmp(RCX);
+  __ EnterStubFrame();
+  // Load the receiver.
+  __ movq(RDI, FieldAddress(R10, target::ArgumentsDescriptor::size_offset()));
+  __ movq(RAX,
+          Address(RBP, RDI, TIMES_HALF_WORD_SIZE,
+                  target::frame_layout.param_end_from_fp * target::kWordSize));
+
+  GenerateNoSuchMethodDispatcherBody(assembler, /*receiver_reg=*/RAX);
+}
+
+// Input:
+//   RBX - icdata/megamorphic_cache
+//   RDX - receiver
+void StubCodeCompiler::GenerateNoSuchMethodDispatcherStub(
+    Assembler* assembler) {
+  __ EnterStubFrame();
+
+  __ movq(R10, FieldAddress(
+                   RBX, target::CallSiteData::arguments_descriptor_offset()));
+  __ movq(RDI, FieldAddress(R10, target::ArgumentsDescriptor::size_offset()));
+
+  GenerateNoSuchMethodDispatcherBody(assembler, /*receiver_reg=*/RDX);
 }
 
 // Called for inline allocation of arrays.
@@ -2253,8 +2241,8 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
 
   if (type == kInstanceCall) {
     __ LoadTaggedClassIdMayBeSmi(RAX, RDX);
-    __ movq(R10,
-            FieldAddress(RBX, target::ICData::arguments_descriptor_offset()));
+    __ movq(R10, FieldAddress(
+                     RBX, target::CallSiteData::arguments_descriptor_offset()));
     if (num_args == 2) {
       __ movq(RCX,
               FieldAddress(R10, target::ArgumentsDescriptor::count_offset()));
@@ -2262,8 +2250,8 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
       __ LoadTaggedClassIdMayBeSmi(RCX, R9);
     }
   } else {
-    __ movq(R10,
-            FieldAddress(RBX, target::ICData::arguments_descriptor_offset()));
+    __ movq(R10, FieldAddress(
+                     RBX, target::CallSiteData::arguments_descriptor_offset()));
     __ movq(RCX,
             FieldAddress(R10, target::ArgumentsDescriptor::count_offset()));
     __ movq(RDX, Address(RSP, RCX, TIMES_4, 0));
@@ -2593,8 +2581,8 @@ void StubCodeCompiler::GenerateZeroArgsUnoptimizedStaticCallStub(
   }
 
   // Load arguments descriptor into R10.
-  __ movq(R10,
-          FieldAddress(RBX, target::ICData::arguments_descriptor_offset()));
+  __ movq(R10, FieldAddress(
+                   RBX, target::CallSiteData::arguments_descriptor_offset()));
 
   // Get function and call it, if possible.
   __ movq(RAX, Address(R12, target_offset));
@@ -3359,7 +3347,7 @@ void StubCodeCompiler::GenerateOptimizedIdenticalWithNumberCheckStub(
 }
 
 // Called from megamorphic calls.
-//  RDX: receiver
+//  RDX: receiver (passed to target)
 //  RBX: target::MegamorphicCache (preserved)
 // Passed to target:
 //  CODE_REG: target Code
@@ -3409,15 +3397,13 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   const auto target_address =
       FieldAddress(RDI, RCX, TIMES_8, base + target::kWordSize);
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    __ movq(R10,
-            FieldAddress(
-                RBX, target::MegamorphicCache::arguments_descriptor_offset()));
+    __ movq(R10, FieldAddress(
+                     RBX, target::CallSiteData::arguments_descriptor_offset()));
     __ jmp(target_address);
   } else {
     __ movq(RAX, target_address);
-    __ movq(R10,
-            FieldAddress(
-                RBX, target::MegamorphicCache::arguments_descriptor_offset()));
+    __ movq(R10, FieldAddress(
+                     RBX, target::CallSiteData::arguments_descriptor_offset()));
     __ movq(RCX, FieldAddress(RAX, target::Function::entry_point_offset()));
     __ movq(CODE_REG, FieldAddress(RAX, target::Function::code_offset()));
     __ jmp(RCX);
@@ -3439,11 +3425,14 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   __ jmp(&cid_loaded);
 }
 
+// Input:
+//  RBX - icdata
+//  RDX - receiver object
 void StubCodeCompiler::GenerateICCallThroughCodeStub(Assembler* assembler) {
   Label loop, found, miss;
   __ movq(R13, FieldAddress(RBX, target::ICData::entries_offset()));
-  __ movq(R10,
-          FieldAddress(RBX, target::ICData::arguments_descriptor_offset()));
+  __ movq(R10, FieldAddress(
+                   RBX, target::CallSiteData::arguments_descriptor_offset()));
   __ leaq(R13, FieldAddress(R13, target::Array::data_offset()));
   // R13: first IC entry
   __ LoadTaggedClassIdMayBeSmi(RAX, RDX);
@@ -3505,21 +3494,21 @@ void StubCodeCompiler::GenerateMonomorphicSmiableCheckStub(
   }
 
   __ Bind(&miss);
-  __ jmp(Address(THR, target::Thread::monomorphic_miss_entry_offset()));
+  __ jmp(Address(THR, target::Thread::switchable_call_miss_entry_offset()));
 }
 
+// Called from switchable IC calls.
 //  RDX: receiver
-//  RBX: UnlinkedCall
-void StubCodeCompiler::GenerateUnlinkedCallStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateSwitchableCallMissStub(Assembler* assembler) {
+  __ movq(CODE_REG,
+          Address(THR, target::Thread::switchable_call_miss_stub_offset()));
   __ EnterStubFrame();
   __ pushq(RDX);  // Preserve receiver.
 
   __ pushq(Immediate(0));  // Result slot.
   __ pushq(Immediate(0));  // Arg0: stub out.
   __ pushq(RDX);           // Arg1: Receiver
-  __ pushq(RBX);           // Arg2: UnlinkedCall
-  __ CallRuntime(kUnlinkedCallRuntimeEntry, 3);
-  __ popq(RBX);
+  __ CallRuntime(kSwitchableCallMissRuntimeEntry, 2);
   __ popq(RBX);
   __ popq(CODE_REG);  // result = stub
   __ popq(RBX);       // result = IC
@@ -3528,8 +3517,17 @@ void StubCodeCompiler::GenerateUnlinkedCallStub(Assembler* assembler) {
   __ LeaveStubFrame();
 
   __ movq(RCX, FieldAddress(CODE_REG, target::Code::entry_point_offset(
-                                          CodeEntryKind::kMonomorphic)));
+                                          CodeEntryKind::kNormal)));
   __ jmp(RCX);
+}
+
+// Called from megamorphic call sites and from megamorphic miss handlers.
+//  RDX: receiver
+//  R10: arguments descriptor
+void StubCodeCompiler::GenerateMegamorphicCallMissStub(Assembler* assembler) {
+  // On x64 there is no need to load receiver from the actual arguments using
+  // arg descriptor because (unlike on arm, arm64) receiver is always available.
+  GenerateSwitchableCallMissStub(assembler);
 }
 
 // Called from switchable IC calls.
@@ -3561,31 +3559,7 @@ void StubCodeCompiler::GenerateSingleTargetCallStub(Assembler* assembler) {
   __ pushq(Immediate(0));  // Result slot.
   __ pushq(Immediate(0));  // Arg0: stub out
   __ pushq(RDX);           // Arg1: Receiver
-  __ CallRuntime(kSingleTargetMissRuntimeEntry, 2);
-  __ popq(RBX);
-  __ popq(CODE_REG);  // result = stub
-  __ popq(RBX);       // result = IC
-
-  __ popq(RDX);  // Restore receiver.
-  __ LeaveStubFrame();
-
-  __ movq(RCX, FieldAddress(CODE_REG, target::Code::entry_point_offset(
-                                          CodeEntryKind::kMonomorphic)));
-  __ jmp(RCX);
-}
-
-// Called from the monomorphic checked entry.
-//  RDX: receiver
-void StubCodeCompiler::GenerateMonomorphicMissStub(Assembler* assembler) {
-  __ movq(CODE_REG,
-          Address(THR, target::Thread::monomorphic_miss_stub_offset()));
-  __ EnterStubFrame();
-  __ pushq(RDX);  // Preserve receiver.
-
-  __ pushq(Immediate(0));  // Result slot.
-  __ pushq(Immediate(0));  // Arg0: stub out.
-  __ pushq(RDX);           // Arg1: Receiver
-  __ CallRuntime(kMonomorphicMissRuntimeEntry, 2);
+  __ CallRuntime(kSwitchableCallMissRuntimeEntry, 2);
   __ popq(RBX);
   __ popq(CODE_REG);  // result = stub
   __ popq(RBX);       // result = IC

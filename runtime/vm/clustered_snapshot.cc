@@ -5442,8 +5442,8 @@ void Serializer::AddVMIsolateBaseObjects() {
 
   ClassTable* table = isolate()->class_table();
   for (intptr_t cid = kClassCid; cid < kInstanceCid; cid++) {
-    // Error has no class object.
-    if (cid != kErrorCid) {
+    // Error, CallSiteData has no class object.
+    if (cid != kErrorCid && cid != kCallSiteDataCid) {
       ASSERT(table->HasValidClassAt(cid));
       AddBaseObject(table->At(cid), "Class");
     }
@@ -6109,8 +6109,8 @@ void Deserializer::AddVMIsolateBaseObjects() {
 
   ClassTable* table = isolate()->class_table();
   for (intptr_t cid = kClassCid; cid <= kUnwindErrorCid; cid++) {
-    // Error has no class object.
-    if (cid != kErrorCid) {
+    // Error, CallSiteData has no class object.
+    if (cid != kErrorCid && cid != kCallSiteDataCid) {
       ASSERT(table->HasValidClassAt(cid));
       AddBaseObject(table->At(cid));
     }
@@ -6550,7 +6550,7 @@ RawApiError* FullSnapshotReader::ReadIsolateSnapshot() {
   if (FLAG_use_bare_instructions) {
     // By default, every switchable call site will put (ic_data, code) into the
     // object pool.  The [code] is initialized (at AOT compile-time) to be a
-    // [StubCode::UnlinkedCall].
+    // [StubCode::SwitchableCallMiss].
     //
     // In --use-bare-instruction we reduce the extra indirection via the [code]
     // object and store instead (ic_data, entrypoint) in the object pool.
@@ -6565,9 +6565,15 @@ RawApiError* FullSnapshotReader::ReadIsolateSnapshot() {
     for (intptr_t i = 0; i < pool.Length(); i++) {
       if (pool.TypeAt(i) == ObjectPool::EntryType::kTaggedObject) {
         entry = pool.ObjectAt(i);
-        if (entry.raw() == StubCode::UnlinkedCall().raw()) {
+        if (entry.raw() == StubCode::SwitchableCallMiss().raw()) {
           smi = Smi::FromAlignedAddress(
-              StubCode::UnlinkedCall().MonomorphicEntryPoint());
+              StubCode::SwitchableCallMiss().MonomorphicEntryPoint());
+          pool.SetTypeAt(i, ObjectPool::EntryType::kImmediate,
+                         ObjectPool::Patchability::kPatchable);
+          pool.SetObjectAt(i, smi);
+        } else if (entry.raw() == StubCode::MegamorphicCall().raw()) {
+          smi = Smi::FromAlignedAddress(
+              StubCode::MegamorphicCall().MonomorphicEntryPoint());
           pool.SetTypeAt(i, ObjectPool::EntryType::kImmediate,
                          ObjectPool::Patchability::kPatchable);
           pool.SetObjectAt(i, smi);

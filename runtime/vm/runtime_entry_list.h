@@ -34,7 +34,6 @@ namespace dart {
   V(NoSuchMethodFromCallStub)                                                  \
   V(NoSuchMethodFromPrologue)                                                  \
   V(InvokeNoSuchMethod)                                                        \
-  V(MegamorphicCacheMissHandler)                                               \
   V(OptimizeInvokedFunction)                                                   \
   V(TraceICCall)                                                               \
   V(PatchStaticCall)                                                           \
@@ -56,9 +55,7 @@ namespace dart {
   V(InitStaticField)                                                           \
   V(CompileFunction)                                                           \
   V(CompileInterpretedFunction)                                                \
-  V(MonomorphicMiss)                                                           \
-  V(SingleTargetMiss)                                                          \
-  V(UnlinkedCall)
+  V(SwitchableCallMiss)
 
 #define LEAF_RUNTIME_ENTRY_LIST(V)                                             \
   V(void, PrintStopMessage, const char*)                                       \

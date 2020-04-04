@@ -457,10 +457,14 @@ class Function : public AllStatic {
   static word NextFieldOffset();
 };
 
+class CallSiteData : public AllStatic {
+ public:
+  static word arguments_descriptor_offset();
+};
+
 class ICData : public AllStatic {
  public:
   static word owner_offset();
-  static word arguments_descriptor_offset();
   static word entries_offset();
   static word receivers_static_type_offset();
   static word state_bits_offset();
@@ -482,7 +486,6 @@ class MegamorphicCache : public AllStatic {
   static const word kSpreadFactor;
   static word mask_offset();
   static word buckets_offset();
-  static word arguments_descriptor_offset();
   static word InstanceSize();
   static word NextFieldOffset();
 };
@@ -957,7 +960,7 @@ class Thread : public AllStatic {
   static word null_arg_error_shared_with_fpu_regs_entry_point_offset();
   static word null_arg_error_shared_without_fpu_regs_entry_point_offset();
   static word write_barrier_mask_offset();
-  static word monomorphic_miss_entry_offset();
+  static word switchable_call_miss_entry_offset();
   static word write_barrier_wrappers_thread_offset(Register regno);
   static word array_write_barrier_entry_point_offset();
   static word allocate_mint_with_fpu_regs_entry_point_offset();
@@ -989,7 +992,7 @@ class Thread : public AllStatic {
   static word fix_callers_target_code_offset();
   static word fix_allocation_stub_code_offset();
 
-  static word monomorphic_miss_stub_offset();
+  static word switchable_call_miss_stub_offset();
   static word lazy_specialize_type_test_stub_offset();
   static word slow_type_test_stub_offset();
   static word call_to_runtime_stub_offset();

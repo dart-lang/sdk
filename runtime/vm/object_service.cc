@@ -261,7 +261,7 @@ static void AddFunctionServiceId(const JSONObject& jsobj,
   }
   // Oddball functions (not known to their owner) fall back to use the object
   // id ring. Current known examples are signature functions of closures
-  // and stubs like 'megamorphic_miss'.
+  // and stubs like 'megamorphic_call_miss'.
   jsobj.AddServiceId(f);
 }
 
@@ -822,6 +822,10 @@ void MonomorphicSmiableCall::PrintJSONImpl(JSONStream* stream, bool ref) const {
     return;
   }
   jsobj.AddProperty("_target", Code::Handle(target()));
+}
+
+void CallSiteData::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  UNREACHABLE();
 }
 
 void ICData::PrintJSONImpl(JSONStream* stream, bool ref) const {

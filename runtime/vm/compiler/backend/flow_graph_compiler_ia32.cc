@@ -982,9 +982,10 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   __ Comment("MegamorphicCall");
   // Load receiver into EBX.
   __ movl(EBX, compiler::Address(ESP, (args_desc.Count() - 1) * kWordSize));
-  __ LoadObject(ECX, cache);
-  __ call(
-      compiler::Address(THR, Thread::megamorphic_call_checked_entry_offset()));
+  __ LoadObject(ECX, cache, true);
+  __ LoadObject(CODE_REG, StubCode::MegamorphicCall(), true);
+  __ call(compiler::FieldAddress(
+      CODE_REG, Code::entry_point_offset(Code::EntryKind::kMonomorphic)));
 
   AddCurrentDescriptor(RawPcDescriptors::kOther, DeoptId::kNone, token_pos);
   RecordSafepoint(locs, slow_path_argument_count);

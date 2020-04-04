@@ -701,15 +701,11 @@ void StubCodeCompiler::GenerateDeoptimizeStub(Assembler* assembler) {
   __ ret();
 }
 
-static void GenerateDispatcherCode(Assembler* assembler,
-                                   Label* call_target_function) {
-  __ Comment("NoSuchMethodDispatch");
-  // When lazily generated invocation dispatchers are disabled, the
-  // miss-handler may return null.
-  const Immediate& raw_null = Immediate(target::ToRawPointer(NullObject()));
-  __ cmpl(EAX, raw_null);
-  __ j(NOT_EQUAL, call_target_function);
+static void GenerateNoSuchMethodDispatcherCode(Assembler* assembler) {
   __ EnterStubFrame();
+  __ movl(EDX, FieldAddress(
+                   ECX, target::CallSiteData::arguments_descriptor_offset()));
+
   // Load the receiver.
   __ movl(EDI, FieldAddress(EDX, target::ArgumentsDescriptor::size_offset()));
   __ movl(EAX,
@@ -740,39 +736,20 @@ static void GenerateDispatcherCode(Assembler* assembler,
   __ ret();
 }
 
-void StubCodeCompiler::GenerateMegamorphicMissStub(Assembler* assembler) {
-  __ EnterStubFrame();
-  // Load the receiver into EAX.  The argument count in the arguments
-  // descriptor in EDX is a smi.
-  __ movl(EAX, FieldAddress(EDX, target::ArgumentsDescriptor::size_offset()));
-  // Two words (saved fp, stub's pc marker) in the stack above the return
-  // address.
-  __ movl(EAX, Address(ESP, EAX, TIMES_2, 2 * target::kWordSize));
-  // Preserve IC data and arguments descriptor.
-  __ pushl(ECX);
-  __ pushl(EDX);
+static void GenerateDispatcherCode(Assembler* assembler,
+                                   Label* call_target_function) {
+  __ Comment("NoSuchMethodDispatch");
+  // When lazily generated invocation dispatchers are disabled, the
+  // miss-handler may return null.
+  const Immediate& raw_null = Immediate(target::ToRawPointer(NullObject()));
+  __ cmpl(EAX, raw_null);
+  __ j(NOT_EQUAL, call_target_function);
+  GenerateNoSuchMethodDispatcherCode(assembler);
+}
 
-  __ pushl(Immediate(0));  // Space for the result of the runtime call.
-  __ pushl(EAX);           // Pass receiver.
-  __ pushl(ECX);           // Pass IC data.
-  __ pushl(EDX);           // Pass arguments descriptor.
-  __ CallRuntime(kMegamorphicCacheMissHandlerRuntimeEntry, 3);
-  // Discard arguments.
-  __ popl(EAX);
-  __ popl(EAX);
-  __ popl(EAX);
-  __ popl(EAX);  // Return value from the runtime call (function).
-  __ popl(EDX);  // Restore arguments descriptor.
-  __ popl(ECX);  // Restore IC data.
-  __ LeaveFrame();
-
-  if (!FLAG_lazy_dispatchers) {
-    Label call_target_function;
-    GenerateDispatcherCode(assembler, &call_target_function);
-    __ Bind(&call_target_function);
-  }
-
-  __ jmp(FieldAddress(EAX, target::Function::entry_point_offset()));
+void StubCodeCompiler::GenerateNoSuchMethodDispatcherStub(
+    Assembler* assembler) {
+  GenerateNoSuchMethodDispatcherCode(assembler);
 }
 
 // Called for inline allocation of arrays.
@@ -1889,8 +1866,8 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStubForEntryKind(
   __ Comment("Extract ICData initial values and receiver cid");
   // ECX: IC data object (preserved).
   // Load arguments descriptor into EDX.
-  __ movl(EDX,
-          FieldAddress(ECX, target::ICData::arguments_descriptor_offset()));
+  __ movl(EDX, FieldAddress(
+                   ECX, target::CallSiteData::arguments_descriptor_offset()));
   // Loop that checks if there is an IC data match.
   Label loop, found, miss;
   // ECX: IC data object (preserved).
@@ -2168,8 +2145,8 @@ static void GenerateZeroArgsUnoptimizedStaticCallForEntryKind(
   }
 
   // Load arguments descriptor into EDX.
-  __ movl(EDX,
-          FieldAddress(ECX, target::ICData::arguments_descriptor_offset()));
+  __ movl(EDX, FieldAddress(
+                   ECX, target::CallSiteData::arguments_descriptor_offset()));
 
   // Get function and call it, if possible.
   __ movl(EAX, Address(EBX, target_offset));
@@ -2792,7 +2769,7 @@ void StubCodeCompiler::GenerateOptimizedIdenticalWithNumberCheckStub(
 }
 
 // Called from megamorphic calls.
-//  EBX: receiver
+//  EBX: receiver (passed to target)
 //  ECX: target::MegamorphicCache (preserved)
 // Passed to target:
 //  EBX: target entry point
@@ -2810,6 +2787,7 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
 
   Label cid_loaded;
   __ Bind(&cid_loaded);
+  __ pushl(EBX);  // save receiver
   __ movl(EBX, FieldAddress(ECX, target::MegamorphicCache::mask_offset()));
   __ movl(EDI, FieldAddress(ECX, target::MegamorphicCache::buckets_offset()));
   // EDI: cache buckets array.
@@ -2841,9 +2819,9 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   // illegal class id was found, the target is a cache miss handler that can
   // be invoked as a normal Dart function.
   __ movl(EAX, FieldAddress(EDI, EDX, TIMES_4, base + target::kWordSize));
-  __ movl(EDX,
-          FieldAddress(
-              ECX, target::MegamorphicCache::arguments_descriptor_offset()));
+  __ movl(EDX, FieldAddress(
+                   ECX, target::CallSiteData::arguments_descriptor_offset()));
+  __ popl(EBX);  // restore receiver
   __ jmp(FieldAddress(EAX, target::Function::entry_point_offset()));
 
   __ Bind(&probe_failed);
@@ -2871,22 +2849,18 @@ void StubCodeCompiler::GenerateMonomorphicSmiableCheckStub(
   __ int3();  // AOT only.
 }
 
-void StubCodeCompiler::GenerateUnlinkedCallStub(Assembler* assembler) {
-  __ int3();  // AOT only.
-}
-
-void StubCodeCompiler::GenerateSingleTargetCallStub(Assembler* assembler) {
-  __ int3();  // AOT only.
-}
-
-void StubCodeCompiler::GenerateMonomorphicMissStub(Assembler* assembler) {
+// Called from switchable IC calls.
+//  EBX: receiver
+void StubCodeCompiler::GenerateSwitchableCallMissStub(Assembler* assembler) {
+  __ movl(CODE_REG,
+          Address(THR, target::Thread::switchable_call_miss_stub_offset()));
   __ EnterStubFrame();
   __ pushl(EBX);  // Preserve receiver.
 
   __ pushl(Immediate(0));  // Result slot.
-  __ pushl(Immediate(0));  // Arg0: stub out
+  __ pushl(Immediate(0));  // Arg0: stub out.
   __ pushl(EBX);           // Arg1: Receiver
-  __ CallRuntime(kMonomorphicMissRuntimeEntry, 2);
+  __ CallRuntime(kSwitchableCallMissRuntimeEntry, 2);
   __ popl(ECX);
   __ popl(CODE_REG);  // result = stub
   __ popl(ECX);       // result = IC
@@ -2895,8 +2869,21 @@ void StubCodeCompiler::GenerateMonomorphicMissStub(Assembler* assembler) {
   __ LeaveFrame();
 
   __ movl(EAX, FieldAddress(CODE_REG, target::Code::entry_point_offset(
-                                          CodeEntryKind::kMonomorphic)));
+                                          CodeEntryKind::kNormal)));
   __ jmp(EAX);
+}
+
+// Called from megamorphic call sites and from megamorphic miss handlers.
+//  EBX: receiver
+//  EDX: arguments descriptor(or zero if invoked from unlinked/monomorphic call)
+void StubCodeCompiler::GenerateMegamorphicCallMissStub(Assembler* assembler) {
+  // On ia32 there is no need to load receiver from the actual arguments using
+  // arg descriptor because (unlike on arm, arm64) receiver is always available.
+  GenerateSwitchableCallMissStub(assembler);
+}
+
+void StubCodeCompiler::GenerateSingleTargetCallStub(Assembler* assembler) {
+  __ int3();  // AOT only.
 }
 
 void StubCodeCompiler::GenerateFrameAwaitingMaterializationStub(

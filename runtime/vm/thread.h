@@ -124,7 +124,8 @@ class Thread;
     StubCode::StackOverflowSharedWithoutFPURegs().raw(), NULL)                 \
   V(RawCode*, stack_overflow_shared_with_fpu_regs_stub_,                       \
     StubCode::StackOverflowSharedWithFPURegs().raw(), NULL)                    \
-  V(RawCode*, monomorphic_miss_stub_, StubCode::MonomorphicMiss().raw(), NULL) \
+  V(RawCode*, switchable_call_miss_stub_,                                      \
+    StubCode::SwitchableCallMiss().raw(), NULL)                                \
   V(RawCode*, optimize_stub_, StubCode::OptimizeFunction().raw(), NULL)        \
   V(RawCode*, deoptimize_stub_, StubCode::Deoptimize().raw(), NULL)            \
   V(RawCode*, lazy_deopt_from_return_stub_,                                    \
@@ -181,8 +182,8 @@ class Thread;
     StubCode::StackOverflowSharedWithFPURegs().EntryPoint(), 0)                \
   V(uword, megamorphic_call_checked_entry_,                                    \
     StubCode::MegamorphicCall().EntryPoint(), 0)                               \
-  V(uword, monomorphic_miss_entry_, StubCode::MonomorphicMiss().EntryPoint(),  \
-    0)                                                                         \
+  V(uword, switchable_call_miss_entry_,                                        \
+    StubCode::SwitchableCallMiss().EntryPoint(), 0)                            \
   V(uword, optimize_entry_, StubCode::OptimizeFunction().EntryPoint(), 0)      \
   V(uword, deoptimize_entry_, StubCode::Deoptimize().EntryPoint(), 0)          \
   V(uword, call_native_through_safepoint_entry_point_,                         \

@@ -41,6 +41,7 @@ namespace dart {
   V(SingleTargetCache)                                                         \
   V(UnlinkedCall)                                                              \
   V(MonomorphicSmiableCall)                                                    \
+  V(CallSiteData)                                                              \
   V(ICData)                                                                    \
   V(MegamorphicCache)                                                          \
   V(SubtypeTestCache)                                                          \

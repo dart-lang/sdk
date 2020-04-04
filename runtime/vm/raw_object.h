@@ -2095,13 +2095,21 @@ class RawMonomorphicSmiableCall : public RawObject {
   RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 };
 
-class RawICData : public RawObject {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(ICData);
-
-  VISIT_FROM(RawObject*, entries_);
-  RawArray* entries_;          // Contains class-ids, target and count.
+// Abstract base class for RawICData/RawMegamorphicCache
+class RawCallSiteData : public RawObject {
+ protected:
   RawString* target_name_;     // Name of target function.
+  // arg_descriptor in RawICData and in RawMegamorphicCache should be
+  // in the same position so that NoSuchMethod can access it.
   RawArray* args_descriptor_;  // Arguments descriptor.
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(CallSiteData)
+};
+
+class RawICData : public RawCallSiteData {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(ICData);
+  VISIT_FROM(RawObject*, target_name_);
+  RawArray* entries_;  // Contains class-ids, target and count.
   // Static type of the receiver, if instance call and available.
   NOT_IN_PRECOMPILED(RawAbstractType* receivers_static_type_);
   RawObject* owner_;  // Parent/calling function or original IC of cloned IC.
@@ -2109,7 +2117,7 @@ class RawICData : public RawObject {
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:
-        return reinterpret_cast<RawObject**>(&ptr()->args_descriptor_);
+        return reinterpret_cast<RawObject**>(&ptr()->entries_);
       case Snapshot::kFull:
       case Snapshot::kFullJIT:
         return to();
@@ -2125,15 +2133,12 @@ class RawICData : public RawObject {
   uint32_t state_bits_;  // Number of arguments tested in IC, deopt reasons.
 };
 
-class RawMegamorphicCache : public RawObject {
+class RawMegamorphicCache : public RawCallSiteData {
   RAW_HEAP_OBJECT_IMPLEMENTATION(MegamorphicCache);
-
-  VISIT_FROM(RawObject*, buckets_)
+  VISIT_FROM(RawObject*, target_name_)
   RawArray* buckets_;
   RawSmi* mask_;
-  RawString* target_name_;     // Name of target function.
-  RawArray* args_descriptor_;  // Arguments descriptor.
-  VISIT_TO(RawObject*, args_descriptor_)
+  VISIT_TO(RawObject*, mask_)
   RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 
   int32_t filled_entry_count_;

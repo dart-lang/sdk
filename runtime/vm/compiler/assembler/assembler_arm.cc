@@ -1592,7 +1592,6 @@ void Assembler::LoadIsolate(Register rd) {
 
 bool Assembler::CanLoadFromObjectPool(const Object& object) const {
   ASSERT(IsOriginalObject(object));
-  ASSERT(!target::CanLoadFromThread(object));
   if (!constant_pool_allowed()) {
     return false;
   }
@@ -1608,24 +1607,31 @@ void Assembler::LoadObjectHelper(Register rd,
                                  bool is_unique,
                                  Register pp) {
   ASSERT(IsOriginalObject(object));
-  intptr_t offset = 0;
-  if (target::CanLoadFromThread(object, &offset)) {
-    // Load common VM constants from the thread. This works also in places where
-    // no constant pool is set up (e.g. intrinsic code).
-    ldr(rd, Address(THR, offset), cond);
-  } else if (target::IsSmi(object)) {
-    // Relocation doesn't apply to Smis.
-    LoadImmediate(rd, target::ToRawSmi(object), cond);
-  } else if (CanLoadFromObjectPool(object)) {
-    // Make sure that class CallPattern is able to decode this load from the
-    // object pool.
-    const auto index = is_unique ? object_pool_builder().AddObject(object)
-                                 : object_pool_builder().FindObject(object);
-    const int32_t offset = target::ObjectPool::element_offset(index);
-    LoadWordFromPoolOffset(rd, offset - kHeapObjectTag, pp, cond);
-  } else {
-    UNREACHABLE();
+  // `is_unique == true` effectively means object has to be patchable.
+  if (!is_unique) {
+    intptr_t offset = 0;
+    if (target::CanLoadFromThread(object, &offset)) {
+      // Load common VM constants from the thread. This works also in places
+      // where no constant pool is set up (e.g. intrinsic code).
+      ldr(rd, Address(THR, offset), cond);
+      return;
+    }
+    if (target::IsSmi(object)) {
+      // Relocation doesn't apply to Smis.
+      LoadImmediate(rd, target::ToRawSmi(object), cond);
+      return;
+    }
   }
+  if (!CanLoadFromObjectPool(object)) {
+    UNREACHABLE();
+    return;
+  }
+  // Make sure that class CallPattern is able to decode this load from the
+  // object pool.
+  const auto index = is_unique ? object_pool_builder().AddObject(object)
+                               : object_pool_builder().FindObject(object);
+  const int32_t offset = target::ObjectPool::element_offset(index);
+  LoadWordFromPoolOffset(rd, offset - kHeapObjectTag, pp, cond);
 }
 
 void Assembler::LoadObject(Register rd, const Object& object, Condition cond) {
@@ -3459,7 +3465,7 @@ void Assembler::MonomorphicCheckedEntryJIT() {
   LoadClassIdMayBeSmi(IP, R0);
   add(R2, R2, Operand(target::ToRawSmi(1)));
   cmp(R1, Operand(IP, LSL, 1));
-  Branch(Address(THR, target::Thread::monomorphic_miss_entry_offset()), NE);
+  Branch(Address(THR, target::Thread::switchable_call_miss_entry_offset()), NE);
   str(R2, FieldAddress(R9, count_offset));
   LoadImmediate(R4, 0);  // GC-safe for OptimizeInvokedFunction.
 
@@ -3488,7 +3494,7 @@ void Assembler::MonomorphicCheckedEntryAOT() {
 
   LoadClassId(IP, R0);
   cmp(R9, Operand(IP, LSL, 1));
-  Branch(Address(THR, target::Thread::monomorphic_miss_entry_offset()), NE);
+  Branch(Address(THR, target::Thread::switchable_call_miss_entry_offset()), NE);
 
   // Fall through to unchecked entry.
   ASSERT_EQUAL(CodeSize() - start,

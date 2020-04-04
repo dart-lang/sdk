@@ -964,14 +964,13 @@ void StubCodeCompiler::GenerateDeoptimizeStub(Assembler* assembler) {
   __ Ret();
 }
 
-static void GenerateDispatcherCode(Assembler* assembler,
-                                   Label* call_target_function) {
-  __ Comment("NoSuchMethodDispatch");
-  // When lazily generated invocation dispatchers are disabled, the
-  // miss-handler may return null.
-  __ CompareObject(R0, NullObject());
-  __ b(call_target_function, NE);
+// R9: ICData/MegamorphicCache
+static void GenerateNoSuchMethodDispatcherBody(Assembler* assembler) {
   __ EnterStubFrame();
+
+  __ ldr(R4,
+         FieldAddress(R9, target::CallSiteData::arguments_descriptor_offset()));
+
   // Load the receiver.
   __ ldr(R2, FieldAddress(R4, target::ArgumentsDescriptor::size_offset()));
   __ add(IP, FP, Operand(R2, LSL, 1));  // R2 is Smi.
@@ -1000,43 +999,23 @@ static void GenerateDispatcherCode(Assembler* assembler,
   __ Ret();
 }
 
-void StubCodeCompiler::GenerateMegamorphicMissStub(Assembler* assembler) {
-  __ EnterStubFrame();
+static void GenerateDispatcherCode(Assembler* assembler,
+                                   Label* call_target_function) {
+  __ Comment("NoSuchMethodDispatch");
+  // When lazily generated invocation dispatchers are disabled, the
+  // miss-handler may return null.
+  __ CompareObject(R0, NullObject());
+  __ b(call_target_function, NE);
 
-  // Load the receiver.
-  __ ldr(R2, FieldAddress(R4, target::ArgumentsDescriptor::size_offset()));
-  __ add(IP, FP, Operand(R2, LSL, 1));  // R2 is Smi.
-  __ ldr(R8, Address(IP, target::frame_layout.param_end_from_fp *
-                             target::kWordSize));
+  GenerateNoSuchMethodDispatcherBody(assembler);
+}
 
-  // Preserve IC data and arguments descriptor.
-  __ PushList((1 << R4) | (1 << R9));
-
-  __ LoadImmediate(IP, 0);
-  __ Push(IP);  // result slot
-  __ Push(R8);  // receiver
-  __ Push(R9);  // ICData
-  __ Push(R4);  // arguments descriptor
-  __ CallRuntime(kMegamorphicCacheMissHandlerRuntimeEntry, 3);
-  // Remove arguments.
-  __ Drop(3);
-  __ Pop(R0);  // Get result into R0 (target function).
-
-  // Restore IC data and arguments descriptor.
-  __ PopList((1 << R4) | (1 << R9));
-
-  __ RestoreCodePointer();
-  __ LeaveStubFrame();
-
-  if (!FLAG_lazy_dispatchers) {
-    Label call_target_function;
-    GenerateDispatcherCode(assembler, &call_target_function);
-    __ Bind(&call_target_function);
-  }
-
-  // Tail-call to target function.
-  __ ldr(CODE_REG, FieldAddress(R0, target::Function::code_offset()));
-  __ Branch(FieldAddress(R0, target::Function::entry_point_offset()));
+// Input:
+//   R4 - arguments descriptor
+//   R9 - icdata/megamorphic_cache
+void StubCodeCompiler::GenerateNoSuchMethodDispatcherStub(
+    Assembler* assembler) {
+  GenerateNoSuchMethodDispatcherBody(assembler);
 }
 
 // Called for inline allocation of arrays.
@@ -2226,7 +2205,8 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
 
   if (type == kInstanceCall) {
     __ LoadTaggedClassIdMayBeSmi(R0, R0);
-    __ ldr(R4, FieldAddress(R9, target::ICData::arguments_descriptor_offset()));
+    __ ldr(R4, FieldAddress(
+                   R9, target::CallSiteData::arguments_descriptor_offset()));
     if (num_args == 2) {
       __ ldr(R1, FieldAddress(R4, target::ArgumentsDescriptor::count_offset()));
       __ sub(R1, R1, Operand(target::ToRawSmi(2)));
@@ -2235,7 +2215,8 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
     }
   } else {
     // Load arguments descriptor into R4.
-    __ ldr(R4, FieldAddress(R9, target::ICData::arguments_descriptor_offset()));
+    __ ldr(R4, FieldAddress(
+                   R9, target::CallSiteData::arguments_descriptor_offset()));
 
     // Get the receiver's class ID (first read number of arguments from
     // arguments descriptor array and then access the receiver from the stack).
@@ -2527,7 +2508,8 @@ void StubCodeCompiler::GenerateZeroArgsUnoptimizedStaticCallStub(
   }
 
   // Load arguments descriptor into R4.
-  __ ldr(R4, FieldAddress(R9, target::ICData::arguments_descriptor_offset()));
+  __ ldr(R4,
+         FieldAddress(R9, target::CallSiteData::arguments_descriptor_offset()));
 
   // Get function and call it, if possible.
   __ LoadFromOffset(kWord, R0, R8, target_offset);
@@ -2580,7 +2562,7 @@ void StubCodeCompiler::GenerateLazyCompileStub(Assembler* assembler) {
   __ LeaveStubFrame();
 
   // When using the interpreter, the function's code may now point to the
-  // InterpretCall stub. Make sure R0, R4, and R9 are preserved.
+  // InterpretCall stub. Make sure R0, R4 and R9 are preserved.
   __ ldr(CODE_REG, FieldAddress(R0, target::Function::code_offset()));
   __ Branch(FieldAddress(R0, target::Function::entry_point_offset()));
 }
@@ -3315,8 +3297,9 @@ void StubCodeCompiler::GenerateOptimizedIdenticalWithNumberCheckStub(
 //  R0: receiver
 //  R9: MegamorphicCache (preserved)
 // Passed to target:
-//  CODE_REG: target Code
+//  R0: function
 //  R4: arguments descriptor
+//  CODE_REG: target Code
 void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   __ LoadTaggedClassIdMayBeSmi(R0, R0);
   // R0: receiver cid as Smi.
@@ -3327,7 +3310,7 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
 
   // Compute the table index.
   ASSERT(target::MegamorphicCache::kSpreadFactor == 7);
-  // Use reverse substract to multiply with 7 == 8 - 1.
+  // Use reverse subtract to multiply with 7 == 8 - 1.
   __ rsb(R3, R0, Operand(R0, LSL, 3));
   // R3: probe.
   Label loop;
@@ -3350,16 +3333,16 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   // be invoked as a normal Dart function.
   const auto target_address = FieldAddress(IP, base + target::kWordSize);
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    __ ldr(ARGS_DESC_REG,
-           FieldAddress(
-               R9, target::MegamorphicCache::arguments_descriptor_offset()));
+    __ ldr(
+        ARGS_DESC_REG,
+        FieldAddress(R9, target::CallSiteData::arguments_descriptor_offset()));
     __ Branch(target_address);
   } else {
     __ ldr(R0, target_address);
     __ ldr(CODE_REG, FieldAddress(R0, target::Function::code_offset()));
-    __ ldr(ARGS_DESC_REG,
-           FieldAddress(
-               R9, target::MegamorphicCache::arguments_descriptor_offset()));
+    __ ldr(
+        ARGS_DESC_REG,
+        FieldAddress(R9, target::CallSiteData::arguments_descriptor_offset()));
     __ Branch(FieldAddress(R0, target::Function::entry_point_offset()));
   }
 
@@ -3377,7 +3360,8 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
 void StubCodeCompiler::GenerateICCallThroughCodeStub(Assembler* assembler) {
   Label loop, found, miss;
   __ ldr(R8, FieldAddress(R9, target::ICData::entries_offset()));
-  __ ldr(R4, FieldAddress(R9, target::ICData::arguments_descriptor_offset()));
+  __ ldr(R4,
+         FieldAddress(R9, target::CallSiteData::arguments_descriptor_offset()));
   __ AddImmediate(R8, target::Array::data_offset() - kHeapObjectTag);
   // R8: first IC entry
   __ LoadTaggedClassIdMayBeSmi(R1, R0);
@@ -3437,7 +3421,7 @@ void StubCodeCompiler::GenerateMonomorphicSmiableCheckStub(
         R2, R3, R9,
         target::MonomorphicSmiableCall::expected_cid_offset() - kHeapObjectTag);
     __ cmp(R2, Operand(IP));
-    __ Branch(Address(THR, target::Thread::monomorphic_miss_entry_offset()),
+    __ Branch(Address(THR, target::Thread::switchable_call_miss_entry_offset()),
               NE);
     __ bx(R3);
   } else {
@@ -3446,35 +3430,56 @@ void StubCodeCompiler::GenerateMonomorphicSmiableCheckStub(
             target::MonomorphicSmiableCall::target_offset() - kHeapObjectTag);
     __ mov(CODE_REG, Operand(R2));
     __ cmp(R3, Operand(IP));
-    __ Branch(Address(THR, target::Thread::monomorphic_miss_entry_offset()),
+    __ Branch(Address(THR, target::Thread::switchable_call_miss_entry_offset()),
               NE);
     __ LoadField(IP, FieldAddress(R2, target::Code::entry_point_offset()));
     __ bx(IP);
   }
 }
 
-// Called from switchable IC calls.
-//  R0: receiver
-//  R9: UnlinkedCall
-void StubCodeCompiler::GenerateUnlinkedCallStub(Assembler* assembler) {
-  __ EnterStubFrame();
-  __ Push(R0);  // Preserve receiver.
-
+static void CallSwitchableCallMissRuntimeEntry(Assembler* assembler,
+                                               Register receiver_reg) {
   __ LoadImmediate(IP, 0);
   __ Push(IP);  // Result slot
   __ Push(IP);  // Arg0: stub out
-  __ Push(R0);  // Arg1: Receiver
-  __ Push(R9);  // Arg2: UnlinkedCall
-  __ CallRuntime(kUnlinkedCallRuntimeEntry, 3);
-  __ Drop(2);
+  __ Push(receiver_reg);  // Arg1: Receiver
+  __ CallRuntime(kSwitchableCallMissRuntimeEntry, 2);
+  __ Pop(R0);        // Get the receiver
   __ Pop(CODE_REG);  // result = stub
   __ Pop(R9);        // result = IC
+}
 
-  __ Pop(R0);  // Restore receiver.
+// Called from switchable IC calls.
+//  R0: receiver
+void StubCodeCompiler::GenerateSwitchableCallMissStub(Assembler* assembler) {
+  __ ldr(CODE_REG,
+         Address(THR, target::Thread::switchable_call_miss_stub_offset()));
+  __ EnterStubFrame();
+  CallSwitchableCallMissRuntimeEntry(assembler, /*receiver_reg=*/R0);
   __ LeaveStubFrame();
 
   __ Branch(FieldAddress(
-      CODE_REG, target::Code::entry_point_offset(CodeEntryKind::kMonomorphic)));
+      CODE_REG, target::Code::entry_point_offset(CodeEntryKind::kNormal)));
+}
+
+// Called from megamorphic call sites and from megamorphic miss handlers.
+//  R9: ICData/MegamorphicCache
+void StubCodeCompiler::GenerateMegamorphicCallMissStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  // Load argument descriptor from ICData/MegamorphicCache.
+  __ ldr(R4,
+         FieldAddress(R9, target::CallSiteData::arguments_descriptor_offset()));
+
+  // Load the receiver.
+  __ ldr(R2, FieldAddress(R4, target::ArgumentsDescriptor::size_offset()));
+  __ add(IP, FP, Operand(R2, LSL, 1));  // R2 is Smi.
+  __ ldr(R8, Address(IP, target::frame_layout.param_end_from_fp *
+                             target::kWordSize));
+  CallSwitchableCallMissRuntimeEntry(assembler, /*receiver_reg=*/R8);
+  __ LeaveStubFrame();
+
+  __ Branch(FieldAddress(
+      CODE_REG, target::Code::entry_point_offset(CodeEntryKind::kNormal)));
 }
 
 // Called from switchable IC calls.
@@ -3501,42 +3506,7 @@ void StubCodeCompiler::GenerateSingleTargetCallStub(Assembler* assembler) {
 
   __ Bind(&miss);
   __ EnterStubFrame();
-  __ Push(R0);  // Preserve receiver.
-
-  __ LoadImmediate(IP, 0);
-  __ Push(IP);  // Result slot
-  __ Push(IP);  // Arg0: stub out
-  __ Push(R0);  // Arg1: Receiver
-  __ CallRuntime(kSingleTargetMissRuntimeEntry, 2);
-  __ Drop(1);
-  __ Pop(CODE_REG);  // result = stub
-  __ Pop(R9);        // result = IC
-
-  __ Pop(R0);  // Restore receiver.
-  __ LeaveStubFrame();
-
-  __ Branch(FieldAddress(
-      CODE_REG, target::Code::entry_point_offset(CodeEntryKind::kMonomorphic)));
-}
-
-// Called from the monomorphic checked entry.
-//  R0: receiver
-void StubCodeCompiler::GenerateMonomorphicMissStub(Assembler* assembler) {
-  __ ldr(CODE_REG,
-         Address(THR, target::Thread::monomorphic_miss_stub_offset()));
-  __ EnterStubFrame();
-  __ Push(R0);  // Preserve receiver.
-
-  __ LoadImmediate(IP, 0);
-  __ Push(IP);  // Result slot
-  __ Push(IP);  // Arg0: stub out
-  __ Push(R0);  // Arg1: Receiver
-  __ CallRuntime(kMonomorphicMissRuntimeEntry, 2);
-  __ Drop(1);
-  __ Pop(CODE_REG);  // result = stub
-  __ Pop(R9);        // result = IC
-
-  __ Pop(R0);  // Restore receiver.
+  CallSwitchableCallMissRuntimeEntry(assembler, /*receiver_reg=*/R0);
   __ LeaveStubFrame();
 
   __ Branch(FieldAddress(

@@ -35,8 +35,7 @@ namespace dart {
   V(InvokeDartCode)                                                            \
   V(InvokeDartCodeFromBytecode)                                                \
   V(DebugStepCheck)                                                            \
-  V(UnlinkedCall)                                                              \
-  V(MonomorphicMiss)                                                           \
+  V(SwitchableCallMiss)                                                        \
   V(MonomorphicSmiableCheck)                                                   \
   V(SingleTargetCall)                                                          \
   V(ICCallThroughCode)                                                         \
@@ -90,7 +89,8 @@ namespace dart {
   V(InitInstanceField)                                                         \
   V(InstantiateTypeArguments)                                                  \
   V(InstantiateTypeArgumentsMayShareInstantiatorTA)                            \
-  V(InstantiateTypeArgumentsMayShareFunctionTA)
+  V(InstantiateTypeArgumentsMayShareFunctionTA)                                \
+  V(NoSuchMethodDispatcher)
 
 }  // namespace dart
 
