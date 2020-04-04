@@ -72,6 +72,7 @@ class ArgListContributor extends DartCompletionContributor {
       var selectionOffset = completion.length;
 
       // Optionally add Flutter child widget details.
+      // todo (pq): revisit this special casing; likely it can be generalized away
       var element = parameter.enclosingElement;
       if (element is ConstructorElement) {
         var flutter = Flutter.of(request.result);
@@ -79,7 +80,7 @@ class ArgListContributor extends DartCompletionContributor {
           var defaultValue = getDefaultStringParameterValue(parameter);
           // TODO(devoncarew): Should we remove the check here? We would then
           // suggest values for param types like closures.
-          if (defaultValue != null && defaultValue.text == '<Widget>[]') {
+          if (defaultValue != null && defaultValue.text == '[]') {
             var completionLength = completion.length;
             completion += defaultValue.text;
             if (defaultValue.cursorPosition != null) {
