@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Test that a null stream expression produces a runtime error.
+// Test that an implicit dynamic cast of a null stream is caught.
 import 'package:async_helper/async_helper.dart';
 
 void main() {
   asyncTest(() async {
     // Null stream.
-    Stream<int> nullStream = null;
+    dynamic nullStream = null;
     asyncExpectThrows<Error>(
         () async => <int>[await for (var i in nullStream) 1]);
     asyncExpectThrows<Error>(
