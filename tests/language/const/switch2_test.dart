@@ -7,9 +7,11 @@ import 'package:expect/expect.dart';
 void main() {
   var a = [1, 2, 3][2];
   switch (a) {
-  //      ^
-  // [analyzer] STATIC_WARNING.SWITCH_EXPRESSION_NOT_ASSIGNABLE
     case 0.0:
+    //   ^^^
+    // [analyzer] COMPILE_TIME_ERROR.CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE
+    //   ^^^
+    // [analyzer] COMPILE_TIME_ERROR.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
     //   ^
     // [cfe] Type 'double' of the case expression is not a subtype of type 'int' of this switch expression.
     //   ^
@@ -17,8 +19,6 @@ void main() {
       print("illegal");
       break;
     case 1:
-    //   ^
-    // [analyzer] COMPILE_TIME_ERROR.INCONSISTENT_CASE_EXPRESSION_TYPES
       print("OK");
   }
 }
