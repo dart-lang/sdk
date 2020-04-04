@@ -45,7 +45,7 @@ abstract class AbstractTypeSystemNullSafetyTest with ElementsTypesMixin {
   }
 
   void setUp() {
-    var analysisContext = TestAnalysisContext(
+    analysisContext = TestAnalysisContext(
       featureSet: testFeatureSet,
     );
     typeProvider = analysisContext.typeProviderNonNullableByDefault;

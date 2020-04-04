@@ -264,6 +264,76 @@ class ConstraintMatchingTest extends AbstractTypeSystemNullSafetyTest {
     );
   }
 
+  void test_interfaceType_topMerge() {
+    var testClassIndex = 0;
+
+    void check1(
+      DartType extendsTypeArgument,
+      DartType implementsTypeArgument,
+      String expectedConstraint,
+    ) {
+      var library = library_(
+        uriStr: 'package:test/test.dart',
+        analysisSession: analysisContext.analysisSession,
+        typeSystem: typeSystem,
+      );
+
+      // class A<T> {}
+      var A = class_(name: 'A', typeParameters: [
+        typeParameter('T'),
+      ]);
+      A.enclosingElement = library.definingCompilationUnit;
+
+      // class B<T> extends A<T> {}
+      var B_T = typeParameter('T');
+      var B_T_none = typeParameterTypeNone(B_T);
+      var B = class_(
+        name: 'B',
+        typeParameters: [B_T],
+        superType: interfaceTypeNone(A, typeArguments: [B_T_none]),
+      );
+      B.enclosingElement = library.definingCompilationUnit;
+
+      // class Cx extends A<> implements B<> {}
+      var C = class_(
+        name: 'C${testClassIndex++}',
+        superType: interfaceTypeNone(
+          A,
+          typeArguments: [extendsTypeArgument],
+        ),
+        interfaces: [
+          interfaceTypeNone(
+            B,
+            typeArguments: [implementsTypeArgument],
+          )
+        ],
+      );
+      C.enclosingElement = library.definingCompilationUnit;
+
+      _checkIsSubtypeMatchOf(
+        interfaceTypeNone(C),
+        interfaceTypeNone(A, typeArguments: [T_none]),
+        [T],
+        [expectedConstraint],
+        covariant: false,
+      );
+    }
+
+    void check(
+      DartType typeArgument1,
+      DartType typeArgument2,
+      String expectedConstraint,
+    ) {
+      check1(typeArgument1, typeArgument2, expectedConstraint);
+      check1(typeArgument2, typeArgument1, expectedConstraint);
+    }
+
+    check(objectQuestion, dynamicNone, 'Object? <: T');
+    check(objectStar, dynamicNone, 'Object? <: T');
+    check(voidNone, objectQuestion, 'void <: T');
+    check(voidNone, objectStar, 'void <: T');
+  }
+
   void test_left_null() {
     // Null <: T is trivially satisfied by the constraint Null <: T.
     _checkIsSubtypeMatchOf(nullNone, T_none, [T], ['Null <: T'],

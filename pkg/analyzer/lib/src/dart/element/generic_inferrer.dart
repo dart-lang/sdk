@@ -537,79 +537,64 @@ class GenericInferrer {
     }
 
     if (i1.element == i2.element) {
-      List<DartType> tArgs1 = i1.typeArguments;
-      List<DartType> tArgs2 = i2.typeArguments;
-      List<TypeParameterElement> tParams = i1.element.typeParameters;
-      assert(tArgs1.length == tArgs2.length);
-      assert(tArgs1.length == tParams.length);
-      for (int i = 0; i < tArgs1.length; i++) {
-        TypeParameterElement typeParameterElement = tParams[i];
+      return _matchInterfaceSubtypeOf2(i1, i2, origin, covariant);
+    }
 
-        // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
-        // variance is added to the interface.
-        Variance parameterVariance =
-            (typeParameterElement as TypeParameterElementImpl).variance;
-        if (parameterVariance.isCovariant) {
-          if (!_matchSubtypeOf(tArgs1[i], tArgs2[i], HashSet<Element>(), origin,
-              covariant: covariant)) {
-            return false;
-          }
-        } else if (parameterVariance.isContravariant) {
-          if (!_matchSubtypeOf(tArgs2[i], tArgs1[i], HashSet<Element>(), origin,
-              covariant: !covariant)) {
-            return false;
-          }
-        } else if (parameterVariance.isInvariant) {
-          if (!_matchSubtypeOf(tArgs1[i], tArgs2[i], HashSet<Element>(), origin,
-                  covariant: covariant) ||
-              !_matchSubtypeOf(tArgs2[i], tArgs1[i], HashSet<Element>(), origin,
-                  covariant: !covariant)) {
-            return false;
-          }
-        } else {
-          throw StateError("Type parameter ${tParams[i]} has unknown "
-              "variance $parameterVariance for inference.");
-        }
+    for (var interface in i1.element.allSupertypes) {
+      if (interface.element == i2.element) {
+        var substitution = Substitution.fromInterfaceType(i1);
+        var substitutedInterface = substitution.substituteType(interface);
+        return _matchInterfaceSubtypeOf2(
+            substitutedInterface, i2, origin, covariant);
       }
-      return true;
-    }
-    if (i1.isObject) {
-      return false;
-    }
-
-    // Guard against loops in the class hierarchy
-    bool guardedInterfaceSubtype(InterfaceType t1) {
-      visited ??= HashSet<Element>();
-      if (visited.add(t1.element)) {
-        bool matched = _matchInterfaceSubtypeOf(t1, i2, visited, origin,
-            covariant: covariant);
-        visited.remove(t1.element);
-        return matched;
-      } else {
-        // In the case of a recursive type parameter, consider the subtype
-        // match to have failed.
-        return false;
-      }
-    }
-
-    // We don't need to search the entire class hierarchy, since a given
-    // subclass can't appear multiple times with different generic parameters.
-    // So shortcut to the first match found.
-    //
-    // We don't need undo logic here because if the classes don't match, nothing
-    // is added to the constraint set.
-    var superclass = i1.superclass;
-    if (superclass != null && guardedInterfaceSubtype(superclass)) return true;
-    for (final parent in i1.interfaces) {
-      if (guardedInterfaceSubtype(parent)) return true;
-    }
-    for (final parent in i1.mixins) {
-      if (guardedInterfaceSubtype(parent)) return true;
-    }
-    for (final parent in i1.superclassConstraints) {
-      if (guardedInterfaceSubtype(parent)) return true;
     }
     return false;
+  }
+
+  /// Tries to make [i1] a subtype of [i2] and accumulate constraints as needed.
+  ///
+  /// The return value indicates whether the match was successful.  If it was
+  /// unsuccessful, the caller is responsible for ignoring any constraints that
+  /// were accumulated (see [_rewindConstraints]).
+  ///
+  /// Interfaces [i1] and [i2] are instantiations of the same class element.
+  bool _matchInterfaceSubtypeOf2(InterfaceType i1, InterfaceType i2,
+      _TypeConstraintOrigin origin, bool covariant) {
+    List<DartType> tArgs1 = i1.typeArguments;
+    List<DartType> tArgs2 = i2.typeArguments;
+    List<TypeParameterElement> tParams = i1.element.typeParameters;
+    assert(tArgs1.length == tArgs2.length);
+    assert(tArgs1.length == tParams.length);
+    for (int i = 0; i < tArgs1.length; i++) {
+      TypeParameterElement typeParameterElement = tParams[i];
+
+      // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
+      // variance is added to the interface.
+      Variance parameterVariance =
+          (typeParameterElement as TypeParameterElementImpl).variance;
+      if (parameterVariance.isCovariant) {
+        if (!_matchSubtypeOf(tArgs1[i], tArgs2[i], HashSet<Element>(), origin,
+            covariant: covariant)) {
+          return false;
+        }
+      } else if (parameterVariance.isContravariant) {
+        if (!_matchSubtypeOf(tArgs2[i], tArgs1[i], HashSet<Element>(), origin,
+            covariant: !covariant)) {
+          return false;
+        }
+      } else if (parameterVariance.isInvariant) {
+        if (!_matchSubtypeOf(tArgs1[i], tArgs2[i], HashSet<Element>(), origin,
+                covariant: covariant) ||
+            !_matchSubtypeOf(tArgs2[i], tArgs1[i], HashSet<Element>(), origin,
+                covariant: !covariant)) {
+          return false;
+        }
+      } else {
+        throw StateError("Type parameter ${tParams[i]} has unknown "
+            "variance $parameterVariance for inference.");
+      }
+    }
+    return true;
   }
 
   /// Assert that [t1] will be a subtype of [t2], and returns if the constraint

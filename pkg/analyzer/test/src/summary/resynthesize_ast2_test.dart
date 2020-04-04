@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
+import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -216,7 +216,10 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
   }
 }
 
-class _AnalysisSessionForLinking implements AnalysisSession {
+class _AnalysisSessionForLinking implements AnalysisSessionImpl {
+  @override
+  final ClassHierarchy classHierarchy = ClassHierarchy();
+
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
