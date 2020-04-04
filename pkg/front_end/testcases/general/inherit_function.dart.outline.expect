@@ -1,4 +1,27 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/inherit_function.dart:5:7: Warning: Implementing 'Function' is deprecated and has no effect.
+// Try removing 'Function' from the 'implements' clause.
+// class A implements Function {}
+//       ^
+//
+// pkg/front_end/testcases/general/inherit_function.dart:7:7: Warning: Extending 'Function' is deprecated and has no effect.
+// Try removing 'Function' from the 'extends' clause.
+// class B extends Function {}
+//       ^
+//
+// pkg/front_end/testcases/general/inherit_function.dart:9:7: Warning: Mixing in 'Function' is deprecated and has no effect.
+// Try removing 'Function' from the 'with' clause.
+// class C extends Object with Function {}
+//       ^
+//
+// pkg/front_end/testcases/general/inherit_function.dart:11:7: Warning: Mixing in 'Function' is deprecated and has no effect.
+// Try removing 'Function' from the 'with' clause.
+// class D = Object with Function;
+//       ^
+//
 import self as self;
 import "dart:core" as core;
 

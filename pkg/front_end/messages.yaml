@@ -4047,23 +4047,23 @@ ExportOptOutFromOptIn:
       class A {}
 
 ExtendFunction:
-  template: "Extending 'Function' is deprecated."
+  template: "Extending 'Function' is deprecated and has no effect."
   tip: "Try removing 'Function' from the 'extends' clause."
-  severity: IGNORED
+  severity: WARNING
   script: |
     class A extends Function {}
 
 ImplementFunction:
-  template: "Implementing 'Function' is deprecated."
+  template: "Implementing 'Function' is deprecated and has no effect."
   tip: "Try removing 'Function' from the 'implements' clause."
-  severity: IGNORED
+  severity: WARNING
   script: |
     class A implements Function {}
 
 MixinFunction:
-  template: "Mixing in 'Function' is deprecated."
+  template: "Mixing in 'Function' is deprecated and has no effect."
   tip: "Try removing 'Function' from the 'with' clause."
-  severity: IGNORED
+  severity: WARNING
   script: |
     class A extends Object with Function {}
 
