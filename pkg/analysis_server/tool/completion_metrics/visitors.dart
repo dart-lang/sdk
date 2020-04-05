@@ -553,13 +553,22 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
         }
 
         // Class references that are constructor calls are constructor kinds,
-        // unless the constructor is a named constructor.
+        // unless either:
+        //   1) the constructor is a named constructor, i.e. some "Foo.bar()",
+        //      the "Foo" in this case is a class,
+        //   2) or, there is an explicit const or new keyword before the
+        //      constructor invocation in which case the "Foo" above is
+        //      considered a constructor still
         if (elementKind == protocol.ElementKind.CLASS) {
           if (node.parent?.parent is ConstructorName) {
             var constructorName = node.parent.parent as ConstructorName;
-            if (constructorName.type.name == node &&
-                constructorName.name == null) {
-              elementKind = protocol.ElementKind.CONSTRUCTOR;
+            var instanceCreationExpression = constructorName.parent;
+            if (instanceCreationExpression is InstanceCreationExpression &&
+                constructorName.type.name == node) {
+              if (instanceCreationExpression.keyword != null ||
+                  constructorName.name == null) {
+                elementKind = protocol.ElementKind.CONSTRUCTOR;
+              }
             }
           }
         }
