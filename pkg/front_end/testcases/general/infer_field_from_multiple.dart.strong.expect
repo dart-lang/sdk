@@ -213,11 +213,11 @@ class C extends core::Object implements self::A<core::int*>, self::B<core::int*,
   field core::int* field1;
   field invalid-type field2;
   field core::int* field3 = 0;
-  field invalid-type field4 = 0 as{TypeError} invalid-type;
+  field invalid-type field4 = 0;
   field core::int* field5;
   field invalid-type field6;
   field core::int* field7 = 0;
-  field invalid-type field8 = 0 as{TypeError} invalid-type;
+  field invalid-type field8 = 0;
   field dynamic field9;
   generic-covariant-impl field core::int* field10;
   generic-covariant-impl field invalid-type field11;
@@ -236,11 +236,11 @@ class D<T extends core::Object* = dynamic> extends core::Object implements self:
   field core::int* field1;
   field invalid-type field2;
   field core::int* field3 = 0;
-  field invalid-type field4 = 0 as{TypeError} invalid-type;
+  field invalid-type field4 = 0;
   field core::int* field5;
   field invalid-type field6;
   field core::int* field7 = 0;
-  field invalid-type field8 = 0 as{TypeError} invalid-type;
+  field invalid-type field8 = 0;
   field dynamic field9;
   generic-covariant-impl field self::D::T* field10;
   generic-covariant-impl field self::D::T* field11;

@@ -56,6 +56,8 @@ import 'package:kernel/type_algebra.dart' show Substitution, substitute;
 import 'package:kernel/type_environment.dart'
     show SubtypeCheckMode, TypeEnvironment;
 
+import 'package:kernel/src/types.dart' show Types;
+
 import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 
 import '../fasta_codes.dart';
@@ -63,8 +65,6 @@ import '../fasta_codes.dart';
 import '../kernel/redirecting_factory_body.dart' show getRedirectingFactoryBody;
 
 import '../kernel/kernel_target.dart' show KernelTarget;
-
-import '../kernel/types.dart' show Types;
 
 import '../loader.dart';
 
@@ -1025,8 +1025,9 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     // When a parameter is covariant we have to check that we also
     // override the same member in all parents.
     for (Supertype supertype in interfaceMember.enclosingClass.supers) {
-      Member m = types.hierarchy.getInterfaceMemberKernel(
-          supertype.classNode, interfaceMember.name, isSetter);
+      Member m = types.hierarchy.getInterfaceMember(
+          supertype.classNode, interfaceMember.name,
+          setter: isSetter);
       if (m != null) {
         callback(declaredMember, m, isSetter);
       }
@@ -1160,7 +1161,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       interfaceSubstitution = Substitution.fromPairs(
           enclosingClass.typeParameters,
           types.hierarchy
-              .getKernelTypeArgumentsAsInstanceOf(thisType, enclosingClass));
+              .getTypeArgumentsAsInstanceOf(thisType, enclosingClass));
     }
 
     if (declaredFunction?.typeParameters?.length !=
@@ -1204,7 +1205,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
           }
           DartType computedBound = substitution.substituteType(interfaceBound);
           if (!types
-              .isSameTypeKernel(declaredBound, computedBound)
+              .performNullabilityAwareMutualSubtypesCheck(
+                  declaredBound, computedBound)
               .isSubtypeWhenUsingNullabilities()) {
             reportInvalidOverride(
                 isInterfaceCheck,
@@ -1243,7 +1245,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       declaredSubstitution = Substitution.fromPairs(
           enclosingClass.typeParameters,
           types.hierarchy
-              .getKernelTypeArgumentsAsInstanceOf(thisType, enclosingClass));
+              .getTypeArgumentsAsInstanceOf(thisType, enclosingClass));
     }
     return declaredSubstitution;
   }
@@ -1276,11 +1278,11 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     DartType subtype = inParameter ? interfaceType : declaredType;
     DartType supertype = inParameter ? declaredType : interfaceType;
 
-    if (types.isSubtypeOfKernel(
+    if (types.isSubtypeOf(
         subtype, supertype, SubtypeCheckMode.withNullabilities)) {
       // No problem--the proper subtyping relation is satisfied.
     } else if (isCovariant &&
-        types.isSubtypeOfKernel(
+        types.isSubtypeOf(
             supertype, subtype, SubtypeCheckMode.withNullabilities)) {
       // No problem--the overriding parameter is marked "covariant" and has
       // a type which is a subtype of the parameter it overrides.
@@ -1289,10 +1291,10 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       // been reported.
     } else {
       // Report an error.
-      bool isErrorInNnbdOptedOutMode = !types.isSubtypeOfKernel(
+      bool isErrorInNnbdOptedOutMode = !types.isSubtypeOf(
               subtype, supertype, SubtypeCheckMode.ignoringNullabilities) &&
           (!isCovariant ||
-              !types.isSubtypeOfKernel(
+              !types.isSubtypeOf(
                   supertype, subtype, SubtypeCheckMode.ignoringNullabilities));
       if (isErrorInNnbdOptedOutMode || library.isNonNullableByDefault) {
         String declaredMemberName = '${declaredMember.enclosingClass.name}'

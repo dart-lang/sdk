@@ -18,7 +18,7 @@ import 'package:kernel/kernel.dart'
 
 import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 
-import 'package:kernel/type_environment.dart' show SubtypeTester;
+import 'package:kernel/src/types.dart' show Types;
 
 import 'package:vm/bytecode/gen_bytecode.dart'
     show createFreshComponentWithBytecode, generateBytecode;
@@ -78,7 +78,7 @@ compileEntryPoint(List<String> arguments) async {
     stopwatch.stop();
 
     elapsedTimes.add(stopwatch.elapsedMilliseconds.toDouble());
-    List<Object> typeChecks = SubtypeTester.typeChecks;
+    List<Object> typeChecks = Types.typeChecksForTesting;
     if (typeChecks?.isNotEmpty ?? false) {
       BenchMaker.writeTypeChecks("type_checks.json", typeChecks);
     }

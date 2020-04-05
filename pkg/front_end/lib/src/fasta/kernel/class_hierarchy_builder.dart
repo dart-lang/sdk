@@ -6,7 +6,8 @@ library fasta.class_hierarchy_builder;
 
 import 'package:kernel/ast.dart' hide MapEntry;
 
-import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+import 'package:kernel/class_hierarchy.dart'
+    show ClassHierarchy, ClassHierarchyBase;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
@@ -17,6 +18,7 @@ import 'package:kernel/src/future_or.dart';
 import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/src/nnbd_top_merge.dart';
 import 'package:kernel/src/norm.dart';
+import 'package:kernel/src/types.dart' show Types;
 
 import '../../testing/id_testing_utils.dart' show typeToText;
 
@@ -80,8 +82,6 @@ import '../type_inference/type_schema_environment.dart' show TypeConstraint;
 import 'forwarding_node.dart' show ForwardingNode;
 
 import 'kernel_builder.dart' show ImplicitFieldType;
-
-import 'types.dart' show Types;
 
 const bool useConsolidated = true;
 
@@ -309,7 +309,7 @@ bool hasSameSignature(FunctionNode a, FunctionNode b) {
   return aReturnType == bReturnType;
 }
 
-class ClassHierarchyBuilder {
+class ClassHierarchyBuilder implements ClassHierarchyBase {
   final Map<Class, ClassHierarchyNode> nodes = <Class, ClassHierarchyNode>{};
 
   final Map<ClassBuilder, Map<Class, Substitution>> substitutions =
@@ -473,8 +473,8 @@ class ClassHierarchyBuilder {
     return null;
   }
 
-  InterfaceType getKernelTypeAsInstanceOf(
-      InterfaceType type, Class superclass, Library clientLibrary) {
+  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass,
+      Library clientLibrary, CoreTypes coreTypes) {
     Class kernelClass = type.classNode;
     if (kernelClass == superclass) return type;
     if (kernelClass == nullClass) {
@@ -495,7 +495,7 @@ class ClassHierarchyBuilder {
         .withNullability(type.nullability);
   }
 
-  List<DartType> getKernelTypeArgumentsAsInstanceOf(
+  List<DartType> getTypeArgumentsAsInstanceOf(
       InterfaceType type, Class superclass) {
     Class kernelClass = type.classNode;
     if (kernelClass == superclass) return type.typeArguments;
@@ -534,10 +534,10 @@ class ClassHierarchyBuilder {
       ClassHierarchyNode node = nodes2[i];
       if (node == null) continue;
       if (nodes1.contains(node)) {
-        DartType candidate1 = getKernelTypeAsInstanceOf(
-            type1, node.classBuilder.cls, clientLibrary);
-        DartType candidate2 = getKernelTypeAsInstanceOf(
-            type2, node.classBuilder.cls, clientLibrary);
+        DartType candidate1 = getTypeAsInstanceOf(
+            type1, node.classBuilder.cls, clientLibrary, coreTypes);
+        DartType candidate2 = getTypeAsInstanceOf(
+            type2, node.classBuilder.cls, clientLibrary, coreTypes);
         if (candidate1 == candidate2) {
           common.add(node);
         }
@@ -553,8 +553,8 @@ class ClassHierarchyBuilder {
     for (int i = 0; i < common.length - 1; i++) {
       ClassHierarchyNode node = common[i];
       if (node.maxInheritancePath != common[i + 1].maxInheritancePath) {
-        return getKernelTypeAsInstanceOf(
-                type1, node.classBuilder.cls, clientLibrary)
+        return getTypeAsInstanceOf(
+                type1, node.classBuilder.cls, clientLibrary, coreTypes)
             .withNullability(
                 uniteNullabilities(type1.nullability, type2.nullability));
       } else {
@@ -567,9 +567,9 @@ class ClassHierarchyBuilder {
         uniteNullabilities(type1.nullability, type2.nullability));
   }
 
-  Member getInterfaceMemberKernel(Class cls, Name name, bool isSetter) {
+  Member getInterfaceMember(Class cls, Name name, {bool setter: false}) {
     return getNodeFromClass(cls)
-        .getInterfaceMember(name, isSetter)
+        .getInterfaceMember(name, setter)
         ?.getMember(this);
   }
 
@@ -744,7 +744,8 @@ class ClassHierarchyNodeBuilder {
             DartType overriddenBound = methodSubstitution
                 .substituteType(overriddenTypeParameters[i].bound);
             if (!hierarchy.types
-                .isSameTypeKernel(declaredBound, overriddenBound)
+                .performNullabilityAwareMutualSubtypesCheck(
+                    declaredBound, overriddenBound)
                 .isSubtypeWhenUsingNullabilities()) {
               debug?.log("Giving up 3");
               continue;
@@ -2565,13 +2566,14 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
   @override
   InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass,
       Library clientLibrary, CoreTypes coreTypes) {
-    return hierarchy.getKernelTypeAsInstanceOf(type, superclass, clientLibrary);
+    return hierarchy.getTypeAsInstanceOf(
+        type, superclass, clientLibrary, coreTypes);
   }
 
   @override
   List<DartType> getTypeArgumentsAsInstanceOf(
       InterfaceType type, Class superclass) {
-    return hierarchy.getKernelTypeArgumentsAsInstanceOf(type, superclass);
+    return hierarchy.getTypeArgumentsAsInstanceOf(type, superclass);
   }
 
   @override
@@ -2583,7 +2585,7 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
   @override
   bool isSubtypeOf(
       DartType subtype, DartType supertype, SubtypeCheckMode mode) {
-    return hierarchy.types.isSubtypeOfKernel(subtype, supertype, mode);
+    return hierarchy.types.isSubtypeOf(subtype, supertype, mode);
   }
 
   @override
@@ -2945,8 +2947,11 @@ class InterfaceConflict extends DelayedMember {
       unhandled("${member.runtimeType}", "$member", classBuilder.charOffset,
           classBuilder.fileUri);
     }
-    InterfaceType instance = hierarchy.getKernelTypeAsInstanceOf(
-        thisType, member.enclosingClass, classBuilder.library.library);
+    InterfaceType instance = hierarchy.getTypeAsInstanceOf(
+        thisType,
+        member.enclosingClass,
+        classBuilder.library.library,
+        hierarchy.coreTypes);
     assert(
         instance != null,
         "No instance of $thisType as ${member.enclosingClass} found for "
@@ -2957,10 +2962,10 @@ class InterfaceConflict extends DelayedMember {
   bool isMoreSpecific(ClassHierarchyBuilder hierarchy, DartType a, DartType b) {
     if (isSetter) {
       return hierarchy.types
-          .isSubtypeOfKernel(b, a, SubtypeCheckMode.withNullabilities);
+          .isSubtypeOf(b, a, SubtypeCheckMode.withNullabilities);
     } else {
       return hierarchy.types
-          .isSubtypeOfKernel(a, b, SubtypeCheckMode.withNullabilities);
+          .isSubtypeOf(a, b, SubtypeCheckMode.withNullabilities);
     }
   }
 

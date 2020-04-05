@@ -537,11 +537,12 @@ class ForwardingNode {
   Substitution _substitutionFor(
       List<TypeParameter> stubTypeParameters, Member candidate, Class class_) {
     Substitution substitution = Substitution.fromInterfaceType(
-        hierarchy.getKernelTypeAsInstanceOf(
+        hierarchy.getTypeAsInstanceOf(
             hierarchy.coreTypes
                 .thisInterfaceType(class_, class_.enclosingLibrary.nonNullable),
             candidate.enclosingClass,
-            class_.enclosingLibrary));
+            class_.enclosingLibrary,
+            hierarchy.coreTypes));
     if (stubTypeParameters != null) {
       // If the stub is generic ensure that type parameters are alpha renamed
       // to the [stubTypeParameters].

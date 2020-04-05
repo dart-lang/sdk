@@ -300,7 +300,6 @@ disjoint
 dispatched
 divided
 dmitryas
-dupdate
 doc
 docs
 dom
@@ -313,6 +312,7 @@ dq
 dquote
 dst
 dummy
+dupdate
 e
 easy
 ecma
@@ -343,6 +343,7 @@ eq
 equation
 erasure
 es
+established
 estimate
 eval
 excludes

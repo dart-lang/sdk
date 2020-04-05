@@ -11,6 +11,6 @@ import self as self;
 import "dart:core";
 
 static method testDynamic() → invalid-type
-  return 0 as{TypeError} invalid-type;
+  return 0;
 static method testVoid() → void {}
 static method main() → dynamic {}
