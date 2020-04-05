@@ -239,6 +239,13 @@ class CompletionMetricsComputer {
           .count(expectedCompletion.elementKind.toString());
 
       if (verbose) {
+        var closeMatchSuggestion;
+        for (var suggestion in suggestions) {
+          if (suggestion.completion == expectedCompletion.completion) {
+            closeMatchSuggestion = suggestion;
+          }
+        }
+
         // The format "/file/path/foo.dart:3:4" makes for easier input
         // with the Files dialog in IntelliJ.
         var lineNumber = expectedCompletion.lineNumber;
@@ -247,6 +254,10 @@ class CompletionMetricsComputer {
         print('  missing completion: "${expectedCompletion.completion}"');
         print('  completion kind: ${expectedCompletion.kind}');
         print('  element kind: ${expectedCompletion.elementKind}');
+        if (closeMatchSuggestion != null) {
+          print('    close matching completion that was in the list:');
+          print('    $closeMatchSuggestion');
+        }
         print('');
       }
     }
