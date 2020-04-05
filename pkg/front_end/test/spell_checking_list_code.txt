@@ -205,6 +205,7 @@ condensed
 config
 configs
 configured
+consideration
 constness
 consult
 consumers
