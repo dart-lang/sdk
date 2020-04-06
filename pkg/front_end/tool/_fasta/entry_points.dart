@@ -328,7 +328,8 @@ class CompileTask {
       Component userCode = new Component(
           nameRoot: component.root,
           uriToSource: new Map<Uri, Source>.from(component.uriToSource));
-      userCode.mainMethodName = component.mainMethodName;
+      userCode.setMainMethodAndMode(
+          component.mainMethodName, true, component.mode);
       for (Library library in component.libraries) {
         if (library.importUri.scheme != "dart") {
           userCode.libraries.add(library);

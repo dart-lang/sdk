@@ -30,6 +30,7 @@ import 'package:kernel/kernel.dart'
         LibraryDependency,
         LibraryPart,
         Name,
+        NonNullableByDefaultCompiledMode,
         Procedure,
         ProcedureKind,
         ReturnStatement,
@@ -331,11 +332,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       // Output result.
       Procedure mainMethod = componentWithDill == null
-          ? data.userLoadedUriMain
+          ? data.component?.mainMethod
           : componentWithDill.mainMethod;
+      NonNullableByDefaultCompiledMode compiledMode = componentWithDill == null
+          ? data.component?.mode
+          : componentWithDill.mode;
       return context.options.target.configureComponent(
           new Component(libraries: outputLibraries, uriToSource: uriToSource))
-        ..mainMethod = mainMethod
+        ..setMainMethodAndMode(mainMethod?.reference, true, compiledMode)
         ..problemsAsJson = problemsAsJson;
     });
   }
@@ -1491,7 +1495,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
         initializedFromDill = true;
         bytesLength += initializationBytes.length;
-        data.userLoadedUriMain = data.component.mainMethod;
         saveComponentProblems(data);
       }
     }
@@ -1522,8 +1525,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     data.component = new Component(
         libraries: componentToInitializeFrom.libraries,
         uriToSource: componentToInitializeFrom.uriToSource)
-      ..mainMethod = componentToInitializeFrom.mainMethod;
-    data.userLoadedUriMain = componentToInitializeFrom.mainMethod;
+      ..setMainMethodAndMode(componentToInitializeFrom.mainMethod?.reference,
+          true, componentToInitializeFrom.mode);
     saveComponentProblems(data);
 
     bool foundDartCore = false;
@@ -1888,7 +1891,6 @@ class InitializeFromComponentError {
 }
 
 class IncrementalCompilerData {
-  Procedure userLoadedUriMain = null;
   Component component = null;
   List<int> initializationBytes = null;
 }

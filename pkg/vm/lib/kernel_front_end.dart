@@ -752,12 +752,13 @@ Future<Null> forEachPackage<T>(KernelCompilationResults results,
 
   final mainMethod = component.mainMethod;
   final problemsAsJson = component.problemsAsJson;
-  component.mainMethod = null;
+  final compilationMode = component.mode;
+  component.setMainMethodAndMode(null, true, compilationMode);
   component.problemsAsJson = null;
   for (String package in packages.keys) {
     await action(package, packages[package]);
   }
-  component.mainMethod = mainMethod;
+  component.setMainMethodAndMode(mainMethod?.reference, true, compilationMode);
   component.problemsAsJson = problemsAsJson;
 
   if (!mainFirst) {

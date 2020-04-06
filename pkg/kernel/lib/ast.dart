@@ -8433,7 +8433,12 @@ class Component extends TreeNode {
       <String, MetadataRepository<dynamic>>{};
 
   /// Reference to the main method in one of the libraries.
-  Reference mainMethodName;
+  Reference _mainMethodName;
+  Reference get mainMethodName => _mainMethodName;
+  NonNullableByDefaultCompiledMode _mode;
+  NonNullableByDefaultCompiledMode get mode {
+    return _mode ?? NonNullableByDefaultCompiledMode.Disabled;
+  }
 
   Component(
       {CanonicalName nameRoot,
@@ -8517,8 +8522,12 @@ class Component extends TreeNode {
 
   Procedure get mainMethod => mainMethodName?.asProcedure;
 
-  void set mainMethod(Procedure main) {
-    mainMethodName = getMemberReference(main);
+  void setMainMethodAndMode(Reference main, bool overwriteMainIfSet,
+      NonNullableByDefaultCompiledMode mode) {
+    if (_mainMethodName == null || overwriteMainIfSet) {
+      _mainMethodName = main;
+    }
+    _mode = mode;
   }
 
   R accept<R>(TreeVisitor<R> v) => v.visitComponent(this);

@@ -60,6 +60,13 @@ const uint8_t kNativeYieldFlags = 0x2;
 
 enum LogicalOperator { kAnd, kOr };
 
+enum NonNullableByDefaultCompiledMode {
+  kNNBDDisabled,
+  kNNBDWeak,
+  kNNBDStrong,
+  kNNBDAgnostic
+};
+
 class Program {
  public:
   // Read a kernel Program from the given Reader. Note the returned Program
@@ -100,6 +107,7 @@ class Program {
   bool single_program_;
   uint32_t binary_version_;
   NameIndex main_method_reference_;  // Procedure.
+  NonNullableByDefaultCompiledMode compilation_mode_;
   intptr_t library_count_;
 
   // The offset from the start of the binary to the start of the source table.

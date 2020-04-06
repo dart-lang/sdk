@@ -1218,6 +1218,7 @@ class KernelReaderHelper {
   Nullability ReadNullability();
   Variance ReadVariance();
 
+  intptr_t SourceTableFieldCountFromFirstLibraryOffset();
   intptr_t SourceTableSize();
   intptr_t GetOffsetForSourceInfo(intptr_t index);
   String& SourceTableUriFor(intptr_t index);

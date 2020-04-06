@@ -730,7 +730,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     const int kernelFileAlignment = 8;
 
     // Keep this in sync with number of writeUInt32 below.
-    int numComponentIndexEntries = 7 + libraryOffsets.length + 3;
+    int numComponentIndexEntries = 8 + libraryOffsets.length + 3;
 
     int unalignedSize = getBufferOffset() + numComponentIndexEntries * 4;
     int padding =
@@ -760,6 +760,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     } else {
       writeUInt32(main.index + 1);
     }
+    writeUInt32(component.mode.index);
 
     assert(libraryOffsets.length == libraries.length);
     for (int offset in libraryOffsets) {

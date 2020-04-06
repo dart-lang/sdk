@@ -85,7 +85,7 @@ const char* kKernelInvalidSizeIndicated =
 
 std::unique_ptr<Program> Program::ReadFrom(Reader* reader, const char** error) {
   if (reader->size() < 60) {
-    // A kernel file currently contains at least the following:
+    // A kernel file (v41) currently contains at least the following:
     //   * Magic number (32)
     //   * Kernel version (32)
     //   * List of problems (8)
@@ -94,9 +94,9 @@ std::unique_ptr<Program> Program::ReadFrom(Reader* reader, const char** error) {
     //   * Metadata length (32)
     //   * Length of string table (8)
     //   * Length of constant table (8)
-    //   * Component index (10 * 32)
+    //   * Component index (11 * 32)
     //
-    // so is at least 60 bytes.
+    // so is at least 64 bytes.
     // (Technically it will also contain an empty entry in both source map and
     // string table, taking up another 8 bytes.)
     if (error != nullptr) {
@@ -150,10 +150,17 @@ std::unique_ptr<Program> Program::ReadFrom(Reader* reader, const char** error) {
   // Read backwards at the end.
   program->library_count_ = reader->ReadFromIndexNoReset(
       reader->size_, LibraryCountFieldCountFromEnd, 1, 0);
+  static_assert(kMinSupportedKernelFormatVersion < 41, "cleanup this code");
+  intptr_t count_from_first_library_offset =
+      SourceTableFieldCountFromFirstLibraryOffsetPre41;
+  if (formatVersion >= 41) {
+    count_from_first_library_offset =
+        SourceTableFieldCountFromFirstLibraryOffset41Plus;
+  }
   program->source_table_offset_ = reader->ReadFromIndexNoReset(
       reader->size_,
       LibraryCountFieldCountFromEnd + 1 + program->library_count_ + 1 +
-          SourceTableFieldCountFromFirstLibraryOffset,
+          count_from_first_library_offset,
       1, 0);
   program->name_table_offset_ = reader->ReadUInt32();
   program->metadata_payloads_offset_ = reader->ReadUInt32();
@@ -162,6 +169,13 @@ std::unique_ptr<Program> Program::ReadFrom(Reader* reader, const char** error) {
   program->constant_table_offset_ = reader->ReadUInt32();
 
   program->main_method_reference_ = NameIndex(reader->ReadUInt32() - 1);
+  if (formatVersion >= 41) {
+    NonNullableByDefaultCompiledMode compilation_mode =
+        static_cast<NonNullableByDefaultCompiledMode>(reader->ReadUInt32());
+    program->compilation_mode_ = compilation_mode;
+  } else {
+    program->compilation_mode_ = kNNBDDisabled;
+  }
 
   return program;
 }
