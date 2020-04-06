@@ -30,7 +30,7 @@ class A {
 
 class B {
   B() => B._();
-  //  ^^^^^^^^
+  //  ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.RETURN_IN_GENERATIVE_CONSTRUCTOR
   //     ^
   // [cfe] Constructors can't have a return type.
@@ -50,7 +50,7 @@ class C {
 class D {
   int value = -1;
   D(): value = 1 => D._();
-  //             ^^^^^^^^
+  //             ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.RETURN_IN_GENERATIVE_CONSTRUCTOR
   //                ^
   // [cfe] Constructors can't have a return type.
