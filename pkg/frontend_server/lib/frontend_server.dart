@@ -61,6 +61,8 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addFlag('protobuf-tree-shaker',
       help: 'Enable protobuf tree shaker transformation in AOT mode.',
       defaultsTo: false)
+  ..addFlag('minimal-kernel',
+      help: 'Produce minimal tree-shaken kernel file.', defaultsTo: false)
   ..addFlag('link-platform',
       help:
           'When in batch mode, link platform kernel file into result kernel file.'
@@ -517,7 +519,8 @@ class FrontendCompiler implements CompilerInterface {
           useGlobalTypeFlowAnalysis: options['tfa'],
           environmentDefines: environmentDefines,
           enableAsserts: options['enable-asserts'],
-          useProtobufTreeShaker: options['protobuf-tree-shaker']));
+          useProtobufTreeShaker: options['protobuf-tree-shaker'],
+          minimalKernel: options['minimal-kernel']));
     }
     if (results.component != null) {
       transformer?.transform(results.component);
@@ -527,7 +530,7 @@ class FrontendCompiler implements CompilerInterface {
             options['filesystem-scheme'], options['dartdevc-module-format']);
       }
       await writeDillFile(results, _kernelBinaryFilename,
-          filterExternal: importDill != null,
+          filterExternal: importDill != null || options['minimal-kernel'],
           incrementalSerializer: incrementalSerializer);
 
       _outputStream.writeln(boundaryKey);

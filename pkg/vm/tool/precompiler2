@@ -36,6 +36,9 @@ for arg in "$@"; do
     --no-tfa | \
     --gen-bytecode | \
     --no-gen-bytecode | \
+    --bytecode-options=* | \
+    --minimal-kernel | \
+    --no-embed-sources | \
     -D* )
     GEN_KERNEL_OPTIONS+=("$arg")
     ;;
