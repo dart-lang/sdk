@@ -230,7 +230,8 @@ ExportOptOutFromOptIn/analyzerCode: Fail
 ExportOptOutFromOptIn/part_wrapped_script: Fail
 ExpressionNotMetadata/analyzerCode: Fail
 ExpressionNotMetadata/example: Fail
-ExtendFunction/analyzerCode: Fail
+ExtendFunction/part_wrapped_script: Fail
+ExtendFunction/script: Fail # TODO(johnniwinther): This message is currently ignored.
 ExtendingEnum/example: Fail
 ExtendingRestricted/example: Fail
 ExtendsDynamic/analyzerCode: Fail # Feature not yet in analyzer.
@@ -348,7 +349,8 @@ IllegalRecursiveType/analyzerCode: Fail
 IllegalRecursiveType/part_wrapped_script: Fail
 IllegalRecursiveType/script: Fail
 IllegalSyncGeneratorVoidReturnType/analyzerCode: Fail # The analyzer doesn't report this error.
-ImplementFunction/analyzerCode: Fail
+ImplementFunction/part_wrapped_script: Fail
+ImplementFunction/script: Fail # TODO(johnniwinther): This message is currently ignored.
 ImplementsBeforeExtends/part_wrapped_script: Fail
 ImplementsBeforeExtends/script: Fail
 ImplementsBeforeOn/part_wrapped_script: Fail
@@ -459,7 +461,8 @@ MissingMain/example: Fail
 MissingPartOf/part_wrapped_script: Fail # Using 'part' in the (now) part.
 MissingPrefixInDeferredImport/example: Fail
 MixinDeclaresConstructor/example: Fail
-MixinFunction/analyzerCode: Fail
+MixinFunction/part_wrapped_script: Fail
+MixinFunction/script: Fail # TODO(johnniwinther): This message is currently ignored.
 MixinInferenceNoMatchingClass/example: Fail
 ModifierOutOfOrder/part_wrapped_script1: Fail
 ModifierOutOfOrder/script1: Fail
