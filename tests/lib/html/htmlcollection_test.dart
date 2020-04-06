@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:html';
 
 import 'package:expect/minitest.dart';
@@ -36,14 +34,14 @@ main() {
 </div>
 <div id='emptyDiv'></div>
 """;
-    document.body.append(element);
+    document.body!.append(element);
     return element;
   }
 
   test('IsList', () {
     Element root = insertTestDiv();
 
-    List<Element> eachChecked = document.querySelector('#allChecked').children;
+    List<Element> eachChecked = document.querySelector('#allChecked')!.children;
 
     expect(eachChecked is List, isTrue);
 
@@ -52,11 +50,13 @@ main() {
   test('Every', () {
     Element root = insertTestDiv();
 
-    List<Element> eachChecked = document.querySelector('#allChecked').children;
+    List<Element> eachChecked = document.querySelector('#allChecked')!.children;
 
-    List<Element> someChecked = document.querySelector('#someChecked').children;
+    List<Element> someChecked =
+        document.querySelector('#someChecked')!.children;
 
-    List<Element> noneChecked = document.querySelector('#noneChecked').children;
+    List<Element> noneChecked =
+        document.querySelector('#noneChecked')!.children;
 
     expect(eachChecked.length, 4);
     expect(someChecked.length, 4);
@@ -74,11 +74,13 @@ main() {
   test('Some', () {
     Element root = insertTestDiv();
 
-    List<Element> eachChecked = document.querySelector('#allChecked').children;
+    List<Element> eachChecked = document.querySelector('#allChecked')!.children;
 
-    List<Element> someChecked = document.querySelector('#someChecked').children;
+    List<Element> someChecked =
+        document.querySelector('#someChecked')!.children;
 
-    List<Element> noneChecked = document.querySelector('#noneChecked').children;
+    List<Element> noneChecked =
+        document.querySelector('#noneChecked')!.children;
 
     expect(eachChecked.length, 4);
     expect(someChecked.length, 4);
@@ -96,11 +98,13 @@ main() {
   test('Filter', () {
     Element root = insertTestDiv();
 
-    List<Element> eachChecked = document.querySelector('#allChecked').children;
+    List<Element> eachChecked = document.querySelector('#allChecked')!.children;
 
-    List<Element> someChecked = document.querySelector('#someChecked').children;
+    List<Element> someChecked =
+        document.querySelector('#someChecked')!.children;
 
-    List<Element> noneChecked = document.querySelector('#noneChecked').children;
+    List<Element> noneChecked =
+        document.querySelector('#noneChecked')!.children;
 
     expect(eachChecked.length, 4);
     expect(someChecked.length, 4);
@@ -118,9 +122,10 @@ main() {
   test('IsEmpty', () {
     Element root = insertTestDiv();
 
-    List<Element> someChecked = document.querySelector('#someChecked').children;
+    List<Element> someChecked =
+        document.querySelector('#someChecked')!.children;
 
-    List<Element> emptyDiv = document.querySelector('#emptyDiv').children;
+    List<Element> emptyDiv = document.querySelector('#emptyDiv')!.children;
 
     expect(someChecked.length, 4);
     expect(emptyDiv.length, 0);
@@ -142,11 +147,13 @@ main() {
   test('ForEach', () {
     Element root = insertTestDiv();
 
-    List<Element> eachChecked = document.querySelector('#allChecked').children;
+    List<Element> eachChecked = document.querySelector('#allChecked')!.children;
 
-    List<Element> someChecked = document.querySelector('#someChecked').children;
+    List<Element> someChecked =
+        document.querySelector('#someChecked')!.children;
 
-    List<Element> noneChecked = document.querySelector('#noneChecked').children;
+    List<Element> noneChecked =
+        document.querySelector('#noneChecked')!.children;
 
     expect(eachChecked.length, 4);
     expect(someChecked.length, 4);
@@ -174,11 +181,13 @@ main() {
     // Uses iterator.
     Element root = insertTestDiv();
 
-    List<Element> eachChecked = document.querySelector('#allChecked').children;
+    List<Element> eachChecked = document.querySelector('#allChecked')!.children;
 
-    List<Element> someChecked = document.querySelector('#someChecked').children;
+    List<Element> someChecked =
+        document.querySelector('#someChecked')!.children;
 
-    List<Element> noneChecked = document.querySelector('#noneChecked').children;
+    List<Element> noneChecked =
+        document.querySelector('#noneChecked')!.children;
 
     expect(eachChecked.length, 4);
     expect(someChecked.length, 4);
@@ -196,7 +205,8 @@ main() {
   test('Last', () {
     Element root = insertTestDiv();
 
-    List<Element> someChecked = document.querySelector('#someChecked').children;
+    List<Element> someChecked =
+        document.querySelector('#someChecked')!.children;
 
     expect(someChecked.length, 4);
 
@@ -207,9 +217,11 @@ main() {
   test('IndexOf', () {
     Element root = insertTestDiv();
 
-    List<Element> someChecked = document.querySelector('#someChecked').children;
+    List<Element> someChecked =
+        document.querySelector('#someChecked')!.children;
 
-    List<Element> noneChecked = document.querySelector('#noneChecked').children;
+    List<Element> noneChecked =
+        document.querySelector('#noneChecked')!.children;
 
     expect(someChecked.length, 4);
     expect(noneChecked.length, 4);
@@ -234,9 +246,11 @@ main() {
   test('LastIndexOf', () {
     Element root = insertTestDiv();
 
-    List<Element> someChecked = document.querySelector('#someChecked').children;
+    List<Element> someChecked =
+        document.querySelector('#someChecked')!.children;
 
-    List<Element> noneChecked = document.querySelector('#noneChecked').children;
+    List<Element> noneChecked =
+        document.querySelector('#noneChecked')!.children;
 
     expect(someChecked.length, 4);
     expect(noneChecked.length, 4);
