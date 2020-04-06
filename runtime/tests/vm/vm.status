@@ -178,6 +178,8 @@ dart/redirection_type_shuffling_test/00: Pass # Works in --checked mode but not 
 [ ($arch == simarm || $arch == simarm64) && ($compiler == dartk || $compiler == dartkb) ]
 dart/appjit*: SkipSlow # DFE too slow
 dart/data_uri_spawn_test: Skip # Please triage.
+dart/minimal_kernel_bytecode_test: SkipSlow # gen_kernel is too slow on simulated architectures
+dart/minimal_kernel_test: SkipSlow # gen_kernel is too slow on simulated architectures
 dart/snapshot_version_test: RuntimeError # Please triage.
 
 [ $hot_reload || $hot_reload_rollback ]
