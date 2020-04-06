@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 @JS()
 library js_typed_interop_lazy_test;
 
@@ -120,7 +118,7 @@ main() {
       expect(anon is LazyClass, isTrue); //# 01: ok
       expect(new Object() is! LazyClass, isTrue);
 
-      document.body.append(new ScriptElement()
+      document.body!.append(new ScriptElement()
         ..type = 'text/javascript'
         ..innerHtml = r"""
 window.baz = {};
@@ -152,11 +150,11 @@ baz.LazyClass = function LazyClass(a) {
       expect(<int>[] is! List<LazyClass>, isTrue);
       expect(<LazyClass>[] is List<LazyClass>, isTrue);
 
-      var listLazyClass = <LazyClass>[];
+      var listLazyClass = <LazyClass?>[];
       Object instanceLazyObject = l;
       expect(() => listLazyClass.add(42 as dynamic), throws); //# 01: ok
       // Regression test for bug where this call failed.
-      listLazyClass.add(instanceLazyObject);
+      listLazyClass.add(instanceLazyObject as LazyClass?);
       listLazyClass.add(null);
 
       dynamic listLazyClassDynamic = listLazyClass;
@@ -165,8 +163,8 @@ baz.LazyClass = function LazyClass(a) {
       listLazyClassDynamic.add(instanceLazyObject);
       listLazyClassDynamic.add(null);
 
-      var genericClass = new ExampleGenericClass<LazyClass>();
-      genericClass.add(instanceLazyObject);
+      var genericClass = new ExampleGenericClass<LazyClass?>();
+      genericClass.add(instanceLazyObject as LazyClass?);
       expect(() => genericClass.add(42 as dynamic), throws); //# 01: ok
       genericClass.add(null);
 
@@ -212,7 +210,7 @@ baz.LazyClass = function LazyClass(a) {
       expect(anon is NestedLazyClass, isTrue); //# 01: ok
       expect(new Object() is! NestedLazyClass, isTrue);
 
-      document.body.append(new ScriptElement()
+      document.body!.append(new ScriptElement()
         ..type = 'text/javascript'
         ..innerHtml = r"""
 window.baz = window.baz || {};
@@ -245,11 +243,11 @@ baz.foo.NestedLazyClass = function NestedLazyClass(a) {
       expect(<int>[] is! List<NestedLazyClass>, isTrue);
       expect(<NestedLazyClass>[] is List<NestedLazyClass>, isTrue);
 
-      var listLazyClass = <NestedLazyClass>[];
+      var listLazyClass = <NestedLazyClass?>[];
       Object instanceLazyObject = l;
       expect(() => listLazyClass.add(42 as dynamic), throws); //# 01: ok
       // Regression test for bug where this call failed.
-      listLazyClass.add(instanceLazyObject);
+      listLazyClass.add(instanceLazyObject as NestedLazyClass?);
       listLazyClass.add(null);
 
       dynamic listLazyClassDynamic = listLazyClass;
@@ -258,8 +256,8 @@ baz.foo.NestedLazyClass = function NestedLazyClass(a) {
       listLazyClassDynamic.add(instanceLazyObject);
       listLazyClassDynamic.add(null);
 
-      var genericClass = new ExampleGenericClass<NestedLazyClass>();
-      genericClass.add(instanceLazyObject);
+      var genericClass = new ExampleGenericClass<NestedLazyClass?>();
+      genericClass.add(instanceLazyObject as NestedLazyClass?);
       expect(() => genericClass.add(42 as dynamic), throws); //# 01: ok
       genericClass.add(null);
 

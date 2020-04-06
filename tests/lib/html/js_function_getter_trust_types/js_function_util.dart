@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 // SharedOptions=--trust-type-annotations
 @JS()
 library js_function_getter_trust_types_test;
@@ -13,7 +11,7 @@ import 'dart:html';
 import 'package:js/js.dart';
 
 injectJs() {
-  document.body.append(new ScriptElement()
+  document.body!.append(new ScriptElement()
     ..type = 'text/javascript'
     ..innerHtml = r"""
   var bar = { };

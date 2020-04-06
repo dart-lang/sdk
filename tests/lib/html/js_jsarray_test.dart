@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:html';
 import 'dart:indexed_db' show IdbFactory, KeyRange;
 import 'dart:typed_data' show Int32List;
@@ -71,7 +69,7 @@ main() {
   });
 
   test('length', () {
-    var array = new JsArray.from([1, 2, 3]);
+    var array = new JsArray<int?>.from([1, 2, 3]);
     expect(array.length, 3);
     array.add(4);
     expect(array.length, 4);
