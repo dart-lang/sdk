@@ -111,17 +111,20 @@ class ConcurrentSweeperTask : public ThreadPool::Task {
                         HeapPage* first,
                         HeapPage* last,
                         HeapPage* large_first,
-                        HeapPage* large_last)
+                        HeapPage* large_last,
+                        FreeList* freelist)
       : task_isolate_group_(isolate_group),
         old_space_(old_space),
         first_(first),
         last_(last),
         large_first_(large_first),
-        large_last_(large_last) {
+        large_last_(large_last),
+        freelist_(freelist) {
     ASSERT(task_isolate_group_ != NULL);
     ASSERT(first_ != NULL);
     ASSERT(old_space_ != NULL);
     ASSERT(last_ != NULL);
+    ASSERT(freelist_ != NULL);
     MonitorLocker ml(old_space_->tasks_lock());
     old_space_->set_tasks(old_space_->tasks() + 1);
     old_space_->set_phase(PageSpace::kSweepingLarge);
@@ -166,8 +169,6 @@ class ConcurrentSweeperTask : public ThreadPool::Task {
         ml.NotifyAll();
       }
 
-      intptr_t shard = 0;
-      const intptr_t num_shards = Utils::Maximum(FLAG_scavenger_tasks, 1);
       page = first_;
       prev_page = NULL;
       while (page != NULL) {
@@ -180,9 +181,7 @@ class ConcurrentSweeperTask : public ThreadPool::Task {
           next_page = page->next();
         }
         ASSERT(page->type() == HeapPage::kData);
-        shard = (shard + 1) % num_shards;
-        bool page_in_use =
-            sweeper.SweepPage(page, old_space_->DataFreeList(shard), false);
+        bool page_in_use = sweeper.SweepPage(page, freelist_, false);
         if (page_in_use) {
           prev_page = page;
         } else {
@@ -216,6 +215,7 @@ class ConcurrentSweeperTask : public ThreadPool::Task {
   HeapPage* last_;
   HeapPage* large_first_;
   HeapPage* large_last_;
+  FreeList* freelist_;
 };
 
 void GCSweeper::SweepConcurrent(IsolateGroup* isolate_group,
@@ -226,7 +226,7 @@ void GCSweeper::SweepConcurrent(IsolateGroup* isolate_group,
                                 FreeList* freelist) {
   bool result = Dart::thread_pool()->Run<ConcurrentSweeperTask>(
       isolate_group, isolate_group->heap()->old_space(), first, last,
-      large_first, large_last);
+      large_first, large_last, freelist);
   ASSERT(result);
 }
 

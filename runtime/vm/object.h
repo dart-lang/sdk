@@ -10853,16 +10853,12 @@ void Object::SetRaw(RawObject* value) {
   if (FLAG_verify_handles && raw_->IsHeapObject()) {
     Isolate* isolate = Isolate::Current();
     Heap* isolate_heap = isolate->heap();
-    // TODO(rmacnak): Remove after rewriting StackFrame::VisitObjectPointers
-    // to not use handles.
-    if (!isolate_heap->new_space()->scavenging()) {
-      Heap* vm_isolate_heap = Dart::vm_isolate()->heap();
-      uword addr = RawObject::ToAddr(raw_);
-      if (!isolate_heap->Contains(addr) && !vm_isolate_heap->Contains(addr)) {
-        ASSERT(FLAG_write_protect_code);
-        addr = RawObject::ToAddr(HeapPage::ToWritable(raw_));
-        ASSERT(isolate_heap->Contains(addr) || vm_isolate_heap->Contains(addr));
-      }
+    Heap* vm_isolate_heap = Dart::vm_isolate()->heap();
+    uword addr = RawObject::ToAddr(raw_);
+    if (!isolate_heap->Contains(addr) && !vm_isolate_heap->Contains(addr)) {
+      ASSERT(FLAG_write_protect_code);
+      addr = RawObject::ToAddr(HeapPage::ToWritable(raw_));
+      ASSERT(isolate_heap->Contains(addr) || vm_isolate_heap->Contains(addr));
     }
   }
 #endif

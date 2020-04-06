@@ -6058,16 +6058,13 @@ void Deserializer::Deserialize() {
 class HeapLocker : public StackResource {
  public:
   HeapLocker(Thread* thread, PageSpace* page_space)
-      : StackResource(thread),
-        page_space_(page_space),
-        freelist_(page_space->DataFreeList()) {
-    page_space_->AcquireLock(freelist_);
+      : StackResource(thread), page_space_(page_space) {
+    page_space_->AcquireDataLock();
   }
-  ~HeapLocker() { page_space_->ReleaseLock(freelist_); }
+  ~HeapLocker() { page_space_->ReleaseDataLock(); }
 
  private:
   PageSpace* page_space_;
-  FreeList* freelist_;
 };
 
 void Deserializer::AddVMIsolateBaseObjects() {

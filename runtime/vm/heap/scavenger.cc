@@ -18,7 +18,6 @@
 #include "vm/object_id_ring.h"
 #include "vm/object_set.h"
 #include "vm/stack_frame.h"
-#include "vm/thread_barrier.h"
 #include "vm/thread_registry.h"
 #include "vm/timeline.h"
 #include "vm/visitor.h"
@@ -56,19 +55,12 @@ static inline uword ForwardedAddr(uword header) {
   return header & ~kForwardingMask;
 }
 
-static inline uword ForwardingHeader(uword target) {
+static inline void ForwardTo(uword original, uword target) {
   // Make sure forwarding can be encoded.
   ASSERT((target & kForwardingMask) == 0);
-  return target | kForwarded;
+  *reinterpret_cast<uword*>(original) = target | kForwarded;
 }
 
-// Races: The first word in the copied region is a header word that may be
-// updated by the scavenger worker in another thread, so we might copy either
-// the original object header or an installed forwarding pointer. This race is
-// harmless because if copy the installed forwarding pointer, the scavenge
-// worker in the current thread will abandon this copy. We not mark the loads
-// here as relaxed so the C++ compiler still has the freedom to reorder them.
-NO_SANITIZE_THREAD
 static inline void objcpy(void* dst, const void* src, size_t size) {
   // A memcopy specialized for objects. We can assume:
   //  - dst and src do not overlap
@@ -94,28 +86,19 @@ static inline void objcpy(void* dst, const void* src, size_t size) {
   } while (size > 0);
 }
 
-template <bool parallel>
-class ScavengerVisitorBase : public ObjectPointerVisitor {
+class ScavengerVisitor : public ObjectPointerVisitor {
  public:
-  explicit ScavengerVisitorBase(IsolateGroup* isolate_group,
-                                Scavenger* scavenger,
-                                SemiSpace* from,
-                                FreeList* freelist,
-                                PromotionStack* promotion_stack)
+  explicit ScavengerVisitor(IsolateGroup* isolate_group,
+                            Scavenger* scavenger,
+                            SemiSpace* from)
       : ObjectPointerVisitor(isolate_group),
-        thread_(nullptr),
+        thread_(Thread::Current()),
         scavenger_(scavenger),
         from_(from),
+        heap_(scavenger->heap_),
         page_space_(scavenger->heap_->old_space()),
-        freelist_(freelist),
         bytes_promoted_(0),
-        visiting_old_object_(NULL),
-        promoted_list_(promotion_stack),
-        labs_(8) {
-    ASSERT(labs_.length() == 0);
-    labs_.Add({0, 0, 0});
-    ASSERT(labs_.length() == 1);
-  }
+        visiting_old_object_(NULL) {}
 
   virtual void VisitTypedDataViewPointers(RawTypedDataView* view,
                                           RawObject** first,
@@ -174,65 +157,6 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
 
   intptr_t bytes_promoted() const { return bytes_promoted_; }
 
-  void AddNewTLAB(uword top, uword end) {
-    producer_index_++;
-    ScavengerLAB lab;
-    lab.top = top;
-    lab.end = end;
-    lab.resolved_top = top;
-    labs_.Add(lab);
-  }
-
-  void ProcessRoots() {
-    thread_ = Thread::Current();
-    page_space_->AcquireLock(freelist_);
-    scavenger_->IterateRoots(this);
-  }
-
-  void ProcessSurvivors() {
-    // Iterate until all work has been drained.
-    do {
-      ProcessToSpace();
-      ProcessPromotedList();
-    } while (HasWork());
-  }
-
-  void ProcessAll() {
-    do {
-      ProcessSurvivors();
-      ProcessWeakProperties();
-    } while (HasWork());
-  }
-
-  inline void ProcessWeakProperties();
-
-  bool HasWork() {
-    return (labs_[producer_index_].top !=
-            labs_[producer_index_].resolved_top) ||
-           !promoted_list_.IsEmpty();
-  }
-
-  void Finalize() {
-    ASSERT(!HasWork());
-
-    for (intptr_t i = 0; i <= producer_index_; i++) {
-      ASSERT(labs_[i].top <= labs_[i].end);
-      ASSERT(labs_[i].resolved_top == labs_[i].top);
-    }
-
-    MakeProducerTLABIterable();
-
-    promoted_list_.Finalize();
-
-    MournWeakProperties();
-
-    page_space_->ReleaseLock(freelist_);
-    thread_ = nullptr;
-  }
-
-  uword last_top() { return labs_[producer_index_].top; }
-  uword last_end() { return labs_[producer_index_].end; }
-
  private:
   void UpdateStoreBuffer(RawObject** p, RawObject* obj) {
     ASSERT(obj->IsHeapObject());
@@ -258,40 +182,39 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
     ASSERT(from_->Contains(raw_addr));
     // Read the header word of the object and determine if the object has
     // already been copied.
-    uword header = reinterpret_cast<std::atomic<uword>*>(raw_addr)->load(
-        std::memory_order_relaxed);
+    uword header = *reinterpret_cast<uword*>(raw_addr);
     uword new_addr = 0;
     if (IsForwarding(header)) {
       // Get the new location of the object.
       new_addr = ForwardedAddr(header);
     } else {
-      intptr_t size = raw_obj->HeapSize(header);
+      intptr_t size = raw_obj->HeapSize();
       // Check whether object should be promoted.
-      if (raw_addr >= scavenger_->survivor_end_) {
+      if (scavenger_->survivor_end_ <= raw_addr) {
         // Not a survivor of a previous scavenge. Just copy the object into the
         // to space.
-        new_addr = TryAllocateCopy(size);
-      }
-      if (new_addr == 0) {
+        new_addr = scavenger_->AllocateGC(size);
+      } else {
+        // TODO(iposva): Experiment with less aggressive promotion. For example
+        // a coin toss determines if an object is promoted or whether it should
+        // survive in this generation.
+        //
         // This object is a survivor of a previous scavenge. Attempt to promote
-        // the object. (Or, unlikely, to-space was exhausted by fragmentation.)
-        new_addr = page_space_->TryAllocatePromoLocked(freelist_, size);
-        if (LIKELY(new_addr != 0)) {
+        // the object.
+        new_addr = page_space_->TryAllocatePromoLocked(size);
+        if (new_addr != 0) {
           // If promotion succeeded then we need to remember it so that it can
           // be traversed later.
-          promoted_list_.Push(RawObject::FromAddr(new_addr));
+          scavenger_->PushToPromotedStack(new_addr);
           bytes_promoted_ += size;
         } else {
           // Promotion did not succeed. Copy into the to space instead.
           scavenger_->failed_to_promote_ = true;
-          new_addr = TryAllocateCopy(size);
-          // To-space was exhausted by fragmentation and old-space could not
-          // grow.
-          if (UNLIKELY(new_addr == 0)) {
-            FATAL("Failed to allocate during scavenge");
-          }
+          new_addr = scavenger_->AllocateGC(size);
         }
       }
+      // During a scavenge we always succeed to at least copy all of the
+      // current objects to the to space.
       ASSERT(new_addr != 0);
       // Copy the object to the new location.
       objcpy(reinterpret_cast<void*>(new_addr),
@@ -300,7 +223,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
       RawObject* new_obj = RawObject::FromAddr(new_addr);
       if (new_obj->IsOldObject()) {
         // Promoted: update age/barrier tags.
-        uint32_t tags = static_cast<uint32_t>(header);
+        uint32_t tags = new_obj->ptr()->tags_;
         tags = RawObject::OldBit::update(true, tags);
         tags = RawObject::OldAndNotRememberedBit::update(true, tags);
         tags = RawObject::NewBit::update(false, tags);
@@ -312,39 +235,18 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
         tags =
             RawObject::OldAndNotMarkedBit::update(!thread_->is_marking(), tags);
         new_obj->ptr()->tags_ = tags;
-      } else {
-        ASSERT(scavenger_->to_->Contains(new_addr));
       }
 
-      intptr_t cid = RawObject::ClassIdTag::decode(header);
-      if (RawObject::IsTypedDataClassId(cid)) {
+      if (RawObject::IsTypedDataClassId(new_obj->GetClassId())) {
         reinterpret_cast<RawTypedData*>(new_obj)->RecomputeDataField();
       }
 
-      // Try to install forwarding address.
-      uword forwarding_header = ForwardingHeader(new_addr);
-      if (!InstallForwardingPointer(raw_addr, &header, forwarding_header)) {
-        ASSERT(IsForwarding(header));
-        if (new_obj->IsOldObject()) {
-          // Abandon as a free list element.
-          FreeListElement::AsElement(new_addr, size);
-          bytes_promoted_ -= size;
-        } else {
-          // Undo to-space allocation.
-          ASSERT(labs_[producer_index_].top == (new_addr + size));
-          labs_[producer_index_].top = new_addr;
-        }
-        // Use the winner's forwarding target.
-        new_addr = ForwardedAddr(header);
-        if (RawObject::FromAddr(new_addr)->IsNewObject()) {
-          ASSERT(scavenger_->to_->Contains(new_addr));
-        }
-      }
+      // Remember forwarding address.
+      ForwardTo(raw_addr, new_addr);
     }
-
     // Update the reference.
     RawObject* new_obj = RawObject::FromAddr(new_addr);
-    if (!new_obj->IsNewObject()) {
+    if (new_obj->IsOldObject()) {
       // Setting the mark bit above must not be ordered after a publishing store
       // of this object. Note this could be a publishing store even if the
       // object was promoted by an early invocation of ScavengePointer. Compare
@@ -352,7 +254,6 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
       reinterpret_cast<std::atomic<RawObject*>*>(p)->store(
           new_obj, std::memory_order_release);
     } else {
-      ASSERT(scavenger_->to_->Contains(RawObject::ToAddr(new_obj)));
       *p = new_obj;
     }
     // Update the store buffer as needed.
@@ -361,81 +262,19 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
     }
   }
 
-  DART_FORCE_INLINE
-  bool InstallForwardingPointer(uword addr,
-                                uword* old_header,
-                                uword new_header) {
-    if (parallel) {
-      return reinterpret_cast<std::atomic<uword>*>(addr)
-          ->compare_exchange_strong(*old_header, new_header,
-                                    std::memory_order_relaxed);
-    } else {
-      *reinterpret_cast<uword*>(addr) = new_header;
-      return true;
-    }
-  }
-
-  DART_FORCE_INLINE
-  uword TryAllocateCopy(intptr_t size) {
-    ASSERT(Utils::IsAligned(size, kObjectAlignment));
-    ScavengerLAB& lab = labs_[producer_index_];
-    uword result = lab.top;
-    uword new_top = result + size;
-    if (LIKELY(new_top <= lab.end)) {
-      ASSERT(scavenger_->to_->Contains(result));
-      ASSERT((result & kObjectAlignmentMask) == kNewObjectAlignmentOffset);
-      lab.top = new_top;
-      ASSERT((scavenger_->to_->Contains(new_top)) ||
-             (new_top == scavenger_->to_->end()));
-      return result;
-    }
-    return TryAllocateCopySlow(size);
-  }
-
-  DART_NOINLINE inline uword TryAllocateCopySlow(intptr_t size);
-
-  void MakeProducerTLABIterable() {
-    uword top = labs_[producer_index_].top;
-    uword end = labs_[producer_index_].end;
-    intptr_t size = end - top;
-    if (size != 0) {
-      ASSERT(Utils::IsAligned(size, kObjectAlignment));
-      ForwardingCorpse::AsForwarder(top, size);
-      ASSERT(RawObject::FromAddr(top)->HeapSize() == size);
-    }
-  }
-
-  inline void ProcessToSpace();
-  DART_FORCE_INLINE intptr_t ProcessCopied(RawObject* raw_obj);
-  inline void ProcessPromotedList();
-  inline void EnqueueWeakProperty(RawWeakProperty* raw_weak);
-  inline void MournWeakProperties();
-
   Thread* thread_;
   Scavenger* scavenger_;
   SemiSpace* from_;
+  Heap* heap_;
   PageSpace* page_space_;
-  FreeList* freelist_;
+  RawWeakProperty* delayed_weak_properties_;
   intptr_t bytes_promoted_;
   RawObject* visiting_old_object_;
 
-  PromotionWorkList promoted_list_;
-  RawWeakProperty* delayed_weak_properties_ = nullptr;
+  friend class Scavenger;
 
-  struct ScavengerLAB {
-    uword top;
-    uword end;
-    uword resolved_top;
-  };
-  MallocGrowableArray<ScavengerLAB> labs_;
-  intptr_t consumer_index_ = 1;
-  intptr_t producer_index_ = 0;
-
-  DISALLOW_COPY_AND_ASSIGN(ScavengerVisitorBase);
+  DISALLOW_COPY_AND_ASSIGN(ScavengerVisitor);
 };
-
-typedef ScavengerVisitorBase<false> SerialScavengerVisitor;
-typedef ScavengerVisitorBase<true> ParallelScavengerVisitor;
 
 class ScavengerWeakVisitor : public HandleVisitor {
  public:
@@ -462,103 +301,6 @@ class ScavengerWeakVisitor : public HandleVisitor {
   SharedClassTable* class_table_;
 
   DISALLOW_COPY_AND_ASSIGN(ScavengerWeakVisitor);
-};
-
-class ParallelScavengerTask : public ThreadPool::Task {
- public:
-  ParallelScavengerTask(IsolateGroup* isolate_group,
-                        ThreadBarrier* barrier,
-                        ParallelScavengerVisitor* visitor,
-                        RelaxedAtomic<uintptr_t>* num_busy)
-      : isolate_group_(isolate_group),
-        barrier_(barrier),
-        visitor_(visitor),
-        num_busy_(num_busy) {}
-
-  virtual void Run() {
-    bool result = Thread::EnterIsolateGroupAsHelper(
-        isolate_group_, Thread::kScavengerTask, /*bypass_safepoint=*/true);
-    ASSERT(result);
-
-    RunEnteredIsolateGroup();
-
-    Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/true);
-
-    // This task is done. Notify the original thread.
-    barrier_->Exit();
-  }
-
-  void RunEnteredIsolateGroup() {
-    TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "ParallelScavenge");
-
-    visitor_->ProcessRoots();
-
-    // Phase 1: Copying.
-    bool more_to_scavenge = false;
-    do {
-      do {
-        visitor_->ProcessSurvivors();
-
-        // I can't find more work right now. If no other task is busy,
-        // then there will never be more work (NB: 1 is *before* decrement).
-        if (num_busy_->fetch_sub(1u) == 1) break;
-
-        // Wait for some work to appear.
-        // TODO(iposva): Replace busy-waiting with a solution using Monitor,
-        // and redraw the boundaries between stack/visitor/task as needed.
-        while (!visitor_->HasWork() && num_busy_->load() > 0) {
-        }
-
-        // If no tasks are busy, there will never be more work.
-        if (num_busy_->load() == 0) break;
-
-        // I saw some work; get busy and compete for it.
-        num_busy_->fetch_add(1u);
-      } while (true);
-      // Wait for all scavengers to stop.
-      barrier_->Sync();
-#if defined(DEBUG)
-      ASSERT(num_busy_->load() == 0);
-      // Caveat: must not allow any marker to continue past the barrier
-      // before we checked num_busy, otherwise one of them might rush
-      // ahead and increment it.
-      barrier_->Sync();
-#endif
-      // Check if we have any pending properties with marked keys.
-      // Those might have been marked by another marker.
-      visitor_->ProcessWeakProperties();
-      more_to_scavenge = visitor_->HasWork();
-      if (more_to_scavenge) {
-        // We have more work to do. Notify others.
-        num_busy_->fetch_add(1u);
-      }
-
-      // Wait for all other scavengers to finish processing their pending
-      // weak properties and decide if they need to continue marking.
-      // Caveat: we need two barriers here to make this decision in lock step
-      // between all scavengers and the main thread.
-      barrier_->Sync();
-      if (!more_to_scavenge && (num_busy_->load() > 0)) {
-        // All scavengers continue to mark as long as any single marker has
-        // some work to do.
-        num_busy_->fetch_add(1u);
-        more_to_scavenge = true;
-      }
-      barrier_->Sync();
-    } while (more_to_scavenge);
-
-    // Phase 2: Weak processing, statistics.
-    visitor_->Finalize();
-    barrier_->Sync();
-  }
-
- private:
-  IsolateGroup* isolate_group_;
-  ThreadBarrier* barrier_;
-  ParallelScavengerVisitor* visitor_;
-  RelaxedAtomic<uintptr_t>* num_busy_;
-
-  DISALLOW_COPY_AND_ASSIGN(ParallelScavengerTask);
 };
 
 SemiSpace::SemiSpace(VirtualMemory* reserved)
@@ -642,9 +384,6 @@ void SemiSpace::Delete() {
     old_cache = cache_;
     cache_ = this;
   }
-  // TODO(rmacnak): This can take an order of magnitude longer the rest of
-  // a scavenge. Consider moving it to another thread, perhaps the idle
-  // notifier.
   delete old_cache;
 }
 
@@ -665,6 +404,7 @@ Scavenger::Scavenger(Heap* heap, intptr_t max_semi_capacity_in_words)
     : heap_(heap),
       max_semi_capacity_in_words_(max_semi_capacity_in_words),
       scavenging_(false),
+      delayed_weak_properties_(NULL),
       gc_time_micros_(0),
       collections_(0),
       scavenge_words_per_micro_(kConservativeInitialScavengeSpeed),
@@ -803,10 +543,8 @@ void Scavenger::VerifyStoreBuffers() {
   }
 }
 
-SemiSpace* Scavenger::Prologue() {
-  TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "Prologue");
-
-  heap_->isolate_group()->ReleaseStoreBuffers();
+SemiSpace* Scavenger::Prologue(IsolateGroup* isolate_group) {
+  isolate_group->ReleaseStoreBuffers();
 
   if (FLAG_verify_store_buffer) {
     OS::PrintErr("Verifying remembered set before Scavenge...");
@@ -814,10 +552,6 @@ SemiSpace* Scavenger::Prologue() {
     VerifyStoreBuffers();
     OS::PrintErr(" done.\n");
   }
-
-  // Need to stash the old remembered set before any worker begins adding to the
-  // new remembered set.
-  blocks_ = heap_->isolate_group()->store_buffer()->TakeBlocks();
 
   // Flip the two semi-spaces so that to_ is always the space for allocating
   // objects.
@@ -838,15 +572,13 @@ SemiSpace* Scavenger::Prologue() {
   return from;
 }
 
-void Scavenger::Epilogue(SemiSpace* from) {
-  TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "Epilogue");
-
+void Scavenger::Epilogue(IsolateGroup* isolate_group, SemiSpace* from) {
   // All objects in the to space have been copied from the from space at this
   // moment.
 
   // Ensure the mutator thread will fail the next allocation. This will force
   // mutator to allocate a new TLAB
-  heap_->isolate_group()->ForEachIsolate(
+  isolate_group->ForEachIsolate(
       [&](Isolate* isolate) {
         Thread* mutator_thread = isolate->mutator_thread();
         ASSERT((mutator_thread == NULL) || (!mutator_thread->HasActiveTLAB()));
@@ -914,7 +646,7 @@ void Scavenger::Epilogue(SemiSpace* from) {
     // a program to hit a store buffer overflow a bit sooner than it might
     // otherwise, since overflow is measured in blocks. Store buffer overflows
     // are very rare.
-    heap_->isolate_group()->ReleaseStoreBuffers();
+    isolate_group->ReleaseStoreBuffers();
 
     OS::PrintErr("Verifying remembered set after Scavenge...");
     heap_->WaitForSweeperTasksAtSafepoint(Thread::Current());
@@ -945,21 +677,11 @@ bool Scavenger::ShouldPerformIdleScavenge(int64_t deadline) {
   return estimated_scavenge_completion <= deadline;
 }
 
-void Scavenger::IterateIsolateRoots(ObjectPointerVisitor* visitor) {
-  TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "IterateIsolateRoots");
-  heap_->isolate_group()->VisitObjectPointers(
-      visitor, ValidationPolicy::kDontValidateFrames);
-}
-
-template <bool parallel>
-void Scavenger::IterateStoreBuffers(ScavengerVisitorBase<parallel>* visitor) {
-  TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "IterateStoreBuffers");
-
+void Scavenger::IterateStoreBuffers(IsolateGroup* isolate_group,
+                                    ScavengerVisitor* visitor) {
   // Iterating through the store buffers.
   // Grab the deduplication sets out of the isolate's consolidated store buffer.
-  StoreBuffer* store_buffer = heap_->isolate_group()->store_buffer();
-  StoreBufferBlock* pending = blocks_;
-  blocks_ = nullptr;
+  StoreBufferBlock* pending = isolate_group->store_buffer()->Blocks();
   intptr_t total_count = 0;
   while (pending != NULL) {
     StoreBufferBlock* next = pending->next();
@@ -973,35 +695,29 @@ void Scavenger::IterateStoreBuffers(ScavengerVisitorBase<parallel>* visitor) {
       ASSERT(raw_object->IsRemembered());
       raw_object->ClearRememberedBit();
       visitor->VisitingOldObject(raw_object);
-      // Note that this treats old-space WeakProperties as strong. A dead key
-      // won't be reclaimed until after the key is promoted.
       raw_object->VisitPointersNonvirtual(visitor);
     }
     pending->Reset();
     // Return the emptied block for recycling (no need to check threshold).
-    store_buffer->PushBlock(pending, StoreBuffer::kIgnoreThreshold);
+    isolate_group->store_buffer()->PushBlock(pending,
+                                             StoreBuffer::kIgnoreThreshold);
     pending = next;
   }
-  // Done iterating through old objects remembered in the store buffers.
+
   visitor->VisitingOldObject(NULL);
+  heap_->old_space()->VisitRememberedCards(visitor);
 
   heap_->RecordData(kStoreBufferEntries, total_count);
   heap_->RecordData(kDataUnused1, 0);
   heap_->RecordData(kDataUnused2, 0);
-}
-
-template <bool parallel>
-void Scavenger::IterateRememberedCards(
-    ScavengerVisitorBase<parallel>* visitor) {
-  TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "IterateRememberedCards");
-  heap_->old_space()->VisitRememberedCards(visitor);
+  // Done iterating through old objects remembered in the store buffers.
   visitor->VisitingOldObject(NULL);
 }
 
-void Scavenger::IterateObjectIdTable(ObjectPointerVisitor* visitor) {
+void Scavenger::IterateObjectIdTable(IsolateGroup* isolate_group,
+                                     ScavengerVisitor* visitor) {
 #ifndef PRODUCT
-  TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "IterateObjectIdTable");
-  heap_->isolate_group()->ForEachIsolate(
+  isolate_group->ForEachIsolate(
       [&](Isolate* isolate) {
         isolate->object_id_ring()->VisitPointers(visitor);
       },
@@ -1009,39 +725,28 @@ void Scavenger::IterateObjectIdTable(ObjectPointerVisitor* visitor) {
 #endif  // !PRODUCT
 }
 
-enum RootSlices {
-  kIsolate = 0,
-  kObjectIdRing,
-  kCards,
-  kStoreBuffer,
-  kNumRootSlices,
-};
-
-template <bool parallel>
-void Scavenger::IterateRoots(ScavengerVisitorBase<parallel>* visitor) {
-  for (;;) {
-    intptr_t slice = root_slices_started_.fetch_add(1);
-    if (slice >= kNumRootSlices) {
-      return;  // No more slices.
-    }
-
-    switch (slice) {
-      case kIsolate:
-        IterateIsolateRoots(visitor);
-        break;
-      case kObjectIdRing:
-        IterateObjectIdTable(visitor);
-        break;
-      case kCards:
-        IterateRememberedCards(visitor);
-        break;
-      case kStoreBuffer:
-        IterateStoreBuffers(visitor);
-        break;
-      default:
-        UNREACHABLE();
-    }
+void Scavenger::IterateRoots(IsolateGroup* isolate_group,
+                             ScavengerVisitor* visitor) {
+#ifdef SUPPORT_TIMELINE
+  Thread* thread = Thread::Current();
+#endif
+  int64_t start = OS::GetCurrentMonotonicMicros();
+  {
+    TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessRoots");
+    isolate_group->VisitObjectPointers(visitor,
+                                       ValidationPolicy::kDontValidateFrames);
   }
+  int64_t middle = OS::GetCurrentMonotonicMicros();
+  {
+    TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessRememberedSet");
+    IterateStoreBuffers(isolate_group, visitor);
+  }
+  IterateObjectIdTable(isolate_group, visitor);
+  int64_t end = OS::GetCurrentMonotonicMicros();
+  heap_->RecordData(kToKBAfterStoreBuffer, RoundWordsToKB(UsedInWords()));
+  heap_->RecordTime(kVisitIsolateRoots, middle - start);
+  heap_->RecordTime(kIterateStoreBuffers, end - middle);
+  heap_->RecordTime(kDummyScavengeTime, 0);
 }
 
 bool Scavenger::IsUnreachable(RawObject** p) {
@@ -1065,85 +770,81 @@ bool Scavenger::IsUnreachable(RawObject** p) {
   return true;
 }
 
-void Scavenger::MournWeakHandles() {
+void Scavenger::IterateWeakRoots(IsolateGroup* isolate_group,
+                                 HandleVisitor* visitor) {
+  isolate_group->VisitWeakPersistentHandles(visitor);
+}
+
+void Scavenger::ProcessToSpace(ScavengerVisitor* visitor) {
   Thread* thread = Thread::Current();
-  TIMELINE_FUNCTION_GC_DURATION(thread, "MournWeakHandles");
-  ScavengerWeakVisitor weak_visitor(thread, this);
-  heap_->isolate_group()->VisitWeakPersistentHandles(&weak_visitor);
-}
 
-template <bool parallel>
-void ScavengerVisitorBase<parallel>::ProcessToSpace() {
-  intptr_t i = consumer_index_;
-  while (i <= producer_index_) {
-    uword resolved_top = labs_[i].resolved_top;
-    while (resolved_top < labs_[i].top) {
-      RawObject* raw_obj = RawObject::FromAddr(resolved_top);
-      resolved_top += ProcessCopied(raw_obj);
+  // Iterate until all work has been drained.
+  while ((resolved_top_ < top_) || PromotedStackHasMore()) {
+    while (resolved_top_ < top_) {
+      RawObject* raw_obj = RawObject::FromAddr(resolved_top_);
+      intptr_t class_id = raw_obj->GetClassId();
+      intptr_t size;
+      if (class_id != kWeakPropertyCid) {
+        size = raw_obj->VisitPointersNonvirtual(visitor);
+      } else {
+        RawWeakProperty* raw_weak = reinterpret_cast<RawWeakProperty*>(raw_obj);
+        size = ProcessWeakProperty(raw_weak, visitor);
+      }
+      resolved_top_ += size;
     }
-    labs_[i].resolved_top = resolved_top;
-
-    if (i == producer_index_) {
-      return;  // More objects may yet be copied to this TLAB.
+    {
+      // Visit all the promoted objects and update/scavenge their internal
+      // pointers. Potentially this adds more objects to the to space.
+      while (PromotedStackHasMore()) {
+        RawObject* raw_object = RawObject::FromAddr(PopFromPromotedStack());
+        // Resolve or copy all objects referred to by the current object. This
+        // can potentially push more objects on this stack as well as add more
+        // objects to be resolved in the to space.
+        ASSERT(!raw_object->IsRemembered());
+        visitor->VisitingOldObject(raw_object);
+        raw_object->VisitPointersNonvirtual(visitor);
+        if (raw_object->IsMarked()) {
+          // Complete our promise from ScavengePointer. Note that marker cannot
+          // visit this object until it pops a block from the mark stack, which
+          // involves a memory fence from the mutex, so even on architectures
+          // with a relaxed memory model, the marker will see the fully
+          // forwarded contents of this object.
+          thread->MarkingStackAddObject(raw_object);
+        }
+      }
+      visitor->VisitingOldObject(NULL);
     }
-
-    i++;
-    consumer_index_ = i;
-    ASSERT(consumer_index_ < labs_.length());
-  }
-}
-
-template <bool parallel>
-void ScavengerVisitorBase<parallel>::ProcessPromotedList() {
-  while (RawObject* raw_object = promoted_list_.Pop()) {
-    // Resolve or copy all objects referred to by the current object. This
-    // can potentially push more objects on this stack as well as add more
-    // objects to be resolved in the to space.
-    ASSERT(!raw_object->IsRemembered());
-    VisitingOldObject(raw_object);
-    raw_object->VisitPointersNonvirtual(this);
-    if (raw_object->IsMarked()) {
-      // Complete our promise from ScavengePointer. Note that marker cannot
-      // visit this object until it pops a block from the mark stack, which
-      // involves a memory fence from the mutex, so even on architectures
-      // with a relaxed memory model, the marker will see the fully
-      // forwarded contents of this object.
-      thread_->MarkingStackAddObject(raw_object);
+    {
+      // Finished this round of scavenging. Process the pending weak properties
+      // for which the keys have become reachable. Potentially this adds more
+      // objects to the to space.
+      RawWeakProperty* cur_weak = delayed_weak_properties_;
+      delayed_weak_properties_ = NULL;
+      while (cur_weak != NULL) {
+        uword next_weak = cur_weak->ptr()->next_;
+        // Promoted weak properties are not enqueued. So we can guarantee that
+        // we do not need to think about store barriers here.
+        ASSERT(cur_weak->IsNewObject());
+        RawObject* raw_key = cur_weak->ptr()->key_;
+        ASSERT(raw_key->IsHeapObject());
+        // Key still points into from space even if the object has been
+        // promoted to old space by now. The key will be updated accordingly
+        // below when VisitPointers is run.
+        ASSERT(raw_key->IsNewObject());
+        uword raw_addr = RawObject::ToAddr(raw_key);
+        ASSERT(visitor->from_->Contains(raw_addr));
+        uword header = *reinterpret_cast<uword*>(raw_addr);
+        // Reset the next pointer in the weak property.
+        cur_weak->ptr()->next_ = 0;
+        if (IsForwarding(header)) {
+          cur_weak->VisitPointersNonvirtual(visitor);
+        } else {
+          EnqueueWeakProperty(cur_weak);
+        }
+        // Advance to next weak property in the queue.
+        cur_weak = reinterpret_cast<RawWeakProperty*>(next_weak);
+      }
     }
-  }
-  VisitingOldObject(NULL);
-}
-
-template <bool parallel>
-void ScavengerVisitorBase<parallel>::ProcessWeakProperties() {
-  // Finished this round of scavenging. Process the pending weak properties
-  // for which the keys have become reachable. Potentially this adds more
-  // objects to the to space.
-  RawWeakProperty* cur_weak = delayed_weak_properties_;
-  delayed_weak_properties_ = NULL;
-  while (cur_weak != NULL) {
-    uword next_weak = cur_weak->ptr()->next_;
-    // Promoted weak properties are not enqueued. So we can guarantee that
-    // we do not need to think about store barriers here.
-    ASSERT(cur_weak->IsNewObject());
-    RawObject* raw_key = cur_weak->ptr()->key_;
-    ASSERT(raw_key->IsHeapObject());
-    // Key still points into from space even if the object has been
-    // promoted to old space by now. The key will be updated accordingly
-    // below when VisitPointers is run.
-    ASSERT(raw_key->IsNewObject());
-    uword raw_addr = RawObject::ToAddr(raw_key);
-    ASSERT(from_->Contains(raw_addr));
-    uword header = *reinterpret_cast<uword*>(raw_addr);
-    // Reset the next pointer in the weak property.
-    cur_weak->ptr()->next_ = 0;
-    if (IsForwarding(header)) {
-      cur_weak->VisitPointersNonvirtual(this);
-    } else {
-      EnqueueWeakProperty(cur_weak);
-    }
-    // Advance to next weak property in the queue.
-    cur_weak = reinterpret_cast<RawWeakProperty*>(next_weak);
   }
 }
 
@@ -1176,9 +877,7 @@ void Scavenger::UpdateMaxHeapUsage() {
 #endif  // !defined(PRODUCT)
 }
 
-template <bool parallel>
-void ScavengerVisitorBase<parallel>::EnqueueWeakProperty(
-    RawWeakProperty* raw_weak) {
+void Scavenger::EnqueueWeakProperty(RawWeakProperty* raw_weak) {
   ASSERT(raw_weak->IsHeapObject());
   ASSERT(raw_weak->IsNewObject());
   ASSERT(raw_weak->IsWeakProperty());
@@ -1192,30 +891,24 @@ void ScavengerVisitorBase<parallel>::EnqueueWeakProperty(
   delayed_weak_properties_ = raw_weak;
 }
 
-template <bool parallel>
-intptr_t ScavengerVisitorBase<parallel>::ProcessCopied(RawObject* raw_obj) {
-  intptr_t class_id = raw_obj->GetClassId();
-  if (UNLIKELY(class_id == kWeakPropertyCid)) {
-    RawWeakProperty* raw_weak = reinterpret_cast<RawWeakProperty*>(raw_obj);
-    // The fate of the weak property is determined by its key.
-    RawObject* raw_key = raw_weak->ptr()->key_;
-    if (raw_key->IsHeapObject() && raw_key->IsNewObject()) {
-      uword raw_addr = RawObject::ToAddr(raw_key);
-      uword header = *reinterpret_cast<uword*>(raw_addr);
-      if (!IsForwarding(header)) {
-        // Key is white.  Enqueue the weak property.
-        EnqueueWeakProperty(raw_weak);
-        return raw_weak->HeapSize();
-      }
+uword Scavenger::ProcessWeakProperty(RawWeakProperty* raw_weak,
+                                     ScavengerVisitor* visitor) {
+  // The fate of the weak property is determined by its key.
+  RawObject* raw_key = raw_weak->ptr()->key_;
+  if (raw_key->IsHeapObject() && raw_key->IsNewObject()) {
+    uword raw_addr = RawObject::ToAddr(raw_key);
+    uword header = *reinterpret_cast<uword*>(raw_addr);
+    if (!IsForwarding(header)) {
+      // Key is white.  Enqueue the weak property.
+      EnqueueWeakProperty(raw_weak);
+      return raw_weak->HeapSize();
     }
-    // Key is gray or black.  Make the weak property black.
   }
-  return raw_obj->VisitPointersNonvirtual(this);
+  // Key is gray or black.  Make the weak property black.
+  return raw_weak->VisitPointersNonvirtual(visitor);
 }
 
-void Scavenger::MournWeakTables() {
-  TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "MournWeakTables");
-
+void Scavenger::ProcessWeakReferences() {
   auto rehash_weak_table = [](WeakTable* table, WeakTable* replacement_new,
                               WeakTable* replacement_old) {
     intptr_t size = table->size();
@@ -1265,32 +958,31 @@ void Scavenger::MournWeakTables() {
         }
       },
       /*at_safepoint=*/true);
-}
 
-template <bool parallel>
-void ScavengerVisitorBase<parallel>::MournWeakProperties() {
   // The queued weak properties at this point do not refer to reachable keys,
   // so we clear their key and value fields.
-  RawWeakProperty* cur_weak = delayed_weak_properties_;
-  delayed_weak_properties_ = NULL;
-  while (cur_weak != NULL) {
-    uword next_weak = cur_weak->ptr()->next_;
-    // Reset the next pointer in the weak property.
-    cur_weak->ptr()->next_ = 0;
+  {
+    RawWeakProperty* cur_weak = delayed_weak_properties_;
+    delayed_weak_properties_ = NULL;
+    while (cur_weak != NULL) {
+      uword next_weak = cur_weak->ptr()->next_;
+      // Reset the next pointer in the weak property.
+      cur_weak->ptr()->next_ = 0;
 
 #if defined(DEBUG)
-    RawObject* raw_key = cur_weak->ptr()->key_;
-    uword raw_addr = RawObject::ToAddr(raw_key);
-    uword header = *reinterpret_cast<uword*>(raw_addr);
-    ASSERT(!IsForwarding(header));
-    ASSERT(raw_key->IsHeapObject());
-    ASSERT(raw_key->IsNewObject());  // Key still points into from space.
-#endif                               // defined(DEBUG)
+      RawObject* raw_key = cur_weak->ptr()->key_;
+      uword raw_addr = RawObject::ToAddr(raw_key);
+      uword header = *reinterpret_cast<uword*>(raw_addr);
+      ASSERT(!IsForwarding(header));
+      ASSERT(raw_key->IsHeapObject());
+      ASSERT(raw_key->IsNewObject());  // Key still points into from space.
+#endif                                 // defined(DEBUG)
 
-    WeakProperty::Clear(cur_weak);
+      WeakProperty::Clear(cur_weak);
 
-    // Advance to next weak property in the queue.
-    cur_weak = reinterpret_cast<RawWeakProperty*>(next_weak);
+      // Advance to next weak property in the queue.
+      cur_weak = reinterpret_cast<RawWeakProperty*>(next_weak);
+    }
   }
 }
 
@@ -1317,9 +1009,8 @@ void Scavenger::MakeNewSpaceIterable() const {
       /*at_safepoint=*/true);
 }
 
-void Scavenger::AbandonTLABsLocked() {
+void Scavenger::AbandonTLABsLocked(IsolateGroup* isolate_group) {
   ASSERT(Thread::Current()->IsAtSafepoint());
-  IsolateGroup* isolate_group = heap_->isolate_group();
   MonitorLocker ml(isolate_group->threads_lock(), false);
   Thread* current = isolate_group->thread_registry()->active_list();
   while (current != NULL) {
@@ -1434,66 +1125,30 @@ void Scavenger::AbandonRemainingTLABLocked(Thread* thread) {
   thread->set_end(0);
 }
 
-template <bool parallel>
-uword ScavengerVisitorBase<parallel>::TryAllocateCopySlow(intptr_t size) {
-  MakeProducerTLABIterable();
-
-  if (!scavenger_->TryAllocateNewTLAB(this)) {
-    return 0;
-  }
-
-  const uword result = labs_[producer_index_].top;
-  const intptr_t remaining =
-      labs_[producer_index_].end - labs_[producer_index_].top;
-  ASSERT(size <= remaining);
-  ASSERT(scavenger_->to_->Contains(result));
-  ASSERT((result & kObjectAlignmentMask) == kNewObjectAlignmentOffset);
-  labs_[producer_index_].top = result + size;
-  return result;
-}
-
-template <bool parallel>
-bool Scavenger::TryAllocateNewTLAB(ScavengerVisitorBase<parallel>* visitor) {
-  intptr_t size = kTLABSize;
-  ASSERT(Utils::IsAligned(size, kObjectAlignment));
-  ASSERT(heap_ != Dart::vm_isolate()->heap());
-  ASSERT(scavenging_);
-  MutexLocker ml(&space_lock_);
-  const uword result = top_;
-  const intptr_t remaining = end_ - top_;
-  if (remaining < size) {
-    // Grab whatever is remaining
-    size = Utils::RoundDown(remaining, kObjectAlignment);
-  }
-  if (size == 0) {
-    return false;
-  }
-  ASSERT(to_->Contains(result));
-  ASSERT((result & kObjectAlignmentMask) == kNewObjectAlignmentOffset);
-  top_ += size;
-  ASSERT(to_->Contains(top_) || (top_ == to_->end()));
-  ASSERT(result < top_);
-  visitor->AddNewTLAB(result, top_);
-  return true;
-}
-
 void Scavenger::Scavenge() {
-  int64_t start = OS::GetCurrentMonotonicMicros();
-
+  auto isolate_group = heap_->isolate_group();
   // Ensure that all threads for this isolate are at a safepoint (either stopped
   // or in native code). If two threads are racing at this point, the loser
   // will continue with its scavenge after waiting for the winner to complete.
   // TODO(koda): Consider moving SafepointThreads into allocation failure/retry
   // logic to avoid needless collections.
+
+  int64_t start = OS::GetCurrentMonotonicMicros();
+
   Thread* thread = Thread::Current();
   SafepointOperationScope safepoint_scope(thread);
-
-  int64_t safe_point = OS::GetCurrentMonotonicMicros();
-  heap_->RecordTime(kSafePoint, safe_point - start);
 
   // Scavenging is not reentrant. Make sure that is the case.
   ASSERT(!scavenging_);
   scavenging_ = true;
+
+  failed_to_promote_ = false;
+
+  PageSpace* page_space = heap_->old_space();
+  NoSafepointScope no_safepoints;
+
+  int64_t safe_point = OS::GetCurrentMonotonicMicros();
+  heap_->RecordTime(kSafePoint, safe_point - start);
 
   if (FLAG_verify_before_gc) {
     OS::PrintErr("Verifying before Scavenge...");
@@ -1503,33 +1158,48 @@ void Scavenger::Scavenge() {
   }
 
   // Prepare for a scavenge.
-  AbandonTLABsLocked();
-  failed_to_promote_ = false;
-  root_slices_started_ = 0;
+  AbandonTLABsLocked(isolate_group);
   intptr_t abandoned_bytes = GetAndResetAbandonedInBytes();
+
   SpaceUsage usage_before = GetCurrentUsage();
   intptr_t promo_candidate_words =
       (survivor_end_ - FirstObjectStart()) / kWordSize;
-  SemiSpace* from = Prologue();
+  SemiSpace* from = Prologue(isolate_group);
+  // The API prologue/epilogue may create/destroy zones, so we must not
+  // depend on zone allocations surviving beyond the epilogue callback.
+  {
+    StackZone zone(thread);
+    // Setup the visitor and run the scavenge.
+    ScavengerVisitor visitor(isolate_group, this, from);
+    page_space->AcquireDataLock();
+    IterateRoots(isolate_group, &visitor);
+    int64_t iterate_roots = OS::GetCurrentMonotonicMicros();
+    {
+      TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessToSpace");
+      ProcessToSpace(&visitor);
+    }
+    int64_t process_to_space = OS::GetCurrentMonotonicMicros();
+    {
+      TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessWeakHandles");
+      ScavengerWeakVisitor weak_visitor(thread, this);
+      IterateWeakRoots(isolate_group, &weak_visitor);
+    }
+    ProcessWeakReferences();
+    page_space->ReleaseDataLock();
 
-  intptr_t bytes_promoted;
-  if (FLAG_scavenger_tasks == 0) {
-    bytes_promoted = SerialScavenge(from);
-  } else {
-    bytes_promoted = ParallelScavenge(from);
+    // Restore write-barrier assumptions.
+    isolate_group->RememberLiveTemporaries();
+
+    // Scavenge finished. Run accounting.
+    int64_t end = OS::GetCurrentMonotonicMicros();
+    heap_->RecordTime(kProcessToSpace, process_to_space - iterate_roots);
+    heap_->RecordTime(kIterateWeaks, end - process_to_space);
+    stats_history_.Add(ScavengeStats(start, end, usage_before,
+                                     GetCurrentUsage(), promo_candidate_words,
+                                     visitor.bytes_promoted() >> kWordSizeLog2,
+                                     abandoned_bytes >> kWordSizeLog2));
   }
-  MournWeakHandles();
-  MournWeakTables();
-
-  // Restore write-barrier assumptions.
-  heap_->isolate_group()->RememberLiveTemporaries();
-
-  // Scavenge finished. Run accounting.
-  int64_t end = OS::GetCurrentMonotonicMicros();
-  stats_history_.Add(ScavengeStats(
-      start, end, usage_before, GetCurrentUsage(), promo_candidate_words,
-      bytes_promoted >> kWordSizeLog2, abandoned_bytes >> kWordSizeLog2));
-  Epilogue(from);
+  Epilogue(isolate_group, from);
 
   if (FLAG_verify_after_gc) {
     OS::PrintErr("Verifying after Scavenge...");
@@ -1541,69 +1211,6 @@ void Scavenger::Scavenge() {
   // Done scavenging. Reset the marker.
   ASSERT(scavenging_);
   scavenging_ = false;
-}
-
-intptr_t Scavenger::SerialScavenge(SemiSpace* from) {
-  FreeList* freelist = heap_->old_space()->DataFreeList(0);
-  SerialScavengerVisitor visitor(heap_->isolate_group(), this, from, freelist,
-                                 &promotion_stack_);
-  visitor.ProcessRoots();
-  {
-    TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "ProcessToSpace");
-    visitor.ProcessAll();
-  }
-  visitor.Finalize();
-
-  // Donate last bit of TLAB.
-  uword top = visitor.last_top();
-  uword end = visitor.last_end();
-  if (end == top_) {
-    top_ = top;
-  }
-  return visitor.bytes_promoted();
-}
-
-intptr_t Scavenger::ParallelScavenge(SemiSpace* from) {
-  intptr_t bytes_promoted = 0;
-  const intptr_t num_tasks = FLAG_scavenger_tasks;
-  ASSERT(num_tasks > 0);
-
-  ThreadBarrier barrier(num_tasks, heap_->barrier(), heap_->barrier_done());
-  RelaxedAtomic<uintptr_t> num_busy = num_tasks;
-
-  ParallelScavengerVisitor** visitors =
-      new ParallelScavengerVisitor*[num_tasks];
-  for (intptr_t i = 0; i < num_tasks; i++) {
-    FreeList* freelist = heap_->old_space()->DataFreeList(i);
-    visitors[i] = new ParallelScavengerVisitor(
-        heap_->isolate_group(), this, from, freelist, &promotion_stack_);
-    if (i < (num_tasks - 1)) {
-      // Begin scavenging on a helper thread.
-      bool result = Dart::thread_pool()->Run<ParallelScavengerTask>(
-          heap_->isolate_group(), &barrier, visitors[i], &num_busy);
-      ASSERT(result);
-    } else {
-      // Last workers is the main thread.
-      ParallelScavengerTask task(heap_->isolate_group(), &barrier, visitors[i],
-                                 &num_busy);
-      task.RunEnteredIsolateGroup();
-      barrier.Exit();
-    }
-  }
-
-  for (intptr_t i = 0; i < num_tasks; i++) {
-    bytes_promoted += visitors[i]->bytes_promoted();
-    // Donate last bit of TLAB.
-    uword top = visitors[i]->last_top();
-    uword end = visitors[i]->last_end();
-    if (end == top_) {
-      top_ = top;
-    }
-    delete visitors[i];
-  }
-
-  delete[] visitors;
-  return bytes_promoted;
 }
 
 void Scavenger::WriteProtect(bool read_only) {

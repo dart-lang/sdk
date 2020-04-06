@@ -117,46 +117,6 @@ class FreeList {
     return 0;
   }
 
-  uword TryAllocateBumpLocked(intptr_t size) {
-    ASSERT(mutex_.IsOwnedByCurrentThread());
-    uword result = top_;
-    uword new_top = result + size;
-    if (new_top <= end_) {
-      top_ = new_top;
-      unaccounted_size_ += size;
-      return result;
-    }
-    return 0;
-  }
-  intptr_t TakeUnaccountedSizeLocked() {
-    ASSERT(mutex_.IsOwnedByCurrentThread());
-    intptr_t result = unaccounted_size_;
-    unaccounted_size_ = 0;
-    return result;
-  }
-
-  // Ensures HeapPage::VisitObjects can successful walk over a partially
-  // allocated bump region.
-  void MakeIterable() {
-    if (top_ < end_) {
-      FreeListElement::AsElement(top_, end_ - top_);
-    }
-  }
-  // Returns the bump region to the free list.
-  void AbandonBumpAllocation() {
-    if (top_ < end_) {
-      Free(top_, end_ - top_);
-      top_ = 0;
-      end_ = 0;
-    }
-  }
-
-  uword top() const { return top_; }
-  uword end() const { return end_; }
-  void set_top(uword value) { top_ = value; }
-  void set_end(uword value) { end_ = value; }
-  void AddUnaccountedSize(intptr_t size) { unaccounted_size_ += size; }
-
   void MergeOtherFreelist(FreeList* freelist, bool is_protected);
 
  private:
@@ -201,15 +161,6 @@ class FreeList {
   void PrintSmall() const;
   void PrintLarge() const;
 
-  // Bump pointer region.
-  uword top_ = 0;
-  uword end_ = 0;
-
-  // Allocated from the bump pointer region, but not yet added to
-  // PageSpace::usage_. Used to avoid expensive atomic adds during parallel
-  // scavenge.
-  intptr_t unaccounted_size_ = 0;
-
   // Lock protecting the free list data structures.
   mutable Mutex mutex_;
 
@@ -217,7 +168,7 @@ class FreeList {
 
   FreeListElement* free_lists_[kNumLists + 1];
 
-  intptr_t freelist_search_budget_ = kInitialFreeListSearchBudget;
+  intptr_t freelist_search_budget_;
 
   // The largest available small size in bytes, or negative if there is none.
   intptr_t last_free_small_size_;

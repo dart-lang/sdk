@@ -118,8 +118,7 @@ void HeapPage::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
 }
 
 void HeapPage::VisitRememberedCards(ObjectPointerVisitor* visitor) {
-  ASSERT(Thread::Current()->IsAtSafepoint() ||
-         (Thread::Current()->task_kind() == Thread::kScavengerTask));
+  ASSERT(Thread::Current()->IsAtSafepoint());
   NoSafepointScope no_safepoint;
 
   if (card_table_ == NULL) {
@@ -219,10 +218,11 @@ void HeapPage::WriteProtect(bool read_only) {
 static const intptr_t kConservativeInitialMarkSpeed = 20;
 
 PageSpace::PageSpace(Heap* heap, intptr_t max_capacity_in_words)
-    : heap_(heap),
-      num_freelists_(Utils::Maximum(FLAG_scavenger_tasks, 1) + 1),
-      freelists_(new FreeList[num_freelists_]),
+    : freelist_(),
+      heap_(heap),
       pages_lock_(),
+      bump_top_(0),
+      bump_end_(0),
       max_capacity_in_words_(max_capacity_in_words),
       usage_(),
       allocated_black_in_words_(0),
@@ -245,10 +245,6 @@ PageSpace::PageSpace(Heap* heap, intptr_t max_capacity_in_words)
   // We aren't holding the lock but no one can reference us yet.
   UpdateMaxCapacityLocked();
   UpdateMaxUsed();
-
-  for (intptr_t i = 0; i < num_freelists_; i++) {
-    freelists_[i].Reset();
-  }
 }
 
 PageSpace::~PageSpace() {
@@ -263,7 +259,6 @@ PageSpace::~PageSpace() {
   FreePages(large_pages_);
   FreePages(image_pages_);
   ASSERT(marker_ == NULL);
-  delete[] freelists_;
 }
 
 intptr_t PageSpace::LargePageSizeInWordsFor(intptr_t size) {
@@ -463,7 +458,6 @@ void PageSpace::EvaluateConcurrentMarking(GrowthPolicy growth_policy) {
 }
 
 uword PageSpace::TryAllocateInFreshPage(intptr_t size,
-                                        FreeList* freelist,
                                         HeapPage::PageType type,
                                         GrowthPolicy growth_policy,
                                         bool is_locked) {
@@ -491,9 +485,9 @@ uword PageSpace::TryAllocateInFreshPage(intptr_t size,
     intptr_t free_size = page->object_end() - free_start;
     if (free_size > 0) {
       if (is_locked) {
-        freelist->FreeLocked(free_start, free_size);
+        freelist_[type].FreeLocked(free_start, free_size);
       } else {
-        freelist->Free(free_start, free_size);
+        freelist_[type].Free(free_start, free_size);
       }
     }
   }
@@ -530,7 +524,6 @@ uword PageSpace::TryAllocateInFreshLargePage(intptr_t size,
 }
 
 uword PageSpace::TryAllocateInternal(intptr_t size,
-                                     FreeList* freelist,
                                      HeapPage::PageType type,
                                      GrowthPolicy growth_policy,
                                      bool is_protected,
@@ -540,13 +533,12 @@ uword PageSpace::TryAllocateInternal(intptr_t size,
   uword result = 0;
   if (Heap::IsAllocatableViaFreeLists(size)) {
     if (is_locked) {
-      result = freelist->TryAllocateLocked(size, is_protected);
+      result = freelist_[type].TryAllocateLocked(size, is_protected);
     } else {
-      result = freelist->TryAllocate(size, is_protected);
+      result = freelist_[type].TryAllocate(size, is_protected);
     }
     if (result == 0) {
-      result = TryAllocateInFreshPage(size, freelist, type, growth_policy,
-                                      is_locked);
+      result = TryAllocateInFreshPage(size, type, growth_policy, is_locked);
       // usage_ is updated by the call above.
     } else {
       usage_.used_in_words += (size >> kWordSizeLog2);
@@ -559,15 +551,19 @@ uword PageSpace::TryAllocateInternal(intptr_t size,
   return result;
 }
 
-void PageSpace::AcquireLock(FreeList* freelist) {
-  freelist->mutex()->Lock();
+void PageSpace::AcquireDataLock() {
+  freelist_[HeapPage::kData].mutex()->Lock();
 }
 
-void PageSpace::ReleaseLock(FreeList* freelist) {
-  intptr_t size = freelist->TakeUnaccountedSizeLocked();
-  usage_.used_in_words += (size >> kWordSizeLog2);
-  freelist->mutex()->Unlock();
+void PageSpace::ReleaseDataLock() {
+  freelist_[HeapPage::kData].mutex()->Unlock();
 }
+
+#if defined(DEBUG)
+bool PageSpace::CurrentThreadOwnsDataLock() {
+  return freelist_[HeapPage::kData].mutex()->IsOwnedByCurrentThread();
+}
+#endif
 
 void PageSpace::AllocateExternal(intptr_t cid, intptr_t size) {
   intptr_t size_in_words = size >> kWordSizeLog2;
@@ -685,14 +681,16 @@ void PageSpace::MakeIterable() const {
   // Assert not called from concurrent sweeper task.
   // TODO(koda): Use thread/task identity when implemented.
   ASSERT(IsolateGroup::Current()->heap() != NULL);
-  for (intptr_t i = 0; i < num_freelists_; i++) {
-    freelists_[i].MakeIterable();
+  if (bump_top_ < bump_end_) {
+    FreeListElement::AsElement(bump_top_, bump_end_ - bump_top_);
   }
 }
 
 void PageSpace::AbandonBumpAllocation() {
-  for (intptr_t i = 0; i < num_freelists_; i++) {
-    freelists_[i].AbandonBumpAllocation();
+  if (bump_top_ < bump_end_) {
+    freelist_[HeapPage::kData].Free(bump_top_, bump_end_ - bump_top_);
+    bump_top_ = 0;
+    bump_end_ = 0;
   }
 }
 
@@ -810,8 +808,7 @@ void PageSpace::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
 }
 
 void PageSpace::VisitRememberedCards(ObjectPointerVisitor* visitor) const {
-  ASSERT(Thread::Current()->IsAtSafepoint() ||
-         (Thread::Current()->task_kind() == Thread::kScavengerTask));
+  ASSERT(Thread::Current()->IsAtSafepoint());
 
   // Wait for the sweeper to finish mutating the large page list.
   MonitorLocker ml(tasks_lock());
@@ -1108,10 +1105,10 @@ void PageSpace::CollectGarbageAtSafepoint(bool compact,
   NoSafepointScope no_safepoints;
 
   if (FLAG_print_free_list_before_gc) {
-    for (intptr_t i = 0; i < num_freelists_; i++) {
-      OS::PrintErr("Before GC: Freelist %" Pd "\n", i);
-      freelists_[i].Print();
-    }
+    OS::PrintErr("Data Freelist (before GC):\n");
+    freelist_[HeapPage::kData].Print();
+    OS::PrintErr("Executable Freelist (before GC):\n");
+    freelist_[HeapPage::kExecutable].Print();
   }
 
   if (FLAG_verify_before_gc) {
@@ -1152,9 +1149,8 @@ void PageSpace::CollectGarbageAtSafepoint(bool compact,
   // Abandon the remainder of the bump allocation block.
   AbandonBumpAllocation();
   // Reset the freelists and setup sweeping.
-  for (intptr_t i = 0; i < num_freelists_; i++) {
-    freelists_[i].Reset();
-  }
+  freelist_[HeapPage::kData].Reset();
+  freelist_[HeapPage::kExecutable].Reset();
 
   int64_t mid2 = OS::GetCurrentMonotonicMicros();
   int64_t mid3 = 0;
@@ -1173,7 +1169,7 @@ void PageSpace::CollectGarbageAtSafepoint(bool compact,
     GCSweeper sweeper;
     HeapPage* prev_page = NULL;
     HeapPage* page = exec_pages_;
-    FreeList* freelist = &freelists_[HeapPage::kExecutable];
+    FreeList* freelist = &freelist_[HeapPage::kExecutable];
     MutexLocker ml(freelist->mutex());
     while (page != NULL) {
       HeapPage* next_page = page->next();
@@ -1219,10 +1215,10 @@ void PageSpace::CollectGarbageAtSafepoint(bool compact,
   heap_->RecordTime(kSweepLargePages, end - mid3);
 
   if (FLAG_print_free_list_after_gc) {
-    for (intptr_t i = 0; i < num_freelists_; i++) {
-      OS::PrintErr("After GC: Freelist %" Pd "\n", i);
-      freelists_[i].Print();
-    }
+    OS::PrintErr("Data Freelist (after GC):\n");
+    freelist_[HeapPage::kData].Print();
+    OS::PrintErr("Executable Freelist (after GC):\n");
+    freelist_[HeapPage::kExecutable].Print();
   }
 
   UpdateMaxUsed();
@@ -1255,21 +1251,14 @@ void PageSpace::Sweep() {
   TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "Sweep");
 
   GCSweeper sweeper;
-
-  intptr_t shard = 0;
-  const intptr_t num_shards = Utils::Maximum(FLAG_scavenger_tasks, 1);
-  for (intptr_t i = 0; i < num_shards; i++) {
-    DataFreeList(i)->mutex()->Lock();
-  }
-
   HeapPage* prev_page = nullptr;
   HeapPage* page = pages_;
+  FreeList* freelist = &freelist_[HeapPage::kData];
+  MutexLocker ml(freelist_->mutex());
   while (page != nullptr) {
     HeapPage* next_page = page->next();
     ASSERT(page->type() == HeapPage::kData);
-    shard = (shard + 1) % num_shards;
-    bool page_in_use =
-        sweeper.SweepPage(page, DataFreeList(shard), true /*is_locked*/);
+    bool page_in_use = sweeper.SweepPage(page, freelist, true /*is_locked*/);
     if (page_in_use) {
       prev_page = page;
     } else {
@@ -1277,10 +1266,6 @@ void PageSpace::Sweep() {
     }
     // Advance to the next page.
     page = next_page;
-  }
-
-  for (intptr_t i = 0; i < num_shards; i++) {
-    DataFreeList(i)->mutex()->Unlock();
   }
 
   if (FLAG_verify_after_gc) {
@@ -1293,13 +1278,13 @@ void PageSpace::Sweep() {
 void PageSpace::ConcurrentSweep(IsolateGroup* isolate_group) {
   // Start the concurrent sweeper task now.
   GCSweeper::SweepConcurrent(isolate_group, pages_, pages_tail_, large_pages_,
-                             large_pages_tail_, &freelists_[HeapPage::kData]);
+                             large_pages_tail_, &freelist_[HeapPage::kData]);
 }
 
 void PageSpace::Compact(Thread* thread) {
   thread->isolate_group()->set_compaction_in_progress(true);
   GCCompactor compactor(thread, heap_);
-  compactor.Compact(pages_, &freelists_[HeapPage::kData], &pages_lock_);
+  compactor.Compact(pages_, &freelist_[HeapPage::kData], &pages_lock_);
   thread->isolate_group()->set_compaction_in_progress(false);
 
   if (FLAG_verify_after_gc) {
@@ -1309,57 +1294,63 @@ void PageSpace::Compact(Thread* thread) {
   }
 }
 
-uword PageSpace::TryAllocateDataBumpLocked(FreeList* freelist, intptr_t size) {
+uword PageSpace::TryAllocateDataBumpLocked(intptr_t size) {
   ASSERT(size >= kObjectAlignment);
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
-
-  intptr_t remaining = freelist->end() - freelist->top();
+  intptr_t remaining = bump_end_ - bump_top_;
   if (UNLIKELY(remaining < size)) {
     // Checking this first would be logical, but needlessly slow.
     if (!Heap::IsAllocatableViaFreeLists(size)) {
-      return TryAllocateDataLocked(freelist, size, kForceGrowth);
+      return TryAllocateDataLocked(size, kForceGrowth);
     }
-    FreeListElement* block = freelist->TryAllocateLargeLocked(size);
+    FreeListElement* block =
+        freelist_[HeapPage::kData].TryAllocateLargeLocked(size);
     if (block == NULL) {
       // Allocating from a new page (if growth policy allows) will have the
       // side-effect of populating the freelist with a large block. The next
       // bump allocation request will have a chance to consume that block.
       // TODO(koda): Could take freelist lock just once instead of twice.
-      return TryAllocateInFreshPage(size, freelist, HeapPage::kData,
-                                    kForceGrowth, true /* is_locked*/);
+      return TryAllocateInFreshPage(size, HeapPage::kData, kForceGrowth,
+                                    true /* is_locked*/);
     }
     intptr_t block_size = block->HeapSize();
     if (remaining > 0) {
-      freelist->FreeLocked(freelist->top(), remaining);
+      freelist_[HeapPage::kData].FreeLocked(bump_top_, remaining);
     }
-    freelist->set_top(reinterpret_cast<uword>(block));
-    freelist->set_end(freelist->top() + block_size);
+    bump_top_ = reinterpret_cast<uword>(block);
+    bump_end_ = bump_top_ + block_size;
     remaining = block_size;
   }
   ASSERT(remaining >= size);
-  uword result = freelist->top();
-  freelist->set_top(result + size);
+  uword result = bump_top_;
+  bump_top_ += size;
 
-  freelist->AddUnaccountedSize(size);
+  // No need for atomic operation: This is either running during a scavenge or
+  // isolate snapshot loading. Note that operator+= is atomic.
+  usage_.used_in_words = usage_.used_in_words + (size >> kWordSizeLog2);
 
 // Note: Remaining block is unwalkable until MakeIterable is called.
 #ifdef DEBUG
-  if (freelist->top() < freelist->end()) {
+  if (bump_top_ < bump_end_) {
     // Fail fast if we try to walk the remaining block.
     COMPILE_ASSERT(kIllegalCid == 0);
-    *reinterpret_cast<uword*>(freelist->top()) = 0;
+    *reinterpret_cast<uword*>(bump_top_) = 0;
   }
 #endif  // DEBUG
   return result;
 }
 
-uword PageSpace::TryAllocatePromoLockedSlow(FreeList* freelist, intptr_t size) {
+DART_FLATTEN
+uword PageSpace::TryAllocatePromoLocked(intptr_t size) {
+  FreeList* freelist = &freelist_[HeapPage::kData];
   uword result = freelist->TryAllocateSmallLocked(size);
   if (result != 0) {
-    freelist->AddUnaccountedSize(size);
+    // No need for atomic operation: we're at a safepoint. Note that
+    // operator+= is atomic.
+    usage_.used_in_words = usage_.used_in_words + (size >> kWordSizeLog2);
     return result;
   }
-  return TryAllocateDataBumpLocked(freelist, size);
+  return TryAllocateDataBumpLocked(size);
 }
 
 void PageSpace::SetupImagePage(void* pointer, uword size, bool is_executable) {
@@ -1447,19 +1438,18 @@ static void EnsureEqualImagePages(HeapPage* pages, HeapPage* other_pages) {
 void PageSpace::MergeOtherPageSpace(PageSpace* other) {
   other->AbandonBumpAllocation();
 
+  ASSERT(other->bump_top_ == 0 && other->bump_end_ == 0);
   ASSERT(other->tasks_ == 0);
   ASSERT(other->concurrent_marker_tasks_ == 0);
   ASSERT(other->phase_ == kDone);
   DEBUG_ASSERT(other->iterating_thread_ == nullptr);
   ASSERT(other->marker_ == nullptr);
 
-  for (intptr_t i = 0; i < num_freelists_; ++i) {
-    ASSERT(other->freelists_[i].top() == 0);
-    ASSERT(other->freelists_[i].end() == 0);
+  for (intptr_t i = 0; i < HeapPage::kNumPageTypes; ++i) {
     const bool is_protected =
         FLAG_write_protect_code && i == HeapPage::kExecutable;
-    freelists_[i].MergeOtherFreelist(&other->freelists_[i], is_protected);
-    other->freelists_[i].Reset();
+    freelist_[i].MergeOtherFreelist(&other->freelist_[i], is_protected);
+    other->freelist_[i].Reset();
   }
 
   // The freelist locks will be taken in MergeOtherFreelist above, and the

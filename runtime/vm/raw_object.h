@@ -437,7 +437,7 @@ class RawObject {
       // leading to inconsistency between HeapSizeFromClass() and
       // SizeTag::decode(tags). We are working around it by reloading tags_ and
       // recomputing size from tags.
-      const intptr_t size_from_class = HeapSizeFromClass(tags);
+      const intptr_t size_from_class = HeapSizeFromClass();
       if ((result > size_from_class) && (GetClassId() == kArrayCid) &&
           (ptr()->tags_) != tags) {
         result = SizeTag::decode(ptr()->tags_);
@@ -446,19 +446,7 @@ class RawObject {
 #endif
       return result;
     }
-    result = HeapSizeFromClass(tags);
-    ASSERT(result > SizeTag::kMaxSizeTag);
-    return result;
-  }
-
-  // This variant must not deference ptr()->tags_.
-  intptr_t HeapSize(uint32_t tags) const {
-    ASSERT(IsHeapObject());
-    intptr_t result = SizeTag::decode(tags);
-    if (result != 0) {
-      return result;
-    }
-    result = HeapSizeFromClass(tags);
+    result = HeapSizeFromClass();
     ASSERT(result > SizeTag::kMaxSizeTag);
     return result;
   }
@@ -617,7 +605,7 @@ class RawObject {
   intptr_t VisitPointersPredefined(ObjectPointerVisitor* visitor,
                                    intptr_t class_id);
 
-  intptr_t HeapSizeFromClass(uint32_t tags) const;
+  intptr_t HeapSizeFromClass() const;
 
   void SetClassId(intptr_t new_cid) {
     ptr()->tags_.UpdateUnsynchronized<ClassIdTag>(new_cid);
@@ -773,8 +761,7 @@ class RawObject {
   friend class OneByteString;  // StoreSmi
   friend class RawInstance;
   friend class Scavenger;
-  template <bool>
-  friend class ScavengerVisitorBase;
+  friend class ScavengerVisitor;
   friend class ImageReader;  // tags_ check
   friend class ImageWriter;
   friend class AssemblyImageWriter;
@@ -2615,8 +2602,7 @@ class RawTypedDataView : public RawTypedDataBase {
   friend class ObjectPoolSerializationCluster;
   friend class RawObjectPool;
   friend class GCCompactor;
-  template <bool>
-  friend class ScavengerVisitorBase;
+  friend class ScavengerVisitor;
   friend class SnapshotReader;
 };
 
@@ -2910,8 +2896,7 @@ class RawWeakProperty : public RawInstance {
   template <bool>
   friend class MarkingVisitorBase;
   friend class Scavenger;
-  template <bool>
-  friend class ScavengerVisitorBase;
+  friend class ScavengerVisitor;
 };
 
 // MirrorReferences are used by mirrors to hold reflectees that are VM
