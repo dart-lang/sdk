@@ -2855,12 +2855,13 @@ class InheritedImplementationInterfaceConflict extends DelayedMember {
     assert(concreteImplementation.isProperty == other.isProperty,
         "Unexpected member combination: $concreteImplementation vs $other");
     List<ClassMember> declarations = <ClassMember>[];
-    if (concreteImplementation.hasDeclarations) {
+    if (concreteImplementation.hasDeclarations &&
+        concreteImplementation.classBuilder == parent) {
       addAllDeclarationsTo(concreteImplementation, declarations);
     } else {
       declarations.add(concreteImplementation);
     }
-    if (other.hasDeclarations) {
+    if (other.hasDeclarations && other.classBuilder == parent) {
       addAllDeclarationsTo(other, declarations);
     } else {
       addDeclarationIfDifferent(other, declarations);
@@ -3131,12 +3132,12 @@ class InterfaceConflict extends DelayedMember {
     assert(a.isProperty == b.isProperty,
         "Unexpected member combination: $a vs $b");
     List<ClassMember> declarations = <ClassMember>[];
-    if (a.hasDeclarations) {
+    if (a.hasDeclarations && a.classBuilder == parent) {
       addAllDeclarationsTo(a, declarations);
     } else {
       declarations.add(a);
     }
-    if (b.hasDeclarations) {
+    if (b.hasDeclarations && b.classBuilder == parent) {
       addAllDeclarationsTo(b, declarations);
     } else {
       addDeclarationIfDifferent(b, declarations);
