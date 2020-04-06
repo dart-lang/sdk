@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/constant/has_type_parameter_reference.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
@@ -262,7 +263,16 @@ class DartObjectImpl implements DartObject {
     if (isNull) {
       return this;
     }
-    if (!typeSystem.isSubtypeOf2(type, (castType._state as TypeState)._type)) {
+
+    var resultType = (castType._state as TypeState)._type;
+
+    // We don't know the actual value of a type parameter.
+    // So, the object type might be a subtype of the result type.
+    if (hasTypeParameterReference(resultType)) {
+      return this;
+    }
+
+    if (!typeSystem.isSubtypeOf2(type, resultType)) {
       throw EvaluationException(
           CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
     }

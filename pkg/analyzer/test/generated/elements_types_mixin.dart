@@ -439,6 +439,27 @@ mixin ElementsTypesMixin {
     );
   }
 
+  InterfaceType mapNone(DartType key, DartType value) {
+    return typeProvider.mapElement.instantiate(
+      typeArguments: [key, value],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+  }
+
+  InterfaceType mapQuestion(DartType key, DartType value) {
+    return typeProvider.mapElement.instantiate(
+      typeArguments: [key, value],
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+  }
+
+  InterfaceType mapStar(DartType key, DartType value) {
+    return typeProvider.mapElement.instantiate(
+      typeArguments: [key, value],
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
+  }
+
   MethodElement method(
     String name,
     DartType returnType, {

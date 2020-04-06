@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:meta/meta.dart';
 
 /// Some [ConstructorElement]s can be temporary marked as "const" to check
 /// if doing this is valid.
@@ -14,10 +15,27 @@ final temporaryConstConstructorElements = Expando<bool>();
 /// Check if the [node] and all its sub-nodes are potentially constant.
 ///
 /// Return the list of nodes that are not potentially constant.
-List<AstNode> getNotPotentiallyConstants(AstNode node) {
-  var collector = _Collector();
+List<AstNode> getNotPotentiallyConstants(
+  AstNode node, {
+  @required bool isNonNullableByDefault,
+}) {
+  var collector = _Collector(
+    isNonNullableByDefault: isNonNullableByDefault,
+  );
   collector.collect(node);
   return collector.nodes;
+}
+
+/// Return `true` if the [node] is a potentially constant type expression.
+bool isPotentiallyConstantTypeExpression(TypeAnnotation node) {
+  if (node is TypeName) {
+    var element = node.name.staticElement;
+    if (element is TypeParameterElement) {
+      return true;
+    }
+  }
+
+  return isConstantTypeExpression(node);
 }
 
 /// Return `true` if the [node] is a constant type expression.
@@ -92,7 +110,10 @@ bool _isConstantTypeName(Identifier name) {
 }
 
 class _Collector {
+  final bool isNonNullableByDefault;
   final List<AstNode> nodes = [];
+
+  _Collector({@required this.isNonNullableByDefault});
 
   void collect(AstNode node) {
     if (node is BooleanLiteral ||
@@ -178,8 +199,14 @@ class _Collector {
     }
 
     if (node is AsExpression) {
-      if (!isConstantTypeExpression(node.type)) {
-        nodes.add(node.type);
+      if (isNonNullableByDefault) {
+        if (!isPotentiallyConstantTypeExpression(node.type)) {
+          nodes.add(node.type);
+        }
+      } else {
+        if (!isConstantTypeExpression(node.type)) {
+          nodes.add(node.type);
+        }
       }
       collect(node.expression);
       return;
