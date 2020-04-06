@@ -77,7 +77,10 @@ Component createExpressionEvaluationComponent(Procedure procedure) {
 
   Library fakeLibrary = new Library(new Uri(scheme: 'evaluate', path: 'source'))
     ..setLanguageVersion(
-        realLibrary.languageVersionMajor, realLibrary.languageVersionMinor);
+        realLibrary.languageVersionMajor, realLibrary.languageVersionMinor)
+    ..isNonNullableByDefault = realLibrary.isNonNullableByDefault
+    ..nonNullableByDefaultCompiledMode =
+        realLibrary.nonNullableByDefaultCompiledMode;
 
   if (procedure.parent is Class) {
     Class realClass = procedure.parent;
