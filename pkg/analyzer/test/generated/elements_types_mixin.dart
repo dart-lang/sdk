@@ -17,7 +17,7 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
 
 mixin ElementsTypesMixin {
-  AnalysisSessionImpl get analysisSession => null;
+  LibraryElementImpl get testLibrary => null;
 
   InterfaceType get boolNone {
     var element = typeProvider.boolElement;
@@ -163,6 +163,7 @@ mixin ElementsTypesMixin {
     List<MethodElement> methods = const [],
   }) {
     var element = ClassElementImpl(name, 0);
+    element.enclosingElement = testLibrary;
     element.typeParameters = typeParameters;
     element.supertype = superType ?? typeProvider.objectType;
     element.interfaces = interfaces;
@@ -459,6 +460,7 @@ mixin ElementsTypesMixin {
     List<InterfaceType> interfaces = const [],
   }) {
     var element = MixinElementImpl(name, 0);
+    element.enclosingElement = testLibrary;
     element.typeParameters = typeParameters;
     element.superclassConstraints = constraints ?? [typeProvider.objectType];
     element.interfaces = interfaces;

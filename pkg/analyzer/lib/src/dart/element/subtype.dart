@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
@@ -265,7 +264,7 @@ class SubtypeHelper {
     // `S0,...Sn`:
     //   * and `Si <: T1` for some `i`.
     if (T0 is InterfaceTypeImpl && T1 is InterfaceTypeImpl) {
-      return _isInterfaceSubtypeOf(T0, T1, null);
+      return _isInterfaceSubtypeOf(T0, T1);
     }
 
     // Left Promoted Variable: `T0` is a promoted type variable `X0 & S0`
@@ -295,6 +294,47 @@ class SubtypeHelper {
     }
 
     return false;
+  }
+
+  bool _interfaceArguments(
+    ClassElement element,
+    InterfaceType subType,
+    InterfaceType superType,
+  ) {
+    List<TypeParameterElement> parameters = element.typeParameters;
+    List<DartType> subArguments = subType.typeArguments;
+    List<DartType> superArguments = superType.typeArguments;
+
+    assert(subArguments.length == superArguments.length);
+    assert(parameters.length == subArguments.length);
+
+    for (int i = 0; i < subArguments.length; i++) {
+      var parameter = parameters[i] as TypeParameterElementImpl;
+      var subArgument = subArguments[i];
+      var superArgument = superArguments[i];
+
+      Variance variance = parameter.variance;
+      if (variance.isCovariant) {
+        if (!isSubtypeOf(subArgument, superArgument)) {
+          return false;
+        }
+      } else if (variance.isContravariant) {
+        if (!isSubtypeOf(superArgument, subArgument)) {
+          return false;
+        }
+      } else if (variance.isInvariant) {
+        if (!isSubtypeOf(subArgument, superArgument) ||
+            !isSubtypeOf(superArgument, subArgument)) {
+          return false;
+        }
+      } else {
+        throw StateError(
+          'Type parameter $parameter has unknown '
+          'variance $variance for subtype checking.',
+        );
+      }
+    }
+    return true;
   }
 
   /// Check that [f] is a subtype of [g].
@@ -401,91 +441,39 @@ class SubtypeHelper {
     return true;
   }
 
-  bool _isInterfaceSubtypeOf(
-      InterfaceType i1, InterfaceType i2, Set<ClassElement> visitedTypes) {
+  bool _isInterfaceSubtypeOf(InterfaceType subType, InterfaceType superType) {
     // Note: we should never reach `_isInterfaceSubtypeOf` with `i2 == Object`,
     // because top types are eliminated before `isSubtypeOf` calls this.
-    if (identical(i1, i2) || i2.isObject) {
+    // TODO(scheglov) Replace with assert().
+    if (identical(subType, superType) || superType.isObject) {
       return true;
     }
 
     // Object cannot subtype anything but itself (handled above).
-    if (i1.isObject) {
+    if (subType.isObject) {
       return false;
     }
 
-    ClassElement i1Element = i1.element;
-    if (i1Element == i2.element) {
-      List<DartType> tArgs1 = i1.typeArguments;
-      List<DartType> tArgs2 = i2.typeArguments;
-      List<TypeParameterElement> tParams = i1Element.typeParameters;
-
-      assert(tArgs1.length == tArgs2.length);
-      assert(tParams.length == tArgs1.length);
-
-      for (int i = 0; i < tArgs1.length; i++) {
-        DartType t1 = tArgs1[i];
-        DartType t2 = tArgs2[i];
-
-        // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
-        // variance is added to the interface.
-        Variance variance = (tParams[i] as TypeParameterElementImpl).variance;
-        if (variance.isCovariant) {
-          if (!isSubtypeOf(t1, t2)) {
-            return false;
-          }
-        } else if (variance.isContravariant) {
-          if (!isSubtypeOf(t2, t1)) {
-            return false;
-          }
-        } else if (variance.isInvariant) {
-          if (!isSubtypeOf(t1, t2) || !isSubtypeOf(t2, t1)) {
-            return false;
-          }
-        } else {
-          throw StateError('Type parameter ${tParams[i]} has unknown '
-              'variance $variance for subtype checking.');
-        }
-      }
-      return true;
+    var subElement = subType.element;
+    var superElement = superType.element;
+    if (subElement == superElement) {
+      return _interfaceArguments(superElement, subType, superType);
     }
 
     // Classes types cannot subtype `Function` or vice versa.
-    if (i1.isDartCoreFunction || i2.isDartCoreFunction) {
+    if (subType.isDartCoreFunction || superType.isDartCoreFunction) {
       return false;
     }
 
-    // Guard against loops in the class hierarchy.
-    //
-    // Dart 2 does not allow multiple implementations of the same generic type
-    // with different type arguments. So we can track just the class element
-    // to find cycles, rather than tracking the full interface type.
-    visitedTypes ??= HashSet<ClassElement>();
-    if (!visitedTypes.add(i1Element)) return false;
-
-    InterfaceType superclass = i1.superclass;
-    if (superclass != null &&
-        _isInterfaceSubtypeOf(superclass, i2, visitedTypes)) {
-      return true;
-    }
-
-    for (final parent in i1.interfaces) {
-      if (_isInterfaceSubtypeOf(parent, i2, visitedTypes)) {
-        return true;
-      }
-    }
-
-    for (final parent in i1.mixins) {
-      if (_isInterfaceSubtypeOf(parent, i2, visitedTypes)) {
-        return true;
-      }
-    }
-
-    if (i1Element.isMixin) {
-      for (final parent in i1.superclassConstraints) {
-        if (_isInterfaceSubtypeOf(parent, i2, visitedTypes)) {
-          return true;
-        }
+    for (var interface in subElement.allSupertypes) {
+      if (interface.element == superElement) {
+        var substitution = Substitution.fromInterfaceType(subType);
+        var substitutedInterface = substitution.substituteType(interface);
+        return _interfaceArguments(
+          superElement,
+          substitutedInterface,
+          superType,
+        );
       }
     }
 

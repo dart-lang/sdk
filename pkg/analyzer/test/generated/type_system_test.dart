@@ -34,6 +34,9 @@ abstract class AbstractTypeSystemNullSafetyTest with ElementsTypesMixin {
   TestAnalysisContext analysisContext;
 
   @override
+  LibraryElementImpl testLibrary;
+
+  @override
   TypeProvider typeProvider;
 
   TypeSystemImpl typeSystem;
@@ -50,11 +53,20 @@ abstract class AbstractTypeSystemNullSafetyTest with ElementsTypesMixin {
     );
     typeProvider = analysisContext.typeProviderNonNullableByDefault;
     typeSystem = analysisContext.typeSystemNonNullableByDefault;
+
+    testLibrary = library_(
+      uriStr: 'package:test/test.dart',
+      analysisSession: analysisContext.analysisSession,
+      typeSystem: typeSystem,
+    );
   }
 }
 
 abstract class AbstractTypeSystemTest with ElementsTypesMixin {
   TestAnalysisContext analysisContext;
+
+  @override
+  LibraryElementImpl testLibrary;
 
   @override
   TypeProvider typeProvider;
@@ -71,6 +83,12 @@ abstract class AbstractTypeSystemTest with ElementsTypesMixin {
     );
     typeProvider = analysisContext.typeProviderLegacy;
     typeSystem = analysisContext.typeSystemLegacy;
+
+    testLibrary = library_(
+      uriStr: 'package:test/test.dart',
+      analysisSession: analysisContext.analysisSession,
+      typeSystem: typeSystem,
+    );
   }
 
   String _typeString(TypeImpl type) {

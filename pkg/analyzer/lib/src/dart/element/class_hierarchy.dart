@@ -72,6 +72,10 @@ class ClassHierarchy {
     hierarchy.interfaces = result;
     return result;
   }
+
+  void remove(ClassElement element) {
+    _map.remove(element);
+  }
 }
 
 class _ClassInterfaceType {

@@ -9,9 +9,11 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
-import 'package:analyzer/src/generated/resolver.dart' show TypeSystemImpl;
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
+import 'package:analyzer/src/generated/type_system.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/decorated_class_hierarchy.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
@@ -36,6 +38,8 @@ class AssignmentCheckerTest extends Object
     with EdgeTester, DecoratedTypeTester {
   static const EdgeOrigin origin = const _TestEdgeOrigin();
 
+  LibraryElementImpl _myLibrary;
+
   ClassElement _myListOfListClass;
 
   DecoratedType _myListOfListSupertype;
@@ -53,6 +57,8 @@ class AssignmentCheckerTest extends Object
 
   factory AssignmentCheckerTest() {
     var typeProvider = TestTypeProvider();
+    _setCoreLibrariesTypeSystem(typeProvider);
+
     var graph = NullabilityGraphForTesting();
     var decoratedClassHierarchy = _DecoratedClassHierarchyForTesting();
     var checker = AssignmentCheckerForTesting(
@@ -80,10 +86,12 @@ class AssignmentCheckerTest extends Object
   }
 
   DecoratedType myListOfList(DecoratedType elementType) {
+    _initMyLibrary();
     if (_myListOfListClass == null) {
       var t = typeParameter('T', object());
       _myListOfListSupertype = list(list(typeParameterType(t)));
       _myListOfListClass = ClassElementImpl('MyListOfList', 0)
+        ..enclosingElement = _myLibrary.definingCompilationUnit
         ..typeParameters = [t]
         ..supertype = _myListOfListSupertype.type as InterfaceType;
     }
@@ -437,6 +445,63 @@ class AssignmentCheckerTest extends Object
     var t = super.typeParameter(name, bound);
     checker.bounds[t] = bound;
     return t;
+  }
+
+  void _initMyLibrary() {
+    if (_myLibrary != null) {
+      return;
+    }
+
+    var coreLibrary = typeProvider.boolElement.library as LibraryElementImpl;
+    var analysisContext = coreLibrary.context;
+    var analysisSession = coreLibrary.session;
+    var typeSystem = coreLibrary.typeSystem;
+
+    var uriStr = 'package:test/test.dart';
+
+    _myLibrary = LibraryElementImpl(analysisContext, analysisSession, uriStr,
+        -1, 0, typeSystem.isNonNullableByDefault);
+    _myLibrary.typeSystem = typeSystem;
+    _myLibrary.typeProvider = coreLibrary.typeProvider;
+
+    var uri = Uri.parse(uriStr);
+    var source = _MockSource(uri);
+
+    var definingUnit = CompilationUnitElementImpl();
+    definingUnit.source = source;
+    definingUnit.librarySource = source;
+
+    definingUnit.enclosingElement = _myLibrary;
+    _myLibrary.definingCompilationUnit = definingUnit;
+  }
+
+  static void _setCoreLibrariesTypeSystem(TestTypeProvider typeProvider) {
+    var typeSystem = TypeSystemImpl(
+      isNonNullableByDefault: false,
+      implicitCasts: true,
+      strictInference: false,
+      typeProvider: typeProvider,
+    );
+    _setLibraryTypeSystem(
+      typeProvider.objectElement.library,
+      typeProvider,
+      typeSystem,
+    );
+    _setLibraryTypeSystem(
+      typeProvider.futureElement.library,
+      typeProvider,
+      typeSystem,
+    );
+  }
+
+  static void _setLibraryTypeSystem(
+    LibraryElement libraryElement,
+    TypeProvider typeProvider,
+    TypeSystem typeSystem,
+  ) {
+    var libraryElementImpl = libraryElement as LibraryElementImpl;
+    libraryElementImpl.typeProvider = typeProvider as TypeProviderImpl;
+    libraryElementImpl.typeSystem = typeSystem as TypeSystemImpl;
   }
 }
 
@@ -7399,6 +7464,16 @@ class _DecoratedClassHierarchyForTesting implements DecoratedClassHierarchy {
       ClassElement class_, ClassElement superclass) {
     throw UnimplementedError('TODO(paulberry)');
   }
+}
+
+class _MockSource implements Source {
+  @override
+  final Uri uri;
+
+  _MockSource(this.uri);
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _TestEdgeOrigin implements EdgeOrigin {
