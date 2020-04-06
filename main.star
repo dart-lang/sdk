@@ -628,15 +628,21 @@ dart_vm_extra_builder(
 # vm|misc
 LOW = 70
 dart_vm_extra_builder(
-    "vm-kernel-asan-linux-release-x64", category="vm|misc|a64", priority=LOW)
-dart_vm_extra_builder(
-    "vm-kernel-msan-linux-release-x64", category="vm|misc|m64", priority=LOW)
-dart_vm_extra_builder(
-    "vm-kernel-tsan-linux-release-x64", category="vm|misc|t64", priority=LOW)
-dart_vm_extra_builder(
     "vm-kernel-optcounter-threshold-linux-release-ia32", category="vm|misc|o32")
 dart_vm_extra_builder(
     "vm-kernel-optcounter-threshold-linux-release-x64", category="vm|misc|o64")
+dart_vm_extra_builder(
+    "vm-kernel-asan-linux-release-x64", category="vm|misc|a", priority=LOW)
+dart_vm_extra_builder(
+    "vm-kernel-msan-linux-release-x64", category="vm|misc|m", priority=LOW)
+dart_vm_extra_builder(
+    "vm-kernel-tsan-linux-release-x64", category="vm|misc|t", priority=LOW)
+dart_vm_extra_builder(
+    "vm-kernel-precomp-asan-linux-release-x64", category="vm|misc|aot|a", priority=LOW)
+dart_vm_extra_builder(
+    "vm-kernel-precomp-msan-linux-release-x64", category="vm|misc|aot|m", priority=LOW)
+dart_vm_extra_builder(
+    "vm-kernel-precomp-tsan-linux-release-x64", category="vm|misc|aot|t", priority=LOW)
 
 # vm|product
 dart_vm_extra_builder(
