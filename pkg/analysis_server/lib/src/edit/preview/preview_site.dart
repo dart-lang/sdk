@@ -197,6 +197,15 @@ class PreviewSite extends Site
 
     final edits = migrationState.listener.sourceChange.edits;
 
+    // Perform a full check that no files have changed before touching the disk.
+    for (final fileEdit in edits) {
+      final file = pathMapper.provider.getFile(fileEdit.file);
+      var code = file.exists ? file.readAsStringSync() : '';
+      if (!unitInfoMap[file.path].hadOriginalContent(code)) {
+        throw StateError('${file.path} has changed, rerun migration to apply.');
+      }
+    }
+
     // Eagerly mark the migration applied. If this throws, we cannot go back.
     migrationState.markApplied();
     for (final fileEdit in edits) {
@@ -218,8 +227,12 @@ class PreviewSite extends Site
     var end = int.parse(params['end']);
     var replacement = params['replacement'];
     var file = pathMapper.provider.getFile(path);
-    var oldContent = file.readAsStringSync();
-    var newContent = oldContent.replaceRange(offset, end, replacement);
+    var diskContent = file.readAsStringSync();
+    if (!unitInfoMap[path].hadOriginalContent(diskContent)) {
+      throw StateError(
+          'Cannot add hint, $path has changed. Rerun migration and try again.');
+    }
+    var newContent = diskContent.replaceRange(offset, end, replacement);
     file.writeAsStringSync(newContent);
     await rerunMigration([path]);
   }

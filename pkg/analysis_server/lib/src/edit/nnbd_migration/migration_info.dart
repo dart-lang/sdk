@@ -6,6 +6,8 @@ import 'package:analysis_server/src/edit/nnbd_migration/offset_mapper.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/unit_link.dart';
 import 'package:analysis_server/src/edit/preview/preview_site.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:collection/collection.dart';
+import 'package:crypto/crypto.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
@@ -217,7 +219,10 @@ class UnitInfo {
   /// The absolute and normalized path of the unit.
   final String path;
 
-  /// The content of unit.
+  /// Hash of the original contents of the unit.
+  List<int> _originalContentHash;
+
+  /// The preview content of unit.
   String content;
 
   /// The information about the regions that have an explanation associated with
@@ -248,6 +253,20 @@ class UnitInfo {
   List<RegionInfo> get informativeRegions => regions
       .where((region) => region.regionType == RegionType.informative)
       .toList();
+
+  /// Set the original content of this file to later use [hadOriginalContent].
+  /// This does not have a getter because it is backed by a private hash.
+  set originalContent(String originalContent) {
+    assert(_originalContentHash == null);
+    _originalContentHash = md5.convert((originalContent ?? '').codeUnits).bytes;
+  }
+
+  /// Check if this unit's file had original contents [checkContent].
+  bool hadOriginalContent(String checkContent) {
+    assert(_originalContentHash != null);
+    return const ListEquality().equals(_originalContentHash,
+        md5.convert((checkContent ?? '').codeUnits).bytes);
+  }
 
   /// Returns the [RegionInfo] at offset [offset].
   // TODO(srawlins): This is O(n), used each time the user clicks on a region.

@@ -24,15 +24,20 @@ class PreviewSiteTest with ResourceProviderMixin {
   PreviewSite site;
   DartFixListener dartfixListener;
   MigrationState state;
+  List<String> reranPaths;
 
   void setUp() {
+    reranPaths = null;
     dartfixListener = DartFixListener(null);
     resourceProvider = MemoryResourceProvider();
     final migrationInfo = MigrationInfo({}, {}, null, null);
     state = MigrationState(null, null, dartfixListener, null, null);
     state.pathMapper = PathMapper(resourceProvider);
     state.migrationInfo = migrationInfo;
-    site = PreviewSite(state, ([_]) => null);
+    site = PreviewSite(state, ([paths]) async {
+      reranPaths = paths;
+      return state;
+    });
   }
 
   void test_applyChangesEmpty() {
@@ -48,10 +53,30 @@ class PreviewSiteTest with ResourceProviderMixin {
     expect(site.performApply, throwsA(isA<StateError>()));
   }
 
+  void test_applyMigration_sanityCheck_dontApply() async {
+    final path = convertPath('/test.dart');
+    final file = getFile(path);
+    site.unitInfoMap[path] = UnitInfo(path)
+      ..originalContent = '// different content';
+    final currentContent = 'void main() {}';
+    file.writeAsStringSync(currentContent);
+    dartfixListener.addSourceChange(
+        'test change',
+        Location(path, 10, 0, 1, 10),
+        SourceChange('test change', edits: [
+          SourceFileEdit(path, 0, edits: [SourceEdit(10, 0, 'List args')])
+        ]));
+    expect(() => site.performApply(), throwsA(isA<StateError>()));
+    expect(file.readAsStringSync(), currentContent);
+    expect(state.hasBeenApplied, false);
+  }
+
   void test_applyMultipleChanges() {
     final path = convertPath('/test.dart');
     final file = getFile(path);
-    file.writeAsStringSync('void main() {}');
+    final content = 'void main() {}';
+    file.writeAsStringSync(content);
+    site.unitInfoMap[path] = UnitInfo(path)..originalContent = content;
     dartfixListener.addSourceChange(
         'test change',
         Location(path, 10, 0, 1, 10),
@@ -72,7 +97,9 @@ void main(List args) {
   void test_applySingleChange() {
     final path = convertPath('/test.dart');
     final file = getFile(path);
-    file.writeAsStringSync('void main() {}');
+    final content = 'void main() {}';
+    file.writeAsStringSync(content);
+    site.unitInfoMap[path] = UnitInfo(path)..originalContent = content;
     dartfixListener.addSourceChange(
         'test change',
         Location(path, 10, 0, 1, 10),
@@ -82,5 +109,33 @@ void main(List args) {
     site.performApply();
     expect(file.readAsStringSync(), 'void main(List args) {}');
     expect(state.hasBeenApplied, true);
+  }
+
+  void test_performEdit() {
+    final path = convertPath('/test.dart');
+    final file = getFile(path);
+    final content = 'int foo() {}';
+    site.unitInfoMap[path] = UnitInfo(path)..originalContent = content;
+    file.writeAsStringSync(content);
+    site.performEdit(Uri.parse(
+        'localhost://$path?offset=3&end=3&replacement=${Uri.encodeComponent('/*?*/')}'));
+    expect(file.readAsStringSync(), 'int/*?*/ foo() {}');
+    expect(state.hasBeenApplied, false);
+    expect(reranPaths, [path]);
+  }
+
+  void test_performEdit_sanityCheck_dontApply() {
+    final path = convertPath('/test.dart');
+    final file = getFile(path);
+    site.unitInfoMap[path] = UnitInfo(path)
+      ..originalContent = '// different content';
+    final currentContent = 'void main() {}';
+    file.writeAsStringSync(currentContent);
+    expect(
+        () => site.performEdit(
+            Uri.parse('localhost://$path?offset=0&end=0&replacement=foo')),
+        throwsA(isA<StateError>()));
+    expect(file.readAsStringSync(), currentContent);
+    expect(state.hasBeenApplied, false);
   }
 }

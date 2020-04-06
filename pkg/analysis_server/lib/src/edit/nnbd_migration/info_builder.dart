@@ -584,6 +584,7 @@ class InfoBuilder {
     var unitInfo = _unitForPath(result.path);
     unitInfo.sources ??= _computeNavigationSources(result);
     var content = result.content;
+    unitInfo.originalContent = content;
     var regions = unitInfo.regions;
     var lineInfo = result.unit.lineInfo;
     var insertions = <int, List<AtomicEdit>>{};
