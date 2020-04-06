@@ -3420,9 +3420,11 @@ class InferenceVisitor
       {bool isNot}) {
     assert(isNot != null);
     inferrer.flowAnalysis.equalityOp_rightBegin(left);
-    ObjectAccessTarget equalsTarget = inferrer.findInterfaceMember(
-        leftType, equalsName, fileOffset,
-        includeExtensionMethods: true);
+    ObjectAccessTarget objectEqualsTarget =
+        inferrer.getObjectMemberIfNullableReceiver(leftType, equalsName);
+    ObjectAccessTarget equalsTarget = objectEqualsTarget ??
+        inferrer.findInterfaceMember(leftType, equalsName, fileOffset,
+            includeExtensionMethods: true);
 
     bool typeNeeded = !inferrer.isTopLevel;
     ExpressionInferenceResult rightResult = inferrer.inferExpression(
@@ -3853,9 +3855,12 @@ class InferenceVisitor
       {bool isThisReceiver}) {
     assert(isThisReceiver != null);
 
-    ObjectAccessTarget readTarget = inferrer.findInterfaceMember(
-        receiverType, propertyName, fileOffset,
-        includeExtensionMethods: true);
+    ObjectAccessTarget objectReadTarget =
+        inferrer.getObjectMemberIfNullableReceiver(receiverType, propertyName);
+
+    ObjectAccessTarget readTarget = objectReadTarget ??
+        inferrer.findInterfaceMember(receiverType, propertyName, fileOffset,
+            includeExtensionMethods: true);
 
     DartType readType = inferrer.getGetterType(readTarget, receiverType);
 

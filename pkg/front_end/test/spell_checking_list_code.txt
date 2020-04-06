@@ -43,6 +43,7 @@ anyone
 ap
 api
 app
+applicable
 arg
 args
 argument1
@@ -141,6 +142,7 @@ caret
 carets
 carriage
 cascades
+casing
 cast
 casted
 casts
@@ -483,6 +485,7 @@ implementers
 imply
 implying
 importantly
+inapplicable
 inc
 incomparable
 inconsistency

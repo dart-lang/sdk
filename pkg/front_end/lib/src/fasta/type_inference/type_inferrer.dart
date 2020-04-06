@@ -1215,6 +1215,54 @@ class TypeInferrerImpl implements TypeInferrer {
     return target;
   }
 
+  /// Returns the Object member by given [name] if [receiverType] is potentially
+  /// nullable.
+  ///
+  /// This method is used to infer nullable calls to Object member against the
+  /// Object member signature and not the overridden signature.
+  ///
+  /// If the member is procedure that isn't applicable with the provided
+  /// [arguments], `null` is returned. This is a special casing that ensures
+  /// that calls that wouldn't match the Object member regardless of typing
+  /// will be reported as nullable access of the overridden member instead of
+  /// inapplicable access to the Object member.
+  ObjectAccessTarget getObjectMemberIfNullableReceiver(
+      DartType receiverType, Name name,
+      [Arguments arguments]) {
+    if (isNonNullableByDefault &&
+        receiverType is! DynamicType &&
+        receiverType is! InvalidType &&
+        isPotentiallyNullable(receiverType, coreTypes.futureOrClass)) {
+      ObjectAccessTarget target = findInterfaceMember(
+          coreTypes.objectNonNullableRawType, name, -1,
+          instrumented: false);
+      if (target.isUnresolved) {
+        // No member found.
+        return null;
+      }
+      Member member = target.member;
+      if (arguments != null &&
+          member is Procedure &&
+          member.kind == ProcedureKind.Method) {
+        // A method is called.
+        FunctionNode function = member.function;
+        if (arguments.positional.length >
+            function.positionalParameters.length) {
+          // The call is not going to match the Object member so we report
+          // a problem on the nullable access instead.
+          return null;
+        }
+        if (arguments.named.isNotEmpty && function.namedParameters.isEmpty) {
+          // The call is not going to match the Object member so we report
+          // a problem on the nullable access instead.
+          return null;
+        }
+      }
+      return target;
+    }
+    return null;
+  }
+
   /// True if [Object]'s member called [name] can be called with the arguments.
   ///
   /// Checks for the arity and the types of the arguments and tells if an
@@ -3117,9 +3165,13 @@ class TypeInferrerImpl implements TypeInferrer {
       List<VariableDeclaration> hoistedExpressions}) {
     assert(isExpressionInvocation != null);
     assert(isImplicitCall != null);
-    ObjectAccessTarget target = findInterfaceMember(
-        receiverType, name, fileOffset,
-        instrumented: true, includeExtensionMethods: true);
+
+    ObjectAccessTarget objectReadTarget =
+        getObjectMemberIfNullableReceiver(receiverType, name, arguments);
+
+    ObjectAccessTarget target = objectReadTarget ??
+        findInterfaceMember(receiverType, name, fileOffset,
+            instrumented: true, includeExtensionMethods: true);
     switch (target.kind) {
       case ObjectAccessTargetKind.instanceMember:
         Member member = target.member;

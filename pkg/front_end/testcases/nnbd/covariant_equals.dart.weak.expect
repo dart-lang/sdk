@@ -134,138 +134,6 @@ library /*isNonNullableByDefault*/;
 //   d == c_string; // error
 //        ^
 //
-// pkg/front_end/testcases/nnbd/covariant_equals.dart:69:8: Error: The argument type 'C<dynamic>?' can't be assigned to the parameter type 'A?'.
-//  - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-//   a == c_dynamic; // error
-//        ^
-//
-// pkg/front_end/testcases/nnbd/covariant_equals.dart:70:8: Error: The argument type 'C<int>?' can't be assigned to the parameter type 'A?'.
-//  - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-//   a == c_int; // error
-//        ^
-//
-// pkg/front_end/testcases/nnbd/covariant_equals.dart:71:8: Error: The argument type 'C<String>?' can't be assigned to the parameter type 'A?'.
-//  - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-//   a == c_string; // error
-//        ^
-//
-// pkg/front_end/testcases/nnbd/covariant_equals.dart:72:8: Error: The argument type 'D?' can't be assigned to the parameter type 'A?'.
-//  - 'D' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-//   a == d; // error
-//        ^
-//
-// pkg/front_end/testcases/nnbd/covariant_equals.dart:76:8: Error: The argument type 'C<dynamic>?' can't be assigned to the parameter type 'A?'.
-//  - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-//   b == c_dynamic; // error
-//        ^
-//
-// pkg/front_end/testcases/nnbd/covariant_equals.dart:77:8: Error: The argument type 'C<int>?' can't be assigned to the parameter type 'A?'.
-//  - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-//   b == c_int; // error
-//        ^
-//
-// pkg/front_end/testcases/nnbd/covariant_equals.dart:78:8: Error: The argument type 'C<String>?' can't be assigned to the parameter type 'A?'.
-//  - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-//   b == c_string; // error
-//        ^
-//
-// pkg/front_end/testcases/nnbd/covariant_equals.dart:79:8: Error: The argument type 'D?' can't be assigned to the parameter type 'A?'.
-//  - 'D' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-//   b == d; // error
-//        ^
-//
-// pkg/front_end/testcases/nnbd/covariant_equals.dart:81:16: Error: The argument type 'A?' can't be assigned to the parameter type 'C<dynamic>?'.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-//  - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-//   c_dynamic == a; // error
-//                ^
-//
-// pkg/front_end/testcases/nnbd/covariant_equals.dart:82:16: Error: The argument type 'B?' can't be assigned to the parameter type 'C<dynamic>?'.
-//  - 'B' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-//  - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-//   c_dynamic == b; // error
-//                ^
-//
-// pkg/front_end/testcases/nnbd/covariant_equals.dart:88:12: Error: The argument type 'A?' can't be assigned to the parameter type 'C<int>?'.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-//  - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-//   c_int == a; // error
-//            ^
-//
-// pkg/front_end/testcases/nnbd/covariant_equals.dart:89:12: Error: The argument type 'B?' can't be assigned to the parameter type 'C<int>?'.
-//  - 'B' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-//  - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-//   c_int == b; // error
-//            ^
-//
-// pkg/front_end/testcases/nnbd/covariant_equals.dart:90:12: Error: The argument type 'C<dynamic>?' can't be assigned to the parameter type 'C<int>?'.
-//  - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-//   c_int == c_dynamic; // error
-//            ^
-//
-// pkg/front_end/testcases/nnbd/covariant_equals.dart:92:12: Error: The argument type 'C<String>?' can't be assigned to the parameter type 'C<int>?'.
-//  - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-//   c_int == c_string; // error
-//            ^
-//
-// pkg/front_end/testcases/nnbd/covariant_equals.dart:95:15: Error: The argument type 'A?' can't be assigned to the parameter type 'C<String>?'.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-//  - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-//   c_string == a; // error
-//               ^
-//
-// pkg/front_end/testcases/nnbd/covariant_equals.dart:96:15: Error: The argument type 'B?' can't be assigned to the parameter type 'C<String>?'.
-//  - 'B' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-//  - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-//   c_string == b; // error
-//               ^
-//
-// pkg/front_end/testcases/nnbd/covariant_equals.dart:97:15: Error: The argument type 'C<dynamic>?' can't be assigned to the parameter type 'C<String>?'.
-//  - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-//   c_string == c_dynamic; // error
-//               ^
-//
-// pkg/front_end/testcases/nnbd/covariant_equals.dart:98:15: Error: The argument type 'C<int>?' can't be assigned to the parameter type 'C<String>?'.
-//  - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-//   c_string == c_int; // error
-//               ^
-//
-// pkg/front_end/testcases/nnbd/covariant_equals.dart:100:15: Error: The argument type 'D?' can't be assigned to the parameter type 'C<String>?'.
-//  - 'D' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-//  - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-//   c_string == d; // error
-//               ^
-//
-// pkg/front_end/testcases/nnbd/covariant_equals.dart:102:8: Error: The argument type 'A?' can't be assigned to the parameter type 'C<int>?'.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-//  - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-//   d == a; // error
-//        ^
-//
-// pkg/front_end/testcases/nnbd/covariant_equals.dart:103:8: Error: The argument type 'B?' can't be assigned to the parameter type 'C<int>?'.
-//  - 'B' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-//  - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-//   d == b; // error
-//        ^
-//
-// pkg/front_end/testcases/nnbd/covariant_equals.dart:104:8: Error: The argument type 'C<dynamic>?' can't be assigned to the parameter type 'C<int>?'.
-//  - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-//   d == c_dynamic; // error
-//        ^
-//
-// pkg/front_end/testcases/nnbd/covariant_equals.dart:106:8: Error: The argument type 'C<String>?' can't be assigned to the parameter type 'C<int>?'.
-//  - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-//   d == c_string; // error
-//        ^
-//
 import self as self;
 import "dart:core" as core;
 
@@ -421,126 +289,40 @@ static method testNonNullable(self::A a, self::B b, self::C<dynamic> c_dynamic, 
   d.{self::C::==}(d);
 }
 static method testNullable(self::A? a, self::B? b, self::C<dynamic>? c_dynamic, self::C<core::int>? c_int, self::C<core::String>? c_string, self::D? d) → dynamic {
-  a.{self::A::==}(a);
-  a.{self::A::==}(b);
-  a.{self::A::==}(let final<BottomType> #t24 = invalid-expression "pkg/front_end/testcases/nnbd/covariant_equals.dart:69:8: Error: The argument type 'C<dynamic>?' can't be assigned to the parameter type 'A?'.
- - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
- - 'A' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-  a == c_dynamic; // error
-       ^" in c_dynamic as{TypeError,ForNonNullableByDefault} self::A?);
-  a.{self::A::==}(let final<BottomType> #t25 = invalid-expression "pkg/front_end/testcases/nnbd/covariant_equals.dart:70:8: Error: The argument type 'C<int>?' can't be assigned to the parameter type 'A?'.
- - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
- - 'A' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-  a == c_int; // error
-       ^" in c_int as{TypeError,ForNonNullableByDefault} self::A?);
-  a.{self::A::==}(let final<BottomType> #t26 = invalid-expression "pkg/front_end/testcases/nnbd/covariant_equals.dart:71:8: Error: The argument type 'C<String>?' can't be assigned to the parameter type 'A?'.
- - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
- - 'A' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-  a == c_string; // error
-       ^" in c_string as{TypeError,ForNonNullableByDefault} self::A?);
-  a.{self::A::==}(let final<BottomType> #t27 = invalid-expression "pkg/front_end/testcases/nnbd/covariant_equals.dart:72:8: Error: The argument type 'D?' can't be assigned to the parameter type 'A?'.
- - 'D' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
- - 'A' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-  a == d; // error
-       ^" in d as{TypeError,ForNonNullableByDefault} self::A?);
-  b.{self::B::==}(a);
-  b.{self::B::==}(b);
-  b.{self::B::==}(let final<BottomType> #t28 = invalid-expression "pkg/front_end/testcases/nnbd/covariant_equals.dart:76:8: Error: The argument type 'C<dynamic>?' can't be assigned to the parameter type 'A?'.
- - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
- - 'A' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-  b == c_dynamic; // error
-       ^" in c_dynamic as{TypeError,ForNonNullableByDefault} self::A?);
-  b.{self::B::==}(let final<BottomType> #t29 = invalid-expression "pkg/front_end/testcases/nnbd/covariant_equals.dart:77:8: Error: The argument type 'C<int>?' can't be assigned to the parameter type 'A?'.
- - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
- - 'A' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-  b == c_int; // error
-       ^" in c_int as{TypeError,ForNonNullableByDefault} self::A?);
-  b.{self::B::==}(let final<BottomType> #t30 = invalid-expression "pkg/front_end/testcases/nnbd/covariant_equals.dart:78:8: Error: The argument type 'C<String>?' can't be assigned to the parameter type 'A?'.
- - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
- - 'A' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-  b == c_string; // error
-       ^" in c_string as{TypeError,ForNonNullableByDefault} self::A?);
-  b.{self::B::==}(let final<BottomType> #t31 = invalid-expression "pkg/front_end/testcases/nnbd/covariant_equals.dart:79:8: Error: The argument type 'D?' can't be assigned to the parameter type 'A?'.
- - 'D' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
- - 'A' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-  b == d; // error
-       ^" in d as{TypeError,ForNonNullableByDefault} self::A?);
-  c_dynamic.{self::C::==}(let final<BottomType> #t32 = invalid-expression "pkg/front_end/testcases/nnbd/covariant_equals.dart:81:16: Error: The argument type 'A?' can't be assigned to the parameter type 'C<dynamic>?'.
- - 'A' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
- - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-  c_dynamic == a; // error
-               ^" in a as{TypeError,ForNonNullableByDefault} self::C<dynamic>?);
-  c_dynamic.{self::C::==}(let final<BottomType> #t33 = invalid-expression "pkg/front_end/testcases/nnbd/covariant_equals.dart:82:16: Error: The argument type 'B?' can't be assigned to the parameter type 'C<dynamic>?'.
- - 'B' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
- - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-  c_dynamic == b; // error
-               ^" in b as{TypeError,ForNonNullableByDefault} self::C<dynamic>?);
-  c_dynamic.{self::C::==}(c_dynamic);
-  c_dynamic.{self::C::==}(c_int);
-  c_dynamic.{self::C::==}(c_string);
-  c_dynamic.{self::C::==}(d);
-  c_int.{self::C::==}(let final<BottomType> #t34 = invalid-expression "pkg/front_end/testcases/nnbd/covariant_equals.dart:88:12: Error: The argument type 'A?' can't be assigned to the parameter type 'C<int>?'.
- - 'A' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
- - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-  c_int == a; // error
-           ^" in a as{TypeError,ForNonNullableByDefault} self::C<core::int>?);
-  c_int.{self::C::==}(let final<BottomType> #t35 = invalid-expression "pkg/front_end/testcases/nnbd/covariant_equals.dart:89:12: Error: The argument type 'B?' can't be assigned to the parameter type 'C<int>?'.
- - 'B' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
- - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-  c_int == b; // error
-           ^" in b as{TypeError,ForNonNullableByDefault} self::C<core::int>?);
-  c_int.{self::C::==}(let final<BottomType> #t36 = invalid-expression "pkg/front_end/testcases/nnbd/covariant_equals.dart:90:12: Error: The argument type 'C<dynamic>?' can't be assigned to the parameter type 'C<int>?'.
- - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-  c_int == c_dynamic; // error
-           ^" in c_dynamic as{TypeError,ForNonNullableByDefault} self::C<core::int>?);
-  c_int.{self::C::==}(c_int);
-  c_int.{self::C::==}(let final<BottomType> #t37 = invalid-expression "pkg/front_end/testcases/nnbd/covariant_equals.dart:92:12: Error: The argument type 'C<String>?' can't be assigned to the parameter type 'C<int>?'.
- - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-  c_int == c_string; // error
-           ^" in c_string as{TypeError,ForNonNullableByDefault} self::C<core::int>?);
-  c_int.{self::C::==}(d);
-  c_string.{self::C::==}(let final<BottomType> #t38 = invalid-expression "pkg/front_end/testcases/nnbd/covariant_equals.dart:95:15: Error: The argument type 'A?' can't be assigned to the parameter type 'C<String>?'.
- - 'A' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
- - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-  c_string == a; // error
-              ^" in a as{TypeError,ForNonNullableByDefault} self::C<core::String>?);
-  c_string.{self::C::==}(let final<BottomType> #t39 = invalid-expression "pkg/front_end/testcases/nnbd/covariant_equals.dart:96:15: Error: The argument type 'B?' can't be assigned to the parameter type 'C<String>?'.
- - 'B' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
- - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-  c_string == b; // error
-              ^" in b as{TypeError,ForNonNullableByDefault} self::C<core::String>?);
-  c_string.{self::C::==}(let final<BottomType> #t40 = invalid-expression "pkg/front_end/testcases/nnbd/covariant_equals.dart:97:15: Error: The argument type 'C<dynamic>?' can't be assigned to the parameter type 'C<String>?'.
- - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-  c_string == c_dynamic; // error
-              ^" in c_dynamic as{TypeError,ForNonNullableByDefault} self::C<core::String>?);
-  c_string.{self::C::==}(let final<BottomType> #t41 = invalid-expression "pkg/front_end/testcases/nnbd/covariant_equals.dart:98:15: Error: The argument type 'C<int>?' can't be assigned to the parameter type 'C<String>?'.
- - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-  c_string == c_int; // error
-              ^" in c_int as{TypeError,ForNonNullableByDefault} self::C<core::String>?);
-  c_string.{self::C::==}(c_string);
-  c_string.{self::C::==}(let final<BottomType> #t42 = invalid-expression "pkg/front_end/testcases/nnbd/covariant_equals.dart:100:15: Error: The argument type 'D?' can't be assigned to the parameter type 'C<String>?'.
- - 'D' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
- - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-  c_string == d; // error
-              ^" in d as{TypeError,ForNonNullableByDefault} self::C<core::String>?);
-  d.{self::C::==}(let final<BottomType> #t43 = invalid-expression "pkg/front_end/testcases/nnbd/covariant_equals.dart:102:8: Error: The argument type 'A?' can't be assigned to the parameter type 'C<int>?'.
- - 'A' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
- - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-  d == a; // error
-       ^" in a as{TypeError,ForNonNullableByDefault} self::C<core::int>?);
-  d.{self::C::==}(let final<BottomType> #t44 = invalid-expression "pkg/front_end/testcases/nnbd/covariant_equals.dart:103:8: Error: The argument type 'B?' can't be assigned to the parameter type 'C<int>?'.
- - 'B' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
- - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-  d == b; // error
-       ^" in b as{TypeError,ForNonNullableByDefault} self::C<core::int>?);
-  d.{self::C::==}(let final<BottomType> #t45 = invalid-expression "pkg/front_end/testcases/nnbd/covariant_equals.dart:104:8: Error: The argument type 'C<dynamic>?' can't be assigned to the parameter type 'C<int>?'.
- - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-  d == c_dynamic; // error
-       ^" in c_dynamic as{TypeError,ForNonNullableByDefault} self::C<core::int>?);
-  d.{self::C::==}(c_int);
-  d.{self::C::==}(let final<BottomType> #t46 = invalid-expression "pkg/front_end/testcases/nnbd/covariant_equals.dart:106:8: Error: The argument type 'C<String>?' can't be assigned to the parameter type 'C<int>?'.
- - 'C' is from 'pkg/front_end/testcases/nnbd/covariant_equals.dart'.
-  d == c_string; // error
-       ^" in c_string as{TypeError,ForNonNullableByDefault} self::C<core::int>?);
-  d.{self::C::==}(d);
+  a.{core::Object::==}(a);
+  a.{core::Object::==}(b);
+  a.{core::Object::==}(c_dynamic);
+  a.{core::Object::==}(c_int);
+  a.{core::Object::==}(c_string);
+  a.{core::Object::==}(d);
+  b.{core::Object::==}(a);
+  b.{core::Object::==}(b);
+  b.{core::Object::==}(c_dynamic);
+  b.{core::Object::==}(c_int);
+  b.{core::Object::==}(c_string);
+  b.{core::Object::==}(d);
+  c_dynamic.{core::Object::==}(a);
+  c_dynamic.{core::Object::==}(b);
+  c_dynamic.{core::Object::==}(c_dynamic);
+  c_dynamic.{core::Object::==}(c_int);
+  c_dynamic.{core::Object::==}(c_string);
+  c_dynamic.{core::Object::==}(d);
+  c_int.{core::Object::==}(a);
+  c_int.{core::Object::==}(b);
+  c_int.{core::Object::==}(c_dynamic);
+  c_int.{core::Object::==}(c_int);
+  c_int.{core::Object::==}(c_string);
+  c_int.{core::Object::==}(d);
+  c_string.{core::Object::==}(a);
+  c_string.{core::Object::==}(b);
+  c_string.{core::Object::==}(c_dynamic);
+  c_string.{core::Object::==}(c_int);
+  c_string.{core::Object::==}(c_string);
+  c_string.{core::Object::==}(d);
+  d.{core::Object::==}(a);
+  d.{core::Object::==}(b);
+  d.{core::Object::==}(c_dynamic);
+  d.{core::Object::==}(c_int);
+  d.{core::Object::==}(c_string);
+  d.{core::Object::==}(d);
 }

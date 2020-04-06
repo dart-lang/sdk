@@ -64,45 +64,48 @@ testNonNullable(A a, B b, C c_dynamic, C<int> c_int, C<String> c_string, D d) {
 
 testNullable(
     A? a, B? b, C? c_dynamic, C<int>? c_int, C<String>? c_string, D? d) {
+  // Since the receiver type is nullable, the calls are checked against the
+  // Object member.
+
   a == a; // ok
   a == b; // ok
-  a == c_dynamic; // error
-  a == c_int; // error
-  a == c_string; // error
-  a == d; // error
+  a == c_dynamic; // ok
+  a == c_int; // ok
+  a == c_string; // ok
+  a == d; // ok
 
   b == a; // ok
   b == b; // ok
-  b == c_dynamic; // error
-  b == c_int; // error
-  b == c_string; // error
-  b == d; // error
+  b == c_dynamic; // ok
+  b == c_int; // ok
+  b == c_string; // ok
+  b == d; // ok
 
-  c_dynamic == a; // error
-  c_dynamic == b; // error
+  c_dynamic == a; // ok
+  c_dynamic == b; // ok
   c_dynamic == c_dynamic; // ok
   c_dynamic == c_int; // ok
   c_dynamic == c_string; // ok
   c_dynamic == d; // ok
 
-  c_int == a; // error
-  c_int == b; // error
-  c_int == c_dynamic; // error
+  c_int == a; // ok
+  c_int == b; // ok
+  c_int == c_dynamic; // ok
   c_int == c_int; // ok
-  c_int == c_string; // error
+  c_int == c_string; // ok
   c_int == d; // ok}
 
-  c_string == a; // error
-  c_string == b; // error
-  c_string == c_dynamic; // error
-  c_string == c_int; // error
+  c_string == a; // ok
+  c_string == b; // ok
+  c_string == c_dynamic; // ok
+  c_string == c_int; // ok
   c_string == c_string; // ok
-  c_string == d; // error
+  c_string == d; // ok
 
-  d == a; // error
-  d == b; // error
-  d == c_dynamic; // error
+  d == a; // ok
+  d == b; // ok
+  d == c_dynamic; // ok
   d == c_int; // ok
-  d == c_string; // error
+  d == c_string; // ok
   d == d; // ok
 }

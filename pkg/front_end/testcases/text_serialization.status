@@ -1369,6 +1369,7 @@ nnbd/null_shorting_index: TextSerializationFailure
 nnbd/null_shorting: TextSerializationFailure
 nnbd/nullable_access: TextSerializationFailure
 nnbd/nullable_null: TextSerializationFailure
+nnbd/nullable_object_access: TextSerializationFailure
 nnbd/nullable_param: TextSerializationFailure
 nnbd/nullable_receiver: TextSerializationFailure
 nnbd/nullable_rhs_of_typedef: TextSerializationFailure
