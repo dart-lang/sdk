@@ -70,7 +70,7 @@ main() {
   testCollection(new LinkedHashSet(), N);
   testCollection(new ListQueue(), N);
   testCollection(new DoubleLinkedQueue(), N);
-  testList(new List()..length = N, N);
-  testList(new List(N), N);
+  testList([]..length = N, N);
+  testList(new List.filled(N, null), N);
   testString(N);
 }
