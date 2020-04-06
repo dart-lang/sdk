@@ -2124,6 +2124,10 @@ class FieldInvalidator {
     }
     value_ ^= instance.GetField(field);
     if (value_.raw() == Object::sentinel().raw()) {
+      if (field.is_late()) {
+        // Late fields already have lazy initialization logic.
+        return;
+      }
       // Needs guard for initialization.
       ASSERT(!FLAG_identity_reload);
       field.set_needs_load_guard(true);
