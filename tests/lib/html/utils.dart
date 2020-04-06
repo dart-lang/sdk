@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /// The test runner for DDC does not handle tests that import files using
 /// relative imports that reach outside of the directory containing the test
 /// (i.e. "../" imports). Since tests both in this directory and in "custom/"

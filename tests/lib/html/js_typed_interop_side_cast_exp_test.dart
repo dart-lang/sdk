@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 // SharedOptions=--experimental-trust-js-interop-type-annotations
 
 // Similar test to js_typed_interop_side_cast, but because we are using the

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 // Put universally passing event constructors in this file.
 // Move constructors that fail on some configuration to their own
 // element_constructor_foo_test.dart file.
