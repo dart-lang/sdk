@@ -30,6 +30,8 @@ import '../util/graph.dart' show Graph, computeStrongComponents;
 
 import '../visitor.dart' show DartTypeVisitor, DartTypeVisitor1;
 
+import 'legacy_erasure.dart';
+
 class TypeVariableGraph extends Graph<int> {
   List<int> vertices;
   List<TypeParameter> typeParameters;
@@ -257,6 +259,7 @@ class TypeArgumentIssue {
 // TODO(dmitryas):  Remove [typedefInstantiations] when type arguments passed to
 // typedefs are preserved in the Kernel output.
 List<TypeArgumentIssue> findTypeArgumentIssues(
+    Library library,
     DartType type,
     TypeEnvironment typeEnvironment,
     SubtypeCheckMode subtypeCheckMode,
@@ -281,7 +284,7 @@ List<TypeArgumentIssue> findTypeArgumentIssues(
         requiredParameterCount: functionType.requiredParameterCount,
         typedefType: null);
     typedefRhsResult = findTypeArgumentIssues(
-        cloned, typeEnvironment, subtypeCheckMode, bottomType,
+        library, cloned, typeEnvironment, subtypeCheckMode, bottomType,
         allowSuperBounded: true);
     type = functionType.typedefType;
   }
@@ -295,25 +298,25 @@ List<TypeArgumentIssue> findTypeArgumentIssues(
   } else if (type is FunctionType) {
     List<TypeArgumentIssue> result = <TypeArgumentIssue>[];
     for (TypeParameter parameter in type.typeParameters) {
-      result.addAll(findTypeArgumentIssues(
-              parameter.bound, typeEnvironment, subtypeCheckMode, bottomType,
+      result.addAll(findTypeArgumentIssues(library, parameter.bound,
+              typeEnvironment, subtypeCheckMode, bottomType,
               allowSuperBounded: true) ??
           const <TypeArgumentIssue>[]);
     }
     for (DartType formal in type.positionalParameters) {
       result.addAll(findTypeArgumentIssues(
-              formal, typeEnvironment, subtypeCheckMode, bottomType,
+              library, formal, typeEnvironment, subtypeCheckMode, bottomType,
               allowSuperBounded: true) ??
           const <TypeArgumentIssue>[]);
     }
     for (NamedType named in type.namedParameters) {
-      result.addAll(findTypeArgumentIssues(
-              named.type, typeEnvironment, subtypeCheckMode, bottomType,
+      result.addAll(findTypeArgumentIssues(library, named.type, typeEnvironment,
+              subtypeCheckMode, bottomType,
               allowSuperBounded: true) ??
           const <TypeArgumentIssue>[]);
     }
-    result.addAll(findTypeArgumentIssues(
-            type.returnType, typeEnvironment, subtypeCheckMode, bottomType,
+    result.addAll(findTypeArgumentIssues(library, type.returnType,
+            typeEnvironment, subtypeCheckMode, bottomType,
             allowSuperBounded: true) ??
         const <TypeArgumentIssue>[]);
     return result.isEmpty ? null : result;
@@ -334,19 +337,21 @@ List<TypeArgumentIssue> findTypeArgumentIssues(
       // Generic function types aren't allowed as type arguments either.
       result ??= <TypeArgumentIssue>[];
       result.add(new TypeArgumentIssue(i, argument, variables[i], type));
-    } else if (variables[i].bound is! InvalidType &&
-        !typeEnvironment.isSubtypeOf(
-            argument,
-            substitute(variables[i].bound, substitutionMap),
-            subtypeCheckMode)) {
-      // If the bound is InvalidType it's not checked, because an error was
-      // reported already at the time of the creation of InvalidType.
-      result ??= <TypeArgumentIssue>[];
-      result.add(new TypeArgumentIssue(i, argument, variables[i], type));
+    } else if (variables[i].bound is! InvalidType) {
+      DartType bound = substitute(variables[i].bound, substitutionMap);
+      if (!library.isNonNullableByDefault) {
+        bound = legacyErasure(typeEnvironment.coreTypes, bound);
+      }
+      if (!typeEnvironment.isSubtypeOf(argument, bound, subtypeCheckMode)) {
+        // If the bound is InvalidType it's not checked, because an error was
+        // reported already at the time of the creation of InvalidType.
+        result ??= <TypeArgumentIssue>[];
+        result.add(new TypeArgumentIssue(i, argument, variables[i], type));
+      }
     }
 
     List<TypeArgumentIssue> issues = findTypeArgumentIssues(
-        argument, typeEnvironment, subtypeCheckMode, bottomType,
+        library, argument, typeEnvironment, subtypeCheckMode, bottomType,
         allowSuperBounded: true);
     if (issues != null) {
       argumentsResult ??= <TypeArgumentIssue>[];
@@ -413,6 +418,7 @@ List<TypeArgumentIssue> findTypeArgumentIssues(
 // TODO(dmitryas):  Remove [typedefInstantiations] when type arguments passed to
 // typedefs are preserved in the Kernel output.
 List<TypeArgumentIssue> findTypeArgumentIssuesForInvocation(
+    Library library,
     List<TypeParameter> parameters,
     List<DartType> arguments,
     TypeEnvironment typeEnvironment,
@@ -436,14 +442,19 @@ List<TypeArgumentIssue> findTypeArgumentIssuesForInvocation(
       // Generic function types aren't allowed as type arguments either.
       result ??= <TypeArgumentIssue>[];
       result.add(new TypeArgumentIssue(i, argument, parameters[i], null));
-    } else if (!typeEnvironment.isSubtypeOf(argument,
-        substitute(parameters[i].bound, substitutionMap), subtypeCheckMode)) {
-      result ??= <TypeArgumentIssue>[];
-      result.add(new TypeArgumentIssue(i, argument, parameters[i], null));
+    } else if (parameters[i].bound is! InvalidType) {
+      DartType bound = substitute(parameters[i].bound, substitutionMap);
+      if (!library.isNonNullableByDefault) {
+        bound = legacyErasure(typeEnvironment.coreTypes, bound);
+      }
+      if (!typeEnvironment.isSubtypeOf(argument, bound, subtypeCheckMode)) {
+        result ??= <TypeArgumentIssue>[];
+        result.add(new TypeArgumentIssue(i, argument, parameters[i], null));
+      }
     }
 
     List<TypeArgumentIssue> issues = findTypeArgumentIssues(
-        argument, typeEnvironment, subtypeCheckMode, bottomType,
+        library, argument, typeEnvironment, subtypeCheckMode, bottomType,
         allowSuperBounded: true);
     if (issues != null) {
       result ??= <TypeArgumentIssue>[];

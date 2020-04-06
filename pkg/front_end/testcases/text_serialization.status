@@ -1289,6 +1289,7 @@ new_const_insertion/simple: TextSerializationFailure # Was: Pass
 nnbd/assign_type_variable: TextSerializationFailure
 nnbd/assignability: TextSerializationFailure
 nnbd/bounds_checks: TextSerializationFailure
+nnbd/bounds_from_opt_in: TextSerializationFailure
 nnbd/call: TextSerializationFailure
 nnbd/constants: TextSerializationFailure
 nnbd/covariant_equals: TextSerializationFailure

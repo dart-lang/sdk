@@ -4,99 +4,43 @@
 
 library fasta.source_class_builder;
 
-import 'package:kernel/ast.dart'
-    show
-        Class,
-        Constructor,
-        Expression,
-        ListLiteral,
-        Member,
-        StaticGet,
-        Supertype,
-        TreeNode,
-        DartType,
-        DynamicType,
-        Field,
-        FunctionNode,
-        Name,
-        Procedure,
-        ProcedureKind,
-        TypeParameter,
-        VariableDeclaration,
-        Variance,
-        VoidType;
-
+import 'package:kernel/ast.dart' hide MapEntry;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
-
 import 'package:kernel/clone.dart' show CloneProcedureWithoutBody;
-
 import 'package:kernel/reference_from_index.dart' show IndexedClass;
-
+import 'package:kernel/src/bounds_checks.dart';
 import 'package:kernel/type_algebra.dart' show Substitution;
-
 import 'package:kernel/type_algebra.dart' as type_algebra
     show getSubstitutionMap;
-
 import 'package:kernel/type_environment.dart';
 
 import '../builder/builder.dart';
-
 import '../builder/class_builder.dart';
-
 import '../builder/constructor_reference_builder.dart';
-
+import '../builder/field_builder.dart';
 import '../builder/function_builder.dart';
-
 import '../builder/invalid_type_declaration_builder.dart';
-
 import '../builder/library_builder.dart';
-
 import '../builder/member_builder.dart';
-
 import '../builder/metadata_builder.dart';
-
 import '../builder/named_type_builder.dart';
-
 import '../builder/nullability_builder.dart';
-
 import '../builder/procedure_builder.dart';
-
 import '../builder/type_alias_builder.dart';
-
 import '../builder/type_builder.dart';
-
 import '../builder/type_declaration_builder.dart';
-
 import '../builder/type_variable_builder.dart';
 
 import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 
-import '../fasta_codes.dart'
-    show
-        Message,
-        noLength,
-        messageExtendFunction,
-        messageImplementFunction,
-        messageMixinFunction,
-        templateConflictsWithConstructor,
-        templateConflictsWithFactory,
-        templateConflictsWithMember,
-        templateConflictsWithSetter,
-        templateDuplicatedDeclarationUse,
-        templateInvalidTypeVariableInSupertype,
-        templateInvalidTypeVariableInSupertypeWithVariance,
-        templateRedirectionTargetNotFound,
-        templateSupertypeIsIllegal;
+import '../fasta_codes.dart';
 
 import '../kernel/redirecting_factory_body.dart' show redirectingName;
-
 import '../kernel/kernel_builder.dart' show compareProcedures;
-
 import '../kernel/kernel_target.dart' show KernelTarget;
-
 import '../kernel/redirecting_factory_body.dart' show RedirectingFactoryBody;
-
-import '../kernel/type_algorithms.dart' show Variance, computeVariance;
+import '../kernel/type_algorithms.dart'
+    show Variance, computeTypeVariableBuilderVariance;
 
 import '../names.dart' show noSuchMethodName;
 
@@ -340,7 +284,8 @@ class SourceClassBuilder extends ClassBuilderImpl
     if (typeVariables == null || supertype == null) return supertype;
     Message message;
     for (int i = 0; i < typeVariables.length; ++i) {
-      int variance = computeVariance(typeVariables[i], supertype, library);
+      int variance = computeTypeVariableBuilderVariance(
+          typeVariables[i], supertype, library);
       if (!Variance.greaterThanOrEqual(variance, typeVariables[i].variance)) {
         if (typeVariables[i].parameter.isLegacyCovariant) {
           message = templateInvalidTypeVariableInSupertype.withArguments(
@@ -365,6 +310,280 @@ class SourceClassBuilder extends ClassBuilderImpl
             message.withLocation(fileUri, charOffset, noLength)));
     }
     return supertype;
+  }
+
+  void checkVarianceInField(Field field, TypeEnvironment typeEnvironment,
+      List<TypeParameter> typeParameters) {
+    for (TypeParameter typeParameter in typeParameters) {
+      int fieldVariance = computeVariance(typeParameter, field.type);
+      if (field.hasImplicitGetter) {
+        reportVariancePositionIfInvalid(
+            fieldVariance, typeParameter, field.fileUri, field.fileOffset);
+      }
+      if (field.hasImplicitSetter && !field.isCovariant) {
+        fieldVariance = Variance.combine(Variance.contravariant, fieldVariance);
+        reportVariancePositionIfInvalid(
+            fieldVariance, typeParameter, field.fileUri, field.fileOffset);
+      }
+    }
+  }
+
+  void checkVarianceInFunction(Procedure procedure,
+      TypeEnvironment typeEnvironment, List<TypeParameter> typeParameters) {
+    List<TypeParameter> functionTypeParameters =
+        procedure.function.typeParameters;
+    List<VariableDeclaration> positionalParameters =
+        procedure.function.positionalParameters;
+    List<VariableDeclaration> namedParameters =
+        procedure.function.namedParameters;
+    DartType returnType = procedure.function.returnType;
+
+    if (functionTypeParameters != null) {
+      for (TypeParameter functionParameter in functionTypeParameters) {
+        for (TypeParameter typeParameter in typeParameters) {
+          int typeVariance = Variance.combine(Variance.invariant,
+              computeVariance(typeParameter, functionParameter.bound));
+          reportVariancePositionIfInvalid(typeVariance, typeParameter, fileUri,
+              functionParameter.fileOffset);
+        }
+      }
+    }
+    if (positionalParameters != null) {
+      for (VariableDeclaration formal in positionalParameters) {
+        if (!formal.isCovariant) {
+          for (TypeParameter typeParameter in typeParameters) {
+            int formalVariance = Variance.combine(Variance.contravariant,
+                computeVariance(typeParameter, formal.type));
+            reportVariancePositionIfInvalid(
+                formalVariance, typeParameter, fileUri, formal.fileOffset);
+          }
+        }
+      }
+    }
+    if (namedParameters != null) {
+      for (VariableDeclaration named in namedParameters) {
+        for (TypeParameter typeParameter in typeParameters) {
+          int namedVariance = Variance.combine(Variance.contravariant,
+              computeVariance(typeParameter, named.type));
+          reportVariancePositionIfInvalid(
+              namedVariance, typeParameter, fileUri, named.fileOffset);
+        }
+      }
+    }
+    if (returnType != null) {
+      for (TypeParameter typeParameter in typeParameters) {
+        int returnTypeVariance = computeVariance(typeParameter, returnType);
+        reportVariancePositionIfInvalid(returnTypeVariance, typeParameter,
+            fileUri, procedure.function.fileOffset,
+            isReturnType: true);
+      }
+    }
+  }
+
+  void reportVariancePositionIfInvalid(
+      int variance, TypeParameter typeParameter, Uri fileUri, int fileOffset,
+      {bool isReturnType: false}) {
+    SourceLibraryBuilder library = this.library;
+    if (!typeParameter.isLegacyCovariant &&
+        !Variance.greaterThanOrEqual(variance, typeParameter.variance)) {
+      Message message;
+      if (isReturnType) {
+        message = templateInvalidTypeVariableVariancePositionInReturnType
+            .withArguments(Variance.keywordString(typeParameter.variance),
+                typeParameter.name, Variance.keywordString(variance));
+      } else {
+        message = templateInvalidTypeVariableVariancePosition.withArguments(
+            Variance.keywordString(typeParameter.variance),
+            typeParameter.name,
+            Variance.keywordString(variance));
+      }
+      library.reportTypeArgumentIssue(
+          message, fileUri, fileOffset, typeParameter);
+    }
+  }
+
+  void checkBoundsInSupertype(
+      Supertype supertype, TypeEnvironment typeEnvironment) {
+    SourceLibraryBuilder libraryBuilder = this.library;
+    Library library = libraryBuilder.library;
+    final DartType bottomType = library.isNonNullableByDefault
+        ? const NeverType(Nullability.nonNullable)
+        : typeEnvironment.nullType;
+
+    Set<TypeArgumentIssue> issues = {};
+    issues.addAll(findTypeArgumentIssues(
+            library,
+            new InterfaceType(supertype.classNode, library.nonNullable,
+                supertype.typeArguments),
+            typeEnvironment,
+            SubtypeCheckMode.ignoringNullabilities,
+            bottomType,
+            allowSuperBounded: false) ??
+        const []);
+    if (library.isNonNullableByDefault) {
+      issues.addAll(findTypeArgumentIssues(
+              library,
+              new InterfaceType(supertype.classNode, library.nonNullable,
+                  supertype.typeArguments),
+              typeEnvironment,
+              SubtypeCheckMode.withNullabilities,
+              bottomType,
+              allowSuperBounded: false) ??
+          const []);
+    }
+    for (TypeArgumentIssue issue in issues) {
+      DartType argument = issue.argument;
+      TypeParameter typeParameter = issue.typeParameter;
+      bool inferred = libraryBuilder.inferredTypes.contains(argument);
+      if (argument is FunctionType && argument.typeParameters.length > 0) {
+        if (inferred) {
+          libraryBuilder.reportTypeArgumentIssue(
+              templateGenericFunctionTypeInferredAsActualTypeArgument
+                  .withArguments(argument, library.isNonNullableByDefault),
+              fileUri,
+              charOffset,
+              null);
+        } else {
+          libraryBuilder.reportTypeArgumentIssue(
+              messageGenericFunctionTypeUsedAsActualTypeArgument,
+              fileUri,
+              charOffset,
+              null);
+        }
+      } else {
+        void reportProblem(
+            Template<
+                    Message Function(DartType, DartType, String, String, String,
+                        String, bool)>
+                template) {
+          libraryBuilder.reportTypeArgumentIssue(
+              template.withArguments(
+                  argument,
+                  typeParameter.bound,
+                  typeParameter.name,
+                  getGenericTypeName(issue.enclosingType),
+                  supertype.classNode.name,
+                  name,
+                  library.isNonNullableByDefault),
+              fileUri,
+              charOffset,
+              typeParameter);
+        }
+
+        if (inferred) {
+          reportProblem(templateIncorrectTypeArgumentInSupertypeInferred);
+        } else {
+          reportProblem(templateIncorrectTypeArgumentInSupertype);
+        }
+      }
+    }
+  }
+
+  void checkTypesInOutline(TypeEnvironment typeEnvironment) {
+    SourceLibraryBuilder libraryBuilder = this.library;
+    Library library = libraryBuilder.library;
+    final DartType bottomType = library.isNonNullableByDefault
+        ? const NeverType(Nullability.nonNullable)
+        : typeEnvironment.nullType;
+
+    // Check in bounds of own type variables.
+    for (TypeParameter parameter in cls.typeParameters) {
+      Set<TypeArgumentIssue> issues = {};
+      issues.addAll(findTypeArgumentIssues(
+              library,
+              parameter.bound,
+              typeEnvironment,
+              SubtypeCheckMode.ignoringNullabilities,
+              bottomType,
+              allowSuperBounded: true) ??
+          const []);
+      if (library.isNonNullableByDefault) {
+        issues.addAll(findTypeArgumentIssues(library, parameter.bound,
+                typeEnvironment, SubtypeCheckMode.withNullabilities, bottomType,
+                allowSuperBounded: true) ??
+            const []);
+      }
+      for (TypeArgumentIssue issue in issues) {
+        DartType argument = issue.argument;
+        TypeParameter typeParameter = issue.typeParameter;
+        if (libraryBuilder.inferredTypes.contains(argument)) {
+          // Inference in type expressions in the supertypes boils down to
+          // instantiate-to-bound which shouldn't produce anything that breaks
+          // the bounds after the non-simplicity checks are done.  So, any
+          // violation here is the result of non-simple bounds, and the error
+          // is reported elsewhere.
+          continue;
+        }
+
+        if (argument is FunctionType && argument.typeParameters.length > 0) {
+          libraryBuilder.reportTypeArgumentIssue(
+              messageGenericFunctionTypeUsedAsActualTypeArgument,
+              fileUri,
+              parameter.fileOffset,
+              null);
+        } else {
+          libraryBuilder.reportTypeArgumentIssue(
+              templateIncorrectTypeArgument.withArguments(
+                  argument,
+                  typeParameter.bound,
+                  typeParameter.name,
+                  getGenericTypeName(issue.enclosingType),
+                  library.isNonNullableByDefault),
+              fileUri,
+              parameter.fileOffset,
+              typeParameter);
+        }
+      }
+    }
+
+    // Check in supers.
+    if (cls.supertype != null) {
+      checkBoundsInSupertype(cls.supertype, typeEnvironment);
+    }
+    if (cls.mixedInType != null) {
+      checkBoundsInSupertype(cls.mixedInType, typeEnvironment);
+    }
+    if (cls.implementedTypes != null) {
+      for (Supertype supertype in cls.implementedTypes) {
+        checkBoundsInSupertype(supertype, typeEnvironment);
+      }
+    }
+
+    // Check in members.
+    for (Procedure procedure in cls.procedures) {
+      checkVarianceInFunction(procedure, typeEnvironment, cls.typeParameters);
+      libraryBuilder.checkBoundsInFunctionNode(
+          procedure.function, typeEnvironment, fileUri);
+    }
+    for (Constructor constructor in cls.constructors) {
+      libraryBuilder.checkBoundsInFunctionNode(
+          constructor.function, typeEnvironment, fileUri);
+    }
+    for (RedirectingFactoryConstructor redirecting
+        in cls.redirectingFactoryConstructors) {
+      libraryBuilder.checkBoundsInFunctionNodeParts(
+          typeEnvironment, fileUri, redirecting.fileOffset,
+          typeParameters: redirecting.typeParameters,
+          positionalParameters: redirecting.positionalParameters,
+          namedParameters: redirecting.namedParameters);
+    }
+
+    forEach((String name, Builder builder) {
+      // Check fields.
+      if (builder is FieldBuilder) {
+        checkVarianceInField(
+            builder.field, typeEnvironment, cls.typeParameters);
+        libraryBuilder.checkTypesInField(builder, typeEnvironment);
+      }
+
+      // Check initializers.
+      if (builder is FunctionBuilder &&
+          !builder.isAbstract &&
+          builder.formals != null) {
+        libraryBuilder.checkInitializersInFormals(
+            builder.formals, typeEnvironment);
+      }
+    });
   }
 
   void addSyntheticConstructor(Constructor constructor) {
