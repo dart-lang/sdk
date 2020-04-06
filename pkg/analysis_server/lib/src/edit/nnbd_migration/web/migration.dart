@@ -609,8 +609,8 @@ AnchorElement _aElementForLink(TargetLink link, String parentDirectory) {
 
 void _populateEditLinks(EditDetails response, Element editPanel) {
   if (response.edits != null) {
+    Element editParagraph = editPanel.append(document.createElement('p'));
     for (var edit in response.edits) {
-      Element editParagraph = editPanel.append(document.createElement('p'));
       Element a = editParagraph.append(document.createElement('a'));
       a.append(Text(edit.description));
       a.setAttribute('href', edit.href);

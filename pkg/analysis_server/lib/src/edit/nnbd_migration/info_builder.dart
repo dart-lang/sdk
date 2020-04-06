@@ -457,7 +457,7 @@ class InfoBuilder {
       case NullabilityFixKind.checkExpression:
         // TODO(brianwilkerson) Determine whether we can know that the fix is
         //  associated with a parameter and insert an assert if it is.
-        edits.add(EditDetail('Force null check.', offset, 0, '/*!*/'));
+        edits.add(EditDetail('Add /*!*/ hint', offset, 0, '/*!*/'));
         break;
       case NullabilityFixKind.removeAs:
       case NullabilityFixKind.removeDeadCode:
@@ -466,9 +466,8 @@ class InfoBuilder {
         break;
       case NullabilityFixKind.makeTypeNullable:
       case NullabilityFixKind.typeNotMadeNullable:
-        edits.add(
-            EditDetail('Force type to be non-nullable.', offset, 0, '/*!*/'));
-        edits.add(EditDetail('Force type to be nullable.', offset, 0, '/*?*/'));
+        edits.add(EditDetail('Add /*!*/ hint', offset, 0, '/*!*/'));
+        edits.add(EditDetail('Add /*?*/ hint', offset, 0, '/*?*/'));
         break;
     }
     return edits;

@@ -416,7 +416,12 @@ a:hover {
   fill: #fff;
 }
 
-button {
+a.post-link {
+  display: inline-block;
+  margin: 3px;
+}
+
+button, a.post-link {
   background-color: #33ccff;
   border: 2px solid #37aedc;
   border-radius: 3px;
@@ -425,7 +430,7 @@ button {
   color: #282828;
 }
 
-button:hover {
+button:hover, a.post-link:hover {
   background-color: #80dfff;
   border: 2px solid #52b8e0;
   cursor: pointer;

@@ -1981,7 +1981,7 @@ String /*!*/ y = x[0]!;
     expect(region.explanation, "Type 'int' was not made nullable");
     expect(region.details, isEmpty);
     expect(region.edits.map((edit) => edit.description).toSet(),
-        {'Force type to be non-nullable.', 'Force type to be nullable.'});
+        {'Add /*?*/ hint', 'Add /*!*/ hint'});
     expect(region.traces, isEmpty);
   }
 
