@@ -15,7 +15,9 @@ import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart' as err;
+import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:args/args.dart';
 
@@ -30,10 +32,12 @@ Future<void> main(List<String> args) async {
   if (!validArguments(parser, result)) {
     return io.exit(1);
   }
+
   var root = result.rest[0];
   print('Analyzing root: "$root"');
   var stopwatch = Stopwatch()..start();
-  var code = await CompletionMetricsComputer(root, verbose: result['verbose'])
+  var code = await CompletionMetricsComputer(root,
+          verbose: result['verbose'], overlay: result['overlay'])
       .compute();
   stopwatch.stop();
 
@@ -42,6 +46,12 @@ Future<void> main(List<String> args) async {
   print('Metrics computed in $duration');
   return io.exit(code);
 }
+
+const String OVERLAY_NONE = 'none';
+
+const String OVERLAY_REMOVE_REST_OF_FILE = 'remove-rest-of-file';
+
+const String OVERLAY_REMOVE_TOKEN = 'remove-token';
 
 /// Create a parser that can be used to parse the command-line arguments.
 ArgParser createArgParser() {
@@ -57,6 +67,17 @@ ArgParser createArgParser() {
     help: 'Print additional information about the analysis',
     negatable: false,
   );
+  parser.addOption('overlay',
+      allowed: [
+        OVERLAY_NONE,
+        OVERLAY_REMOVE_TOKEN,
+        OVERLAY_REMOVE_REST_OF_FILE
+      ],
+      defaultsTo: OVERLAY_NONE,
+      help: 'Before attempting a completion at the location of each token, the '
+          'token can be removed, or the rest of the file can be removed to test '
+          'code completion with diverse methods. The default mode is to '
+          'complete at the start of the token without modifying the file.');
   return parser;
 }
 
@@ -165,6 +186,8 @@ class CompletionMetricsComputer {
 
   final bool verbose;
 
+  final String overlay;
+
   String _currentFilePath;
 
   ResolvedUnitResult _resolvedUnitResult;
@@ -176,7 +199,15 @@ class CompletionMetricsComputer {
 
   CompletionMetrics metricsNewMode;
 
-  CompletionMetricsComputer(this.rootPath, {this.verbose});
+  final OverlayResourceProvider _provider =
+      OverlayResourceProvider(PhysicalResourceProvider.INSTANCE);
+
+  int overlayModificationStamp = 0;
+
+  CompletionMetricsComputer(this.rootPath, {this.verbose, this.overlay})
+      : assert(overlay == OVERLAY_NONE ||
+            overlay == OVERLAY_REMOVE_TOKEN ||
+            overlay == OVERLAY_REMOVE_REST_OF_FILE);
 
   /// The path to the current file.
   String get currentFilePath => _currentFilePath;
@@ -407,8 +438,9 @@ class CompletionMetricsComputer {
     final collection = AnalysisContextCollection(
       includedPaths: root.includedPaths.toList(),
       excludedPaths: root.excludedPaths.toList(),
-      resourceProvider: PhysicalResourceProvider.INSTANCE,
+      resourceProvider: _provider,
     );
+
     var context = collection.contexts[0];
 //    // Set the DeclarationsTracker, only call doWork to build up the available
 //    // suggestions if doComputeCompletionsFromAnalysisServer is true.
@@ -445,6 +477,24 @@ class CompletionMetricsComputer {
           _resolvedUnitResult.unit.accept(visitor);
 
           for (var expectedCompletion in visitor.expectedCompletions) {
+            var resolvedUnitResultWithOverlay = _resolvedUnitResult;
+
+            // If an overlay option is being used, compute the overlay file, and
+            // have the context reanalyze the file
+            if (overlay != OVERLAY_NONE) {
+              var overlayContents = _getOverlayContents(
+                  _resolvedUnitResult.content, expectedCompletion, overlay);
+
+              _provider.setOverlay(filePath,
+                  content: overlayContents,
+                  modificationStamp: overlayModificationStamp++);
+              (context as DriverBasedAnalysisContext)
+                  .driver
+                  .changeFile(filePath);
+              resolvedUnitResultWithOverlay =
+                  await context.currentSession.getResolvedUnit(filePath);
+            }
+
             // As this point the completion suggestions are computed,
             // and results are collected with varying settings for
             // comparison:
@@ -452,7 +502,7 @@ class CompletionMetricsComputer {
             // First we compute the completions useNewRelevance set to
             // false:
             var suggestions = await _computeCompletionSuggestions(
-                _resolvedUnitResult,
+                resolvedUnitResultWithOverlay,
                 expectedCompletion.offset,
                 metricsOldMode,
                 false);
@@ -462,13 +512,19 @@ class CompletionMetricsComputer {
 
             // And again here with useNewRelevance set to true:
             suggestions = await _computeCompletionSuggestions(
-                _resolvedUnitResult,
+                resolvedUnitResultWithOverlay,
                 expectedCompletion.offset,
                 metricsNewMode,
                 true);
 
             forEachExpectedCompletion(
                 expectedCompletion, suggestions, metricsNewMode);
+
+            // If an overlay option is being used, remove the overlay applied
+            // earlier
+            if (overlay != OVERLAY_NONE) {
+              _provider.removeOverlay(filePath);
+            }
           }
         } catch (e) {
           print('Exception caught analyzing: $filePath');
@@ -485,6 +541,24 @@ class CompletionMetricsComputer {
     return suggestions
         .where((suggestion) => suggestion.completion.startsWith(prefix))
         .toList();
+  }
+
+  String _getOverlayContents(String contents,
+      ExpectedCompletion expectedCompletion, String overlayMode) {
+    assert(contents.isNotEmpty);
+    var offset = expectedCompletion.offset;
+    var length = expectedCompletion.syntacticEntity.length;
+    assert(offset >= 0);
+    assert(length > 0);
+    if (overlayMode == OVERLAY_REMOVE_TOKEN) {
+      return contents.substring(0, offset) +
+          contents.substring(offset + length);
+    } else if (overlayMode == OVERLAY_REMOVE_REST_OF_FILE) {
+      return contents.substring(0, offset);
+    } else {
+      throw Exception('\'_getOverlayContents\' called with option other than'
+          '$OVERLAY_REMOVE_TOKEN and $OVERLAY_REMOVE_REST_OF_FILE: $overlayMode');
+    }
   }
 
   /// Given some [ResolvedUnitResult] return the first error of high severity
