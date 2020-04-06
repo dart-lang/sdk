@@ -1132,7 +1132,7 @@ class StubCallInfo extends CallInfo {
   }
 
   @override
-  String toString() => "${name} + ${offset}";
+  String toString() => "${name}+0x${offset.toRadixString(16)}";
 }
 
 /// The instructions section in which a program counter address is located.
@@ -1175,11 +1175,17 @@ class Dwarf {
   final Map<int, _AbbreviationsTable> _abbreviationTables;
   final DebugInfo _debugInfo;
   final LineNumberInfo _lineNumberInfo;
-  final int _vmStartAddress;
-  final int _isolateStartAddress;
+
+  /// Virtual address of the start of the VM instructions section in the DWARF
+  /// information.
+  final int vmStartAddress;
+
+  /// Virtual address of the start of the isolate instructions section in the
+  /// DWARF information.
+  final int isolateStartAddress;
 
   Dwarf._(this._elf, this._abbreviationTables, this._debugInfo,
-      this._lineNumberInfo, this._vmStartAddress, this._isolateStartAddress);
+      this._lineNumberInfo, this.vmStartAddress, this.isolateStartAddress);
 
   /// Attempts to load the DWARF debugging information from the reader.
   ///
@@ -1269,9 +1275,9 @@ class Dwarf {
   int virtualAddressOf(PCOffset pcOffset) {
     switch (pcOffset.section) {
       case InstructionsSection.vm:
-        return pcOffset.offset + _vmStartAddress;
+        return pcOffset.offset + vmStartAddress;
       case InstructionsSection.isolate:
-        return pcOffset.offset + _isolateStartAddress;
+        return pcOffset.offset + isolateStartAddress;
       default:
         throw "Unexpected value for instructions section";
     }
