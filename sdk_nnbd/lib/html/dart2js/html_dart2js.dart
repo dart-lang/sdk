@@ -22525,7 +22525,7 @@ class Navigator extends NavigatorConcurrentHardware
         NavigatorOnLine,
         NavigatorAutomationInformation,
         NavigatorID {
-  List<Gamepad> getGamepads() {
+  List<Gamepad?> getGamepads() {
     var gamepadList = _getGamepads();
 
     // If no prototype we need one for the world to hookup to the proper Dart class.
@@ -22677,7 +22677,7 @@ class Navigator extends NavigatorConcurrentHardware
   @JSName('getGamepads')
   @Returns('_GamepadList')
   @Creates('_GamepadList')
-  List<Gamepad> _getGamepads() native;
+  List<Gamepad?> _getGamepads() native;
 
   Future<RelatedApplication> getInstalledRelatedApps() =>
       promiseToFuture<RelatedApplication>(

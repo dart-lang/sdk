@@ -1271,8 +1271,10 @@ class InterfaceIDLTypeInfo(IDLTypeInfo):
         if self._data.dart_type:
             return self._data.dart_type
         if self.list_item_type() and not self.has_generated_interface():
-            return 'List<%s>' % self._type_registry.TypeInfo(
-                self._data.item_type).dart_type()
+            item_nullable = '?' if self._data.item_type_nullable and \
+                global_options_hack.nnbd else ''
+            return 'List<%s%s>' % (self._type_registry.TypeInfo(
+                self._data.item_type).dart_type(), item_nullable)
         return self._dart_interface_name
 
     def narrow_dart_type(self):
