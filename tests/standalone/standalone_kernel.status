@@ -13,6 +13,8 @@ no_lazy_dispatchers_test: SkipByDesign # KBC interpreter doesn't support --no_la
 
 [ $system == android ]
 entrypoints_verification_test: Skip # Requires shared objects which the test script doesn't "adb push".
+io/http_ban_http_embedder_test: Skip # Requires http server bound to non-loopback; not provided by system.
+io/http_ban_http_normal_test: Skip # Requires http server bound to non-loopback; not provided by system.
 
 [ $arch == ia32 && $builder_tag == optimization_counter_threshold ]
 io/file_lock_test: SkipSlow # Timeout

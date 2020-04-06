@@ -18,6 +18,7 @@ import "dart:typed_data";
 import "dart:isolate";
 
 part "../../../sdk/lib/_http/crypto.dart";
+part "../../../sdk/lib/_http/embedder_config.dart";
 part "../../../sdk/lib/_http/http_impl.dart";
 part "../../../sdk/lib/_http/http_date.dart";
 part "../../../sdk/lib/_http/http_parser.dart";

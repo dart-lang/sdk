@@ -24,6 +24,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 part 'crypto.dart';
+part 'embedder_config.dart';
 part 'http_date.dart';
 part 'http_headers.dart';
 part 'http_impl.dart';

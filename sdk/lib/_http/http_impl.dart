@@ -2266,6 +2266,32 @@ class _HttpClient implements HttpClient {
     });
   }
 
+  /// Whether HTTP requests are currently allowed.
+  ///
+  /// If the [Zone] variable `#dart.library.io.allow_http` is set to a boolean,
+  /// it determines whether the HTTP protocol is allowed. If the zone variable
+  /// is set to any other non-null value, HTTP is not allowed.
+  /// Otherwise, if the `dart.library.io.allow_http` environment flag
+  /// is set to `false`, HTTP is not allowed.
+  /// Otherwise, [_embedderAllowsHTTP] determines the result.
+  bool get _isHttpAllowed {
+    final zoneOverride = Zone.current[#dart.library.io.allow_http];
+    if (zoneOverride != null) return true == zoneOverride;
+    bool envOverride =
+        bool.fromEnvironment("dart.library.io.allow_http", defaultValue: true);
+    return envOverride && _embedderAllowsHttp;
+  }
+
+  bool _isLoopback(String host) {
+    if (host.isEmpty) return false;
+    if ("localhost" == host) return true;
+    try {
+      return InternetAddress(host).isLoopback;
+    } on ArgumentError {
+      return false;
+    }
+  }
+
   Future<_HttpClientRequest> _openUrl(String method, Uri uri) {
     if (_closing) {
       throw new StateError("Client is closed");
@@ -2286,7 +2312,12 @@ class _HttpClient implements HttpClient {
       }
     }
 
-    bool isSecure = (uri.scheme == "https");
+    bool isSecure = uri.isScheme("https");
+    if (!_isHttpAllowed && !isSecure && !_isLoopback(uri.host)) {
+      throw new StateError(
+          "Insecure HTTP is not allowed by the current platform: $uri");
+    }
+
     int port = uri.port;
     if (port == 0) {
       port =
