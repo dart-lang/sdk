@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library interactive_test;
 
 import 'dart:async';
@@ -52,7 +50,7 @@ main() async {
           completer.complete(video);
         });
 
-        document.body.append(video);
+        document.body!.append(video);
         video.src = url;
 
         return completer.future;
@@ -85,7 +83,7 @@ main() async {
           completer.complete(video);
         });
 
-        document.body.append(video);
+        document.body!.append(video);
         video.src = url;
 
         return completer.future;

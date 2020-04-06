@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library CanvasTest;
 
 import 'dart:html';
@@ -17,7 +15,7 @@ main() {
   int height = 100;
 
   canvas = new CanvasElement(width: width, height: height);
-  document.body.append(canvas);
+  document.body!.append(canvas);
 
   context = canvas.context2D;
 

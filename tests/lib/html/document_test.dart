@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:html';
 
 import 'package:expect/minitest.dart';
@@ -53,8 +51,8 @@ main() {
       var doc = document.implementation.createHtmlDocument('');
       expect(doc.adoptNode(div), div);
       expect(div.ownerDocument, doc);
-      doc.body.nodes.add(div);
-      expect(doc.querySelector('#foo').text, 'bar');
+      doc.body!.nodes.add(div);
+      expect(doc.querySelector('#foo')!.text, 'bar');
     });
 
     test('importNode', () {
@@ -63,8 +61,8 @@ main() {
       var div2 = doc.importNode(div, true);
       expect(div2, notEquals(div));
       expect(div2.ownerDocument, doc);
-      doc.body.nodes.add(div2);
-      expect(doc.querySelector('#foo').text, 'bar');
+      doc.body!.nodes.add(div2);
+      expect(doc.querySelector('#foo')!.text, 'bar');
     });
 
     test('typeTest1', () {

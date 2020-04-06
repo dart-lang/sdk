@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library EventCustomEventTest;
 
 import 'package:async_helper/async_minitest.dart';
@@ -48,7 +46,7 @@ main() {
 
     var script = new ScriptElement();
     script.text = scriptContents;
-    document.body.append(script);
+    document.body!.append(script);
 
     expect(fired, isTrue);
   });
@@ -64,7 +62,7 @@ main() {
         window.console.log('here' + e.detail);
       }, false);''';
 
-    document.body.append(new ScriptElement()..text = scriptContents);
+    document.body!.append(new ScriptElement()..text = scriptContents);
 
     var event = new CustomEvent('dart_custom_event', detail: 'dart_message');
     window.dispatchEvent(event);
@@ -79,7 +77,7 @@ main() {
       expect(event.detail.dartValue, 666);
     });
 
-    document.body.dispatchEvent(event);
+    document.body!.dispatchEvent(event);
     return future;
   });
 }

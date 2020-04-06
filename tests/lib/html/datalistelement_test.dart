@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:html';
 
 import 'package:expect/minitest.dart';
@@ -16,7 +14,7 @@ main() {
 
   setUp(() {
     div = new DivElement();
-    document.body.append(div);
+    document.body!.append(div);
     div.innerHtml = """
 <input id="input" list="browsers" />
 <datalist id="browsers">
@@ -30,7 +28,7 @@ main() {
   });
 
   tearDown(() {
-    document.body.nodes.removeLast();
+    document.body!.nodes.removeLast();
   });
 
   test('is', () {

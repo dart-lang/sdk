@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:html';
 
 import 'package:expect/minitest.dart';
@@ -14,7 +12,7 @@ import 'package:expect/minitest.dart';
 // effectively testing dart_object_local_storage in the underlying dom
 // object.
 main() {
-  BodyElement body = document.body;
+  BodyElement body = document.body!;
   Storage localStorage = window.localStorage;
   Storage sessionStorage = window.sessionStorage;
   var element = new Element.tag('canvas');

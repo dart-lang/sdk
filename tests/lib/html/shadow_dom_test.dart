@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:html';
 
 import 'package:expect/minitest.dart';
@@ -31,8 +29,8 @@ main() {
       shadowRoot.append(paragraph1);
       shadowRoot.append(new ContentElement());
       div2.append(paragraph2);
-      document.body.append(div1);
-      document.body.append(div2);
+      document.body!.append(div1);
+      document.body!.append(div2);
     }
 
     var expectation = ShadowRoot.supported ? returnsNormally : throws;

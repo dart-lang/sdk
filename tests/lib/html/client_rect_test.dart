@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:html';
 
 import 'package:expect/minitest.dart';
@@ -25,7 +23,7 @@ main() {
     block of text multiple times to see each line
     highlight with every click of the mouse button.
     ''';
-    document.body.append(element);
+    document.body!.append(element);
     return element;
   }
 
@@ -38,8 +36,8 @@ main() {
   });
 
   test("ClientRect ==", () {
-    var rect1 = document.body.getBoundingClientRect();
-    var rect2 = document.body.getBoundingClientRect();
+    var rect1 = document.body!.getBoundingClientRect();
+    var rect2 = document.body!.getBoundingClientRect();
     expect(rect1, isRectangle);
     expect(rect1, isDomRectReadOnly);
     expect(rect1, equals(rect2));

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file
 
-// @dart = 2.7
-
 library postmessage_js_test;
 
 import 'dart:async';
@@ -21,7 +19,7 @@ void injectSource(String code) {
   final script = new ScriptElement();
   script.type = 'text/javascript';
   script.innerHtml = code;
-  document.body.append(script);
+  document.body!.append(script);
 }
 
 Future go(String name, dynamic value) {
@@ -179,10 +177,10 @@ Future iframe() async {
 Future postMessageClonesData() {
   var iframe = new IFrameElement();
   var future = iframe.onLoad.first.then((_) {
-    iframe.contentWindow.postMessage(new HashMap<String, num>(), '*');
+    iframe.contentWindow!.postMessage(new HashMap<String, num>(), '*');
   });
   iframe.src = 'about:blank';
-  document.body.append(iframe);
+  document.body!.append(iframe);
 
   return future;
 }

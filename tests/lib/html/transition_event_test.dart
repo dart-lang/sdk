@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file
 
-// @dart = 2.7
-
 library transition_event_test;
 
 import 'dart:html';
@@ -13,7 +11,7 @@ import 'package:expect/minitest.dart';
 
 Future testTransitionEnd() async {
   var element = new DivElement();
-  document.body.append(element);
+  document.body!.append(element);
 
   element.style.opacity = '0';
   element.style.width = '100px';

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file
 
-// @dart = 2.7
-
 import 'dart:html';
 import 'dart:typed_data';
 
@@ -23,7 +21,7 @@ main() {
   int height = 100;
 
   CanvasElement canvas = new CanvasElement(width: width, height: height);
-  document.body.append(canvas);
+  document.body!.append(canvas);
 
   CanvasRenderingContext2D context = canvas.context2D;
 

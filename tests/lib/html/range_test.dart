@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:html';
 
 import 'package:expect/minitest.dart';
@@ -18,7 +16,7 @@ main() {
   group('functional', () {
     test('supported works', () {
       var range = new Range();
-      range.selectNode(document.body);
+      range.selectNode(document.body!);
 
       var expectation =
           Range.supportsCreateContextualFragment ? returnsNormally : throws;

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:html';
 
 import 'package:expect/minitest.dart';
@@ -13,7 +11,7 @@ import 'utils.dart';
 main() {
   test('create via custom tag', () {
     var element = new Element.tag('x-basic1')..id = 'basic1';
-    document.body.nodes.add(element);
+    document.body!.nodes.add(element);
 
     var queryById = querySelector('#basic1');
     expect(queryById, equals(element));
@@ -27,7 +25,7 @@ main() {
     var element = new DivElement();
     element.setInnerHtml("<x-basic2 id='basic2'></x-basic2>",
         treeSanitizer: new NullTreeSanitizer());
-    document.body.nodes.add(element);
+    document.body!.nodes.add(element);
 
     var queryById = querySelector('#basic2');
     expect(queryById is Element, isTrue);
@@ -41,7 +39,7 @@ main() {
     var element = new DivElement();
     element.setInnerHtml("<div is='x-basic3' id='basic3'></div>",
         treeSanitizer: new NullTreeSanitizer());
-    document.body.nodes.add(element);
+    document.body!.nodes.add(element);
 
     var queryById = querySelector('#basic3');
     expect(queryById is DivElement, isTrue);

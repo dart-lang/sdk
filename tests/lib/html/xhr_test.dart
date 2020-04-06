@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library XHRTest;
 
 import 'dart:async';
@@ -187,7 +185,7 @@ Future testXhrPostFormData() async {
   var parts = [];
   for (var key in data.keys) {
     parts.add('${Uri.encodeQueryComponent(key)}='
-        '${Uri.encodeQueryComponent(data[key])}');
+        '${Uri.encodeQueryComponent(data[key]!)}');
   }
   var encodedData = parts.join('&');
 
@@ -226,7 +224,7 @@ Future testResponseHeaders() async {
   var contentTypeHeader = xhr.responseHeaders['content-type'];
   expect(contentTypeHeader, isNotNull);
   // Should be like: 'text/plain; charset=utf-8'
-  expect(contentTypeHeader.contains('text/plain'), isTrue);
+  expect(contentTypeHeader!.contains('text/plain'), isTrue);
   expect(contentTypeHeader.contains('charset=utf-8'), isTrue);
 }
 

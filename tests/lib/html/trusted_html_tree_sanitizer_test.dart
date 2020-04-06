@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /// This tests HTML validation and sanitization, which is very important
 /// for prevent XSS or other attacks. If you suppress this, or parts of it
 /// please make it a critical bug and bring it to the attention of the
@@ -39,17 +37,17 @@ main() {
     tearDown(restoreOldAdoptNode);
 
     test('setInnerHtml', () {
-      document.body.setInnerHtml('<div foo="baz">something</div>',
+      document.body!.setInnerHtml('<div foo="baz">something</div>',
           treeSanitizer: NodeTreeSanitizer.trusted);
-      expect(document.body.innerHtml, '<div foo="baz">something</div>');
+      expect(document.body!.innerHtml, '<div foo="baz">something</div>');
     });
 
     test("appendHtml", () {
-      var oldStuff = document.body.innerHtml;
+      var oldStuff = document.body!.innerHtml;
       var newStuff = '<div rumplestiltskin="value">content</div>';
-      document.body
+      document.body!
           .appendHtml(newStuff, treeSanitizer: NodeTreeSanitizer.trusted);
-      expect(document.body.innerHtml, oldStuff + newStuff);
+      expect(document.body!.innerHtml, oldStuff + newStuff);
     });
   });
 
@@ -57,7 +55,7 @@ main() {
     setUp(makeDocumentFragmentAdoptionThrow);
     tearDown(restoreOldAdoptNode);
     test('untrusted', () {
-      expect(() => document.body.innerHtml = "<p>anything</p>", throws);
+      expect(() => document.body!.innerHtml = "<p>anything</p>", throws);
     });
   });
 }
