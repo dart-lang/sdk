@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:html';
 import 'dart:typed_data';
 
@@ -57,7 +55,7 @@ main() {
 
     // Generic type checking is not available in dart2js, so use this check to
     // see if we should check for it.
-    var supportsTypeTest = !(new List<String>() is List<int>);
+    var supportsTypeTest = !(new List<String>.empty() is List<int>);
 
     if (supportsTypeTest) {
       test('typeTests', () {

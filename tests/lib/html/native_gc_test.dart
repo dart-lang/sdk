@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library NativeGCTest;
 
 import 'dart:async';
@@ -21,7 +19,7 @@ void testEventListener() {
   for (int i = 0; i < M; ++i) {
     // This memory should be freed when the listener below is
     // collected.
-    List l = new List(N);
+    List<int> l = new List<int>.filled(N, 0);
 
     // Record the iteration number.
     l[N - 1] = i;
@@ -43,7 +41,7 @@ Future<Null> testWindowEventListener() {
 
   Element testDiv = new DivElement();
   testDiv.id = '#TestDiv';
-  document.body.append(testDiv);
+  document.body!.append(testDiv);
   window.onMessage.listen((e) {
     if (e.data == message) testDiv.click();
   });
@@ -66,7 +64,7 @@ main() async {
 }
 
 void triggerMajorGC() {
-  List list = new List(1000000);
+  List<int> list = new List<int>.filled(1000000, 0);
   Element div = new DivElement();
   div.onClick.listen((e) => print(list[0]));
 }
