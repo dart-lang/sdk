@@ -4,6 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'class_hierarchy_test.dart' as class_hierarchy;
 import 'element_test.dart' as element;
 import 'factor_type_test.dart' as factor_type;
 import 'flatten_type_test.dart' as flatten_type;
@@ -25,6 +26,7 @@ import 'upper_lower_bound_test.dart' as upper_bound;
 /// Utility for manually running all tests.
 main() {
   defineReflectiveSuite(() {
+    class_hierarchy.main();
     element.main();
     factor_type.main();
     flatten_type.main();

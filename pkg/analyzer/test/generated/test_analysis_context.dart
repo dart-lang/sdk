@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeSystemImpl;
@@ -103,6 +104,9 @@ class TestAnalysisContext implements AnalysisContext {
 class _MockAnalysisSession implements AnalysisSessionImpl {
   @override
   final ClassHierarchy classHierarchy = ClassHierarchy();
+
+  @override
+  final InheritanceManager3 inheritanceManager = InheritanceManager3();
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
