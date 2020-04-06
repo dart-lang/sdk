@@ -6370,20 +6370,30 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* BooleanNegateInstr::MakeLocationSummary(Zone* zone,
                                                          bool opt) const {
-  return LocationSummary::Make(zone, 1, Location::RequiresRegister(),
+  return LocationSummary::Make(zone, 1,
+                               value()->Type()->ToCid() == kBoolCid
+                                   ? Location::SameAsFirstInput()
+                                   : Location::RequiresRegister(),
                                LocationSummary::kNoCall);
 }
 
 void BooleanNegateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register value = locs()->in(0).reg();
+  Register input = locs()->in(0).reg();
   Register result = locs()->out(0).reg();
 
-  compiler::Label done;
-  __ LoadObject(result, Bool::True());
-  __ CompareRegisters(result, value);
-  __ j(NOT_EQUAL, &done, compiler::Assembler::kNearJump);
-  __ LoadObject(result, Bool::False());
-  __ Bind(&done);
+  if (value()->Type()->ToCid() == kBoolCid) {
+    ASSERT(input == result);
+    __ xorl(result, compiler::Immediate(
+                        compiler::target::ObjectAlignment::kBoolValueMask));
+  } else {
+    ASSERT(input != result);
+    compiler::Label done;
+    __ LoadObject(result, Bool::True());
+    __ CompareRegisters(result, input);
+    __ j(NOT_EQUAL, &done, compiler::Assembler::kNearJump);
+    __ LoadObject(result, Bool::False());
+    __ Bind(&done);
+  }
 }
 
 LocationSummary* AllocateObjectInstr::MakeLocationSummary(Zone* zone,

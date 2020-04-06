@@ -781,6 +781,7 @@ class RawObject {
   friend class ObjectLocator;
   friend class WriteBarrierUpdateVisitor;  // CheckHeapPointerStore
   friend class OffsetsTable;
+  friend class Object;
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(RawObject);
@@ -2628,6 +2629,8 @@ class RawBool : public RawInstance {
   VISIT_NOTHING();
 
   bool value_;
+
+  friend class Object;
 };
 
 class RawArray : public RawInstance {

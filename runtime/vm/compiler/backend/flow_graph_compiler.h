@@ -744,6 +744,7 @@ class FlowGraphCompiler : public ValueObject {
                                       bool needs_number_check,
                                       TokenPosition token_pos,
                                       intptr_t deopt_id);
+  Condition EmitBoolTest(Register value, BranchLabels labels, bool invert);
 
   bool NeedsEdgeCounter(BlockEntryInstr* block);
 

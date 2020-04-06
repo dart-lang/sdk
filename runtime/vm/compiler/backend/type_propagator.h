@@ -33,6 +33,7 @@ class FlowGraphTypePropagator : public FlowGraphVisitor {
   virtual void VisitCheckNull(CheckNullInstr* instr);
   virtual void VisitGuardFieldClass(GuardFieldClassInstr* instr);
   virtual void VisitAssertAssignable(AssertAssignableInstr* instr);
+  virtual void VisitAssertBoolean(AssertBooleanInstr* instr);
   virtual void VisitAssertSubtype(AssertSubtypeInstr* instr);
   virtual void VisitInstanceCall(InstanceCallInstr* instr);
   virtual void VisitPolymorphicInstanceCall(

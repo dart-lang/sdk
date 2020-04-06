@@ -470,6 +470,14 @@ void Assembler::LoadObjectHelper(Register dst,
       mov(dst, NULL_REG);
       return;
     }
+    if (IsSameObject(CastHandle<Object>(compiler::TrueObject()), object)) {
+      AddImmediate(dst, NULL_REG, kTrueOffsetFromNull);
+      return;
+    }
+    if (IsSameObject(CastHandle<Object>(compiler::FalseObject()), object)) {
+      AddImmediate(dst, NULL_REG, kFalseOffsetFromNull);
+      return;
+    }
     word offset = 0;
     if (target::CanLoadFromThread(object, &offset)) {
       ldr(dst, Address(THR, offset));
