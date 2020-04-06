@@ -445,7 +445,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         _unitElementRequestedParts.isNotEmpty) {
       return AnalysisDriverPriority.general;
     }
-    _libraryContext = null;
+    _clearLibraryContext();
     return AnalysisDriverPriority.nothing;
   }
 
@@ -1173,7 +1173,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     _throwIfNotAbsolutePath(path);
     _throwIfChangesAreNotAllowed();
     _fileTracker.removeFile(path);
-    _libraryContext = null;
+    _clearLibraryContext();
     _priorityResults.clear();
   }
 
@@ -1188,7 +1188,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// Implementation for [changeFile].
   void _changeFile(String path) {
     _fileTracker.changeFile(path);
-    _libraryContext = null;
+    _clearLibraryContext();
     _priorityResults.clear();
   }
 
@@ -1196,9 +1196,19 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// of state.
   void _changeHook(String path) {
     _createNewSession(path);
-    _libraryContext = null;
+    _clearLibraryContext();
     _priorityResults.clear();
     _scheduler.notify(this);
+  }
+
+  /// Clear the library context and any related data structures. Mostly we do
+  /// this to reduce memory consumption. The library context holds to every
+  /// library that was resynthesized, but after some initial analysis we might
+  /// not get again to many of these libraries. So, we should clear the context
+  /// periodically.
+  void _clearLibraryContext() {
+    _libraryContext = null;
+    _currentSession.clearHierarchies();
   }
 
   /// There was an exception during a file analysis, we don't know why.
@@ -1206,7 +1216,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// the library context state. Reset the library context, and hope that
   /// we will solve the inconsistency while loading / building summaries.
   void _clearLibraryContextAfterException() {
-    _libraryContext = null;
+    _clearLibraryContext();
   }
 
   /// Return the cached or newly computed analysis result of the file with the
@@ -1497,7 +1507,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   LibraryContext _createLibraryContext(FileState library) {
     if (_libraryContext != null) {
       if (_libraryContext.pack()) {
-        _libraryContext = null;
+        _clearLibraryContext();
       }
     }
 
