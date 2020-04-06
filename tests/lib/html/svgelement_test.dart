@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:html';
 import 'dart:svg' as svg;
 
@@ -14,19 +12,17 @@ main() {
       predicate((x) => x is svg.SvgSvgElement, 'is a SvgSvgElement');
 
   List<String> _nodeStrings(Iterable<Node> input) {
-    final out = new List<String>();
+    final List<String> out = [];
     for (Node n in input) {
       if (n is Element) {
         Element e = n;
         out.add(e.tagName);
       } else {
-        out.add(n.text);
+        out.add(n.text!);
       }
     }
     return out;
   }
-
-  ;
 
   testConstructor(String tagName, Function isExpectedClass,
       [bool expectation = true, allowsInnerHtml = true]) {
@@ -471,7 +467,7 @@ main() {
       var root = new svg.SvgSvgElement();
       root.append(element);
 
-      document.body.append(root);
+      document.body!.append(root);
 
       var rect = element.getBoundingClientRect();
       expect(rect is Rectangle, isTrue);

@@ -2,13 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:html';
 
 import 'package:expect/minitest.dart';
 
-void check(InputElement element, String type, [bool supported = true]) {
+void check(element, String type, [bool supported = true]) {
   expect(element is InputElement, true);
   if (supported) {
     expect(element.type, type);

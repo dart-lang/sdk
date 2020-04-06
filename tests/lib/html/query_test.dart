@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:html';
 
 import 'package:expect/minitest.dart';
@@ -13,7 +11,7 @@ main() {
   final canvas = new CanvasElement(width: 200, height: 200);
   canvas.id = 'testcanvas';
   final element = new Element.html("<div><br/><img/><input/><img/></div>");
-  document.body.nodes.addAll([div, canvas, element]);
+  document.body!.nodes.addAll([div, canvas, element]);
 
   var isCanvasElement =
       predicate((x) => x is CanvasElement, 'is a CanvasElement');
@@ -21,15 +19,15 @@ main() {
       predicate((x) => x is ImageElement, 'is an ImageElement');
 
   test('query', () {
-    Element e = querySelector('#testcanvas');
+    Element? e = querySelector('#testcanvas');
     expect(e, isNotNull);
-    expect(e.id, 'testcanvas');
+    expect(e!.id, 'testcanvas');
     expect(e, isCanvasElement);
     expect(e, canvas);
   });
 
   test('query (None)', () {
-    Element e = querySelector('#nothere');
+    Element? e = querySelector('#nothere');
     expect(e, isNull);
   });
 

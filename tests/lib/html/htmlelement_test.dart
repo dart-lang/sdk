@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:html';
 
 import 'package:expect/minitest.dart';
@@ -15,16 +13,16 @@ main() {
     Element element = new Element.tag('div');
     element.id = 'test';
     element.innerHtml = 'Hello World';
-    document.body.append(element);
+    document.body!.append(element);
 
-    element = document.querySelector('#test');
+    element = document.querySelector('#test')!;
     expect(element.innerHtml, 'Hello World');
     element.remove();
   });
   test('HTMLTable', () {
-    TableElement table = new Element.tag('table');
+    TableElement table = new Element.tag('table') as TableElement;
 
-    TableRowElement row = new Element.tag('tr');
+    TableRowElement row = new Element.tag('tr') as TableRowElement;
     table.append(row);
 
     row.append(new Element.tag('td'));

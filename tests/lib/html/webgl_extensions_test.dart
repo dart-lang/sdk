@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library web_gl_test;
 
 import 'dart:html';
@@ -77,7 +75,7 @@ main() {
     expect(name, anyOf(allExtensions), reason: 'unknown extension');
     var canvas = new CanvasElement();
     var context = canvas.getContext3d();
-    var supportedExtensions = context.getSupportedExtensions();
+    var supportedExtensions = context.getSupportedExtensions()!;
     if (supportedExtensions.contains(name)) {
       var extension = context.getExtension(name);
       expect(extension, isNotNull);
@@ -102,7 +100,8 @@ main() {
     const name = 'ANGLE_instanced_arrays';
     testType(name, isAngleInstancedArrays);
     test('vertexAttribDivisorAngle', () {
-      AngleInstancedArrays extension = getExtension(name);
+      AngleInstancedArrays? extension =
+          getExtension(name) as AngleInstancedArrays?;
       if (extension == null) return;
       expect(extension.vertexAttribDivisorAngle, isFunction);
     });
@@ -188,7 +187,7 @@ main() {
     const name = 'WEBGL_draw_buffers';
     testType(name, isDrawBuffers);
     test('drawBuffersWebgl', () {
-      DrawBuffers extension = getExtension(name);
+      DrawBuffers? extension = getExtension(name) as DrawBuffers?;
       if (extension == null) return;
       expect(extension.drawBuffersWebgl, isFunction);
     });
@@ -198,7 +197,7 @@ main() {
     const name = 'WEBGL_lose_context';
     testType(name, isLoseContext);
     test('loseContext', () {
-      LoseContext extension = getExtension(name);
+      LoseContext? extension = getExtension(name) as LoseContext?;
       if (extension == null) return;
       expect(extension.loseContext, isFunction);
     });

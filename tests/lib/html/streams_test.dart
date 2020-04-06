@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:async';
 import 'dart:html';
 
@@ -13,11 +11,11 @@ class StreamHelper {
   var _a;
   StreamHelper() {
     _a = new TextInputElement();
-    document.body.append(_a);
+    document.body!.append(_a);
   }
 
   Element get element => _a;
-  Stream<Event> get stream => _a.onFocus;
+  Stream<Event?> get stream => _a.onFocus;
 
   // Causes an event on a to be fired.
   void pulse() {
@@ -31,7 +29,7 @@ main() {
     var helper = new StreamHelper();
 
     var callCount = 0;
-    helper.stream.listen((Event e) {
+    helper.stream.listen((Event? e) {
       ++callCount;
     });
 
@@ -48,7 +46,7 @@ main() {
   // Validates that capturing events fire on parent before child.
   test('capture', () {
     var parent = new DivElement();
-    document.body.append(parent);
+    document.body!.append(parent);
 
     var helper = new StreamHelper();
     parent.append(helper.element);

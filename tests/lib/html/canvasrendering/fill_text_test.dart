@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library canvas_rendering_context_2d_test;
 
 import 'dart:html';
@@ -38,8 +36,8 @@ main() {
     // The box does not draw after `width` pixels.
     // Check -2 rather than -1 because this seems
     // to run into a rounding error on Mac bots.
-    expectPixelFilled(x + width - 2, y);
-    expectPixelUnfilled(x + width + 1, y);
+    expectPixelFilled((x + width - 2).toInt(), y);
+    expectPixelUnfilled((x + width + 1).toInt(), y);
   });
 
   test('with maxWidth null', () {
@@ -61,8 +59,8 @@ main() {
     // The box does not draw after `width` pixels.
     // Check -2 rather than -1 because this seems
     // to run into a rounding error on Mac bots.
-    expectPixelFilled(x + width - 2, y);
-    expectPixelUnfilled(x + width + 1, y);
+    expectPixelFilled((x + width - 2).toInt(), y);
+    expectPixelUnfilled((x + width + 1).toInt(), y);
   });
 
   test('with maxWidth defined', () {

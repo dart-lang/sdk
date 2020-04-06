@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library KeyboardEventTest;
 
 import 'dart:html';
@@ -23,11 +21,11 @@ void keydownHandlerTest(KeyEvent e) {
 
 void testKeys() {
   var subscription =
-      KeyboardEventStream.onKeyDown(document.body).listen(keydownHandlerTest);
+      KeyboardEventStream.onKeyDown(document.body!).listen(keydownHandlerTest);
   var subscription2 =
       KeyEvent.keyDownEvent.forTarget(document.body).listen(keydownHandlerTest);
   var subscription3 =
-      document.body.onKeyDown.listen((e) => print('regular listener'));
+      document.body!.onKeyDown.listen((e) => print('regular listener'));
   subscription.cancel();
   subscription2.cancel();
   subscription3.cancel();
@@ -35,8 +33,8 @@ void testKeys() {
 
 void testConstructKeyEvent() {
   int handlerCallCount = 0;
-  CustomStream<KeyEvent> stream =
-      KeyEvent.keyPressEvent.forTarget(document.body);
+  CustomStream<KeyEvent> stream = KeyEvent.keyPressEvent
+      .forTarget(document.body!) as CustomStream<KeyEvent>;
   var subscription = stream.listen((keyEvent) {
     expect(keyEvent.charCode, 97);
     expect(keyEvent.keyCode, 65);
@@ -64,11 +62,11 @@ void testKeyEventSequence() {
   // Press "?" by simulating "shift" and then the key that has "/" and "?" on
   // it.
   CustomStream<KeyEvent> streamDown =
-      KeyEvent.keyDownEvent.forTarget(document.body);
-  CustomStream<KeyEvent> streamPress =
-      KeyEvent.keyPressEvent.forTarget(document.body);
+      KeyEvent.keyDownEvent.forTarget(document.body!) as CustomStream<KeyEvent>;
+  CustomStream<KeyEvent> streamPress = KeyEvent.keyPressEvent
+      .forTarget(document.body!) as CustomStream<KeyEvent>;
   CustomStream<KeyEvent> streamUp =
-      KeyEvent.keyUpEvent.forTarget(document.body);
+      KeyEvent.keyUpEvent.forTarget(document.body!) as CustomStream<KeyEvent>;
 
   var subscription = streamDown.listen((keyEvent) {
     expect(keyEvent.keyCode, predicate([16, 191].contains));
@@ -109,7 +107,7 @@ void testKeyEventKeyboardEvent() {
     handlerCallCount++;
   });
   CustomStream<KeyEvent> streamDown =
-      KeyEvent.keyDownEvent.forTarget(document.body);
+      KeyEvent.keyDownEvent.forTarget(document.body!) as CustomStream<KeyEvent>;
   streamDown.add(new KeyEvent('keydown', keyCode: 16, charCode: 0));
   expect(handlerCallCount, 1);
 }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library WebDBTest;
 
 import 'dart:async';
@@ -29,7 +27,7 @@ Future<SqlResultSet> queryTable(
   return transaction.executeSql(sql, []);
 }
 
-Future<SqlResultSet> dropTable(SqlTransaction transaction, String tableName,
+Future<SqlResultSet?> dropTable(SqlTransaction transaction, String tableName,
     [bool ignoreFailure = false]) async {
   try {
     var result = await transaction.executeSql('DROP TABLE $tableName', []);
@@ -42,8 +40,8 @@ Future<SqlResultSet> dropTable(SqlTransaction transaction, String tableName,
 final tableName = 'test_table';
 final columnName = 'test_data';
 
-SqlDatabase db;
-SqlTransaction tx;
+late SqlDatabase db;
+late SqlTransaction tx;
 
 Future setup() async {
   if (SqlDatabase.supported) {

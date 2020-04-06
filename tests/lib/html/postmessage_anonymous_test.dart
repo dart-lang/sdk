@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 @JS()
 library postmessage_anonymous_test;
 
@@ -31,7 +29,7 @@ const String TEST_MSG = "hello world";
 class Message {
   external String get recipient;
   external String get msg;
-  external factory Message({String recipient, String msg});
+  external factory Message({required String recipient, required String msg});
 }
 
 main() {
@@ -51,5 +49,5 @@ void injectSource(String code) {
   final script = new ScriptElement();
   script.type = 'text/javascript';
   script.innerHtml = code;
-  document.body.append(script);
+  document.body!.append(script);
 }

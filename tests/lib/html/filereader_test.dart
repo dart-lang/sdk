@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library filereader_test;
 
 import 'package:async_helper/async_minitest.dart';
@@ -33,8 +31,7 @@ main() {
   test('readDataUrl', () {
     var reader = new FileReader();
     reader.onLoad.listen(expectAsync((event) {
-      String result = reader.result;
-      expect(result is String, isTrue);
+      String result = reader.result as String;
       expect(result.startsWith('data:'), isTrue);
     }));
     reader.readAsDataUrl(new Blob(['ABC']));

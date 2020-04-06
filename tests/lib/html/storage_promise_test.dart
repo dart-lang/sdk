@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library interactive_test;
 
 import 'dart:async';
@@ -13,13 +11,15 @@ import 'package:async_helper/async_minitest.dart';
 import 'package:async_helper/async_helper.dart';
 
 main() async {
-  bool thenEstimateBefore, thenEstimateAfter, thenEstimateDone = false;
-  Map thenEstimate;
+  bool thenEstimateBefore = false;
+  bool thenEstimateAfter = false;
+  bool thenEstimateDone = false;
+  late Map thenEstimate;
   test('Basic Promise Test', () async {
     try {
       thenEstimateBefore = true;
       window.navigator.storage.estimate().then((value) {
-        thenEstimate = value;
+        thenEstimate = value!;
         thenEstimateDone = true;
       });
       thenEstimateAfter = true;
@@ -27,7 +27,7 @@ main() async {
       fail("StorageManger failed: $msg");
     }
 
-    Map estimate = await window.navigator.storage.estimate();
+    Map estimate = await window.navigator.storage.estimate() as Map;
 
     expect(thenEstimate['usage'] >= 0, true);
     expect(thenEstimate['quota'] > 1, true);

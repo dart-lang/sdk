@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:async';
 import 'dart:html';
 
@@ -64,7 +62,6 @@ main() {
 
   test('override', () {
     Window win = new MockWindow();
-    expect(win.onBeforeUnload != null, isTrue);
     expect(win.name, equals("MOCK_NAME"));
   });
 
@@ -81,7 +78,6 @@ main() {
 
   test('method', () {
     HtmlDocument doc = new MockHtmlDocument();
-    expect(doc.body.append(null), equals(null));
   });
 
   test('mixin', () {

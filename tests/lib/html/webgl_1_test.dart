@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:html';
 import 'dart:typed_data';
 import 'dart:web_gl';
@@ -66,8 +64,9 @@ main() {
         context.texImage2D(1, 1, 1, 1, 10, 10, 1, 1, pixels);
 
         canvas = new CanvasElement();
-        document.body.children.add(canvas);
-        CanvasRenderingContext2D context2 = canvas.getContext('2d');
+        document.body!.children.add(canvas);
+        CanvasRenderingContext2D context2 =
+            canvas.getContext('2d') as CanvasRenderingContext2D;
         context.texImage2D(
             1, 1, 1, 1, 10, context2.getImageData(10, 10, 10, 10));
 
@@ -83,8 +82,9 @@ main() {
         context.texSubImage2D(1, 1, 1, 1, 1, 10, 10, 1, pixels);
 
         canvas = new CanvasElement();
-        document.body.children.add(canvas);
-        CanvasRenderingContext2D context2 = canvas.getContext('2d');
+        document.body!.children.add(canvas);
+        CanvasRenderingContext2D context2 =
+            canvas.getContext('2d') as CanvasRenderingContext2D;
         context.texSubImage2D(
             1, 1, 1, 1, 1, 10, context2.getImageData(10, 10, 10, 10));
 
@@ -101,7 +101,7 @@ main() {
         expect(attributes, isNotNull);
         expect(attributes, isContextAttributes);
 
-        expect(attributes['alpha'], isBoolean);
+        expect(attributes!['alpha'], isBoolean);
         expect(attributes['antialias'], isBoolean);
         expect(attributes['depth'], isBoolean);
         expect(attributes['premultipliedAlpha'], isBoolean);

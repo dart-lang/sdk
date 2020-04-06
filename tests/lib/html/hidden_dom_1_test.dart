@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:html';
 
 import 'package:expect/minitest.dart';
@@ -13,15 +11,15 @@ import 'package:expect/minitest.dart';
 
 main() {
   test('test1', () {
-    document.body.children.add(new Element.html(r'''
+    document.body!.children.add(new Element.html(r'''
 <div id='div1'>
 Hello World!
 </div>'''));
-    Element e = document.querySelector('#div1');
+    Element? e = document.querySelector('#div1');
     expect(e, isNotNull);
 
     expect(() {
-      confuse(e).onfocus = null;
+      confuse(e!).onfocus = null;
     }, throwsNoSuchMethodError);
   });
 }

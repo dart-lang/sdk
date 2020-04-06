@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:html';
 
 import 'package:expect/minitest.dart';
@@ -17,7 +15,7 @@ main() {
         <option value="0">Option0</option>
         <option value="1">Option1</option>
         <option value="2">Option2</option>
-      ''');
+      ''') as SelectElement;
     final optionsCollection = selectElement.options;
 
     expect(optionsCollection[0].value, equals('0'));

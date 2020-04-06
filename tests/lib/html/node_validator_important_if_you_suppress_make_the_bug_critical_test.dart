@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /// This tests HTML validation and sanitization, which is very important
 /// for prevent XSS or other attacks. If you suppress this, or parts of it
 /// please make it a critical bug and bring it to the attention of the
@@ -18,8 +16,8 @@ import 'package:expect/minitest.dart';
 import 'utils.dart';
 
 void validateHtml(String html, String reference, NodeValidator validator) {
-  var a = document.body.createFragment(html, validator: validator);
-  var b = document.body
+  var a = document.body!.createFragment(html, validator: validator);
+  var b = document.body!
       .createFragment(reference, treeSanitizer: NodeTreeSanitizer.trusted);
 
   // Prevent a false pass when both the html and the reference both get entirely
@@ -44,13 +42,13 @@ class RecordingUriValidator implements UriPolicy {
 }
 
 void testHtml(String name, NodeValidator validator, String html,
-    [String reference]) {
+    [String? reference]) {
   test(name, () {
     if (reference == null) {
       reference = html;
     }
 
-    validateHtml(html, reference, validator);
+    validateHtml(html, reference!, validator);
   });
 }
 
@@ -113,10 +111,10 @@ main() {
           '<img src="http://example.com/foo"/>'
           '</template>';
 
-      var fragment = document.body.createFragment(html, validator: validator);
+      var fragment = document.body!.createFragment(html, validator: validator);
       var template = fragment.nodes.single as TemplateElement;
 
-      var expectedContent = document.body.createFragment('<div></div>'
+      var expectedContent = document.body!.createFragment('<div></div>'
           '<img/>');
 
       validateNodeTree(template.content, expectedContent);
@@ -124,8 +122,8 @@ main() {
 
     test("appendHtml is sanitized", () {
       var html = '<body background="s"></body><div></div>';
-      document.body.appendHtml('<div id="stuff"></div>');
-      var stuff = document.querySelector("#stuff");
+      document.body!.appendHtml('<div id="stuff"></div>');
+      var stuff = document.querySelector("#stuff")!;
       stuff.appendHtml(html);
       expect(stuff.childNodes.length, 1);
       stuff.remove();
@@ -382,26 +380,26 @@ main() {
 
     test('does not throw on valid syntax', () {
       expect(() {
-        document.body.createFragment('<div></div>', validator: validator);
+        document.body!.createFragment('<div></div>', validator: validator);
       }, returnsNormally);
     });
 
     test('throws on invalid elements', () {
       expect(() {
-        document.body.createFragment('<foo></foo>', validator: validator);
+        document.body!.createFragment('<foo></foo>', validator: validator);
       }, validationError);
     });
 
     test('throws on invalid attributes', () {
       expect(() {
-        document.body
+        document.body!
             .createFragment('<div foo="bar"></div>', validator: validator);
       }, validationError);
     });
 
     test('throws on invalid attribute values', () {
       expect(() {
-        document.body.createFragment('<img src="http://example.com/foo.jpg"/>',
+        document.body!.createFragment('<img src="http://example.com/foo.jpg"/>',
             validator: validator);
       }, validationError);
     });
@@ -456,10 +454,10 @@ main() {
         "");
 
     test('tagName makes containing form invalid', () {
-      var fragment = document.body.createFragment(
+      var fragment = document.body!.createFragment(
           "<form onmouseover='alert(2)'><input name='tagName'>",
           validator: validator);
-      var form = fragment.lastChild as FormElement;
+      var form = fragment.lastChild as FormElement?;
       // If the tagName was clobbered, the sanitizer should have removed
       // the whole thing and form is null.
       // If the tagName was not clobbered, then there will be content,
@@ -471,9 +469,9 @@ main() {
     });
 
     test('tagName without mouseover', () {
-      var fragment = document.body
+      var fragment = document.body!
           .createFragment("<form><input name='tagName'>", validator: validator);
-      var form = fragment.lastChild as FormElement;
+      var form = fragment.lastChild as FormElement?;
       // If the tagName was clobbered, the sanitizer should have removed
       // the whole thing and form is null.
       // If the tagName was not clobbered, then there will be content,

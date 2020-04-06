@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:html';
 
 import 'package:expect/minitest.dart';
@@ -15,13 +13,13 @@ main() {
       predicate((x) => x is AnchorElement, 'is an AnchorElement');
 
   List<String> _nodeStrings(Iterable<Node> input) {
-    var out = new List<String>();
+    List<String> out = [];
     for (Node n in input) {
       if (n is Element) {
         Element e = n;
         out.add(e.tagName);
       } else {
-        out.add(n.text);
+        out.add(n.text!);
       }
     }
     return out;
@@ -70,8 +68,8 @@ main() {
   });
 
   group('children', () {
-    DocumentFragment fragment;
-    List<Element> children;
+    late DocumentFragment fragment;
+    late List<Element> children;
 
     init() {
       fragment = new DocumentFragment();
@@ -86,8 +84,6 @@ main() {
         new Element.tag("U")
       ]);
     }
-
-    ;
 
     test('is initially empty', () {
       children = new DocumentFragment().children;
@@ -165,7 +161,7 @@ main() {
   test('query searches the fragment', () {
     var fragment = new DocumentFragment.html(
         "<div class='foo'><a>foo</a><b>bar</b></div>");
-    expect(fragment.querySelector(".foo a").tagName, "A");
+    expect(fragment.querySelector(".foo a")!.tagName, "A");
     expect(_nodeStrings(fragment.querySelectorAll<Element>(".foo *")),
         equals(["A", "B"]));
   });

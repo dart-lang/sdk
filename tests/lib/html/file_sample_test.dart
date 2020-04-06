@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library file_sample;
 
 import 'dart:async';
@@ -38,33 +36,32 @@ class Logger {
 
 Logger testLog = new Logger();
 
-Future<FileSystem> _fileSystem;
+Future<FileSystem>? _fileSystem;
 
-DirectoryEntry _myDirectory;
+late DirectoryEntry _myDirectory;
 
 Future<FileSystem> get fileSystem async {
-  if (_fileSystem != null) return _fileSystem;
+  if (_fileSystem != null) return _fileSystem!;
 
   testLog.log('acquire START');
   _fileSystem = window.requestFileSystem(100);
 
-  var fs = await _fileSystem;
+  var fs = await _fileSystem!;
   testLog.log('acquire CALLBACK START');
-  expect(fs != null, true);
-  expect(fs.root != null, true);
   expect(fs.runtimeType, FileSystem);
   expect(fs.root.runtimeType, DirectoryEntry);
   testLog.log('acquire CALLBACK END');
 
-  return _fileSystem;
+  return _fileSystem!;
 }
 
 Future<FileEntry> createFile() async {
   var fs = await fileSystem;
 
-  _myDirectory = await fs.root.createDirectory('my_directory');
+  _myDirectory =
+      await fs.root.createDirectory('my_directory') as DirectoryEntry;
 
-  FileEntry fileEntry = await _myDirectory.createFile('log.txt');
+  FileEntry fileEntry = await _myDirectory.createFile('log.txt') as FileEntry;
 
   expect(fileEntry.isFile, true);
   expect(fileEntry.name, 'log.txt');
@@ -109,8 +106,6 @@ Future testFileSystemRequest() async {
   testLog.log('test-first');
   var fs = await fileSystem;
   testLog.log('first START');
-  expect(fs != null, true);
-  expect(fs.root != null, true);
   expect(fs.runtimeType, FileSystem);
   expect(fs.root.runtimeType, DirectoryEntry);
   testLog.log('first END');
@@ -120,8 +115,6 @@ Future testFileSystemRequestCreateRW() async {
   testLog.log('test-second');
   var fs = await fileSystem;
   testLog.log('second START');
-  expect(fs != null, true);
-  expect(fs.root != null, true);
   expect(fs.runtimeType, FileSystem);
   expect(fs.root.runtimeType, DirectoryEntry);
   testLog.log('second END');

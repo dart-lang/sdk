@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:html';
 import 'dart:svg' as svg;
 
@@ -15,7 +13,7 @@ main() {
 
     test('simpleRect', () {
       var div = new Element.tag('div');
-      document.body.append(div);
+      document.body!.append(div);
       div.setInnerHtml(r'''
 <svg id='svg1' width='200' height='100'>
 <rect id='rect1' x='10' y='20' width='130' height='40' rx='5'fill='blue'></rect>
@@ -25,7 +23,7 @@ main() {
       var e = document.querySelector('#svg1');
       expect(e, isNotNull);
 
-      svg.RectElement r = document.querySelector('#rect1');
+      svg.RectElement r = document.querySelector('#rect1') as svg.RectElement;
       expect(r.x.baseVal.value, 10);
       expect(r.y.baseVal.value, 20);
       expect(r.height.baseVal.value, 40);
@@ -55,7 +53,7 @@ main() {
 <rect id='rect1' x='10' y='20' width='130' height='40' rx='5'fill='blue'></rect>
 </svg>
 ''', validator: new NodeValidatorBuilder()..allowSvg());
-      document.body.append(element);
+      document.body!.append(element);
       return element;
     }
 
@@ -97,7 +95,7 @@ main() {
 <rect id='rect1' x='10' y='20' width='130' height='40' rx='5'fill='blue'></rect>
 </svg>
 ''';
-    document.body.append(element);
+    document.body!.append(element);
     return element;
   }
 

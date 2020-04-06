@@ -2,19 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:html';
 
 import 'package:expect/minitest.dart';
 
 main() {
-  CanvasElement canvas;
+  var canvas;
 
   canvas = new Element.tag('canvas');
   canvas.attributes['width'] = '100';
   canvas.attributes['height'] = '100';
-  document.body.append(canvas);
+  document.body!.append(canvas);
 
   var isCanvasRenderingContext = predicate(
       (x) => x is CanvasRenderingContext, 'is a CanvasRenderingContext');
@@ -45,7 +43,7 @@ main() {
     expect(canvas, isNotImageData);
     // expect(canvas, isNot(isCanvasPixelArray));
 
-    CanvasRenderingContext2D context = canvas.getContext('2d');
+    var context = canvas.getContext('2d');
     expect(context, isCanvasRenderingContext);
     expect(context, isCanvasRenderingContext2D);
     expect(context, isNotElement);
@@ -54,8 +52,8 @@ main() {
     // expect(context, isNot(isCanvasPixelArray));
 
     // FIXME(b/5286633): Interface injection type check workaround.
-    var image = context.createImageData(
-        canvas.width as dynamic, canvas.height as dynamic);
+    var image = (context as CanvasRenderingContext2D)
+        .createImageData(canvas.width as dynamic, canvas.height as dynamic);
     expect(image, isNotCanvasRenderingContext);
     expect(image, isNotCanvasRenderingContext2D);
     expect(image, isNotElement);
