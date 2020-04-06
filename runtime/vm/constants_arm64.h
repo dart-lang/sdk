@@ -344,8 +344,17 @@ enum Condition {
 };
 
 static inline Condition InvertCondition(Condition c) {
-  const int32_t i = static_cast<int32_t>(c) ^ 0x1;
-  return static_cast<Condition>(i);
+  COMPILE_ASSERT((EQ ^ NE) == 1);
+  COMPILE_ASSERT((CS ^ CC) == 1);
+  COMPILE_ASSERT((MI ^ PL) == 1);
+  COMPILE_ASSERT((VS ^ VC) == 1);
+  COMPILE_ASSERT((HI ^ LS) == 1);
+  COMPILE_ASSERT((GE ^ LT) == 1);
+  COMPILE_ASSERT((GT ^ LE) == 1);
+  ASSERT(c != AL);
+  ASSERT(c != NV);
+  ASSERT(c != kInvalidCondition);
+  return static_cast<Condition>(c ^ 1);
 }
 
 enum Bits {

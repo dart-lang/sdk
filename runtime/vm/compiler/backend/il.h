@@ -4226,6 +4226,11 @@ class StrictCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
   ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT;
 
  private:
+  Condition EmitComparisonCodeRegConstant(FlowGraphCompiler* compiler,
+                                          BranchLabels labels,
+                                          Register reg,
+                                          const Object& obj);
+
   // True if the comparison must check for double or Mint and
   // use value comparison instead.
   bool needs_number_check_;
