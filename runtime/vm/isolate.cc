@@ -992,6 +992,14 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
       }
       return kOK;
     }
+#if defined(SUPPORT_TIMELINE)
+    if (msg_handler.IsClosure()) {
+      const Closure& closure = Closure::Cast(msg_handler);
+      const Function& function = Function::Handle(zone, closure.function());
+      tbes.SetNumArguments(2);
+      tbes.CopyArgument(1, "handler", function.ToQualifiedCString());
+    }
+#endif
   }
 
   // Parse the message.
@@ -1078,17 +1086,6 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
       }
     }
   } else {
-#ifndef PRODUCT
-    if (!Isolate::IsVMInternalIsolate(I)) {
-      // Mark all the user isolates as white-listed for the simplified timeline
-      // page of Observatory. The internal isolates will be filtered out from
-      // the Timeline due to absence of this argument. We still send them in
-      // order to maintain the original behavior of the full timeline and allow
-      // the developer to download complete dump files.
-      tbes.SetNumArguments(2);
-      tbes.CopyArgument(1, "mode", "basic");
-    }
-#endif
     const Object& result =
         Object::Handle(zone, DartLibraryCalls::HandleMessage(msg_handler, msg));
     if (result.IsError()) {
