@@ -12,7 +12,7 @@ import 'package:expect/expect.dart';
 @JS()
 @anonymous
 class C {
-  late final foo;
+  external get foo;
 
   external factory C({required foo});
 }
@@ -20,7 +20,7 @@ class C {
 @JS()
 @anonymous
 class D {
-  late final foo;
+  external get foo;
 
   external factory D({required foo});
 }
