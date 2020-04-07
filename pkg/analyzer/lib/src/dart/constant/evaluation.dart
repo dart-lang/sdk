@@ -25,7 +25,6 @@ import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
-import 'package:analyzer/src/dart/element/type_visitor.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -1640,7 +1639,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         element is PropertyAccessorElement ? element.variable : element;
 
     if (node is SimpleIdentifier &&
-        (node.tearOffTypeArgumentTypes?.any(_hasAppliedTypeParameters) ??
+        (node.tearOffTypeArgumentTypes?.any(hasTypeParameterReference) ??
             false)) {
       _error(node, null);
     }
@@ -1708,13 +1707,6 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     // TODO(brianwilkerson) Figure out which error to report.
     _error(node, null);
     return null;
-  }
-
-  /// Check if any type parameters are referenced by [type], which is an error.
-  bool _hasAppliedTypeParameters(DartType type) {
-    final visitor = _ReferencesTypeParameterVisitor();
-    DartTypeVisitor.visit(type, visitor);
-    return visitor.result;
   }
 
   /// Return `true` if the given [targetResult] represents a string and the
@@ -2248,25 +2240,4 @@ class EvaluationResultImpl {
     }
     return value.toString();
   }
-}
-
-/// A visitor to find if a type contains any [TypeParameterType]s.
-///
-/// To find the result, check [result] on this instance after visiting the tree.
-/// The actual value returned by the visit methods is merely used so that
-/// [RecursiveTypeVisitor] stops visiting the type once the first type parameter
-/// type is found.
-class _ReferencesTypeParameterVisitor extends RecursiveTypeVisitor {
-  /// The result of whether any type parameters were found.
-  bool result = false;
-
-  @override
-  bool defaultDartType(_) => true;
-
-  @override
-  bool visitTypeParameterType(_) {
-    result = true;
-    // Stop visiting at this point.
-    return false;
-  } // Continue visiting in this case.
 }

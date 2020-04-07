@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19,6 +19,31 @@ main() {
 class HasTypeParameterReferenceTest extends AbstractTypeSystemNullSafetyTest {
   test_dynamic() {
     _checkFalse(dynamicNone);
+  }
+
+  test_functionType() {
+    _checkFalse(functionTypeNone(returnType: voidNone));
+
+    var T = typeParameter('T');
+    var T_none = typeParameterTypeNone(T);
+
+    _checkTrue(
+      functionTypeNone(returnType: T_none),
+    );
+
+    _checkTrue(
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [requiredParameter(type: T_none)],
+      ),
+    );
+
+    _checkTrue(
+      functionTypeNone(
+        returnType: voidNone,
+        typeFormals: [typeParameter('S', bound: T_none)],
+      ),
+    );
   }
 
   test_interfaceType() {
