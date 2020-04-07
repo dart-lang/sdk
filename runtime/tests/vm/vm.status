@@ -13,6 +13,8 @@ cc/IsolateReload_PendingUnqualifiedCall_InstanceToStatic: Fail # Issue 32981
 cc/IsolateReload_PendingUnqualifiedCall_StaticToInstance: Fail # Issue 32981
 dart/data_uri_import_test/none: SkipByDesign
 dart/emit_aot_size_info_flag_test: Pass, Slow # Spawns several subprocesses
+dart/minimal_kernel_bytecode_test: Pass, Slow # Spawns several subprocesses
+dart/minimal_kernel_test: Pass, Slow # Spawns several subprocesses
 dart/slow_path_shared_stub_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
 dart/snapshot_version_test: Skip # This test is a Dart1 test (script snapshot)
 dart/stack_overflow_shared_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
@@ -32,6 +34,8 @@ dart/causal_stacks/*: SkipByDesign # Asserts exact stacktrace output.
 cc/*: Skip # Many tests want see unoptimized code running
 dart/appjit*: SkipByDesign # Test needs to a particular opt-counter value
 dart/kernel_determinism_test: SkipSlow
+dart/minimal_kernel_bytecode_test: SkipSlow # gen_kernel is too slow with optimization_counter_threshold
+dart/minimal_kernel_test: SkipSlow # gen_kernel is too slow with optimization_counter_threshold
 
 [ $builder_tag == tsan ]
 dart/appjit_cha_deopt_test: SkipSlow
@@ -57,6 +61,8 @@ cc/CorelibIsolateStartup: SkipByDesign # This is a benchmark that is not informa
 cc/VerifyExplicit_Crash: Crash # Negative tests of VerifiedMemory should crash iff in DEBUG mode. TODO(koda): Improve support for negative tests.
 cc/VerifyImplicit_Crash: Crash # Negative tests of VerifiedMemory should crash iff in DEBUG mode. TODO(koda): Improve support for negative tests.
 dart/appjit_cha_deopt_test: Pass, Slow # Quite slow in debug mode, uses --optimization-counter-threshold=100
+dart/minimal_kernel_bytecode_test: SkipSlow # gen_kernel is too slow in debug mode
+dart/minimal_kernel_test: SkipSlow # gen_kernel is too slow in debug mode
 dart/spawn_shutdown_test: Pass, Slow # VM Shutdown test, It can take some time for all the isolates to shutdown in a Debug build.
 
 [ $mode == product ]
@@ -278,6 +284,8 @@ dart/appjit*: SkipByDesign # Cannot reload with URI pointing to app snapshot.
 dart/compilation_trace_test: Pass, Slow
 dart/disassemble_determinism_test: SkipSlow # Runs expensive fibonacci(32) computation in 2 subprocesses
 dart/issue_31959_31960_test: SkipSlow
+dart/minimal_kernel_bytecode_test: SkipSlow # gen_kernel is too slow in hot reload testing mode
+dart/minimal_kernel_test: SkipSlow # gen_kernel is too slow in hot reload testing mode
 dart/print_flow_graph_determinism_test: SkipSlow
 dart/slow_path_shared_stub_test: SkipSlow # Too slow with --shared-slow-path-triggers-gc flag and not relevant outside precompiled.
 dart/spawn_infinite_loop_test: Skip # We can shutdown an isolate before it reloads.
