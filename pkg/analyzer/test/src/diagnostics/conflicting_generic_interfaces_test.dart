@@ -125,6 +125,30 @@ class C extends B implements A<int> {}
 ''');
   }
 
+  test_class_mixed_viaLegacy() async {
+    newFile('/test/lib/a.dart', content: r'''
+class A<T> {}
+
+class Bi implements A<int> {}
+
+class Biq implements A<int?> {}
+''');
+
+    // Both `Bi` and `Biq` implement `A<int*>` in legacy, so identical.
+    newFile('/test/lib/b.dart', content: r'''
+// @dart = 2.7
+import 'a.dart';
+
+class C extends Bi implements Biq {}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'b.dart';
+
+abstract class D implements C {}
+''');
+  }
+
   test_class_topMerge() async {
     await assertNoErrorsInCode('''
 import 'dart:async';

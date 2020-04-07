@@ -15,10 +15,11 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
@@ -1957,58 +1958,26 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkForConflictingGenerics(NamedCompilationUnitMember node) {
-    var visitedClasses = <ClassElement>[];
-    var interfaces = <ClassElement, InterfaceType>{};
+    var element = node.declaredElement as ClassElement;
 
-    void visit(InterfaceType type) {
-      if (type == null) return;
+    var analysisSession = _currentLibrary.session as AnalysisSessionImpl;
+    var errors = analysisSession.classHierarchy.errors(element);
 
-      var element = type.element;
-      if (visitedClasses.contains(element)) return;
-      visitedClasses.add(element);
-
-      if (element.typeParameters.isNotEmpty) {
-        if (_typeSystem.isNonNullableByDefault) {
-          type = _typeSystem.normalize(type);
-          var oldType = interfaces[element];
-          if (oldType == null) {
-            interfaces[element] = type;
-          } else {
-            try {
-              var result = _typeSystem.topMerge(oldType, type);
-              interfaces[element] = result;
-            } catch (_) {
-              _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES,
-                node,
-                [_enclosingClass.name, oldType, type],
-              );
-            }
-          }
-        } else {
-          type = _toLegacyType(type);
-          var oldType = interfaces[element];
-          if (oldType == null) {
-            interfaces[element] = type;
-          } else if (type != oldType) {
-            _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES,
-              node,
-              [_enclosingClass.name, oldType, type],
-            );
-          }
-        }
+    for (var error in errors) {
+      if (error is IncompatibleInterfacesClassHierarchyError) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES,
+          node,
+          [
+            _enclosingClass.name,
+            error.first.getDisplayString(withNullability: true),
+            error.second.getDisplayString(withNullability: true),
+          ],
+        );
+      } else {
+        throw UnimplementedError('${error.runtimeType}');
       }
-
-      visit(type.superclass);
-      type.mixins.forEach(visit);
-      type.superclassConstraints.forEach(visit);
-      type.interfaces.forEach(visit);
-
-      visitedClasses.removeLast();
     }
-
-    visit(_enclosingClass.thisType);
   }
 
   /**
@@ -5550,13 +5519,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return parameter.parameter.identifier;
     }
     return null;
-  }
-
-  /// If in a legacy library, return the legacy version of the [type].
-  /// Otherwise, return the original type.
-  DartType _toLegacyType(DartType type) {
-    if (_isNonNullableByDefault) return type;
-    return NullabilityEliminator.perform(_typeProvider, type);
   }
 
   /**
