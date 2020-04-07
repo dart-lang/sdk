@@ -2010,6 +2010,20 @@ main() {
     await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
+  Future<void> test_topLevelVariableDeclaration_type() async {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // TopLevelVariableDeclaration
+    addTestSource('^ foo;');
+    await assertOpType(typeNames: true);
+  }
+
+  Future<void> test_topLevelVariableDeclaration_type_no_semicolon() async {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // TopLevelVariableDeclaration
+    addTestSource('^ foo');
+    await assertOpType(typeNames: true);
+  }
+
   Future<void> test_topLevelVariableDeclaration_typed_name() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // TopLevelVariableDeclaration
