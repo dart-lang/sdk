@@ -4351,8 +4351,14 @@ RawClass* Class::NewNativeWrapper(const Library& library,
     // Compute instance size. First word contains a pointer to a properly
     // sized typed array once the first native field has been set.
     const intptr_t host_instance_size = sizeof(RawInstance) + kWordSize;
+#if defined(PRECOMPILER)
+    const intptr_t target_instance_size =
+        compiler::target::Instance::InstanceSize() +
+        compiler::target::kWordSize;
+#else
     const intptr_t target_instance_size =
         sizeof(RawInstance) + compiler::target::kWordSize;
+#endif
     cls.set_instance_size(
         RoundedAllocationSize(host_instance_size),
         compiler::target::RoundedAllocationSize(target_instance_size));

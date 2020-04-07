@@ -167,6 +167,11 @@ class RawObject {
       return SizeBits::update(SizeToTagValue(size), tag);
     }
 
+    static UNLESS_DEBUG(constexpr) bool SizeFits(intptr_t size) {
+      DEBUG_ASSERT(Utils::IsAligned(size, kObjectAlignment));
+      return (size <= kMaxSizeTag);
+    }
+
    private:
     // The actual unscaled bit field used within the tag field.
     class SizeBits
@@ -174,7 +179,7 @@ class RawObject {
 
     static UNLESS_DEBUG(constexpr) intptr_t SizeToTagValue(intptr_t size) {
       DEBUG_ASSERT(Utils::IsAligned(size, kObjectAlignment));
-      return (size > kMaxSizeTag) ? 0 : (size >> kObjectAlignmentLog2);
+      return !SizeFits(size) ? 0 : (size >> kObjectAlignmentLog2);
     }
     static constexpr intptr_t TagValueToSize(intptr_t value) {
       return value << kObjectAlignmentLog2;

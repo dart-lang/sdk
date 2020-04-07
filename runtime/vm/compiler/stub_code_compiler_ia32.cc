@@ -1505,6 +1505,19 @@ void StubCodeCompiler::GenerateArrayWriteBarrierStub(Assembler* assembler) {
       Address(THR, target::Thread::array_write_barrier_code_offset()), true);
 }
 
+void StubCodeCompiler::GenerateAllocateObjectStub(Assembler* assembler) {
+  __ int3();
+}
+
+void StubCodeCompiler::GenerateAllocateObjectParameterizedStub(
+    Assembler* assembler) {
+  __ int3();
+}
+
+void StubCodeCompiler::GenerateAllocateObjectSlowStub(Assembler* assembler) {
+  __ int3();
+}
+
 // Called for inline allocation of objects.
 // Input parameters:
 //   ESP : points to return address.

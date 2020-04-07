@@ -252,6 +252,11 @@ static word TranslateOffsetInWordsToHost(word offset) {
   return (offset / kWordSize) * dart::kWordSize;
 }
 
+bool SizeFitsInSizeTag(uword instance_size) {
+  return dart::RawObject::SizeTag::SizeFits(
+      TranslateOffsetInWordsToHost(instance_size));
+}
+
 uint32_t MakeTagWordForNewSpaceObject(classid_t cid, uword instance_size) {
   return dart::RawObject::SizeTag::encode(
              TranslateOffsetInWordsToHost(instance_size)) |
@@ -270,6 +275,10 @@ const word RawObject::kOldAndNotRememberedBit =
 
 const word RawObject::kOldAndNotMarkedBit =
     dart::RawObject::kOldAndNotMarkedBit;
+
+const word RawObject::kSizeTagPos = dart::RawObject::kSizeTagPos;
+
+const word RawObject::kSizeTagSize = dart::RawObject::kSizeTagSize;
 
 const word RawObject::kClassIdTagPos = dart::RawObject::kClassIdTagPos;
 

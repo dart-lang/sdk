@@ -819,6 +819,9 @@ class Assembler : public AssemblerBase {
   // if platform ABI requires that. Does not restore RSP after the call itself.
   void CallCFunction(Register reg);
 
+  void ExtractClassIdFromTags(Register result, Register tags);
+  void ExtractInstanceSizeFromTags(Register result, Register tags);
+
   // Loading and comparing classes of objects.
   void LoadClassId(Register result, Register object);
   void LoadClassById(Register result, Register class_id);

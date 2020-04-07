@@ -120,6 +120,12 @@ class Thread;
     StubCode::AllocateMintWithFPURegs().raw(), NULL)                           \
   V(RawCode*, allocate_mint_without_fpu_regs_stub_,                            \
     StubCode::AllocateMintWithoutFPURegs().raw(), NULL)                        \
+  V(RawCode*, allocate_object_stub_, StubCode::AllocateObject().raw(),         \
+    nullptr)                                                                   \
+  V(RawCode*, allocate_object_parameterized_stub_,                             \
+    StubCode::AllocateObjectParameterized().raw(), nullptr)                    \
+  V(RawCode*, allocate_object_slow_stub_,                                      \
+    StubCode::AllocateObjectSlow().raw(), nullptr)                             \
   V(RawCode*, stack_overflow_shared_without_fpu_regs_stub_,                    \
     StubCode::StackOverflowSharedWithoutFPURegs().raw(), NULL)                 \
   V(RawCode*, stack_overflow_shared_with_fpu_regs_stub_,                       \
@@ -176,6 +182,12 @@ class Thread;
     StubCode::AllocateMintWithFPURegs().EntryPoint(), 0)                       \
   V(uword, allocate_mint_without_fpu_regs_entry_point_,                        \
     StubCode::AllocateMintWithoutFPURegs().EntryPoint(), 0)                    \
+  V(uword, allocate_object_entry_point_,                                       \
+    StubCode::AllocateObject().EntryPoint(), 0)                                \
+  V(uword, allocate_object_parameterized_entry_point_,                         \
+    StubCode::AllocateObjectParameterized().EntryPoint(), 0)                   \
+  V(uword, allocate_object_slow_entry_point_,                                  \
+    StubCode::AllocateObjectSlow().EntryPoint(), 0)                            \
   V(uword, stack_overflow_shared_without_fpu_regs_entry_point_,                \
     StubCode::StackOverflowSharedWithoutFPURegs().EntryPoint(), 0)             \
   V(uword, stack_overflow_shared_with_fpu_regs_entry_point_,                   \

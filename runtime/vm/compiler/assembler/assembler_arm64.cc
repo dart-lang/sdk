@@ -1148,6 +1148,21 @@ void Assembler::StoreInternalPointer(Register object,
   str(value, dest);
 }
 
+void Assembler::ExtractClassIdFromTags(Register result, Register tags) {
+  ASSERT(target::RawObject::kClassIdTagPos == 16);
+  ASSERT(target::RawObject::kClassIdTagSize == 16);
+  ASSERT(sizeof(classid_t) == sizeof(uint16_t));
+  LsrImmediate(result, tags, target::RawObject::kClassIdTagPos, kWord);
+}
+
+void Assembler::ExtractInstanceSizeFromTags(Register result, Register tags) {
+  ASSERT(target::RawObject::kSizeTagPos == 8);
+  ASSERT(target::RawObject::kSizeTagSize == 8);
+  ubfx(result, tags, target::RawObject::kSizeTagPos,
+       target::RawObject::kSizeTagSize);
+  LslImmediate(result, result, target::ObjectAlignment::kObjectAlignmentLog2);
+}
+
 void Assembler::LoadClassId(Register result, Register object) {
   ASSERT(target::RawObject::kClassIdTagPos == 16);
   ASSERT(target::RawObject::kClassIdTagSize == 16);

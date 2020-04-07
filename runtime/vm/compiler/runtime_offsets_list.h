@@ -152,6 +152,12 @@
   FIELD(Thread, allocate_mint_with_fpu_regs_stub_offset)                       \
   FIELD(Thread, allocate_mint_without_fpu_regs_entry_point_offset)             \
   FIELD(Thread, allocate_mint_without_fpu_regs_stub_offset)                    \
+  FIELD(Thread, allocate_object_entry_point_offset)                            \
+  FIELD(Thread, allocate_object_stub_offset)                                   \
+  FIELD(Thread, allocate_object_parameterized_entry_point_offset)              \
+  FIELD(Thread, allocate_object_parameterized_stub_offset)                     \
+  FIELD(Thread, allocate_object_slow_entry_point_offset)                       \
+  FIELD(Thread, allocate_object_slow_stub_offset)                              \
   FIELD(Thread, async_stack_trace_offset)                                      \
   FIELD(Thread, auto_scope_native_wrapper_entry_point_offset)                  \
   FIELD(Thread, bool_false_offset)                                             \

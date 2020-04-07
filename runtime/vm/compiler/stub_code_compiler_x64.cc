@@ -1868,136 +1868,210 @@ void StubCodeCompiler::GenerateArrayWriteBarrierStub(Assembler* assembler) {
       Address(THR, target::Thread::array_write_barrier_code_offset()), true);
 }
 
-// Called for inline allocation of objects.
-// Input parameters:
-//   RSP : points to return address.
-//   kAllocationStubTypeArgumentsReg (RDX) : type arguments object
-//                                           (only if class is parameterized).
-void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
-                                                      const Class& cls) {
-  // The generated code is different if the class is parameterized.
-  const bool is_cls_parameterized = target::Class::NumTypeArguments(cls) > 0;
-  ASSERT(!is_cls_parameterized || target::Class::TypeArgumentsFieldOffset(
-                                      cls) != target::Class::kNoTypeArguments);
-  // kInlineInstanceSize is a constant used as a threshold for determining
-  // when the object initialization should be done as a loop or as
-  // straight line code.
-  const int kInlineInstanceSize = 12;  // In words.
-  const intptr_t instance_size = target::Class::GetInstanceSize(cls);
-  ASSERT(instance_size > 0);
-  __ LoadObject(R9, NullObject());
+static void GenerateAllocateObjectHelper(Assembler* assembler,
+                                         bool is_cls_parameterized) {
+  // Note: Keep in sync with calling function.
+  // kAllocationStubTypeArgumentsReg = RDX
+  const Register kTagsReg = R8;
 
-  // RDX: instantiated type arguments (if is_cls_parameterized).
-  static_assert(kAllocationStubTypeArgumentsReg == RDX,
-                "Adjust register allocation in the AllocationStub");
-
-  if (!FLAG_use_slow_path && FLAG_inline_alloc &&
-      target::Heap::IsAllocatableInNewSpace(instance_size) &&
-      !target::Class::TraceAllocation(cls)) {
+  {
     Label slow_case;
+    const Register kNewTopReg = R9;
+
     // Allocate the object and update top to point to
     // next object start and initialize the allocated object.
-    // RDX: instantiated type arguments (if is_cls_parameterized).
-    __ movq(RAX, Address(THR, target::Thread::top_offset()));
-    __ leaq(RBX, Address(RAX, instance_size));
-    // Check if the allocation fits into the remaining space.
-    // RAX: potential new object start.
-    // RBX: potential next object start.
-    __ cmpq(RBX, Address(THR, target::Thread::end_offset()));
-    __ j(ABOVE_EQUAL, &slow_case);
+    {
+      const Register kInstanceSizeReg = RSI;
 
-    __ movq(Address(THR, target::Thread::top_offset()), RBX);
+      __ ExtractInstanceSizeFromTags(kInstanceSizeReg, kTagsReg);
 
-    // RAX: new object start (untagged).
-    // RBX: next object start.
-    // RDX: new object type arguments (if is_cls_parameterized).
+      __ movq(RAX, Address(THR, target::Thread::top_offset()));
+      __ leaq(kNewTopReg, Address(RAX, kInstanceSizeReg, TIMES_1, 0));
+      // Check if the allocation fits into the remaining space.
+      __ cmpq(kNewTopReg, Address(THR, target::Thread::end_offset()));
+      __ j(ABOVE_EQUAL, &slow_case);
+
+      __ movq(Address(THR, target::Thread::top_offset()), kNewTopReg);
+    }  // kInstanceSizeReg = RSI
+
     // Set the tags.
-    ASSERT(target::Class::GetId(cls) != kIllegalCid);
-    const uint32_t tags = target::MakeTagWordForNewSpaceObject(
-        target::Class::GetId(cls), instance_size);
     // 64 bit store also zeros the identity hash field.
-    __ movq(Address(RAX, target::Object::tags_offset()), Immediate(tags));
+    __ movq(Address(RAX, target::Object::tags_offset()), kTagsReg);
+
     __ addq(RAX, Immediate(kHeapObjectTag));
 
     // Initialize the remaining words of the object.
-    // RAX: new object (tagged).
-    // RBX: next object start.
-    // RDX: new object type arguments (if is_cls_parameterized).
-    // R9: raw null.
-    // First try inlining the initialization without a loop.
-    if (instance_size < (kInlineInstanceSize * target::kWordSize)) {
-      // Check if the object contains any non-header fields.
-      // Small objects are initialized using a consecutive set of writes.
-      for (intptr_t current_offset = target::Instance::first_field_offset();
-           current_offset < instance_size;
-           current_offset += target::kWordSize) {
-        __ StoreIntoObjectNoBarrier(RAX, FieldAddress(RAX, current_offset), R9);
-      }
-    } else {
-      __ leaq(RCX, FieldAddress(RAX, target::Instance::first_field_offset()));
+    {
+      const Register kNextFieldReg = RDI;
+      __ leaq(kNextFieldReg,
+              FieldAddress(RAX, target::Instance::first_field_offset()));
+
+      const Register kNullReg = R10;
+      __ LoadObject(kNullReg, NullObject());
+
       // Loop until the whole object is initialized.
-      // RAX: new object (tagged).
-      // RBX: next object start.
-      // RCX: next word to be initialized.
-      // RDX: new object type arguments (if is_cls_parameterized).
       Label init_loop;
       Label done;
       __ Bind(&init_loop);
-      __ cmpq(RCX, RBX);
+      __ cmpq(kNextFieldReg, kNewTopReg);
 #if defined(DEBUG)
       static const bool kJumpLength = Assembler::kFarJump;
 #else
       static const bool kJumpLength = Assembler::kNearJump;
 #endif  // DEBUG
       __ j(ABOVE_EQUAL, &done, kJumpLength);
-      __ StoreIntoObjectNoBarrier(RAX, Address(RCX, 0), R9);
-      __ addq(RCX, Immediate(target::kWordSize));
+      __ StoreIntoObjectNoBarrier(RAX, Address(kNextFieldReg, 0), kNullReg);
+      __ addq(kNextFieldReg, Immediate(target::kWordSize));
       __ jmp(&init_loop, Assembler::kNearJump);
       __ Bind(&done);
-    }
+    }  // kNextFieldReg = RDI, kNullReg = R10
+
     if (is_cls_parameterized) {
-      // RAX: new object (tagged).
-      // RDX: new object type arguments.
+      Label not_parameterized_case;
+
+      const Register kClsIdReg = R9;
+      const Register kTypeOffsetReg = RDI;
+
+      __ ExtractClassIdFromTags(kClsIdReg, kTagsReg);
+
+      // Load class' type_arguments_field offset in words.
+      __ LoadClassById(kTypeOffsetReg, kClsIdReg);
+      __ movl(
+          kTypeOffsetReg,
+          FieldAddress(kTypeOffsetReg,
+                       target::Class::
+                           host_type_arguments_field_offset_in_words_offset()));
+
       // Set the type arguments in the new object.
-      const intptr_t offset = target::Class::TypeArgumentsFieldOffset(cls);
-      __ StoreIntoObjectNoBarrier(RAX, FieldAddress(RAX, offset),
-                                  kAllocationStubTypeArgumentsReg);
-    }
-    // Done allocating and initializing the instance.
-    // RAX: new object (tagged).
+      __ StoreIntoObject(RAX, FieldAddress(RAX, kTypeOffsetReg, TIMES_8, 0),
+                         kAllocationStubTypeArgumentsReg);
+
+      __ Bind(&not_parameterized_case);
+    }  // kTypeOffsetReg = RDI;
+
     __ ret();
 
     __ Bind(&slow_case);
-  }
-  // If is_cls_parameterized:
-  // RDX: new object type arguments.
-  // Create a stub frame.
-  __ EnterStubFrame();  // Uses PP to access class object.
+  }  // kNewTopReg = R9;
 
-  __ pushq(R9);  // Setup space on stack for return value.
-  __ PushObject(
-      CastHandle<Object>(cls));  // Push class of object to be allocated.
-  if (is_cls_parameterized) {
-    // Push type arguments of object to be allocated.
-    __ pushq(kAllocationStubTypeArgumentsReg);
-  } else {
-    __ pushq(R9);  // Push null type arguments.
+  // Fall back on slow case:
+  if (!is_cls_parameterized) {
+    __ LoadObject(kAllocationStubTypeArgumentsReg, NullObject());
   }
-  __ CallRuntime(kAllocateObjectRuntimeEntry, 2);  // Allocate object.
+  // Tail call to generic allocation stub.
+  __ jmp(
+      Address(THR, target::Thread::allocate_object_slow_entry_point_offset()));
+}
+
+// Called for inline allocation of objects (any class).
+void StubCodeCompiler::GenerateAllocateObjectStub(Assembler* assembler) {
+  GenerateAllocateObjectHelper(assembler, /*is_cls_parameterized=*/false);
+}
+
+void StubCodeCompiler::GenerateAllocateObjectParameterizedStub(
+    Assembler* assembler) {
+  GenerateAllocateObjectHelper(assembler, /*is_cls_parameterized=*/true);
+}
+
+void StubCodeCompiler::GenerateAllocateObjectSlowStub(Assembler* assembler) {
+  // Note: Keep in sync with calling stub.
+  // kAllocationStubTypeArgumentsReg = RDX
+  const Register kTagsToClsIdReg = R8;
+
+  if (!FLAG_use_bare_instructions) {
+    __ movq(CODE_REG,
+            Address(THR, target::Thread::call_to_runtime_stub_offset()));
+  }
+
+  __ ExtractClassIdFromTags(kTagsToClsIdReg, kTagsToClsIdReg);
+
+  // Create a stub frame.
+  // Ensure constant pool is allowed so we can e.g. load class object.
+  __ EnterStubFrame();
+
+  // Setup space on stack for return value.
+  __ LoadObject(RAX, NullObject());
+  __ pushq(RAX);
+
+  // Push class of object to be allocated.
+  __ LoadClassById(RAX, kTagsToClsIdReg);
+  __ pushq(RAX);
+
+  // Must be Object::null() if non-parameterized class.
+  __ pushq(kAllocationStubTypeArgumentsReg);
+
+  __ CallRuntime(kAllocateObjectRuntimeEntry, 2);
+
   __ popq(RAX);  // Pop argument (type arguments of object).
   __ popq(RAX);  // Pop argument (class of object).
   __ popq(RAX);  // Pop result (newly allocated object).
 
-  if (AllocateObjectInstr::WillAllocateNewOrRemembered(cls)) {
-    // Write-barrier elimination is enabled for [cls] and we therefore need to
-    // ensure that the object is in new-space or has remembered bit set.
-    EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
-  }
+  // Write-barrier elimination is enabled for [cls] and we therefore need to
+  // ensure that the object is in new-space or has remembered bit set.
+  EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
 
   // RAX: new object
   // Restore the frame pointer.
   __ LeaveStubFrame();
+
   __ ret();
+}
+
+// Called for inline allocation of objects.
+void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
+                                                      const Class& cls) {
+  static_assert(kAllocationStubTypeArgumentsReg == RDX,
+                "Adjust register allocation in the AllocationStub");
+
+  classid_t cls_id = target::Class::GetId(cls);
+  ASSERT(cls_id != kIllegalCid);
+
+  RELEASE_ASSERT(AllocateObjectInstr::WillAllocateNewOrRemembered(cls));
+
+  const intptr_t cls_type_arg_field_offset =
+      target::Class::TypeArgumentsFieldOffset(cls);
+
+  // The generated code is different if the class is parameterized.
+  const bool is_cls_parameterized = target::Class::NumTypeArguments(cls) > 0;
+  ASSERT(!is_cls_parameterized ||
+         cls_type_arg_field_offset != target::Class::kNoTypeArguments);
+
+  const intptr_t instance_size = target::Class::GetInstanceSize(cls);
+  ASSERT(instance_size > 0);
+  // User-defined classes should always be allocatable in new space.
+  RELEASE_ASSERT(target::Heap::IsAllocatableInNewSpace(instance_size));
+
+  const uint32_t tags =
+      target::MakeTagWordForNewSpaceObject(cls_id, instance_size);
+
+  // Note: Keep in sync with helper function.
+  // kAllocationStubTypeArgumentsReg = RDX
+  const Register kTagsReg = R8;
+
+  __ movq(kTagsReg, Immediate(tags));
+
+  // Load the appropriate generic alloc. stub.
+  uintptr_t stub_entry_point_offset;
+  if (!FLAG_use_slow_path && FLAG_inline_alloc &&
+      !target::Class::TraceAllocation(cls) &&
+      target::SizeFitsInSizeTag(instance_size)) {
+    if (!is_cls_parameterized) {
+      stub_entry_point_offset =
+          target::Thread::allocate_object_entry_point_offset();
+    } else {
+      stub_entry_point_offset =
+          target::Thread::allocate_object_parameterized_entry_point_offset();
+    }
+  } else {
+    if (!is_cls_parameterized) {
+      __ LoadObject(kAllocationStubTypeArgumentsReg, NullObject());
+    }
+    stub_entry_point_offset =
+        target::Thread::allocate_object_slow_entry_point_offset();
+  }
+
+  // Tail call to generic allocation stub.
+  __ jmp(Address(THR, stub_entry_point_offset));
 }
 
 // Called for invoking "dynamic noSuchMethod(Invocation invocation)" function

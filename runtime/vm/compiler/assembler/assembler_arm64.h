@@ -1571,6 +1571,9 @@ class Assembler : public AssemblerBase {
   }
   void CompareObject(Register reg, const Object& object);
 
+  void ExtractClassIdFromTags(Register result, Register tags);
+  void ExtractInstanceSizeFromTags(Register result, Register tags);
+
   void LoadClassId(Register result, Register object);
   void LoadClassById(Register result, Register class_id);
   void CompareClassId(Register object,

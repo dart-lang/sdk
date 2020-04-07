@@ -22,6 +22,9 @@ namespace dart {
   V(AllocateMintWithFPURegs)                                                   \
   V(AllocateMintWithoutFPURegs)                                                \
   V(AllocateContext)                                                           \
+  V(AllocateObject)                                                            \
+  V(AllocateObjectParameterized)                                               \
+  V(AllocateObjectSlow)                                                        \
   V(CloneContext)                                                              \
   V(CallToRuntime)                                                             \
   V(LazyCompile)                                                               \

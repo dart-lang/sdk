@@ -1973,6 +1973,25 @@ void Assembler::StoreIntoSmiField(const Address& dest, Register value) {
   str(value, dest);
 }
 
+void Assembler::ExtractClassIdFromTags(Register result, Register tags) {
+  ASSERT(target::RawObject::kClassIdTagPos == 16);
+  ASSERT(target::RawObject::kClassIdTagSize == 16);
+  ASSERT(sizeof(classid_t) == sizeof(uint16_t));
+  Lsr(result, tags, Operand(target::RawObject::kClassIdTagPos), AL);
+}
+
+void Assembler::ExtractInstanceSizeFromTags(Register result, Register tags) {
+  ASSERT(target::RawObject::kSizeTagPos == 8);
+  ASSERT(target::RawObject::kSizeTagSize == 8);
+  Lsr(result, tags,
+      Operand(target::RawObject::kSizeTagPos -
+              target::ObjectAlignment::kObjectAlignmentLog2),
+      AL);
+  AndImmediate(result, result,
+               (Utils::NBitMask(target::RawObject::kSizeTagSize)
+                << target::ObjectAlignment::kObjectAlignmentLog2));
+}
+
 void Assembler::LoadClassId(Register result, Register object, Condition cond) {
   ASSERT(target::RawObject::kClassIdTagPos == 16);
   ASSERT(target::RawObject::kClassIdTagSize == 16);

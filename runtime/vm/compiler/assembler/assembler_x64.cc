@@ -2116,6 +2116,25 @@ void Assembler::EmitGenericShift(bool wide,
   EmitOperand(rm, Operand(operand));
 }
 
+void Assembler::ExtractClassIdFromTags(Register result, Register tags) {
+  ASSERT(target::RawObject::kClassIdTagPos == 16);
+  ASSERT(target::RawObject::kClassIdTagSize == 16);
+  ASSERT(sizeof(classid_t) == sizeof(uint16_t));
+  movl(result, tags);
+  shrl(result, Immediate(target::RawObject::kClassIdTagPos));
+}
+
+void Assembler::ExtractInstanceSizeFromTags(Register result, Register tags) {
+  ASSERT(target::RawObject::kSizeTagPos == 8);
+  ASSERT(target::RawObject::kSizeTagSize == 8);
+  movzxw(result, tags);
+  shrl(result, Immediate(target::RawObject::kSizeTagPos -
+                         target::ObjectAlignment::kObjectAlignmentLog2));
+  AndImmediate(result,
+               Immediate(Utils::NBitMask(target::RawObject::kSizeTagSize)
+                         << target::ObjectAlignment::kObjectAlignmentLog2));
+}
+
 void Assembler::LoadClassId(Register result, Register object) {
   ASSERT(target::RawObject::kClassIdTagPos == 16);
   ASSERT(target::RawObject::kClassIdTagSize == 16);

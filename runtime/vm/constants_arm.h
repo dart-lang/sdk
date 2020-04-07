@@ -71,7 +71,7 @@ enum Register {
   R3 = 3,
   R4 = 4,
   R5 = 5,  // PP
-  R6 = 6,
+  R6 = 6,  // CODE
   R7 = 7,  // iOS FP
   R8 = 8,
   R9 = 9,
