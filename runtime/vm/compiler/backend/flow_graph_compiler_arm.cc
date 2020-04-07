@@ -664,18 +664,10 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
     __ ldm(IA, SP,
            (1 << TypeTestABI::kFunctionTypeArgumentsReg) |
                (1 << TypeTestABI::kInstantiatorTypeArgumentsReg));
-    __ PushObject(Object::null_object());  // Make room for the result.
-    __ Push(TypeTestABI::kInstanceReg);    // Push the instance.
-    __ PushObject(type);                   // Push the type.
-    __ PushList((1 << TypeTestABI::kInstantiatorTypeArgumentsReg) |
-                (1 << TypeTestABI::kFunctionTypeArgumentsReg));
-    __ LoadUniqueObject(R0, test_cache);
-    __ Push(R0);
-    GenerateRuntimeCall(token_pos, deopt_id, kInstanceofRuntimeEntry, 5, locs);
-    // Pop the parameters supplied to the runtime entry. The result of the
-    // instanceof runtime call will be left as the result of the operation.
-    __ Drop(5);
-    __ Pop(R0);
+    __ LoadUniqueObject(TypeTestABI::kDstTypeReg, type);
+    __ LoadUniqueObject(TypeTestABI::kSubtypeTestCacheReg, test_cache);
+    GenerateCall(token_pos, StubCode::InstanceOf(),
+                 /*kind=*/RawPcDescriptors::kOther, locs, deopt_id);
     __ b(&done);
   }
   __ Bind(&is_not_instance);
@@ -978,16 +970,17 @@ void FlowGraphCompiler::CompileGraph() {
 void FlowGraphCompiler::GenerateCall(TokenPosition token_pos,
                                      const Code& stub,
                                      RawPcDescriptors::Kind kind,
-                                     LocationSummary* locs) {
+                                     LocationSummary* locs,
+                                     intptr_t deopt_id) {
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions &&
       !stub.InVMIsolateHeap()) {
     __ GenerateUnRelocatedPcRelativeCall();
     AddPcRelativeCallStubTarget(stub);
-    EmitCallsiteMetadata(token_pos, DeoptId::kNone, kind, locs);
+    EmitCallsiteMetadata(token_pos, deopt_id, kind, locs);
   } else {
     ASSERT(!stub.IsNull());
     __ BranchLink(stub);
-    EmitCallsiteMetadata(token_pos, DeoptId::kNone, kind, locs);
+    EmitCallsiteMetadata(token_pos, deopt_id, kind, locs);
     AddStubCallTarget(stub);
   }
 }

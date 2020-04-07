@@ -852,9 +852,10 @@ void FlowGraphCompiler::CompileGraph() {
 void FlowGraphCompiler::GenerateCall(TokenPosition token_pos,
                                      const Code& stub,
                                      RawPcDescriptors::Kind kind,
-                                     LocationSummary* locs) {
+                                     LocationSummary* locs,
+                                     intptr_t deopt_id) {
   __ Call(stub);
-  EmitCallsiteMetadata(token_pos, DeoptId::kNone, kind, locs);
+  EmitCallsiteMetadata(token_pos, deopt_id, kind, locs);
   AddStubCallTarget(stub);
 }
 

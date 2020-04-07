@@ -581,13 +581,8 @@ class FlowGraphCompiler : public ValueObject {
   void GenerateCall(TokenPosition token_pos,
                     const Code& stub,
                     RawPcDescriptors::Kind kind,
-                    LocationSummary* locs);
-
-  void GenerateCallWithDeopt(TokenPosition token_pos,
-                             intptr_t deopt_id,
-                             const Code& stub,
-                             RawPcDescriptors::Kind kind,
-                             LocationSummary* locs);
+                    LocationSummary* locs,
+                    intptr_t deopt_id = DeoptId::kNone);
 
   void GeneratePatchableCall(TokenPosition token_pos,
                              const Code& stub,

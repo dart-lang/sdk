@@ -602,6 +602,10 @@ class Assembler : public AssemblerBase {
 
   void LoadIsolate(Register dst);
 
+  void LoadUniqueObject(Register dst, const Object& object) {
+    LoadObject(dst, object, /*movable_referent=*/true);
+  }
+
   void LoadObject(Register dst,
                   const Object& object,
                   bool movable_referent = false);

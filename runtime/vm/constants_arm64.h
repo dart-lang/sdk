@@ -163,6 +163,9 @@ struct TypeTestABI {
       (1 << kInstanceReg) | (1 << kDstTypeReg) |
       (1 << kInstantiatorTypeArgumentsReg) | (1 << kFunctionTypeArgumentsReg) |
       (1 << kSubtypeTestCacheReg);
+
+  // For call to InstanceOfStub.
+  static const Register kResultReg = R0;
 };
 
 // Registers used inside the implementation of type testing stubs.
@@ -179,10 +182,26 @@ struct InitStaticFieldABI {
   static const Register kFieldReg = R0;
 };
 
-// ABI for InitInstanceField.
+// ABI for InitInstanceFieldStub.
 struct InitInstanceFieldABI {
   static const Register kInstanceReg = R0;
   static const Register kFieldReg = R1;
+};
+
+// ABI for ThrowStub.
+struct ThrowABI {
+  static const Register kExceptionReg = R0;
+};
+
+// ABI for ReThrowStub.
+struct ReThrowABI {
+  static const Register kExceptionReg = R0;
+  static const Register kStackTraceReg = R1;
+};
+
+// ABI for AssertBooleanStub.
+struct AssertBooleanABI {
+  static const Register kObjectReg = R0;
 };
 
 // TODO(regis): Add ABIs for type testing stubs and is-type test stubs instead

@@ -90,6 +90,10 @@ namespace dart {
   V(CallNativeThroughSafepoint)                                                \
   V(InitStaticField)                                                           \
   V(InitInstanceField)                                                         \
+  V(Throw)                                                                     \
+  V(ReThrow)                                                                   \
+  V(AssertBoolean)                                                             \
+  V(InstanceOf)                                                                \
   V(InstantiateTypeArguments)                                                  \
   V(InstantiateTypeArgumentsMayShareInstantiatorTA)                            \
   V(InstantiateTypeArgumentsMayShareFunctionTA)                                \

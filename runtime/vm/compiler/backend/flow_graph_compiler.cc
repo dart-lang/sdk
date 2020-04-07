@@ -1346,24 +1346,6 @@ bool FlowGraphCompiler::TryIntrinsifyHelper() {
   return complete;
 }
 
-void FlowGraphCompiler::GenerateCallWithDeopt(TokenPosition token_pos,
-                                              intptr_t deopt_id,
-                                              const Code& stub,
-                                              RawPcDescriptors::Kind kind,
-                                              LocationSummary* locs) {
-  GenerateCall(token_pos, stub, kind, locs);
-  if (!FLAG_precompiled_mode) {
-    const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
-    if (is_optimizing()) {
-      AddDeoptIndexAtCall(deopt_id_after);
-    } else {
-      // Add deoptimization continuation point after the call and before the
-      // arguments are removed.
-      AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
-    }
-  }
-}
-
 static const Code& StubEntryFor(const ICData& ic_data, bool optimized) {
   switch (ic_data.NumArgsTested()) {
     case 1:

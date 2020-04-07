@@ -555,48 +555,6 @@ LocationSummary* AssertSubtypeInstr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
-LocationSummary* AssertBooleanInstr::MakeLocationSummary(Zone* zone,
-                                                         bool opt) const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* locs = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  locs->set_in(0, Location::RegisterLocation(RAX));
-  locs->set_out(0, Location::RegisterLocation(RAX));
-  return locs;
-}
-
-static void EmitAssertBoolean(Register reg,
-                              TokenPosition token_pos,
-                              intptr_t deopt_id,
-                              LocationSummary* locs,
-                              FlowGraphCompiler* compiler) {
-  // Check that the type of the value is allowed in conditional context.
-  // Call the runtime if the object is not bool::true or bool::false.
-  ASSERT(locs->always_calls());
-  compiler::Label done;
-
-  __ CompareObject(reg, Object::null_instance());
-  __ j(NOT_EQUAL, &done, compiler::Assembler::kNearJump);
-
-  __ pushq(reg);  // Push the source object.
-  compiler->GenerateRuntimeCall(token_pos, deopt_id,
-                                kNonBoolTypeErrorRuntimeEntry, 1, locs);
-  // We should never return here.
-#if defined(DEBUG)
-  __ int3();
-#endif
-  __ Bind(&done);
-}
-
-void AssertBooleanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register obj = locs()->in(0).reg();
-  Register result = locs()->out(0).reg();
-
-  EmitAssertBoolean(obj, token_pos(), deopt_id(), locs(), compiler);
-  ASSERT(obj == result);
-}
-
 static Condition TokenKindToIntCondition(Token::Kind kind) {
   switch (kind) {
     case Token::kEQ:
@@ -2589,9 +2547,8 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   __ Bind(&slow_path);
-  compiler->GenerateCallWithDeopt(token_pos(), deopt_id(),
-                                  StubCode::AllocateArray(),
-                                  RawPcDescriptors::kOther, locs());
+  compiler->GenerateCall(token_pos(), StubCode::AllocateArray(),
+                         RawPcDescriptors::kOther, locs(), deopt_id());
   __ Bind(&done);
   ASSERT(locs()->out(0).reg() == kResultReg);
 }
@@ -6520,44 +6477,6 @@ void IntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     UNREACHABLE();
   }
-}
-
-LocationSummary* ThrowInstr::MakeLocationSummary(Zone* zone, bool opt) const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  summary->set_in(0, Location::RegisterLocation(RAX));
-  return summary;
-}
-
-void ThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register exception_reg = locs()->in(0).reg();
-  __ pushq(exception_reg);
-  compiler->GenerateRuntimeCall(token_pos(), deopt_id(), kThrowRuntimeEntry, 1,
-                                locs());
-  __ int3();
-}
-
-LocationSummary* ReThrowInstr::MakeLocationSummary(Zone* zone, bool opt) const {
-  const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  summary->set_in(0, Location::RegisterLocation(RAX));
-  summary->set_in(1, Location::RegisterLocation(RDX));
-  return summary;
-}
-
-void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register exception_reg = locs()->in(0).reg();
-  const Register stacktrace_reg = locs()->in(1).reg();
-  compiler->SetNeedsStackTrace(catch_try_index());
-  __ pushq(exception_reg);
-  __ pushq(stacktrace_reg);
-  compiler->GenerateRuntimeCall(token_pos(), deopt_id(), kReThrowRuntimeEntry,
-                                2, locs());
-  __ int3();
 }
 
 LocationSummary* StopInstr::MakeLocationSummary(Zone* zone, bool opt) const {

@@ -4077,9 +4077,8 @@ void InitStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(&call_runtime);
   __ LoadObject(InitStaticFieldABI::kFieldReg,
                 Field::ZoneHandle(field().Original()));
-  compiler->GenerateCallWithDeopt(token_pos(), deopt_id(),
-                                  StubCode::InitStaticField(),
-                                  /*kind=*/RawPcDescriptors::kOther, locs());
+  compiler->GenerateCall(token_pos(), StubCode::InitStaticField(),
+                         /*kind=*/RawPcDescriptors::kOther, locs(), deopt_id());
   __ Bind(&no_call);
 }
 
@@ -4106,10 +4105,76 @@ void InitInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ LoadObject(InitInstanceFieldABI::kFieldReg,
                 Field::ZoneHandle(field().Original()));
-  compiler->GenerateCallWithDeopt(token_pos(), deopt_id(),
-                                  StubCode::InitInstanceField(),
-                                  /*kind=*/RawPcDescriptors::kOther, locs());
+  compiler->GenerateCall(token_pos(), StubCode::InitInstanceField(),
+                         /*kind=*/RawPcDescriptors::kOther, locs(), deopt_id());
   __ Bind(&no_call);
+}
+
+LocationSummary* ThrowInstr::MakeLocationSummary(Zone* zone, bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  summary->set_in(0, Location::RegisterLocation(ThrowABI::kExceptionReg));
+  return summary;
+}
+
+void ThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  compiler->GenerateCall(token_pos(), StubCode::Throw(),
+                         /*kind=*/RawPcDescriptors::kOther, locs(), deopt_id());
+  // Issue(dartbug.com/41353): Right now we have to emit an extra breakpoint
+  // instruction: The ThrowInstr will terminate the current block. The very
+  // next machine code instruction might get a pc descriptor attached with a
+  // different try-index. If we removed this breakpoint instruction, the
+  // runtime might associated this call with the try-index of the next
+  // instruction.
+  __ Breakpoint();
+}
+
+LocationSummary* ReThrowInstr::MakeLocationSummary(Zone* zone, bool opt) const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  summary->set_in(0, Location::RegisterLocation(ReThrowABI::kExceptionReg));
+  summary->set_in(1, Location::RegisterLocation(ReThrowABI::kStackTraceReg));
+  return summary;
+}
+
+void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  compiler->SetNeedsStackTrace(catch_try_index());
+  compiler->GenerateCall(token_pos(), StubCode::ReThrow(),
+                         /*kind=*/RawPcDescriptors::kOther, locs(), deopt_id());
+  // Issue(dartbug.com/41353): Right now we have to emit an extra breakpoint
+  // instruction: The ThrowInstr will terminate the current block. The very
+  // next machine code instruction might get a pc descriptor attached with a
+  // different try-index. If we removed this breakpoint instruction, the
+  // runtime might associated this call with the try-index of the next
+  // instruction.
+  __ Breakpoint();
+}
+
+LocationSummary* AssertBooleanInstr::MakeLocationSummary(Zone* zone,
+                                                         bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_in(0, Location::RegisterLocation(AssertBooleanABI::kObjectReg));
+  locs->set_out(0, Location::RegisterLocation(AssertBooleanABI::kObjectReg));
+  return locs;
+}
+
+void AssertBooleanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // Check that the type of the value is allowed in conditional context.
+  ASSERT(locs()->always_calls());
+  compiler::Label done;
+
+  __ CompareObject(AssertBooleanABI::kObjectReg, Object::null_instance());
+  __ BranchIf(NOT_EQUAL, &done);
+  compiler->GenerateCall(token_pos(), StubCode::AssertBoolean(),
+                         /*kind=*/RawPcDescriptors::kOther, locs(), deopt_id());
+  __ Bind(&done);
 }
 
 LocationSummary* PhiInstr::MakeLocationSummary(Zone* zone,

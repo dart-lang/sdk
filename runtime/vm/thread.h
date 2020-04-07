@@ -132,6 +132,9 @@ class Thread;
     StubCode::StackOverflowSharedWithFPURegs().raw(), NULL)                    \
   V(RawCode*, switchable_call_miss_stub_,                                      \
     StubCode::SwitchableCallMiss().raw(), NULL)                                \
+  V(RawCode*, throw_stub_, StubCode::Throw().raw(), NULL)                      \
+  V(RawCode*, re_throw_stub_, StubCode::ReThrow().raw(), NULL)                 \
+  V(RawCode*, assert_boolean_stub_, StubCode::AssertBoolean().raw(), NULL)     \
   V(RawCode*, optimize_stub_, StubCode::OptimizeFunction().raw(), NULL)        \
   V(RawCode*, deoptimize_stub_, StubCode::Deoptimize().raw(), NULL)            \
   V(RawCode*, lazy_deopt_from_return_stub_,                                    \
