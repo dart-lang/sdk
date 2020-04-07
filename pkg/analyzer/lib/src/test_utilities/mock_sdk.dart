@@ -656,6 +656,10 @@ class KeyEvent extends Event {}
 abstract class ElementStream<T extends Event> implements Stream<T> {}
 
 abstract class Element {
+  factory Element.html(String html,
+          {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) =>
+      new HtmlElement();
+
   /// Stream of `cut` events handled by this [Element].
   ElementStream<Event> get onCut => throw 0;
 
@@ -723,6 +727,10 @@ class HeadingElement extends HtmlElement {
   factory HeadingElement.h3() => document.createElement("h3");
 }
 
+class ImageElement extends HtmlEment {
+  String src;
+}
+
 class InputElement extends HtmlElement {
   factory InputElement._() { throw new UnsupportedError("Not supported"); }
   factory InputElement() => document.createElement("input");
@@ -739,10 +747,6 @@ class IFrameElement extends HtmlElement {
       document,
       "iframe");
 
-  String src;
-}
-
-class ImageElement extends HtmlEment {
   String src;
 }
 
@@ -798,6 +802,21 @@ class AudioElement extends MediaElement {
 }
 
 class MediaElement extends Element {}
+
+class WindowBase {}
+
+class Window extends WindowBase {
+  WindowBase open(String url, String name, [String options]) => null;
+}
+
+class NodeValidator {}
+
+class NodeTreeSanitizer {}
+
+class DocumentFragment {
+  DocumentFragment.html(String html,
+          {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {}
+}
 
 dynamic JS(a, b, c, d) {}
 ''',
