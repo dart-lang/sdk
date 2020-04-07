@@ -360,11 +360,12 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     var constructorDeclaration =
         node.thisOrAncestorOfType<ConstructorDeclaration>();
     if (constructorDeclaration != null) {
-      _addSuggestions([Keyword.THIS]);
+      _addSuggestion(Keyword.THIS);
     }
     if (entity is Token && (entity as Token).type == TokenType.CLOSE_PAREN) {
       _addSuggestion(Keyword.COVARIANT);
       _addSuggestion(Keyword.DYNAMIC);
+      _addSuggestion(Keyword.VOID);
       if (request.featureSet.isEnabled(Feature.non_nullable)) {
         _addSuggestion(Keyword.REQUIRED);
       }
@@ -373,6 +374,14 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       if (beginToken != null && request.target.offset == beginToken.end) {
         _addSuggestion(Keyword.COVARIANT);
         _addSuggestion(Keyword.DYNAMIC);
+        _addSuggestion(Keyword.VOID);
+        if (request.featureSet.isEnabled(Feature.non_nullable)) {
+          _addSuggestion(Keyword.REQUIRED);
+        }
+      } else if (entity is FunctionTypedFormalParameter) {
+        _addSuggestion(Keyword.COVARIANT);
+        _addSuggestion(Keyword.DYNAMIC);
+        _addSuggestion(Keyword.VOID);
         if (request.featureSet.isEnabled(Feature.non_nullable)) {
           _addSuggestion(Keyword.REQUIRED);
         }
