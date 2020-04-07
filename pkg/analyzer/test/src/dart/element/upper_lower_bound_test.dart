@@ -923,6 +923,56 @@ class LowerBoundTest extends _BoundsTestBase {
     );
   }
 
+  test_futureOr() {
+    InterfaceType futureOrFunction(DartType T, String str) {
+      var result = futureOrNone(
+        functionTypeNone(returnType: voidNone, parameters: [
+          requiredParameter(type: T),
+        ]),
+      );
+      expect(result.getDisplayString(withNullability: true), str);
+      return result;
+    }
+
+    // DOWN(FutureOr<T1>, FutureOr<T2>) = FutureOr<S>, S = DOWN(T1, T2)
+    _checkGreatestLowerBound(
+      futureOrNone(intNone),
+      futureOrNone(numNone),
+      futureOrNone(intNone),
+    );
+    _checkGreatestLowerBound(
+      futureOrFunction(intNone, 'FutureOr<void Function(int)>'),
+      futureOrFunction(doubleNone, 'FutureOr<void Function(double)>'),
+      futureOrFunction(numNone, 'FutureOr<void Function(num)>'),
+    );
+
+    // DOWN(FutureOr<T1>, Future<T2>) = Future<S>, S = DOWN(T1, T2)
+    // DOWN(Future<T1>, FutureOr<T2>) = Future<S>, S = DOWN(T1, T2)
+    _checkGreatestLowerBound(
+      futureOrNone(numNone),
+      futureNone(intNone),
+      futureNone(intNone),
+    );
+    _checkGreatestLowerBound(
+      futureOrNone(intNone),
+      futureNone(numNone),
+      futureNone(intNone),
+    );
+
+    // DOWN(FutureOr<T1>, T2) = S, S = DOWN(T1, T2)
+    // DOWN(T1, FutureOr<T2>) = S, S = DOWN(T1, T2)
+    _checkGreatestLowerBound(
+      futureOrNone(numNone),
+      intNone,
+      intNone,
+    );
+    _checkGreatestLowerBound(
+      futureOrNone(intNone),
+      numNone,
+      intNone,
+    );
+  }
+
   test_identical() {
     void check(DartType type) {
       _checkGreatestLowerBound(type, type, type);

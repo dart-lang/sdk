@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -17,6 +18,8 @@ class GreatestLowerBoundHelper {
   GreatestLowerBoundHelper(this._typeSystem);
 
   InterfaceTypeImpl get _nullNone => _typeSystem.nullNone;
+
+  TypeProviderImpl get _typeProvider => _typeSystem.typeProvider;
 
   /// Computes the greatest lower bound of [T1] and [T2].
   ///
@@ -201,7 +204,6 @@ class GreatestLowerBoundHelper {
     assert(T1_nullability == NullabilitySuffix.none);
     assert(T2_nullability == NullabilitySuffix.none);
 
-    // TODO(scheglov) incomplete
     if (T1 is FunctionType && T2 is FunctionType) {
       return _functionType(T1, T2);
     }
@@ -214,6 +216,41 @@ class GreatestLowerBoundHelper {
     // DOWN(T1, T2) = T2 if T2 <: T1
     if (_typeSystem.isSubtypeOf2(T2, T1)) {
       return T2;
+    }
+
+    // FutureOr<S1>
+    if (T1 is InterfaceType && T1.isDartAsyncFutureOr) {
+      var S1 = T1.typeArguments[0];
+      // DOWN(FutureOr<S1>, FutureOr<S2>) = FutureOr(S)
+      //   S = DOWN(S1, S2)
+      if (T2 is InterfaceType && T2.isDartAsyncFutureOr) {
+        var S2 = T2.typeArguments[0];
+        var S = getGreatestLowerBound(S1, S2);
+        return _typeProvider.futureOrType2(S);
+      }
+      // DOWN(FutureOr<S1>, Future<S2>) = Future(S)
+      //   S = DOWN(S1, S2)
+      if (T2 is InterfaceType && T2.isDartAsyncFuture) {
+        var S2 = T2.typeArguments[0];
+        var S = getGreatestLowerBound(S1, S2);
+        return _typeProvider.futureType2(S);
+      }
+      // DOWN(FutureOr<S1>, T2) = DOWN(S1, T2)
+      return getGreatestLowerBound(S1, T2);
+    }
+
+    // FutureOr<S2>
+    if (T2 is InterfaceType && T2.isDartAsyncFutureOr) {
+      var S2 = T2.typeArguments[0];
+      // DOWN(Future<S1>, FutureOr<S2>) = Future<S>
+      //   S = DOWN(S1, S2)
+      if (T1 is InterfaceType && T1.isDartAsyncFuture) {
+        var S1 = T1.typeArguments[0];
+        var S = getGreatestLowerBound(S1, S2);
+        return _typeProvider.futureType2(S);
+      }
+      // DOWN(T1, FutureOr<S2>) = DOWN(T1, S2)
+      return getGreatestLowerBound(T1, S2);
     }
 
     // DOWN(T1, T2) = Never otherwise
