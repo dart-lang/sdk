@@ -17,21 +17,21 @@ import 'package:expect/minitest.dart';
 @anonymous
 class A {
   external int get x;
-  external factory A({int x});
+  external factory A({required int x});
 }
 
 @JS()
 @anonymous
 class B {
   external int get x;
-  external factory B({int x});
+  external factory B({required int x});
 }
 
 @JS()
 @anonymous
 class C {
   external int get x;
-  external factory C({int x});
+  external factory C({required int x});
 }
 
 main() {

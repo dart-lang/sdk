@@ -12,17 +12,17 @@ import 'package:expect/expect.dart';
 @JS()
 @anonymous
 class C {
-  final foo;
+  late final foo;
 
-  external factory C({foo});
+  external factory C({required foo});
 }
 
 @JS()
 @anonymous
 class D {
-  final foo;
+  late final foo;
 
-  external factory D({foo});
+  external factory D({required foo});
 }
 
 class F {
