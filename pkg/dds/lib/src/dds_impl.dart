@@ -5,12 +5,20 @@
 part of dds;
 
 class _DartDevelopmentService implements DartDevelopmentService {
-  _DartDevelopmentService(this._remoteVmServiceUri, this._uri);
+  _DartDevelopmentService(this._remoteVmServiceUri, this._uri) {
+    _streamManager = _StreamManager(this);
+  }
 
   Future<void> startService() async {
     // Establish the connection to the VM service.
-    _vmServiceSocket = await WebSocket.connect(remoteVmServiceWsUri.toString());
-    _vmServiceStream = _vmServiceSocket.asBroadcastStream();
+    _vmServiceSocket = WebSocketChannel.connect(remoteVmServiceWsUri);
+    _vmServiceClient = _BinaryCompatiblePeer(_vmServiceSocket, _streamManager);
+    // Setup the JSON RPC client with the VM service.
+    unawaited(_vmServiceClient.listen());
+
+    // Setup stream event handling.
+    streamManager.listen();
+
     // Once we have a connection to the VM service, we're ready to spawn the intermediary.
     await _startDDSServer();
   }
@@ -28,8 +36,20 @@ class _DartDevelopmentService implements DartDevelopmentService {
 
   /// Stop accepting requests after gracefully handling existing requests.
   Future<void> shutdown() async {
+    // Don't accept anymore HTTP requests.
     await _server.close();
-    await _vmServiceSocket.close();
+
+    // Close all incoming websocket connections.
+    final futures = <Future>[];
+    for (final client in _clients) {
+      futures.add(client.close());
+    }
+    await Future.wait(futures);
+
+    // Close connection to VM service.
+    await _vmServiceSocket.sink.close();
+
+    _done.complete();
   }
 
   // Attempt to upgrade HTTP requests to a websocket before processing them as
@@ -38,16 +58,18 @@ class _DartDevelopmentService implements DartDevelopmentService {
   Cascade _handlers() => Cascade().add(_webSocketHandler()).add(_httpHandler());
 
   Handler _webSocketHandler() => webSocketHandler((WebSocketChannel ws) {
-        // TODO(bkonyi): actually process requests instead of blindly forwarding them.
-        _vmServiceStream.listen(
-          (event) => ws.sink.add(event),
-          onDone: () => ws.sink.close(),
+        final client = _DartDevelopmentServiceClient(
+          this,
+          ws,
+          _vmServiceClient,
         );
-        ws.stream.listen((event) => _vmServiceSocket.add(event));
+        _clients.add(client);
+        client.listen().then((_) => _clients.remove(client));
       });
 
   Handler _httpHandler() {
-    // TODO(bkonyi): actually process requests instead of blindly forwarding them.
+    // DDS doesn't support any HTTP requests itself, so we just forward all of
+    // them to the VM service.
     final cascade = Cascade().add(proxyHandler(remoteVmServiceUri));
     return cascade.handler;
   }
@@ -79,7 +101,15 @@ class _DartDevelopmentService implements DartDevelopmentService {
 
   bool get isRunning => _uri != null;
 
-  WebSocket _vmServiceSocket;
-  Stream _vmServiceStream;
+  Future<void> get done => _done.future;
+  Completer _done = Completer<void>();
+
+  _StreamManager get streamManager => _streamManager;
+  _StreamManager _streamManager;
+
+  final List<_DartDevelopmentServiceClient> _clients = [];
+
+  json_rpc.Peer _vmServiceClient;
+  WebSocketChannel _vmServiceSocket;
   HttpServer _server;
 }
