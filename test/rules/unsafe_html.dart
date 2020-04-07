@@ -27,9 +27,14 @@ void main() {
 
   IFrameElement()..srcdoc = 'foo'; // LINT
 
-  var heading = HeadingElement();
+  var heading = HeadingElement.h1();
   heading.createFragment('<script>'); // LINT
   heading.setInnerHtml('<script>'); // LINT
+
+  Window().open('url', 'name'); // LINT
+
+  DocumentFragment.html('<script>'); // LINT
+  Element.html('<script>'); // LINT
 
   C().src = 'foo.js'; // OK
   var c = C();
@@ -37,13 +42,16 @@ void main() {
   c?.src = 'foo.js'; // OK
   c.srcdoc = 'foo.js'; // OK
   c.createFragment('<script>'); // OK
+  c.open('url', 'name'); // OK
   c.setInnerHtml('<script>'); // OK
+  C.html('<script>'); // OK
 
   dynamic d;
   d.src = 'foo.js'; // LINT
   d.srcdoc = 'foo.js'; // LINT
   d.href = 'foo.js'; // LINT
   d.createFragment('<script>'); // LINT
+  d.open('url', 'name'); // LINT
   d.setInnerHtml('<script>'); // LINT
   (script as dynamic).src = 'foo.js'; // LINT
   (C() as dynamic).src = 'foo.js'; // LINT
@@ -54,8 +62,13 @@ class C {
   String srcdoc;
   String href;
 
+  C();
+
+  C.html(String content);
+
   void createFragment(String html) {}
+
+  void open(String url, String name) {}
 
   void setInnerHtml(String html) {}
 }
-
