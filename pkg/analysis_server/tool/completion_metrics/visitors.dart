@@ -11,6 +11,8 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart' as element;
 
 class ExpectedCompletion {
+  final String _filePath;
+
   final SyntacticEntity _entity;
 
   /// Some completions are special cased from the DAS "import" for instance is
@@ -26,11 +28,12 @@ class ExpectedCompletion {
 
   final protocol.ElementKind _elementKind;
 
-  ExpectedCompletion(this._entity, this._lineNumber, this._columnNumber,
-      this._kind, this._elementKind)
+  ExpectedCompletion(this._filePath, this._entity, this._lineNumber,
+      this._columnNumber, this._kind, this._elementKind)
       : _completionString = null;
 
   ExpectedCompletion.specialCompletionString(
+      this._filePath,
       this._entity,
       this._lineNumber,
       this._columnNumber,
@@ -68,10 +71,16 @@ class ExpectedCompletion {
     }
     return false;
   }
+
+  @override
+  String toString() =>
+      "'$completion', kind = $kind, elementKind = $elementKind, $_filePath:$lineNumber:$columnNumber";
 }
 
 class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
   final List<ExpectedCompletion> expectedCompletions;
+
+  final String filePath;
 
   CompilationUnit _enclosingCompilationUnit;
 
@@ -88,7 +97,9 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
   /// comment don't yield an error like Dart syntax mistakes would yield.
   final bool _doExpectCommentRefs = false;
 
-  ExpectedCompletionsVisitor() : expectedCompletions = <ExpectedCompletion>[];
+  ExpectedCompletionsVisitor(this.filePath)
+      : expectedCompletions = <ExpectedCompletion>[],
+        assert(filePath != null);
 
   void safelyRecordEntity(SyntacticEntity entity,
       {protocol.CompletionSuggestionKind kind,
@@ -108,9 +119,16 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
       // DAS is "import '';" which we want to be sure to match.
       if (entity.toString() == 'async') {
         expectedCompletions.add(ExpectedCompletion.specialCompletionString(
-            entity, lineNumber, columnNumber, ASYNC_STAR, kind, elementKind));
+            filePath,
+            entity,
+            lineNumber,
+            columnNumber,
+            ASYNC_STAR,
+            kind,
+            elementKind));
       } else if (entity.toString() == 'default') {
         expectedCompletions.add(ExpectedCompletion.specialCompletionString(
+            filePath,
             entity,
             lineNumber,
             columnNumber,
@@ -119,9 +137,16 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
             elementKind));
       } else if (entity.toString() == 'deferred') {
         expectedCompletions.add(ExpectedCompletion.specialCompletionString(
-            entity, lineNumber, columnNumber, DEFERRED_AS, kind, elementKind));
+            filePath,
+            entity,
+            lineNumber,
+            columnNumber,
+            DEFERRED_AS,
+            kind,
+            elementKind));
       } else if (entity.toString() == 'export') {
         expectedCompletions.add(ExpectedCompletion.specialCompletionString(
+            filePath,
             entity,
             lineNumber,
             columnNumber,
@@ -130,6 +155,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
             elementKind));
       } else if (entity.toString() == 'import') {
         expectedCompletions.add(ExpectedCompletion.specialCompletionString(
+            filePath,
             entity,
             lineNumber,
             columnNumber,
@@ -138,6 +164,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
             elementKind));
       } else if (entity.toString() == 'part') {
         expectedCompletions.add(ExpectedCompletion.specialCompletionString(
+            filePath,
             entity,
             lineNumber,
             columnNumber,
@@ -146,13 +173,25 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
             elementKind));
       } else if (entity.toString() == 'sync') {
         expectedCompletions.add(ExpectedCompletion.specialCompletionString(
-            entity, lineNumber, columnNumber, SYNC_STAR, kind, elementKind));
+            filePath,
+            entity,
+            lineNumber,
+            columnNumber,
+            SYNC_STAR,
+            kind,
+            elementKind));
       } else if (entity.toString() == 'yield') {
         expectedCompletions.add(ExpectedCompletion.specialCompletionString(
-            entity, lineNumber, columnNumber, YIELD_STAR, kind, elementKind));
+            filePath,
+            entity,
+            lineNumber,
+            columnNumber,
+            YIELD_STAR,
+            kind,
+            elementKind));
       } else {
         expectedCompletions.add(ExpectedCompletion(
-            entity, lineNumber, columnNumber, kind, elementKind));
+            filePath, entity, lineNumber, columnNumber, kind, elementKind));
       }
     }
   }

@@ -188,8 +188,6 @@ class CompletionMetricsComputer {
 
   final String overlay;
 
-  String _currentFilePath;
-
   ResolvedUnitResult _resolvedUnitResult;
 
   /// The int to be returned from the [compute] call.
@@ -208,9 +206,6 @@ class CompletionMetricsComputer {
       : assert(overlay == OVERLAY_NONE ||
             overlay == OVERLAY_REMOVE_TOKEN ||
             overlay == OVERLAY_REMOVE_REST_OF_FILE);
-
-  /// The path to the current file.
-  String get currentFilePath => _currentFilePath;
 
   Future<int> compute() async {
     resultCode = 0;
@@ -231,17 +226,25 @@ class CompletionMetricsComputer {
     return resultCode;
   }
 
-  void forEachExpectedCompletion(ExpectedCompletion expectedCompletion,
-      List<CompletionSuggestion> suggestions, CompletionMetrics metrics) {
+  bool forEachExpectedCompletion(
+      ExpectedCompletion expectedCompletion,
+      List<CompletionSuggestion> suggestions,
+      CompletionMetrics metrics,
+      bool doPrintMissedCompletions) {
     assert(suggestions != null);
+
+    var successfulCompletion;
 
     var place = placementInSuggestionList(suggestions, expectedCompletion);
 
     metrics.mrrComputer.addRank(place.rank);
 
     if (place.denominator != 0) {
+      successfulCompletion = true;
+
       metrics.successfulMrrComputer.addRank(place.rank);
       metrics.completionCounter.count('successful');
+
       metrics.recordCompletionResult(
           CompletionResult(place, suggestions, expectedCompletion));
 
@@ -262,6 +265,8 @@ class CompletionMetricsComputer {
       metrics.insertionLengthTheoretical
           .addValue(expectedCompletion.completion.length - charsBeforeTop);
     } else {
+      successfulCompletion = false;
+
       metrics.completionCounter.count('unsuccessful');
 
       metrics.completionMissedTokenCounter.count(expectedCompletion.completion);
@@ -269,7 +274,7 @@ class CompletionMetricsComputer {
       metrics.completionElementKindCounter
           .count(expectedCompletion.elementKind.toString());
 
-      if (verbose) {
+      if (doPrintMissedCompletions) {
         var closeMatchSuggestion;
         for (var suggestion in suggestions) {
           if (suggestion.completion == expectedCompletion.completion) {
@@ -277,14 +282,8 @@ class CompletionMetricsComputer {
           }
         }
 
-        // The format "/file/path/foo.dart:3:4" makes for easier input
-        // with the Files dialog in IntelliJ.
-        var lineNumber = expectedCompletion.lineNumber;
-        var columnNumber = expectedCompletion.columnNumber;
-        print('$currentFilePath:$lineNumber:$columnNumber');
-        print('  missing completion: "${expectedCompletion.completion}"');
-        print('  completion kind: ${expectedCompletion.kind}');
-        print('  element kind: ${expectedCompletion.elementKind}');
+        print('missing completion (`useNewRelevance = true`):');
+        print('$expectedCompletion');
         if (closeMatchSuggestion != null) {
           print('    close matching completion that was in the list:');
           print('    $closeMatchSuggestion');
@@ -292,6 +291,7 @@ class CompletionMetricsComputer {
         print('');
       }
     }
+    return successfulCompletion;
   }
 
   void printMetrics(CompletionMetrics metrics) {
@@ -457,7 +457,6 @@ class CompletionMetricsComputer {
     // forEachExpectedCompletion
     for (var filePath in context.contextRoot.analyzedFiles()) {
       if (AnalysisEngine.isDartFileName(filePath)) {
-        _currentFilePath = filePath;
         try {
           _resolvedUnitResult =
               await context.currentSession.getResolvedUnit(filePath);
@@ -473,7 +472,7 @@ class CompletionMetricsComputer {
 
           // Use the ExpectedCompletionsVisitor to compute the set of expected
           // completions for this CompilationUnit.
-          final visitor = ExpectedCompletionsVisitor();
+          final visitor = ExpectedCompletionsVisitor(filePath);
           _resolvedUnitResult.unit.accept(visitor);
 
           for (var expectedCompletion in visitor.expectedCompletions) {
@@ -507,8 +506,8 @@ class CompletionMetricsComputer {
                 metricsOldMode,
                 false);
 
-            forEachExpectedCompletion(
-                expectedCompletion, suggestions, metricsOldMode);
+            var successfulnessUseOldRelevance = forEachExpectedCompletion(
+                expectedCompletion, suggestions, metricsOldMode, false);
 
             // And again here with useNewRelevance set to true:
             suggestions = await _computeCompletionSuggestions(
@@ -517,8 +516,29 @@ class CompletionMetricsComputer {
                 metricsNewMode,
                 true);
 
-            forEachExpectedCompletion(
-                expectedCompletion, suggestions, metricsNewMode);
+            var successfulnessUseNewRelevance = forEachExpectedCompletion(
+                expectedCompletion, suggestions, metricsNewMode, verbose);
+
+            if (verbose &&
+                successfulnessUseOldRelevance !=
+                    successfulnessUseNewRelevance) {
+              if (successfulnessUseNewRelevance &&
+                  !successfulnessUseOldRelevance) {
+                print('    ===========');
+                print(
+                    '    The `useNewRelevance = true` generated a completion that `useNewRelevance = false` did not:');
+                print('    $expectedCompletion');
+                print('    ===========');
+                print('');
+              } else {
+                print('    ===========');
+                print(
+                    '    The `useNewRelevance = false` generated a completion that `useNewRelevance = true` did not:');
+                print('    $expectedCompletion');
+                print('    ===========');
+                print('');
+              }
+            }
 
             // If an overlay option is being used, remove the overlay applied
             // earlier
