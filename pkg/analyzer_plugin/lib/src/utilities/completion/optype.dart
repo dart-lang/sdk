@@ -553,6 +553,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
     if (offset <= node.semicolon.offset) {
       optype.includeVarNameSuggestions = true;
     }
+    if (offset <= node.fields.offset) {
+      optype.includeTypeNameSuggestions = true;
+    }
   }
 
   @override

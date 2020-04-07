@@ -874,6 +874,20 @@ main() {new core.String.from^CharCodes([]);}
     await assertOpType();
   }
 
+  Future<void> test_fieldDeclaration_type() async {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // FieldDeclaration
+    addTestSource('class C {^ foo; }');
+    await assertOpType(typeNames: true);
+  }
+
+  Future<void> test_fieldDeclaration_type_no_semicolon() async {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // FieldDeclaration
+    addTestSource('class C {^ foo }');
+    await assertOpType(typeNames: true);
+  }
+
   Future<void> test_forEachStatement_body_typed() async {
     // Block  ForEachStatement
     addTestSource('main(args) {for (int foo in bar) {^}}');
