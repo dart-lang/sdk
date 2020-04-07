@@ -605,7 +605,7 @@ const char* SnapshotTextObjectNamer::SnapshotNameFor(intptr_t code_index,
                        code_index);
   } else if (owner_.IsAbstractType()) {
     const char* name = namer_.StubNameForType(AbstractType::Cast(owner_));
-    return OS::SCreate(zone_, "%s%s", prefix, name);
+    return OS::SCreate(zone_, "%s%s_%" Pd, prefix, name, code_index);
   } else if (owner_.IsFunction()) {
     const char* name = Function::Cast(owner_).ToQualifiedCString();
     EnsureAssemblerIdentifier(const_cast<char*>(name));
