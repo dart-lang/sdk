@@ -1,7 +1,7 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-"""Helper functions useful when writing scripts that are run from GN's
+"""Helper functions are useful when writing scripts that are run from GN's
 exec_script function."""
 
 
