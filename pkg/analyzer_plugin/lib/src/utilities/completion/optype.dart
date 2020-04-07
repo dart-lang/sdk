@@ -1072,6 +1072,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
         optype.includeVarNameSuggestions = true;
       }
     }
+    if (offset <= node.variables.offset) {
+      optype.includeTypeNameSuggestions = true;
+    }
   }
 
   @override

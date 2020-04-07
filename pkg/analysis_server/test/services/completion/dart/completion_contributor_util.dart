@@ -132,6 +132,33 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
     addSource(testFile, content);
   }
 
+  void assertCoreTypeSuggestions() {
+    assertSuggest('Comparable');
+    assertSuggest('Comparator');
+    assertSuggest('DateTime');
+    assertSuggest('Deprecated');
+    assertSuggest('Duration');
+    assertSuggest('Error');
+    assertSuggest('Exception');
+    assertSuggest('FormatException');
+    assertSuggest('Function');
+    assertSuggest('Future');
+    assertSuggest('Invocation');
+    assertSuggest('Iterable');
+    assertSuggest('Iterator');
+    assertSuggest('List');
+    assertSuggest('Map');
+    assertSuggest('MapEntry');
+    assertSuggest('Null');
+    assertSuggest('Object');
+    assertSuggest('Pattern');
+    assertSuggest('RegExp');
+    assertSuggest('Set');
+    assertSuggest('StackTrace');
+    assertSuggest('Stream');
+    assertSuggest('String');
+  }
+
   void assertHasNoParameterInfo(CompletionSuggestion suggestion) {
     expect(suggestion.parameterNames, isNull);
     expect(suggestion.parameterTypes, isNull);
