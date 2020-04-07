@@ -26,18 +26,6 @@ List<AstNode> getNotPotentiallyConstants(
   return collector.nodes;
 }
 
-/// Return `true` if the [node] is a potentially constant type expression.
-bool isPotentiallyConstantTypeExpression(TypeAnnotation node) {
-  if (node is TypeName) {
-    var element = node.name.staticElement;
-    if (element is TypeParameterElement) {
-      return true;
-    }
-  }
-
-  return isConstantTypeExpression(node);
-}
-
 /// Return `true` if the [node] is a constant type expression.
 bool isConstantTypeExpression(TypeAnnotation node) {
   if (node is TypeName) {
@@ -94,6 +82,18 @@ bool isConstantTypeExpression(TypeAnnotation node) {
   }
 
   return false;
+}
+
+/// Return `true` if the [node] is a potentially constant type expression.
+bool isPotentiallyConstantTypeExpression(TypeAnnotation node) {
+  if (node is TypeName) {
+    var element = node.name.staticElement;
+    if (element is TypeParameterElement) {
+      return true;
+    }
+  }
+
+  return isConstantTypeExpression(node);
 }
 
 bool _isConstantTypeName(Identifier name) {
@@ -213,8 +213,14 @@ class _Collector {
     }
 
     if (node is IsExpression) {
-      if (!isConstantTypeExpression(node.type)) {
-        nodes.add(node.type);
+      if (isNonNullableByDefault) {
+        if (!isPotentiallyConstantTypeExpression(node.type)) {
+          nodes.add(node.type);
+        }
+      } else {
+        if (!isConstantTypeExpression(node.type)) {
+          nodes.add(node.type);
+        }
       }
       collect(node.expression);
       return;

@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Tests that only constant types are allowed in some positions,
-// not type parameters.
+// Tests that in some positions only constant types are allowed, so not
+// type parameters. But in other positions potentially constant types are
+// allowed, so type parameters.
 
 import "package:expect/expect.dart";
 
@@ -15,11 +16,11 @@ class T<X> {
             [];
   const T.test2(Object o)
       : value = o //
-            as X //# 02: compile-time error
+            as X //# 02: ok
   ;
   const T.test3(Object o)
       : value = o //
-            is X //# 03: compile-time error
+            is X //# 03: ok
   ;
   const T.test4()
       : value = null //

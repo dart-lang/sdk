@@ -187,7 +187,7 @@ var x = a as int;
 ''', () => _xInitializer(), () => [findNode.simple('a as')]);
   }
 
-  test_asExpression_notConstType() async {
+  test_asExpression_typeParameter() async {
     await _assertNotConst(r'''
 const a = 0;
 class A<T> {
@@ -283,7 +283,7 @@ var x = a is int;
 ''', () => _xInitializer(), () => [findNode.simple('a is')]);
   }
 
-  test_isExpression_notConstType() async {
+  test_isExpression_typeParameter() async {
     await _assertNotConst(r'''
 const a = 0;
 class A<T> {
@@ -908,12 +908,24 @@ var x = 'a';
 class PotentiallyConstantWithNullSafetyTest extends PotentiallyConstantTest
     with WithNullSafetyMixin {
   @override
-  test_asExpression_notConstType() async {
+  test_asExpression_typeParameter() async {
     await _assertConst(r'''
 const a = 0;
 class A<T> {
   m() {
     var x = a as T;
+  }
+}
+''', () => _xInitializer());
+  }
+
+  @override
+  test_isExpression_typeParameter() async {
+    await _assertConst(r'''
+const a = 0;
+class A<T> {
+  m() {
+    var x = a is T;
   }
 }
 ''', () => _xInitializer());
