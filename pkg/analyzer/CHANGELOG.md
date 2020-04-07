@@ -1,3 +1,7 @@
+## 0.39.6
+* Added Window and DocumentFragment to analyzer's mock SDK.  These are required
+  for upcoming changes to the unsafe_html lint.
+
 ## 0.39.5
 * Deprecated `ClassElement.instantiateToBounds()` and
   `FunctionTypeAliasElement.instantiateToBounds()`. With the null-safety
