@@ -239,14 +239,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   final _UninstantiatedBoundChecker _uninstantiatedBoundChecker;
 
-  /// Setting this flag to `true` disables the check for conflicting generics.
-  /// This is used when running with the old task model to work around
-  /// dartbug.com/32421.
-  ///
-  /// TODO(paulberry): remove this flag once dartbug.com/32421 is properly
-  /// fixed.
-  final bool disableConflictingGenericsCheck;
-
   /// The features enabled in the unit currently being checked for errors.
   FeatureSet _featureSet;
 
@@ -259,8 +251,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * Initialize a newly created error verifier.
    */
   ErrorVerifier(ErrorReporter errorReporter, this._currentLibrary,
-      this._typeProvider, this._inheritanceManager, bool enableSuperMixins,
-      {this.disableConflictingGenericsCheck = false})
+      this._typeProvider, this._inheritanceManager, bool enableSuperMixins)
       : _errorReporter = errorReporter,
         _uninstantiatedBoundChecker =
             _UninstantiatedBoundChecker(errorReporter),
@@ -1333,9 +1324,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkImplementsSuperClass(implementsClause);
       _checkMixinInference(node, withClause);
       _checkForMixinWithConflictingPrivateMember(withClause, superclass);
-      if (!disableConflictingGenericsCheck) {
-        _checkForConflictingGenerics(node);
-      }
+      _checkForConflictingGenerics(node);
     }
   }
 
@@ -5159,9 +5148,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         implementsClause?.interfaces,
         CompileTimeErrorCode.IMPLEMENTS_REPEATED,
       );
-      if (!disableConflictingGenericsCheck) {
-        _checkForConflictingGenerics(node);
-      }
+      _checkForConflictingGenerics(node);
     }
   }
 
