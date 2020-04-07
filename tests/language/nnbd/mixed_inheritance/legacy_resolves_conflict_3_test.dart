@@ -20,44 +20,31 @@ import 'legacy_resolves_conflict_3_lib2.dart';
 void main() {
   // Ensure that no class is eliminated by tree-shaking.
   Expect.isNotNull([
-    DiB0, DiBq0, DwB0, DwBq0, DiBO0, DiBqOq0, DiB1, DiBq1, //
-    DwB1, DwBq1, DiBO1, DiBqOq1, DiB2, DiBq2, DwB2, DwBq2, //
-    DiBO2, DiBqOq2, DiB3, DiBq3, DwB3, DwBq3, DiBO3, //
-    DiBqOq3, DiB4, DiBq4, DwB4, DwBq4, DiBO4, //
-    DiBqOq4, DiB5, DiBq5, DwB5, DwBq5, DiBO5, DiBqOq5, //
+    DiB0, DiBq0, DwB0, DwBq0, DiBO0, DiBqOq0, //
+    DiB1, DiBq1, DwB1, DwBq1, DiBO1, DiBqOq1, //
+    DiB2, DiBq2, DwB2, DwBq2, DiBO2, DiBqOq2, //
+    DiB3, DiBq3, DwB3, DwBq3, DiBO3, DiBqOq3, //
+    DiB4, DiBq4, DwB4, DwBq4, DiBO4, DiBqOq4, //
+    DiB5, DiBq5, DwB5, DwBq5, DiBO5, DiBqOq5, //
   ]);
 
   // Verify that some classes have a signature as in `B`.
   List<List<int Function(int)>> xsB = [
-    DwB0().a, DiBO0().a, DwB1().a, DiBO1().a, //
-    DwB2().a, DiBO2().a, DwB3().a, //
-    DiBO3().a, DwB4().a, DiBO4().a, //
-    DwB5().a, DiBO5().a, //
+    DiB0().a, DwB0().a, DiBO0().a, DiB1().a, DwB1().a, DiBO1().a, //
+    /*DiB2,*/ DwB2().a, DiBO2().a, DiB3().a, DwB3().a, DiBO3().a, //
+    DiB4().a, DwB4().a, DiBO4().a, /*DiB5,*/ DwB5().a, DiBO5().a, //
   ];
 
   // Verify that some classes have a signature as in `Bq`.
   List<List<int? Function(int?)>> xsBq = [
-    DwBq0().a, DiBqOq0().a, DwBq1().a, //
-    DiBqOq1().a, DwBq2().a, DiBqOq2().a, DwBq3().a, //
-    DiBqOq3().a, DwBq4().a, DiBqOq4().a, //
-    DwBq5().a, DiBqOq5().a, //
-  ];
-
-  // Verify that some classes have a legacy signature.
-  List<List<int Function(int)>> xsLegacy = [
-    DiB0().a, DiBq0().a, DiB1().a, DiBq1().a, //
-    DiB3().a, DiBq3().a, DiB4().a, DiBq4().a, //
-  ];
-  List<List<int? Function(int?)>> xsLegacyQ = [
-    DiB0().a, DiBq0().a, DiB1().a, DiBq1().a, //
-    DiB3().a, DiBq3().a, DiB4().a, DiBq4().a, //
+    DiBq0().a, DwBq0().a, DiBqOq0().a, DiBq1().a, DwBq1().a, DiBqOq1().a, //
+    /*DiBq2,*/ DwBq2().a, DiBqOq2().a, DiBq3().a, DwBq3().a, DiBqOq3().a, //
+    DiBq4().a, DwBq4().a, DiBqOq4().a, /*DiBq5,*/ DwBq5().a, DiBqOq5().a, //
   ];
 
   void testAbstractClasses(DiB2 diB2, DiBq2 diBq2, DiB5 diB5, DiBq5 diBq5) {
-    List<List<int Function(int)>> xsLegacy = [diB2.a, diBq2.a, diB5.a, diBq5.a];
-    List<List<int? Function(int?)>> xsLegacyQ = [
-      diB2.a, diBq2.a, diB5.a, diBq5.a, //
-    ];
-    print("$xsLegacy, $xsLegacyQ");
+    List<List<int Function(int)>> xsB = [diB2.a, diB5.a];
+    List<List<int? Function(int?)>> xsBq = [diBq2.a, diBq5.a];
+    print("$xsB, $xsBq");
   }
 }

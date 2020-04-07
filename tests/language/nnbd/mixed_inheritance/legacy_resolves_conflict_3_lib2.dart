@@ -31,10 +31,10 @@ import 'legacy_resolves_conflict_3_lib.dart';
 // members of `A<int>`/`A<int?>`, which is actually found in the superinterface
 // graph of `C#`. That kind of relationship is created by this library.
 
-// Member signatures: legacy.
+// Member signatures: B.
 class DiB0 extends C0 implements B {}
 
-// Member signatures: legacy.
+// Member signatures: Bq.
 class DiBq0 extends C0 implements Bq {}
 
 // Member signatures: B.
@@ -57,10 +57,10 @@ class DiBqOq0 implements C0, Bq {
   int? Function(int?) m(int? Function(int?) x) => x;
 }
 
-// Member signatures: legacy.
+// Member signatures: B.
 class DiB1 extends C1 implements B {}
 
-// Member signatures: legacy.
+// Member signatures: Bq.
 class DiBq1 extends C1 implements Bq {}
 
 // Member signatures: B.
@@ -83,10 +83,10 @@ class DiBqOq1 implements C1, Bq {
   int? Function(int?) m(int? Function(int?) x) => x;
 }
 
-// Member signatures: legacy.
+// Member signatures: B.
 abstract class DiB2 extends C2 implements B {}
 
-// Member signatures: legacy.
+// Member signatures: Bq.
 abstract class DiBq2 extends C2 implements Bq {}
 
 // Member signatures: B.
@@ -109,10 +109,10 @@ class DiBqOq2 implements C2, Bq {
   int? Function(int?) m(int? Function(int?) x) => x;
 }
 
-// Member signatures: legacy.
+// Member signatures: B.
 class DiB3 extends C3 implements B {}
 
-// Member signatures: legacy.
+// Member signatures: Bq.
 class DiBq3 extends C3 implements Bq {}
 
 // Member signatures: B.
@@ -135,10 +135,10 @@ class DiBqOq3 implements C3, Bq {
   int? Function(int?) m(int? Function(int?) x) => x;
 }
 
-// Member signatures: legacy.
+// Member signatures: B.
 class DiB4 extends C4 implements B {}
 
-// Member signatures: legacy.
+// Member signatures: Bq.
 class DiBq4 extends C4 implements Bq {}
 
 // Member signatures: B.
@@ -161,10 +161,10 @@ class DiBqOq4 implements C4, Bq {
   int? Function(int?) m(int? Function(int?) x) => x;
 }
 
-// Member signatures: legacy.
+// Member signatures: B.
 abstract class DiB5 extends C5 implements B {}
 
-// Member signatures: legacy.
+// Member signatures: Bq.
 abstract class DiBq5 extends C5 implements Bq {}
 
 // Member signatures: B.
