@@ -17,14 +17,20 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart' as file_system;
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/potentially_constant.dart';
+import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisErrorInfo, AnalysisErrorInfoImpl, AnalysisOptions;
+    show
+        AnalysisErrorInfo,
+        AnalysisErrorInfoImpl,
+        AnalysisOptions,
+        AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/resolver.dart'
     show ConstantVerifier, ScopedVisitor;
 import 'package:analyzer/src/generated/source.dart' show LineInfo;
@@ -427,6 +433,16 @@ class LinterContextImpl implements LinterContext {
   bool _hasConstantVerifierError(AstNode node) {
     var unitElement = currentUnit.unit.declaredElement;
     var libraryElement = unitElement.library;
+
+    var dependenciesFinder = ConstantExpressionsDependenciesFinder();
+    node.accept(dependenciesFinder);
+    computeConstants(
+      typeProvider,
+      typeSystem,
+      declaredVariables,
+      dependenciesFinder.dependencies.toList(),
+      (analysisOptions as AnalysisOptionsImpl).experimentStatus,
+    );
 
     var listener = ConstantAnalysisErrorListener();
     var errorReporter = ErrorReporter(

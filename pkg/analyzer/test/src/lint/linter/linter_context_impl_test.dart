@@ -208,6 +208,23 @@ f<U>() => A<U>();
     assertCanBeConst("A<U>", false);
   }
 
+  void test_true_computeDependencies() async {
+    newFile('/test/lib/a.dart', content: r'''
+const a = 0;
+''');
+
+    await resolve('''
+import 'a.dart';
+
+class A {
+  const A(int a);
+}
+
+A f() => A(a);
+''');
+    assertCanBeConst('A(a)', true);
+  }
+
   void test_true_constConstructorArg() async {
     await resolve('''
 class A {
