@@ -2185,11 +2185,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
       }
 
       if (specialization != null) {
-        AbstractValueWithPrecision checkedType =
-            _abstractValueDomain.createFromStaticType(dartType,
-                nullable: _abstractValueDomain
-                    .isNull(node.checkedAbstractValue.abstractValue)
-                    .isPotentiallyTrue);
+        AbstractValueWithPrecision checkedType = _abstractValueDomain
+            .createFromStaticType(dartType, nullable: false);
         return HIsTestSimple(dartType, checkedType, specialization,
             node.checkedInput, _abstractValueDomain.boolType);
       }
