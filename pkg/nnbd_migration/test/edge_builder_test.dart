@@ -3357,7 +3357,7 @@ void g() {
   f();
 }
 ''');
-    var optional_i = possiblyOptionalParameter('int i');
+    var optional_i = decoratedTypeAnnotation('int i').node;
     expect(getEdges(always, optional_i), isNotEmpty);
   }
 
@@ -3373,8 +3373,6 @@ void g() {
 }
 ''');
     // The call at `f()` is presumed to be in error; no constraint is recorded.
-    var optional_i = possiblyOptionalParameter('int i');
-    expect(optional_i, isNull);
     var nullable_i = decoratedTypeAnnotation('int i').node;
     assertNoUpstreamNullability(nullable_i);
   }

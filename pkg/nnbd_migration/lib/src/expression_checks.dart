@@ -4,12 +4,9 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:nnbd_migration/instrumentation.dart';
-import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/edge_origin.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
-import 'package:nnbd_migration/src/potential_modification.dart';
 
 /// Container for information gathered during nullability migration about the
 /// set of runtime checks that might need to be performed on the value of an
@@ -19,7 +16,7 @@ import 'package:nnbd_migration/src/potential_modification.dart';
 /// based on the nullability of the type itself (which can be checked by adding
 /// a trailing `!`) from checks based on type parameters (which will have to be
 /// checked using an `as` expression).
-class ExpressionChecks extends PotentialModification {
+class ExpressionChecks {
   /// Source offset where a trailing `!` might need to be inserted.
   final int offset;
 
@@ -44,35 +41,6 @@ class ExpressionChecks extends PotentialModification {
   final List<NullabilityEdge> edges = [];
 
   ExpressionChecks(this.offset);
-
-  @override
-  NullabilityFixDescription get description =>
-      NullabilityFixDescription.checkExpression;
-
-  @override
-  bool get isEmpty {
-    for (var edge in edges) {
-      if (!edge.isSatisfied) return false;
-    }
-    return true;
-  }
-
-  @override
-  Iterable<SourceEdit> get modifications {
-    // TODO(paulberry): this assumes that the check that needs to be done is for
-    // the nullability of the type itself (in which case all we need is a simple
-    // null check).  Need to support checks that will have to be addressed by
-    // adding an `as` expression, e.g. `as List<int>?` to verify that a list is
-    // reified to contain only non-null ints.
-    return isEmpty ? [] : [SourceEdit(offset, 0, '!')];
-  }
-
-  @override
-  Iterable<FixReasonInfo> get reasons sync* {
-    for (var edge in edges) {
-      if (!edge.isSatisfied) yield edge;
-    }
-  }
 }
 
 /// [EdgeOrigin] object associated with [ExpressionChecks].  This is a separate

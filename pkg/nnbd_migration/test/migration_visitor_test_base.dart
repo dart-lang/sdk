@@ -292,8 +292,6 @@ class InstrumentedVariables extends Variables {
 
   final _expressionChecks = <Expression, ExpressionChecksOrigin>{};
 
-  final _possiblyOptional = <DefaultFormalParameter, NullabilityNode>{};
-
   InstrumentedVariables(NullabilityGraph graph, TypeProvider typeProvider)
       : super(graph, typeProvider);
 
@@ -308,11 +306,6 @@ class InstrumentedVariables extends Variables {
   /// Gets the [DecoratedType] associated with the given [expression].
   DecoratedType decoratedExpressionType(Expression expression) =>
       _decoratedExpressionTypes[_normalizeExpression(expression)];
-
-  /// Gets the [NullabilityNode] associated with the possibility that
-  /// [parameter] may be optional.
-  NullabilityNode possiblyOptionalParameter(DefaultFormalParameter parameter) =>
-      _possiblyOptional[parameter];
 
   @override
   void recordConditionalDiscard(
@@ -331,13 +324,6 @@ class InstrumentedVariables extends Variables {
       Source source, Expression expression, ExpressionChecksOrigin origin) {
     super.recordExpressionChecks(source, expression, origin);
     _expressionChecks[_normalizeExpression(expression)] = origin;
-  }
-
-  @override
-  void recordPossiblyOptional(
-      Source source, DefaultFormalParameter parameter, NullabilityNode node) {
-    _possiblyOptional[parameter] = node;
-    super.recordPossiblyOptional(source, parameter, node);
   }
 
   /// Unwraps any parentheses surrounding [expression].
@@ -420,10 +406,6 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest with EdgeTester {
         .having((cr) => cr.line, 'line', location.lineNumber)
         .having((cr) => cr.column, 'column', location.columnNumber)
         .having((cr) => cr.function, 'function', function);
-  }
-
-  NullabilityNode possiblyOptionalParameter(String text) {
-    return variables.possiblyOptionalParameter(findNode.defaultParameter(text));
   }
 
   void setUp() {
