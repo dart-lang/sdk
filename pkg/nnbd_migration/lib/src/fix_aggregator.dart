@@ -428,6 +428,13 @@ class NodeChangeForExpression<N extends Expression> extends NodeChange<N> {
   /// Indicates whether [addNullCheck] has been called.
   bool get addsNullCheck => _addsNullCheck;
 
+  /// Gets the info for any introduced "as" cast
+  AtomicEditInfo get introducesAsInfo => _introduceAsInfo;
+
+  /// Gets the type for any introduced "as" cast, or `null` if no "as" cast is
+  /// being introduced.
+  DartType get introducesAsType => _introducesAsType;
+
   /// Causes a null check to be added to this expression, with the given [info].
   void addNullCheck(AtomicEditInfo info) {
     assert(!_addsNullCheck);

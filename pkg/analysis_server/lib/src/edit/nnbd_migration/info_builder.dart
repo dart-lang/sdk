@@ -454,6 +454,7 @@ class InfoBuilder {
         edits
             .add(EditDetail("Mark with '@required'.", offset, 0, '@required '));
         break;
+      case NullabilityFixKind.castExpression:
       case NullabilityFixKind.checkExpression:
         // TODO(brianwilkerson) Determine whether we can know that the fix is
         //  associated with a parameter and insert an assert if it is.
@@ -609,7 +610,6 @@ class InfoBuilder {
           (insertions[sourceOffset] ??= []).add(AtomicEdit.insert(replacement));
         }
         var info = edit.info;
-        var explanation = info?.description?.appliedMessage;
         var edits = info != null ? _computeEdits(info, sourceOffset) : [];
         List<RegionDetail> details;
         try {
@@ -625,19 +625,22 @@ class InfoBuilder {
         }
         var lineNumber = lineInfo.getLocation(sourceOffset).lineNumber;
         var traces = info == null ? const [] : _computeTraces(info.fixReasons);
-        if (explanation != null) {
+        var description = info?.description;
+        if (description != null) {
+          var explanation = description.appliedMessage;
+          var kind = description.kind;
           if (length > 0) {
             regions.add(RegionInfo(RegionType.remove, offset, length,
-                lineNumber, explanation, details,
+                lineNumber, explanation, details, kind,
                 edits: edits, traces: traces));
           } else {
             if (edit.isInformative) {
               regions.add(RegionInfo(RegionType.informative, offset,
-                  replacement.length, lineNumber, explanation, const [],
+                  replacement.length, lineNumber, explanation, const [], kind,
                   edits: edits, traces: traces));
             } else {
               regions.add(RegionInfo(RegionType.add, offset, replacement.length,
-                  lineNumber, explanation, details,
+                  lineNumber, explanation, details, kind,
                   edits: edits, traces: traces));
             }
           }

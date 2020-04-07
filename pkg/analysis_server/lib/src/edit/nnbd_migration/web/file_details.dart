@@ -46,7 +46,11 @@ class FileDetails {
   final String sourceCode;
 
   /// Items that should show up in the "proposed edits" panel for the file.
-  final List<EditListItem> edits;
+  ///
+  /// Map keys are headers, and values are the list of edits under each header.
+  /// Map order is important--entries appearing earlier in the map are
+  /// considered more likely to be of interest to the user.
+  final Map<String, List<EditListItem>> edits;
 
   FileDetails(
       {@required this.regions,
@@ -58,18 +62,26 @@ class FileDetails {
       : regions = '',
         navigationContent = '',
         sourceCode = '',
-        edits = const [];
+        edits = const {};
 
   FileDetails.fromJson(dynamic json)
       : regions = json['regions'],
         navigationContent = json['navigationContent'],
         sourceCode = json['sourceCode'],
-        edits = [for (var edit in json['edits']) EditListItem.fromJson(edit)];
+        edits = {
+          for (var entry in json['edits'].entries)
+            entry.key: [
+              for (var edit in entry.value) EditListItem.fromJson(edit)
+            ]
+        };
 
   Map<String, Object> toJson() => {
         'regions': regions,
         'navigationContent': navigationContent,
         'sourceCode': sourceCode,
-        'edits': [for (var edit in edits) edit.toJson()]
+        'edits': {
+          for (var entry in edits.entries)
+            entry.key: [for (var edit in entry.value) edit.toJson()]
+        }
       };
 }

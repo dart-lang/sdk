@@ -9,6 +9,7 @@ import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:meta/meta.dart';
+import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:path/path.dart' as path;
 
 /// A description of an edit that can be applied before rerunning the migration
@@ -162,6 +163,9 @@ class RegionInfo {
   /// Details that further explain why a change was made.
   final List<RegionDetail> details;
 
+  /// The kind of fix that was applied.
+  final NullabilityFixKind kind;
+
   /// A list of the edits that are related to this range.
   List<EditDetail> edits;
 
@@ -171,7 +175,7 @@ class RegionInfo {
 
   /// Initialize a newly created region.
   RegionInfo(this.regionType, this.offset, this.length, this.lineNumber,
-      this.explanation, this.details,
+      this.explanation, this.details, this.kind,
       {this.edits = const [], this.traces = const []});
 }
 

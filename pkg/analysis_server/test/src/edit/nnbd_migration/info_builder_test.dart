@@ -8,6 +8,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:meta/meta.dart';
+import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -279,7 +280,8 @@ class InfoBuilderTest extends NnbdMigrationTestBase {
       {@required RegionInfo region,
       int offset,
       int length,
-      List<String> details}) {
+      List<String> details,
+      NullabilityFixKind kind = NullabilityFixKind.makeTypeNullable}) {
     if (offset != null) {
       expect(region.offset, offset);
       expect(region.length, length ?? 1);
@@ -288,6 +290,7 @@ class InfoBuilderTest extends NnbdMigrationTestBase {
       expect(region.details.map((detail) => detail.description),
           unorderedEquals(details));
     }
+    expect(region.kind, kind);
   }
 
   void assertTraceEntry(UnitInfo unit, TraceEntryInfo entryInfo,
@@ -471,8 +474,16 @@ void g(int  i) {
 ''');
     var regions = unit.fixRegions;
     expect(regions, hasLength(2));
-    assertRegion(region: regions[0], offset: 38, length: 3);
-    assertRegion(region: regions[1], offset: 56, length: 3);
+    assertRegion(
+        region: regions[0],
+        offset: 38,
+        length: 3,
+        kind: NullabilityFixKind.removeDeadCode);
+    assertRegion(
+        region: regions[1],
+        offset: 56,
+        length: 3,
+        kind: NullabilityFixKind.removeDeadCode);
   }
 
   Future<void> test_discardElse() async {
@@ -491,10 +502,26 @@ void g(int  i) {
 ''');
     var regions = unit.fixRegions;
     expect(regions, hasLength(4));
-    assertRegion(region: regions[0], offset: 38, length: 3);
-    assertRegion(region: regions[1], offset: 56, length: 3);
-    assertRegion(region: regions[2], offset: 73, length: 3);
-    assertRegion(region: regions[3], offset: 102, length: 3);
+    assertRegion(
+        region: regions[0],
+        offset: 38,
+        length: 3,
+        kind: NullabilityFixKind.removeDeadCode);
+    assertRegion(
+        region: regions[1],
+        offset: 56,
+        length: 3,
+        kind: NullabilityFixKind.removeDeadCode);
+    assertRegion(
+        region: regions[2],
+        offset: 73,
+        length: 3,
+        kind: NullabilityFixKind.removeDeadCode);
+    assertRegion(
+        region: regions[3],
+        offset: 102,
+        length: 3,
+        kind: NullabilityFixKind.removeDeadCode);
   }
 
   Future<void> test_dynamicValueIsUsed() async {
@@ -910,10 +937,15 @@ class C {
     expect(regions, hasLength(1));
     var region = regions[0];
     var edits = region.edits;
-    assertRegion(region: region, offset: 44, length: 9, details: [
-      'This parameter is non-nullable, so cannot have an implicit default '
-          "value of 'null'"
-    ]);
+    assertRegion(
+        region: region,
+        offset: 44,
+        length: 9,
+        details: [
+          'This parameter is non-nullable, so cannot have an implicit default '
+              "value of 'null'"
+        ],
+        kind: NullabilityFixKind.addRequired);
     assertEdit(
         edit: edits[0], offset: 42, length: 0, replacement: '@required ');
   }
@@ -934,10 +966,15 @@ class C {
     expect(regions, hasLength(1));
     var region = regions[0];
     var edits = region.edits;
-    assertRegion(region: region, offset: 39, length: 9, details: [
-      'This parameter is non-nullable, so cannot have an implicit default '
-          "value of 'null'"
-    ]);
+    assertRegion(
+        region: region,
+        offset: 39,
+        length: 9,
+        details: [
+          'This parameter is non-nullable, so cannot have an implicit default '
+              "value of 'null'"
+        ],
+        kind: NullabilityFixKind.addRequired);
     assertEdit(
         edit: edits[0], offset: 37, length: 0, replacement: '@required ');
   }
@@ -968,7 +1005,8 @@ C /*!*/ _f(C  c) => (c + c)!;
         region: regions[1],
         offset: migratedContent.indexOf('!;'),
         length: 1,
-        details: ['This value must be null-checked before use here.']);
+        details: ['This value must be null-checked before use here.'],
+        kind: NullabilityFixKind.checkExpression);
   }
 
   Future<void> test_listAndSetLiteralTypeArgument() async {
@@ -1163,7 +1201,12 @@ void f(String  s) {
 ''');
     var regions = unit.informativeRegions;
     expect(regions, hasLength(1));
-    assertRegion(region: regions[0], offset: 13, length: 1, details: []);
+    assertRegion(
+        region: regions[0],
+        offset: 13,
+        length: 1,
+        details: [],
+        kind: NullabilityFixKind.typeNotMadeNullable);
   }
 
   Future<void> test_nonNullableType_exclamationComment() async {
@@ -1174,7 +1217,12 @@ void f(String  /*!*/ s) {}
 ''');
     var regions = unit.informativeRegions;
     expect(regions, hasLength(1));
-    assertRegion(region: regions[0], offset: 13, length: 1, details: []);
+    assertRegion(
+        region: regions[0],
+        offset: 13,
+        length: 1,
+        details: [],
+        kind: NullabilityFixKind.typeNotMadeNullable);
   }
 
   Future<void> test_nonNullableType_unconditionalFieldAccess() async {
@@ -1189,7 +1237,12 @@ void f(String  s) {
 ''');
     var regions = unit.informativeRegions;
     expect(regions, hasLength(1));
-    assertRegion(region: regions[0], offset: 13, length: 1, details: []);
+    assertRegion(
+        region: regions[0],
+        offset: 13,
+        length: 1,
+        details: [],
+        kind: NullabilityFixKind.typeNotMadeNullable);
   }
 
   Future<void> test_nullCheck_onMemberAccess() async {
@@ -1215,9 +1268,13 @@ class C {
     // regions[0] is `int?`.
     var region = regions[1];
     var edits = region.edits;
-    assertRegion(region: regions[1], offset: 65, details: [
-      'This value must be null-checked before accessing its properties.'
-    ]);
+    assertRegion(
+        region: regions[1],
+        offset: 65,
+        details: [
+          'This value must be null-checked before accessing its properties.'
+        ],
+        kind: NullabilityFixKind.checkExpression);
     assertEdit(edit: edits[0], offset: 64, length: 0, replacement: '/*!*/');
   }
 
@@ -1242,9 +1299,13 @@ class C {
     var regions = unit.regions;
     expect(regions, hasLength(2));
     // regions[0] is `int?`.
-    assertRegion(region: regions[1], offset: 65, details: [
-      'This value must be null-checked before calling its methods.'
-    ]);
+    assertRegion(
+        region: regions[1],
+        offset: 65,
+        details: [
+          'This value must be null-checked before calling its methods.'
+        ],
+        kind: NullabilityFixKind.checkExpression);
   }
 
   Future<void> test_parameter_fromInvocation_explicit() async {
@@ -1383,7 +1444,11 @@ class B extends A {
 ''');
     var regions = unit.informativeRegions;
     expect(regions, hasLength(1));
-    assertRegion(region: regions[0], offset: 62, details: []);
+    assertRegion(
+        region: regions[0],
+        offset: 62,
+        details: [],
+        kind: NullabilityFixKind.typeNotMadeNullable);
   }
 
   Future<void> test_parameter_fromOverriddenField_explicit() async {
@@ -1553,11 +1618,13 @@ void f(num  n, int?/*?*/ i) {
         region: regions[1],
         offset: migratedContent.indexOf(' as int'),
         length: ' as int'.length,
-        details: []);
+        details: [],
+        kind: NullabilityFixKind.removeAs);
     assertRegion(
         region: regions[2],
         offset: migratedContent.indexOf('! + 1'),
-        details: ['This value must be null-checked before use here.']);
+        details: ['This value must be null-checked before use here.'],
+        kind: NullabilityFixKind.checkExpression);
   }
 
   Future<void> test_return_fromOverriden() async {
@@ -1983,6 +2050,7 @@ String /*!*/ y = x[0]!;
     expect(region.edits.map((edit) => edit.description).toSet(),
         {'Add /*?*/ hint', 'Add /*!*/ hint'});
     expect(region.traces, isEmpty);
+    expect(region.kind, NullabilityFixKind.typeNotMadeNullable);
   }
 
   Future<void> test_uninitializedField() async {

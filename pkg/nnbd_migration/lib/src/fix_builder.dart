@@ -446,8 +446,7 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
     var checks =
         _fixBuilder._variables.expressionChecks(_fixBuilder.source, node);
     var info = checks != null
-        ? AtomicEditInfo(
-            NullabilityFixDescription.checkExpression, checks.edges)
+        ? AtomicEditInfo(NullabilityFixDescription.castExpression, checks.edges)
         : null;
     (_fixBuilder._getChange(node) as NodeChangeForExpression)
         .introduceAs(contextType, info);

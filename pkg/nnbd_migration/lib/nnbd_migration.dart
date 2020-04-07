@@ -44,6 +44,11 @@ class NullabilityFixDescription {
     kind: NullabilityFixKind.removeDeadCode,
   );
 
+  static const castExpression = const NullabilityFixDescription._(
+    appliedMessage: 'Added a cast to a nullable expression',
+    kind: NullabilityFixKind.castExpression,
+  );
+
   /// An expression's value needs to be null-checked.
   static const checkExpression = const NullabilityFixDescription._(
     appliedMessage: 'Added a non-null assertion to nullable expression',
@@ -126,6 +131,7 @@ class NullabilityFixDescription {
 /// An enumeration of the various kinds of nullability fixes.
 enum NullabilityFixKind {
   addRequired,
+  castExpression,
   checkExpression,
   makeTypeNullable,
   removeAs,

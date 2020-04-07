@@ -14,6 +14,7 @@ import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/fix_aggregator.dart';
 import 'package:nnbd_migration/src/fix_builder.dart';
+import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -47,6 +48,8 @@ class FixBuilderTest extends EdgeBuilderTestBase {
 
   static final isMakeNullable = TypeMatcher<NodeChangeForTypeAnnotation>()
       .having((c) => c.makeNullable, 'makeNullable', true);
+
+  static const isEdge = TypeMatcher<NullabilityEdge>();
 
   static final isExplainNonNullable = TypeMatcher<NodeChangeForTypeAnnotation>()
       .having((c) => c.makeNullable, 'makeNullable', false);
@@ -1381,6 +1384,15 @@ _f(int/*?*/ x) {
 }
 ''');
     visitStatement(findNode.statement('if'));
+  }
+
+  Future<void> test_implicit_downcast() async {
+    await analyze('int f(num x) => x;');
+    var xRef = findNode.simple('x;');
+    visitSubexpression(xRef, 'int', changes: {
+      xRef: isNodeChangeForExpression.havingIndroduceAsWithInfo(
+          'int', isInfo(NullabilityFixDescription.castExpression, [isEdge]))
+    });
   }
 
   Future<void> test_indexExpression_dynamic() async {
@@ -2859,7 +2871,14 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
 }
 
 extension on TypeMatcher<NodeChangeForExpression> {
-  TypeMatcher<NodeChangeForExpression> havingNullCheckWithInfo(matcher) =>
+  TypeMatcher<NodeChangeForExpression> havingNullCheckWithInfo(
+          dynamic matcher) =>
       having((c) => c.addsNullCheck, 'addsNullCheck', true)
           .having((c) => c.addNullCheckInfo, 'addNullCheckInfo', matcher);
+
+  TypeMatcher<NodeChangeForExpression> havingIndroduceAsWithInfo(
+          dynamic typeStringMatcher, dynamic infoMatcher) =>
+      having((c) => c.introducesAsType.toString(), 'introducesAsType (string)',
+              typeStringMatcher)
+          .having((c) => c.introducesAsInfo, 'introducesAsInfo', infoMatcher);
 }

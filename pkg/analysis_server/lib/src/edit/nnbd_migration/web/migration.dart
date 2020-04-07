@@ -451,35 +451,38 @@ void populateEditDetails([EditDetails response]) {
 
 /// Write the contents of the Edit List, from JSON data [editListData].
 void populateProposedEdits(
-    String path, List<EditListItem> edits, bool clearEditDetails) {
+    String path, Map<String, List<EditListItem>> edits, bool clearEditDetails) {
   editListElement.innerHtml = '';
 
-  Element p = editListElement.append(document.createElement('p'));
   var editCount = edits.length;
   if (editCount == 0) {
+    Element p = editListElement.append(document.createElement('p'));
     p.append(Text('No proposed edits'));
   } else {
-    p.append(Text('$editCount proposed ${pluralize(editCount, 'edit')}:'));
-  }
+    for (var entry in edits.entries) {
+      Element p = editListElement.append(document.createElement('p'));
+      p.append(Text('${entry.key}:'));
 
-  Element list = editListElement.append(document.createElement('ul'));
-  for (var edit in edits) {
-    Element item = list.append(document.createElement('li'));
-    item.classes.add('edit');
-    AnchorElement anchor = item.append(document.createElement('a'));
-    anchor.classes.add('edit-link');
-    var offset = edit.offset;
-    anchor.dataset['offset'] = '$offset';
-    var line = edit.line;
-    anchor.dataset['line'] = '$line';
-    anchor.append(Text('line $line'));
-    anchor.onClick.listen((MouseEvent event) {
-      navigate(window.location.pathname, offset, line, true, callback: () {
-        pushState(window.location.pathname, offset, line);
-      });
-      loadAndPopulateEditDetails(path, offset, line);
-    });
-    item.append(Text(': ${edit.explanation}'));
+      Element list = editListElement.append(document.createElement('ul'));
+      for (var edit in entry.value) {
+        Element item = list.append(document.createElement('li'));
+        item.classes.add('edit');
+        AnchorElement anchor = item.append(document.createElement('a'));
+        anchor.classes.add('edit-link');
+        var offset = edit.offset;
+        anchor.dataset['offset'] = '$offset';
+        var line = edit.line;
+        anchor.dataset['line'] = '$line';
+        anchor.append(Text('line $line'));
+        anchor.onClick.listen((MouseEvent event) {
+          navigate(window.location.pathname, offset, line, true, callback: () {
+            pushState(window.location.pathname, offset, line);
+          });
+          loadAndPopulateEditDetails(path, offset, line);
+        });
+        item.append(Text(': ${edit.explanation}'));
+      }
+    }
   }
 
   if (clearEditDetails) {
