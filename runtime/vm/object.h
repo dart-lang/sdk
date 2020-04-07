@@ -1317,6 +1317,8 @@ class Class : public Object {
 
   void RehashConstants(Zone* zone) const;
 
+  bool RequireLegacyErasureOfConstants(Zone* zone) const;
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawClass));
   }

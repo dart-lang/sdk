@@ -6,8 +6,8 @@
 
 @pragma("vm:entry-point")
 class _List<E> extends FixedLengthListBase<E> {
-  @pragma(
-      "vm:exact-result-type", [_List, "result-type-uses-passed-type-arguments"])
+  @pragma("vm:exact-result-type",
+      <dynamic>[_List, "result-type-uses-passed-type-arguments"])
   @pragma("vm:prefer-inline")
   factory _List(length) native "List_allocate";
 

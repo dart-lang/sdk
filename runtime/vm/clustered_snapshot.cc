@@ -202,6 +202,9 @@ class ClassSerializationCluster : public SerializationCluster {
       s->UnexpectedObject(cls, "Class with illegal cid");
     }
     s->WriteCid(class_id);
+    if (s->kind() == Snapshot::kFull && RequireLegacyErasureOfConstants(cls)) {
+      s->UnexpectedObject(cls, "Class with non mode agnostic constants");
+    }
     if (s->kind() != Snapshot::kFullAOT) {
       s->Write<uint32_t>(cls->ptr()->binary_declaration_);
     }
@@ -255,6 +258,20 @@ class ClassSerializationCluster : public SerializationCluster {
     }
 
     return unboxed_fields_bitmap;
+  }
+
+  bool RequireLegacyErasureOfConstants(RawClass* cls) {
+    // Do not generate a core snapshot containing constants that would require
+    // a legacy erasure of their types if loaded in an isolate running in weak
+    // mode.
+    if (cls->ptr()->host_type_arguments_field_offset_in_words_ ==
+            Class::kNoTypeArguments ||
+        cls->ptr()->constants_ == Object::empty_array().raw()) {
+      return false;
+    }
+    Zone* zone = Thread::Current()->zone();
+    const Class& clazz = Class::Handle(zone, cls);
+    return clazz.RequireLegacyErasureOfConstants(zone);
   }
 };
 #endif  // !DART_PRECOMPILED_RUNTIME

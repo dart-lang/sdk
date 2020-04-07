@@ -5645,6 +5645,39 @@ void Class::RehashConstants(Zone* zone) const {
   set.Release();
 }
 
+bool Class::RequireLegacyErasureOfConstants(Zone* zone) const {
+  const intptr_t num_type_params = NumTypeParameters();
+  const intptr_t num_type_args = NumTypeArguments();
+  const intptr_t from_index = num_type_args - num_type_params;
+  Instance& constant = Instance::Handle(zone);
+  TypeArguments& type_arguments = TypeArguments::Handle(zone);
+  AbstractType& type = AbstractType::Handle(zone);
+  CanonicalInstancesSet set(zone, constants());
+  CanonicalInstancesSet::Iterator it(&set);
+  while (it.MoveNext()) {
+    constant ^= set.GetKey(it.Current());
+    ASSERT(!constant.IsNull());
+    ASSERT(!constant.IsTypeArguments());
+    ASSERT(!constant.IsType());
+    type_arguments = constant.GetTypeArguments();
+    if (type_arguments.IsNull()) {
+      continue;
+    }
+    for (intptr_t i = 0; i < num_type_params; i++) {
+      type = type_arguments.TypeAt(from_index + i);
+      if (!type.IsLegacy() && !type.IsVoidType() && !type.IsDynamicType() &&
+          !type.IsNullType()) {
+        return true;
+      }
+      // It is not possible for a legacy type to have non-legacy type
+      // arguments or for a legacy function type to have non-legacy parameter
+      // types, non-legacy type parameters, or required named parameters.
+    }
+  }
+  set.Release();
+  return false;
+}
+
 intptr_t TypeArguments::ComputeNullability() const {
   if (IsNull()) return 0;
   const intptr_t num_types = Length();
@@ -19589,7 +19622,9 @@ intptr_t Type::ComputeHash() const {
         param_name = sig_fun.ParameterNameAt(i);
         result = CombineHashes(result, param_name.Hash());
       }
+      // Required flag is not hashed, see comment above.
     }
+    // TODO(regis): Missing hash of type parameters.
   }
   result = FinalizeHash(result, kHashBits);
   SetHash(result);
@@ -19855,7 +19890,7 @@ RawTypeParameter* TypeParameter::ToNullability(Nullability value,
   if (nullability() == value) {
     return raw();
   }
-  // Clone type and set new nullability.
+  // Clone type parameter and set new nullability.
   TypeParameter& type_parameter = TypeParameter::Handle();
   type_parameter ^= Object::Clone(*this, space);
   type_parameter.set_nullability(value);
