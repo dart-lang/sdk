@@ -1391,7 +1391,7 @@ _f(int/*?*/ x) {
     var xRef = findNode.simple('x;');
     visitSubexpression(xRef, 'int', changes: {
       xRef: isNodeChangeForExpression.havingIndroduceAsWithInfo(
-          'int', isInfo(NullabilityFixDescription.castExpression, [isEdge]))
+          'int', isInfo(NullabilityFixDescription.downcastExpression, [isEdge]))
     });
   }
 
@@ -2588,6 +2588,20 @@ _f(int/*?*/ x) {
 f() => 'foo';
 ''');
     visitSubexpression(findNode.stringLiteral("'foo'"), 'String');
+  }
+
+  Future<void> test_suspicious_cast() async {
+    await analyze('''
+int f(Object o) {
+  if (o is! String) return 0;
+  return o;
+}
+''');
+    var xRef = findNode.simple('o;');
+    visitSubexpression(xRef, 'int', changes: {
+      xRef: isNodeChangeForExpression.havingIndroduceAsWithInfo('int',
+          isInfo(NullabilityFixDescription.otherCastExpression, [isEdge]))
+    });
   }
 
   Future<void> test_symbolLiteral() async {

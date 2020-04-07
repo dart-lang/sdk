@@ -24,10 +24,11 @@ class UnitRenderer {
   @visibleForTesting
   static const List<NullabilityFixKind> kindPriorityOrder = [
     NullabilityFixKind.removeDeadCode,
-    NullabilityFixKind.castExpression,
+    NullabilityFixKind.otherCastExpression,
     NullabilityFixKind.checkExpression,
     NullabilityFixKind.addRequired,
     NullabilityFixKind.makeTypeNullable,
+    NullabilityFixKind.downcastExpression,
     NullabilityFixKind.removeAs,
     NullabilityFixKind.removeLanguageVersionComment
   ];
@@ -237,8 +238,10 @@ class UnitRenderer {
     switch (kind) {
       case NullabilityFixKind.addRequired:
         return '$count required keyword$s added';
-      case NullabilityFixKind.castExpression:
-        return '$count cast$s added';
+      case NullabilityFixKind.downcastExpression:
+        return '$count downcast$s added';
+      case NullabilityFixKind.otherCastExpression:
+        return '$count cast$s (non-downcast) added';
       case NullabilityFixKind.checkExpression:
         return '$count null check$s added';
       case NullabilityFixKind.makeTypeNullable:

@@ -281,6 +281,7 @@ class InfoBuilderTest extends NnbdMigrationTestBase {
       int offset,
       int length,
       List<String> details,
+      Object edits = anything,
       NullabilityFixKind kind = NullabilityFixKind.makeTypeNullable}) {
     if (offset != null) {
       expect(region.offset, offset);
@@ -291,6 +292,7 @@ class InfoBuilderTest extends NnbdMigrationTestBase {
           unorderedEquals(details));
     }
     expect(region.kind, kind);
+    expect(region.edits, edits);
   }
 
   void assertTraceEntry(UnitInfo unit, TraceEntryInfo entryInfo,
@@ -522,6 +524,26 @@ void g(int  i) {
         offset: 102,
         length: 3,
         kind: NullabilityFixKind.removeDeadCode);
+  }
+
+  Future<void> test_downcast() async {
+    var content = 'int f(num n) => n;';
+    var migratedContent = 'int  f(num  n) => n as int;';
+    var unit = await buildInfoForSingleTestFile(content,
+        migratedContent: migratedContent);
+    var regions = unit.regions
+        .where(
+            (region) => region.kind != NullabilityFixKind.typeNotMadeNullable)
+        .toList();
+    expect(regions, hasLength(1));
+    var region = regions.single;
+    var regionTarget = ' as int';
+    assertRegion(
+        region: region,
+        offset: migratedContent.indexOf(regionTarget),
+        length: regionTarget.length,
+        kind: NullabilityFixKind.downcastExpression,
+        edits: isEmpty);
   }
 
   Future<void> test_dynamicValueIsUsed() async {
@@ -1814,6 +1836,36 @@ void f() {
     // TODO(srawlins): Actually, this is marking the `[s]`, but I think only
     //  `s` should be marked. Minor bug for now.
     assertDetail(detail: regions[1].details[0], offset: 87, length: 3);
+  }
+
+  Future<void> test_suspicious_cast() async {
+    var content = '''
+int f(Object o) {
+  if (o is! String) return 0;
+  return o;
+}
+''';
+    var migratedContent = '''
+int  f(Object  o) {
+  if (o is! String ) return 0;
+  return o as int;
+}
+''';
+    var unit = await buildInfoForSingleTestFile(content,
+        migratedContent: migratedContent);
+    var regions = unit.regions
+        .where(
+            (region) => region.kind != NullabilityFixKind.typeNotMadeNullable)
+        .toList();
+    expect(regions, hasLength(1));
+    var region = regions.single;
+    var regionTarget = ' as int';
+    assertRegion(
+        region: region,
+        offset: migratedContent.indexOf(regionTarget),
+        length: regionTarget.length,
+        kind: NullabilityFixKind.otherCastExpression,
+        edits: isEmpty);
   }
 
   Future<void> test_topLevelVariable() async {

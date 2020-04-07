@@ -413,7 +413,7 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
           if (_fixBuilder._typeSystem.isSubtypeOf(nonNullType, context)) {
             return _addNullCheck(node, type);
           } else {
-            return _addCast(node, context);
+            return _addCast(node, type, context);
           }
         }
         if (!_fixBuilder._typeSystem.isNullable(type)) return type;
@@ -442,12 +442,17 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
     _flowAnalysis = flowAnalysis;
   }
 
-  DartType _addCast(Expression node, DartType contextType) {
+  DartType _addCast(
+      Expression node, DartType expressionType, DartType contextType) {
+    var isDowncast =
+        _fixBuilder._typeSystem.isSubtypeOf(contextType, expressionType);
     var checks =
         _fixBuilder._variables.expressionChecks(_fixBuilder.source, node);
-    var info = checks != null
-        ? AtomicEditInfo(NullabilityFixDescription.castExpression, checks.edges)
-        : null;
+    var info = AtomicEditInfo(
+        isDowncast
+            ? NullabilityFixDescription.downcastExpression
+            : NullabilityFixDescription.otherCastExpression,
+        checks != null ? checks.edges : []);
     (_fixBuilder._getChange(node) as NodeChangeForExpression)
         .introduceAs(contextType, info);
     _flowAnalysis.asExpression_end(node, contextType);
