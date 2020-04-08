@@ -379,9 +379,11 @@ class CompilerOptions implements DiagnosticOptions {
       void Function(String) onWarning}) {
     Map<fe.ExperimentalFlag, bool> languageExperiments =
         _extractExperiments(options, onError: onError, onWarning: onWarning);
-    if (equalMaps(languageExperiments, fe.defaultExperimentalFlags)) {
-      platformBinaries ??= fe.computePlatformBinariesLocation();
-    }
+
+    // The null safety experiment can result in requiring different experiments
+    // for compiling user code vs. the sdk. To simplify things, we prebuild the
+    // sdk with the correct flags.
+    platformBinaries ??= fe.computePlatformBinariesLocation();
     return new CompilerOptions()
       ..librariesSpecificationUri = librariesSpecificationUri
       ..allowMockCompilation = _hasOption(options, Flags.allowMockCompilation)
@@ -431,8 +433,7 @@ class CompilerOptions implements DiagnosticOptions {
       ..useNewRti = !_hasOption(options, Flags.useOldRti)
       ..generateSourceMap = !_hasOption(options, Flags.noSourceMaps)
       ..outputUri = _extractUriOption(options, '--out=')
-      ..platformBinaries =
-          platformBinaries ?? _extractUriOption(options, '--platform-binaries=')
+      ..platformBinaries = platformBinaries
       ..printLegacyStars = _hasOption(options, Flags.printLegacyStars)
       ..sourceMapUri = _extractUriOption(options, '--source-map=')
       ..omitImplicitChecks = _hasOption(options, Flags.omitImplicitChecks)
