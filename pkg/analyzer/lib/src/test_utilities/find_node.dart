@@ -304,6 +304,10 @@ class FindNode {
     return _node(search, (n) => n is TypeAnnotation);
   }
 
+  TypedLiteral typedLiteral(String search) {
+    return _node(search, (n) => n is TypedLiteral);
+  }
+
   TypeName typeName(String search) {
     return _node(search, (n) => n is TypeName);
   }

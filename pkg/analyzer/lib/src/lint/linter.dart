@@ -245,15 +245,15 @@ abstract class LinterContext {
 
   TypeSystem get typeSystem;
 
-  /// Return `true` if it would be valid for the given instance creation
-  /// [expression] to have a keyword of `const`.
+  /// Return `true` if it would be valid for the given [expression] to have
+  /// a keyword of `const`.
   ///
   /// The [expression] is expected to be a node within one of the compilation
   /// units in [allUnits].
   ///
   /// Note that this method can cause constant evaluation to occur, which can be
   /// computationally expensive.
-  bool canBeConst(InstanceCreationExpression expression);
+  bool canBeConst(Expression expression);
 
   /// Return `true` if it would be valid for the given constructor declaration
   /// [node] to have a keyword of `const`.
@@ -313,29 +313,13 @@ class LinterContextImpl implements LinterContext {
   );
 
   @override
-  bool canBeConst(InstanceCreationExpression expression) {
-    //
-    // Verify that the invoked constructor is a const constructor.
-    //
-    ConstructorElement element = expression.staticElement;
-    if (element == null || !element.isConst) {
+  bool canBeConst(Expression expression) {
+    if (expression is InstanceCreationExpression) {
+      return _canBeConstInstanceCreation(expression);
+    } else if (expression is TypedLiteral) {
+      return _canBeConstTypedLiteral(expression);
+    } else {
       return false;
-    }
-
-    // Ensure that dependencies (e.g. default parameter values) are computed.
-    ConstructorElementImpl implElement = element.declaration;
-    implElement.computeConstantDependencies();
-
-    //
-    // Verify that the evaluation of the constructor would not produce an
-    // exception.
-    //
-    Token oldKeyword = expression.keyword;
-    try {
-      expression.keyword = KeywordToken(Keyword.CONST, expression.offset);
-      return !_hasConstantVerifierError(expression);
-    } finally {
-      expression.keyword = oldKeyword;
     }
   }
 
@@ -427,6 +411,42 @@ class LinterContextImpl implements LinterContext {
     }
 
     return const LinterNameInScopeResolutionResult._none();
+  }
+
+  bool _canBeConstInstanceCreation(InstanceCreationExpression node) {
+    //
+    // Verify that the invoked constructor is a const constructor.
+    //
+    ConstructorElement element = node.staticElement;
+    if (element == null || !element.isConst) {
+      return false;
+    }
+
+    // Ensure that dependencies (e.g. default parameter values) are computed.
+    ConstructorElementImpl implElement = element.declaration;
+    implElement.computeConstantDependencies();
+
+    //
+    // Verify that the evaluation of the constructor would not produce an
+    // exception.
+    //
+    Token oldKeyword = node.keyword;
+    try {
+      node.keyword = KeywordToken(Keyword.CONST, node.offset);
+      return !_hasConstantVerifierError(node);
+    } finally {
+      node.keyword = oldKeyword;
+    }
+  }
+
+  bool _canBeConstTypedLiteral(TypedLiteral node) {
+    Token oldKeyword = node.constKeyword;
+    try {
+      node.constKeyword = KeywordToken(Keyword.CONST, node.offset);
+      return !_hasConstantVerifierError(node);
+    } finally {
+      node.constKeyword = oldKeyword;
+    }
   }
 
   /// Return `true` if [ConstantVerifier] reports an error for the [node].
