@@ -29,7 +29,7 @@ void main(List<String> arguments) async {
   argParser.addFlag("legacy",
       help: "Run the legacy tests.",
       negatable: false,
-      callback: (flag) => isLegacy = false);
+      callback: (flag) => isLegacy = flag);
 
   argParser.addMultiOption("compiler",
       abbr: "c",
