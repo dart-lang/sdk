@@ -1728,6 +1728,7 @@
           "script": "tools/build.py",
           "arguments": [
             "--sanitizer=asan",
+            "runtime",
             "runtime_precompiled"
           ]
         },
@@ -1761,6 +1762,7 @@
           "script": "tools/build.py",
           "arguments": [
             "--sanitizer=lsan",
+            "runtime",
             "runtime_precompiled"
           ]
         },
@@ -1794,6 +1796,7 @@
           "script": "tools/build.py",
           "arguments": [
             "--sanitizer=msan",
+            "runtime",
             "runtime_precompiled"
           ]
         },
@@ -1827,6 +1830,7 @@
           "script": "tools/build.py",
           "arguments": [
             "--sanitizer=tsan",
+            "runtime",
             "runtime_precompiled"
           ]
         },
@@ -1861,6 +1865,7 @@
           "script": "tools/build.py",
           "arguments": [
             "--sanitizer=ubsan",
+            "runtime",
             "runtime_precompiled"
           ]
         },
