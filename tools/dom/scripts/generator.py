@@ -299,7 +299,7 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
         'ApplicationCache':
         'ApplicationCache,DOMApplicationCache,OfflineResourceList',
         'Event':
-        'Event,InputEvent',
+        'Event,InputEvent,SubmitEvent', # Workaround for issue 40901.
         'HTMLTableCellElement':
         'HTMLTableCellElement,HTMLTableDataCellElement,HTMLTableHeaderCellElement',
         'GainNode':
