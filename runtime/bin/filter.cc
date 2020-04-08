@@ -240,7 +240,8 @@ void FUNCTION_NAME(Filter_Processed)(Dart_NativeArguments args) {
   intptr_t read = filter->Processed(
       filter->processed_buffer(), filter->processed_buffer_size(), flush, end);
   if (read < 0) {
-    Dart_ThrowException(DartUtils::NewInternalError("Filter error, bad data"));
+    Dart_ThrowException(
+        DartUtils::NewDartFormatException("Filter error, bad data"));
   } else if (read == 0) {
     Dart_SetReturnValue(args, Dart_Null());
   } else {
