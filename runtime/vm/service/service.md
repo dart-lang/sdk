@@ -3516,7 +3516,7 @@ The _Success_ type is used to indicate that an operation completed successfully.
 
 ```
 class Timeline extends Response {
-  // A list of timeline events.
+  // A list of timeline events. No order is guarenteed for these events; in particular, these events may be unordered with respect to their timestamps.
   TimelineEvent[] traceEvents;
 
   // The start of the period of time in which traceEvents were collected.
