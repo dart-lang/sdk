@@ -2512,6 +2512,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         NamespaceBuilder().createExportNamespaceForDirective(element);
 
     for (var element in namespace.definedNames.values) {
+      if (element == DynamicElementImpl.instance ||
+          element == NeverElementImpl.instance) {
+        continue;
+      }
       if (!element.library.isNonNullableByDefault) {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.EXPORT_LEGACY_SYMBOL,
