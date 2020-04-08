@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -53,6 +54,7 @@ class UnsafeHtml extends LintRule implements NodeLintRule {
     final visitor = _Visitor(this);
     registry.addAssignmentExpression(this, visitor);
     registry.addInstanceCreationExpression(this, visitor);
+    registry.addFunctionExpressionInvocation(this, visitor);
     registry.addMethodInvocation(this, visitor);
   }
 }
@@ -76,27 +78,33 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
     final leftPart = node.leftHandSide.unParenthesized;
-    if (leftPart is PropertyAccess) {
-      _checkAssignment(leftPart.realTarget, leftPart.propertyName, node);
+    if (leftPart is SimpleIdentifier) {
+      var leftPartElement = leftPart.staticElement;
+      if (leftPartElement == null) return;
+      var enclosingElement = leftPartElement.enclosingElement;
+      if (enclosingElement is ClassElement) {
+        _checkAssignment(enclosingElement.thisType, leftPart, node);
+      }
+    } else if (leftPart is PropertyAccess) {
+      _checkAssignment(
+          leftPart.realTarget?.staticType, leftPart.propertyName, node);
     } else if (leftPart is PrefixedIdentifier) {
-      _checkAssignment(leftPart.prefix, leftPart.identifier, node);
+      _checkAssignment(leftPart.prefix?.staticType, leftPart.identifier, node);
     }
   }
 
-  void _checkAssignment(Expression target, SimpleIdentifier property,
+  void _checkAssignment(DartType type, SimpleIdentifier property,
       AssignmentExpression assignment) {
-    if (property == null || target == null) return;
+    if (property == null || type == null) return;
 
     // It is more efficient to check the setter's name before checking whether
     // the target is an interesting type.
     if (property.name == 'href') {
-      final type = target.staticType;
       if (type.isDynamic || type.extendsDartHtmlClass('AnchorElement')) {
         rule.reportLint(assignment,
             arguments: ['href'], errorCode: unsafeAttributeCode);
       }
     } else if (property.name == 'src') {
-      final type = target.staticType;
       if (type.isDynamic ||
           type.extendsDartHtmlClass('EmbedElement') ||
           type.extendsDartHtmlClass('IFrameElement') ||
@@ -106,7 +114,6 @@ class _Visitor extends SimpleAstVisitor<void> {
             arguments: ['src'], errorCode: unsafeAttributeCode);
       }
     } else if (property.name == 'srcdoc') {
-      final type = target.staticType;
       if (type.isDynamic || type.extendsDartHtmlClass('IFrameElement')) {
         rule.reportLint(assignment,
             arguments: ['srcdoc'], errorCode: unsafeAttributeCode);
@@ -134,11 +141,25 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    var type = node.target?.staticType;
-    if (type == null) return;
-
     var methodName = node.methodName?.name;
     if (methodName == null) return;
+
+    // The static type of the target.
+    DartType type;
+    if (node.realTarget == null) {
+      // Implicit `this` target.
+      var methodElement = node.methodName.staticElement;
+      if (methodElement == null) return;
+      var enclosingElement = methodElement.enclosingElement;
+      if (enclosingElement is ClassElement) {
+        type = enclosingElement.thisType;
+      } else {
+        return;
+      }
+    } else {
+      type = node.realTarget.staticType;
+      if (type == null) return;
+    }
 
     if (methodName == 'createFragment' &&
         (type.isDynamic || type.extendsDartHtmlClass('Element'))) {
