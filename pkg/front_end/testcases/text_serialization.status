@@ -1331,8 +1331,9 @@ nnbd/issue41102: TextSerializationFailure
 nnbd/issue41103: TextSerializationFailure
 nnbd/issue41156: TextSerializationFailure
 nnbd/issue41180: TextSerializationFailure
-nnbd/issue41210a/issue41210: TypeCheckError
-nnbd/issue41210b: TypeCheckError
+nnbd/issue41210a/issue41210: TextSerializationFailure
+nnbd/issue41210b: TextSerializationFailure
+nnbd/issue41273: TextSerializationFailure
 nnbd/late: TextSerializationFailure
 nnbd/later: TextSerializationFailure
 nnbd/lhs_of_if_null: TextSerializationFailure

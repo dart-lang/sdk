@@ -59,8 +59,6 @@ general_nnbd_opt_out/type_variable_bound_access: TypeCheckError
 general_nnbd_opt_out/unsound_promotion: TypeCheckError
 general_nnbd_opt_out/void_methods: RuntimeError
 nnbd/inheritance_from_opt_in: TypeCheckError
-nnbd/issue41210a/issue41210: TypeCheckError
-nnbd/issue41210b: TypeCheckError
 nnbd/messages_with_types_opt_in: TypeCheckError
 nnbd/messages_with_types_opt_out: TypeCheckError
 nnbd/never_opt_out: TypeCheckError

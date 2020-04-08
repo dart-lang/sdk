@@ -1036,23 +1036,10 @@ class TypeInferrerImpl implements TypeInferrer {
 
     if (receiverType is FunctionType && name == callName) {
       return const ObjectAccessTarget.callFunction();
-    }
-
-    Class classNode = receiverType is InterfaceType
-        ? receiverType.classNode
-        : coreTypes.objectClass;
-    Member interfaceMember =
-        _getInterfaceMember(classNode, name, setter, fileOffset);
-    ObjectAccessTarget target;
-    if (interfaceMember != null) {
-      target = new ObjectAccessTarget.interfaceMember(interfaceMember);
-    } else if (receiverType is DynamicType) {
-      target = const ObjectAccessTarget.dynamic();
     } else if (receiverType is NeverType) {
       switch (receiverType.nullability) {
         case Nullability.nonNullable:
-          target = const ObjectAccessTarget.never();
-          break;
+          return const ObjectAccessTarget.never();
         case Nullability.nullable:
         case Nullability.legacy:
           // Never? and Never* are equivalent to Null.
@@ -1066,6 +1053,17 @@ class TypeInferrerImpl implements TypeInferrer {
               fileOffset,
               library.fileUri);
       }
+    }
+    Class classNode = receiverType is InterfaceType
+        ? receiverType.classNode
+        : coreTypes.objectClass;
+    Member interfaceMember =
+        _getInterfaceMember(classNode, name, setter, fileOffset);
+    ObjectAccessTarget target;
+    if (interfaceMember != null) {
+      target = new ObjectAccessTarget.interfaceMember(interfaceMember);
+    } else if (receiverType is DynamicType) {
+      target = const ObjectAccessTarget.dynamic();
     } else if (receiverType is InvalidType) {
       target = const ObjectAccessTarget.invalid();
     } else if (receiverType is InterfaceType &&
@@ -1940,6 +1938,10 @@ class TypeInferrerImpl implements TypeInferrer {
     Member equalsMember =
         findInterfaceMember(variable.type, equalsName, variable.fileOffset)
             .member;
+    // Ensure operator == member even for `Never`.
+    equalsMember ??= findInterfaceMember(const DynamicType(), equalsName, -1,
+            instrumented: false)
+        .member;
     return new NullAwareGuard(
         variable, variable.fileOffset, equalsMember, this);
   }
@@ -2736,7 +2738,7 @@ class TypeInferrerImpl implements TypeInferrer {
         isImplicitCall: isImplicitCall);
     assert(name != equalsName);
     return createNullAwareExpressionInferenceResult(
-        result.inferredType,
+        const NeverType(Nullability.nonNullable),
         result.applyResult(new MethodInvocation(receiver, name, arguments)
           ..fileOffset = fileOffset),
         nullAwareGuards);
