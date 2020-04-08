@@ -214,9 +214,17 @@ void ClassTable::Grow(intptr_t new_capacity) {
   auto old_table = table_.load();
   auto new_table = static_cast<RawClass**>(
       malloc(new_capacity * sizeof(RawClass*)));  // NOLINT
-  memmove(new_table, old_table, capacity_ * sizeof(RawClass*));
-  memset(new_table + capacity_, 0,
-         (new_capacity - capacity_) * sizeof(RawClass*));
+  intptr_t i;
+  for (i = 0; i < capacity_; i++) {
+    // Don't use memmove, which changes this from a relaxed atomic operation
+    // to a non-atomic operation.
+    new_table[i] = old_table[i];
+  }
+  for (; i < new_capacity; i++) {
+    // Don't use memset, which changes this from a relaxed atomic operation
+    // to a non-atomic operation.
+    new_table[i] = 0;
+  }
   old_class_tables_->Add(old_table);
   table_.store(new_table);
 
@@ -246,17 +254,32 @@ void SharedClassTable::Grow(intptr_t new_capacity) {
       reinterpret_cast<RelaxedAtomic<intptr_t>*>(
           malloc(new_capacity * sizeof(RelaxedAtomic<intptr_t>)));  // NOLINT
 
-  memmove(new_table, old_table, capacity_ * sizeof(intptr_t));
-  memset(new_table + capacity_, 0,
-         (new_capacity - capacity_) * sizeof(intptr_t));
+  intptr_t i;
+  for (i = 0; i < capacity_; i++) {
+    // Don't use memmove, which changes this from a relaxed atomic operation
+    // to a non-atomic operation.
+    new_table[i] = old_table[i];
+  }
+  for (; i < new_capacity; i++) {
+    // Don't use memset, which changes this from a relaxed atomic operation
+    // to a non-atomic operation.
+    new_table[i] = 0;
+  }
 
 #if !defined(PRODUCT)
   auto old_trace_table = trace_allocation_table_.load();
   auto new_trace_table =
       static_cast<uint8_t*>(malloc(new_capacity * sizeof(uint8_t)));  // NOLINT
-  memmove(new_trace_table, old_trace_table, capacity_ * sizeof(uint8_t));
-  memset(new_trace_table + capacity_, 0,
-         (new_capacity - capacity_) * sizeof(uint8_t));
+  for (i = 0; i < capacity_; i++) {
+    // Don't use memmove, which changes this from a relaxed atomic operation
+    // to a non-atomic operation.
+    new_trace_table[i] = old_trace_table[i];
+  }
+  for (; i < new_capacity; i++) {
+    // Don't use memset, which changes this from a relaxed atomic operation
+    // to a non-atomic operation.
+    new_trace_table[i] = 0;
+  }
 #endif
 
   old_tables_->Add(old_table);
@@ -265,13 +288,20 @@ void SharedClassTable::Grow(intptr_t new_capacity) {
   NOT_IN_PRODUCT(trace_allocation_table_.store(new_trace_table));
 
 #if defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
+  auto old_unboxed_fields_map = unboxed_fields_map_;
   auto new_unboxed_fields_map = static_cast<UnboxedFieldBitmap*>(
       malloc(new_capacity * sizeof(UnboxedFieldBitmap)));
-  memmove(new_unboxed_fields_map, unboxed_fields_map_,
-          capacity_ * sizeof(UnboxedFieldBitmap));
-  memset(new_unboxed_fields_map + capacity_, 0,
-         (new_capacity - capacity_) * sizeof(UnboxedFieldBitmap));
-  old_tables_->Add(unboxed_fields_map_);
+  for (i = 0; i < capacity_; i++) {
+    // Don't use memmove, which changes this from a relaxed atomic operation
+    // to a non-atomic operation.
+    new_unboxed_fields_map[i] = old_unboxed_fields_map[i];
+  }
+  for (; i < new_capacity; i++) {
+    // Don't use memset, which changes this from a relaxed atomic operation
+    // to a non-atomic operation.
+    new_unboxed_fields_map[i] = UnboxedFieldBitmap(0);
+  }
+  old_tables_->Add(old_unboxed_fields_map);
   unboxed_fields_map_ = new_unboxed_fields_map;
 #endif  // defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
 
