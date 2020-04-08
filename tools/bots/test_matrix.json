@@ -1540,100 +1540,33 @@
     {
       "builders": [
         "vm-kernel-asan-linux-release-ia32",
-        "vm-kernel-asan-linux-release-x64"
-      ],
-      "meta": {
-        "description": "This configuration is used by the vm builders with AddressSanitizer (asan)."
-      },
-      "steps": [
-        {
-          "name": "configure dart",
-          "script": "tools/gn.py",
-          "arguments": [
-            "--mode=${mode}",
-            "--arch=${arch}",
-            "--sanitizer=asan"
-          ]
-        },
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "--sanitizer=asan",
-            "runtime"
-          ]
-        },
-        {
-          "name": "vm tests",
-          "arguments": [
-            "-ndartk-asan-linux-release-${arch}"
-          ]
-        }
-      ]
-    },
-    {
-      "builders": [
+        "vm-kernel-asan-linux-release-x64",
         "vm-kernel-lsan-linux-release-ia32",
-        "vm-kernel-lsan-linux-release-x64"
+        "vm-kernel-lsan-linux-release-x64",        
+        "vm-kernel-msan-linux-release-x64",
+        "vm-kernel-ubsan-linux-release-ia32",
+        "vm-kernel-ubsan-linux-release-x64"
       ],
       "meta": {
-        "description": "This configuration is used by the vm builders with LeakSanitizer (lsan)."
+        "description": "This configuration is used by the VM/JIT builders with sanitizers."
       },
       "steps": [
         {
           "name": "configure dart",
           "script": "tools/gn.py",
-          "arguments": [
-            "--mode=${mode}",
-            "--arch=${arch}",
-            "--sanitizer=lsan"
-          ]
+          "arguments": []
         },
         {
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "--sanitizer=lsan",
             "runtime"
           ]
         },
         {
           "name": "vm tests",
           "arguments": [
-            "-ndartk-lsan-linux-release-${arch}"
-          ]
-        }
-      ]
-    },
-    {
-      "builders": [
-        "vm-kernel-msan-linux-release-x64"
-      ],
-      "meta": {
-        "description": "This configuration is used by the vm builders with MemorySanitizer (msan)."
-      },
-      "steps": [
-        {
-          "name": "configure dart",
-          "script": "tools/gn.py",
-          "arguments": [
-            "--mode=${mode}",
-            "--arch=${arch}",
-            "--sanitizer=msan"
-          ]
-        },
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "--sanitizer=msan",
-            "runtime"
-          ]
-        },
-        {
-          "name": "vm tests",
-          "arguments": [
-            "-ndartk-msan-linux-release-${arch}"
+            "-ndartk-${sanitizer}-${system}-${mode}-${arch}"
           ]
         }
       ]
@@ -1643,30 +1576,25 @@
         "vm-kernel-tsan-linux-release-x64"
       ],
       "meta": {
-        "description": "This configuration is used by the vm builders with ThreadSanitizer (tsan)."
+        "description": "This configuration is used by the VM/JIT builders with sanitizers."
       },
       "steps": [
         {
           "name": "configure dart",
           "script": "tools/gn.py",
-          "arguments": [
-            "--mode=${mode}",
-            "--arch=${arch}",
-            "--sanitizer=tsan"
-          ]
+          "arguments": []
         },
         {
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "--sanitizer=tsan",
             "runtime"
           ]
         },
         {
           "name": "vm tests",
           "arguments": [
-            "-ndartk-tsan-linux-release-${arch}",
+            "-ndartk-${sanitizer}-${system}-${mode}-${arch}",
             "vm"
           ]
         }
@@ -1674,60 +1602,24 @@
     },
     {
       "builders": [
-        "vm-kernel-ubsan-linux-release-ia32",
-        "vm-kernel-ubsan-linux-release-x64"
+        "vm-kernel-precomp-asan-linux-release-x64",
+        "vm-kernel-precomp-lsan-linux-release-x64",
+        "vm-kernel-precomp-msan-linux-release-x64",
+        "vm-kernel-precomp-ubsan-linux-release-x64"
       ],
       "meta": {
-        "description": "This configuration is used by the vm builders with UndefinedBehaviorSanitizer (ubsan)."
+        "description": "This configuration is used by the VM/AOT builders with sanitizers."
       },
       "steps": [
         {
           "name": "configure dart",
           "script": "tools/gn.py",
-          "arguments": [
-            "--mode=${mode}",
-            "--arch=${arch}",
-            "--sanitizer=ubsan"
-          ]
+          "arguments": []
         },
         {
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "--sanitizer=ubsan",
-            "runtime"
-          ]
-        },
-        {
-          "name": "vm tests",
-          "arguments": [
-            "-ndartk-ubsan-linux-release-${arch}"
-          ]
-        }
-      ]
-    },
-    {
-      "builders": [
-        "vm-kernel-precomp-asan-linux-release-x64"
-      ],
-      "meta": {
-        "description": "This configuration is used by the vm builders with AddressSanitizer (asan)."
-      },
-      "steps": [
-        {
-          "name": "configure dart",
-          "script": "tools/gn.py",
-          "arguments": [
-            "--mode=${mode}",
-            "--arch=${arch}",
-            "--sanitizer=asan"
-          ]
-        },
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "--sanitizer=asan",
             "runtime",
             "runtime_precompiled"
           ]
@@ -1735,75 +1627,10 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-ndartkp-asan-linux-release-${arch}"
-          ]
-        }
-      ]
-    },
-    {
-      "builders": [
-        "vm-kernel-precomp-lsan-linux-release-x64"
-      ],
-      "meta": {
-        "description": "This configuration is used by the vm builders with LeakSanitizer (lsan)."
-      },
-      "steps": [
-        {
-          "name": "configure dart",
-          "script": "tools/gn.py",
-          "arguments": [
-            "--mode=${mode}",
-            "--arch=${arch}",
-            "--sanitizer=lsan"
-          ]
-        },
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "--sanitizer=lsan",
-            "runtime",
-            "runtime_precompiled"
-          ]
-        },
-        {
-          "name": "vm tests",
-          "arguments": [
-            "-ndartkp-lsan-linux-release-${arch}"
-          ]
-        }
-      ]
-    },
-    {
-      "builders": [
-        "vm-kernel-precomp-msan-linux-release-x64"
-      ],
-      "meta": {
-        "description": "This configuration is used by the vm builders with MemorySanitizer (msan)."
-      },
-      "steps": [
-        {
-          "name": "configure dart",
-          "script": "tools/gn.py",
-          "arguments": [
-            "--mode=${mode}",
-            "--arch=${arch}",
-            "--sanitizer=msan"
-          ]
-        },
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "--sanitizer=msan",
-            "runtime",
-            "runtime_precompiled"
-          ]
-        },
-        {
-          "name": "vm tests",
-          "arguments": [
-            "-ndartkp-msan-linux-release-${arch}"
+            "-ndartkp-${sanitizer}-${system}-${mode}-${arch}",
+            "vm",
+            "standalone",
+            "standalone_2"
           ]
         }
       ]
@@ -1813,23 +1640,18 @@
         "vm-kernel-precomp-tsan-linux-release-x64"
       ],
       "meta": {
-        "description": "This configuration is used by the vm builders with ThreadSanitizer (tsan)."
+        "description": "This configuration is used by the VM/AOT builders with sanitizers."
       },
       "steps": [
         {
           "name": "configure dart",
           "script": "tools/gn.py",
-          "arguments": [
-            "--mode=${mode}",
-            "--arch=${arch}",
-            "--sanitizer=tsan"
-          ]
+          "arguments": []
         },
         {
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "--sanitizer=tsan",
             "runtime",
             "runtime_precompiled"
           ]
@@ -1837,42 +1659,8 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-ndartkp-tsan-linux-release-${arch}",
+            "-ndartkp-${sanitizer}-${system}-${mode}-${arch}",
             "vm"
-          ]
-        }
-      ]
-    },
-    {
-      "builders": [
-        "vm-kernel-precomp-ubsan-linux-release-x64"
-      ],
-      "meta": {
-        "description": "This configuration is used by the vm builders with UndefinedBehaviorSanitizer (ubsan)."
-      },
-      "steps": [
-        {
-          "name": "configure dart",
-          "script": "tools/gn.py",
-          "arguments": [
-            "--mode=${mode}",
-            "--arch=${arch}",
-            "--sanitizer=ubsan"
-          ]
-        },
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "--sanitizer=ubsan",
-            "runtime",
-            "runtime_precompiled"
-          ]
-        },
-        {
-          "name": "vm tests",
-          "arguments": [
-            "-ndartkp-ubsan-linux-release-${arch}"
           ]
         }
       ]
