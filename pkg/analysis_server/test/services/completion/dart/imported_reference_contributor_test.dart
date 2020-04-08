@@ -1978,8 +1978,10 @@ class B extends ^
     addSource('/home/test/lib/a.dart', 'class A { }');
     addTestSource('''
         import 'a.dart';
-        // comment
-        class C {^ foo;} ''');
+        class C {
+          // comment
+          ^ foo;
+        } ''');
 
     await computeSuggestions();
     assertSuggestClass('A');
@@ -1992,8 +1994,10 @@ class B extends ^
     addSource('/home/test/lib/a.dart', 'class A { }');
     addTestSource('''
         import 'a.dart';
-        /* comment */
-        class C {^ foo;} ''');
+        class C {
+          /* comment */
+          ^ foo;
+        } ''');
 
     await computeSuggestions();
     assertSuggestClass('A');
@@ -2006,8 +2010,10 @@ class B extends ^
     addSource('/home/test/lib/a.dart', 'class A { }');
     addTestSource('''
         import 'a.dart';
-        /// some dartdoc
-        class C {^ foo;} ''');
+        class C {
+          /// some dartdoc
+          ^ foo;
+        } ''');
 
     await computeSuggestions();
     assertSuggestClass('A');
