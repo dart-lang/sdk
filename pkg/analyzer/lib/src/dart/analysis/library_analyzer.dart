@@ -239,12 +239,20 @@ class LibraryAnalyzer {
       unit.accept(Dart2JSVerifier(errorReporter));
     }
 
-    unit.accept(BestPracticesVerifier(
-        errorReporter, _typeProvider, _libraryElement, unit, file.content,
+    unit.accept(
+      BestPracticesVerifier(
+        errorReporter,
+        _typeProvider,
+        _libraryElement,
+        unit,
+        file.content,
+        declaredVariables: _declaredVariables,
         typeSystem: _typeSystem,
         inheritanceManager: _inheritance,
         resourceProvider: _resourceProvider,
-        analysisOptions: _context.analysisOptions));
+        analysisOptions: _context.analysisOptions,
+      ),
+    );
 
     unit.accept(OverrideVerifier(
       _inheritance,
