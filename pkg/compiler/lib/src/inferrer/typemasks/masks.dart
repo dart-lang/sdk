@@ -337,31 +337,42 @@ class CommonMasks implements AbstractValueDomain {
     }
 
     if (type is InterfaceType) {
-      if (isPrecise) {
-        // If the interface type is a generic interface type and is maximal
-        // (i.e. instantiated to bounds), the typemask, which is based on the
-        // class element, is still precise. We check against Top for the
-        // parameter arguments since we don't have a convenient check for
-        // instantation to bounds.
+      ClassEntity cls = type.element;
+      List<DartType> arguments = type.typeArguments;
+      if (isPrecise && arguments.isNotEmpty) {
+        // Can we ignore the type arguments?
+        //
+        // For legacy covariance, if the interface type is a generic interface
+        // type and is maximal (i.e. instantiated to bounds), the typemask,
+        // which is based on the class element, is still precise. We check
+        // against Top for the parameter arguments since we don't have a
+        // convenient check for instantation to bounds.
+        //
         // TODO(sra): Check arguments against bounds.
-        for (DartType argument in type.typeArguments) {
-          if (dartTypes.isTopType(argument)) continue;
+        // TODO(sra): Handle other variances.
+        List<Variance> variances = dartTypes.getTypeVariableVariances(cls);
+        for (int i = 0; i < arguments.length; i++) {
+          Variance variance = variances[i];
+          DartType argument = arguments[i];
+          if (variance == Variance.legacyCovariant &&
+              dartTypes.isTopType(argument)) {
+            continue;
+          }
           isPrecise = false;
         }
       }
       switch (classRelation) {
         case ClassRelation.exact:
-          return finish(TypeMask.exact(type.element, _closedWorld), isPrecise);
+          return finish(TypeMask.exact(cls, _closedWorld), isPrecise);
         case ClassRelation.thisExpression:
-          if (!_closedWorld.isUsedAsMixin(type.element)) {
-            return finish(
-                TypeMask.subclass(type.element, _closedWorld), isPrecise);
+          if (!_closedWorld.isUsedAsMixin(cls)) {
+            return finish(TypeMask.subclass(cls, _closedWorld), isPrecise);
           }
           break;
         case ClassRelation.subtype:
           break;
       }
-      return finish(TypeMask.subtype(type.element, _closedWorld), isPrecise);
+      return finish(TypeMask.subtype(cls, _closedWorld), isPrecise);
     }
 
     if (type is FunctionType) {
