@@ -8,7 +8,7 @@ import 'dart:io';
 import 'package:analysis_server_client/handler/notification_handler.dart';
 import 'package:analysis_server_client/listener/server_listener.dart';
 import 'package:analysis_server_client/protocol.dart';
-import 'package:analysis_server_client/server.dart';
+import 'package:nnbd_migration/isolate_server.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:nnbd_migration/src/messages.dart';
@@ -88,18 +88,11 @@ class MigrateCommand extends Command {
 
     Map<String, List<AnalysisError>> fileErrors = {};
 
-    bool enableAsserts = false;
     String instrumentationLogFile;
-    bool profileServer = false;
-    String serverPath = options.serverPath;
-    int servicesPort;
     String sdkPath = options.sdkPath;
     bool stdioPassthrough = false;
 
     if (options.debug) {
-      enableAsserts = true;
-      profileServer = true;
-      servicesPort = 9500;
       stdioPassthrough = true;
       instrumentationLogFile = path.join(
           Directory.systemTemp.createTempSync('migration_debug').path,
@@ -116,11 +109,7 @@ class MigrateCommand extends Command {
       await server.start(
           clientId: 'dart $name',
           clientVersion: _dartSdkVersion,
-          enableAsserts: enableAsserts,
           instrumentationLogFile: instrumentationLogFile,
-          profileServer: profileServer,
-          serverPath: serverPath,
-          servicesPort: servicesPort,
           sdkPath: sdkPath);
       _ServerNotifications serverNotifications = _ServerNotifications(server);
       await serverNotifications.listenToServer(server);
