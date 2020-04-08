@@ -2752,27 +2752,6 @@ void Assembler::BranchLinkToRuntime() {
   blx(IP);
 }
 
-void Assembler::CallNullErrorShared(bool save_fpu_registers) {
-  uword entry_point_offset =
-      save_fpu_registers
-          ? target::Thread::null_error_shared_with_fpu_regs_entry_point_offset()
-          : target::Thread::
-                null_error_shared_without_fpu_regs_entry_point_offset();
-  ldr(LR, Address(THR, entry_point_offset));
-  blx(LR);
-}
-
-void Assembler::CallNullArgErrorShared(bool save_fpu_registers) {
-  const uword entry_point_offset =
-      save_fpu_registers
-          ? target::Thread::
-                null_arg_error_shared_with_fpu_regs_entry_point_offset()
-          : target::Thread::
-                null_arg_error_shared_without_fpu_regs_entry_point_offset();
-  ldr(LR, Address(THR, entry_point_offset));
-  blx(LR);
-}
-
 void Assembler::BranchLinkWithEquivalence(const Code& target,
                                           const Object& equivalence,
                                           CodeEntryKind entry_kind) {

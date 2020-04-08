@@ -1346,6 +1346,16 @@ bool FlowGraphCompiler::TryIntrinsifyHelper() {
   return complete;
 }
 
+void FlowGraphCompiler::GenerateStubCall(TokenPosition token_pos,
+                                         const Code& stub,
+                                         RawPcDescriptors::Kind kind,
+                                         LocationSummary* locs,
+                                         intptr_t deopt_id,
+                                         Environment* env) {
+  EmitCallToStub(stub);
+  EmitCallsiteMetadata(token_pos, deopt_id, kind, locs, env);
+}
+
 static const Code& StubEntryFor(const ICData& ic_data, bool optimized) {
   switch (ic_data.NumArgsTested()) {
     case 1:

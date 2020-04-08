@@ -735,10 +735,6 @@ class Assembler : public AssemblerBase {
                   CodeEntryKind entry_kind = CodeEntryKind::kNormal);
   void BranchLinkToRuntime();
 
-  void CallNullErrorShared(bool save_fpu_registers);
-
-  void CallNullArgErrorShared(bool save_fpu_registers);
-
   // Branch and link to an entry address. Call sequence can be patched.
   void BranchLinkPatchable(const Code& code,
                            CodeEntryKind entry_kind = CodeEntryKind::kNormal);

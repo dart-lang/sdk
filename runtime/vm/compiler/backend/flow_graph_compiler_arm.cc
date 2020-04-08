@@ -666,8 +666,8 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
                (1 << TypeTestABI::kInstantiatorTypeArgumentsReg));
     __ LoadUniqueObject(TypeTestABI::kDstTypeReg, type);
     __ LoadUniqueObject(TypeTestABI::kSubtypeTestCacheReg, test_cache);
-    GenerateCall(token_pos, StubCode::InstanceOf(),
-                 /*kind=*/RawPcDescriptors::kOther, locs, deopt_id);
+    GenerateStubCall(token_pos, StubCode::InstanceOf(),
+                     /*kind=*/RawPcDescriptors::kOther, locs, deopt_id);
     __ b(&done);
   }
   __ Bind(&is_not_instance);
@@ -967,20 +967,14 @@ void FlowGraphCompiler::CompileGraph() {
   }
 }
 
-void FlowGraphCompiler::GenerateCall(TokenPosition token_pos,
-                                     const Code& stub,
-                                     RawPcDescriptors::Kind kind,
-                                     LocationSummary* locs,
-                                     intptr_t deopt_id) {
+void FlowGraphCompiler::EmitCallToStub(const Code& stub) {
+  ASSERT(!stub.IsNull());
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions &&
       !stub.InVMIsolateHeap()) {
     __ GenerateUnRelocatedPcRelativeCall();
     AddPcRelativeCallStubTarget(stub);
-    EmitCallsiteMetadata(token_pos, deopt_id, kind, locs);
   } else {
-    ASSERT(!stub.IsNull());
     __ BranchLink(stub);
-    EmitCallsiteMetadata(token_pos, deopt_id, kind, locs);
     AddStubCallTarget(stub);
   }
 }

@@ -960,10 +960,6 @@ class Thread : public AllStatic {
   static word field_table_values_offset();
   static word store_buffer_block_offset();
   static word call_to_runtime_entry_point_offset();
-  static word null_error_shared_with_fpu_regs_entry_point_offset();
-  static word null_error_shared_without_fpu_regs_entry_point_offset();
-  static word null_arg_error_shared_with_fpu_regs_entry_point_offset();
-  static word null_arg_error_shared_without_fpu_regs_entry_point_offset();
   static word write_barrier_mask_offset();
   static word switchable_call_miss_entry_offset();
   static word write_barrier_wrappers_thread_offset(Register regno);

@@ -181,6 +181,10 @@ class ObjectPointerVisitor;
   RW(Code, stack_overflow_stub_without_fpu_regs_stub)                          \
   RW(Code, write_barrier_wrappers_stub)                                        \
   RW(Code, array_write_barrier_stub)                                           \
+  RW(Code, throw_stub)                                                         \
+  RW(Code, re_throw_stub)                                                      \
+  RW(Code, assert_boolean_stub)                                                \
+  RW(Code, instance_of_stub)                                                   \
   R_(Code, megamorphic_call_miss_code)                                         \
   R_(Function, megamorphic_call_miss_function)                                 \
   R_(GrowableObjectArray, resume_capabilities)                                 \
@@ -193,7 +197,26 @@ class ObjectPointerVisitor;
   RW(Class, ffi_native_type_class)                                             \
   RW(Class, ffi_struct_class)                                                  \
   RW(Object, ffi_as_function_internal)                                         \
-// Please remember the last entry must be referred in the 'to' function below.
+  // Please remember the last entry must be referred in the 'to' function below.
+
+#define OBJECT_STORE_STUB_CODE_LIST(DO)                                        \
+  DO(dispatch_table_null_error_stub, DispatchTableNullError)                   \
+  DO(null_error_stub_with_fpu_regs_stub, NullErrorSharedWithFPURegs)           \
+  DO(null_error_stub_without_fpu_regs_stub, NullErrorSharedWithoutFPURegs)     \
+  DO(null_arg_error_stub_with_fpu_regs_stub, NullArgErrorSharedWithFPURegs)    \
+  DO(null_arg_error_stub_without_fpu_regs_stub,                                \
+     NullArgErrorSharedWithoutFPURegs)                                         \
+  DO(allocate_mint_with_fpu_regs_stub, AllocateMintSharedWithFPURegs)          \
+  DO(allocate_mint_without_fpu_regs_stub, AllocateMintSharedWithoutFPURegs)    \
+  DO(stack_overflow_stub_with_fpu_regs_stub, StackOverflowSharedWithFPURegs)   \
+  DO(stack_overflow_stub_without_fpu_regs_stub,                                \
+     StackOverflowSharedWithoutFPURegs)                                        \
+  DO(write_barrier_wrappers_stub, WriteBarrierWrappers)                        \
+  DO(array_write_barrier_stub, ArrayWriteBarrier)                              \
+  DO(throw_stub, Throw)                                                        \
+  DO(re_throw_stub, ReThrow)                                                   \
+  DO(assert_boolean_stub, AssertBoolean)                                       \
+  DO(instance_of_stub, InstanceOf)
 
 // The object store is a per isolate instance which stores references to
 // objects used by the VM.

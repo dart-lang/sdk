@@ -985,8 +985,8 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     compiler->GeneratePatchableCall(token_pos(), *stub,
                                     RawPcDescriptors::kOther, locs());
   } else {
-    compiler->GenerateCall(token_pos(), *stub, RawPcDescriptors::kOther,
-                           locs());
+    compiler->GenerateStubCall(token_pos(), *stub, RawPcDescriptors::kOther,
+                               locs());
   }
   __ Pop(result);
 
@@ -2110,8 +2110,8 @@ class BoxAllocationSlowPath : public TemplateSlowPathCode<Instruction> {
     locs->live_registers()->Remove(Location::RegisterLocation(result_));
 
     compiler->SaveLiveRegisters(locs);
-    compiler->GenerateCall(TokenPosition::kNoSource,  // No token position.
-                           stub, RawPcDescriptors::kOther, locs);
+    compiler->GenerateStubCall(TokenPosition::kNoSource,  // No token position.
+                               stub, RawPcDescriptors::kOther, locs);
     __ MoveRegister(result_, R0);
     compiler->RestoreLiveRegisters(locs);
     __ b(exit_label());
@@ -2565,8 +2565,8 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       return;
     }
   }
-  compiler->GenerateCall(token_pos(), StubCode::AllocateArray(),
-                         RawPcDescriptors::kOther, locs(), deopt_id());
+  compiler->GenerateStubCall(token_pos(), StubCode::AllocateArray(),
+                             RawPcDescriptors::kOther, locs(), deopt_id());
   ASSERT(locs()->out(0).reg() == kResultReg);
 }
 
@@ -2807,8 +2807,8 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   // Lookup cache in stub before calling runtime.
   __ LoadObject(InstantiationABI::kUninstantiatedTypeArgumentsReg,
                 type_arguments());
-  compiler->GenerateCall(token_pos(), GetStub(), RawPcDescriptors::kOther,
-                         locs());
+  compiler->GenerateStubCall(token_pos(), GetStub(), RawPcDescriptors::kOther,
+                             locs());
   __ Bind(&type_arguments_instantiated);
 }
 
@@ -2844,9 +2844,9 @@ class AllocateContextSlowPath
     compiler->SaveLiveRegisters(locs);
 
     __ LoadImmediate(R1, instruction()->num_context_variables());
-    compiler->GenerateCall(instruction()->token_pos(),
-                           StubCode::AllocateContext(),
-                           RawPcDescriptors::kOther, locs);
+    compiler->GenerateStubCall(instruction()->token_pos(),
+                               StubCode::AllocateContext(),
+                               RawPcDescriptors::kOther, locs);
     ASSERT(instruction()->locs()->out(0).reg() == R0);
     compiler->RestoreLiveRegisters(instruction()->locs());
     __ b(exit_label());
@@ -2892,8 +2892,8 @@ void AllocateContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->out(0).reg() == R0);
 
   __ LoadImmediate(R1, num_context_variables());
-  compiler->GenerateCall(token_pos(), StubCode::AllocateContext(),
-                         RawPcDescriptors::kOther, locs());
+  compiler->GenerateStubCall(token_pos(), StubCode::AllocateContext(),
+                             RawPcDescriptors::kOther, locs());
 }
 
 LocationSummary* CloneContextInstr::MakeLocationSummary(Zone* zone,
@@ -2911,8 +2911,8 @@ void CloneContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(0).reg() == R5);
   ASSERT(locs()->out(0).reg() == R0);
 
-  compiler->GenerateCall(token_pos(), StubCode::CloneContext(),
-                         /*kind=*/RawPcDescriptors::kOther, locs());
+  compiler->GenerateStubCall(token_pos(), StubCode::CloneContext(),
+                             /*kind=*/RawPcDescriptors::kOther, locs());
 }
 
 LocationSummary* CatchBlockEntryInstr::MakeLocationSummary(Zone* zone,
@@ -4017,19 +4017,11 @@ void BoxInt64Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
           compiler->zone(),
           live_fpu_regs ? object_store->allocate_mint_with_fpu_regs_stub()
                         : object_store->allocate_mint_without_fpu_regs_stub());
-      // BoxInt64Instr uses shared slow path only if stub can be reached
-      // via PC-relative call.
-      ASSERT(FLAG_use_bare_instructions);
-      ASSERT(!stub.InVMIsolateHeap());
-      __ GenerateUnRelocatedPcRelativeCall();
-      compiler->AddPcRelativeCallStubTarget(stub);
 
       ASSERT(!locs()->live_registers()->ContainsRegister(R0));
-
       auto extended_env = compiler->SlowPathEnvironmentFor(this, 0);
-      compiler->EmitCallsiteMetadata(token_pos(), DeoptId::kNone,
-                                     RawPcDescriptors::kOther, locs(),
-                                     extended_env);
+      compiler->GenerateStubCall(token_pos(), stub, RawPcDescriptors::kOther,
+                                 locs(), DeoptId::kNone, extended_env);
     } else {
       BoxAllocationSlowPath::Allocate(compiler, this, compiler->mint_class(),
                                       out, temp);
@@ -5366,50 +5358,6 @@ void CheckNullInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ BranchIf(EQUAL, slow_path->entry_label());
 }
 
-void NullErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
-                                           bool save_fpu_registers) {
-  auto check_null = instruction()->AsCheckNull();
-  auto locs = check_null->locs();
-  const bool using_shared_stub = locs->call_on_shared_slow_path();
-
-  const bool live_fpu_regs = locs->live_registers()->FpuRegisterCount() > 0;
-  auto object_store = compiler->isolate()->object_store();
-  const auto& stub = Code::ZoneHandle(
-      compiler->zone(),
-      live_fpu_regs ? object_store->null_error_stub_with_fpu_regs_stub()
-                    : object_store->null_error_stub_without_fpu_regs_stub());
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions &&
-      using_shared_stub && !stub.InVMIsolateHeap()) {
-    compiler->assembler()->GenerateUnRelocatedPcRelativeCall();
-    compiler->AddPcRelativeCallStubTarget(stub);
-    return;
-  }
-
-  compiler->assembler()->CallNullErrorShared(save_fpu_registers);
-}
-
-void NullArgErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
-                                              bool save_fpu_registers) {
-  auto check_null = instruction()->AsCheckNull();
-  auto locs = check_null->locs();
-
-  const bool live_fpu_regs = locs->live_registers()->FpuRegisterCount() > 0;
-  auto object_store = compiler->isolate()->object_store();
-  const auto& stub = Code::ZoneHandle(
-      compiler->zone(),
-      live_fpu_regs
-          ? object_store->null_arg_error_stub_with_fpu_regs_stub()
-          : object_store->null_arg_error_stub_without_fpu_regs_stub());
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions &&
-      !stub.InVMIsolateHeap()) {
-    compiler->assembler()->GenerateUnRelocatedPcRelativeCall();
-    compiler->AddPcRelativeCallStubTarget(stub);
-    return;
-  }
-
-  compiler->assembler()->CallNullArgErrorShared(save_fpu_registers);
-}
-
 LocationSummary* CheckArrayBoundInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
   const intptr_t kNumInputs = 2;
@@ -6459,7 +6407,8 @@ void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   const Code& stub = Code::ZoneHandle(
       compiler->zone(), StubCode::GetAllocationStubForClass(cls()));
-  compiler->GenerateCall(token_pos(), stub, RawPcDescriptors::kOther, locs());
+  compiler->GenerateStubCall(token_pos(), stub, RawPcDescriptors::kOther,
+                             locs());
 }
 
 void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {

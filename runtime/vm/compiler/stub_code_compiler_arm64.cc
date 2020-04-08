@@ -1229,7 +1229,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
   __ ret();
 }
 
-void StubCodeCompiler::GenerateAllocateMintWithFPURegsStub(
+void StubCodeCompiler::GenerateAllocateMintSharedWithFPURegsStub(
     Assembler* assembler) {
   // For test purpose call allocation stub without inline allocation attempt.
   if (!FLAG_use_slow_path) {
@@ -1247,7 +1247,7 @@ void StubCodeCompiler::GenerateAllocateMintWithFPURegsStub(
                      /*store_runtime_result_in_r0=*/true);
 }
 
-void StubCodeCompiler::GenerateAllocateMintWithoutFPURegsStub(
+void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub(
     Assembler* assembler) {
   // For test purpose call allocation stub without inline allocation attempt.
   if (!FLAG_use_slow_path) {

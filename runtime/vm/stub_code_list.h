@@ -19,8 +19,8 @@ namespace dart {
   V(ArrayWriteBarrier)                                                         \
   V(PrintStopMessage)                                                          \
   V(AllocateArray)                                                             \
-  V(AllocateMintWithFPURegs)                                                   \
-  V(AllocateMintWithoutFPURegs)                                                \
+  V(AllocateMintSharedWithFPURegs)                                             \
+  V(AllocateMintSharedWithoutFPURegs)                                          \
   V(AllocateContext)                                                           \
   V(AllocateObject)                                                            \
   V(AllocateObjectParameterized)                                               \

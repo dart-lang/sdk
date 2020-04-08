@@ -725,10 +725,6 @@ class Assembler : public AssemblerBase {
   void Call(const Code& stub_entry);
   void CallToRuntime();
 
-  void CallNullErrorShared(bool save_fpu_registers);
-
-  void CallNullArgErrorShared(bool save_fpu_registers);
-
   // Emit a call that shares its object pool entries with other calls
   // that have the same equivalence marker.
   void CallWithEquivalence(const Code& code,

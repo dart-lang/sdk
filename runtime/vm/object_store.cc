@@ -10,6 +10,7 @@
 #include "vm/object.h"
 #include "vm/raw_object.h"
 #include "vm/resolver.h"
+#include "vm/stub_code.h"
 #include "vm/symbols.h"
 #include "vm/visitor.h"
 
@@ -38,6 +39,12 @@ void ObjectStore::Init(Isolate* isolate) {
   ASSERT(isolate->object_store() == NULL);
   ObjectStore* store = new ObjectStore();
   isolate->set_object_store(store);
+
+  if (!Dart::VmIsolateNameEquals(isolate->name())) {
+#define DO(member, name) store->set_##member(StubCode::name());
+    OBJECT_STORE_STUB_CODE_LIST(DO)
+#undef DO
+  }
 }
 
 #ifndef PRODUCT

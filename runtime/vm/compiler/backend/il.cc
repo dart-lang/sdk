@@ -4077,8 +4077,9 @@ void InitStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(&call_runtime);
   __ LoadObject(InitStaticFieldABI::kFieldReg,
                 Field::ZoneHandle(field().Original()));
-  compiler->GenerateCall(token_pos(), StubCode::InitStaticField(),
-                         /*kind=*/RawPcDescriptors::kOther, locs(), deopt_id());
+  compiler->GenerateStubCall(token_pos(), StubCode::InitStaticField(),
+                             /*kind=*/RawPcDescriptors::kOther, locs(),
+                             deopt_id());
   __ Bind(&no_call);
 }
 
@@ -4105,8 +4106,9 @@ void InitInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ LoadObject(InitInstanceFieldABI::kFieldReg,
                 Field::ZoneHandle(field().Original()));
-  compiler->GenerateCall(token_pos(), StubCode::InitInstanceField(),
-                         /*kind=*/RawPcDescriptors::kOther, locs(), deopt_id());
+  compiler->GenerateStubCall(token_pos(), StubCode::InitInstanceField(),
+                             /*kind=*/RawPcDescriptors::kOther, locs(),
+                             deopt_id());
   __ Bind(&no_call);
 }
 
@@ -4120,8 +4122,9 @@ LocationSummary* ThrowInstr::MakeLocationSummary(Zone* zone, bool opt) const {
 }
 
 void ThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  compiler->GenerateCall(token_pos(), StubCode::Throw(),
-                         /*kind=*/RawPcDescriptors::kOther, locs(), deopt_id());
+  compiler->GenerateStubCall(token_pos(), StubCode::Throw(),
+                             /*kind=*/RawPcDescriptors::kOther, locs(),
+                             deopt_id());
   // Issue(dartbug.com/41353): Right now we have to emit an extra breakpoint
   // instruction: The ThrowInstr will terminate the current block. The very
   // next machine code instruction might get a pc descriptor attached with a
@@ -4143,8 +4146,9 @@ LocationSummary* ReThrowInstr::MakeLocationSummary(Zone* zone, bool opt) const {
 
 void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->SetNeedsStackTrace(catch_try_index());
-  compiler->GenerateCall(token_pos(), StubCode::ReThrow(),
-                         /*kind=*/RawPcDescriptors::kOther, locs(), deopt_id());
+  compiler->GenerateStubCall(token_pos(), StubCode::ReThrow(),
+                             /*kind=*/RawPcDescriptors::kOther, locs(),
+                             deopt_id());
   // Issue(dartbug.com/41353): Right now we have to emit an extra breakpoint
   // instruction: The ThrowInstr will terminate the current block. The very
   // next machine code instruction might get a pc descriptor attached with a
@@ -4172,8 +4176,9 @@ void AssertBooleanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ CompareObject(AssertBooleanABI::kObjectReg, Object::null_instance());
   __ BranchIf(NOT_EQUAL, &done);
-  compiler->GenerateCall(token_pos(), StubCode::AssertBoolean(),
-                         /*kind=*/RawPcDescriptors::kOther, locs(), deopt_id());
+  compiler->GenerateStubCall(token_pos(), StubCode::AssertBoolean(),
+                             /*kind=*/RawPcDescriptors::kOther, locs(),
+                             deopt_id());
   __ Bind(&done);
 }
 
@@ -5131,6 +5136,36 @@ LocationSummary* CheckNullInstr::MakeLocationSummary(Zone* zone,
 void CheckNullInstr::AddMetadataForRuntimeCall(CheckNullInstr* check_null,
                                                FlowGraphCompiler* compiler) {
   compiler->AddNullCheck(check_null->token_pos(), check_null->function_name());
+}
+
+void NullErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
+                                           bool save_fpu_registers) {
+#if defined(TARGET_ARCH_IA32)
+  UNREACHABLE();
+#else
+  auto object_store = compiler->isolate()->object_store();
+  const auto& stub = Code::ZoneHandle(
+      compiler->zone(),
+      save_fpu_registers
+          ? object_store->null_error_stub_with_fpu_regs_stub()
+          : object_store->null_error_stub_without_fpu_regs_stub());
+  compiler->EmitCallToStub(stub);
+#endif
+}
+
+void NullArgErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
+                                              bool save_fpu_registers) {
+#if defined(TARGET_ARCH_IA32)
+  UNREACHABLE();
+#else
+  auto object_store = compiler->isolate()->object_store();
+  const auto& stub = Code::ZoneHandle(
+      compiler->zone(),
+      save_fpu_registers
+          ? object_store->null_arg_error_stub_with_fpu_regs_stub()
+          : object_store->null_arg_error_stub_without_fpu_regs_stub());
+  compiler->EmitCallToStub(stub);
+#endif
 }
 
 void UnboxInstr::EmitLoadFromBoxWithDeopt(FlowGraphCompiler* compiler) {

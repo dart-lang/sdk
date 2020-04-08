@@ -578,11 +578,12 @@ class FlowGraphCompiler : public ValueObject {
                            intptr_t argument_count,
                            LocationSummary* locs);
 
-  void GenerateCall(TokenPosition token_pos,
-                    const Code& stub,
-                    RawPcDescriptors::Kind kind,
-                    LocationSummary* locs,
-                    intptr_t deopt_id = DeoptId::kNone);
+  void GenerateStubCall(TokenPosition token_pos,
+                        const Code& stub,
+                        RawPcDescriptors::Kind kind,
+                        LocationSummary* locs,
+                        intptr_t deopt_id = DeoptId::kNone,
+                        Environment* env = nullptr);
 
   void GeneratePatchableCall(TokenPosition token_pos,
                              const Code& stub,
@@ -747,6 +748,8 @@ class FlowGraphCompiler : public ValueObject {
 
   void RecordCatchEntryMoves(Environment* env = NULL,
                              intptr_t try_index = kInvalidTryIndex);
+
+  void EmitCallToStub(const Code& stub);
 
   // Emits the following metadata for the current PC:
   //

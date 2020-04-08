@@ -294,61 +294,13 @@ void Precompiler::DoCompileAll() {
         stub_code =
             StubCode::GetBuildMethodExtractorStub(global_object_pool_builder());
         I->object_store()->set_build_method_extractor_code(stub_code);
+#define DO(member, name)                                                       \
+  stub_code = StubCode::BuildIsolateSpecific##name##Stub(                      \
+      global_object_pool_builder());                                           \
+  I->object_store()->set_##member(stub_code);
 
-        stub_code = StubCode::BuildIsolateSpecificDispatchTableNullErrorStub(
-            global_object_pool_builder());
-        I->object_store()->set_dispatch_table_null_error_stub(stub_code);
-
-        stub_code =
-            StubCode::BuildIsolateSpecificNullErrorSharedWithFPURegsStub(
-                global_object_pool_builder());
-        I->object_store()->set_null_error_stub_with_fpu_regs_stub(stub_code);
-
-        stub_code =
-            StubCode::BuildIsolateSpecificNullErrorSharedWithoutFPURegsStub(
-                global_object_pool_builder());
-        I->object_store()->set_null_error_stub_without_fpu_regs_stub(stub_code);
-
-        stub_code =
-            StubCode::BuildIsolateSpecificNullArgErrorSharedWithFPURegsStub(
-                global_object_pool_builder());
-        I->object_store()->set_null_arg_error_stub_with_fpu_regs_stub(
-            stub_code);
-
-        stub_code =
-            StubCode::BuildIsolateSpecificNullArgErrorSharedWithoutFPURegsStub(
-                global_object_pool_builder());
-        I->object_store()->set_null_arg_error_stub_without_fpu_regs_stub(
-            stub_code);
-
-        stub_code = StubCode::BuildIsolateSpecificAllocateMintWithFPURegsStub(
-            global_object_pool_builder());
-        I->object_store()->set_allocate_mint_with_fpu_regs_stub(stub_code);
-
-        stub_code =
-            StubCode::BuildIsolateSpecificAllocateMintWithoutFPURegsStub(
-                global_object_pool_builder());
-        I->object_store()->set_allocate_mint_without_fpu_regs_stub(stub_code);
-
-        stub_code =
-            StubCode::BuildIsolateSpecificStackOverflowSharedWithFPURegsStub(
-                global_object_pool_builder());
-        I->object_store()->set_stack_overflow_stub_with_fpu_regs_stub(
-            stub_code);
-
-        stub_code =
-            StubCode::BuildIsolateSpecificStackOverflowSharedWithoutFPURegsStub(
-                global_object_pool_builder());
-        I->object_store()->set_stack_overflow_stub_without_fpu_regs_stub(
-            stub_code);
-
-        stub_code = StubCode::BuildIsolateSpecificWriteBarrierWrappersStub(
-            global_object_pool_builder());
-        I->object_store()->set_write_barrier_wrappers_stub(stub_code);
-
-        stub_code = StubCode::BuildIsolateSpecificArrayWriteBarrierStub(
-            global_object_pool_builder());
-        I->object_store()->set_array_write_barrier_stub(stub_code);
+        OBJECT_STORE_STUB_CODE_LIST(DO)
+#undef DO
       }
 
       CollectDynamicFunctionNames();

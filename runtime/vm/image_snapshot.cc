@@ -544,35 +544,14 @@ static const char* NameOfStubIsolateSpecificStub(ObjectStore* object_store,
                                                  const Code& code) {
   if (code.raw() == object_store->build_method_extractor_code()) {
     return "_iso_stub_BuildMethodExtractorStub";
-  } else if (code.raw() == object_store->dispatch_table_null_error_stub()) {
-    return "_iso_stub_DispatchTableNullErrorStub";
-  } else if (code.raw() == object_store->null_error_stub_with_fpu_regs_stub()) {
-    return "_iso_stub_NullErrorSharedWithFPURegsStub";
-  } else if (code.raw() ==
-             object_store->null_error_stub_without_fpu_regs_stub()) {
-    return "_iso_stub_NullErrorSharedWithoutFPURegsStub";
-  } else if (code.raw() ==
-             object_store->null_arg_error_stub_with_fpu_regs_stub()) {
-    return "_iso_stub_NullArgErrorSharedWithFPURegsStub";
-  } else if (code.raw() ==
-             object_store->null_arg_error_stub_without_fpu_regs_stub()) {
-    return "_iso_stub_NullArgErrorSharedWithoutFPURegsStub";
-  } else if (code.raw() == object_store->allocate_mint_with_fpu_regs_stub()) {
-    return "_iso_stub_AllocateMintWithFPURegsStub";
-  } else if (code.raw() ==
-             object_store->allocate_mint_without_fpu_regs_stub()) {
-    return "_iso_stub_AllocateMintWithoutFPURegsStub";
-  } else if (code.raw() ==
-             object_store->stack_overflow_stub_with_fpu_regs_stub()) {
-    return "_iso_stub_StackOverflowStubWithFPURegsStub";
-  } else if (code.raw() ==
-             object_store->stack_overflow_stub_without_fpu_regs_stub()) {
-    return "_iso_stub_StackOverflowStubWithoutFPURegsStub";
-  } else if (code.raw() == object_store->write_barrier_wrappers_stub()) {
-    return "_iso_stub_WriteBarrierWrappersStub";
-  } else if (code.raw() == object_store->array_write_barrier_stub()) {
-    return "_iso_stub_ArrayWriteBarrierStub";
   }
+
+#define DO(member, name)                                                       \
+  if (code.raw() == object_store->member()) {                                  \
+    return "_iso_stub_" #name "Stub";                                          \
+  }
+  OBJECT_STORE_STUB_CODE_LIST(DO)
+#undef DO
   return nullptr;
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
