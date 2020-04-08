@@ -9,10 +9,10 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/src/context/context.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
+import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
@@ -23,6 +23,7 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/micro/analysis_context.dart';
 import 'package:analyzer/src/dart/micro/library_analyzer.dart';
 import 'package:analyzer/src/dart/micro/library_graph.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -30,8 +31,11 @@ import 'package:analyzer/src/summary2/link.dart' as link2;
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
+import 'package:yaml/yaml.dart';
 
 /*
  * Resolves a single file.
@@ -61,7 +65,7 @@ class FileResolver {
 
   FileResolver(this.logger, this.resourceProvider, this.byteStore,
       this.sourceFactory, this.getFileDigest, this.prefetchFiles,
-      {Workspace workspace})
+      {@required Workspace workspace})
       : this.workspace = workspace;
 
   FeatureSet get defaultFeatureSet => FeatureSet.fromEnableFlags([]);
@@ -84,7 +88,7 @@ class FileResolver {
         }
         var root = roots[0];
 
-        var analysisOptions = AnalysisOptionsImpl();
+        var analysisOptions = _getAnalysisOptions(root.optionsFile);
         var declaredVariables = DeclaredVariables();
 
         analysisContext = MicroAnalysisContextImpl(
@@ -100,6 +104,49 @@ class FileResolver {
 
       return _resolve(path);
     });
+  }
+
+  /// Return the analysis options.
+  ///
+  /// If the [optionsFile] is not `null`, read it.
+  ///
+  /// If the [workspace] is a [WorkspaceWithDefaultAnalysisOptions], get the
+  /// default options, if the file exists.
+  ///
+  /// Otherwise, return the default options.
+  AnalysisOptionsImpl _getAnalysisOptions(File optionsFile) {
+    YamlMap optionMap;
+
+    if (optionsFile != null) {
+      try {
+        var optionsProvider = AnalysisOptionsProvider(sourceFactory);
+        optionMap = optionsProvider.getOptionsFromFile(optionsFile);
+      } catch (e) {
+        // ignored
+      }
+    } else {
+      Source source;
+      if (workspace is WorkspaceWithDefaultAnalysisOptions) {
+        source = sourceFactory.forUri(WorkspaceWithDefaultAnalysisOptions.uri);
+      }
+
+      if (source != null && source.exists()) {
+        try {
+          var optionsProvider = AnalysisOptionsProvider(sourceFactory);
+          optionMap = optionsProvider.getOptionsFromSource(source);
+        } catch (e) {
+          // ignored
+        }
+      }
+    }
+
+    var options = AnalysisOptionsImpl();
+
+    if (optionMap != null) {
+      applyToAnalysisOptions(options, optionMap);
+    }
+
+    return options;
   }
 
   ResolvedUnitResultImpl _resolve(String path) {
@@ -354,14 +401,6 @@ class _LibraryContext {
     inheritanceManager = InheritanceManager3();
   }
 
-  static CiderLinkedLibraryCycleBuilder serializeBundle(
-      List<int> signature, link2.LinkResult linkResult) {
-    return CiderLinkedLibraryCycleBuilder(
-      signature: signature,
-      bundle: linkResult.bundle,
-    );
-  }
-
   void _createElementFactory() {
     elementFactory = LinkedElementFactory(
       analysisContext,
@@ -377,5 +416,13 @@ class _LibraryContext {
       var dartAsync = elementFactory.libraryOfUri('dart:async');
       elementFactory.createTypeProviders(dartCore, dartAsync);
     }
+  }
+
+  static CiderLinkedLibraryCycleBuilder serializeBundle(
+      List<int> signature, link2.LinkResult linkResult) {
+    return CiderLinkedLibraryCycleBuilder(
+      signature: signature,
+      bundle: linkResult.bundle,
+    );
   }
 }
