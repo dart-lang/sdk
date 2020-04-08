@@ -73,7 +73,7 @@ void RawObject::Validate(IsolateGroup* isolate_group) const {
     return;
   }
   intptr_t size_from_tags = SizeTag::decode(tags);
-  intptr_t size_from_class = HeapSizeFromClass(tags);
+  intptr_t size_from_class = HeapSizeFromClass();
   if ((size_from_tags != 0) && (size_from_tags != size_from_class)) {
     FATAL3(
         "Inconsistent size encountered "
@@ -85,12 +85,11 @@ void RawObject::Validate(IsolateGroup* isolate_group) const {
 // Can't look at the class object because it can be called during
 // compaction when the class objects are moving. Can use the class
 // id in the header and the sizes in the Class Table.
-// Cannot deference ptr()->tags_. May dereference other parts of the object.
-intptr_t RawObject::HeapSizeFromClass(uint32_t tags) const {
+intptr_t RawObject::HeapSizeFromClass() const {
   // Only reasonable to be called on heap objects.
   ASSERT(IsHeapObject());
 
-  intptr_t class_id = ClassIdTag::decode(tags);
+  intptr_t class_id = GetClassId();
   intptr_t instance_size = 0;
   switch (class_id) {
     case kCodeCid: {
@@ -159,9 +158,9 @@ intptr_t RawObject::HeapSizeFromClass(uint32_t tags) const {
       CLASS_LIST_TYPED_DATA(SIZE_FROM_CLASS) {
         const RawTypedData* raw_obj =
             reinterpret_cast<const RawTypedData*>(this);
+        intptr_t cid = raw_obj->GetClassId();
         intptr_t array_len = Smi::Value(raw_obj->ptr()->length_);
-        intptr_t lengthInBytes =
-            array_len * TypedData::ElementSizeInBytes(class_id);
+        intptr_t lengthInBytes = array_len * TypedData::ElementSizeInBytes(cid);
         instance_size = TypedData::InstanceSize(lengthInBytes);
         break;
       }
@@ -246,7 +245,7 @@ intptr_t RawObject::HeapSizeFromClass(uint32_t tags) const {
       if (!class_table->IsValidIndex(class_id) ||
           (!class_table->HasValidClassAt(class_id) && !use_saved_class_table)) {
         FATAL3("Invalid cid: %" Pd ", obj: %p, tags: %x. Corrupt heap?",
-               class_id, this, static_cast<uint32_t>(tags));
+               class_id, this, static_cast<uint32_t>(ptr()->tags_));
       }
 #endif  // DEBUG
       instance_size = isolate_group->GetClassSizeForHeapWalkAt(class_id);
@@ -254,6 +253,7 @@ intptr_t RawObject::HeapSizeFromClass(uint32_t tags) const {
   }
   ASSERT(instance_size != 0);
 #if defined(DEBUG)
+  uint32_t tags = ptr()->tags_;
   intptr_t tags_size = SizeTag::decode(tags);
   if ((class_id == kArrayCid) && (instance_size > tags_size && tags_size > 0)) {
     // TODO(22501): Array::MakeFixedLength could be in the process of shrinking

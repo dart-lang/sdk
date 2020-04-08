@@ -69,7 +69,7 @@ void BlockStack<BlockSize>::Reset() {
 }
 
 template <int BlockSize>
-typename BlockStack<BlockSize>::Block* BlockStack<BlockSize>::TakeBlocks() {
+typename BlockStack<BlockSize>::Block* BlockStack<BlockSize>::Blocks() {
   MutexLocker ml(&mutex_);
   while (!partial_.IsEmpty()) {
     full_.Push(partial_.Pop());

@@ -252,6 +252,14 @@ typedef simd128_value_t fpu_register_t;
 #endif
 
 #ifdef _MSC_VER
+#define DART_FLATTEN
+#elif __GNUC__
+#define DART_FLATTEN __attribute__((flatten))
+#else
+#error Automatic compiler detection failed.
+#endif
+
+#ifdef _MSC_VER
 #elif __GNUC__
 #define DART_HAS_COMPUTED_GOTO 1
 #else

@@ -22,6 +22,65 @@
 
 namespace dart {
 
+class MarkerWorkList : public ValueObject {
+ public:
+  explicit MarkerWorkList(MarkingStack* marking_stack)
+      : marking_stack_(marking_stack) {
+    work_ = marking_stack_->PopEmptyBlock();
+  }
+
+  ~MarkerWorkList() {
+    ASSERT(work_ == NULL);
+    ASSERT(marking_stack_ == NULL);
+  }
+
+  // Returns NULL if no more work was found.
+  RawObject* Pop() {
+    ASSERT(work_ != NULL);
+    if (work_->IsEmpty()) {
+      // TODO(koda): Track over/underflow events and use in heuristics to
+      // distribute work and prevent degenerate flip-flopping.
+      MarkingStack::Block* new_work = marking_stack_->PopNonEmptyBlock();
+      if (new_work == NULL) {
+        return NULL;
+      }
+      marking_stack_->PushBlock(work_);
+      work_ = new_work;
+      // Generated code appends to marking stacks; tell MemorySanitizer.
+      MSAN_UNPOISON(work_, sizeof(*work_));
+    }
+    return work_->Pop();
+  }
+
+  void Push(RawObject* raw_obj) {
+    if (work_->IsFull()) {
+      // TODO(koda): Track over/underflow events and use in heuristics to
+      // distribute work and prevent degenerate flip-flopping.
+      marking_stack_->PushBlock(work_);
+      work_ = marking_stack_->PopEmptyBlock();
+    }
+    work_->Push(raw_obj);
+  }
+
+  void Finalize() {
+    ASSERT(work_->IsEmpty());
+    marking_stack_->PushBlock(work_);
+    work_ = NULL;
+    // Fail fast on attempts to mark after finalizing.
+    marking_stack_ = NULL;
+  }
+
+  void AbandonWork() {
+    marking_stack_->PushBlock(work_);
+    work_ = NULL;
+    marking_stack_ = NULL;
+  }
+
+ private:
+  MarkingStack::Block* work_;
+  MarkingStack* marking_stack_;
+};
+
 template <bool sync>
 class MarkingVisitorBase : public ObjectPointerVisitor {
  public:
@@ -437,7 +496,7 @@ void GCMarker::ProcessRememberedSet(Thread* thread) {
   TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessRememberedSet");
   // Filter collected objects from the remembered set.
   StoreBuffer* store_buffer = isolate_group_->store_buffer();
-  StoreBufferBlock* reading = store_buffer->TakeBlocks();
+  StoreBufferBlock* reading = store_buffer->Blocks();
   StoreBufferBlock* writing = store_buffer->PopNonFullBlock();
   while (reading != NULL) {
     StoreBufferBlock* next = reading->next();

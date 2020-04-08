@@ -685,6 +685,18 @@ Object* SnapshotReader::GetBackRef(intptr_t id) {
   return NULL;
 }
 
+class HeapLocker : public StackResource {
+ public:
+  HeapLocker(Thread* thread, PageSpace* page_space)
+      : StackResource(thread), page_space_(page_space) {
+    page_space_->AcquireDataLock();
+  }
+  ~HeapLocker() { page_space_->ReleaseDataLock(); }
+
+ private:
+  PageSpace* page_space_;
+};
+
 RawApiError* SnapshotReader::VerifyVersionAndFeatures(Isolate* isolate) {
   // If the version string doesn't match, return an error.
   // Note: New things are allocated only if we're going to return an error.

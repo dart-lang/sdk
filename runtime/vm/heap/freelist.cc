@@ -54,7 +54,8 @@ intptr_t FreeListElement::HeaderSizeFor(intptr_t size) {
   return ((size > RawObject::SizeTag::kMaxSizeTag) ? 3 : 2) * kWordSize;
 }
 
-FreeList::FreeList() : mutex_() {
+FreeList::FreeList()
+    : mutex_(), freelist_search_budget_(kInitialFreeListSearchBudget) {
   Reset();
 }
 

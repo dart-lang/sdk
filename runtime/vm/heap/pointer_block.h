@@ -24,7 +24,7 @@ class PointerBlock {
 
   void Reset() {
     top_ = 0;
-    next_ = nullptr;
+    next_ = NULL;
   }
 
   PointerBlock<Size>* next() const { return next_; }
@@ -64,7 +64,7 @@ class PointerBlock {
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
  private:
-  PointerBlock() : next_(nullptr), top_(0) {}
+  PointerBlock() : next_(NULL), top_(0) {}
   ~PointerBlock() {
     ASSERT(IsEmpty());  // Guard against unintentionally discarding pointers.
   }
@@ -100,7 +100,7 @@ class BlockStack {
   Block* PopNonEmptyBlock();
 
   // Pops and returns all non-empty blocks as a linked list (owned by caller).
-  Block* TakeBlocks();
+  Block* Blocks();
 
   // Discards the contents of all non-empty blocks.
   void Reset();
@@ -110,12 +110,12 @@ class BlockStack {
  protected:
   class List {
    public:
-    List() : head_(nullptr), length_(0) {}
+    List() : head_(NULL), length_(0) {}
     ~List();
     void Push(Block* block);
     Block* Pop();
     intptr_t length() const { return length_; }
-    bool IsEmpty() const { return head_ == nullptr; }
+    bool IsEmpty() const { return head_ == NULL; }
     Block* PopAll();
     Block* Peek() { return head_; }
 
@@ -142,74 +142,6 @@ class BlockStack {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BlockStack);
-};
-
-template <typename Stack>
-class BlockWorkList : public ValueObject {
- public:
-  typedef typename Stack::Block Block;
-
-  explicit BlockWorkList(Stack* stack) : stack_(stack) {
-    work_ = stack_->PopEmptyBlock();
-  }
-
-  ~BlockWorkList() {
-    ASSERT(work_ == nullptr);
-    ASSERT(stack_ == nullptr);
-  }
-
-  // Returns nullptr if no more work was found.
-  RawObject* Pop() {
-    ASSERT(work_ != nullptr);
-    if (work_->IsEmpty()) {
-      // TODO(koda): Track over/underflow events and use in heuristics to
-      // distribute work and prevent degenerate flip-flopping.
-      Block* new_work = stack_->PopNonEmptyBlock();
-      if (new_work == nullptr) {
-        return nullptr;
-      }
-      stack_->PushBlock(work_);
-      work_ = new_work;
-      // Generated code appends to marking stacks; tell MemorySanitizer.
-      MSAN_UNPOISON(work_, sizeof(*work_));
-    }
-    return work_->Pop();
-  }
-
-  void Push(RawObject* raw_obj) {
-    if (work_->IsFull()) {
-      // TODO(koda): Track over/underflow events and use in heuristics to
-      // distribute work and prevent degenerate flip-flopping.
-      stack_->PushBlock(work_);
-      work_ = stack_->PopEmptyBlock();
-    }
-    work_->Push(raw_obj);
-  }
-
-  void Finalize() {
-    ASSERT(work_->IsEmpty());
-    stack_->PushBlock(work_);
-    work_ = nullptr;
-    // Fail fast on attempts to mark after finalizing.
-    stack_ = nullptr;
-  }
-
-  void AbandonWork() {
-    stack_->PushBlock(work_);
-    work_ = nullptr;
-    stack_ = nullptr;
-  }
-
-  bool IsEmpty() {
-    if (!work_->IsEmpty()) {
-      return false;
-    }
-    return stack_->IsEmpty();
-  }
-
- private:
-  Block* work_;
-  Stack* stack_;
 };
 
 static const int kStoreBufferBlockSize = 1024;
@@ -244,19 +176,6 @@ class MarkingStack : public BlockStack<kMarkingStackBlockSize> {
 };
 
 typedef MarkingStack::Block MarkingStackBlock;
-typedef BlockWorkList<MarkingStack> MarkerWorkList;
-
-static const int kPromotionStackBlockSize = 64;
-class PromotionStack : public BlockStack<kPromotionStackBlockSize> {
- public:
-  // Adds and transfers ownership of the block to the buffer.
-  void PushBlock(Block* block) {
-    BlockStack<Block::kSize>::PushBlockImpl(block);
-  }
-};
-
-typedef PromotionStack::Block PromotionStackBlock;
-typedef BlockWorkList<PromotionStack> PromotionWorkList;
 
 }  // namespace dart
 
