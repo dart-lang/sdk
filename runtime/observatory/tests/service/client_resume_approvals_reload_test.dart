@@ -60,11 +60,5 @@ final hotReloadTest = <IsolateTest>[
   },
 ];
 
-Future<void> main(args) => runIsolateTests(
-      args,
-      hotReloadTest,
-      testeeConcurrent: fooBar,
-      pause_on_start: true,
-      // TODO(bkonyi): client names are not yet supported in DDS.
-      enableDds: false,
-    );
+Future<void> main(args) => runIsolateTests(args, hotReloadTest,
+    testeeConcurrent: fooBar, pause_on_start: true);

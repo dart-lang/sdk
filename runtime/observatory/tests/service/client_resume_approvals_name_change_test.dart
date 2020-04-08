@@ -51,12 +51,5 @@ final nameChangeTest = <IsolateTest>[
   hasStoppedAtExit,
 ];
 
-Future<void> main(args) => runIsolateTests(
-      args,
-      nameChangeTest,
-      testeeConcurrent: fooBar,
-      pause_on_start: true,
-      pause_on_exit: true,
-      // TODO(bkonyi): client names are not yet supported in DDS.
-      enableDds: false,
-    );
+Future<void> main(args) => runIsolateTests(args, nameChangeTest,
+    testeeConcurrent: fooBar, pause_on_start: true, pause_on_exit: true);

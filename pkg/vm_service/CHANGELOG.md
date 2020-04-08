@@ -1,9 +1,5 @@
 # Changelog
 
-## Unreleased
-- Fixed issue where RPC format did not conform to the JSON-RPC 2.0
-  specification.
-
 ## 4.0.0
 - **breaking**: RPCs which can return a `Sentinel` will now throw a `SentinelException`
   if a `Sential` is received as a response.

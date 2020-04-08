@@ -16,7 +16,6 @@ async:../../third_party/pkg/async/lib
 boolean_selector:../../third_party/pkg/boolean_selector/lib
 charcode:../../third_party/pkg/charcode/lib
 dart_internal:../../pkg/dart_internal/lib
-dds:../../pkg/dds/lib
 expect:../../pkg/expect/lib
 http:../../third_party/pkg/http/lib
 http_parser:../../third_party/pkg/http_parser/lib

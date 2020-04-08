@@ -1955,17 +1955,13 @@ class VmService implements VmServiceInterface {
 
   Future get onDone => _onDoneCompleter.future;
 
-  Future<T> _call<T>(String method, [Map args = const {}]) {
+  Future<T> _call<T>(String method, [Map args]) {
     String id = '${++_id}';
     Completer<T> completer = Completer<T>();
     _completers[id] = completer;
     _methodCalls[id] = method;
-    Map m = {
-      'jsonrpc': '2.0',
-      'id': id,
-      'method': method,
-      'params': args,
-    };
+    Map m = {'id': id, 'method': method};
+    if (args != null) m['params'] = args;
     String message = jsonEncode(m);
     _onSend.add(message);
     _writeMessage(message);

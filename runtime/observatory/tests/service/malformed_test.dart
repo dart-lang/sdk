@@ -37,11 +37,4 @@ var tests = <IsolateTest>[
   },
 ];
 
-main(args) => runIsolateTests(
-      args,
-      tests,
-      // This test hangs with DDS as package:json_rpc_2 can't parse the JSON
-      // response and is unable to determine the request ID, so the malformed
-      // JSON request will never complete.
-      enableDds: false,
-    );
+main(args) => runIsolateTests(args, tests);
