@@ -840,6 +840,22 @@ bool _isTop(type) {
       type, void_);
 }
 
+/// Extracts the type argument as an unwrapped type preserving all forms of
+/// nullability.
+///
+/// Acts as a way to bypass extra calls of [wrapType] and [unwrapType]. For
+/// example `typeRep<Object?>()` emits `dart.nullable(core.Object)` directly.
+@notNull
+external Type typeRep<T>();
+
+/// Extracts the type argument as an unwrapped type and performs a shallow
+/// replacement of the nullability to a legacy type.
+///
+/// Acts as a way to bypass extra calls of [wrapType] and [unwrapType]. For
+/// example `legacyTypeRep<Object>()` emits `dart.legacy(core.Object)` directly.
+@notNull
+external Type legacyTypeRep<T>();
+
 @notNull
 bool _isFutureOr(type) =>
     identical(getGenericClass(type), getGenericClass(FutureOr));

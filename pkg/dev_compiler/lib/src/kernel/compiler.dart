@@ -4746,8 +4746,16 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     // Optimize some internal SDK calls.
     if (isSdkInternalRuntime(target.enclosingLibrary)) {
-      if (node.arguments.positional.length == 1) {
-        var name = target.name.name;
+      var name = target.name.name;
+      if (node.arguments.positional.isEmpty) {
+        if (name == 'typeRep') {
+          return _emitType(node.arguments.types.single);
+        }
+        if (name == 'legacyTypeRep') {
+          return _emitType(
+              node.arguments.types.single.withNullability(Nullability.legacy));
+        }
+      } else if (node.arguments.positional.length == 1) {
         var firstArg = node.arguments.positional[0];
         if (name == 'getGenericClass' && firstArg is TypeLiteral) {
           var type = firstArg.type;
@@ -4762,17 +4770,20 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           return getExtensionSymbolInternal(firstArg.value);
         }
       } else if (node.arguments.positional.length == 2) {
-        var name = target.name.name;
         var firstArg = node.arguments.positional[0];
         var secondArg = node.arguments.positional[1];
         if (name == '_jsInstanceOf' && secondArg is TypeLiteral) {
-          return js.call('# instanceof #',
-              [_visitExpression(firstArg), _emitType(secondArg.type)]);
+          return js.call('# instanceof #', [
+            _visitExpression(firstArg),
+            _emitType(secondArg.type.withNullability(Nullability.nonNullable))
+          ]);
         }
 
         if (name == '_equalType' && secondArg is TypeLiteral) {
-          return js.call('# === #',
-              [_visitExpression(firstArg), _emitType(secondArg.type)]);
+          return js.call('# === #', [
+            _visitExpression(firstArg),
+            _emitType(secondArg.type.withNullability(Nullability.nonNullable))
+          ]);
         }
       }
     }
