@@ -357,7 +357,7 @@ class GenericInferrer {
       //
       // This resulting constraint may be unsatisfiable; in that case inference
       // will fail.
-      upper = _getGreatestLowerBound(upper, constraint.upperBound);
+      upper = _typeSystem.getGreatestLowerBound(upper, constraint.upperBound);
       lower = _typeSystem.getLeastUpperBound(lower, constraint.lowerBound);
       upper = _toLegacyType(upper);
       lower = _toLegacyType(lower);
@@ -433,46 +433,6 @@ class GenericInferrer {
 
     return '\n\n$intro\n$unsatisified$satisified\n\n'
         'Consider passing explicit type argument(s) to the generic.\n\n';
-  }
-
-  /// This is first calls strong mode's GLB, but if it fails to find anything
-  /// (i.e. returns the bottom type), we kick in a few additional rules:
-  ///
-  /// - `GLB(FutureOr<A>, B)` is defined as:
-  ///   - `GLB(FutureOr<A>, FutureOr<B>) == FutureOr<GLB(A, B)>`
-  ///   - `GLB(FutureOr<A>, Future<B>) == Future<GLB(A, B)>`
-  ///   - else `GLB(FutureOr<A>, B) == GLB(A, B)`
-  /// - `GLB(A, FutureOr<B>) ==  GLB(FutureOr<B>, A)` (defined above),
-  /// - else `GLB(A, B) == Null`
-  DartType _getGreatestLowerBound(DartType t1, DartType t2) {
-    var result = _typeSystem.getGreatestLowerBound(t1, t2);
-    if (result.isBottom) {
-      // See if we can do better by considering FutureOr rules.
-      if (t1 is InterfaceType && t1.isDartAsyncFutureOr) {
-        var t1TypeArg = t1.typeArguments[0];
-        if (t2 is InterfaceType) {
-          //  GLB(FutureOr<A>, FutureOr<B>) == FutureOr<GLB(A, B)>
-          if (t2.isDartAsyncFutureOr) {
-            var t2TypeArg = t2.typeArguments[0];
-            return typeProvider
-                .futureOrType2(_getGreatestLowerBound(t1TypeArg, t2TypeArg));
-          }
-          // GLB(FutureOr<A>, Future<B>) == Future<GLB(A, B)>
-          if (t2.isDartAsyncFuture) {
-            var t2TypeArg = t2.typeArguments[0];
-            return typeProvider
-                .futureType2(_getGreatestLowerBound(t1TypeArg, t2TypeArg));
-          }
-        }
-        // GLB(FutureOr<A>, B) == GLB(A, B)
-        return _getGreatestLowerBound(t1TypeArg, t2);
-      }
-      if (t2 is InterfaceType && t2.isDartAsyncFutureOr) {
-        // GLB(A, FutureOr<B>) ==  GLB(FutureOr<B>, A)
-        return _getGreatestLowerBound(t2, t1);
-      }
-    }
-    return result;
   }
 
   DartType _inferTypeParameterFromAll(
