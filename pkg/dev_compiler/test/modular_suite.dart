@@ -26,7 +26,7 @@ void main(List<String> args) async {
       _options,
       IOPipeline([
         SourceToSummaryDillStep(),
-        DDKStep(),
+        DDCStep(),
         RunD8(),
       ], cacheSharedModules: true));
 }
@@ -120,7 +120,7 @@ class SourceToSummaryDillStep implements IOModularStep {
   }
 }
 
-class DDKStep implements IOModularStep {
+class DDCStep implements IOModularStep {
   @override
   List<DataId> get resultData => const [jsId];
 
@@ -139,7 +139,7 @@ class DDKStep implements IOModularStep {
   @override
   Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
       List<String> flags) async {
-    if (_options.verbose) print('\nstep: ddk on $module');
+    if (_options.verbose) print('\nstep: ddc on $module');
 
     var transitiveDependencies = computeTransitiveDependencies(module);
     await _createPackagesFile(module, root, transitiveDependencies);
@@ -192,7 +192,7 @@ class DDKStep implements IOModularStep {
 
   @override
   void notifyCached(Module module) {
-    if (_options.verbose) print('\ncached step: ddk on $module');
+    if (_options.verbose) print('\ncached step: ddc on $module');
   }
 }
 

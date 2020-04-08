@@ -1379,7 +1379,7 @@
             "standalone/io"
           ]
         },
-	{
+        {
           "name": "vm nnbd tests in strong mode",
           "arguments": [
             "-ndartkp-strong-${system}-${mode}-${arch}",
@@ -2229,6 +2229,17 @@
           "arguments": [
             "--enable-experiment=non-nullable",
             "pkg/dev_compiler/tool/check_nnbd_sdk.dart"
+          ]
+        },
+        {
+          "name": "ddc weak modular tests",
+          "script": "out/ReleaseX64NNBD/dart-sdk/bin/dart",
+          "testRunner": true,
+          "arguments": [
+            "pkg/dev_compiler/test/modular_suite_nnbd.dart",
+            "-ndartdevk-weak-${system}-release-chrome",
+            "--verbose",
+            "--use-sdk"
           ]
         },
         {
