@@ -483,8 +483,12 @@ class String {
   @patch
   factory String.fromCharCodes(Iterable<int> charCodes,
       [int start = 0, int? end]) {
-    if (charCodes is JSArray<int>) {
-      return _stringFromJSArray(charCodes as JSArray<int>, start, end);
+    if (charCodes is JSArray) {
+      // Type promotion doesn't work unless the check is `is JSArray<int>`,
+      // which is more expensive.
+      // TODO(41383): Optimize `is JSArray<int>` rather than do weird 'casts'.
+      JSArray array = JS('JSArray', '#', charCodes);
+      return _stringFromJSArray(array, start, end);
     }
     if (charCodes is NativeUint8List) {
       return _stringFromUint8List(charCodes, start, end);
@@ -497,12 +501,11 @@ class String {
     return Primitives.stringFromCharCode(charCode);
   }
 
-  static String _stringFromJSArray(
-      JSArray<int> list, int start, int? endOrNull) {
+  static String _stringFromJSArray(JSArray list, int start, int? endOrNull) {
     int len = list.length;
     int end = RangeError.checkValidRange(start, endOrNull, len);
     if (start > 0 || end < len) {
-      list = list.sublist(start, end) as JSArray<int>;
+      list = JS('JSArray', '#.slice(#, #)', list, start, end);
     }
     return Primitives.stringFromCharCodes(list);
   }
