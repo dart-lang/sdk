@@ -4,6 +4,16 @@
 
 // test w/ `pub run test -N avoid_types_as_parameter_names`
 
+class SomeType {}
+
+void f() {
+  try {
+  // ignore: avoid_catches_without_on_clauses
+  } catch(SomeType) { //LINT
+    // ...
+  }
+}
+
 typedef void f1(); // OK
 typedef void f2(int a); // OK
 typedef void f3(int); // LINT
