@@ -330,8 +330,8 @@ class ConstraintMatchingTest extends AbstractTypeSystemNullSafetyTest {
 
     check(objectQuestion, dynamicNone, 'Object? <: T');
     check(objectStar, dynamicNone, 'Object? <: T');
-    check(voidNone, objectQuestion, 'void <: T');
-    check(voidNone, objectStar, 'void <: T');
+    check(voidNone, objectQuestion, 'Object? <: T');
+    check(voidNone, objectStar, 'Object? <: T');
   }
 
   void test_left_null() {

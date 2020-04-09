@@ -15,7 +15,8 @@ class A_void implements A<void> {}
 /*class: B1:A<Object?>,A_Object,A_dynamic,B1,Object*/
 class B1 extends A_Object implements A_dynamic {}
 
-/*class: B2:A<void>,A_Object,A_void,B2,Object*/
+/*cfe|cfe:builder.class: B2:A<void>,A_Object,A_void,B2,Object*/
+/*analyzer.class: B2:A<Object?>,A_Object,A_void,B2,Object*/
 class B2 extends A_Object implements A_void {}
 
 main() {}
