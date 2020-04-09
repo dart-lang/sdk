@@ -82,4 +82,12 @@ var b = 1 + 2;
 
     assertType(findElement.topVar('b').type, 'int');
   }
+
+  test_hint() async {
+    await assertErrorsInCode(r'''
+import 'dart:math';
+''', [
+      error(HintCode.UNUSED_IMPORT, 7, 11),
+    ]);
+  }
 }
