@@ -113,12 +113,13 @@ void main(List args) {
 
   void test_performEdit() {
     final path = convertPath('/test.dart');
+    final pathUri = Uri.file(path).path;
     final file = getFile(path);
     final content = 'int foo() {}';
     site.unitInfoMap[path] = UnitInfo(path)..originalContent = content;
     file.writeAsStringSync(content);
     site.performEdit(Uri.parse(
-        'localhost://$path?offset=3&end=3&replacement=${Uri.encodeComponent('/*?*/')}'));
+        'localhost://$pathUri?offset=3&end=3&replacement=${Uri.encodeComponent('/*?*/')}'));
     expect(file.readAsStringSync(), 'int/*?*/ foo() {}');
     expect(state.hasBeenApplied, false);
     expect(reranPaths, [path]);
@@ -126,6 +127,7 @@ void main(List args) {
 
   void test_performEdit_sanityCheck_dontApply() {
     final path = convertPath('/test.dart');
+    final pathUri = Uri.file(path).path;
     final file = getFile(path);
     site.unitInfoMap[path] = UnitInfo(path)
       ..originalContent = '// different content';
@@ -133,7 +135,7 @@ void main(List args) {
     file.writeAsStringSync(currentContent);
     expect(
         () => site.performEdit(
-            Uri.parse('localhost://$path?offset=0&end=0&replacement=foo')),
+            Uri.parse('localhost://$pathUri?offset=0&end=0&replacement=foo')),
         throwsA(isA<StateError>()));
     expect(file.readAsStringSync(), currentContent);
     expect(state.hasBeenApplied, false);

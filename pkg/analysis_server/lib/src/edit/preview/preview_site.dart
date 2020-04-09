@@ -222,7 +222,7 @@ class PreviewSite extends Site
     // Update the code on disk.
     //
     var params = uri.queryParameters;
-    var path = uri.path;
+    var path = Uri.file(uri.path).toFilePath();
     var offset = int.parse(params['offset']);
     var end = int.parse(params['end']);
     var replacement = params['replacement'];
