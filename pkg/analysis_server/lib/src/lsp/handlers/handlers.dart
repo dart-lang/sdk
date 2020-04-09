@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_cancel_request.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_reject.dart';
@@ -68,7 +69,8 @@ mixin Handler<P, R> {
 /// An object that can handle messages and produce responses for requests.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class MessageHandler<P, R> with Handler<P, R> {
+abstract class MessageHandler<P, R>
+    with Handler<P, R>, RequestHandlerMixin<LspAnalysisServer> {
   MessageHandler(LspAnalysisServer server) {
     this.server = server;
   }

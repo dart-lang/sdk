@@ -12,12 +12,17 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
+import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
+import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
+import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
@@ -38,10 +43,18 @@ abstract class AbstractLspAnalysisServerTest
         ClientCapabilitiesHelperMixin,
         LspAnalysisServerTestMixin {
   MockLspServerChannel channel;
+  TestPluginManager pluginManager;
   LspAnalysisServer server;
 
   @override
   Stream<Message> get serverToClient => channel.serverToClient;
+
+  void configureTestPlugin({plugin.ResponseResult respondWith}) {
+    PluginInfo info = DiscoveredPluginInfo('a', 'b', 'c', null, null);
+    pluginManager.broadcastResults = <PluginInfo, Future<plugin.Response>>{
+      info: Future.value(respondWith.toResponse('-', 1))
+    };
+  }
 
   /// Sends a request to the server and unwraps the result. Throws if the
   /// response was not successful or returned an error.
@@ -75,6 +88,7 @@ abstract class AbstractLspAnalysisServerTest
     channel = MockLspServerChannel(debugPrintCommunication);
     // Create an SDK in the mock file system.
     MockSdk(resourceProvider: resourceProvider);
+    pluginManager = TestPluginManager();
     server = LspAnalysisServer(
         channel,
         resourceProvider,
@@ -82,6 +96,7 @@ abstract class AbstractLspAnalysisServerTest
         DartSdkManager(convertPath('/sdk'), false),
         CrashReportingAttachmentsBuilder.empty,
         InstrumentationService.NULL_SERVICE);
+    server.pluginManager = pluginManager;
 
     projectFolderPath = convertPath('/home/test');
     projectFolderUri = Uri.file(projectFolderPath);

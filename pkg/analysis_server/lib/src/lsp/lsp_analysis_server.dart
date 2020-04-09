@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:io' as io;
 
 import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
@@ -18,7 +17,6 @@ import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domain_completion.dart'
     show CompletionDomainHandler;
-import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
 import 'package:analysis_server/src/flutter/flutter_outline_computer.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
@@ -32,9 +30,6 @@ import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart'
     show CompletionPerformance;
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
-import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analysis_server/src/services/search/search_engine_internal.dart';
-import 'package:analysis_server/src/utilities/null_string_sink.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -44,11 +39,9 @@ import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as nd;
 import 'package:analyzer/src/dart/analysis/file_state.dart' as nd;
-import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/status.dart' as nd;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:watcher/watcher.dart';
 
 /// Instances of the class [LspAnalysisServer] implement an LSP-based server
@@ -66,21 +59,6 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// be sent.
   final LspServerCommunicationChannel channel;
 
-  /// The [SearchEngine] for this server, may be `null` if indexing is disabled.
-  SearchEngine searchEngine;
-
-  final NotificationManager notificationManager = NullNotificationManager();
-
-  /// The object used to manage the SDK's known to this server.
-  final DartSdkManager sdkManager;
-
-  /// The instrumentation service that is to be used by this analysis server.
-  final InstrumentationService instrumentationService;
-
-  /// The default options used to create new analysis contexts. This object is
-  /// also referenced by the ContextManager.
-  final AnalysisOptionsImpl defaultContextOptions = AnalysisOptionsImpl();
-
   /// The workspace for rename refactorings. Should be accessed through the
   /// refactoringWorkspace getter to be automatically created (lazily).
   RefactoringWorkspace _refactoringWorkspace;
@@ -93,8 +71,6 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// which will return a null-versioned identifier if the document version is
   /// not known.
   final Map<String, VersionedTextDocumentIdentifier> documentVersions = {};
-
-  PerformanceLog _analysisPerformanceLogger;
 
   ServerStateMessageHandler messageHandler;
 
@@ -118,50 +94,26 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     this.channel,
     ResourceProvider baseResourceProvider,
     AnalysisServerOptions options,
-    this.sdkManager,
+    DartSdkManager sdkManager,
     CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder,
-    this.instrumentationService, {
+    InstrumentationService instrumentationService, {
     DiagnosticServer diagnosticServer,
-  }) : super(options, diagnosticServer, crashReportingAttachmentsBuilder,
-            baseResourceProvider) {
+  }) : super(
+            options,
+            sdkManager,
+            diagnosticServer,
+            crashReportingAttachmentsBuilder,
+            baseResourceProvider,
+            instrumentationService,
+            NullNotificationManager()) {
     messageHandler = UninitializedStateMessageHandler(this);
-    // TODO(dantup): This code is almost identical to AnalysisServer, consider
-    // moving it the base class that already holds many of these fields.
-    defaultContextOptions.generateImplicitErrors = false;
-    defaultContextOptions.useFastaParser = options.useFastaParser;
 
-    {
-      var name = options.newAnalysisDriverLog;
-      StringSink sink = NullStringSink();
-      if (name != null) {
-        if (name == 'stdout') {
-          sink = io.stdout;
-        } else if (name.startsWith('file:')) {
-          var path = name.substring('file:'.length);
-          sink = io.File(path).openWrite(mode: io.FileMode.append);
-        }
-      }
-      _analysisPerformanceLogger = PerformanceLog(sink);
-    }
-    byteStore = createByteStore(resourceProvider);
-    analysisDriverScheduler =
-        nd.AnalysisDriverScheduler(_analysisPerformanceLogger);
-    analysisDriverScheduler.status.listen(sendStatusNotification);
-    analysisDriverScheduler.start();
-
-    if (options.featureSet.completion) {
-      declarationsTracker = DeclarationsTracker(byteStore, resourceProvider);
-      declarationsTrackerData = DeclarationsTrackerData(declarationsTracker);
-      analysisDriverScheduler.outOfBandWorker =
-          CompletionLibrariesWorker(declarationsTracker);
-    }
-
-    contextManager = ContextManagerImpl(resourceProvider, sdkManager,
-        analyzedFilesGlobs, instrumentationService, defaultContextOptions);
     final contextManagerCallbacks =
         LspServerContextManagerCallbacks(this, resourceProvider);
     contextManager.callbacks = contextManagerCallbacks;
-    searchEngine = SearchEngineImpl(driverMap.values);
+
+    analysisDriverScheduler.status.listen(sendStatusNotification);
+    analysisDriverScheduler.start();
 
     channel.listen(handleMessage, onDone: done, onError: socketError);
   }
@@ -193,10 +145,6 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// analyzed in one of the analysis drivers to which the file was added,
   /// otherwise in the first driver, otherwise `null` is returned.
   LineInfo getLineInfo(String path) {
-    if (!AnalysisEngine.isDartFileName(path)) {
-      return null;
-    }
-
     return getAnalysisDriver(path)?.getFileSync(path)?.lineInfo;
   }
 
@@ -673,7 +621,7 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
   void broadcastWatchEvent(WatchEvent event) {
     analysisServer.notifyDeclarationsTracker(event.path);
     analysisServer.notifyFlutterWidgetDescriptions(event.path);
-    // TODO: implement plugin broadcastWatchEvent
+    analysisServer.pluginManager.broadcastWatchEvent(event);
   }
 
   @override
@@ -701,7 +649,7 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
         resourceProvider, analysisServer.sdkManager, null,
         options: builderOptions);
     builder.analysisDriverScheduler = analysisServer.analysisDriverScheduler;
-    builder.performanceLog = analysisServer._analysisPerformanceLogger;
+    builder.performanceLog = analysisServer.analysisPerformanceLogger;
     builder.byteStore = analysisServer.byteStore;
     builder.enableIndex = true;
     return builder;
