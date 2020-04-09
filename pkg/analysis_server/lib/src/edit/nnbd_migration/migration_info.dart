@@ -129,19 +129,6 @@ class NavigationTarget extends NavigationRegion {
   String toString() => 'NavigationTarget["$filePath", $line, $offset, $length]';
 }
 
-/// An additional detail related to a region.
-class RegionDetail {
-  /// A textual description of the detail.
-  final String description;
-
-  /// The location associated with the detail, such as the location of an
-  /// argument that's assigned to a parameter.
-  final NavigationTarget target;
-
-  /// Initialize a newly created detail.
-  RegionDetail(this.description, this.target);
-}
-
 /// A description of an explanation associated with a region of code that was
 /// modified.
 class RegionInfo {
@@ -160,9 +147,6 @@ class RegionInfo {
   /// The explanation to be displayed for the region.
   final String explanation;
 
-  /// Details that further explain why a change was made.
-  final List<RegionDetail> details;
-
   /// The kind of fix that was applied.
   final NullabilityFixKind kind;
 
@@ -175,7 +159,7 @@ class RegionInfo {
 
   /// Initialize a newly created region.
   RegionInfo(this.regionType, this.offset, this.length, this.lineNumber,
-      this.explanation, this.details, this.kind,
+      this.explanation, this.kind,
       {this.edits = const [], this.traces = const []});
 }
 

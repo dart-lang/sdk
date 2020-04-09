@@ -446,7 +446,6 @@ void populateEditDetails([EditDetails response]) {
   explanation.scrollIntoView();
   _populateEditTraces(response, editPanel, parentDirectory);
   _populateEditLinks(response, editPanel);
-  _populateEditRationale(response, editPanel, parentDirectory);
 }
 
 /// Write the contents of the Edit List, from JSON data [editListData].
@@ -618,30 +617,6 @@ void _populateEditLinks(EditDetails response, Element editPanel) {
       a.append(Text(edit.description));
       a.setAttribute('href', edit.href);
       a.classes = ['post-link', 'before-apply'];
-    }
-  }
-}
-
-void _populateEditRationale(
-    EditDetails response, Element editPanel, String parentDirectory) {
-  var detailCount = response.details.length;
-  if (detailCount == 0) {
-    // Having 0 details is not necessarily an expected possibility, but handling
-    // the possibility prevents awkward text, "for 0 reasons:".
-  } else {
-    editPanel
-        .append(ParagraphElement()..text = 'Edit rationale (experimental):');
-
-    Element detailList = editPanel.append(document.createElement('ul'));
-    for (var detail in response.details) {
-      var detailItem = detailList.append(document.createElement('li'));
-      detailItem.append(Text(detail.description));
-      var link = detail.link;
-      if (link != null) {
-        detailItem.append(Text(' ('));
-        detailItem.append(_aElementForLink(link, parentDirectory));
-        detailItem.append(Text(')'));
-      }
     }
   }
 }

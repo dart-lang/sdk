@@ -156,7 +156,7 @@ class <span id="...">C</span> {
   }
 }
 
-<a href="..." class="nav-link">List</a>&lt;<a href="..." class="nav-link">int</a>?&gt;  <span id="...">x</span> = <span id="...">[null]</span>;
+<a href="..." class="nav-link">List</a>&lt;<a href="..." class="nav-link">int</a>?&gt;  <span id="...">x</span> = [null];
 ''');
   }
 
@@ -181,7 +181,7 @@ class <span id="...">C</span> {
         navContent,
         contains(r'<a href="..." class="nav-link">List</a>'
             r'&lt;<a href="..." class="nav-link">String</a> &gt;? '
-            r'<span id="o13">a</span> = <span id="o17">null</span>;'));
+            r'<span id="o13">a</span> = null;'));
   }
 
   Future<void> test_outputContainsModifiedAndUnmodifiedRegions() async {
