@@ -137,7 +137,6 @@ class _HttpHeaders implements HttpHeaders {
   void set persistentConnection(bool persistentConnection) {
     _checkMutable();
     if (persistentConnection == _persistentConnection) return;
-    final originalName = _originalHeaderName(HttpHeaders.connectionHeader);
     if (persistentConnection) {
       if (protocolVersion == "1.1") {
         remove(HttpHeaders.connectionHeader, "close");
@@ -147,11 +146,11 @@ class _HttpHeaders implements HttpHeaders {
               "Trying to set 'Connection: Keep-Alive' on HTTP 1.0 headers with "
               "no ContentLength");
         }
-        add(originalName, "keep-alive", preserveHeaderCase: true);
+        add(HttpHeaders.connectionHeader, "keep-alive");
       }
     } else {
       if (protocolVersion == "1.1") {
-        add(originalName, "close", preserveHeaderCase: true);
+        add(HttpHeaders.connectionHeader, "close");
       } else {
         remove(HttpHeaders.connectionHeader, "keep-alive");
       }
@@ -490,10 +489,10 @@ class _HttpHeaders implements HttpHeaders {
   }
 
   void _build(BytesBuilder builder) {
-    _headers.forEach((String name, List<String> values) {
-      String originalName = _originalHeaderName(name);
+    for (String name in _headers.keys) {
+      List<String> values = _headers[name];
       bool fold = _foldHeader(name);
-      var nameData = originalName.codeUnits;
+      var nameData = name.codeUnits;
       builder.add(nameData);
       builder.addByte(_CharCode.COLON);
       builder.addByte(_CharCode.SP);
@@ -514,7 +513,7 @@ class _HttpHeaders implements HttpHeaders {
       }
       builder.addByte(_CharCode.CR);
       builder.addByte(_CharCode.LF);
-    });
+    }
   }
 
   String toString() {

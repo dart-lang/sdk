@@ -3,19 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 
+import "package:expect/expect.dart";
+import "dart:isolate";
 import "dart:io";
 
-import "package:expect/expect.dart";
-
-void setConnectionHeaders(HttpHeaders headers, bool requestHeader) {
+void setConnectionHeaders(HttpHeaders headers) {
   headers.add(HttpHeaders.connectionHeader, "my-connection-header1");
   headers.add("My-Connection-Header1", "some-value1");
-  // Check connection Header is changed to upper-cased representation.
-  headers.add("Connection", "my-connection-header2", preserveHeaderCase: true);
-  headers.add("My-Connection-Header2", "some-value2", preserveHeaderCase: true);
-  if (requestHeader) {
-    headers.set("Host", headers['host']![0], preserveHeaderCase: true);
-  }
+  headers.add(HttpHeaders.connectionHeader, "my-connection-header2");
+  headers.add("My-Connection-Header2", "some-value2");
 }
 
 void checkExpectedConnectionHeaders(
@@ -45,20 +41,12 @@ void test(int totalConnections, bool clientPersistentConnection) {
       checkExpectedConnectionHeaders(
           request.headers, request.persistentConnection);
 
-      // PreserveHeaderCase preserves the Case of header.
-      final string = request.headers.toString();
-      Expect.isTrue(string.contains('Connection:'));
-      Expect.isTrue(string.contains('Host:'));
-      Expect.isTrue(string.contains('My-Connection-Header2: some-value2'));
-      Expect.isTrue(
-          string.contains('My-Connection-Header1: some-value1'.toLowerCase()));
-
       // Generate response. If the client signaled non-persistent
       // connection the server should not need to set it.
       if (request.persistentConnection) {
         request.response.persistentConnection = false;
       }
-      setConnectionHeaders(request.response.headers, false);
+      setConnectionHeaders(request.response.headers);
       request.response.close();
     });
 
@@ -68,7 +56,7 @@ void test(int totalConnections, bool clientPersistentConnection) {
       client
           .get("127.0.0.1", server.port, "/")
           .then((HttpClientRequest request) {
-        setConnectionHeaders(request.headers, true);
+        setConnectionHeaders(request.headers);
         request.persistentConnection = clientPersistentConnection;
         return request.close();
       }).then((HttpClientResponse response) {
