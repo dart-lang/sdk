@@ -423,8 +423,11 @@ class List<E> {
         ? new JSArray<E>.growable(length)
         : new JSArray<E>.fixed(length);
     if (length != 0 && fill != null) {
+      // TODO(sra): Consider using `Array.fill`.
       for (int i = 0; i < result.length; i++) {
-        result[i] = fill;
+        // Unchecked assignment equivalent to `result[i] = fill`;
+        // `fill` is checked statically at call site.
+        JS('', '#[#] = #', result, i, fill);
       }
     }
     return result;
