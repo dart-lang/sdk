@@ -20,10 +20,18 @@ const compilerNames = {
   "vm": "dartk",
 };
 
+const configurations = {
+  "analyzer": "analyzer-asserts-strong-linux",
+  "cfe": "cfe-strong-linux",
+  "dart2js": "dart2js-weak-linux-x64-d8",
+  "ddc": "dartdevk-strong-linux-release-chrome",
+  "vm": "dartk-strong-linux-release-x64",
+};
+
 void main(List<String> arguments) async {
   var testDir = "";
   var isLegacy = false;
-  var compilers = <String>[];
+  var compiler = "ddc";
 
   var argParser = ArgParser();
   argParser.addFlag("legacy",
@@ -31,13 +39,11 @@ void main(List<String> arguments) async {
       negatable: false,
       callback: (flag) => isLegacy = flag);
 
-  argParser.addMultiOption("compiler",
+  argParser.addOption("configuration",
       abbr: "c",
-      help: "Which Dart implementations to run the tests on.",
+      help: "Which Dart implementation to run the tests on.",
       allowed: ["analyzer", "cfe", "dart2js", "ddc", "vm"],
-      callback: (implementations) {
-    compilers.addAll(implementations.map((name) => compilerNames[name]));
-  });
+      callback: (option) => compiler = option as String);
 
   if (arguments.contains("--help")) {
     showUsage(argParser);
@@ -61,15 +67,29 @@ void main(List<String> arguments) async {
 
   if (!isLegacy) testDir = toNnbdPath(testDir);
 
-  var testArgs = [
-    "--mode=release",
-    if (!isLegacy) ...[
-      "--enable-experiment=non-nullable",
-      "--nnbd=strong",
-    ],
-    "--compiler=${compilers.join(',')}",
-    testDir,
-  ];
+  // DDC doesn't have a Mac bot so when running DDC tests on a Mac, use a manual
+  // configuration. Otherwise, use the right named configuration.
+  List<String> testArgs;
+  if (Platform.isLinux || compiler != "ddc") {
+    var configuration = configurations[compiler];
+    if (!Platform.isLinux) {
+      // TODO(rnystrom): We'll probably never need to run this script on
+      // Windows, but if we do... do that.
+      configuration = configuration.replaceAll("linux", "mac");
+    }
+
+    testArgs = ["-n$configuration", testDir];
+  } else {
+    testArgs = [
+      "--mode=release",
+      if (!isLegacy) ...[
+        "--enable-experiment=non-nullable",
+        "--nnbd=strong",
+      ],
+      "--compiler=${compilerNames[compiler]}",
+      testDir,
+    ];
+  }
 
   print("Running tools/test.py ${testArgs.join(' ')}");
   await runProcessAsync("tools/test.py", testArgs);
