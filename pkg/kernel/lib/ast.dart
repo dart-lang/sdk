@@ -8548,6 +8548,15 @@ class Component extends TreeNode {
     return uriToSource[file]?.getLocation(file, offset);
   }
 
+  /// Translates line and column numbers to an offset in the given file.
+  ///
+  /// Returns offset of the line and column in the file, or -1 if the
+  /// source is not available or has no lines.
+  /// Throws [RangeError] if line or calculated offset are out of range.
+  int getOffset(Uri file, int line, int column) {
+    return uriToSource[file]?.getOffset(line, column) ?? -1;
+  }
+
   void addMetadataRepository(MetadataRepository repository) {
     metadata[repository.tag] = repository;
   }
@@ -8793,7 +8802,7 @@ class Source {
     throw "Internal error";
   }
 
-  /// Translates an offset to line and column numbers in the given file.
+  /// Translates an offset to 1-based line and column numbers in the given file.
   Location getLocation(Uri file, int offset) {
     if (lineStarts == null || lineStarts.isEmpty) {
       return new Location(file, TreeNode.noOffset, TreeNode.noOffset);
@@ -8814,6 +8823,21 @@ class Source {
     int lineNumber = 1 + lineIndex;
     int columnNumber = 1 + offset - lineStart;
     return new Location(file, lineNumber, columnNumber);
+  }
+
+  /// Translates 1-based line and column numbers to an offset in the given file
+  ///
+  /// Returns offset of the line and column in the file, or -1 if the source
+  /// has no lines.
+  /// Throws [RangeError] if line or calculated offset are out of range.
+  int getOffset(int line, int column) {
+    if (lineStarts == null || lineStarts.isEmpty) {
+      return -1;
+    }
+    RangeError.checkValueInInterval(line, 1, lineStarts.length, 'line');
+    var offset = lineStarts[line - 1] + column - 1;
+    RangeError.checkValueInInterval(offset, 0, lineStarts.last, 'offset');
+    return offset;
   }
 }
 

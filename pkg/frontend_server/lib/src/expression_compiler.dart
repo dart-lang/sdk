@@ -63,7 +63,7 @@ class DartScope {
 }
 
 /// DartScopeBuilder finds dart scope information in
-/// [component] on a given [line]:
+/// [component] on a given 1-based [line]:
 /// library, class, locals, formals, and any other
 /// avaiable symbols at that location.
 /// TODO(annagrin): Refine scope detection
@@ -75,11 +75,13 @@ class DartScopeBuilder extends Visitor<void> {
   Procedure _procedure;
   final List<FunctionNode> _functions = [];
   final int _line;
+  final int _column;
+  int _offset;
   final Set<String> _privateFields = {};
   final Map<String, DartType> _definitions = {};
   final List<TypeParameter> _typeParameters = [];
 
-  DartScopeBuilder(this._component, this._line);
+  DartScopeBuilder(this._component, this._line, this._column);
 
   DartScope build() {
     if (_library == null || _procedure == null) return null;
@@ -96,13 +98,14 @@ class DartScopeBuilder extends Visitor<void> {
   @override
   void visitLibrary(Library library) {
     _library = library;
+    _offset = _component.getOffset(_library.fileUri, _line, _column);
 
     super.visitLibrary(library);
   }
 
   @override
   void visitClass(Class cls) {
-    if (_scopeContainsLine(cls.fileOffset, cls.fileEndOffset, _line)) {
+    if (_scopeContainsOffset(cls.fileOffset, cls.fileEndOffset, _offset)) {
       _cls = cls;
       _typeParameters.addAll(cls.typeParameters);
 
@@ -126,7 +129,7 @@ class DartScopeBuilder extends Visitor<void> {
 
   @override
   void visitProcedure(Procedure p) {
-    if (_scopeContainsLine(p.fileOffset, p.fileEndOffset, _line)) {
+    if (_scopeContainsOffset(p.fileOffset, p.fileEndOffset, _offset)) {
       _procedure = p;
 
       super.visitProcedure(p);
@@ -135,7 +138,7 @@ class DartScopeBuilder extends Visitor<void> {
 
   @override
   void visitFunctionNode(FunctionNode fun) {
-    if (_scopeContainsLine(fun.fileOffset, fun.fileEndOffset, _line)) {
+    if (_scopeContainsOffset(fun.fileOffset, fun.fileEndOffset, _offset)) {
       _collectDefinitions(fun);
       _typeParameters.addAll(fun.typeParameters);
 
@@ -171,21 +174,12 @@ class DartScopeBuilder extends Visitor<void> {
     }
   }
 
-  // TODO(annagrin): use offset instead of line to find containing scope
-  // See [issue 40281](https://github.com/dart-lang/sdk/issues/40281)
-  bool _scopeContainsLine(int startOffset, int endOffset, int line) {
-    if (line < 0) return false;
+  static bool _scopeContainsOffset(int startOffset, int endOffset, int offset) {
+    if (offset < 0) return false;
     if (startOffset < 0) return false;
     if (endOffset < 0) return false;
 
-    var startLine = _getLine(startOffset);
-    var endLine = _getLine(endOffset);
-
-    return line >= startLine && line <= endLine;
-  }
-
-  int _getLine(int offset) {
-    return _component.getLocation(_library.fileUri, offset).line;
+    return startOffset <= offset && offset <= endOffset;
   }
 }
 
@@ -246,6 +240,8 @@ class ExpressionCompiler {
 
   /// Compiles [expression] in [libraryUri] at [line]:[column] to JavaScript
   /// in [moduleName].
+  ///
+  /// [line] and [column] are 1-based.
   ///
   /// Values listed in [jsFrameValues] are substituted for their names in the
   /// [expression].
@@ -358,7 +354,7 @@ error.name + ": " + error.message;
       return null;
     }
 
-    var builder = DartScopeBuilder(_component, line);
+    var builder = DartScopeBuilder(_component, line, column);
     library.accept(builder);
     var scope = builder.build();
     if (scope == null) {
