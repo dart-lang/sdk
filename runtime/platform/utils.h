@@ -364,6 +364,7 @@ class Utils {
 
   template <typename T>
   DART_FORCE_INLINE static bool TestBit(T mask, intptr_t position) {
+    ASSERT(position < sizeof(T) * kBitsPerByte);
     return ((mask >> position) & 1) != 0;
   }
 
