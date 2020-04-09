@@ -635,7 +635,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
             _index--; // Make the new state see the LF again.
           } else {
             // Start of new header field.
-            _addWithValidation(_headerField, _toLowerCaseByte(byte));
+            _addWithValidation(_headerField, byte);
             _state = _State.HEADER_FIELD;
           }
           break;
@@ -647,7 +647,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
             if (!_isTokenChar(byte)) {
               throw HttpException("Invalid header field name, with $byte");
             }
-            _addWithValidation(_headerField, _toLowerCaseByte(byte));
+            _addWithValidation(_headerField, byte);
           }
           break;
 
@@ -684,14 +684,15 @@ class _HttpParser extends Stream<_HttpIncoming> {
           } else {
             String headerField = new String.fromCharCodes(_headerField);
             String headerValue = new String.fromCharCodes(_headerValue);
-            if (headerField == HttpHeaders.contentLengthHeader) {
+            String lowerCaseHeader = headerField.toLowerCase();
+            if (lowerCaseHeader == HttpHeaders.contentLengthHeader) {
               // Content Length header should not have more than one occurance
               // or coexist with Transfer Encoding header.
               if (_contentLength || _transferEncoding) {
                 _statusCode = HttpStatus.badRequest;
               }
               _contentLength = true;
-            } else if (headerField == HttpHeaders.transferEncodingHeader) {
+            } else if (lowerCaseHeader == HttpHeaders.transferEncodingHeader) {
               _transferEncoding = true;
               if (_caseInsensitiveCompare("chunked".codeUnits, _headerValue)) {
                 _chunked = true;
@@ -700,7 +701,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
                 _statusCode = HttpStatus.badRequest;
               }
             }
-            if (headerField == HttpHeaders.connectionHeader) {
+            if (lowerCaseHeader == HttpHeaders.connectionHeader) {
               List<String> tokens = _tokenizeFieldValue(headerValue);
               final bool isResponse = _messageType == _MessageType.RESPONSE;
               final bool isUpgradeCode =
@@ -713,10 +714,10 @@ class _HttpParser extends Stream<_HttpIncoming> {
                     (isUpgrade && isResponse && isUpgradeCode)) {
                   _connectionUpgrade = true;
                 }
-                _headers.add(headerField, tokens[i]);
+                _headers.add(headerField, tokens[i], preserveHeaderCase: true);
               }
             } else {
-              _headers.add(headerField, headerValue);
+              _headers.add(headerField, headerValue, preserveHeaderCase: true);
             }
             _headerField.clear();
             _headerValue.clear();
@@ -729,7 +730,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
             } else {
               // Start of new header field.
               _state = _State.HEADER_FIELD;
-              _addWithValidation(_headerField, _toLowerCaseByte(byte));
+              _addWithValidation(_headerField, byte);
             }
           }
           break;
