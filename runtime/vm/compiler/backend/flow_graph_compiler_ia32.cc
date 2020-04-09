@@ -669,7 +669,8 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
 // - object in EAX for successful assignable check (or throws TypeError).
 // Performance notes: positive checks must be quick, negative checks can be slow
 // as they throw an exception.
-void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
+void FlowGraphCompiler::GenerateAssertAssignable(CompileType* receiver_type,
+                                                 TokenPosition token_pos,
                                                  intptr_t deopt_id,
                                                  const AbstractType& dst_type,
                                                  const String& dst_name,

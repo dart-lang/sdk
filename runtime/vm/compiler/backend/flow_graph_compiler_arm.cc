@@ -693,7 +693,8 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
 // - object in R0 for successful assignable check (or throws TypeError).
 // Performance notes: positive checks must be quick, negative checks can be slow
 // as they throw an exception.
-void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
+void FlowGraphCompiler::GenerateAssertAssignable(CompileType* receiver_type,
+                                                 TokenPosition token_pos,
                                                  intptr_t deopt_id,
                                                  const AbstractType& dst_type,
                                                  const String& dst_name,
@@ -705,8 +706,8 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
   ASSERT(!dst_type.IsTopTypeForAssignability());
 
   if (ShouldUseTypeTestingStubFor(is_optimizing(), dst_type)) {
-    GenerateAssertAssignableViaTypeTestingStub(token_pos, deopt_id, dst_type,
-                                               dst_name, locs);
+    GenerateAssertAssignableViaTypeTestingStub(
+        receiver_type, token_pos, deopt_id, dst_type, dst_name, locs);
   } else {
     compiler::Label is_assignable_fast, is_assignable, runtime_call;
 
@@ -755,6 +756,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
 }
 
 void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
+    CompileType* receiver_type,
     TokenPosition token_pos,
     intptr_t deopt_id,
     const AbstractType& dst_type,
@@ -766,8 +768,8 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
 
   compiler::Label done;
 
-  GenerateAssertAssignableViaTypeTestingStub(dst_type, dst_name, kRegToCall,
-                                             kScratchReg, &done);
+  GenerateAssertAssignableViaTypeTestingStub(receiver_type, dst_type, dst_name,
+                                             kRegToCall, kScratchReg, &done);
 
   // We use 2 consecutive entries in the pool for the subtype cache and the
   // destination name.  The second entry, namely [dst_name] seems to be unused,

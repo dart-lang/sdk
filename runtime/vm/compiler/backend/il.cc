@@ -5006,8 +5006,8 @@ intptr_t AssertAssignableInstr::statistics_tag() const {
 }
 
 void AssertAssignableInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  compiler->GenerateAssertAssignable(token_pos(), deopt_id(), dst_type(),
-                                     dst_name(), locs());
+  compiler->GenerateAssertAssignable(value()->Type(), token_pos(), deopt_id(),
+                                     dst_type(), dst_name(), locs());
   ASSERT(locs()->in(0).reg() == locs()->out(0).reg());
 }
 

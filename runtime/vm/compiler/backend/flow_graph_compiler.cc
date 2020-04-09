@@ -2325,6 +2325,7 @@ FlowGraphCompiler::GetTypeTestStubKindForTypeParameter(
 }
 
 void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
+    CompileType* receiver_type,
     const AbstractType& dst_type,
     const String& dst_name,
     const Register dst_type_reg_to_call,
@@ -2342,6 +2343,8 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
   bool is_non_smi = false;
   if (int_type.IsSubtypeOf(dst_type, Heap::kOld)) {
     __ BranchIfSmi(TypeTestABI::kInstanceReg, done);
+    is_non_smi = true;
+  } else if (receiver_type->IsNotSmi()) {
     is_non_smi = true;
   }
 
