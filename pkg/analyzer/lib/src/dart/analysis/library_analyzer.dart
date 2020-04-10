@@ -7,6 +7,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -411,12 +412,39 @@ class LibraryAnalyzer {
     LineInfo lineInfo = _fileToLineInfo[file];
 
     bool isIgnored(AnalysisError error) {
+      var code = error.errorCode;
+      // Don't allow error severity issues to be ignored.
+      if (error.severity == Severity.error) {
+        bool privileged = false;
+
+        if (code == StaticTypeWarningCode.UNDEFINED_FUNCTION ||
+            code == StaticTypeWarningCode.UNDEFINED_PREFIXED_NAME) {
+          // Special case a small number of errors in Flutter code which are
+          // ignored. The erroneous code is found in a conditionally imported
+          // library, which uses a special version of the "dart:ui" library
+          // which the Analyzer does not use during analysis. See
+          // https://github.com/flutter/flutter/issues/52899.
+          if (file.path.contains('flutter')) {
+            privileged = true;
+          }
+        }
+
+        if (code == CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY &&
+            file.path.contains('tests/compiler/dart2js')) {
+          // Special case the dart2js language tests. Some of these import
+          // various internal libraries.
+          privileged = true;
+        }
+
+        if (!privileged) return false;
+      }
+
       int errorLine = lineInfo.getLocation(error.offset).lineNumber;
-      String name = error.errorCode.name.toLowerCase();
+      String name = code.name.toLowerCase();
       if (ignoreInfo.ignoredAt(name, errorLine)) {
         return true;
       }
-      String uniqueName = error.errorCode.uniqueName;
+      String uniqueName = code.uniqueName;
       int period = uniqueName.indexOf('.');
       if (period >= 0) {
         uniqueName = uniqueName.substring(period + 1);
