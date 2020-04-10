@@ -56,7 +56,7 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
     newFile('/workspace/WORKSPACE', content: '');
     var workspace = BazelWorkspace.find(
       resourceProvider,
-      _testFile,
+      convertPath(_testFile),
     );
 
     fileResolver = FileResolver(
