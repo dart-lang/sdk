@@ -231,11 +231,11 @@ class InfoBuilder {
           _computeTraceNonNullableInfo(reason, traces);
         }
       } else if (reason is EdgeInfo) {
-        // TODO(paulberry): fix this assertion so that it passes
-        // assert(reason.sourceNode.isNullable);
-        assert(!reason.destinationNode.isNullable);
-        _computeTraceNullableInfo(reason.sourceNode, traces);
-        _computeTraceNonNullableInfo(reason.destinationNode, traces);
+        if (reason.sourceNode.isNullable &&
+            !reason.destinationNode.isNullable) {
+          _computeTraceNullableInfo(reason.sourceNode, traces);
+          _computeTraceNonNullableInfo(reason.destinationNode, traces);
+        }
       } else if (reason is SimpleFixReasonInfo) {
         _addSimpleTrace(reason, traces);
       } else {

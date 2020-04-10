@@ -272,6 +272,7 @@ class InfoBuilderTest extends NnbdMigrationTestBase {
       int length,
       Object explanation = anything,
       Object edits = anything,
+      Object traces = anything,
       NullabilityFixKind kind = NullabilityFixKind.makeTypeNullable}) {
     if (offset != null) {
       expect(region.offset, offset);
@@ -280,6 +281,7 @@ class InfoBuilderTest extends NnbdMigrationTestBase {
     expect(region.kind, kind);
     expect(region.edits, edits);
     expect(region.explanation, explanation);
+    expect(region.traces, traces);
   }
 
   void assertTraceEntry(UnitInfo unit, TraceEntryInfo entryInfo,
@@ -320,9 +322,9 @@ void g(int  i) {
         kind: NullabilityFixKind.removeDeadCode);
   }
 
-  Future<void> test_downcast() async {
-    var content = 'int f(num n) => n;';
-    var migratedContent = 'int  f(num  n) => n as int;';
+  Future<void> test_downcast_nonNullable() async {
+    var content = 'int/*!*/ f(num/*!*/ n) => n;';
+    var migratedContent = 'int /*!*/ f(num /*!*/ n) => n as int;';
     var unit = await buildInfoForSingleTestFile(content,
         migratedContent: migratedContent);
     var regions = unit.regions
@@ -337,7 +339,76 @@ void g(int  i) {
         offset: migratedContent.indexOf(regionTarget),
         length: regionTarget.length,
         kind: NullabilityFixKind.downcastExpression,
-        edits: isEmpty);
+        edits: isEmpty,
+        traces: isEmpty);
+  }
+
+  Future<void> test_downcast_nonNullable_to_nullable() async {
+    var content = 'int/*?*/ f(num/*!*/ n) => n;';
+    // TODO(paulberry): we should actually cast to `int`, not `int?`, because we
+    // know `n` is non-nullable.
+    var migratedContent = 'int?/*?*/ f(num /*!*/ n) => n as int?;';
+    var unit = await buildInfoForSingleTestFile(content,
+        migratedContent: migratedContent);
+    var regions = unit.regions
+        .where(
+            (region) => region.kind != NullabilityFixKind.typeNotMadeNullable)
+        .toList();
+    var regionTarget = ' as int?';
+    var offset = migratedContent.indexOf(regionTarget);
+    var region = regions.where((region) => region.offset == offset).single;
+    // TODO(paulberry): once we are correctly casting to `int`, not `int?`, this
+    // should be classified as a downcast.  Currently it's classified as a side
+    // cast.
+    assertRegion(
+        region: region,
+        offset: offset,
+        length: regionTarget.length,
+        kind: NullabilityFixKind.otherCastExpression,
+        edits: isEmpty,
+        traces: isEmpty);
+  }
+
+  Future<void> test_downcast_nullable() async {
+    var content = 'int/*?*/ f(num/*?*/ n) => n;';
+    var migratedContent = 'int?/*?*/ f(num?/*?*/ n) => n as int?;';
+    var unit = await buildInfoForSingleTestFile(content,
+        migratedContent: migratedContent);
+    var regions = unit.regions
+        .where(
+            (region) => region.kind != NullabilityFixKind.typeNotMadeNullable)
+        .toList();
+    var regionTarget = ' as int?';
+    var offset = migratedContent.indexOf(regionTarget);
+    var region = regions.where((region) => region.offset == offset).single;
+    assertRegion(
+        region: region,
+        offset: offset,
+        length: regionTarget.length,
+        kind: NullabilityFixKind.downcastExpression,
+        edits: isEmpty,
+        traces: isEmpty);
+  }
+
+  Future<void> test_downcast_nullable_to_nonNullable() async {
+    var content = 'int/*!*/ f(num/*?*/ n) => n;';
+    var migratedContent = 'int /*!*/ f(num?/*?*/ n) => n as int;';
+    var unit = await buildInfoForSingleTestFile(content,
+        migratedContent: migratedContent);
+    var regions = unit.regions
+        .where(
+            (region) => region.kind != NullabilityFixKind.typeNotMadeNullable)
+        .toList();
+    var regionTarget = ' as int';
+    var offset = migratedContent.indexOf(regionTarget);
+    var region = regions.where((region) => region.offset == offset).single;
+    assertRegion(
+        region: region,
+        offset: offset,
+        length: regionTarget.length,
+        kind: NullabilityFixKind.downcastExpression,
+        edits: isEmpty,
+        traces: isNotEmpty);
   }
 
   Future<void> test_dynamicValueIsUsed() async {
