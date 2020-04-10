@@ -90,7 +90,7 @@ main() {
       'custom.js_1.part.js', 'custom.js_1.part.js.map',
       'def/deferred.json', // From --deferred-map
       'custom.js.info.json', // From --dump-info
-      'dart.cfg', // From TRACE_FILTER_PATTERN_FOR_TEST
+      'custom.js.cfg', // From TRACE_FILTER_PATTERN_FOR_TEST
     ], groupOutputs: [
       '.dot', // From PRINT_GRAPH
     ]);

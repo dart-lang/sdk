@@ -198,7 +198,8 @@ class JsBackendStrategy implements BackendStrategy {
         ? const MinifiedFixedNames()
         : const FixedNames();
 
-    Tracer tracer = new Tracer(closedWorld, _compiler.outputProvider);
+    Tracer tracer =
+        new Tracer(closedWorld, _compiler.options, _compiler.outputProvider);
     RuntimeTypesEncoder rtiEncoder = new RuntimeTypesEncoderImpl(
         rtiTags,
         closedWorld.nativeData,

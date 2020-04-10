@@ -199,6 +199,10 @@ class CompilerOptions implements DiagnosticOptions {
   /// after a transitional period.
   bool useDumpInfoBinaryFormat = false;
 
+  /// If set, SSA intermediate form is dumped for methods with names matching
+  /// this RegExp pattern.
+  String dumpSsaPattern = null;
+
   /// Whether we allow passing an extra argument to `assert`, containing a
   /// reason for why an assertion fails. (experimental)
   ///
@@ -415,6 +419,8 @@ class CompilerOptions implements DiagnosticOptions {
       ..dumpInfo = _hasOption(options, Flags.dumpInfo)
       ..useDumpInfoBinaryFormat =
           _hasOption(options, "${Flags.dumpInfo}=binary")
+      ..dumpSsaPattern =
+          _extractStringOption(options, '${Flags.dumpSsa}=', null)
       ..enableMinification = _hasOption(options, Flags.minify)
       .._disableMinification = _hasOption(options, Flags.noMinify)
       ..enableNativeLiveTypeAnalysis =
