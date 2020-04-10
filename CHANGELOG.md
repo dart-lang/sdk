@@ -1,3 +1,12 @@
+# 0.1.115
+
+* updated `avoid_types_as_parameter_names` to check catch-clauses
+* fixed `unsafe_html` to check attributes and methods on extensions
+* extended `unsafe_html` to include `Window.open`, `Element.html` and `DocumentFragment.html` in unsafe API checks
+* improved docs for `sort_child_properties_last`
+* (internal) `package:analyzer` API updates
+* new lint: `sized_box_for_whitespace`
+
 # 0.1.114
 
 * fixed `avoid_shadowing_type_parameters` to support extensions and mixins
