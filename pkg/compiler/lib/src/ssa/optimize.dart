@@ -903,7 +903,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       // @Native methods have conversion code for function arguments. Rather
       // than insert that code at the inlined call site, call the target on the
       // interceptor.
-      if (parameterType is FunctionType) return true;
+      if (parameterType.withoutNullability is FunctionType) return true;
     }
 
     if (!_closedWorld.annotationsData
