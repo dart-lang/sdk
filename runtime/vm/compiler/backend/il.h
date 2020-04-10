@@ -6352,6 +6352,13 @@ class InitStaticFieldInstr : public TemplateInstruction<0, Throws> {
   virtual bool HasUnknownSideEffects() const { return true; }
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
+  // Two InitStaticField instructions can be canonicalized into one
+  // instruction if both are initializing the same field.
+  virtual bool AllowsCSE() const { return true; }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return other->AsInitStaticField()->field().raw() == field().raw();
+  }
+
  private:
   const Field& field_;
 
