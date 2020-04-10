@@ -2747,20 +2747,13 @@ class M2 {
     int x;
 }
 
-class /*error:INCONSISTENT_INHERITANCE*/T1 extends Base
-    with /*error:INVALID_OVERRIDE*/M1 {}
-class /*error:INCONSISTENT_INHERITANCE*/T2 extends Base
-    with /*error:INVALID_OVERRIDE*/M1, M2 {}
-class /*error:INCONSISTENT_INHERITANCE*/T3 extends Base
-    with M2, /*error:INVALID_OVERRIDE*/M1 {}
+class T1 extends Base with /*error:INVALID_OVERRIDE*/M1 {}
+class T2 extends Base with /*error:INVALID_OVERRIDE*/M1, M2 {}
+class T3 extends Base with M2, /*error:INVALID_OVERRIDE*/M1 {}
 
-
-class /*error:INCONSISTENT_INHERITANCE*/U1 = Base
-    with /*error:INVALID_OVERRIDE*/M1;
-class /*error:INCONSISTENT_INHERITANCE*/U2 = Base
-    with /*error:INVALID_OVERRIDE*/M1, M2;
-class /*error:INCONSISTENT_INHERITANCE*/U3 = Base
-    with M2, /*error:INVALID_OVERRIDE*/M1;
+class U1 = Base with /*error:INVALID_OVERRIDE*/M1;
+class U2 = Base with /*error:INVALID_OVERRIDE*/M1, M2;
+class U3 = Base with M2, /*error:INVALID_OVERRIDE*/M1;
 ''');
   }
 
@@ -2782,13 +2775,9 @@ class M2 {
     int x;
 }
 
-class /*error:INCONSISTENT_INHERITANCE*/T1 extends Base
-    with M1,
-    /*error:INVALID_OVERRIDE*/M2 {}
+class T1 extends Base with M1, /*error:INVALID_OVERRIDE*/M2 {}
 
-class /*error:INCONSISTENT_INHERITANCE*/U1 = Base
-    with M1,
-    /*error:INVALID_OVERRIDE*/M2;
+class U1 = Base with M1, /*error:INVALID_OVERRIDE*/M2;
 ''');
   }
 
@@ -3410,11 +3399,9 @@ class M {
     m(B a) {}
 }
 
-class /*error:INCONSISTENT_INHERITANCE*/T1 extends Base
-    with /*error:INVALID_OVERRIDE*/M {}
+class T1 extends Base with /*error:INVALID_OVERRIDE*/M {}
 
-class /*error:INCONSISTENT_INHERITANCE*/U1 = Base
-    with /*error:INVALID_OVERRIDE*/M;
+class U1 = Base with /*error:INVALID_OVERRIDE*/M;
 ''');
   }
 
@@ -3434,11 +3421,9 @@ class M {
     m(B a) {}
 }
 
-class /*error:INCONSISTENT_INHERITANCE*/T1 extends Base
-    with /*error:INVALID_OVERRIDE*/M {}
+class T1 extends Base with /*error:INVALID_OVERRIDE*/M {}
 
-class /*error:INCONSISTENT_INHERITANCE*/U1 = Base
-    with /*error:INVALID_OVERRIDE*/M;
+class U1 = Base with /*error:INVALID_OVERRIDE*/M;
 ''');
   }
 

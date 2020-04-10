@@ -456,16 +456,6 @@ class B implements A, A, A, A {}
     ]);
   }
 
-  test_error_memberWithClassName_getter() async {
-    await assertErrorsInCode(r'''
-class C {
-  int get C => null;
-}
-''', [
-      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 20, 1),
-    ]);
-  }
-
   test_error_memberWithClassName_field() async {
     await assertErrorsInCode(r'''
 class C {
@@ -473,6 +463,16 @@ class C {
 }
 ''', [
       error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 16, 1),
+    ]);
+  }
+
+  test_error_memberWithClassName_getter() async {
+    await assertErrorsInCode(r'''
+class C {
+  int get C => null;
+}
+''', [
+      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 20, 1),
     ]);
   }
 
@@ -584,6 +584,46 @@ abstract class C implements A, B {}
 ''', [
       error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD, 81,
           1),
+    ]);
+  }
+
+  test_inconsistentInheritanceGetterAndMethod_mixinApp() async {
+    await assertErrorsInCode('''
+class S {
+  bool get m => false;
+}
+
+class M {
+  int m() => 1;
+}
+
+class C = S with M;
+''', [
+      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD, 71,
+          1),
+    ]);
+  }
+
+  test_inconsistentInheritanceGetterAndMethod_mixinApp2() async {
+    await assertErrorsInCode('''
+class S {
+  bool get m => false;
+}
+
+class M1 {
+  int m() => 1;
+}
+
+class M2 {
+  bool get m => false;
+}
+
+class C = S with M1, M2;
+''', [
+      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
+          109, 1),
+      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
+          109, 1),
     ]);
   }
 
