@@ -1500,7 +1500,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   /**
-   * Return  either this type or a supertype of this type that is defined by the
+   * Returns either this type or a supertype of this type that is defined by the
    * [targetElement], or `null` if such a type does not exist. The set of
    * [visitedClasses] is used to prevent infinite recursion.
    */
@@ -1527,6 +1527,13 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       }
       for (InterfaceType interface in interfaces) {
         type = (interface as InterfaceTypeImpl)
+            ._asInstanceOf(targetElement, visitedClasses);
+        if (type != null) {
+          return type;
+        }
+      }
+      for (InterfaceType constraint in superclassConstraints) {
+        type = (constraint as InterfaceTypeImpl)
             ._asInstanceOf(targetElement, visitedClasses);
         if (type != null) {
           return type;

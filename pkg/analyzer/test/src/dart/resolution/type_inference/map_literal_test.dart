@@ -254,6 +254,17 @@ var a = {...b, ...c};
     assertType(setOrMapLiteral('{...'), 'Map<Object, Object>');
   }
 
+  test_noContext_noTypeArgs_spread_mixin() async {
+    await resolveTestCode(r'''
+mixin M on Map<String, int> {}
+main() {
+  M m1;
+  var m2 = {...m1};
+}
+''');
+    assertType(setOrMapLiteral('{...'), 'Map<String, int>');
+  }
+
   test_noContext_noTypeArgs_spread_nestedInIf_oneAmbiguous() async {
     await resolveTestCode('''
 Map<String, int> c;
