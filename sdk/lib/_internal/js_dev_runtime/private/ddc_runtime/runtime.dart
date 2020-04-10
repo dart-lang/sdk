@@ -107,7 +107,7 @@ bool polyfill(window) => JS('', '''(() => {
 })()''');
 
 @JSExportName('global')
-final global_ = JS('', '''
+final Object global_ = JS('', '''
   function () {
     // Find global object.
     var globalState = (typeof window != "undefined") ? window
@@ -172,6 +172,8 @@ void setStartAsyncSynchronously([bool value = true]) {
 ///
 /// This is used by [hotRestart] to ensure we don't leak types from previous
 /// libraries.
+/// Results made against Null are cached in _nullComparisonSet and must be
+/// cleared separately.
 @notNull
 final List<Object> _cacheMaps = JS('!', '[]');
 
@@ -201,6 +203,7 @@ void hotRestart() {
   _resetFields.clear();
   for (var m in _cacheMaps) JS('', '#.clear()', m);
   _cacheMaps.clear();
+  JS('', '#.clear()', _nullComparisonSet);
   JS('', '#.clear()', constantMaps);
 }
 

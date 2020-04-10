@@ -26,7 +26,28 @@ assertFailed(String message,
   throw AssertionErrorImpl(message, fileUri, line, column, conditionSource);
 }
 
-throwCyclicInitializationError([Object field]) {
+final _nullFailedSet = JS('!', 'new Set()');
+// Run-time null safety assertion per:
+// https://github.com/dart-lang/language/blob/master/accepted/future-releases/nnbd/feature-specification.md#automatic-debug-assertion-insertion
+nullFailed(String fileUri, int line, int column, String variable) {
+  if (_strictSubtypeChecks) {
+    throw AssertionErrorImpl(
+        'A null value was passed into a non-nullable parameter $variable',
+        fileUri,
+        line,
+        column,
+        '$variable != null');
+  } else {
+    var key = '$fileUri:$line:$column';
+    if (!JS('!', '#.has(#)', _nullFailedSet, key)) {
+      JS('', '#.add(#)', _nullFailedSet, key);
+      _nullWarn(
+          'A null value was passed into a non-nullable parameter $variable');
+    }
+  }
+}
+
+throwCyclicInitializationError([String field]) {
   throw CyclicInitializationError(field);
 }
 
@@ -34,8 +55,7 @@ throwNullValueError() {
   // TODO(vsm): Per spec, we should throw an NSM here.  Technically, we ought
   // to thread through method info, but that uglifies the code and can't
   // actually be queried ... it only affects how the error is printed.
-  throw NoSuchMethodError(
-      null, Symbol('<Unexpected Null Value>'), null, null, null);
+  throw NoSuchMethodError(null, Symbol('<Unexpected Null Value>'), null, null);
 }
 
 castError(obj, expectedType) {
@@ -47,20 +67,21 @@ castError(obj, expectedType) {
 String _castErrorMessage(from, to) {
   // If both types are generic classes, see if we can infer generic type
   // arguments for `from` that would allow the subtype relation to work.
-  var fromClass = getGenericClass(from);
-  if (fromClass != null) {
-    var fromTypeFormals = getGenericTypeFormals(fromClass);
-    var fromType = instantiateClass(fromClass, fromTypeFormals);
-    var inferrer = _TypeInferrer(fromTypeFormals);
-    if (inferrer.trySubtypeMatch(fromType, to)) {
-      var inferredTypes = inferrer.getInferredTypes();
-      if (inferredTypes != null) {
-        var inferred = instantiateClass(fromClass, inferredTypes);
-        return "Type '${typeName(from)}' should be '${typeName(inferred)}' "
-            "to implement expected type '${typeName(to)}'.";
-      }
-    }
-  }
+  // TODO(#40326) Fix suggested type or remove this code if no longer needed.
+  // var fromClass = getGenericClass(from);
+  // if (fromClass != null) {
+  //   var fromTypeFormals = getGenericTypeFormals(fromClass);
+  //   var fromType = instantiateClass(fromClass, fromTypeFormals);
+  //   var inferrer = _TypeInferrer(fromTypeFormals);
+  //   if (inferrer.trySubtypeMatch(fromType, to)) {
+  //     var inferredTypes = inferrer.getInferredTypes();
+  //     if (inferredTypes != null) {
+  //       var inferred = instantiateClass(fromClass, inferredTypes);
+  //       return "Type '${typeName(from)}' should be '${typeName(inferred)}' "
+  //           "to implement expected type '${typeName(to)}'.";
+  //     }
+  //   }
+  // }
   return "Expected a value of type '${typeName(to)}', "
       "but got one of type '${typeName(from)}'";
 }
@@ -253,8 +274,9 @@ class _StackTrace implements StackTrace {
     String trace = '';
     if (e != null && JS<bool>('!', 'typeof # === "object"', e)) {
       trace = e is NativeError ? e.dartStack() : JS<String>('', '#.stack', e);
-      if (trace != null && stackTraceMapper != null) {
-        trace = stackTraceMapper(trace);
+      var mapper = stackTraceMapper;
+      if (trace != null && mapper != null) {
+        trace = mapper(trace);
       }
     }
     if (trace.isEmpty || _jsObjectMissingTrace != null) {

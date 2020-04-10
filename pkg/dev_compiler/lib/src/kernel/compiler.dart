@@ -1038,43 +1038,23 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // * There isn't an obvious place in dart:_runtime were we could place a
       //   method that adds these type tests (similar to addTypeTests()) because
       //   in the bootstrap ordering the Future class hasn't been defined yet.
-      if (_options.enableNullSafety) {
-        var typeParam =
-            TypeParameterType(c.typeParameters[0], Nullability.undetermined);
-        var typeT = visitTypeParameterType(typeParam);
-        var futureOfT = visitInterfaceType(InterfaceType(
-            _coreTypes.futureClass, currentLibrary.nonNullable, [typeParam]));
-        body.add(js.statement('''
-            #.is = function is_FutureOr(o) {
-              return #.is(o) || #.is(o);
-            }
-            ''', [className, typeT, futureOfT]));
-        body.add(js.statement('''
-            #.as = function as_FutureOr(o) {
-              if (#.is(o) || #.is(o)) return o;
-              return #.as(o, this);
-            }
-            ''', [className, typeT, futureOfT, runtimeModule]));
-        return null;
-      } else {
-        var typeParam =
-            TypeParameterType(c.typeParameters[0], Nullability.legacy);
-        var typeT = visitTypeParameterType(typeParam);
-        var futureOfT = visitInterfaceType(InterfaceType(
-            _coreTypes.futureClass, Nullability.legacy, [typeParam]));
-        body.add(js.statement('''
-            #.is = function is_FutureOr(o) {
-              return #.is(o) || #.is(o);
-            }
-            ''', [className, typeT, futureOfT]));
-        body.add(js.statement('''
-            #.as = function as_FutureOr(o) {
-              if (o == null || #.is(o) || #.is(o)) return o;
-              #.castError(o, this);
-            }
-            ''', [className, typeT, futureOfT, runtimeModule]));
-        return null;
-      }
+      var typeParam =
+          TypeParameterType(c.typeParameters[0], Nullability.undetermined);
+      var typeT = visitTypeParameterType(typeParam);
+      var futureOfT = visitInterfaceType(InterfaceType(
+          _coreTypes.futureClass, currentLibrary.nonNullable, [typeParam]));
+      body.add(js.statement('''
+          #.is = function is_FutureOr(o) {
+            return #.is(o) || #.is(o);
+          }
+          ''', [className, typeT, futureOfT]));
+      body.add(js.statement('''
+          #.as = function as_FutureOr(o) {
+            if (#.is(o) || #.is(o)) return o;
+            return #.as(o, this);
+          }
+          ''', [className, typeT, futureOfT, runtimeModule]));
+      return null;
     }
 
     body.add(runtimeStatement('addTypeTests(#)', [className]));
@@ -2574,13 +2554,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           _coreTypes.futureClass, futureOr.nullability, [typeArgument]);
     } else if (typeArgument is InterfaceType &&
         typeArgument.classNode == _coreTypes.nullClass) {
-      // TODO(40266) Remove this workaround when we unfork dart:_runtime
-      var nullability = _options.enableNullSafety
-          ? Nullability.nullable
-          : currentLibrary.nullable;
       // FutureOr<Null> --> Future<Null>?
-      normalizedType =
-          InterfaceType(_coreTypes.futureClass, nullability, [typeArgument]);
+      normalizedType = InterfaceType(
+          _coreTypes.futureClass, Nullability.nullable, [typeArgument]);
     } else if (futureOr.nullability == Nullability.nullable &&
         typeArgument.nullability == Nullability.nullable) {
       // FutureOr<T?>? --> FutureOr<T?>
@@ -2655,27 +2631,30 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     //   * `class A extends B {...}` where B is the InterfaceType.
     //   * Emitting non-null constructor calls.
     // * The InterfaceType is the Null type.
-    if (!emitNullability || type == _coreTypes.nullType) return typeRep;
+    // * The types were written in JS context or as part of the dart:_runtime
+    //   library.
+    if (!emitNullability ||
+        type == _coreTypes.nullType ||
+        // TODO(38701) Remove these once the SDK has unforked and is running
+        // "opted-in"
+        !coreLibrary.isNonNullableByDefault &&
+            (_isInForeignJS || isSdkInternalRuntime(currentLibrary))) {
+      return typeRep;
+    }
 
     if (type.nullability == Nullability.undetermined) {
       throw UnsupportedError('Undetermined Nullability');
     }
+
     return _emitNullabilityWrapper(typeRep, type.nullability);
   }
 
   /// Wraps [typeRep] in the appropriate wrapper for the given [nullability].
   ///
-  /// NOTE: This is currently a no-op if the null safety experiment is not
-  /// enabled.
-  ///
   /// Non-nullable and undetermined nullability will not cause any wrappers to
   /// be emitted.
   js_ast.Expression _emitNullabilityWrapper(
       js_ast.Expression typeRep, Nullability nullability) {
-    // TODO(nshahan) Cleanup this check once it is safe to always emit the
-    // legacy wrapper.
-    if (!_options.enableNullSafety) return typeRep;
-
     switch (nullability) {
       case Nullability.legacy:
         return runtimeCall('legacy(#)', [typeRep]);
