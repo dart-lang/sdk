@@ -348,6 +348,21 @@ class NullArgErrorSlowPath : public ThrowErrorSlowPathCode {
   }
 };
 
+class RangeErrorSlowPath : public ThrowErrorSlowPathCode {
+ public:
+  static const intptr_t kNumberOfArguments = 0;
+
+  RangeErrorSlowPath(GenericCheckBoundInstr* instruction, intptr_t try_index)
+      : ThrowErrorSlowPathCode(instruction,
+                               kRangeErrorRuntimeEntry,
+                               kNumberOfArguments,
+                               try_index) {}
+  virtual const char* name() { return "check bound"; }
+
+  virtual void EmitSharedStubCall(FlowGraphCompiler* compielr,
+                                  bool save_fpu_registers);
+};
+
 class FlowGraphCompiler : public ValueObject {
  private:
   class BlockInfo : public ZoneAllocated {

@@ -5086,24 +5086,12 @@ LocationSummary* GenericCheckBoundInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone) LocationSummary(
-      zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
-  locs->set_in(kLengthPos, Location::RequiresRegister());
-  locs->set_in(kIndexPos, Location::RequiresRegister());
+      zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSharedSlowPath);
+  locs->set_in(kLengthPos,
+               Location::RegisterLocation(RangeErrorABI::kLengthReg));
+  locs->set_in(kIndexPos, Location::RegisterLocation(RangeErrorABI::kIndexReg));
   return locs;
 }
-
-class RangeErrorSlowPath : public ThrowErrorSlowPathCode {
- public:
-  static const intptr_t kNumberOfArguments = 2;
-
-  RangeErrorSlowPath(GenericCheckBoundInstr* instruction, intptr_t try_index)
-      : ThrowErrorSlowPathCode(instruction,
-                               kRangeErrorRuntimeEntry,
-                               kNumberOfArguments,
-                               try_index) {}
-
-  virtual const char* name() { return "check bound"; }
-};
 
 void GenericCheckBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   RangeErrorSlowPath* slow_path =
@@ -5164,6 +5152,21 @@ void NullArgErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
       save_fpu_registers
           ? object_store->null_arg_error_stub_with_fpu_regs_stub()
           : object_store->null_arg_error_stub_without_fpu_regs_stub());
+  compiler->EmitCallToStub(stub);
+#endif
+}
+
+void RangeErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
+                                            bool save_fpu_registers) {
+#if defined(TARGET_ARCH_IA32)
+  UNREACHABLE();
+#else
+  auto object_store = compiler->isolate()->object_store();
+  const auto& stub = Code::ZoneHandle(
+      compiler->zone(),
+      save_fpu_registers
+          ? object_store->range_error_stub_with_fpu_regs_stub()
+          : object_store->range_error_stub_without_fpu_regs_stub());
   compiler->EmitCallToStub(stub);
 #endif
 }

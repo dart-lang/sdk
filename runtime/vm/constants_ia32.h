@@ -143,6 +143,12 @@ struct AssertBooleanABI {
   static const Register kObjectReg = EAX;
 };
 
+// ABI for RangeErrorStub.
+struct RangeErrorABI {
+  static const Register kLengthReg = EAX;
+  static const Register kIndexReg = EBX;
+};
+
 typedef uint32_t RegList;
 const RegList kAllCpuRegistersList = 0xFF;
 

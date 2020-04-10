@@ -313,6 +313,15 @@ void StubCodeCompiler::GenerateNullArgErrorSharedWithFPURegsStub(
     Assembler* assembler) {
   __ Breakpoint();
 }
+void StubCodeCompiler::GenerateRangeErrorSharedWithoutFPURegsStub(
+    Assembler* assembler) {
+  __ Breakpoint();
+}
+
+void StubCodeCompiler::GenerateRangeErrorSharedWithFPURegsStub(
+    Assembler* assembler) {
+  __ Breakpoint();
+}
 
 void StubCodeCompiler::GenerateStackOverflowSharedWithoutFPURegsStub(
     Assembler* assembler) {

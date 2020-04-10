@@ -2514,25 +2514,22 @@ void ThrowErrorSlowPathCode::EmitNativeCode(FlowGraphCompiler* compiler) {
       instruction()->UseSharedSlowPathStub(compiler->is_optimizing());
   const bool live_fpu_registers =
       instruction()->locs()->live_registers()->FpuRegisterCount() > 0;
-  ASSERT(!use_shared_stub || num_args_ == 0);
   __ Bind(entry_label());
   EmitCodeAtSlowPathEntry(compiler);
   LocationSummary* locs = instruction()->locs();
   // Save registers as they are needed for lazy deopt / exception handling.
-  if (!use_shared_stub) {
-    compiler->SaveLiveRegisters(locs);
-  }
-  intptr_t i = 0;
-  if (num_args_ % 2 != 0) {
-    __ PushRegister(locs->in(i).reg());
-    ++i;
-  }
-  for (; i < num_args_; i += 2) {
-    __ PushRegisterPair(locs->in(i + 1).reg(), locs->in(i).reg());
-  }
   if (use_shared_stub) {
     EmitSharedStubCall(compiler, live_fpu_registers);
   } else {
+    compiler->SaveLiveRegisters(locs);
+    intptr_t i = 0;
+    if (num_args_ % 2 != 0) {
+      __ PushRegister(locs->in(i).reg());
+      ++i;
+    }
+    for (; i < num_args_; i += 2) {
+      __ PushRegisterPair(locs->in(i + 1).reg(), locs->in(i).reg());
+    }
     __ CallRuntime(runtime_entry_, num_args_);
   }
   const intptr_t deopt_id = instruction()->deopt_id();

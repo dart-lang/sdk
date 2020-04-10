@@ -1007,6 +1007,8 @@ class Thread : public AllStatic {
   static word null_error_shared_with_fpu_regs_stub_offset();
   static word null_arg_error_shared_without_fpu_regs_stub_offset();
   static word null_arg_error_shared_with_fpu_regs_stub_offset();
+  static word range_error_shared_without_fpu_regs_stub_offset();
+  static word range_error_shared_with_fpu_regs_stub_offset();
   static word stack_overflow_shared_without_fpu_regs_entry_point_offset();
   static word stack_overflow_shared_without_fpu_regs_stub_offset();
   static word stack_overflow_shared_with_fpu_regs_entry_point_offset();

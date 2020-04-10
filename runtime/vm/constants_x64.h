@@ -185,6 +185,12 @@ struct AssertBooleanABI {
   static const Register kObjectReg = RAX;
 };
 
+// ABI for RangeErrorStub.
+struct RangeErrorABI {
+  static const Register kLengthReg = RAX;
+  static const Register kIndexReg = RBX;
+};
+
 // Registers used inside the implementation of type testing stubs.
 struct TTSInternalRegs {
   static const Register kInstanceTypeArgumentsReg = RSI;

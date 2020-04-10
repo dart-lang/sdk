@@ -116,6 +116,10 @@ class Thread;
     StubCode::NullArgErrorSharedWithoutFPURegs().raw(), nullptr)               \
   V(RawCode*, null_arg_error_shared_with_fpu_regs_stub_,                       \
     StubCode::NullArgErrorSharedWithFPURegs().raw(), nullptr)                  \
+  V(RawCode*, range_error_shared_without_fpu_regs_stub_,                       \
+    StubCode::RangeErrorSharedWithoutFPURegs().raw(), nullptr)                 \
+  V(RawCode*, range_error_shared_with_fpu_regs_stub_,                          \
+    StubCode::RangeErrorSharedWithFPURegs().raw(), nullptr)                    \
   V(RawCode*, allocate_mint_with_fpu_regs_stub_,                               \
     StubCode::AllocateMintSharedWithFPURegs().raw(), NULL)                     \
   V(RawCode*, allocate_mint_without_fpu_regs_stub_,                            \

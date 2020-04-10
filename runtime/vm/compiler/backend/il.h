@@ -8326,7 +8326,7 @@ class CheckNullInstr : public TemplateDefinition<1, Throws, Pure> {
   bool IsArgumentCheck() const { return exception_type_ == kArgumentError; }
   ExceptionType exception_type() const { return exception_type_; }
 
-  bool UseSharedSlowPathStub(bool is_optimizing) const {
+  virtual bool UseSharedSlowPathStub(bool is_optimizing) const {
     return SlowPathSharingSupported(is_optimizing);
   }
 
@@ -8485,6 +8485,10 @@ class GenericCheckBoundInstr : public CheckBoundBase {
   }
 
   virtual bool MayThrow() const { return true; }
+
+  virtual bool UseSharedSlowPathStub(bool is_optimizing) const {
+    return SlowPathSharingSupported(is_optimizing);
+  }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(GenericCheckBoundInstr);

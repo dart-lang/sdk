@@ -154,11 +154,13 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ ret();
 }
 
-void GenerateSharedStub(Assembler* assembler,
-                        bool save_fpu_registers,
-                        const RuntimeEntry* target,
-                        intptr_t self_code_stub_offset_from_thread,
-                        bool allow_return) {
+void GenerateSharedStub(
+    Assembler* assembler,
+    bool save_fpu_registers,
+    const RuntimeEntry* target,
+    intptr_t self_code_stub_offset_from_thread,
+    bool allow_return,
+    std::initializer_list<Register> runtime_call_arguments) {
   // We want the saved registers to appear like part of the caller's frame, so
   // we push them before calling EnterStubFrame.
   __ PushRegisters(kDartAvailableCpuRegs,
@@ -181,11 +183,15 @@ void GenerateSharedStub(Assembler* assembler,
   __ movq(CODE_REG, Address(THR, self_code_stub_offset_from_thread));
 
   __ EnterStubFrame();
-  __ CallRuntime(*target, /*argument_count=*/0);
+  for (Register argument_reg : runtime_call_arguments) {
+    __ PushRegister(argument_reg);
+  }
+  __ CallRuntime(*target, /*argument_count=*/runtime_call_arguments.size());
   if (!allow_return) {
     __ Breakpoint();
     return;
   }
+  __ Drop(runtime_call_arguments.size());
   __ LeaveStubFrame();
 
   // Drop "official" return address -- we can just use the one stored above the
@@ -467,7 +473,7 @@ void StubCodeCompiler::GenerateNullErrorSharedWithoutFPURegsStub(
   GenerateSharedStub(
       assembler, /*save_fpu_registers=*/false, &kNullErrorRuntimeEntry,
       target::Thread::null_error_shared_without_fpu_regs_stub_offset(),
-      /*allow_return=*/false);
+      /*allow_return=*/false, {});
 }
 
 void StubCodeCompiler::GenerateNullErrorSharedWithFPURegsStub(
@@ -475,7 +481,7 @@ void StubCodeCompiler::GenerateNullErrorSharedWithFPURegsStub(
   GenerateSharedStub(
       assembler, /*save_fpu_registers=*/true, &kNullErrorRuntimeEntry,
       target::Thread::null_error_shared_with_fpu_regs_stub_offset(),
-      /*allow_return=*/false);
+      /*allow_return=*/false, {});
 }
 
 void StubCodeCompiler::GenerateNullArgErrorSharedWithoutFPURegsStub(
@@ -483,7 +489,7 @@ void StubCodeCompiler::GenerateNullArgErrorSharedWithoutFPURegsStub(
   GenerateSharedStub(
       assembler, /*save_fpu_registers=*/false, &kArgumentNullErrorRuntimeEntry,
       target::Thread::null_arg_error_shared_without_fpu_regs_stub_offset(),
-      /*allow_return=*/false);
+      /*allow_return=*/false, {});
 }
 
 void StubCodeCompiler::GenerateNullArgErrorSharedWithFPURegsStub(
@@ -491,7 +497,25 @@ void StubCodeCompiler::GenerateNullArgErrorSharedWithFPURegsStub(
   GenerateSharedStub(
       assembler, /*save_fpu_registers=*/true, &kArgumentNullErrorRuntimeEntry,
       target::Thread::null_arg_error_shared_with_fpu_regs_stub_offset(),
-      /*allow_return=*/false);
+      /*allow_return=*/false, {});
+}
+
+void StubCodeCompiler::GenerateRangeErrorSharedWithoutFPURegsStub(
+    Assembler* assembler) {
+  GenerateSharedStub(
+      assembler, /*save_fpu_registers=*/false, &kRangeErrorRuntimeEntry,
+      target::Thread::range_error_shared_without_fpu_regs_stub_offset(),
+      /*allow_return=*/false,
+      {RangeErrorABI::kLengthReg, RangeErrorABI::kIndexReg});
+}
+
+void StubCodeCompiler::GenerateRangeErrorSharedWithFPURegsStub(
+    Assembler* assembler) {
+  GenerateSharedStub(
+      assembler, /*save_fpu_registers=*/true, &kRangeErrorRuntimeEntry,
+      target::Thread::range_error_shared_with_fpu_regs_stub_offset(),
+      /*allow_return=*/false,
+      {RangeErrorABI::kLengthReg, RangeErrorABI::kIndexReg});
 }
 
 void StubCodeCompiler::GenerateStackOverflowSharedWithoutFPURegsStub(
@@ -499,7 +523,7 @@ void StubCodeCompiler::GenerateStackOverflowSharedWithoutFPURegsStub(
   GenerateSharedStub(
       assembler, /*save_fpu_registers=*/false, &kStackOverflowRuntimeEntry,
       target::Thread::stack_overflow_shared_without_fpu_regs_stub_offset(),
-      /*allow_return=*/true);
+      /*allow_return=*/true, {});
 }
 
 void StubCodeCompiler::GenerateStackOverflowSharedWithFPURegsStub(
@@ -507,7 +531,7 @@ void StubCodeCompiler::GenerateStackOverflowSharedWithFPURegsStub(
   GenerateSharedStub(
       assembler, /*save_fpu_registers=*/true, &kStackOverflowRuntimeEntry,
       target::Thread::stack_overflow_shared_with_fpu_regs_stub_offset(),
-      /*allow_return=*/true);
+      /*allow_return=*/true, {});
 }
 
 // Input parameters:
