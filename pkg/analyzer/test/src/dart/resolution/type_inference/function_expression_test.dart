@@ -200,6 +200,47 @@ var v = () => null;
     var element = findNode.functionExpression('() =>').declaredElement;
     assertType(element.returnType, 'Null');
   }
+
+  test_upward_returnType_async_blockBody() async {
+    await resolveTestCode('''
+var v = () async {
+  return 0;
+};
+''');
+    _assertReturnType('() async {', 'Future<int>');
+  }
+
+  test_upward_returnType_asyncStar_blockBody() async {
+    await resolveTestCode('''
+var v = () async* {
+  yield 0;
+};
+''');
+    _assertReturnType('() async* {', 'Stream<int>');
+  }
+
+  test_upward_returnType_sync_blockBody() async {
+    await resolveTestCode('''
+var v = () {
+  return 0;
+};
+''');
+    _assertReturnType('() {', 'int');
+  }
+
+  test_upward_returnType_syncStar_blockBody() async {
+    await resolveTestCode('''
+var v = () sync* {
+  yield 0;
+};
+''');
+    _assertReturnType('() sync* {', 'Iterable<int>');
+  }
+
+  void _assertReturnType(String search, String expected) {
+    var element = findNode.functionExpression(search).declaredElement;
+    assertType(element.returnType, expected);
+  }
 }
 
 @reflectiveTest
@@ -224,7 +265,6 @@ void main() {
   foo(() => null);
 }
 ''');
-    var element = findNode.functionExpression('() =>').declaredElement;
-    assertType(element.returnType, 'Null*');
+    _assertReturnType('() =>', 'Null*');
   }
 }

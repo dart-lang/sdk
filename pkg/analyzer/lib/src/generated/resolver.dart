@@ -126,13 +126,15 @@ class InferenceContext {
     if (_returnStack.isNotEmpty && _inferredReturn.isNotEmpty) {
       // If NNBD, and the function body end is reachable, infer nullable.
       // If legacy, we consider the end as always reachable, and return Null.
-      if (_resolver._isNonNullableByDefault) {
-        var flow = _resolver._flowAnalysis?.flow;
-        if (flow != null && flow.isReachable) {
+      if (!node.isGenerator) {
+        if (_resolver._isNonNullableByDefault) {
+          var flow = _resolver._flowAnalysis?.flow;
+          if (flow != null && flow.isReachable) {
+            addReturnOrYieldType(_typeProvider.nullType);
+          }
+        } else {
           addReturnOrYieldType(_typeProvider.nullType);
         }
-      } else {
-        addReturnOrYieldType(_typeProvider.nullType);
       }
 
       DartType context = _returnStack.removeLast();
