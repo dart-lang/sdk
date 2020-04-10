@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 
@@ -36,7 +37,7 @@ class AvoidTypesAsParameterNames extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    final visitor = _Visitor(this, context);
     registry.addFormalParameterList(this, visitor);
     registry.addCatchClause(this, visitor);
   }
@@ -44,21 +45,14 @@ class AvoidTypesAsParameterNames extends LintRule implements NodeLintRule {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+  final LinterContext context;
 
-  _Visitor(this.rule);
-
-  bool isTypeName(String name) =>
-      // TODO(a14n) test that parameter name matches a existing type. No api to do
-      // that for now.
-      // todo (pq): consider adding a lookup method to LinterContext.
-      name != null &&
-      (name.startsWith(RegExp('[A-Z]')) ||
-          ['num', 'int', 'double', 'bool', 'dynamic'].contains(name));
+  _Visitor(this.rule, this.context);
 
   @override
   void visitCatchClause(CatchClause node) {
     final parameter = node.exceptionParameter;
-    if (parameter != null && isTypeName(parameter.name)) {
+    if (parameter != null && _isTypeName(node, parameter)) {
       rule.reportLint(parameter);
     }
   }
@@ -69,9 +63,18 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     for (final parameter in node.parameters) {
       if (parameter.declaredElement.hasImplicitType &&
-          isTypeName(parameter.identifier.name)) {
+          _isTypeName(node, parameter.identifier)) {
         rule.reportLint(parameter.identifier);
       }
     }
+  }
+
+  bool _isTypeName(AstNode scope, SimpleIdentifier node) {
+    final result = context.resolveNameInScope(node.name, false, scope);
+    if (result.isRequestedName) {
+      final element = result.element;
+      return element is ClassElement || element is FunctionTypeAliasElement;
+    }
+    return false;
   }
 }
