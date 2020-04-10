@@ -2646,7 +2646,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       throw UnsupportedError('Undetermined Nullability');
     }
 
-    return _emitNullabilityWrapper(typeRep, type.nullability);
+    // Emit non-nullable version directly.
+    typeRep = _emitNullabilityWrapper(typeRep, type.nullability);
+    if (!_cacheTypes || type.nullability == Nullability.nonNullable) {
+      return typeRep;
+    }
+
+    // Hoist the nullable or legacy versions of the type to the top level and
+    // use it everywhere it appears.
+    return _typeTable.nameType(type, typeRep);
   }
 
   /// Wraps [typeRep] in the appropriate wrapper for the given [nullability].
@@ -2777,13 +2785,22 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       helperCall = 'fnType(#)';
     }
     var typeRep = runtimeCall(helperCall, [typeParts]);
-    // Avoid caching the nullability of the function type itself so it can be
-    // shared by nullable, non-nullable, and legacy versions at the use site.
+    // First add the type to the type table in its non-nullable form. It can be
+    // reused by the nullable and legacy versions.
     typeRep = _cacheTypes
-        ? _typeTable.nameFunctionType(type, typeRep, lazy: lazy)
+        ? _typeTable.nameFunctionType(
+            type.withNullability(Nullability.nonNullable), typeRep,
+            lazy: lazy)
         : typeRep;
 
-    return _emitNullabilityWrapper(typeRep, type.nullability);
+    if (type.nullability == Nullability.nonNullable) return typeRep;
+
+    // Hoist the nullable or legacy versions of the type to the top level and
+    // use it everywhere it appears.
+    typeRep = _emitNullabilityWrapper(typeRep, type.nullability);
+    return _cacheTypes
+        ? _typeTable.nameFunctionType(type, typeRep, lazy: lazy)
+        : typeRep;
   }
 
   /// Emits an expression that lets you access statics on a [type] from code.
@@ -2825,9 +2842,17 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression _emitTypeParameterType(TypeParameterType type,
       {bool emitNullability = true}) {
     var typeParam = _emitTypeParameter(type.parameter);
-    if (!emitNullability) return typeParam;
+    if (!emitNullability ||
+        !_cacheTypes ||
+        // Emit non-nullable version directly.
+        type.isPotentiallyNonNullable) {
+      return typeParam;
+    }
 
-    return _emitNullabilityWrapper(typeParam, type.nullability);
+    // Hoist the wrapped version to the top level and use it everywhere this
+    // type appears.
+    return _typeTable.nameType(
+        type, _emitNullabilityWrapper(typeParam, type.nullability));
   }
 
   js_ast.Identifier _emitTypeParameter(TypeParameter t) =>
