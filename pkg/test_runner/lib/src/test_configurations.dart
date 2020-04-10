@@ -12,6 +12,7 @@ import 'co19_test_config.dart';
 import 'configuration.dart';
 import 'path.dart';
 import 'process_queue.dart';
+import 'terminal.dart';
 import 'test_progress.dart';
 import 'test_suite.dart';
 import 'utils.dart';
@@ -55,7 +56,7 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
   // Extract global options from first configuration.
   var firstConf = configurations[0];
   var maxProcesses = firstConf.taskCount;
-  var progressIndicator = firstConf.progress;
+  var progress = firstConf.progress;
   BuildbotProgressIndicator.stepName = firstConf.stepName;
   var verbose = firstConf.isVerbose;
   var printTiming = firstConf.printTiming;
@@ -69,11 +70,13 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
   // Print the configurations being run by this execution of
   // test.dart. However, don't do it if the silent progress indicator
   // is used.
-  if (progressIndicator != Progress.silent) {
-    print('Test configuration${configurations.length > 1 ? 's' : ''}:');
+  if (progress != Progress.silent) {
+    Terminal.print(
+        'Test configuration${configurations.length > 1 ? 's' : ''}:');
     for (var configuration in configurations) {
-      print("    ${configuration.configuration}");
-      print("Suites tested: ${configuration.selectors.keys.join(", ")}");
+      Terminal.print("    ${configuration.configuration}");
+      Terminal.print(
+          "Suites tested: ${configuration.selectors.keys.join(", ")}");
     }
   }
 
@@ -86,7 +89,8 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
   if (configurations.length > 1 &&
       (configurations[0].testServerPort != 0 ||
           configurations[0].testServerCrossOriginPort != 0)) {
-    print("If the http server ports are specified, only one configuration"
+    Terminal.print(
+        "If the http server ports are specified, only one configuration"
         " may be run at a time");
     exit(1);
   }
@@ -154,9 +158,9 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
   // we return from running here and just print.
   if (firstConf.listStatusFiles) {
     for (var suite in testSuites) {
-      print(suite.suiteName);
+      Terminal.print(suite.suiteName);
       for (var statusFile in suite.statusFilePaths.toSet()) {
-        print("\t$statusFile");
+        Terminal.print("\t$statusFile");
       }
     }
     return;
@@ -176,41 +180,41 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
   var eventListener = <EventListener>[];
 
   // We don't print progress if we list tests.
-  if (progressIndicator != Progress.silent && !listTests) {
-    var printFailures = true;
+  if (progress != Progress.silent && !listTests) {
     var formatter = Formatter.normal;
-    if (progressIndicator == Progress.color) {
-      progressIndicator = Progress.compact;
+    if (progress == Progress.color) {
+      progress = Progress.compact;
       formatter = Formatter.color;
     }
-    if (progressIndicator == Progress.diff) {
-      progressIndicator = Progress.compact;
-      formatter = Formatter.color;
-      printFailures = false;
-      eventListener.add(StatusFileUpdatePrinter());
-    }
-    if (firstConf.silentFailures) {
-      printFailures = false;
-    }
+
     eventListener.add(SummaryPrinter());
-    if (printFailures) {
-      // The buildbot has it's own failure summary since it needs to wrap it
-      // into '@@@'-annotated sections.
-      var printFailureSummary = progressIndicator != Progress.buildbot;
-      eventListener.add(TestFailurePrinter(printFailureSummary, formatter));
+    if (!firstConf.silentFailures) {
+      eventListener.add(TestFailurePrinter(formatter));
     }
+
     if (firstConf.printPassingStdout) {
       eventListener.add(PassingStdoutPrinter(formatter));
     }
-    eventListener.add(ProgressIndicator.fromProgress(
-        progressIndicator, startTime, formatter));
+
+    var indicator =
+        ProgressIndicator.fromProgress(progress, startTime, formatter);
+    if (indicator != null) eventListener.add(indicator);
+
     if (printTiming) {
       eventListener.add(TimingPrinter(startTime));
     }
+
     eventListener.add(SkippedCompilationsPrinter());
-    if (progressIndicator == Progress.status) {
+
+    if (progress == Progress.status) {
       eventListener.add(TimedProgressPrinter());
     }
+
+    if (firstConf.reportFailures) {
+      eventListener.add(FailedTestsPrinter());
+    }
+
+    eventListener.add(ResultCountPrinter(formatter));
   }
 
   if (firstConf.writeResults) {
