@@ -54,18 +54,51 @@ main() {
     );
   }
 
-  test_returnType_blockBody_notNullable() async {
+  test_returnType_async_blockBody() async {
+    await resolveTestCode('''
+var v = () async {
+  return 0;
+};
+''');
+    _assertReturnType('() async {', 'Future<int>');
+  }
+
+  test_returnType_async_expressionBody() async {
+    await resolveTestCode('''
+var v = () async => 0;
+''');
+    _assertReturnType('() async =>', 'Future<int>');
+  }
+
+  test_returnType_asyncStar_blockBody() async {
+    await resolveTestCode('''
+var v = () async* {
+  yield 0;
+};
+''');
+    _assertReturnType('() async* {', 'Stream<int>');
+  }
+
+  test_returnType_sync_blockBody() async {
+    await resolveTestCode('''
+var v = () {
+  return 0;
+};
+''');
+    _assertReturnType('() {', 'int');
+  }
+
+  test_returnType_sync_blockBody_notNullable() async {
     await resolveTestCode('''
 var v = (bool b) {
   if (b) return 0;
   return 1.2;
 };
 ''');
-    var element = findNode.functionExpression('(bool').declaredElement;
-    assertType(element.returnType, 'num');
+    _assertReturnType('(bool b) {', 'num');
   }
 
-  test_returnType_blockBody_notNullable_switch_onEnum() async {
+  test_returnType_sync_blockBody_notNullable_switch_onEnum() async {
     var expectedErrors = expectedErrorsByNullability(
       nullable: [],
       legacy: [
@@ -86,11 +119,10 @@ main() {
   };
 }
 ''', expectedErrors);
-    var element = findNode.functionExpression('(E e)').declaredElement;
-    assertType(element.returnType, 'int');
+    _assertReturnType('(E e) {', 'int');
   }
 
-  test_returnType_blockBody_notNullable_switch_onEnum_imported() async {
+  test_returnType_sync_blockBody_notNullable_switch_onEnum_imported() async {
     newFile('/test/lib/a.dart', content: r'''
 enum E { a, b }
 ''');
@@ -115,42 +147,38 @@ main() {
   };
 }
 ''', expectedErrors);
-    var element = findNode.functionExpression('(p.E e)').declaredElement;
-    assertType(element.returnType, 'int');
+    _assertReturnType('(p.E e) {', 'int');
   }
 
-  test_returnType_blockBody_null_hasReturn() async {
+  test_returnType_sync_blockBody_null_hasReturn() async {
     await resolveTestCode('''
 var v = (bool b) {
   if (b) return;
 };
 ''');
-    var element = findNode.functionExpression('(bool').declaredElement;
-    assertType(element.returnType, 'Null');
+    _assertReturnType('(bool b) {', 'Null');
   }
 
-  test_returnType_blockBody_null_noReturn() async {
+  test_returnType_sync_blockBody_null_noReturn() async {
     await resolveTestCode('''
 var v = () {};
 ''');
-    var element = findNode.functionExpression('() {}').declaredElement;
-    assertType(element.returnType, 'Null');
+    _assertReturnType('() {}', 'Null');
   }
 
-  test_returnType_blockBody_nullable() async {
+  test_returnType_sync_blockBody_nullable() async {
     await resolveTestCode('''
 var v = (bool b) {
   if (b) return 0;
 };
 ''');
-    var element = findNode.functionExpression('(bool').declaredElement;
-    assertType(
-      element.returnType,
+    _assertReturnType(
+      '(bool b) {',
       typeStringByNullability(nullable: 'int?', legacy: 'int'),
     );
   }
 
-  test_returnType_blockBody_nullable_switch() async {
+  test_returnType_sync_blockBody_nullable_switch() async {
     var expectedErrors = expectedErrorsByNullability(
       nullable: [],
       legacy: [
@@ -167,68 +195,37 @@ main() {
   };
 }
 ''', expectedErrors);
-    var element = findNode.functionExpression('(int a)').declaredElement;
-    assertType(
-      element.returnType,
+    _assertReturnType(
+      '(int a) {',
       typeStringByNullability(nullable: 'int?', legacy: 'int'),
     );
   }
 
-  test_returnType_expressionBody_Never() async {
+  test_returnType_sync_expressionBody_Never() async {
     await resolveTestCode('''
 var v = () => throw 42;
 ''');
-    var element = findNode.functionExpression('() =>').declaredElement;
-    assertType(
-      element.returnType,
+    _assertReturnType(
+      '() =>',
       typeStringByNullability(nullable: 'Never', legacy: 'Null'),
     );
   }
 
-  test_returnType_expressionBody_notNullable() async {
+  test_returnType_sync_expressionBody_notNullable() async {
     await resolveTestCode('''
 var v = () => 42;
 ''');
-    var element = findNode.functionExpression('() =>').declaredElement;
-    assertType(element.returnType, 'int');
+    _assertReturnType('() =>', 'int');
   }
 
-  test_returnType_expressionBody_Null() async {
+  test_returnType_sync_expressionBody_Null() async {
     await resolveTestCode('''
 var v = () => null;
 ''');
-    var element = findNode.functionExpression('() =>').declaredElement;
-    assertType(element.returnType, 'Null');
+    _assertReturnType('() =>', 'Null');
   }
 
-  test_upward_returnType_async_blockBody() async {
-    await resolveTestCode('''
-var v = () async {
-  return 0;
-};
-''');
-    _assertReturnType('() async {', 'Future<int>');
-  }
-
-  test_upward_returnType_asyncStar_blockBody() async {
-    await resolveTestCode('''
-var v = () async* {
-  yield 0;
-};
-''');
-    _assertReturnType('() async* {', 'Stream<int>');
-  }
-
-  test_upward_returnType_sync_blockBody() async {
-    await resolveTestCode('''
-var v = () {
-  return 0;
-};
-''');
-    _assertReturnType('() {', 'int');
-  }
-
-  test_upward_returnType_syncStar_blockBody() async {
+  test_returnType_syncStar_blockBody() async {
     await resolveTestCode('''
 var v = () sync* {
   yield 0;
