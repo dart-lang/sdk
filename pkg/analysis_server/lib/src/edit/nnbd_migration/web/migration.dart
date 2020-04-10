@@ -633,10 +633,11 @@ void _populateEditTraces(
     var ul = traceParagraph
         .append(document.createElement('ul')..classes = ['trace']);
     for (var entry in trace.entries) {
-      var li = ul.append(document.createElement('li')..innerHtml = '&#x274F; ');
+      Element li =
+          ul.append(document.createElement('li')..innerHtml = '&#x274F; ');
       li.append(document.createElement('span')
         ..classes = ['function']
-        ..append(Text(entry.function ?? 'unknown')));
+        ..appendTextWithBreaks(entry.function ?? 'unknown'));
       var link = entry.link;
       if (link != null) {
         li.append(Text(' ('));
@@ -644,7 +645,7 @@ void _populateEditTraces(
         li.append(Text(')'));
       }
       li.append(Text(': '));
-      li.append(Text(entry.description));
+      li.appendTextWithBreaks(entry.description ?? 'unknown');
     }
   }
 }
@@ -664,5 +665,19 @@ class _PermissiveNodeValidator implements NodeValidator {
 
   static void setInnerHtml(Element element, String html) {
     element.setInnerHtml(html, validator: instance);
+  }
+}
+
+/// An extension on Element that fits into cascades.
+extension on Element {
+  /// Append [text] to this, inserting a word break before each '.' character.
+  void appendTextWithBreaks(String text) {
+    var textParts = text.split('.');
+    append(Text(textParts.first));
+    for (var substring in textParts.skip(1)) {
+      // Replace the '.' with a zero-width space and a '.'.
+      appendHtml('&#8203;.');
+      append(Text(substring));
+    }
   }
 }
