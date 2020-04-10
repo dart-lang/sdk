@@ -645,7 +645,8 @@ CompileType CompileType::Create(intptr_t cid, const AbstractType& type) {
 
 CompileType CompileType::FromAbstractType(const AbstractType& type,
                                           bool is_nullable) {
-  return CompileType(is_nullable, kIllegalCid, &type);
+  return CompileType(is_nullable && !type.IsStrictlyNonNullable(), kIllegalCid,
+                     &type);
 }
 
 CompileType CompileType::FromCid(intptr_t cid) {
@@ -677,7 +678,7 @@ CompileType CompileType::Int32() {
 }
 
 CompileType CompileType::NullableInt() {
-  return FromAbstractType(Type::ZoneHandle(Type::IntType()), kNullable);
+  return FromAbstractType(Type::ZoneHandle(Type::NullableIntType()), kNullable);
 }
 
 CompileType CompileType::Smi() {
@@ -689,7 +690,7 @@ CompileType CompileType::Double() {
 }
 
 CompileType CompileType::NullableDouble() {
-  return FromAbstractType(Type::ZoneHandle(Type::Double()), kNullable);
+  return FromAbstractType(Type::ZoneHandle(Type::NullableDouble()), kNullable);
 }
 
 CompileType CompileType::String() {
@@ -1058,7 +1059,7 @@ CompileType ParameterInstr::ComputeType() const {
         graph_entry->parsed_function().RawParameterVariable(0)->type();
     if (type.IsObjectType() || type.IsNullType()) {
       // Receiver can be null.
-      return CompileType::FromAbstractType(type, CompileType::kNullable);
+      return CompileType::FromAbstractType(type);
     }
 
     // Receiver can't be null but can be an instance of a subclass.

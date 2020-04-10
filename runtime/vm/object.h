@@ -7574,21 +7574,21 @@ class AbstractType : public Instance {
   virtual Nullability nullability() const;
   // Returns true if type has '?' nullability suffix, or it is a
   // built-in type which is always nullable (Null, dynamic or void).
-  virtual bool IsNullable() const {
-    return nullability() == Nullability::kNullable;
-  }
+  bool IsNullable() const { return nullability() == Nullability::kNullable; }
   // Returns true if type does not have any nullability suffix.
   // This function also returns true for type parameters without
   // nullability suffix ("T") which can be instantiated with
   // nullable or legacy types.
-  virtual bool IsNonNullable() const {
+  bool IsNonNullable() const {
     return nullability() == Nullability::kNonNullable;
   }
   // Returns true if type has '*' nullability suffix, i.e.
   // it is from a legacy (opted-out) library.
-  virtual bool IsLegacy() const {
-    return nullability() == Nullability::kLegacy;
-  }
+  bool IsLegacy() const { return nullability() == Nullability::kLegacy; }
+  // Returns true if it is guaranteed that null cannot be
+  // assigned to this type.
+  bool IsStrictlyNonNullable() const;
+
   virtual RawAbstractType* SetInstantiatedNullability(
       const TypeParameter& type_param,
       Heap::Space space) const;
@@ -7916,6 +7916,9 @@ class Type : public AbstractType {
   // The 'int' type.
   static RawType* IntType();
 
+  // The 'int?' type.
+  static RawType* NullableIntType();
+
   // The 'Smi' type.
   static RawType* SmiType();
 
@@ -7924,6 +7927,9 @@ class Type : public AbstractType {
 
   // The 'double' type.
   static RawType* Double();
+
+  // The 'double?' type.
+  static RawType* NullableDouble();
 
   // The 'Float32x4' type.
   static RawType* Float32x4();

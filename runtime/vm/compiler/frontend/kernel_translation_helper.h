@@ -958,7 +958,9 @@ struct InferredTypeMetadata {
   CompileType ToCompileType(Zone* zone) const {
     if (IsInt() && cid == kDynamicCid) {
       return CompileType::FromAbstractType(
-          Type::ZoneHandle(zone, Type::IntType()), IsNullable());
+          Type::ZoneHandle(
+              zone, (IsNullable() ? Type::NullableIntType() : Type::IntType())),
+          IsNullable());
     } else {
       return CompileType::CreateNullable(IsNullable(), cid);
     }

@@ -201,7 +201,7 @@ class NoSuchMethodError {
   // unresolved method.
   @pragma("vm:entry-point", "call")
   static void _throwNew(Object receiver, String memberName, int invocationType,
-      Object typeArguments, List arguments, List argumentNames) {
+      Object? typeArguments, List? arguments, List? argumentNames) {
     throw new NoSuchMethodError._withType(receiver, memberName, invocationType,
         typeArguments, arguments, argumentNames);
   }
@@ -260,9 +260,9 @@ class NoSuchMethodError {
       this._receiver,
       String memberName,
       int invocationType,
-      Object typeArguments,
-      List arguments,
-      List argumentNames)
+      Object? typeArguments,
+      List? arguments,
+      List? argumentNames)
       : this._invocation = new _InvocationMirror._withType(
             new Symbol(memberName),
             invocationType,
@@ -271,10 +271,10 @@ class NoSuchMethodError {
                 ? _InvocationMirror._unpackTypeArguments(typeArguments, 0)
                 : null,
             argumentNames != null
-                ? arguments.sublist(0, arguments.length - argumentNames.length)
+                ? arguments!.sublist(0, arguments.length - argumentNames.length)
                 : arguments,
             argumentNames != null
-                ? _NamedArgumentsMap(arguments, argumentNames)
+                ? _NamedArgumentsMap(arguments!, argumentNames)
                 : null);
 
   static String? _existingMethodSignature(Object receiver, String methodName,

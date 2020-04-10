@@ -53,6 +53,7 @@ class ObjectPointerVisitor;
   RW(Type, int_type)                                                           \
   RW(Type, legacy_int_type)                                                    \
   RW(Type, non_nullable_int_type)                                              \
+  RW(Type, nullable_int_type)                                                  \
   RW(Class, integer_implementation_class)                                      \
   RW(Type, int64_type)                                                         \
   RW(Class, smi_class)                                                         \
@@ -67,6 +68,7 @@ class ObjectPointerVisitor;
   RW(Type, double_type)                                                        \
   RW(Type, legacy_double_type)                                                 \
   RW(Type, non_nullable_double_type)                                           \
+  RW(Type, nullable_double_type)                                               \
   RW(Type, float32x4_type)                                                     \
   RW(Type, int32x4_type)                                                       \
   RW(Type, float64x2_type)                                                     \

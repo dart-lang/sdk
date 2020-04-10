@@ -106,8 +106,10 @@ class CompileType : public ZoneAllocated {
     return CompileType(is_nullable, cid, nullptr);
   }
 
-  // Create a new CompileType representing given abstract type. By default
-  // values as assumed to be nullable.
+  // Create a new CompileType representing given abstract type.
+  // By default nullability of values is determined by type.
+  // CompileType can be further constrained to non-nullable values by
+  // passing kNonNullable as an optional parameter.
   static CompileType FromAbstractType(const AbstractType& type,
                                       bool is_nullable = kNullable);
 

@@ -2107,6 +2107,8 @@ RawError* Object::Init(Isolate* isolate,
     object_store->set_legacy_int_type(type);
     type = type.ToNullability(Nullability::kNonNullable, Heap::kOld);
     object_store->set_non_nullable_int_type(type);
+    type = type.ToNullability(Nullability::kNullable, Heap::kOld);
+    object_store->set_nullable_int_type(type);
 
     cls = Class::New<Instance, RTN::Instance>(kIllegalCid, isolate,
                                               /*register_class=*/true,
@@ -2121,6 +2123,8 @@ RawError* Object::Init(Isolate* isolate,
     object_store->set_legacy_double_type(type);
     type = type.ToNullability(Nullability::kNonNullable, Heap::kOld);
     object_store->set_non_nullable_double_type(type);
+    type = type.ToNullability(Nullability::kNullable, Heap::kOld);
+    object_store->set_nullable_double_type(type);
 
     name = Symbols::_String().raw();
     cls = Class::New<Instance, RTN::Instance>(kIllegalCid, isolate,
@@ -18226,6 +18230,32 @@ Nullability AbstractType::nullability() const {
   return Nullability::kNullable;
 }
 
+bool AbstractType::IsStrictlyNonNullable() const {
+  // Null can be assigned to legacy and nullable types.
+  if (!IsNonNullable()) {
+    return false;
+  }
+
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+
+  // In weak mode null can be assigned to any type.
+  if (!thread->isolate()->null_safety()) {
+    return false;
+  }
+
+  if (IsTypeParameter()) {
+    const auto& bound =
+        AbstractType::Handle(zone, TypeParameter::Cast(*this).bound());
+    ASSERT(!bound.IsNull());
+    return bound.IsStrictlyNonNullable();
+  }
+  if (IsFutureOrType()) {
+    return AbstractType::Handle(zone, UnwrapFutureOr()).IsStrictlyNonNullable();
+  }
+  return true;
+}
+
 RawAbstractType* AbstractType::SetInstantiatedNullability(
     const TypeParameter& type_param,
     Heap::Space space) const {
@@ -18936,6 +18966,10 @@ RawType* Type::IntType() {
   return Isolate::Current()->object_store()->int_type();
 }
 
+RawType* Type::NullableIntType() {
+  return Isolate::Current()->object_store()->nullable_int_type();
+}
+
 RawType* Type::SmiType() {
   return Isolate::Current()->object_store()->smi_type();
 }
@@ -18946,6 +18980,10 @@ RawType* Type::MintType() {
 
 RawType* Type::Double() {
   return Isolate::Current()->object_store()->double_type();
+}
+
+RawType* Type::NullableDouble() {
+  return Isolate::Current()->object_store()->nullable_double_type();
 }
 
 RawType* Type::Float32x4() {
