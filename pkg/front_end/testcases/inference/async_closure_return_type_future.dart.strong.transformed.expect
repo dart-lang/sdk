@@ -7,7 +7,7 @@ static field () →* asy::Future<core::int*>* f = () → asy::Future<core::int*>
   final asy::_AsyncAwaitCompleter<core::int*>* :async_completer = new asy::_AsyncAwaitCompleter::•<core::int*>();
   asy::FutureOr<core::int*>* :return_value;
   dynamic :async_stack_trace;
-  (dynamic) →* asy::FutureOr<dynamic>* :async_op_then;
+  (dynamic) →* dynamic :async_op_then;
   (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
   core::int* :await_jump_var = 0;
   dynamic :await_ctx_var;

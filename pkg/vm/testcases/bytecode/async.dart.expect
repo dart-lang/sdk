@@ -2000,7 +2000,7 @@ ConstantPool {
     final dart.async::_AsyncAwaitCompleter<dart.core::Null?>* :async_completer = new dart.async::_AsyncAwaitCompleter::•<dart.core::Null?>();
     dart.async::FutureOr<dart.core::Null?>* :return_value;
     dynamic :async_stack_trace;
-    (dynamic) →* dart.async::FutureOr<dynamic>* :async_op_then;
+    (dynamic) →* dynamic :async_op_then;
     (dart.core::Object*, dart.core::StackTrace*) →* dynamic :async_op_error;
     dart.core::int* :await_jump_var = 0;
     dynamic :await_ctx_var;
@@ -2028,7 +2028,7 @@ ConstantPool {
     final dart.async::_AsyncAwaitCompleter<dart.core::int*>* :async_completer = new dart.async::_AsyncAwaitCompleter::•<dart.core::int*>();
     dart.async::FutureOr<dart.core::int*>* :return_value;
     dynamic :async_stack_trace;
-    (dynamic) →* dart.async::FutureOr<dynamic>* :async_op_then;
+    (dynamic) →* dynamic :async_op_then;
     (dart.core::Object*, dart.core::StackTrace*) →* dynamic :async_op_error;
     dart.core::int* :await_jump_var = 0;
     dynamic :await_ctx_var;
@@ -2055,7 +2055,7 @@ ConstantPool {
     final dart.async::_AsyncAwaitCompleter<dart.core::int*>* :async_completer = new dart.async::_AsyncAwaitCompleter::•<dart.core::int*>();
     dart.async::FutureOr<dart.core::int*>* :return_value;
     dynamic :async_stack_trace;
-    (dynamic) →* dart.async::FutureOr<dynamic>* :async_op_then;
+    (dynamic) →* dynamic :async_op_then;
     (dart.core::Object*, dart.core::StackTrace*) →* dynamic :async_op_error;
     dart.core::int* :await_jump_var = 0;
     dynamic :await_ctx_var;
@@ -2087,7 +2087,7 @@ ConstantPool {
     final dart.async::_AsyncAwaitCompleter<dart.core::int*>* :async_completer = new dart.async::_AsyncAwaitCompleter::•<dart.core::int*>();
     dart.async::FutureOr<dart.core::int*>* :return_value;
     dynamic :async_stack_trace;
-    (dynamic) →* dart.async::FutureOr<dynamic>* :async_op_then;
+    (dynamic) →* dynamic :async_op_then;
     (dart.core::Object*, dart.core::StackTrace*) →* dynamic :async_op_error;
     dart.core::int* :await_jump_var = 0;
     dynamic :await_ctx_var;
@@ -2101,7 +2101,7 @@ ConstantPool {
           dart.core::int* sum = 0;
           for (dart.core::int* i = 0; i.{dart.core::num::<}(10); i = i.{dart.core::num::+}(1)) {
             {
-              dart.core::Iterator<dart.core::int*>* :sync-for-iterator = dart._internal::unsafeCast<dart.core::Iterable<dart.core::int*>*>(list).{dart.core::Iterable::iterator};
+              dart.core::Iterator<dart.core::int*>* :sync-for-iterator = list.{dart.core::Iterable::iterator};
               for (; :sync-for-iterator.{dart.core::Iterator::moveNext}(); ) {
                 dart.core::int* j = :sync-for-iterator.{dart.core::Iterator::current};
                 {
@@ -2135,7 +2135,7 @@ ConstantPool {
     final dart.async::_AsyncAwaitCompleter<dart.core::int*>* :async_completer = new dart.async::_AsyncAwaitCompleter::•<dart.core::int*>();
     dart.async::FutureOr<dart.core::int*>* :return_value;
     dynamic :async_stack_trace;
-    (dynamic) →* dart.async::FutureOr<dynamic>* :async_op_then;
+    (dynamic) →* dynamic :async_op_then;
     (dart.core::Object*, dart.core::StackTrace*) →* dynamic :async_op_error;
     dart.core::int* :await_jump_var = 0;
     dynamic :await_ctx_var;
@@ -2195,7 +2195,7 @@ ConstantPool {
       final dart.async::_AsyncAwaitCompleter<dart.core::int*>* :async_completer = new dart.async::_AsyncAwaitCompleter::•<dart.core::int*>();
       dart.async::FutureOr<dart.core::int*>* :return_value;
       dynamic :async_stack_trace;
-      (dynamic) →* dart.async::FutureOr<dynamic>* :async_op_then;
+      (dynamic) →* dynamic :async_op_then;
       (dart.core::Object*, dart.core::StackTrace*) →* dynamic :async_op_error;
       dart.core::int* :await_jump_var = 0;
       dynamic :await_ctx_var;
@@ -2235,7 +2235,7 @@ ConstantPool {
     final dart.async::_AsyncAwaitCompleter<dart.core::int*>* :async_completer = new dart.async::_AsyncAwaitCompleter::•<dart.core::int*>();
     dart.async::FutureOr<dart.core::int*>* :return_value;
     dynamic :async_stack_trace;
-    (dynamic) →* dart.async::FutureOr<dynamic>* :async_op_then;
+    (dynamic) →* dynamic :async_op_then;
     (dart.core::Object*, dart.core::StackTrace*) →* dynamic :async_op_error;
     dart.core::int* :await_jump_var = 0;
     dynamic :await_ctx_var;

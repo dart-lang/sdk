@@ -101,8 +101,8 @@ static method returnAsync1() → asy::Future<dynamic> /* originally async */ {
   final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
   asy::FutureOr<dynamic>? :return_value;
   dynamic :async_stack_trace;
-  (dynamic) →* asy::FutureOr<dynamic>* :async_op_then;
-  (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
+  (dynamic) → dynamic :async_op_then;
+  (core::Object, core::StackTrace) → dynamic :async_op_error;
   core::int :await_jump_var = 0;
   dynamic :await_ctx_var;
   function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
@@ -112,7 +112,7 @@ static method returnAsync1() → asy::Future<dynamic> /* originally async */ {
       asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
-    on dynamic catch(dynamic :exception, core::StackTrace* :stack_trace) {
+    on dynamic catch(dynamic :exception, core::StackTrace :stack_trace) {
       :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
     }
   :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
@@ -125,8 +125,8 @@ static method returnAsync2() → asy::FutureOr<dynamic> /* originally async */ {
   final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
   asy::FutureOr<dynamic>? :return_value;
   dynamic :async_stack_trace;
-  (dynamic) →* asy::FutureOr<dynamic>* :async_op_then;
-  (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
+  (dynamic) → dynamic :async_op_then;
+  (core::Object, core::StackTrace) → dynamic :async_op_error;
   core::int :await_jump_var = 0;
   dynamic :await_ctx_var;
   function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
@@ -136,7 +136,7 @@ static method returnAsync2() → asy::FutureOr<dynamic> /* originally async */ {
       asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
-    on dynamic catch(dynamic :exception, core::StackTrace* :stack_trace) {
+    on dynamic catch(dynamic :exception, core::StackTrace :stack_trace) {
       :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
     }
   :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
@@ -149,8 +149,8 @@ static method returnAsync3() → asy::FutureOr<core::int> /* originally async */
   final asy::_AsyncAwaitCompleter<core::int> :async_completer = new asy::_AsyncAwaitCompleter::•<core::int>();
   asy::FutureOr<core::int>? :return_value;
   dynamic :async_stack_trace;
-  (dynamic) →* asy::FutureOr<dynamic>* :async_op_then;
-  (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
+  (dynamic) → dynamic :async_op_then;
+  (core::Object, core::StackTrace) → dynamic :async_op_error;
   core::int :await_jump_var = 0;
   dynamic :await_ctx_var;
   function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
@@ -165,7 +165,7 @@ FutureOr<int> returnAsync3() async {} // error
       asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
-    on dynamic catch(dynamic :exception, core::StackTrace* :stack_trace) {
+    on dynamic catch(dynamic :exception, core::StackTrace :stack_trace) {
       :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
     }
   :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
@@ -178,8 +178,8 @@ static method returnAsync4() → asy::FutureOr<core::int?> /* originally async *
   final asy::_AsyncAwaitCompleter<core::int?> :async_completer = new asy::_AsyncAwaitCompleter::•<core::int?>();
   asy::FutureOr<core::int?>? :return_value;
   dynamic :async_stack_trace;
-  (dynamic) →* asy::FutureOr<dynamic>* :async_op_then;
-  (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
+  (dynamic) → dynamic :async_op_then;
+  (core::Object, core::StackTrace) → dynamic :async_op_error;
   core::int :await_jump_var = 0;
   dynamic :await_ctx_var;
   function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
@@ -189,7 +189,7 @@ static method returnAsync4() → asy::FutureOr<core::int?> /* originally async *
       asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
-    on dynamic catch(dynamic :exception, core::StackTrace* :stack_trace) {
+    on dynamic catch(dynamic :exception, core::StackTrace :stack_trace) {
       :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
     }
   :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
@@ -202,8 +202,8 @@ static method returnAsync5() → dynamic /* originally async */ {
   final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
   asy::FutureOr<dynamic>? :return_value;
   dynamic :async_stack_trace;
-  (dynamic) →* asy::FutureOr<dynamic>* :async_op_then;
-  (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
+  (dynamic) → dynamic :async_op_then;
+  (core::Object, core::StackTrace) → dynamic :async_op_error;
   core::int :await_jump_var = 0;
   dynamic :await_ctx_var;
   function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
@@ -213,7 +213,7 @@ static method returnAsync5() → dynamic /* originally async */ {
       asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
-    on dynamic catch(dynamic :exception, core::StackTrace* :stack_trace) {
+    on dynamic catch(dynamic :exception, core::StackTrace :stack_trace) {
       :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
     }
   :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
@@ -226,8 +226,8 @@ static method returnAsync6() → asy::Future<core::int?> /* originally async */ 
   final asy::_AsyncAwaitCompleter<core::int?> :async_completer = new asy::_AsyncAwaitCompleter::•<core::int?>();
   asy::FutureOr<core::int?>? :return_value;
   dynamic :async_stack_trace;
-  (dynamic) →* asy::FutureOr<dynamic>* :async_op_then;
-  (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
+  (dynamic) → dynamic :async_op_then;
+  (core::Object, core::StackTrace) → dynamic :async_op_error;
   core::int :await_jump_var = 0;
   dynamic :await_ctx_var;
   function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
@@ -240,7 +240,7 @@ static method returnAsync6() → asy::Future<core::int?> /* originally async */ 
       asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
-    on dynamic catch(dynamic :exception, core::StackTrace* :stack_trace) {
+    on dynamic catch(dynamic :exception, core::StackTrace :stack_trace) {
       :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
     }
   :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
@@ -253,8 +253,8 @@ static method returnAsync7() → asy::Future<core::int?> /* originally async */ 
   final asy::_AsyncAwaitCompleter<core::int?> :async_completer = new asy::_AsyncAwaitCompleter::•<core::int?>();
   asy::FutureOr<core::int?>? :return_value;
   dynamic :async_stack_trace;
-  (dynamic) →* asy::FutureOr<dynamic>* :async_op_then;
-  (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
+  (dynamic) → dynamic :async_op_then;
+  (core::Object, core::StackTrace) → dynamic :async_op_error;
   core::int :await_jump_var = 0;
   dynamic :await_ctx_var;
   function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
@@ -264,7 +264,7 @@ static method returnAsync7() → asy::Future<core::int?> /* originally async */ 
       asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
-    on dynamic catch(dynamic :exception, core::StackTrace* :stack_trace) {
+    on dynamic catch(dynamic :exception, core::StackTrace :stack_trace) {
       :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
     }
   :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
@@ -286,8 +286,8 @@ static method yieldAsync() → asy::Stream<dynamic> /* originally async* */ {
   asy::_AsyncStarStreamController<dynamic>? :controller;
   dynamic :controller_stream;
   dynamic :async_stack_trace;
-  (dynamic) →* asy::FutureOr<dynamic>* :async_op_then;
-  (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
+  (dynamic) → dynamic :async_op_then;
+  (core::Object, core::StackTrace) → dynamic :async_op_error;
   core::int :await_jump_var = 0;
   dynamic :await_ctx_var;
   function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
@@ -297,7 +297,7 @@ static method yieldAsync() → asy::Stream<dynamic> /* originally async* */ {
         {}
         return;
       }
-      on dynamic catch(dynamic :exception, core::StackTrace* :stack_trace) {
+      on dynamic catch(dynamic :exception, core::StackTrace :stack_trace) {
         :controller.{asy::_AsyncStarStreamController::addError}(:exception, :stack_trace);
       }
     finally {
@@ -368,8 +368,8 @@ static method localFunctions() → dynamic {
     final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
     asy::FutureOr<dynamic>? :return_value;
     dynamic :async_stack_trace;
-    (dynamic) →* asy::FutureOr<dynamic>* :async_op_then;
-    (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
+    (dynamic) → dynamic :async_op_then;
+    (core::Object, core::StackTrace) → dynamic :async_op_error;
     core::int :await_jump_var = 0;
     dynamic :await_ctx_var;
     function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
@@ -379,7 +379,7 @@ static method localFunctions() → dynamic {
         asy::_completeOnAsyncReturn(:async_completer, :return_value);
         return;
       }
-      on dynamic catch(dynamic :exception, core::StackTrace* :stack_trace) {
+      on dynamic catch(dynamic :exception, core::StackTrace :stack_trace) {
         :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
       }
     :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
@@ -392,8 +392,8 @@ static method localFunctions() → dynamic {
     final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
     asy::FutureOr<dynamic>? :return_value;
     dynamic :async_stack_trace;
-    (dynamic) →* asy::FutureOr<dynamic>* :async_op_then;
-    (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
+    (dynamic) → dynamic :async_op_then;
+    (core::Object, core::StackTrace) → dynamic :async_op_error;
     core::int :await_jump_var = 0;
     dynamic :await_ctx_var;
     function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
@@ -403,7 +403,7 @@ static method localFunctions() → dynamic {
         asy::_completeOnAsyncReturn(:async_completer, :return_value);
         return;
       }
-      on dynamic catch(dynamic :exception, core::StackTrace* :stack_trace) {
+      on dynamic catch(dynamic :exception, core::StackTrace :stack_trace) {
         :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
       }
     :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
@@ -416,8 +416,8 @@ static method localFunctions() → dynamic {
     final asy::_AsyncAwaitCompleter<core::int> :async_completer = new asy::_AsyncAwaitCompleter::•<core::int>();
     asy::FutureOr<core::int>? :return_value;
     dynamic :async_stack_trace;
-    (dynamic) →* asy::FutureOr<dynamic>* :async_op_then;
-    (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
+    (dynamic) → dynamic :async_op_then;
+    (core::Object, core::StackTrace) → dynamic :async_op_error;
     core::int :await_jump_var = 0;
     dynamic :await_ctx_var;
     function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
@@ -432,7 +432,7 @@ static method localFunctions() → dynamic {
         asy::_completeOnAsyncReturn(:async_completer, :return_value);
         return;
       }
-      on dynamic catch(dynamic :exception, core::StackTrace* :stack_trace) {
+      on dynamic catch(dynamic :exception, core::StackTrace :stack_trace) {
         :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
       }
     :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
@@ -445,8 +445,8 @@ static method localFunctions() → dynamic {
     final asy::_AsyncAwaitCompleter<core::int?> :async_completer = new asy::_AsyncAwaitCompleter::•<core::int?>();
     asy::FutureOr<core::int?>? :return_value;
     dynamic :async_stack_trace;
-    (dynamic) →* asy::FutureOr<dynamic>* :async_op_then;
-    (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
+    (dynamic) → dynamic :async_op_then;
+    (core::Object, core::StackTrace) → dynamic :async_op_error;
     core::int :await_jump_var = 0;
     dynamic :await_ctx_var;
     function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
@@ -456,7 +456,7 @@ static method localFunctions() → dynamic {
         asy::_completeOnAsyncReturn(:async_completer, :return_value);
         return;
       }
-      on dynamic catch(dynamic :exception, core::StackTrace* :stack_trace) {
+      on dynamic catch(dynamic :exception, core::StackTrace :stack_trace) {
         :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
       }
     :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
@@ -469,8 +469,8 @@ static method localFunctions() → dynamic {
     final asy::_AsyncAwaitCompleter<core::Null?> :async_completer = new asy::_AsyncAwaitCompleter::•<core::Null?>();
     asy::FutureOr<core::Null?>? :return_value;
     dynamic :async_stack_trace;
-    (dynamic) →* asy::FutureOr<dynamic>* :async_op_then;
-    (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
+    (dynamic) → dynamic :async_op_then;
+    (core::Object, core::StackTrace) → dynamic :async_op_error;
     core::int :await_jump_var = 0;
     dynamic :await_ctx_var;
     function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
@@ -480,7 +480,7 @@ static method localFunctions() → dynamic {
         asy::_completeOnAsyncReturn(:async_completer, :return_value);
         return;
       }
-      on dynamic catch(dynamic :exception, core::StackTrace* :stack_trace) {
+      on dynamic catch(dynamic :exception, core::StackTrace :stack_trace) {
         :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
       }
     :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
@@ -493,8 +493,8 @@ static method localFunctions() → dynamic {
     final asy::_AsyncAwaitCompleter<core::int?> :async_completer = new asy::_AsyncAwaitCompleter::•<core::int?>();
     asy::FutureOr<core::int?>? :return_value;
     dynamic :async_stack_trace;
-    (dynamic) →* asy::FutureOr<dynamic>* :async_op_then;
-    (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
+    (dynamic) → dynamic :async_op_then;
+    (core::Object, core::StackTrace) → dynamic :async_op_error;
     core::int :await_jump_var = 0;
     dynamic :await_ctx_var;
     function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
@@ -507,7 +507,7 @@ static method localFunctions() → dynamic {
         asy::_completeOnAsyncReturn(:async_completer, :return_value);
         return;
       }
-      on dynamic catch(dynamic :exception, core::StackTrace* :stack_trace) {
+      on dynamic catch(dynamic :exception, core::StackTrace :stack_trace) {
         :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
       }
     :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
@@ -520,8 +520,8 @@ static method localFunctions() → dynamic {
     final asy::_AsyncAwaitCompleter<core::int?> :async_completer = new asy::_AsyncAwaitCompleter::•<core::int?>();
     asy::FutureOr<core::int?>? :return_value;
     dynamic :async_stack_trace;
-    (dynamic) →* asy::FutureOr<dynamic>* :async_op_then;
-    (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
+    (dynamic) → dynamic :async_op_then;
+    (core::Object, core::StackTrace) → dynamic :async_op_error;
     core::int :await_jump_var = 0;
     dynamic :await_ctx_var;
     function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
@@ -531,7 +531,7 @@ static method localFunctions() → dynamic {
         asy::_completeOnAsyncReturn(:async_completer, :return_value);
         return;
       }
-      on dynamic catch(dynamic :exception, core::StackTrace* :stack_trace) {
+      on dynamic catch(dynamic :exception, core::StackTrace :stack_trace) {
         :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
       }
     :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
@@ -553,8 +553,8 @@ static method localFunctions() → dynamic {
     asy::_AsyncStarStreamController<dynamic>? :controller;
     dynamic :controller_stream;
     dynamic :async_stack_trace;
-    (dynamic) →* asy::FutureOr<dynamic>* :async_op_then;
-    (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
+    (dynamic) → dynamic :async_op_then;
+    (core::Object, core::StackTrace) → dynamic :async_op_error;
     core::int :await_jump_var = 0;
     dynamic :await_ctx_var;
     function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
@@ -564,7 +564,7 @@ static method localFunctions() → dynamic {
           {}
           return;
         }
-        on dynamic catch(dynamic :exception, core::StackTrace* :stack_trace) {
+        on dynamic catch(dynamic :exception, core::StackTrace :stack_trace) {
           :controller.{asy::_AsyncStarStreamController::addError}(:exception, :stack_trace);
         }
       finally {

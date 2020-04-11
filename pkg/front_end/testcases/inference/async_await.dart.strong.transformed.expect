@@ -15,7 +15,7 @@ static method test() → void /* originally async */ {
   final asy::_AsyncAwaitCompleter<dynamic>* :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
   asy::FutureOr<dynamic>* :return_value;
   dynamic :async_stack_trace;
-  (dynamic) →* asy::FutureOr<dynamic>* :async_op_then;
+  (dynamic) →* dynamic :async_op_then;
   (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
   core::int* :await_jump_var = 0;
   dynamic :await_ctx_var;
@@ -38,7 +38,7 @@ static method test() → void /* originally async */ {
           final asy::_AsyncAwaitCompleter<core::int*>* :async_completer = new asy::_AsyncAwaitCompleter::•<core::int*>();
           asy::FutureOr<core::int*>* :return_value;
           dynamic :async_stack_trace;
-          (dynamic) →* asy::FutureOr<dynamic>* :async_op_then;
+          (dynamic) →* dynamic :async_op_then;
           (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
           core::int* :await_jump_var = 0;
           dynamic :await_ctx_var;
@@ -65,7 +65,7 @@ static method test() → void /* originally async */ {
           final asy::_AsyncAwaitCompleter<core::int*>* :async_completer = new asy::_AsyncAwaitCompleter::•<core::int*>();
           asy::FutureOr<core::int*>* :return_value;
           dynamic :async_stack_trace;
-          (dynamic) →* asy::FutureOr<dynamic>* :async_op_then;
+          (dynamic) →* dynamic :async_op_then;
           (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
           core::int* :await_jump_var = 0;
           dynamic :await_ctx_var;
@@ -92,7 +92,7 @@ static method test() → void /* originally async */ {
           final asy::_AsyncAwaitCompleter<asy::Future<core::int*>*>* :async_completer = new asy::_AsyncAwaitCompleter::•<asy::Future<core::int*>*>();
           asy::FutureOr<asy::Future<core::int*>*>* :return_value;
           dynamic :async_stack_trace;
-          (dynamic) →* asy::FutureOr<dynamic>* :async_op_then;
+          (dynamic) →* dynamic :async_op_then;
           (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
           core::int* :await_jump_var = 0;
           dynamic :await_ctx_var;
@@ -119,7 +119,7 @@ static method test() → void /* originally async */ {
           final asy::_AsyncAwaitCompleter<asy::FutureOr<core::int*>*>* :async_completer = new asy::_AsyncAwaitCompleter::•<asy::FutureOr<core::int*>*>();
           asy::FutureOr<asy::FutureOr<core::int*>*>* :return_value;
           dynamic :async_stack_trace;
-          (dynamic) →* asy::FutureOr<dynamic>* :async_op_then;
+          (dynamic) →* dynamic :async_op_then;
           (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
           core::int* :await_jump_var = 0;
           dynamic :await_ctx_var;
@@ -146,7 +146,7 @@ static method test() → void /* originally async */ {
           final asy::_AsyncAwaitCompleter<self::MyFuture*>* :async_completer = new asy::_AsyncAwaitCompleter::•<self::MyFuture*>();
           asy::FutureOr<self::MyFuture*>* :return_value;
           dynamic :async_stack_trace;
-          (dynamic) →* asy::FutureOr<dynamic>* :async_op_then;
+          (dynamic) →* dynamic :async_op_then;
           (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
           core::int* :await_jump_var = 0;
           dynamic :await_ctx_var;
@@ -173,7 +173,7 @@ static method test() → void /* originally async */ {
           final asy::_AsyncAwaitCompleter<core::int*>* :async_completer = new asy::_AsyncAwaitCompleter::•<core::int*>();
           asy::FutureOr<core::int*>* :return_value;
           dynamic :async_stack_trace;
-          (dynamic) →* asy::FutureOr<dynamic>* :async_op_then;
+          (dynamic) →* dynamic :async_op_then;
           (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
           core::int* :await_jump_var = 0;
           dynamic :await_ctx_var;
@@ -200,7 +200,7 @@ static method test() → void /* originally async */ {
           final asy::_AsyncAwaitCompleter<asy::Future<core::int*>*>* :async_completer = new asy::_AsyncAwaitCompleter::•<asy::Future<core::int*>*>();
           asy::FutureOr<asy::Future<core::int*>*>* :return_value;
           dynamic :async_stack_trace;
-          (dynamic) →* asy::FutureOr<dynamic>* :async_op_then;
+          (dynamic) →* dynamic :async_op_then;
           (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
           core::int* :await_jump_var = 0;
           dynamic :await_ctx_var;
@@ -227,7 +227,7 @@ static method test() → void /* originally async */ {
           final asy::_AsyncAwaitCompleter<asy::FutureOr<core::int*>*>* :async_completer = new asy::_AsyncAwaitCompleter::•<asy::FutureOr<core::int*>*>();
           asy::FutureOr<asy::FutureOr<core::int*>*>* :return_value;
           dynamic :async_stack_trace;
-          (dynamic) →* asy::FutureOr<dynamic>* :async_op_then;
+          (dynamic) →* dynamic :async_op_then;
           (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
           core::int* :await_jump_var = 0;
           dynamic :await_ctx_var;
@@ -254,7 +254,7 @@ static method test() → void /* originally async */ {
           final asy::_AsyncAwaitCompleter<self::MyFuture*>* :async_completer = new asy::_AsyncAwaitCompleter::•<self::MyFuture*>();
           asy::FutureOr<self::MyFuture*>* :return_value;
           dynamic :async_stack_trace;
-          (dynamic) →* asy::FutureOr<dynamic>* :async_op_then;
+          (dynamic) →* dynamic :async_op_then;
           (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
           core::int* :await_jump_var = 0;
           dynamic :await_ctx_var;
@@ -281,7 +281,7 @@ static method test() → void /* originally async */ {
           final asy::_AsyncAwaitCompleter<core::int*>* :async_completer = new asy::_AsyncAwaitCompleter::•<core::int*>();
           asy::FutureOr<core::int*>* :return_value;
           dynamic :async_stack_trace;
-          (dynamic) →* asy::FutureOr<dynamic>* :async_op_then;
+          (dynamic) →* dynamic :async_op_then;
           (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
           core::int* :await_jump_var = 0;
           dynamic :await_ctx_var;

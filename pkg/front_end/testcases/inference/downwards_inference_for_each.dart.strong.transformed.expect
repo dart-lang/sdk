@@ -16,7 +16,7 @@ static method f() → asy::Future<dynamic>* /* originally async */ {
   final asy::_AsyncAwaitCompleter<dynamic>* :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
   asy::FutureOr<dynamic>* :return_value;
   dynamic :async_stack_trace;
-  (dynamic) →* asy::FutureOr<dynamic>* :async_op_then;
+  (dynamic) →* dynamic :async_op_then;
   (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
   core::int* :await_jump_var = 0;
   dynamic :await_ctx_var;
@@ -31,28 +31,28 @@ static method f() → asy::Future<dynamic>* /* originally async */ {
         dynamic d;
         core::Object* o;
         {
-          core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(self::F<core::Iterable<dynamic>*>()).{core::Iterable::iterator};
+          core::Iterator<dynamic>* :sync-for-iterator = self::F<core::Iterable<dynamic>*>().{core::Iterable::iterator};
           for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
             dynamic x = :sync-for-iterator.{core::Iterator::current};
             {}
           }
         }
         {
-          core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(self::F<core::Iterable<dynamic>*>()).{core::Iterable::iterator};
+          core::Iterator<dynamic>* :sync-for-iterator = self::F<core::Iterable<dynamic>*>().{core::Iterable::iterator};
           for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
             dynamic x = :sync-for-iterator.{core::Iterator::current};
             {}
           }
         }
         {
-          core::Iterator<core::Object*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::Object*>*>(self::F<core::Iterable<core::Object*>*>()).{core::Iterable::iterator};
+          core::Iterator<core::Object*>* :sync-for-iterator = self::F<core::Iterable<core::Object*>*>().{core::Iterable::iterator};
           for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
             core::Object* x = :sync-for-iterator.{core::Iterator::current};
             {}
           }
         }
         {
-          core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(self::F<core::Iterable<dynamic>*>()).{core::Iterable::iterator};
+          core::Iterator<dynamic>* :sync-for-iterator = self::F<core::Iterable<dynamic>*>().{core::Iterable::iterator};
           for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
             final dynamic #t1 = :sync-for-iterator.{core::Iterator::current};
             {
@@ -61,7 +61,7 @@ static method f() → asy::Future<dynamic>* /* originally async */ {
           }
         }
         {
-          core::Iterator<core::Object*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::Object*>*>(self::F<core::Iterable<core::Object*>*>()).{core::Iterable::iterator};
+          core::Iterator<core::Object*>* :sync-for-iterator = self::F<core::Iterable<core::Object*>*>().{core::Iterable::iterator};
           for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
             final core::Object* #t2 = :sync-for-iterator.{core::Iterator::current};
             {
@@ -200,7 +200,7 @@ static method main() → asy::Future<dynamic>* /* originally async */ {
   final asy::_AsyncAwaitCompleter<dynamic>* :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
   asy::FutureOr<dynamic>* :return_value;
   dynamic :async_stack_trace;
-  (dynamic) →* asy::FutureOr<dynamic>* :async_op_then;
+  (dynamic) →* dynamic :async_op_then;
   (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
   core::int* :await_jump_var = 0;
   dynamic :await_ctx_var;
@@ -213,21 +213,21 @@ static method main() → asy::Future<dynamic>* /* originally async */ {
       #L7:
       {
         {
-          core::Iterator<core::int*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::int*>*>(<core::int*>[1, 2, 3]).{core::Iterable::iterator};
+          core::Iterator<core::int*>* :sync-for-iterator = <core::int*>[1, 2, 3].{core::Iterable::iterator};
           for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
             core::int* x = :sync-for-iterator.{core::Iterator::current};
             {}
           }
         }
         {
-          core::Iterator<core::num*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::num*>*>(<core::num*>[1, 2, 3]).{core::Iterable::iterator};
+          core::Iterator<core::num*>* :sync-for-iterator = <core::num*>[1, 2, 3].{core::Iterable::iterator};
           for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
             core::num* x = :sync-for-iterator.{core::Iterator::current};
             {}
           }
         }
         {
-          core::Iterator<core::int*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::int*>*>(<core::int*>[1, 2, 3]).{core::Iterable::iterator};
+          core::Iterator<core::int*>* :sync-for-iterator = <core::int*>[1, 2, 3].{core::Iterable::iterator};
           for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
             core::int* x = :sync-for-iterator.{core::Iterator::current};
             {}

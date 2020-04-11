@@ -25,7 +25,7 @@ static method f1() → asy::Future<core::List<core::Object*>*>* /* originally as
   final asy::_AsyncAwaitCompleter<core::List<core::Object*>*>* :async_completer = new asy::_AsyncAwaitCompleter::•<core::List<core::Object*>*>();
   asy::FutureOr<core::List<core::Object*>*>* :return_value;
   dynamic :async_stack_trace;
-  (dynamic) →* asy::FutureOr<dynamic>* :async_op_then;
+  (dynamic) →* dynamic :async_op_then;
   (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
   core::int* :await_jump_var = 0;
   dynamic :await_ctx_var;
@@ -54,7 +54,7 @@ static method f3() → asy::Future<core::Object*>* /* originally async */ {
   final asy::_AsyncAwaitCompleter<core::Object*>* :async_completer = new asy::_AsyncAwaitCompleter::•<core::Object*>();
   asy::FutureOr<core::Object*>* :return_value;
   dynamic :async_stack_trace;
-  (dynamic) →* asy::FutureOr<dynamic>* :async_op_then;
+  (dynamic) →* dynamic :async_op_then;
   (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
   core::int* :await_jump_var = 0;
   dynamic :await_ctx_var;
@@ -81,7 +81,7 @@ static method foo() → asy::Future<self::X*>* /* originally async */ {
   final asy::_AsyncAwaitCompleter<self::X*>* :async_completer = new asy::_AsyncAwaitCompleter::•<self::X*>();
   asy::FutureOr<self::X*>* :return_value;
   dynamic :async_stack_trace;
-  (dynamic) →* asy::FutureOr<dynamic>* :async_op_then;
+  (dynamic) →* dynamic :async_op_then;
   (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
   core::int* :await_jump_var = 0;
   dynamic :await_ctx_var;
@@ -114,7 +114,7 @@ static method main() → asy::Future<void>* /* originally async */ {
   final asy::_AsyncAwaitCompleter<void>* :async_completer = new asy::_AsyncAwaitCompleter::•<void>();
   asy::FutureOr<void>* :return_value;
   dynamic :async_stack_trace;
-  (dynamic) →* asy::FutureOr<dynamic>* :async_op_then;
+  (dynamic) →* dynamic :async_op_then;
   (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
   core::int* :await_jump_var = 0;
   dynamic :await_ctx_var;

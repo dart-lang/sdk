@@ -56,7 +56,7 @@ class _AsyncAwaitCompleter<T> implements Completer<T> {
 
 // We need to pass the value as first argument and leave the second and third
 // arguments empty (used for error handling).
-FutureOr<dynamic> Function(dynamic) _asyncThenWrapperHelper(
+dynamic Function(dynamic) _asyncThenWrapperHelper(
     dynamic Function(dynamic) continuation) {
   // Any function that is used as an asynchronous callback must be registered
   // in the current Zone. Normally, this is done by the future when a
@@ -93,11 +93,8 @@ dynamic Function(Object, StackTrace) _asyncErrorWrapperHelper(
 /// If [object] is not a future, then it is wrapped into one.
 ///
 /// Returns the result of registering with `.then`.
-Future _awaitHelper(
-    var object,
-    FutureOr<dynamic> Function(dynamic) thenCallback,
-    dynamic Function(dynamic, StackTrace) errorCallback,
-    Function awaiter) {
+Future _awaitHelper(var object, dynamic Function(dynamic) thenCallback,
+    dynamic Function(dynamic, StackTrace) errorCallback, Function awaiter) {
   late _Future future;
   if (object is! Future) {
     future = new _Future().._setValue(object);

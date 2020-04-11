@@ -212,7 +212,7 @@ library from "org-dartlang-test:///main.dart" as main {
     method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ addAll(generic-covariant-impl dart.core::Iterable<dart.core::int*>* iterable) → void {
       dart.core::int* i = this.{dart.core::List::length};
       {
-        dart.core::Iterator<dart.core::int*>* :sync-for-iterator = dart._internal::unsafeCast<dart.core::Iterable<dart.core::int*>*>(iterable).{dart.core::Iterable::iterator};
+        dart.core::Iterator<dart.core::int*>* :sync-for-iterator = iterable.{dart.core::Iterable::iterator};
         for (; :sync-for-iterator.{dart.core::Iterator::moveNext}(); ) {
           dart.core::int* element = :sync-for-iterator.{dart.core::Iterator::current};
           {
@@ -458,7 +458,7 @@ library from "org-dartlang-test:///main.dart" as main {
       }
       else {
         {
-          dart.core::Iterator<dart.core::int*>* :sync-for-iterator = dart._internal::unsafeCast<dart.core::Iterable<dart.core::int*>*>(iterable).{dart.core::Iterable::iterator};
+          dart.core::Iterator<dart.core::int*>* :sync-for-iterator = iterable.{dart.core::Iterable::iterator};
           for (; :sync-for-iterator.{dart.core::Iterator::moveNext}(); ) {
             dart.core::int* element = :sync-for-iterator.{dart.core::Iterator::current};
             {

@@ -1,7 +1,6 @@
 library;
 import self as self;
 import "dart:core" as core;
-import "dart:_internal" as _in;
 
 class Base extends core::Object {
   synthetic constructor •() → self::Base*
@@ -31,7 +30,7 @@ class You extends self::Base {
 static method main() → dynamic {
   core::List<self::Base*>* list = <self::Base*>[new self::Me::•(), new self::You::•()];
   {
-    core::Iterator<self::Base*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<self::Base*>*>(list).{core::Iterable::iterator};
+    core::Iterator<self::Base*>* :sync-for-iterator = list.{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       self::Base* baba = :sync-for-iterator.{core::Iterator::current};
       {

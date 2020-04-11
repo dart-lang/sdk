@@ -1835,7 +1835,7 @@ ConstantPool {
     }
     method testForInLoop(dart.core::List<dart.core::int*>* list) → void {
       {
-        dart.core::Iterator<dart.core::int*>* :sync-for-iterator = dart._internal::unsafeCast<dart.core::Iterable<dart.core::int*>*>(list).{dart.core::Iterable::iterator};
+        dart.core::Iterator<dart.core::int*>* :sync-for-iterator = list.{dart.core::Iterable::iterator};
         for (; :sync-for-iterator.{dart.core::Iterator::moveNext}(); ) {
           dart.core::int* i = :sync-for-iterator.{dart.core::Iterator::current};
           {
