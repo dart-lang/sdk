@@ -333,8 +333,6 @@ import 'null_aware_before_operator_test.dart' as null_aware_before_operator;
 import 'null_aware_in_condition_test.dart' as null_aware_in_condition;
 import 'null_aware_in_logical_operator_test.dart'
     as null_aware_in_logical_operator;
-import 'nullable_type_in_catch_clause_test.dart'
-    as nullable_type_in_catch_clause;
 import 'nullable_type_in_extends_clause_test.dart'
     as nullable_type_in_extends_clause;
 import 'nullable_type_in_implements_clause_test.dart'
@@ -431,6 +429,7 @@ import 'switch_case_completes_normally_test.dart'
     as switch_case_completes_normally;
 import 'switch_expression_not_assignable_test.dart'
     as switch_expression_not_assignable;
+import 'throw_of_invalid_type_test.dart' as throw_of_invalid_type;
 import 'todo_test.dart' as todo_test;
 import 'top_level_instance_getter_test.dart' as top_level_instance_getter;
 import 'top_level_instance_method_test.dart' as top_level_instance_method;
@@ -730,7 +729,6 @@ main() {
     null_aware_before_operator.main();
     null_aware_in_condition.main();
     null_aware_in_logical_operator.main();
-    nullable_type_in_catch_clause.main();
     nullable_type_in_extends_clause.main();
     nullable_type_in_implements_clause.main();
     nullable_type_in_on_clause.main();
@@ -791,6 +789,7 @@ main() {
     super_initializer_in_object.main();
     switch_case_completes_normally.main();
     switch_expression_not_assignable.main();
+    throw_of_invalid_type.main();
     todo_test.main();
     top_level_instance_getter.main();
     top_level_instance_method.main();

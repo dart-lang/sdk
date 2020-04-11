@@ -269,7 +269,6 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.NOT_ITERABLE_SPREAD,
   CompileTimeErrorCode.NOT_MAP_SPREAD,
   CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD,
-  CompileTimeErrorCode.NULLABLE_TYPE_IN_CATCH_CLAUSE,
   CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE,
   CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE,
   CompileTimeErrorCode.NULLABLE_TYPE_IN_ON_CLAUSE,
@@ -308,6 +307,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR,
   CompileTimeErrorCode.SUPER_INITIALIZER_IN_OBJECT,
   CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY,
+  CompileTimeErrorCode.THROW_OF_INVALID_TYPE,
   CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
   CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
   // ignore: deprecated_member_use_from_same_package

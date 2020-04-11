@@ -429,7 +429,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     try {
       _isInCatchClause = true;
       _checkForTypeAnnotationDeferredClass(node.exceptionType);
-      _checkForNullableTypeInCatchClause(node.exceptionType);
       super.visitCatchClause(node);
     } finally {
       _isInCatchClause = previousIsInCatchClause;
@@ -1204,6 +1203,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void visitThrowExpression(ThrowExpression node) {
     _checkForConstEvalThrowsException(node);
     _checkForUseOfVoidResult(node.expression);
+    _checkForThrowOfInvalidType(node);
     super.visitThrowExpression(node);
   }
 
@@ -3901,23 +3901,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  void _checkForNullableTypeInCatchClause(TypeAnnotation type) {
-    if (!_isNonNullableByDefault) {
-      return;
-    }
-
-    if (type == null) {
-      return;
-    }
-
-    if (_typeSystem.isPotentiallyNullable(type.type)) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.NULLABLE_TYPE_IN_CATCH_CLAUSE,
-        type,
-      );
-    }
-  }
-
   /**
    * Verify that all classes of the given [onClause] are valid.
    *
@@ -4470,6 +4453,21 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           StaticWarningCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE,
           expression,
           [expressionType, caseType]);
+    }
+  }
+
+  void _checkForThrowOfInvalidType(ThrowExpression node) {
+    if (!_isNonNullableByDefault) return;
+
+    var expression = node.expression;
+    var type = node.expression.staticType;
+
+    if (!_typeSystem.isAssignableTo2(type, _typeSystem.objectNone)) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.THROW_OF_INVALID_TYPE,
+        expression,
+        [type],
+      );
     }
   }
 

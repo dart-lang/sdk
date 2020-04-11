@@ -4551,17 +4551,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "spread.");
 
   /**
-   * It is an error if the type `T` in the on-catch clause `on T catch` is
-   * potentially nullable.
-   */
-  static const CompileTimeErrorCode NULLABLE_TYPE_IN_CATCH_CLAUSE =
-      CompileTimeErrorCode(
-          'NULLABLE_TYPE_IN_CATCH_CLAUSE',
-          "A nullable type can't be used in an 'on' clause because it isn't "
-              "valid to throw 'null'.",
-          correction: "Try removing the question mark.");
-
-  /**
    * No parameters.
    */
   /* #### Description
@@ -5162,6 +5151,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode('SWITCH_CASE_COMPLETES_NORMALLY',
           "The 'case' should not complete normally.",
           correction: "Try adding 'break', or 'return', etc.");
+
+  /**
+   * It is an error if the static type of `e` in the expression `throw e` is
+   * not assignable to `Object`.
+   */
+  static const CompileTimeErrorCode THROW_OF_INVALID_TYPE = CompileTimeErrorCode(
+      'THROW_OF_INVALID_TYPE',
+      "The type '{0}' of the thrown expression must be assignable to Object.");
 
   /**
    * Parameters:

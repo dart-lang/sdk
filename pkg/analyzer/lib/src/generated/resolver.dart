@@ -1630,7 +1630,6 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitThrowExpression(ThrowExpression node) {
     super.visitThrowExpression(node);
-    nullableDereferenceVerifier.expression(node.expression);
     _flowAnalysis?.flow?.handleExit();
   }
 
