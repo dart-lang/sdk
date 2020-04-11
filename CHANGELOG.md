@@ -113,6 +113,9 @@ safety.
 
 #### `dart:io`
 
+*   Class `OSError` now implements `Exception`. This change means `OSError` will
+    now be caught in catch clauses catching `Exception`s.
+
 *   Class `HttpParser` will no longer throw an exception when a HTTP response
     status code is within [0, 999]. Customized status codes in this range are
     now valid.
