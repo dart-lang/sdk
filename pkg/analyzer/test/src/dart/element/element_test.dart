@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
+import 'package:analyzer/src/generated/type_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -39,14 +40,25 @@ main() {
 
 class AbstractTypeTest with ElementsTypesMixin {
   TestAnalysisContext _analysisContext;
-  TypeProvider _typeProvider;
 
   @override
-  TypeProvider get typeProvider => _typeProvider;
+  LibraryElementImpl testLibrary;
+
+  @override
+  TypeProvider typeProvider;
+
+  TypeSystemImpl typeSystem;
 
   void setUp() {
     _analysisContext = TestAnalysisContext();
-    _typeProvider = _analysisContext.typeProviderLegacy;
+    typeProvider = _analysisContext.typeProviderLegacy;
+    typeSystem = _analysisContext.typeSystemLegacy;
+
+    testLibrary = library_(
+      uriStr: 'package:test/test.dart',
+      analysisSession: _analysisContext.analysisSession,
+      typeSystem: typeSystem,
+    );
   }
 }
 

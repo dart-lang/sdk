@@ -977,7 +977,18 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * return the type `A<String>`.
    */
   InterfaceType asInstanceOf(ClassElement targetElement) {
-    return _asInstanceOf(targetElement, <ClassElement>{});
+    if (element == targetElement) {
+      return this;
+    }
+
+    for (var rawInterface in element.allSupertypes) {
+      if (rawInterface.element == targetElement) {
+        var substitution = Substitution.fromInterfaceType(this);
+        return substitution.substituteType(rawInterface);
+      }
+    }
+
+    return null;
   }
 
   @override
@@ -1497,50 +1508,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,
     );
-  }
-
-  /**
-   * Returns either this type or a supertype of this type that is defined by the
-   * [targetElement], or `null` if such a type does not exist. The set of
-   * [visitedClasses] is used to prevent infinite recursion.
-   */
-  InterfaceType _asInstanceOf(
-      ClassElement targetElement, Set<ClassElement> visitedClasses) {
-    ClassElement thisElement = element;
-    if (thisElement == targetElement) {
-      return this;
-    } else if (visitedClasses.add(thisElement)) {
-      InterfaceType type;
-      for (InterfaceType mixin in mixins) {
-        type = (mixin as InterfaceTypeImpl)
-            ._asInstanceOf(targetElement, visitedClasses);
-        if (type != null) {
-          return type;
-        }
-      }
-      if (superclass != null) {
-        type = (superclass as InterfaceTypeImpl)
-            ._asInstanceOf(targetElement, visitedClasses);
-        if (type != null) {
-          return type;
-        }
-      }
-      for (InterfaceType interface in interfaces) {
-        type = (interface as InterfaceTypeImpl)
-            ._asInstanceOf(targetElement, visitedClasses);
-        if (type != null) {
-          return type;
-        }
-      }
-      for (InterfaceType constraint in superclassConstraints) {
-        type = (constraint as InterfaceTypeImpl)
-            ._asInstanceOf(targetElement, visitedClasses);
-        if (type != null) {
-          return type;
-        }
-      }
-    }
-    return null;
   }
 
   List<InterfaceType> _instantiateSuperTypes(List<InterfaceType> defined) {
