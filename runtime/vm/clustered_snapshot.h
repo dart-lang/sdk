@@ -157,7 +157,7 @@ class Serializer : public ThreadStackResource {
   }
 
   intptr_t WriteVMSnapshot(const Array& symbols);
-  void WriteIsolateSnapshot(intptr_t num_base_objects,
+  void WriteProgramSnapshot(intptr_t num_base_objects,
                             ObjectStore* object_store);
 
   void AddVMIsolateBaseObjects();
@@ -539,7 +539,7 @@ class Deserializer : public ThreadStackResource {
   // message otherwise.
   RawApiError* VerifyImageAlignment();
 
-  void ReadIsolateSnapshot(ObjectStore* object_store);
+  void ReadProgramSnapshot(ObjectStore* object_store);
   void ReadVMSnapshot();
 
   void AddVMIsolateBaseObjects();
@@ -682,7 +682,7 @@ class FullSnapshotWriter {
   Isolate* isolate() const { return thread_->isolate(); }
   Heap* heap() const { return isolate()->heap(); }
 
-  // Writes a full snapshot of the Isolate.
+  // Writes a full snapshot of the program(VM isolate, regular isolate group).
   void WriteFullSnapshot();
 
   intptr_t VmIsolateSnapshotSize() const { return vm_isolate_snapshot_size_; }
@@ -692,8 +692,8 @@ class FullSnapshotWriter {
   // Writes a snapshot of the VM Isolate.
   intptr_t WriteVMSnapshot();
 
-  // Writes a full snapshot of a regular Dart Isolate.
-  void WriteIsolateSnapshot(intptr_t num_base_objects);
+  // Writes a full snapshot of regular Dart isolate group.
+  void WriteProgramSnapshot(intptr_t num_base_objects);
 
   Thread* thread_;
   Snapshot::Kind kind_;
@@ -724,7 +724,7 @@ class FullSnapshotReader {
   ~FullSnapshotReader() {}
 
   RawApiError* ReadVMSnapshot();
-  RawApiError* ReadIsolateSnapshot();
+  RawApiError* ReadProgramSnapshot();
 
  private:
   RawApiError* ConvertToApiError(char* message);

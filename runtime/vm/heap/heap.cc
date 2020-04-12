@@ -720,6 +720,11 @@ void Heap::MergeOtherHeap(Heap* other) {
 
 void Heap::CollectForDebugging() {
   if (gc_on_nth_allocation_ == kNoForcedGarbageCollection) return;
+  if (Thread::Current()->IsAtSafepoint()) {
+    // CollectAllGarbage is not supported when we are at a safepoint.
+    // Allocating when at a safepoint is not a common case.
+    return;
+  }
   gc_on_nth_allocation_--;
   if (gc_on_nth_allocation_ == 0) {
     CollectAllGarbage(kDebugging);

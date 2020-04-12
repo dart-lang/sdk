@@ -95,7 +95,24 @@ void FieldTable::Grow(intptr_t new_capacity) {
   Thread::Current()->field_table_values_ = table_;
 }
 
+FieldTable* FieldTable::Clone() {
+  FieldTable* clone = new FieldTable();
+  auto new_table = static_cast<RawInstance**>(
+      malloc(capacity_ * sizeof(RawInstance*)));  // NOLINT
+  memmove(new_table, table_, top_ * sizeof(RawInstance*));
+  ASSERT(clone->table_ == nullptr);
+  clone->table_ = new_table;
+  clone->capacity_ = capacity_;
+  clone->top_ = top_;
+  return clone;
+}
+
 void FieldTable::VisitObjectPointers(ObjectPointerVisitor* visitor) {
+  // GC might try to visit field table before it's isolate done setting it up.
+  if (table_ == nullptr) {
+    return;
+  }
+
   ASSERT(visitor != NULL);
   visitor->set_gc_root_type("static fields table");
   visitor->VisitPointers(reinterpret_cast<RawObject**>(&table_[0]),

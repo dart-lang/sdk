@@ -1141,10 +1141,10 @@ static Dart_Isolate CreateIsolate(IsolateGroup* group,
     // Api Handles when an error is encountered.
     T->EnterApiScope();
     const Error& error_obj = Error::Handle(
-        Z, Dart::InitializeIsolate(source->snapshot_data,
-                                   source->snapshot_instructions,
-                                   source->kernel_buffer,
-                                   source->kernel_buffer_size, isolate_data));
+        Z, Dart::InitializeIsolate(
+               source->snapshot_data, source->snapshot_instructions,
+               source->kernel_buffer, source->kernel_buffer_size,
+               is_new_group ? nullptr : group, isolate_data));
     if (error_obj.IsNull()) {
 #if defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME)
       if (FLAG_check_function_fingerprints && source->kernel_buffer == NULL) {
@@ -1193,9 +1193,33 @@ static bool IsServiceOrKernelIsolateName(const char* name) {
   return false;
 }
 
+Isolate* CreateWithinExistingIsolateGroupAOT(IsolateGroup* group,
+                                             const char* name,
+                                             char** error) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  API_TIMELINE_DURATION(Thread::Current());
+  CHECK_NO_ISOLATE(Isolate::Current());
+
+  auto spawning_group = group;
+
+  Isolate* isolate = reinterpret_cast<Isolate*>(
+      CreateIsolate(spawning_group, /*is_new_group=*/false, name,
+                    /*isolate_data=*/nullptr, error));
+  if (isolate == nullptr) return nullptr;
+
+  auto source = spawning_group->source();
+  ASSERT(isolate->source() == source);
+
+  return isolate;
+#else
+  UNREACHABLE();
+#endif
+}
+
 Isolate* CreateWithinExistingIsolateGroup(IsolateGroup* group,
                                           const char* name,
                                           char** error) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
   API_TIMELINE_DURATION(Thread::Current());
   CHECK_NO_ISOLATE(Isolate::Current());
 
@@ -1218,9 +1242,6 @@ Isolate* CreateWithinExistingIsolateGroup(IsolateGroup* group,
   ASSERT(isolate->source() == source);
 
   if (source->script_kernel_buffer != nullptr) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    UNREACHABLE();
-#else
     Dart_EnterScope();
     {
       Thread* T = Thread::Current();
@@ -1250,7 +1271,6 @@ Isolate* CreateWithinExistingIsolateGroup(IsolateGroup* group,
       isolate->object_store()->set_root_library(Library::Cast(tmp));
     }
     Dart_ExitScope();
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
   }
 
   // If we are running in AppJIT training mode we'll have to remap class ids.
@@ -1321,7 +1341,9 @@ Isolate* CreateWithinExistingIsolateGroup(IsolateGroup* group,
 
         isolate->isolate_group_ = group;
         group->RegisterIsolateLocked(isolate);
-        isolate->class_table()->shared_class_table_ = group->class_table();
+        isolate->class_table()->shared_class_table_ =
+            group->shared_class_table();
+        isolate->set_shared_class_table(group->shared_class_table());
 
         // Even though the mutator thread was descheduled, it will still
         // retain its [Thread] structure with valid isolate/isolate_group
@@ -1353,6 +1375,9 @@ Isolate* CreateWithinExistingIsolateGroup(IsolateGroup* group,
   ASSERT(Thread::Current()->isolate_group() == isolate->group());
 
   return isolate;
+#else
+  UNREACHABLE();
+#endif
 }
 
 DART_EXPORT void Dart_IsolateFlagsInitialize(Dart_IsolateFlags* flags) {

@@ -449,7 +449,7 @@ class ScavengerWeakVisitor : public HandleVisitor {
   ScavengerWeakVisitor(Thread* thread, Scavenger* scavenger)
       : HandleVisitor(thread),
         scavenger_(scavenger),
-        class_table_(thread->isolate_group()->class_table()) {
+        class_table_(thread->isolate_group()->shared_class_table()) {
     ASSERT(scavenger->heap_->isolate_group() == thread->isolate_group());
   }
 

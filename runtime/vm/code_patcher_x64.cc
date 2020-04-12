@@ -474,16 +474,19 @@ void CodePatcher::PatchSwitchableCallAt(uword return_address,
                                         const Code& caller_code,
                                         const Object& data,
                                         const Code& target) {
-  ASSERT(caller_code.ContainsInstructionAt(return_address));
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    BareSwitchableCall call(return_address, caller_code);
-    call.SetData(data);
-    call.SetTarget(target);
-  } else {
-    SwitchableCall call(return_address, caller_code);
-    call.SetData(data);
-    call.SetTarget(target);
-  }
+  // Ensure all threads are suspended as we update data and target pair.
+  Thread::Current()->isolate_group()->RunWithStoppedMutators([&]() {
+    ASSERT(caller_code.ContainsInstructionAt(return_address));
+    if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+      BareSwitchableCall call(return_address, caller_code);
+      call.SetData(data);
+      call.SetTarget(target);
+    } else {
+      SwitchableCall call(return_address, caller_code);
+      call.SetData(data);
+      call.SetTarget(target);
+    }
+  });
 }
 
 RawCode* CodePatcher::GetSwitchableCallTargetAt(uword return_address,
@@ -514,10 +517,12 @@ void CodePatcher::PatchNativeCallAt(uword return_address,
                                     const Code& caller_code,
                                     NativeFunction target,
                                     const Code& trampoline) {
-  ASSERT(caller_code.ContainsInstructionAt(return_address));
-  NativeCall call(return_address, caller_code);
-  call.set_target(trampoline);
-  call.set_native_function(target);
+  Thread::Current()->isolate_group()->RunWithStoppedMutators([&]() {
+    ASSERT(caller_code.ContainsInstructionAt(return_address));
+    NativeCall call(return_address, caller_code);
+    call.set_target(trampoline);
+    call.set_native_function(target);
+  });
 }
 
 RawCode* CodePatcher::GetNativeCallAt(uword return_address,

@@ -133,7 +133,7 @@ bool ServiceIsolate::IsServiceIsolate(const Isolate* isolate) {
   return isolate != nullptr && isolate == isolate_;
 }
 
-bool ServiceIsolate::IsServiceIsolateDescendant(const Isolate* isolate) {
+bool ServiceIsolate::IsServiceIsolateDescendant(Isolate* isolate) {
   MonitorLocker ml(monitor_);
   return isolate->origin_id() == origin_;
 }
