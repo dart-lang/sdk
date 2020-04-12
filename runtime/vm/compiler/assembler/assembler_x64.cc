@@ -1864,7 +1864,8 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
                                      bool near_jump) {
   ASSERT(cid > 0);
   const intptr_t shared_table_offset =
-      target::Isolate::shared_class_table_offset();
+      target::Isolate::class_table_offset() +
+      target::ClassTable::shared_class_table_offset();
   const intptr_t table_offset =
       target::SharedClassTable::class_heap_stats_table_offset();
   const intptr_t class_offset = target::ClassTable::ClassOffsetFor(cid);
@@ -2127,7 +2128,8 @@ void Assembler::LoadClassId(Register result, Register object) {
 
 void Assembler::LoadClassById(Register result, Register class_id) {
   ASSERT(result != class_id);
-  const intptr_t table_offset = target::Isolate::class_table_table_offset();
+  const intptr_t table_offset = target::Isolate::class_table_offset() +
+                                target::ClassTable::table_offset();
 
   LoadIsolate(result);
   movq(result, Address(result, table_offset));

@@ -221,8 +221,7 @@ class FinalizeWeakPersistentHandlesVisitor : public HandleVisitor {
 };
 
 IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
-                           void* embedder_data,
-                           ObjectStore* object_store)
+                           void* embedder_data)
     : embedder_data_(embedder_data),
       isolates_lock_(new SafepointRwLock()),
       isolates_(),
@@ -235,32 +234,12 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       thread_registry_(new ThreadRegistry()),
       safepoint_handler_(new SafepointHandler(this)),
       shared_class_table_(new SharedClassTable()),
-      object_store_(object_store),
-#if defined(DART_PRECOMPILED_RUNTIME)
-      class_table_(new ClassTable(shared_class_table_.get())),
-#else
-      class_table_(nullptr),
-#endif
-      symbols_mutex_(NOT_IN_PRODUCT("Isolate::symbols_mutex_")),
       store_buffer_(new StoreBuffer()),
-      heap_(nullptr),
-      saved_unlinked_calls_(Array::null()) {
+      heap_(nullptr) {
   {
     WriteRwLocker wl(ThreadState::Current(), isolate_groups_rwlock_);
     id_ = isolate_group_random_->NextUInt64();
   }
-}
-
-IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
-                           void* embedder_data)
-    : IsolateGroup(source,
-                   embedder_data,
-#if !defined(DART_PRECOMPILED_RUNTIME)
-                   // in JIT, with --enable_isolate_groups keep object store
-                   // on isolate, rather than on isolate group
-                   FLAG_enable_isolate_groups ? nullptr :
-#endif
-                                              new ObjectStore()) {
 }
 
 IsolateGroup::~IsolateGroup() {
@@ -356,10 +335,6 @@ void IsolateGroup::Shutdown() {
 void IsolateGroup::set_heap(std::unique_ptr<Heap> heap) {
   idle_time_handler_.InitializeWithHeap(heap.get());
   heap_ = std::move(heap);
-}
-
-void IsolateGroup::set_saved_unlinked_calls(const Array& saved_unlinked_calls) {
-  saved_unlinked_calls_ = saved_unlinked_calls.raw();
 }
 
 Thread* IsolateGroup::ScheduleThreadLocked(MonitorLocker* ml,
@@ -717,13 +692,6 @@ void Isolate::SendInternalLibMessage(LibMsgId msg_id, uint64_t capability) {
   MessageWriter writer(false);
   PortMap::PostMessage(
       writer.WriteMessage(msg, main_port(), Message::kOOBPriority));
-}
-
-void Isolate::set_object_store(ObjectStore* object_store) {
-  ASSERT(object_store_ == nullptr);
-  object_store_shared_ptr_.reset(object_store);
-  object_store_ = object_store;
-  isolate_object_store_->set_object_store(object_store);
 }
 
 class IsolateMessageHandler : public MessageHandler {
@@ -1358,19 +1326,9 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       current_tag_(UserTag::null()),
       default_tag_(UserTag::null()),
       ic_miss_code_(Code::null()),
-      object_store_shared_ptr_(isolate_group->object_store_shared_ptr()),
-      object_store_(object_store_shared_ptr_.get()),
-      shared_class_table_(isolate_group->shared_class_table()),
-#if defined(DART_PRECOMPILED_RUNTIME)
-      class_table_(isolate_group->class_table_shared_ptr()),
-#else
-      class_table_(new ClassTable(shared_class_table_)),
-#endif
-      class_table_table_(class_table_->table()),
+      class_table_(isolate_group->class_table()),
       field_table_(new FieldTable()),
       isolate_group_(isolate_group),
-      isolate_object_store_(
-          new IsolateObjectStore(isolate_group->object_store())),
 #if !defined(DART_PRECOMPILED_RUNTIME)
       native_callback_trampolines_(),
 #endif
@@ -1446,6 +1404,9 @@ Isolate::~Isolate() {
   delete reverse_pc_lookup_cache_;
   reverse_pc_lookup_cache_ = nullptr;
 
+  delete dispatch_table_;
+  dispatch_table_ = nullptr;
+
   if (FLAG_enable_interpreter) {
     delete background_compiler_;
     background_compiler_ = nullptr;
@@ -1464,6 +1425,7 @@ Isolate::~Isolate() {
 #endif  // !defined(PRODUCT)
 
   free(name_);
+  delete object_store_;
   delete field_table_;
 #if defined(USING_SIMULATOR)
   delete simulator_;
@@ -1520,20 +1482,6 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
                               bool is_vm_isolate) {
   Isolate* result = new Isolate(isolate_group, api_flags);
   result->BuildName(name_prefix);
-  if (!is_vm_isolate) {
-    // vm isolate object store is initialized later, after null instance
-    // is created (in Dart::Init).
-    // Non-vm isolates need to have isolate object store initialized is that
-    // exit_listeners have to be null-initialized as they will be used if
-    // we fail to create isolate below, have to do low level shutdown.
-    if (result->object_store() == nullptr) {
-      // in JIT with --enable-isolate-groups each isolate still
-      // has to have its own object store
-      result->set_object_store(new ObjectStore());
-    }
-    result->isolate_object_store()->Init();
-  }
-
   ASSERT(result != nullptr);
 
 #if !defined(PRODUCT)
@@ -1657,17 +1605,6 @@ int64_t Isolate::UptimeMicros() const {
   return OS::GetCurrentMonotonicMicros() - start_time_micros_;
 }
 
-Dart_Port Isolate::origin_id() {
-  MutexLocker ml(&origin_id_mutex_);
-  return origin_id_;
-}
-
-void Isolate::set_origin_id(Dart_Port id) {
-  MutexLocker ml(&origin_id_mutex_);
-  ASSERT((id == main_port_ && origin_id_ == 0) || (origin_id_ == main_port_));
-  origin_id_ = id;
-}
-
 bool Isolate::IsPaused() const {
 #if defined(PRODUCT)
   return false;
@@ -1724,7 +1661,7 @@ bool IsolateGroup::ReloadSources(JSONStream* js,
   RELEASE_ASSERT(isolates_.First() == isolates_.Last());
   RELEASE_ASSERT(isolates_.First() == Isolate::Current());
 
-  auto shared_class_table = IsolateGroup::Current()->shared_class_table();
+  auto shared_class_table = IsolateGroup::Current()->class_table();
   std::shared_ptr<IsolateGroupReloadContext> group_reload_context(
       new IsolateGroupReloadContext(this, shared_class_table, js));
   group_reload_context_ = group_reload_context;
@@ -1757,7 +1694,7 @@ bool IsolateGroup::ReloadKernel(JSONStream* js,
   RELEASE_ASSERT(isolates_.First() == isolates_.Last());
   RELEASE_ASSERT(isolates_.First() == Isolate::Current());
 
-  auto shared_class_table = IsolateGroup::Current()->shared_class_table();
+  auto shared_class_table = IsolateGroup::Current()->class_table();
   std::shared_ptr<IsolateGroupReloadContext> group_reload_context(
       new IsolateGroupReloadContext(this, shared_class_table, js));
   group_reload_context_ = group_reload_context;
@@ -1862,7 +1799,7 @@ bool Isolate::AddResumeCapability(const Capability& capability) {
       compiler::target::kSmiMax / (6 * kWordSize);
 
   const GrowableObjectArray& caps = GrowableObjectArray::Handle(
-      current_zone(), isolate_object_store()->resume_capabilities());
+      current_zone(), object_store()->resume_capabilities());
   Capability& current = Capability::Handle(current_zone());
   intptr_t insertion_index = -1;
   for (intptr_t i = 0; i < caps.Length(); i++) {
@@ -1891,7 +1828,7 @@ bool Isolate::AddResumeCapability(const Capability& capability) {
 
 bool Isolate::RemoveResumeCapability(const Capability& capability) {
   const GrowableObjectArray& caps = GrowableObjectArray::Handle(
-      current_zone(), isolate_object_store()->resume_capabilities());
+      current_zone(), object_store()->resume_capabilities());
   Capability& current = Capability::Handle(current_zone());
   for (intptr_t i = 0; i < caps.Length(); i++) {
     current ^= caps.At(i);
@@ -1914,7 +1851,7 @@ void Isolate::AddExitListener(const SendPort& listener,
       compiler::target::kSmiMax / (12 * kWordSize);
 
   const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
-      current_zone(), isolate_object_store()->exit_listeners());
+      current_zone(), object_store()->exit_listeners());
   SendPort& current = SendPort::Handle(current_zone());
   intptr_t insertion_index = -1;
   for (intptr_t i = 0; i < listeners.Length(); i += 2) {
@@ -1945,7 +1882,7 @@ void Isolate::AddExitListener(const SendPort& listener,
 
 void Isolate::RemoveExitListener(const SendPort& listener) {
   const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
-      current_zone(), isolate_object_store()->exit_listeners());
+      current_zone(), object_store()->exit_listeners());
   SendPort& current = SendPort::Handle(current_zone());
   for (intptr_t i = 0; i < listeners.Length(); i += 2) {
     current ^= listeners.At(i);
@@ -1961,7 +1898,7 @@ void Isolate::RemoveExitListener(const SendPort& listener) {
 
 void Isolate::NotifyExitListeners() {
   const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
-      current_zone(), isolate_object_store()->exit_listeners());
+      current_zone(), this->object_store()->exit_listeners());
   if (listeners.IsNull()) return;
 
   SendPort& listener = SendPort::Handle(current_zone());
@@ -1982,7 +1919,7 @@ void Isolate::AddErrorListener(const SendPort& listener) {
       compiler::target::kSmiMax / (6 * kWordSize);
 
   const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
-      current_zone(), isolate_object_store()->error_listeners());
+      current_zone(), object_store()->error_listeners());
   SendPort& current = SendPort::Handle(current_zone());
   intptr_t insertion_index = -1;
   for (intptr_t i = 0; i < listeners.Length(); i++) {
@@ -2010,7 +1947,7 @@ void Isolate::AddErrorListener(const SendPort& listener) {
 
 void Isolate::RemoveErrorListener(const SendPort& listener) {
   const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
-      current_zone(), isolate_object_store()->error_listeners());
+      current_zone(), object_store()->error_listeners());
   SendPort& current = SendPort::Handle(current_zone());
   for (intptr_t i = 0; i < listeners.Length(); i++) {
     current ^= listeners.At(i);
@@ -2026,7 +1963,7 @@ void Isolate::RemoveErrorListener(const SendPort& listener) {
 bool Isolate::NotifyErrorListeners(const String& msg,
                                    const String& stacktrace) {
   const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
-      current_zone(), isolate_object_store()->error_listeners());
+      current_zone(), this->object_store()->error_listeners());
   if (listeners.IsNull()) return false;
 
   const Array& arr = Array::Handle(current_zone(), Array::New(2));
@@ -2448,13 +2385,9 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
                                   ValidationPolicy validate_frames) {
   ASSERT(visitor != nullptr);
 
-  // Visit objects in the object store if there is no isolate group object store
-  if (group()->object_store() == nullptr && object_store() != nullptr) {
+  // Visit objects in the object store.
+  if (object_store() != nullptr) {
     object_store()->VisitObjectPointers(visitor);
-  }
-  // Visit objects in the isolate object store.
-  if (isolate_object_store() != nullptr) {
-    isolate_object_store()->VisitObjectPointers(visitor);
   }
 
   // Visit objects in the class table.
@@ -2462,9 +2395,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
 
   // Visit objects in the field table.
   field_table()->VisitObjectPointers(visitor);
-  if (saved_initial_field_table() != nullptr) {
-    saved_initial_field_table()->VisitObjectPointers(visitor);
-  }
 
   visitor->clear_gc_root_type();
   // Visit the objects directly referenced from the isolate structure.
@@ -2578,11 +2508,6 @@ void IsolateGroup::ForEachIsolate(
   }
 }
 
-Isolate* IsolateGroup::FirstIsolate() const {
-  SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
-  return isolates_.IsEmpty() ? nullptr : isolates_.First();
-}
-
 void IsolateGroup::RunWithStoppedMutators(
     std::function<void()> single_current_mutator,
     std::function<void()> otherwise,
@@ -2623,11 +2548,6 @@ void IsolateGroup::VisitObjectPointers(ObjectPointerVisitor* visitor,
       },
       /*at_safepoint=*/true);
   api_state()->VisitObjectPointersUnlocked(visitor);
-  // Visit objects in the object store.
-  if (object_store() != nullptr) {
-    object_store()->VisitObjectPointers(visitor);
-  }
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&saved_unlinked_calls_));
   VisitStackPointers(visitor, validate_frames);
 }
 
@@ -2701,10 +2621,10 @@ intptr_t IsolateGroup::GetClassSizeForHeapWalkAt(intptr_t cid) {
   if (IsReloading()) {
     return group_reload_context_->GetClassSizeForHeapWalkAt(cid);
   } else {
-    return shared_class_table()->SizeAt(cid);
+    return class_table()->SizeAt(cid);
   }
 #else
-  return shared_class_table()->SizeAt(cid);
+  return class_table()->SizeAt(cid);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 }
 

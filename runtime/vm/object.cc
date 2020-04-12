@@ -1631,8 +1631,6 @@ RawError* Object::Init(Isolate* isolate,
 #if !defined(DART_PRECOMPILED_RUNTIME)
     // Object::Init version when we are bootstrapping from source or from a
     // Kernel binary.
-    // This will initialize isolate group object_store, shared by all isolates
-    // running in the isolate group.
     ObjectStore* object_store = isolate->object_store();
 
     Class& cls = Class::Handle(zone);
@@ -1644,7 +1642,6 @@ RawError* Object::Init(Isolate* isolate,
     // All RawArray fields will be initialized to an empty array, therefore
     // initialize array class first.
     cls = Class::New<Array, RTN::Array>(isolate);
-    ASSERT(object_store->array_class() == Class::null());
     object_store->set_array_class(cls);
 
     // VM classes that are parameterized (Array, ImmutableArray,
@@ -2633,7 +2630,7 @@ RawObject* Object::Allocate(intptr_t cls_id, intptr_t size, Heap::Space space) {
     }
   }
 #ifndef PRODUCT
-  auto class_table = thread->isolate_group()->shared_class_table();
+  auto class_table = thread->isolate_group()->class_table();
   if (class_table->TraceAllocationFor(cls_id)) {
     Profiler::SampleAllocation(thread, cls_id);
   }
@@ -3290,10 +3287,9 @@ UnboxedFieldBitmap Class::CalculateFieldOffsets() const {
     set_num_native_fields(super.num_native_fields());
 
     if (FLAG_precompiled_mode) {
-      host_bitmap = Isolate::Current()
-                        ->group()
-                        ->shared_class_table()
-                        ->GetUnboxedFieldsMapAt(super.id());
+      host_bitmap =
+          Isolate::Current()->group()->class_table()->GetUnboxedFieldsMapAt(
+              super.id());
     }
   }
   // If the super class is parameterized, use the same type_arguments field,
@@ -3756,8 +3752,8 @@ void Class::Finalize() const {
       // Sets the new size in the class table.
       isolate->class_table()->SetAt(id(), raw());
       if (FLAG_precompiled_mode) {
-        isolate->group()->shared_class_table()->SetUnboxedFieldsMapAt(
-            id(), host_bitmap);
+        isolate->group()->class_table()->SetUnboxedFieldsMapAt(id(),
+                                                               host_bitmap);
       }
     }
   }
@@ -3852,7 +3848,7 @@ void Class::DisableAllCHAOptimizedCode() {
 
 bool Class::TraceAllocation(Isolate* isolate) const {
 #ifndef PRODUCT
-  auto class_table = isolate->group()->shared_class_table();
+  auto class_table = isolate->group()->class_table();
   return class_table->TraceAllocationFor(id());
 #else
   return false;
@@ -3864,7 +3860,7 @@ void Class::SetTraceAllocation(bool trace_allocation) const {
   Isolate* isolate = Isolate::Current();
   const bool changed = trace_allocation != this->TraceAllocation(isolate);
   if (changed) {
-    auto class_table = isolate->group()->shared_class_table();
+    auto class_table = isolate->group()->class_table();
     class_table->SetTraceAllocationFor(id(), trace_allocation);
     DisableAllocationStub();
   }
@@ -5942,14 +5938,12 @@ intptr_t TypeArguments::NumInstantiations() const {
 }
 
 RawArray* TypeArguments::instantiations() const {
-  return LoadPointer<RawArray*, std::memory_order_acquire>(
-      &raw_ptr()->instantiations_);
+  return raw_ptr()->instantiations_;
 }
 
 void TypeArguments::set_instantiations(const Array& value) const {
   ASSERT(!value.IsNull());
-  StorePointer<RawArray*, std::memory_order_release>(
-      &raw_ptr()->instantiations_, value.raw());
+  StorePointer(&raw_ptr()->instantiations_, value.raw());
 }
 
 intptr_t TypeArguments::Length() const {
@@ -17534,7 +17528,7 @@ uint32_t Instance::CanonicalizeHash() const {
   Instance& member = Instance::Handle();
 
   const auto unboxed_fields_bitmap =
-      thread->isolate()->group()->shared_class_table()->GetUnboxedFieldsMapAt(
+      thread->isolate()->group()->class_table()->GetUnboxedFieldsMapAt(
           GetClassId());
 
   for (intptr_t offset = Instance::NextFieldOffset(); offset < instance_size;
@@ -17586,7 +17580,7 @@ bool Instance::CheckAndCanonicalizeFields(Thread* thread,
     const intptr_t instance_size = SizeFromClass();
     ASSERT(instance_size != 0);
     const auto unboxed_fields_bitmap =
-        thread->isolate()->group()->shared_class_table()->GetUnboxedFieldsMapAt(
+        thread->isolate()->group()->class_table()->GetUnboxedFieldsMapAt(
             GetClassId());
     for (intptr_t offset = Instance::NextFieldOffset(); offset < instance_size;
          offset += kWordSize) {

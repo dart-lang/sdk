@@ -207,7 +207,6 @@ class Handles {
 
   friend class HandleScope;
   friend class Dart;
-  friend class IsolateObjectStore;
   friend class ObjectStore;
   friend class ThreadState;
   DISALLOW_ALLOCATION();

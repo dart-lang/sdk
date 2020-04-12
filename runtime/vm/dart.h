@@ -59,14 +59,7 @@ class Dart : public AllStatic {
                                      const uint8_t* snapshot_instructions,
                                      const uint8_t* kernel_buffer,
                                      intptr_t kernel_buffer_size,
-                                     IsolateGroup* source_isolate_group,
                                      void* data);
-  static RawError* InitIsolateFromSnapshot(Thread* T,
-                                           Isolate* I,
-                                           const uint8_t* snapshot_data,
-                                           const uint8_t* snapshot_instructions,
-                                           const uint8_t* kernel_buffer,
-                                           intptr_t kernel_buffer_size);
   static void RunShutdownCallback();
   static void ShutdownIsolate(Isolate* isolate);
   static void ShutdownIsolate();

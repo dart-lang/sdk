@@ -402,28 +402,24 @@ DEFINE_RUNTIME_ENTRY(InstantiateType, 3) {
 // Arg2: function type arguments.
 // Return value: instantiated type arguments.
 DEFINE_RUNTIME_ENTRY(InstantiateTypeArguments, 3) {
-  thread->isolate_group()->RunWithStoppedMutators(
-      [&]() {
-        TypeArguments& type_arguments =
-            TypeArguments::CheckedHandle(zone, arguments.ArgAt(0));
-        const TypeArguments& instantiator_type_arguments =
-            TypeArguments::CheckedHandle(zone, arguments.ArgAt(1));
-        const TypeArguments& function_type_arguments =
-            TypeArguments::CheckedHandle(zone, arguments.ArgAt(2));
-        ASSERT(!type_arguments.IsNull() && !type_arguments.IsInstantiated());
-        ASSERT(instantiator_type_arguments.IsNull() ||
-               instantiator_type_arguments.IsInstantiated());
-        ASSERT(function_type_arguments.IsNull() ||
-               function_type_arguments.IsInstantiated());
-        // Code inlined in the caller should have optimized the case where the
-        // instantiator can be reused as type argument vector.
-        ASSERT(!type_arguments.IsUninstantiatedIdentity());
-        type_arguments = type_arguments.InstantiateAndCanonicalizeFrom(
-            instantiator_type_arguments, function_type_arguments);
-        ASSERT(type_arguments.IsNull() || type_arguments.IsInstantiated());
-        arguments.SetReturn(type_arguments);
-      },
-      /*use_force_growth=*/true);
+  TypeArguments& type_arguments =
+      TypeArguments::CheckedHandle(zone, arguments.ArgAt(0));
+  const TypeArguments& instantiator_type_arguments =
+      TypeArguments::CheckedHandle(zone, arguments.ArgAt(1));
+  const TypeArguments& function_type_arguments =
+      TypeArguments::CheckedHandle(zone, arguments.ArgAt(2));
+  ASSERT(!type_arguments.IsNull() && !type_arguments.IsInstantiated());
+  ASSERT(instantiator_type_arguments.IsNull() ||
+         instantiator_type_arguments.IsInstantiated());
+  ASSERT(function_type_arguments.IsNull() ||
+         function_type_arguments.IsInstantiated());
+  // Code inlined in the caller should have optimized the case where the
+  // instantiator can be reused as type argument vector.
+  ASSERT(!type_arguments.IsUninstantiatedIdentity());
+  type_arguments = type_arguments.InstantiateAndCanonicalizeFrom(
+      instantiator_type_arguments, function_type_arguments);
+  ASSERT(type_arguments.IsNull() || type_arguments.IsInstantiated());
+  arguments.SetReturn(type_arguments);
 }
 
 // Instantiate type.
@@ -600,7 +596,6 @@ static void PrintTypeCheck(const char* message,
 // This operation is currently very slow (lookup of code is not efficient yet).
 static void UpdateTypeTestCache(
     Zone* zone,
-    Thread* thread,
     const Instance& instance,
     const AbstractType& type,
     const TypeArguments& instantiator_type_arguments,
@@ -644,103 +639,94 @@ static void UpdateTypeTestCache(
       instance_type_arguments = instance.GetTypeArguments();
     }
   }
-  thread->isolate_group()->RunWithStoppedMutators(
-      [&]() {
-        const intptr_t len = new_cache.NumberOfChecks();
-        if (len >= FLAG_max_subtype_cache_entries) {
-          if (FLAG_trace_type_checks) {
-            OS::PrintErr(
-                "Not updating subtype test cache as its length reached %d\n",
-                FLAG_max_subtype_cache_entries);
-          }
-          return;
-        }
+  const intptr_t len = new_cache.NumberOfChecks();
+  if (len >= FLAG_max_subtype_cache_entries) {
+    if (FLAG_trace_type_checks) {
+      OS::PrintErr("Not updating subtype test cache as its length reached %d\n",
+                   FLAG_max_subtype_cache_entries);
+    }
+    return;
+  }
 #if defined(DEBUG)
-        ASSERT(instance_type_arguments.IsNull() ||
-               instance_type_arguments.IsCanonical());
-        ASSERT(instantiator_type_arguments.IsNull() ||
-               instantiator_type_arguments.IsCanonical());
-        ASSERT(function_type_arguments.IsNull() ||
-               function_type_arguments.IsCanonical());
-        ASSERT(instance_parent_function_type_arguments.IsNull() ||
-               instance_parent_function_type_arguments.IsCanonical());
-        ASSERT(instance_delayed_type_arguments.IsNull() ||
-               instance_delayed_type_arguments.IsCanonical());
-        auto& last_instance_class_id_or_function = Object::Handle(zone);
-        auto& last_instance_type_arguments = TypeArguments::Handle(zone);
-        auto& last_instantiator_type_arguments = TypeArguments::Handle(zone);
-        auto& last_function_type_arguments = TypeArguments::Handle(zone);
-        auto& last_instance_parent_function_type_arguments =
-            TypeArguments::Handle(zone);
-        auto& last_instance_delayed_type_arguments =
-            TypeArguments::Handle(zone);
-        Bool& last_result = Bool::Handle(zone);
-        for (intptr_t i = 0; i < len; ++i) {
-          new_cache.GetCheck(
-              i, &last_instance_class_id_or_function,
-              &last_instance_type_arguments, &last_instantiator_type_arguments,
-              &last_function_type_arguments,
-              &last_instance_parent_function_type_arguments,
-              &last_instance_delayed_type_arguments, &last_result);
-          if ((last_instance_class_id_or_function.raw() ==
-               instance_class_id_or_function.raw()) &&
-              (last_instance_type_arguments.raw() ==
-               instance_type_arguments.raw()) &&
-              (last_instantiator_type_arguments.raw() ==
-               instantiator_type_arguments.raw()) &&
-              (last_function_type_arguments.raw() ==
-               function_type_arguments.raw()) &&
-              (last_instance_parent_function_type_arguments.raw() ==
-               instance_parent_function_type_arguments.raw()) &&
-              (last_instance_delayed_type_arguments.raw() ==
-               instance_delayed_type_arguments.raw())) {
-            // Some other isolate might have updated the cache between entry was
-            // found missing and now.
-            return;
-          }
-        }
+  ASSERT(instance_type_arguments.IsNull() ||
+         instance_type_arguments.IsCanonical());
+  ASSERT(instantiator_type_arguments.IsNull() ||
+         instantiator_type_arguments.IsCanonical());
+  ASSERT(function_type_arguments.IsNull() ||
+         function_type_arguments.IsCanonical());
+  ASSERT(instance_parent_function_type_arguments.IsNull() ||
+         instance_parent_function_type_arguments.IsCanonical());
+  ASSERT(instance_delayed_type_arguments.IsNull() ||
+         instance_delayed_type_arguments.IsCanonical());
+  auto& last_instance_class_id_or_function = Object::Handle(zone);
+  auto& last_instance_type_arguments = TypeArguments::Handle(zone);
+  auto& last_instantiator_type_arguments = TypeArguments::Handle(zone);
+  auto& last_function_type_arguments = TypeArguments::Handle(zone);
+  auto& last_instance_parent_function_type_arguments =
+      TypeArguments::Handle(zone);
+  auto& last_instance_delayed_type_arguments = TypeArguments::Handle(zone);
+  Bool& last_result = Bool::Handle(zone);
+  for (intptr_t i = 0; i < len; ++i) {
+    new_cache.GetCheck(
+        i, &last_instance_class_id_or_function, &last_instance_type_arguments,
+        &last_instantiator_type_arguments, &last_function_type_arguments,
+        &last_instance_parent_function_type_arguments,
+        &last_instance_delayed_type_arguments, &last_result);
+    if ((last_instance_class_id_or_function.raw() ==
+         instance_class_id_or_function.raw()) &&
+        (last_instance_type_arguments.raw() == instance_type_arguments.raw()) &&
+        (last_instantiator_type_arguments.raw() ==
+         instantiator_type_arguments.raw()) &&
+        (last_function_type_arguments.raw() == function_type_arguments.raw()) &&
+        (last_instance_parent_function_type_arguments.raw() ==
+         instance_parent_function_type_arguments.raw()) &&
+        (last_instance_delayed_type_arguments.raw() ==
+         instance_delayed_type_arguments.raw())) {
+      OS::PrintErr("  Error in test cache %p ix: %" Pd ",", new_cache.raw(), i);
+      PrintTypeCheck(" duplicate cache entry", instance, type,
+                     instantiator_type_arguments, function_type_arguments,
+                     result);
+      UNREACHABLE();
+      return;
+    }
+  }
 #endif
-        new_cache.AddCheck(instance_class_id_or_function,
-                           instance_type_arguments, instantiator_type_arguments,
-                           function_type_arguments,
-                           instance_parent_function_type_arguments,
-                           instance_delayed_type_arguments, result);
-        if (FLAG_trace_type_checks) {
-          AbstractType& test_type = AbstractType::Handle(zone, type.raw());
-          if (!test_type.IsInstantiated()) {
-            test_type = type.InstantiateFrom(instantiator_type_arguments,
-                                             function_type_arguments, kAllFree,
-                                             NULL, Heap::kNew);
-          }
-          const auto& type_class = Class::Handle(zone, test_type.type_class());
-          const auto& instance_class_name =
-              String::Handle(zone, instance_class.Name());
-          OS::PrintErr(
-              "  Updated test cache %p ix: %" Pd
-              " with "
-              "(cid-or-fun: %p, type-args: %p, i-type-args: %p, f-type-args: "
-              "%p, "
-              "p-type-args: %p, d-type-args: %p, result: %s)\n"
-              "    instance  [class: (%p '%s' cid: %" Pd
-              "),    type-args: %p %s]\n"
-              "    test-type [class: (%p '%s' cid: %" Pd
-              "), i-type-args: %p %s, f-type-args: %p %s]\n",
-              new_cache.raw(), len, instance_class_id_or_function.raw(),
-              instance_type_arguments.raw(), instantiator_type_arguments.raw(),
-              function_type_arguments.raw(),
-              instance_parent_function_type_arguments.raw(),
-              instance_delayed_type_arguments.raw(), result.ToCString(),
-              instance_class.raw(), instance_class_name.ToCString(),
-              instance_class.id(), instance_type_arguments.raw(),
-              instance_type_arguments.ToCString(), type_class.raw(),
-              String::Handle(zone, type_class.Name()).ToCString(),
-              type_class.id(), instantiator_type_arguments.raw(),
-              instantiator_type_arguments.ToCString(),
-              function_type_arguments.raw(),
-              function_type_arguments.ToCString());
-        }
-      },
-      /*use_force_growth=*/true);
+  new_cache.AddCheck(instance_class_id_or_function, instance_type_arguments,
+                     instantiator_type_arguments, function_type_arguments,
+                     instance_parent_function_type_arguments,
+                     instance_delayed_type_arguments, result);
+  if (FLAG_trace_type_checks) {
+    AbstractType& test_type = AbstractType::Handle(zone, type.raw());
+    if (!test_type.IsInstantiated()) {
+      test_type = type.InstantiateFrom(instantiator_type_arguments,
+                                       function_type_arguments, kAllFree, NULL,
+                                       Heap::kNew);
+    }
+    const auto& type_class = Class::Handle(zone, test_type.type_class());
+    const auto& instance_class_name =
+        String::Handle(zone, instance_class.Name());
+    OS::PrintErr(
+        "  Updated test cache %p ix: %" Pd
+        " with "
+        "(cid-or-fun: %p, type-args: %p, i-type-args: %p, f-type-args: %p, "
+        "p-type-args: %p, d-type-args: %p, result: %s)\n"
+        "    instance  [class: (%p '%s' cid: %" Pd
+        "),    type-args: %p %s]\n"
+        "    test-type [class: (%p '%s' cid: %" Pd
+        "), i-type-args: %p %s, f-type-args: %p %s]\n",
+        new_cache.raw(), len, instance_class_id_or_function.raw(),
+        instance_type_arguments.raw(), instantiator_type_arguments.raw(),
+        function_type_arguments.raw(),
+        instance_parent_function_type_arguments.raw(),
+        instance_delayed_type_arguments.raw(), result.ToCString(),
+        instance_class.raw(), instance_class_name.ToCString(),
+        instance_class.id(), instance_type_arguments.raw(),
+        instance_type_arguments.ToCString(), type_class.raw(),
+        String::Handle(zone, type_class.Name()).ToCString(), type_class.id(),
+        instantiator_type_arguments.raw(),
+        instantiator_type_arguments.ToCString(), function_type_arguments.raw(),
+        function_type_arguments.ToCString());
+  }
 }
 
 // Check that the given instance is an instance of the given type.
@@ -770,7 +756,7 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 5) {
     PrintTypeCheck("InstanceOf", instance, type, instantiator_type_arguments,
                    function_type_arguments, result);
   }
-  UpdateTypeTestCache(zone, thread, instance, type, instantiator_type_arguments,
+  UpdateTypeTestCache(zone, instance, type, instantiator_type_arguments,
                       function_type_arguments, result, cache);
   arguments.SetReturn(result);
 }
@@ -934,26 +920,18 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
       TypeTestingStubCallPattern tts_pattern(caller_frame->pc());
       const intptr_t stc_pool_idx = tts_pattern.GetSubtypeTestCachePoolIndex();
 
-      thread->isolate_group()->RunWithStoppedMutators(
-          [&]() {
-            // If nobody has updated the pool since the check, we are
-            // updating it now.
-            if (pool.ObjectAt(stc_pool_idx) == Object::null()) {
-              cache = SubtypeTestCache::New();
-              pool.SetObjectAt(stc_pool_idx, cache);
-            }
-          },
-          /*use_force_growth=*/true);
+      // The pool entry must be initialized to `null` when we patch it.
+      ASSERT(pool.ObjectAt(stc_pool_idx) == Object::null());
+      cache = SubtypeTestCache::New();
+      pool.SetObjectAt(stc_pool_idx, cache);
 #else
       UNREACHABLE();
 #endif
     }
 
-    if (!cache.IsNull()) {  //  we might have lost the race to set up new cache
-      UpdateTypeTestCache(zone, thread, src_instance, dst_type,
-                          instantiator_type_arguments, function_type_arguments,
-                          Bool::True(), cache);
-    }
+    UpdateTypeTestCache(zone, src_instance, dst_type,
+                        instantiator_type_arguments, function_type_arguments,
+                        Bool::True(), cache);
   }
 
   arguments.SetReturn(src_instance);
@@ -1480,39 +1458,36 @@ static void SaveUnlinkedCall(Zone* zone,
                              Isolate* isolate,
                              uword frame_pc,
                              const UnlinkedCall& unlinked_call) {
-  IsolateGroup* isolate_group = isolate->group();
-  if (isolate_group->saved_unlinked_calls() == Array::null()) {
+  auto object_store = isolate->object_store();
+  if (object_store->saved_unlinked_calls() == Array::null()) {
     const auto& initial_map =
         Array::Handle(zone, HashTables::New<UnlinkedCallMap>(16, Heap::kOld));
-    isolate_group->set_saved_unlinked_calls(initial_map);
+    object_store->set_saved_unlinked_calls(initial_map);
   }
 
-  UnlinkedCallMap unlinked_call_map(zone,
-                                    isolate_group->saved_unlinked_calls());
+  UnlinkedCallMap unlinked_call_map(zone, object_store->saved_unlinked_calls());
   const auto& pc = Integer::Handle(Integer::NewFromUint64(frame_pc));
-  // Some other isolate might have updated unlinked_call_map[pc] too, but
-  // their update should be identical to ours.
-  unlinked_call_map.UpdateOrInsert(pc, unlinked_call);
-  isolate_group->set_saved_unlinked_calls(unlinked_call_map.Release());
+  const bool was_present = unlinked_call_map.UpdateOrInsert(pc, unlinked_call);
+  // We transition at most once out of UnlinkedCall state.
+  RELEASE_ASSERT(!was_present);
+  object_store->set_saved_unlinked_calls(unlinked_call_map.Release());
 }
 
 #if defined(DART_PRECOMPILED_RUNTIME)
 static RawUnlinkedCall* LoadUnlinkedCall(Zone* zone,
                                          Isolate* isolate,
                                          uword pc) {
-  IsolateGroup* isolate_group = isolate->group();
-  ASSERT(isolate_group->saved_unlinked_calls() != Array::null());
+  auto object_store = isolate->object_store();
+  ASSERT(object_store->saved_unlinked_calls() != Array::null());
 
-  UnlinkedCallMap unlinked_call_map(zone,
-                                    isolate_group->saved_unlinked_calls());
-
+  UnlinkedCallMap unlinked_call_map(zone, object_store->saved_unlinked_calls());
   const auto& pc_integer = Integer::Handle(Integer::NewFromUint64(pc));
   const auto& unlinked_call = UnlinkedCall::Cast(
       Object::Handle(zone, unlinked_call_map.GetOrDie(pc_integer)));
   // Since we transition out of the monomorphic state only once, we should not
   // need the saved unlinked call anymore.
   unlinked_call_map.Remove(pc_integer);
-  isolate_group->set_saved_unlinked_calls(unlinked_call_map.Release());
+  object_store->set_saved_unlinked_calls(unlinked_call_map.Release());
 
   return unlinked_call.raw();
 }
@@ -1766,14 +1741,6 @@ void SwitchableCallHandler::DoMonomorphicMiss(const Object& data) {
     ic_data.AddReceiverCheck(old_expected_cid, old_target);
   }
 
-  if (old_expected_cid == receiver_.GetClassId()) {
-    // The site just have been updated to monomoprhic state with same
-    // exact class id - do nothing in that case: stub will call through ic data.
-    arguments_.SetArgAt(0, StubCode::ICCallThroughCode());
-    arguments_.SetReturn(ic_data);
-    return;
-  }
-
   const Function& target_function = Function::Handle(
       zone_, ResolveAndAddReceiverCheck(name, descriptor, ic_data));
 
@@ -1930,12 +1897,7 @@ void SwitchableCallHandler::DoICDataMiss(const ICData& ic_data) {
     arguments_.SetArgAt(0, target_code);
     arguments_.SetReturn(expected_cid);
   } else {
-    // IC entry might have been added while we waited to get into runtime.
-    GrowableArray<intptr_t> class_ids(1);
-    class_ids.Add(receiver_.GetClassId());
-    if (ic_data.FindCheck(class_ids) == -1) {
-      ic_data.AddReceiverCheck(receiver_.GetClassId(), target_function);
-    }
+    ic_data.AddReceiverCheck(receiver_.GetClassId(), target_function);
     if (number_of_checks > FLAG_max_polymorphic_checks) {
       // Switch to megamorphic call.
       const MegamorphicCache& cache = MegamorphicCache::Handle(
@@ -1984,14 +1946,14 @@ void SwitchableCallHandler::DoMegamorphicMiss(const MegamorphicCache& data) {
 }
 
 void SwitchableCallHandler::HandleMiss(const Object& old_data,
-                                       const Code& old_code) {
+                                       const Code& old_target) {
   switch (old_data.GetClassId()) {
     case kUnlinkedCallCid:
-      ASSERT(old_code.raw() == StubCode::SwitchableCallMiss().raw());
+      ASSERT(old_target.raw() == StubCode::SwitchableCallMiss().raw());
       DoUnlinkedCall(UnlinkedCall::Cast(old_data));
       break;
     case kMonomorphicSmiableCallCid:
-      ASSERT(old_code.raw() == StubCode::MonomorphicSmiableCheck().raw());
+      ASSERT(old_target.raw() == StubCode::MonomorphicSmiableCheck().raw());
       FALL_THROUGH;
 #if defined(DART_PRECOMPILED_RUNTIME)
     case kSmiCid:
@@ -2003,15 +1965,15 @@ void SwitchableCallHandler::HandleMiss(const Object& old_data,
       DoMonomorphicMiss(old_data);
       break;
     case kSingleTargetCacheCid:
-      ASSERT(old_code.raw() == StubCode::SingleTargetCall().raw());
+      ASSERT(old_target.raw() == StubCode::SingleTargetCall().raw());
       DoSingleTargetMiss(SingleTargetCache::Cast(old_data));
       break;
     case kICDataCid:
-      ASSERT(old_code.raw() == StubCode::ICCallThroughCode().raw());
+      ASSERT(old_target.raw() == StubCode::ICCallThroughCode().raw());
       DoICDataMiss(ICData::Cast(old_data));
       break;
     case kMegamorphicCacheCid:
-      ASSERT(old_code.raw() == StubCode::MegamorphicCall().raw());
+      ASSERT(old_target.raw() == StubCode::MegamorphicCall().raw());
       DoMegamorphicMiss(MegamorphicCache::Cast(old_data));
       break;
     default:
@@ -2044,24 +2006,20 @@ DEFINE_RUNTIME_ENTRY(SwitchableCallMiss, 2) {
 
   Object& old_data = Object::Handle(zone);
   Code& old_code = Code::Handle(zone);
-  thread->isolate_group()->RunWithStoppedMutators(
-      [&]() {
 #if defined(DART_PRECOMPILED_RUNTIME)
-        old_data = CodePatcher::GetSwitchableCallDataAt(caller_frame->pc(),
-                                                        caller_code);
+  old_data =
+      CodePatcher::GetSwitchableCallDataAt(caller_frame->pc(), caller_code);
 #if defined(DEBUG)
-        old_code ^= CodePatcher::GetSwitchableCallTargetAt(caller_frame->pc(),
-                                                           caller_code);
+  old_code ^=
+      CodePatcher::GetSwitchableCallTargetAt(caller_frame->pc(), caller_code);
 #endif
 #else
-        old_code ^= CodePatcher::GetInstanceCallAt(caller_frame->pc(),
-                                                   caller_code, &old_data);
+  old_code ^= CodePatcher::GetInstanceCallAt(caller_frame->pc(), caller_code,
+                                             &old_data);
 #endif
-        SwitchableCallHandler handler(thread, receiver, arguments, caller_frame,
-                                      caller_code, caller_function);
-        handler.HandleMiss(old_data, old_code);
-      },
-      /*use_force_growth=*/true);
+  SwitchableCallHandler handler(thread, receiver, arguments, caller_frame,
+                                caller_code, caller_function);
+  handler.HandleMiss(old_data, old_code);
 }
 
 // Handles interpreted interface call cache miss.

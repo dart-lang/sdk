@@ -193,7 +193,7 @@ var tests = <IsolateTest>[
       'limit': 100,
     };
     var result = await isolate.invokeRpcNoUpgrade('getRetainingPath', params);
-    expect(result['gcRootType'], 'isolate_object store');
+    expect(result['gcRootType'], 'object store');
     expect(result['elements'].length, 0);
   },
 ];

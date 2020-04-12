@@ -55,8 +55,6 @@ class FieldTable {
   }
   void SetAt(intptr_t index, RawInstance* raw_instance);
 
-  FieldTable* Clone();
-
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
   static const int kInitialCapacity = 512;

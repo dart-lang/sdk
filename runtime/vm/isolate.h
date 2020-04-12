@@ -19,7 +19,6 @@
 #include "vm/base_isolate.h"
 #include "vm/class_table.h"
 #include "vm/constants_kbc.h"
-#include "vm/dispatch_table.h"
 #include "vm/exceptions.h"
 #include "vm/ffi_callback_trampolines.h"
 #include "vm/field_table.h"
@@ -47,6 +46,7 @@ class Capability;
 class CodeIndexTable;
 class Debugger;
 class DeoptContext;
+class DispatchTable;
 class ExternalTypedData;
 class HandleScope;
 class HandleVisitor;
@@ -55,7 +55,6 @@ class ICData;
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class Interpreter;
 #endif
-class IsolateObjectStore;
 class IsolateProfilerData;
 class IsolateReloadContext;
 class IsolateSpawnState;
@@ -276,9 +275,6 @@ class DisableIdleTimerScope : public ValueObject {
 // Represents an isolate group and is shared among all isolates within a group.
 class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
  public:
-  IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
-               void* embedder_data,
-               ObjectStore* object_store);
   IsolateGroup(std::shared_ptr<IsolateGroupSource> source, void* embedder_data);
   ~IsolateGroup();
 
@@ -337,24 +333,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   }
 #endif  // !defined(PRODUCT)
 
-  DispatchTable* dispatch_table() const { return dispatch_table_.get(); }
-  void set_dispatch_table(DispatchTable* table) {
-    dispatch_table_.reset(table);
-  }
-
-  SharedClassTable* shared_class_table() const {
-    return shared_class_table_.get();
-  }
+  SharedClassTable* class_table() const { return shared_class_table_.get(); }
   StoreBuffer* store_buffer() const { return store_buffer_.get(); }
-  ClassTable* class_table() const { return class_table_.get(); }
-  const std::shared_ptr<ClassTable>& class_table_shared_ptr() const {
-    return class_table_;
-  }
-  ObjectStore* object_store() const { return object_store_.get(); }
-  const std::shared_ptr<ObjectStore>& object_store_shared_ptr() const {
-    return object_store_;
-  }
-  Mutex* symbols_mutex() { return &symbols_mutex_; }
 
   static inline IsolateGroup* Current() {
     Thread* thread = Thread::Current();
@@ -406,7 +386,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   // adding/removing isolates, so no locks will be held.
   void ForEachIsolate(std::function<void(Isolate* isolate)> function,
                       bool at_safepoint = false);
-  Isolate* FirstIsolate() const;
 
   // Ensures mutators are stopped during execution of the provided function.
   //
@@ -422,9 +401,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
                               std::function<void()> otherwise,
                               bool use_force_growth_in_otherwise = false);
 
-  void RunWithStoppedMutators(std::function<void()> function,
-                              bool use_force_growth = false) {
-    RunWithStoppedMutators(function, function, use_force_growth);
+  void RunWithStoppedMutators(std::function<void()> function) {
+    RunWithStoppedMutators(function, function);
   }
 
 #ifndef PRODUCT
@@ -505,9 +483,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void RememberLiveTemporaries();
   void DeferredMarkLiveTemporaries();
 
-  RawArray* saved_unlinked_calls() const { return saved_unlinked_calls_; }
-  void set_saved_unlinked_calls(const Array& saved_unlinked_calls);
-
  private:
   friend class Heap;
   friend class StackFrame;  // For `[isolates_].First()`.
@@ -569,16 +544,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   uint64_t id_ = 0;
 
   std::unique_ptr<SharedClassTable> shared_class_table_;
-  std::shared_ptr<ObjectStore> object_store_;  // nullptr in JIT mode
-  std::shared_ptr<ClassTable> class_table_;    // nullptr in JIT mode
-  // This symbols_mutex_ on Isolate is only used when IsolateGroup does not
-  // have object_store.
-  Mutex symbols_mutex_;  // Protects concurrent access to the symbol table.
   std::unique_ptr<StoreBuffer> store_buffer_;
   std::unique_ptr<Heap> heap_;
-  std::unique_ptr<DispatchTable> dispatch_table_;
-  RawArray* saved_unlinked_calls_;
-
   IdleTimeHandler idle_time_handler_;
   uint32_t isolate_group_flags_ = 0;
 };
@@ -637,53 +604,12 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     return group()->safepoint_handler();
   }
 
-  ClassTable* class_table() { return class_table_.get(); }
-
-  RawClass** class_table_table() { return class_table_table_; }
-  void set_class_table_table(RawClass** class_table_table) {
-    class_table_table_ = class_table_table;
+  ClassTable* class_table() { return &class_table_; }
+  static intptr_t class_table_offset() {
+    return OFFSET_OF(Isolate, class_table_);
   }
-  static intptr_t class_table_table_offset() {
-    return OFFSET_OF(Isolate, class_table_table_);
-  }
-
-  SharedClassTable* shared_class_table() const { return shared_class_table_; }
-  // Used during isolate creation to re-register isolate with right group.
-  void set_shared_class_table(SharedClassTable* table) {
-    shared_class_table_ = table;
-  }
-  // Used by the generated code.
-  static intptr_t shared_class_table_offset() {
-    return OFFSET_OF(Isolate, shared_class_table_);
-  }
-
-  ObjectStore* object_store() const { return object_store_shared_ptr_.get(); }
-  void set_object_store(ObjectStore* object_store);
-  static intptr_t object_store_offset() {
-    return OFFSET_OF(Isolate, object_store_);
-  }
-  Mutex* symbols_mutex() { return &symbols_mutex_; }
 
   FieldTable* field_table() const { return field_table_; }
-  void set_field_table(Thread* T, FieldTable* field_table) {
-    delete field_table_;
-    field_table_ = field_table;
-    T->field_table_values_ = field_table->table();
-  }
-
-  FieldTable* saved_initial_field_table() const {
-    return saved_initial_field_table_.get();
-  }
-  std::shared_ptr<FieldTable> saved_initial_field_table_shareable() {
-    return saved_initial_field_table_;
-  }
-  void set_saved_initial_field_table(std::shared_ptr<FieldTable> field_table) {
-    saved_initial_field_table_ = field_table;
-  }
-
-  IsolateObjectStore* isolate_object_store() const {
-    return isolate_object_store_.get();
-  }
 
   // Prefers old classes when we are in the middle of a reload.
   RawClass* GetClassForHeapWalkAt(intptr_t cid);
@@ -717,8 +643,11 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     ASSERT(main_port_ == 0);  // Only set main port once.
     main_port_ = port;
   }
-  Dart_Port origin_id();
-  void set_origin_id(Dart_Port id);
+  Dart_Port origin_id() const { return origin_id_; }
+  void set_origin_id(Dart_Port id) {
+    ASSERT((id == main_port_ && origin_id_ == 0) || (origin_id_ == main_port_));
+    origin_id_ = id;
+  }
   void set_pause_capability(uint64_t value) { pause_capability_ = value; }
   uint64_t pause_capability() const { return pause_capability_; }
   void set_terminate_capability(uint64_t value) {
@@ -729,6 +658,12 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   void SendInternalLibMessage(LibMsgId msg_id, uint64_t capability);
 
   Heap* heap() const { return isolate_group_->heap(); }
+
+  ObjectStore* object_store() const { return object_store_; }
+  void set_object_store(ObjectStore* value) { object_store_ = value; }
+  static intptr_t object_store_offset() {
+    return OFFSET_OF(Isolate, object_store_);
+  }
 
   void set_init_callback_data(void* value) { init_callback_data_ = value; }
   void* init_callback_data() const { return init_callback_data_; }
@@ -779,6 +714,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   }
 
   Mutex* mutex() { return &mutex_; }
+  Mutex* symbols_mutex() { return &symbols_mutex_; }
   Mutex* type_canonicalization_mutex() { return &type_canonicalization_mutex_; }
   Mutex* constant_canonicalization_mutex() {
     return &constant_canonicalization_mutex_;
@@ -796,6 +732,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
 #if !defined(PRODUCT)
   Debugger* debugger() const {
+    ASSERT(debugger_ != nullptr);
     return debugger_;
   }
 
@@ -1108,9 +1045,8 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   void set_obfuscation_map(const char** map) { obfuscation_map_ = map; }
   const char** obfuscation_map() const { return obfuscation_map_; }
 
-  const DispatchTable* dispatch_table() const {
-    return group()->dispatch_table();
-  }
+  const DispatchTable* dispatch_table() const { return dispatch_table_; }
+  void set_dispatch_table(DispatchTable* table) { dispatch_table_ = table; }
 
   // Returns the pc -> code lookup cache object for this isolate.
   ReversePcLookupCache* reverse_pc_lookup_cache() const {
@@ -1294,23 +1230,14 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   RawUserTag* current_tag_;
   RawUserTag* default_tag_;
   RawCode* ic_miss_code_;
-  // shared in AOT(same pointer as on IsolateGroup), not shared in JIT
-  std::shared_ptr<ObjectStore> object_store_shared_ptr_;
-  // mirror of object_store_shared_ptr_, here for generated code access
   ObjectStore* object_store_ = nullptr;
-  SharedClassTable* shared_class_table_ = nullptr;
-  // shared in AOT(same pointer as on IsolateGroup), not shared in JIT
-  std::shared_ptr<ClassTable> class_table_;
-  // Mirrored value of class_table_->table_ for access from generated code.
-  RawClass** class_table_table_ = nullptr;
+  ClassTable class_table_;
   FieldTable* field_table_ = nullptr;
   bool single_step_ = false;
   // End accessed from generated code.
 
   IsolateGroup* isolate_group_;
   IdleTimeHandler idle_time_handler_;
-  std::shared_ptr<FieldTable> saved_initial_field_table_;
-  std::unique_ptr<IsolateObjectStore> isolate_object_store_;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   NativeCallbackTrampolines native_callback_trampolines_;
@@ -1398,7 +1325,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   Dart_Port main_port_ = 0;
   // Isolates created by Isolate.spawn have the same origin id.
   Dart_Port origin_id_ = 0;
-  Mutex origin_id_mutex_;
   uint64_t pause_capability_ = 0;
   uint64_t terminate_capability_ = 0;
   void* init_callback_data_ = nullptr;

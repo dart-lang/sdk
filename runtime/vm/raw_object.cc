@@ -64,11 +64,11 @@ void RawObject::Validate(IsolateGroup* isolate_group) const {
     }
   }
   const intptr_t class_id = ClassIdTag::decode(tags);
-  if (!isolate_group->shared_class_table()->IsValidIndex(class_id)) {
+  if (!isolate_group->class_table()->IsValidIndex(class_id)) {
     FATAL1("Invalid class id encountered %" Pd "\n", class_id);
   }
   if (class_id == kNullCid &&
-      isolate_group->shared_class_table()->HasValidClassAt(class_id)) {
+      isolate_group->class_table()->HasValidClassAt(class_id)) {
     // Null class not yet initialized; skip.
     return;
   }
@@ -241,7 +241,7 @@ intptr_t RawObject::HeapSizeFromClass(uint32_t tags) const {
       const bool use_saved_class_table = false;
 #endif
 
-      auto class_table = isolate_group->shared_class_table();
+      auto class_table = isolate_group->class_table();
       ASSERT(use_saved_class_table || class_table->SizeAt(class_id) > 0);
       if (!class_table->IsValidIndex(class_id) ||
           (!class_table->HasValidClassAt(class_id) && !use_saved_class_table)) {

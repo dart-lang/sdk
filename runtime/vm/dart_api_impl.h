@@ -353,9 +353,6 @@ class IsolateGroupSource;
 Isolate* CreateWithinExistingIsolateGroup(IsolateGroup* group,
                                           const char* name,
                                           char** error);
-Isolate* CreateWithinExistingIsolateGroupAOT(IsolateGroup* group,
-                                             const char* name,
-                                             char** error);
 
 }  // namespace dart.
 
