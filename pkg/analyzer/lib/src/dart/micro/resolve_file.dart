@@ -4,7 +4,6 @@
 
 import 'dart:typed_data';
 
-import 'package:analyzer/dart/analysis/context_locator.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -15,6 +14,7 @@ import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
@@ -23,7 +23,8 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/micro/analysis_context.dart';
 import 'package:analyzer/src/dart/micro/library_analyzer.dart';
 import 'package:analyzer/src/dart/micro/library_graph.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
+import 'package:analyzer/src/generated/engine.dart'
+    show AnalysisEngine, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -59,9 +60,13 @@ class FileResolver {
    */
   final void Function(List<String> paths) prefetchFiles;
 
-  Workspace workspace;
+  final Workspace workspace;
 
   MicroAnalysisContextImpl analysisContext;
+
+  FileSystemState fsState;
+
+  _LibraryContext libraryContext;
 
   FileResolver(this.logger, this.resourceProvider, this.byteStore,
       this.sourceFactory, this.getFileDigest, this.prefetchFiles,
@@ -73,37 +78,144 @@ class FileResolver {
   ResolvedUnitResult resolve(String path) {
     _throwIfNotAbsoluteNormalizedPath(path);
 
+    var analysisOptions = _getAnalysisOptions(path);
+
     return logger.run('Resolve $path', () {
+      _createContext(analysisOptions);
+
+      var file = logger.run('Get file $path', () {
+        return fsState.getFileForPath(path);
+      });
+
+      libraryContext.load2(file);
+
+      var errorListener = RecordingErrorListener();
+      var content = resourceProvider.getFile(path).readAsStringSync();
+      var unit = file.parse(errorListener, content);
+
+      Map<FileState, UnitAnalysisResult> results;
+      logger.run('Compute analysis results', () {
+        var libraryAnalyzer = LibraryAnalyzer(
+          analysisOptions,
+          analysisContext.declaredVariables,
+          sourceFactory,
+          (_) => true,
+          // _isLibraryUri
+          libraryContext.analysisContext,
+          libraryContext.elementFactory,
+          libraryContext.inheritanceManager,
+          file,
+          resourceProvider,
+          (String path) => resourceProvider.getFile(path).readAsStringSync(),
+        );
+
+        results = libraryAnalyzer.analyzeSync();
+      });
+      UnitAnalysisResult fileResult = results[file];
+
+      return ResolvedUnitResultImpl(
+        analysisContext.currentSession,
+        path,
+        file.uri,
+        file.exists,
+        content,
+        unit.lineInfo,
+        false, // isPart
+        fileResult.unit,
+        fileResult.errors,
+      );
+    });
+  }
+
+  /// Make sure that [analysisContext], [fsState] and [libraryContext] are
+  /// compatible with the given [fileAnalysisOptions].
+  ///
+  /// Specifically we check that `implicit-casts` and `strict-inference`
+  /// flags are the same, so the type systems would be the same.
+  void _createContext(AnalysisOptionsImpl fileAnalysisOptions) {
+    if (analysisContext != null) {
+      var analysisOptions = analysisContext.analysisOptions;
+      var analysisOptionsImpl = analysisOptions as AnalysisOptionsImpl;
+      if (analysisOptionsImpl.implicitCasts !=
+              fileAnalysisOptions.implicitCasts ||
+          analysisOptionsImpl.strictInference !=
+              fileAnalysisOptions.strictInference) {
+        logger.writeln(
+          'Reset the context, different type system affecting options.',
+        );
+        fsState = null; // TODO(scheglov) don't do this
+        analysisContext = null;
+        libraryContext = null;
+      }
+    }
+
+    var analysisOptions = AnalysisOptionsImpl()
+      ..implicitCasts = fileAnalysisOptions.implicitCasts
+      ..strictInference = fileAnalysisOptions.strictInference;
+
+    if (fsState == null) {
+      var featureSetProvider = FeatureSetProvider.build(
+        resourceProvider: resourceProvider,
+        packages: Packages.empty,
+        packageDefaultFeatureSet: analysisOptions.contextFeatures,
+        nonPackageDefaultFeatureSet: analysisOptions.nonPackageFeatureSet,
+      );
+
+      fsState = FileSystemState(
+        logger,
+        resourceProvider,
+        byteStore,
+        sourceFactory,
+        analysisOptions,
+        Uint32List(0), // linkedSalt
+        featureSetProvider,
+        getFileDigest,
+        prefetchFiles,
+      );
+    }
+
+    if (analysisContext == null) {
       logger.run('Create AnalysisContext', () {
-        var contextLocator = ContextLocator(
-          resourceProvider: this.resourceProvider,
+        var root = ContextRootImpl(
+          resourceProvider,
+          resourceProvider.getFolder(workspace.root),
         );
-
-        var roots = contextLocator.locateRoots(
-          includedPaths: [path],
-          excludedPaths: [],
-        );
-        if (roots.length != 1) {
-          throw StateError('Exactly one root expected: $roots');
-        }
-        var root = roots[0];
-
-        var analysisOptions = _getAnalysisOptions(root.optionsFile);
-        var declaredVariables = DeclaredVariables();
 
         analysisContext = MicroAnalysisContextImpl(
           this,
           root,
           analysisOptions,
-          declaredVariables,
+          DeclaredVariables(),
           sourceFactory,
           resourceProvider,
           workspace: workspace,
         );
       });
+    }
 
-      return _resolve(path);
-    });
+    if (libraryContext == null) {
+      libraryContext = _LibraryContext(
+        logger,
+        resourceProvider,
+        byteStore,
+        analysisContext.currentSession,
+        analysisContext.analysisOptions,
+        sourceFactory,
+        analysisContext.declaredVariables,
+      );
+    }
+  }
+
+  File _findOptionsFile(Folder folder) {
+    while (folder != null) {
+      File packagesFile =
+          _getFile(folder, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
+      if (packagesFile != null) {
+        return packagesFile;
+      }
+      folder = folder.parent;
+    }
+    return null;
   }
 
   /// Return the analysis options.
@@ -114,9 +226,10 @@ class FileResolver {
   /// default options, if the file exists.
   ///
   /// Otherwise, return the default options.
-  AnalysisOptionsImpl _getAnalysisOptions(File optionsFile) {
+  AnalysisOptionsImpl _getAnalysisOptions(String path) {
     YamlMap optionMap;
-
+    var folder = resourceProvider.getFile(path).parent;
+    var optionsFile = _findOptionsFile(folder);
     if (optionsFile != null) {
       try {
         var optionsProvider = AnalysisOptionsProvider(sourceFactory);
@@ -149,80 +262,6 @@ class FileResolver {
     return options;
   }
 
-  ResolvedUnitResultImpl _resolve(String path) {
-    var options = analysisContext.analysisOptions;
-    var featureSetProvider = FeatureSetProvider.build(
-      resourceProvider: resourceProvider,
-      packages: Packages.empty,
-      packageDefaultFeatureSet: analysisContext.analysisOptions.contextFeatures,
-      nonPackageDefaultFeatureSet:
-          (options as AnalysisOptionsImpl).nonPackageFeatureSet,
-    );
-
-    var fsState = FileSystemState(
-      logger,
-      resourceProvider,
-      byteStore,
-      analysisContext.sourceFactory,
-      analysisContext.analysisOptions,
-      Uint32List(0), // linkedSalt
-      featureSetProvider,
-      getFileDigest,
-      prefetchFiles,
-    );
-
-    FileState file;
-    logger.run('Get file $path', () {
-      file = fsState.getFileForPath(path);
-    });
-
-    var errorListener = RecordingErrorListener();
-    var content = resourceProvider.getFile(path).readAsStringSync();
-    var unit = file.parse(errorListener, content);
-
-    _LibraryContext libraryContext = _LibraryContext(
-      logger,
-      resourceProvider,
-      byteStore,
-      analysisContext.currentSession,
-      analysisContext.analysisOptions,
-      analysisContext.sourceFactory,
-      analysisContext.declaredVariables,
-    );
-    libraryContext.load2(file);
-
-    Map<FileState, UnitAnalysisResult> results;
-    logger.run('Compute analysis results', () {
-      var libraryAnalyzer = LibraryAnalyzer(
-        analysisContext.analysisOptions,
-        analysisContext.declaredVariables,
-        analysisContext.sourceFactory,
-        (_) => true, // _isLibraryUri
-        libraryContext.analysisContext,
-        libraryContext.elementFactory,
-        libraryContext.inheritanceManager,
-        file,
-        resourceProvider,
-        (String path) => resourceProvider.getFile(path).readAsStringSync(),
-      );
-
-      results = libraryAnalyzer.analyzeSync();
-    });
-    UnitAnalysisResult fileResult = results[file];
-
-    return ResolvedUnitResultImpl(
-      analysisContext.currentSession,
-      path,
-      file.uri,
-      file.exists,
-      content,
-      unit.lineInfo,
-      false, // isPart
-      fileResult.unit,
-      fileResult.errors,
-    );
-  }
-
   void _throwIfNotAbsoluteNormalizedPath(String path) {
     var pathContext = resourceProvider.pathContext;
     if (pathContext.normalize(path) != path) {
@@ -230,6 +269,14 @@ class FileResolver {
         'Only normalized paths are supported: $path',
       );
     }
+  }
+
+  static File _getFile(Folder directory, String name) {
+    Resource resource = directory.getChild(name);
+    if (resource is File && resource.exists) {
+      return resource;
+    }
+    return null;
   }
 }
 

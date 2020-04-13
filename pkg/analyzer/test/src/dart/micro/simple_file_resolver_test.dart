@@ -4,6 +4,8 @@
 
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/lint/registry.dart';
+import 'package:matcher/matcher.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'file_resolution.dart';
@@ -89,5 +91,63 @@ import 'dart:math';
 ''', [
       error(HintCode.UNUSED_IMPORT, 7, 11),
     ]);
+  }
+
+  test_reuse_compatibleOptions() async {
+    var aPath = '/workspace/dart/aaa/lib/a.dart';
+    var aResult = await assertErrorsInFile(aPath, r'''
+num a = 0;
+int b = a;
+''', []);
+
+    var bPath = '/workspace/dart/bbb/lib/a.dart';
+    var bResult = await assertErrorsInFile(bPath, r'''
+num a = 0;
+int b = a;
+''', []);
+
+    // Both files use the same (default) analysis options.
+    // So, when we resolve 'bbb', we can reuse the context after 'aaa'.
+    expect(
+      aResult.libraryElement.context,
+      same(bResult.libraryElement.context),
+    );
+  }
+
+  test_reuse_incompatibleOptions_implicitCasts() async {
+    newFile('/workspace/dart/aaa/analysis_options.yaml', content: r'''
+analyzer:
+  strong-mode:
+    implicit-casts: false
+''');
+
+    newFile('/workspace/dart/bbb/analysis_options.yaml', content: r'''
+analyzer:
+  strong-mode:
+    implicit-casts: true
+''');
+
+    // Implicit casts are disabled in 'aaa'.
+    var aPath = '/workspace/dart/aaa/lib/a.dart';
+    var aResult = await assertErrorsInFile(aPath, r'''
+num a = 0;
+int b = a;
+''', [
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 19, 1),
+    ]);
+
+    // Implicit casts are enabled in 'bbb'.
+    var bPath = '/workspace/dart/bbb/lib/a.dart';
+    var bResult = await assertErrorsInFile(bPath, r'''
+num a = 0;
+int b = a;
+''', []);
+
+    // Packages 'aaa' and 'bbb' have different options affecting type system.
+    // So, we cannot share the same context.
+    expect(
+      aResult.libraryElement.context,
+      isNot(same(bResult.libraryElement.context)),
+    );
   }
 }
