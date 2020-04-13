@@ -9,15 +9,13 @@ int badReturnTypeAsync() async => 0;
 // [analyzer] STATIC_TYPE_WARNING.ILLEGAL_ASYNC_RETURN_TYPE
 //  ^
 // [cfe] Functions marked 'async' must have a return type assignable to 'Future'.
-//                                ^
-// [analyzer] STATIC_TYPE_WARNING.RETURN_OF_INVALID_TYPE
 int badReturnTypeAsyncStar() async* {}
-// [error line 14, column 1, length 3]
+// [error line 12, column 1, length 3]
 // [analyzer] STATIC_TYPE_WARNING.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE
 //  ^
 // [cfe] Functions marked 'async*' must have a return type assignable to 'Stream'.
 int badReturnTypeSyncStar() sync* {}
-// [error line 19, column 1, length 3]
+// [error line 17, column 1, length 3]
 // [analyzer] STATIC_TYPE_WARNING.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE
 //  ^
 // [cfe] Functions marked 'sync*' must have a return type assignable to 'Iterable'.
