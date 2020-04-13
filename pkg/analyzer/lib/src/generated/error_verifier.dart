@@ -2834,35 +2834,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * If the current function is async, async*, or sync*, verify that its
    * declared return type is assignable to Future, Stream, or Iterable,
    * respectively. This is called by [_checkForIllegalReturnType] to check if
-   * the declared [returnTypeName] is assignable to the required [expectedType]
-   * and if not report [errorCode].
+   * a value with the type of the declared [returnTypeName] is assignable to
+   * [expectedElement] and if not report [errorCode].
    */
   void _checkForIllegalReturnTypeCode(TypeAnnotation returnTypeName,
       ClassElement expectedElement, StaticTypeWarningCode errorCode) {
-    DartType returnType = _enclosingFunction.returnType;
-    //
-    // When checking an async/sync*/async* method, we know the exact type
-    // that will be returned (e.g. Future, Iterable, or Stream).
-    //
-    // For example an `async` function body will return a `Future<T>` for
-    // some `T` (possibly `dynamic`).
-    //
-    // We allow the declared return type to be a supertype of that
-    // (e.g. `dynamic`, `Object`), or Future<S> for some S.
-    // (We assume the T <: S relation is checked elsewhere.)
-    //
-    // We do not allow user-defined subtypes of Future, because an `async`
-    // method will never return those.
-    //
-    // To check for this, we ensure that `Future<bottom> <: returnType`.
-    //
-    // Similar logic applies for sync* and async*.
-    //
-    var lowerBound = expectedElement.instantiate(
-      typeArguments: [NeverTypeImpl.instance],
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-    if (!_typeSystem.isSubtypeOf2(lowerBound, returnType)) {
+    if (!_isLegalReturnType(expectedElement)) {
       _errorReporter.reportErrorForNode(errorCode, returnTypeName);
     }
   }
@@ -4294,6 +4271,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (_inAsync) {
       toType = _typeSystem.flatten(toType);
       fromType = _typeSystem.flatten(fromType);
+      if (!_isLegalReturnType(_typeProvider.futureElement)) {
+        // ILLEGAL_ASYNC_RETURN_TYPE has already been reported, meaning the
+        // _declared_ return type is illegal; don't confuse by also reporting
+        // that the type being returned here does not match that illegal return
+        // type.
+        return;
+      }
     }
 
     void reportTypeError() {
@@ -5439,6 +5423,35 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return callMethod != null;
     }
     return false;
+  }
+
+  /// Returns whether a value with the type of the the enclosing function's
+  /// declared return type is assignable to [expectedElement].
+  bool _isLegalReturnType(ClassElement expectedElement) {
+    DartType returnType = _enclosingFunction.returnType;
+    //
+    // When checking an async/sync*/async* method, we know the exact type
+    // that will be returned (e.g. Future, Iterable, or Stream).
+    //
+    // For example an `async` function body will return a `Future<T>` for
+    // some `T` (possibly `dynamic`).
+    //
+    // We allow the declared return type to be a supertype of that
+    // (e.g. `dynamic`, `Object`), or Future<S> for some S.
+    // (We assume the T <: S relation is checked elsewhere.)
+    //
+    // We do not allow user-defined subtypes of Future, because an `async`
+    // method will never return those.
+    //
+    // To check for this, we ensure that `Future<bottom> <: returnType`.
+    //
+    // Similar logic applies for sync* and async*.
+    //
+    var lowerBound = expectedElement.instantiate(
+      typeArguments: [NeverTypeImpl.instance],
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
+    return _typeSystem.isSubtypeOf2(lowerBound, returnType);
   }
 
   /**
