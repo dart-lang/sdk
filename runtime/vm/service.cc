@@ -2437,6 +2437,12 @@ static bool Invoke(Thread* thread, JSONStream* js) {
       ObjectIdRing::LookupResult lookup_result;
       Object& argument = Object::Handle(
           zone, LookupHeapObject(thread, argument_id, &lookup_result));
+      // Invoke only accepts Instance arguments.
+      if (!(argument.IsInstance() || argument.IsNull()) ||
+          ContainsNonInstance(argument)) {
+        PrintInvalidParamError(js, "argumentIds");
+        return true;
+      }
       if (argument.raw() == Object::sentinel().raw()) {
         if (lookup_result == ObjectIdRing::kCollected) {
           PrintSentinel(js, kCollectedSentinel);
