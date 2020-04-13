@@ -148,6 +148,10 @@ class InfoBuilder {
       case NullabilityFixKind.removeLanguageVersionComment:
         // There's no need for hints around code that is being removed.
         break;
+      case NullabilityFixKind.addType:
+      case NullabilityFixKind.replaceVar:
+        // There's no need for hints around inserted types.
+        break;
       case NullabilityFixKind.makeTypeNullable:
       case NullabilityFixKind.typeNotMadeNullable:
         edits.add(EditDetail('Add /*!*/ hint', offset, 0, '/*!*/'));
@@ -284,20 +288,29 @@ class InfoBuilder {
         if (description != null) {
           var explanation = description.appliedMessage;
           var kind = description.kind;
-          if (length > 0) {
+          if (edit.isInformative) {
+            regions.add(RegionInfo(RegionType.informative, offset,
+                replacement.length, lineNumber, explanation, kind,
+                edits: edits, traces: traces));
+          } else if (edit.isInsertion) {
+            regions.add(RegionInfo(RegionType.add, offset, replacement.length,
+                lineNumber, explanation, kind,
+                edits: edits, traces: traces));
+          } else if (edit.isDeletion) {
             regions.add(RegionInfo(RegionType.remove, offset, length,
                 lineNumber, explanation, kind,
                 edits: edits, traces: traces));
+          } else if (edit.isReplacement) {
+            regions.add(RegionInfo(RegionType.remove, offset, length,
+                lineNumber, explanation, kind,
+                edits: edits, traces: traces));
+            regions.add(RegionInfo(RegionType.add, end, replacement.length,
+                lineNumber, explanation, kind,
+                edits: edits, traces: traces));
           } else {
-            if (edit.isInformative) {
-              regions.add(RegionInfo(RegionType.informative, offset,
-                  replacement.length, lineNumber, explanation, kind,
-                  edits: edits, traces: traces));
-            } else {
-              regions.add(RegionInfo(RegionType.add, offset, replacement.length,
-                  lineNumber, explanation, kind,
-                  edits: edits, traces: traces));
-            }
+            throw StateError(
+                'Edit is not an insertion, deletion, replacement, nor '
+                'informative: $edit');
           }
         }
         offset += replacement.length;

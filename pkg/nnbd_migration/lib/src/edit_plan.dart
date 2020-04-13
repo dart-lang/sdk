@@ -500,16 +500,10 @@ class EditPlanner {
   /// text.
   ///
   /// [parentNode] should be the innermost AST node containing [token].
-  EditPlan replaceToken(
-      AstNode parentNode, Token token, List<AtomicEdit> replacement,
+  EditPlan replaceToken(AstNode parentNode, Token token, String replacement,
       {AtomicEditInfo info}) {
-    assert(!replacement.any((edit) => !edit.isInsertion),
-        'All edits should be insertions');
     return _TokenChangePlan(parentNode, {
-      token.offset: [
-        AtomicEdit.delete(token.length, info: info),
-        ...replacement
-      ]
+      token.offset: [AtomicEdit.replace(token.length, replacement, info: info)]
     });
   }
 

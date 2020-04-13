@@ -285,7 +285,7 @@ class NodeChangeForCompilationUnit extends NodeChange<CompilationUnit> {
     if (removeLanguageVersionComment) {
       final comment = (node as CompilationUnitImpl).languageVersionToken;
       assert(comment != null);
-      innerPlans.add(aggregator.planner.replaceToken(node, comment, [],
+      innerPlans.add(aggregator.planner.replaceToken(node, comment, '',
           info: AtomicEditInfo(
               NullabilityFixDescription.removeLanguageVersionComment,
               const [])));
@@ -655,13 +655,17 @@ class NodeChangeForVariableDeclarationList
     if (addExplicitType != null) {
       var typeText = addExplicitType.getDisplayString(withNullability: true);
       if (node.keyword?.keyword == Keyword.VAR) {
+        var info =
+            AtomicEditInfo(NullabilityFixDescription.replaceVar(typeText), []);
         innerPlans.add(aggregator.planner
-            .replaceToken(node, node.keyword, [AtomicEdit.insert(typeText)]));
+            .replaceToken(node, node.keyword, typeText, info: info));
       } else {
+        var info =
+            AtomicEditInfo(NullabilityFixDescription.addType(typeText), []);
         innerPlans.add(aggregator.planner.insertText(
             node,
             node.variables.first.offset,
-            [AtomicEdit.insert(typeText), AtomicEdit.insert(' ')]));
+            [AtomicEdit.insert(typeText, info: info), AtomicEdit.insert(' ')]));
       }
     }
     innerPlans.addAll(aggregator.innerPlansForNode(node));

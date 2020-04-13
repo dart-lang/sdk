@@ -184,6 +184,56 @@ class <span id="...">C</span> {
             r'<span id="o13">a</span> = null;'));
   }
 
+  Future<void> test_outputContains_addedType() async {
+    await buildInfoForSingleTestFile('''
+void f() {
+  final a = <List<int>>[];
+  a.add([null]);
+}
+''', migratedContent: '''
+void f() {
+  final List<List<int?>> a = <List<int > >[];
+  a.add([null]);
+}
+''');
+    var output = renderUnits()[0];
+    var regions = _stripDataAttributes(output.regions);
+    expect(
+        regions,
+        contains('final '
+            '<span class="region added-region">List&lt;List&lt;int?&gt;&gt;</span>'
+            ' a = &lt;List&lt;int'
+            '<span class="region informative-region"> </span>'
+            '&gt;'
+            '<span class="region informative-region"> </span>'
+            '&gt;[];'));
+  }
+
+  Future<void> test_outputContains_replacedVar() async {
+    await buildInfoForSingleTestFile('''
+void f() {
+  var a = <List<int>>[];
+  a.add([null]);
+}
+''', migratedContent: '''
+void f() {
+  varList<List<int?>> a = <List<int > >[];
+  a.add([null]);
+}
+''');
+    var output = renderUnits()[0];
+    var regions = _stripDataAttributes(output.regions);
+    expect(
+        regions,
+        contains('<span class="region removed-region">var</span>'
+            '<span class="region added-region">List&lt;List&lt;int?&gt;&gt;</span>'
+            ' a = &lt;List&lt;int'
+            '<span class="region informative-region"> </span>'
+            '&gt;'
+            '<span class="region informative-region"> </span>'
+            '&gt;[];'));
+  }
+
   Future<void> test_outputContainsModifiedAndUnmodifiedRegions() async {
     await buildInfoForSingleTestFile('int a = null;',
         migratedContent: 'int? a = null;');

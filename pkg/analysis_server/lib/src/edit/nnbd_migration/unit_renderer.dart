@@ -29,6 +29,8 @@ class UnitRenderer {
     NullabilityFixKind.addRequired,
     NullabilityFixKind.makeTypeNullable,
     NullabilityFixKind.downcastExpression,
+    NullabilityFixKind.addType,
+    NullabilityFixKind.replaceVar,
     NullabilityFixKind.removeAs,
     NullabilityFixKind.removeLanguageVersionComment
   ];
@@ -217,8 +219,8 @@ class UnitRenderer {
       if (offset > previousOffset) {
         // Display a region of unmodified content.
         writeSplitLines(content.substring(previousOffset, offset));
-        previousOffset = offset + length;
       }
+      previousOffset = offset + length;
       var regionClass = classForRegion(region.regionType);
       var regionSpanTag = '<span class="region $regionClass" '
           'data-offset="$offset" data-line="$lineNumber">';
@@ -244,6 +246,8 @@ class UnitRenderer {
         return '$count cast$s (non-downcast) added';
       case NullabilityFixKind.checkExpression:
         return '$count null check$s added';
+      case NullabilityFixKind.addType:
+        return '$count type$s added';
       case NullabilityFixKind.makeTypeNullable:
         return '$count type$s made nullable';
       case NullabilityFixKind.removeAs:
@@ -254,6 +258,8 @@ class UnitRenderer {
         return '$count dead code removal$s';
       case NullabilityFixKind.removeLanguageVersionComment:
         return '$count language version comment$s removed';
+      case NullabilityFixKind.replaceVar:
+        return "$count 'var' declaration$s replaced";
       case NullabilityFixKind.typeNotMadeNullable:
         return '$count type$s not made nullable';
     }

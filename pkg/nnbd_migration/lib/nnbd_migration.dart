@@ -95,12 +95,26 @@ class NullabilityFixDescription {
         kind: NullabilityFixKind.addRequired,
       );
 
+  /// An explicit type needs to be added.
+  factory NullabilityFixDescription.addType(String typeText) =>
+      NullabilityFixDescription._(
+        appliedMessage: "Add the explicit type '$typeText'",
+        kind: NullabilityFixKind.replaceVar,
+      );
+
   /// An explicit type mentioned in the source program needs to be made
   /// nullable.
   factory NullabilityFixDescription.makeTypeNullable(String type) =>
       NullabilityFixDescription._(
         appliedMessage: "Changed type '$type' to be nullable",
         kind: NullabilityFixKind.makeTypeNullable,
+      );
+
+  /// A 'var' declaration needs to be replaced with an explicit type.
+  factory NullabilityFixDescription.replaceVar(String typeText) =>
+      NullabilityFixDescription._(
+        appliedMessage: "Replace 'var' with '$typeText'",
+        kind: NullabilityFixKind.replaceVar,
       );
 
   /// An explicit type mentioned in the source program does not need to be made
@@ -138,11 +152,13 @@ enum NullabilityFixKind {
   addRequired,
   checkExpression,
   downcastExpression,
+  addType,
   makeTypeNullable,
   otherCastExpression,
   removeAs,
   removeDeadCode,
   removeLanguageVersionComment,
+  replaceVar,
   typeNotMadeNullable,
 }
 
