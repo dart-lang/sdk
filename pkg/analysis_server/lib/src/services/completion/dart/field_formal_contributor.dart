@@ -64,7 +64,8 @@ class FieldFormalContributor extends DartCompletionContributor {
             var fieldName = fieldId.name;
             if (fieldName != null && fieldName.isNotEmpty) {
               if (!referencedFields.contains(fieldName)) {
-                var suggestion = createSuggestion(fieldId.staticElement,
+                var suggestion = createSuggestion(
+                    request, fieldId.staticElement,
                     relevance: relevance);
                 if (suggestion != null) {
                   suggestions.add(suggestion);

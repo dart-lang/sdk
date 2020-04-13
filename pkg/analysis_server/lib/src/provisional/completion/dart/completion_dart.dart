@@ -10,6 +10,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
@@ -33,6 +34,9 @@ abstract class DartCompletionRequest extends CompletionRequest {
   /// Return the type imposed on the target's `containingNode` based on its
   /// context, or `null` if the context does not impose any type.
   DartType get contextType;
+
+  /// Return the object used to resolve macros in Dartdoc comments.
+  DartdocDirectiveInfo get dartdocDirectiveInfo;
 
   /// Return the expression to the right of the "dot" or "dot dot",
   /// or `null` if this is not a "dot" completion (e.g. `foo.b`).

@@ -10,6 +10,7 @@ import 'package:analysis_server/src/services/completion/completion_performance.d
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart'
     show DartCompletionManager, DartCompletionRequestImpl;
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
+import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:meta/meta.dart';
@@ -99,6 +100,9 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
   int completionOffset;
   int replacementOffset;
   int replacementLength;
+
+  /// The Dartdoc information passed to requests.
+  final DartdocDirectiveInfo dartdocInfo = DartdocDirectiveInfo();
 
   DartCompletionRequest request;
 
@@ -571,7 +575,8 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
         useNewRelevance, CompletionPerformance());
 
     // Build the request
-    var request = await DartCompletionRequestImpl.from(baseRequest);
+    var request =
+        await DartCompletionRequestImpl.from(baseRequest, dartdocInfo);
 
     var range = request.target.computeReplacementRange(request.offset);
     replacementOffset = range.offset;

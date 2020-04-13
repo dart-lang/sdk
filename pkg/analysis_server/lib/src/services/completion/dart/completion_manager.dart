@@ -43,6 +43,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -56,6 +57,9 @@ class DartCompletionManager implements CompletionContributor {
   /// The [contributionSorter] is a long-lived object that isn't allowed
   /// to maintain state between calls to [DartContributionSorter#sort(...)].
   static DartContributionSorter contributionSorter = CommonUsageSorter();
+
+  /// The object used to resolve macros in Dartdoc comments.
+  final DartdocDirectiveInfo dartdocDirectiveInfo;
 
   /// If not `null`, then instead of using [ImportedReferenceContributor],
   /// fill this set with kinds of elements that are applicable at the
@@ -78,6 +82,7 @@ class DartCompletionManager implements CompletionContributor {
   /// [includedSuggestionRelevanceTags] must either all be `null` or must all be
   /// non-`null`.
   DartCompletionManager({
+    this.dartdocDirectiveInfo,
     this.includedElementKinds,
     this.includedElementNames,
     this.includedSuggestionRelevanceTags,
@@ -98,7 +103,7 @@ class DartCompletionManager implements CompletionContributor {
 
     var performance = (request as CompletionRequestImpl).performance;
     DartCompletionRequestImpl dartRequest =
-        await DartCompletionRequestImpl.from(request);
+        await DartCompletionRequestImpl.from(request, dartdocDirectiveInfo);
 
     // Don't suggest in comments.
     if (dartRequest.target.isCommentText) {
@@ -372,6 +377,9 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   @override
   final FeatureComputer featureComputer;
 
+  @override
+  final DartdocDirectiveInfo dartdocDirectiveInfo;
+
   /// A flag indicating whether the [_contextType] has been computed.
   bool _hasComputedContextType = false;
 
@@ -390,6 +398,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
       this.source,
       this.offset,
       CompilationUnit unit,
+      this.dartdocDirectiveInfo,
       this._originalRequest,
       this.performance)
       : featureComputer =
@@ -482,7 +491,8 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   /// Return a [Future] that completes with a newly created completion request
   /// based on the given [request]. This method will throw [AbortCompletion]
   /// if the completion request has been aborted.
-  static Future<DartCompletionRequest> from(CompletionRequest request) async {
+  static Future<DartCompletionRequest> from(CompletionRequest request,
+      DartdocDirectiveInfo dartdocDirectiveInfo) async {
     request.checkAborted();
     var performance = (request as CompletionRequestImpl).performance;
     const BUILD_REQUEST_TAG = 'build DartCompletionRequest';
@@ -500,6 +510,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
         request.source,
         request.offset,
         unit,
+        dartdocDirectiveInfo,
         request,
         performance);
 

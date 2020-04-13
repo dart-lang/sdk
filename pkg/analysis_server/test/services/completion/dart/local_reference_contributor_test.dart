@@ -2150,6 +2150,30 @@ $docLines
     }
   }
 
+  Future<void> test_doc_macro() async {
+    dartdocInfo.addTemplateNamesAndValues([
+      'template_name'
+    ], [
+      '''
+Macro contents on
+multiple lines.
+'''
+    ]);
+    addTestSource('''
+/// {@macro template_name}
+///
+/// With an additional line.
+int x = 0;
+
+void main() {^}
+''');
+    await computeSuggestions();
+    var suggestion = assertSuggestTopLevelVar('x', 'int');
+    expect(suggestion.docSummary, 'Macro contents on\nmultiple lines.');
+    expect(suggestion.docComplete,
+        'Macro contents on\nmultiple lines.\n\n\nWith an additional line.');
+  }
+
   Future<void> test_doc_topLevel() async {
     var docLines = r'''
 /// My documentation.

@@ -10,6 +10,7 @@ import 'package:analysis_server/src/services/completion/completion_performance.d
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/imported_reference_contributor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -51,7 +52,7 @@ part 'test.dart';
         false,
         CompletionPerformance());
     var requestCompleter = Completer<DartCompletionRequest>();
-    DartCompletionRequestImpl.from(baseRequest)
+    DartCompletionRequestImpl.from(baseRequest, DartdocDirectiveInfo())
         .then((DartCompletionRequest request) {
       requestCompleter.complete(request);
     });

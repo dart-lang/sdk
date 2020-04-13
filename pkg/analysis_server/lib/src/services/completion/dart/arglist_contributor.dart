@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/protocol_server.dart'
     hide Element, ElementKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
@@ -116,7 +117,7 @@ class ArgListContributor extends DartCompletionContributor {
           parameterName: name,
           parameterType: type);
       if (parameter is FieldFormalParameterElement) {
-        _setDocumentation(suggestion, parameter.field?.documentationComment);
+        _setDocumentation(suggestion, parameter);
         suggestion.element = convertElement(parameter);
       }
 
@@ -334,10 +335,10 @@ class ArgListContributor extends DartCompletionContributor {
 
   /// If the given [comment] is not `null`, fill the [suggestion] documentation
   /// fields.
-  static void _setDocumentation(
-      CompletionSuggestion suggestion, String comment) {
-    if (comment != null) {
-      var doc = getDartDocPlainText(comment);
+  void _setDocumentation(CompletionSuggestion suggestion, Element element) {
+    var doc = DartUnitHoverComputer.computeDocumentation(
+        request.dartdocDirectiveInfo, element);
+    if (doc != null) {
       suggestion.docComplete = doc;
       suggestion.docSummary = getDartDocSummary(doc);
     }
