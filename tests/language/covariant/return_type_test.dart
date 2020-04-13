@@ -58,10 +58,6 @@ void main() {
   {
     C<Iterable<Object>> c = D<int>([1]);
     Iterable<bool Function(Iterable<Object>)> myList = c.f();
-    //                                                 ^^^^^
-    // [analyzer] unspecified
-    //                                                 ^
-    // [cfe] unspecified
   }
 }
 
