@@ -451,6 +451,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         node.identifier.staticType = type;
       }
       return;
+    } else if (staticElement is DynamicElementImpl) {
+      var type = _nonNullable(_typeProvider.typeType);
+      node.staticType = type;
+      node.identifier.staticType = type;
+      return;
     } else if (staticElement is FunctionTypeAliasElement) {
       if (node.parent is TypeName) {
         // no type

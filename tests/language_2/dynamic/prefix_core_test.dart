@@ -9,10 +9,10 @@ import "package:expect/expect.dart";
 import "dart:core" as mycore;
 
 void main() {
-  // Should still be available because it is not a member of dart:core.
-  Expect.isTrue(dynamic is mycore.Type);
+  // The built-in type declaration `dynamic`, which is declared in the
+  // library `dart:core`, denotes the `dynamic` type. So, in this library
+  // it must be reference with the prefix.
+  dynamic; //# 01: compile-time error
 
-  Expect.throws(() => mycore.dynamic is mycore.Type, //    //# 01: compile-time error
-                (e) => e is mycore.NoSuchMethodError, //   //# 01: continued
-                'dynamic is not a member of dart:core'); //# 01: continued
+  Expect.isTrue(mycore.dynamic is mycore.Type); //# 02: ok
 }

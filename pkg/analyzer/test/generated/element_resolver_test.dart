@@ -883,14 +883,6 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     _listener.assertNoErrors();
   }
 
-  test_visitSimpleIdentifier_dynamic() async {
-    SimpleIdentifier node = AstTestFactory.identifier3("dynamic");
-    _resolveIdentifier(node);
-    expect(node.staticElement, same(_typeProvider.dynamicType.element));
-    expect(node.staticType, same(_typeProvider.typeType));
-    _listener.assertNoErrors();
-  }
-
   test_visitSimpleIdentifier_lexicalScope() async {
     SimpleIdentifier node = AstTestFactory.identifier3("i");
     VariableElementImpl element = ElementFactory.localVariableElement(node);

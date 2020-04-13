@@ -78,6 +78,63 @@ f(A<int> a) {}
     );
   }
 
+  test_dynamic_explicitCore() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:core';
+
+dynamic a;
+''');
+
+    assertTypeName(
+      findNode.typeName('dynamic a;'),
+      dynamicElement,
+      'dynamic',
+    );
+  }
+
+  test_dynamic_explicitCore_withPrefix() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:core' as mycore;
+
+mycore.dynamic a;
+''');
+
+    assertTypeName(
+      findNode.typeName('mycore.dynamic a;'),
+      dynamicElement,
+      'dynamic',
+      expectedPrefix: findElement.import('dart:core').prefix,
+    );
+  }
+
+  test_dynamic_explicitCore_withPrefix_referenceWithout() async {
+    await assertErrorsInCode(r'''
+import 'dart:core' as mycore;
+
+dynamic a;
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 31, 7),
+    ]);
+
+    assertTypeName(
+      findNode.typeName('dynamic a;'),
+      null,
+      'dynamic',
+    );
+  }
+
+  test_dynamic_implicitCore() async {
+    await assertNoErrorsInCode(r'''
+dynamic a;
+''');
+
+    assertTypeName(
+      findNode.typeName('dynamic a;'),
+      dynamicElement,
+      'dynamic',
+    );
+  }
+
   test_functionTypeAlias() async {
     await assertNoErrorsInCode(r'''
 typedef F = int Function();
