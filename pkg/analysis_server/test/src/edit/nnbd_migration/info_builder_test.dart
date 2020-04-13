@@ -639,7 +639,7 @@ void f(num  n, int?/*?*/ i) {
         region: regions[1],
         offset: migratedContent.indexOf(' as int'),
         length: ' as int'.length,
-        explanation: "Discarded a downcast that is now unnecessary",
+        explanation: 'Discarded a downcast that is now unnecessary',
         kind: NullabilityFixKind.removeAs);
     assertRegion(
         region: regions[2],

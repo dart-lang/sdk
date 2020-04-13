@@ -14,6 +14,15 @@ void main() {
 
 @reflectiveTest
 class UnitInfoTest {
+  static bool get _areAssertsEnabled {
+    try {
+      assert(false);
+      return false;
+    } on AssertionError {
+      return true;
+    }
+  }
+
   void test_hadOriginalContent_different() {
     final unitInfo = UnitInfo('/foo.dart');
     unitInfo.originalContent = 'abcd';
@@ -41,22 +50,15 @@ class UnitInfoTest {
   }
 
   void test_hadOriginalContent_usedBeforeSet_assertsDisabled() {
-    try {
-      assert(false);
-    } on AssertionError {
-      // Asserts enabled, stop here
-      return;
-    }
+    if (_areAssertsEnabled) return;
+
     final unitInfo = UnitInfo('/foo.dart');
     expect(unitInfo.hadOriginalContent(''), false);
   }
 
   void test_hadOriginalContent_usedBeforeSet_assertsEnabled() {
-    try {
-      assert(false);
-      // asserts not enabled, stop here.
-      return;
-    } on AssertionError {}
+    if (!_areAssertsEnabled) return;
+
     final unitInfo = UnitInfo('/foo.dart');
     expect(
         () => unitInfo.hadOriginalContent(''), throwsA(isA<AssertionError>()));
