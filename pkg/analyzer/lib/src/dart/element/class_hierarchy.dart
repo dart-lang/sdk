@@ -135,6 +135,8 @@ class _ClassInterfaceType {
         if (_singleType == null) {
           _singleType = type;
           return;
+        } else if (type == _singleType) {
+          return;
         } else {
           _currentResult = _typeSystem.normalize(_singleType);
         }

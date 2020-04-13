@@ -18,7 +18,13 @@ class Bar implements A<FutureOr<Never?>> {}
 /*class: Baz:A<Future<Null>?>,Baz,Object*/
 class Baz implements A<Future<Null>?> {}
 
-/*class: Hest:A<Future<Null>?>,Bar,Foo<Never, Never>,Hest,Object*/
+/// TODO: Solve CFE / analyzer difference.
+/// Instantiation of [Foo] is `Foo<Never, Never>`, so it implements
+/// `A<FutureOr<Never?>>`, and `Bar` implements the same `A<FutureOr<Never?>>`.
+/// So, these two are syntactically equal, so NORM and TOP_MERGE should not
+/// be applied.
+/*cfe|cfe:builder.class: Hest:A<Future<Null>?>,Bar,Foo<Never, Never>,Hest,Object*/
+/*analyzer.class: Hest:A<FutureOr<Never?>>,Bar,Foo<Never, Never>,Hest,Object*/
 class Hest extends Foo implements Bar {}
 
 /*class: Fisk:A<Future<Null>?>,Bar,Baz,Fisk,Object*/

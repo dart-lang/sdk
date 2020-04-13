@@ -86,6 +86,15 @@ class ConflictingGenericInterfacesWithNnbdTest
     ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
 
+  test_class_extends_implements_never() async {
+    await assertNoErrorsInCode('''
+class I<T> {}
+class A implements I<Never> {}
+class B implements I<Never> {}
+class C extends A implements B {}
+''');
+  }
+
   test_class_extends_implements_nullability() async {
     await assertErrorsInCode('''
 class I<T> {}

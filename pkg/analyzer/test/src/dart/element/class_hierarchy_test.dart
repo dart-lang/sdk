@@ -70,6 +70,13 @@ class ClassHierarchyNullSafetyTest extends AbstractTypeSystemNullSafetyTest
     );
   }
 
+  test_valid_equal_neverNone() {
+    _checkA(
+      typeArguments: [neverNone, neverNone],
+      interfaces: ['A<Never>'],
+    );
+  }
+
   test_valid_merge() {
     _checkA(
       typeArguments: [objectQuestion, dynamicNone],
