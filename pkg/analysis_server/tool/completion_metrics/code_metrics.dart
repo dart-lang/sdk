@@ -322,6 +322,8 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitClassTypeAlias(ClassTypeAlias node) {
     _visitChildren(node, {
+      'documentationComment': node.documentationComment,
+      'metadata': node.metadata,
       'abstractKeyword': node.abstractKeyword,
       'name': node.name,
       'typeParameters': node.typeParameters,
@@ -695,7 +697,10 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     _visitChildren(node, {
+      'documentationComment': node.documentationComment,
+      'metadata': node.metadata,
       'returnType': node.returnType,
+      'name': node.name,
       'typeParameters': node.typeParameters,
       'parameters': node.parameters,
     });
@@ -930,6 +935,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
       'documentationComment': node.documentationComment,
       'metadata': node.metadata,
       'name': node.name,
+      'typeParameters': node.typeParameters,
       'onClause': node.onClause,
       'implementsClause': node.implementsClause,
       'members': node.members,
@@ -1139,6 +1145,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitSwitchCase(SwitchCase node) {
     _visitChildren(node, {
+      'labels': node.labels,
       'expression': node.expression,
       'statements': node.statements,
     });
