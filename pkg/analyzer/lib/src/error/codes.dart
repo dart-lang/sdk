@@ -1566,19 +1566,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       hasPublishedDocs: true);
 
   /**
-   * 18.3 Parts: It's a compile-time error if the same library contains two part
-   * directives with the same URI.
-   *
-   * Parameters:
-   * 0: the URI of the duplicate part
-   */
-  static const CompileTimeErrorCode DUPLICATE_PART = CompileTimeErrorCode(
-      'DUPLICATE_PART',
-      "The library already contains a part with the uri '{0}'.",
-      correction:
-          "Try removing all but one of the duplicated part directives.");
-
-  /**
    * Parameters:
    * 0: the name of the parameter that was duplicated
    */
@@ -1634,6 +1621,24 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "correcting one of the names to reference a different named "
               "parameter.",
           hasPublishedDocs: true);
+
+  /**
+   * 18.3 Parts: It's a compile-time error if the same library contains two part
+   * directives with the same URI.
+   *
+   * Parameters:
+   * 0: the URI of the duplicate part
+   */
+  static const CompileTimeErrorCode DUPLICATE_PART = CompileTimeErrorCode(
+      'DUPLICATE_PART',
+      "The library already contains a part with the uri '{0}'.",
+      correction:
+          "Try removing all but one of the duplicated part directives.");
+
+  static const CompileTimeErrorCode ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING =
+      CompileTimeErrorCode('ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING',
+          "The name of the enum constant can't be the same as the enum's name.",
+          correction: "Try renaming the constant.");
 
   /**
    * No parameters.

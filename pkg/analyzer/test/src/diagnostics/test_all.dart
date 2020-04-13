@@ -82,6 +82,8 @@ import 'duplicate_import_test.dart' as duplicate_import;
 import 'duplicate_named_argument_test.dart' as duplicate_named_argument;
 import 'duplicate_part_test.dart' as duplicate_part;
 import 'duplicate_shown_name_test.dart' as duplicate_shown_name;
+import 'enum_constant_same_name_as_enclosing.dart'
+    as enum_constant_same_name_as_enclosing;
 import 'equal_elements_in_const_set_test.dart' as equal_elements_in_const_set;
 import 'equal_elements_in_set_test.dart' as equal_elements_in_set;
 import 'equal_keys_in_const_map_test.dart' as equal_keys_in_const_map;
@@ -559,6 +561,7 @@ main() {
     duplicate_named_argument.main();
     duplicate_part.main();
     duplicate_shown_name.main();
+    enum_constant_same_name_as_enclosing.main();
     equal_elements_in_const_set.main();
     equal_elements_in_set.main();
     equal_keys_in_const_map.main();
