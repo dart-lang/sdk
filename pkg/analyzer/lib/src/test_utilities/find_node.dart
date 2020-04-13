@@ -55,6 +55,10 @@ class FindNode {
     return _node(search, (n) => n is CascadeExpression);
   }
 
+  CatchClause catchClause(String search) {
+    return _node(search, (n) => n is CatchClause);
+  }
+
   ClassDeclaration classDeclaration(String search) {
     return _node(search, (n) => n is ClassDeclaration);
   }

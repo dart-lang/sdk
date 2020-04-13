@@ -178,6 +178,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
         exceptionNode.staticElement = element;
 
+        element.isFinal = true;
         if (exceptionTypeNode == null) {
           element.hasImplicitType = true;
           element.type = _dynamicType;
@@ -201,6 +202,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
         stackTraceNode.staticElement = element;
 
+        element.isFinal = true;
         element.type = _typeProvider.stackTraceType;
         stackTraceNode.staticType = _typeProvider.stackTraceType;
 
