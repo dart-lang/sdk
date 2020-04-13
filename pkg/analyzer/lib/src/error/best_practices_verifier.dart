@@ -234,6 +234,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitCatchClause(CatchClause node) {
+    super.visitCatchClause(node);
+    _checkForNullableTypeInCatchClause(node);
+  }
+
+  @override
   void visitClassDeclaration(ClassDeclaration node) {
     ClassElementImpl element = node.declaredElement;
     _enclosingClass = element;
@@ -1152,6 +1158,24 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         _errorReporter.reportErrorForNode(
             HintCode.MISSING_RETURN, errorNode, [returnType]);
       }
+    }
+  }
+
+  void _checkForNullableTypeInCatchClause(CatchClause node) {
+    if (!_isNonNullableByDefault) {
+      return;
+    }
+
+    var type = node.exceptionType;
+    if (type == null) {
+      return;
+    }
+
+    if (_typeSystem.isPotentiallyNullable(type.type)) {
+      _errorReporter.reportErrorForNode(
+        HintCode.NULLABLE_TYPE_IN_CATCH_CLAUSE,
+        type,
+      );
     }
   }
 

@@ -1306,6 +1306,16 @@ class HintCode extends AnalyzerErrorCode {
           "as an operand of a logical operator.");
 
   /**
+   * If it is not allowed to throw a nullable expression, there is not
+   * need to catch it.
+   */
+  static const HintCode NULLABLE_TYPE_IN_CATCH_CLAUSE = HintCode(
+      'NULLABLE_TYPE_IN_CATCH_CLAUSE',
+      "A potentially nullable type can't be used in an 'on' clause because it "
+          "isn't valid to throw a nullable expression.",
+      correction: "Try using a non-nullable type.");
+
+  /**
    * Hint for classes that override equals, but not hashCode.
    *
    * Parameters:
