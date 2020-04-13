@@ -14,7 +14,7 @@ class NavTopMenuElement extends CustomElement implements Renderable {
   static const tag = const Tag<NavTopMenuElement>('nav-top-menu',
       dependencies: const [NavMenuItemElement.tag]);
 
-  RenderingScheduler _r;
+  RenderingScheduler<NavTopMenuElement> _r;
 
   Stream<RenderedEvent<NavTopMenuElement>> get onRendered => _r.onRendered;
 

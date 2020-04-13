@@ -15,7 +15,7 @@ class NavIsolateMenuElement extends CustomElement implements Renderable {
   static const tag = const Tag<NavIsolateMenuElement>('nav-isolate-menu',
       dependencies: const [NavMenuItemElement.tag]);
 
-  RenderingScheduler _r;
+  RenderingScheduler<NavIsolateMenuElement> _r;
 
   Stream<RenderedEvent<NavIsolateMenuElement>> get onRendered => _r.onRendered;
 

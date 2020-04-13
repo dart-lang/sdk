@@ -17,7 +17,7 @@ class NavNotifyElement extends CustomElement implements Renderable {
         NavNotifyExceptionElement.tag
       ]);
 
-  RenderingScheduler _r;
+  RenderingScheduler<NavNotifyElement> _r;
 
   Stream<RenderedEvent<NavNotifyElement>> get onRendered => _r.onRendered;
 

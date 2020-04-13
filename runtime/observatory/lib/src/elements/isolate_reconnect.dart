@@ -23,7 +23,7 @@ class IsolateReconnectElement extends CustomElement implements Renderable {
         ViewFooterElement.tag
       ]);
 
-  RenderingScheduler _r;
+  RenderingScheduler<IsolateReconnectElement> _r;
 
   Stream<RenderedEvent<IsolateReconnectElement>> get onRendered =>
       _r.onRendered;

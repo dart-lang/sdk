@@ -16,7 +16,7 @@ import 'package:observatory/src/elements/helpers/uris.dart';
 class SourceLinkElement extends CustomElement implements Renderable {
   static const tag = const Tag<SourceLinkElement>('source-link');
 
-  RenderingScheduler _r;
+  RenderingScheduler<SourceLinkElement> _r;
 
   Stream<RenderedEvent<SourceLinkElement>> get onRendered => _r.onRendered;
 
