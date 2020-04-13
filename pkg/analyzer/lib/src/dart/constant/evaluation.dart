@@ -251,11 +251,11 @@ class ConstantEvaluationEngine {
       Annotation constNode = constant.annotationAst;
       Element element = constant.element;
       if (element is PropertyAccessorElement &&
-          element.variable is VariableElementImpl) {
+          element.variable is VariableElement) {
         // The annotation is a reference to a compile-time constant variable.
         // Just copy the evaluation result.
         VariableElementImpl variableElement =
-            element.variable as VariableElementImpl;
+            element.variable.declaration as VariableElementImpl;
         if (variableElement.evaluationResult != null) {
           constant.evaluationResult = variableElement.evaluationResult;
         } else {
@@ -381,14 +381,14 @@ class ConstantEvaluationEngine {
       Annotation constNode = constant.annotationAst;
       Element element = constant.element;
       if (element is PropertyAccessorElement &&
-          element.variable is VariableElementImpl) {
+          element.variable is VariableElement) {
         // The annotation is a reference to a compile-time constant variable,
         // so it depends on the variable.
-        callback(element.variable);
-      } else if (element is ConstructorElementImpl) {
+        callback(element.variable.declaration);
+      } else if (element is ConstructorElement) {
         // The annotation is a constructor invocation, so it depends on the
         // constructor.
-        callback(element);
+        callback(element.declaration);
       } else {
         // This could happen in the event of invalid code.  The error will be
         // reported at constant evaluation time.
