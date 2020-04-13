@@ -11,7 +11,7 @@ main() {
   var crossOriginPort = int.parse(uri.queryParameters['crossOriginPort']!);
   var crossOrigin = '${uri.scheme}://${uri.host}:$crossOriginPort';
   var crossOriginUrl =
-      '$crossOrigin/root_dart/tests/lib_2/html/cross_domain_iframe_script.html';
+      '$crossOrigin/root_dart/tests/lib/html/cross_domain_iframe_script.html';
 
   var iframe = new IFrameElement();
   iframe.src = crossOriginUrl;

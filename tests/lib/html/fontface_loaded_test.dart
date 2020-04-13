@@ -19,7 +19,7 @@ main() {
       <style>
       @font-face {
         font-family: 'Ahem';
-        src: url(/root_dart/tests/lib_2/html/Ahem.ttf);
+        src: url(/root_dart/tests/lib/html/Ahem.ttf);
         font-style: italic;
         font-weight: 300;
         unicode-range: U+0-3FF;

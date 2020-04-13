@@ -30,7 +30,7 @@ var host = '${window.location.protocol}//${window.location.hostname}:$port';
 
 Future testGetCrossDomain() async {
   var gotError = false;
-  var url = '$host/root_dart/tests/lib_2/html/xhr_cross_origin_data.txt';
+  var url = '$host/root_dart/tests/lib/html/xhr_cross_origin_data.txt';
   try {
     var xhr = await HttpRequest.request(url);
     var data = json.decode(xhr.response);
@@ -46,7 +46,7 @@ Future testGetCrossDomain() async {
 }
 
 Future testRequestCrossOrigin() async {
-  var url = '$host/root_dart/tests/lib_2/html/xhr_cross_origin_data.txt';
+  var url = '$host/root_dart/tests/lib/html/xhr_cross_origin_data.txt';
   var response = await HttpRequest.requestCrossOrigin(url);
   expect(response.contains('feed'), isTrue);
 }
@@ -61,7 +61,7 @@ Future testRequestCrossOriginErrors() async {
 }
 
 void testCrossDomain() {
-  var url = '$host/root_dart/tests/lib_2/html/xhr_cross_origin_data.txt';
+  var url = '$host/root_dart/tests/lib/html/xhr_cross_origin_data.txt';
   var xhr = new HttpRequest();
   xhr.open('GET', url, async: true);
   var validate = expectAsync((data) {
@@ -78,7 +78,7 @@ void testCrossDomain() {
 }
 
 Future testGetWithCredentialsCrossDomain() async {
-  var url = '$host/root_dart/tests/lib_2/html/xhr_cross_origin_data.txt';
+  var url = '$host/root_dart/tests/lib/html/xhr_cross_origin_data.txt';
   var xhr = await HttpRequest.request(url, withCredentials: true);
   var data = json.decode(xhr.response);
   expect(data.containsKey('feed'), isTrue);
