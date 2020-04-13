@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -96,7 +97,7 @@ class CompletionTarget {
   /// possible). However, there is one exception: when the cursor is inside of
   /// a multi-character token which is not a keyword or identifier (e.g. a
   /// comment, or a token like "+=", the entity will be always be the token.
-  final Object entity;
+  final SyntacticEntity entity;
 
   /// The [entity] is a comment token, which is either not a documentation
   /// comment or the position is not in a [CommentReference].
@@ -231,7 +232,7 @@ class CompletionTarget {
   /// Create a [CompletionTarget] holding the given [containingNode] and
   /// [entity].
   CompletionTarget._(this.unit, this.offset, AstNode containingNode,
-      Object entity, this.isCommentText)
+      SyntacticEntity entity, this.isCommentText)
       : containingNode = containingNode,
         entity = entity,
         argIndex = _computeArgIndex(containingNode, entity),
