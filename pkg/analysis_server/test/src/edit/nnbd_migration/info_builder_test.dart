@@ -262,6 +262,14 @@ class InfoBuilderTest extends NnbdMigrationTestBase {
     expect(entryInfo.description, descriptionMatcher);
   }
 
+  List<RegionInfo> getNonInformativeRegions(List<RegionInfo> regions) {
+    return regions
+        .where((region) =>
+            region.kind != NullabilityFixKind.typeNotMadeNullable &&
+            region.kind != NullabilityFixKind.typeNotMadeNullableDueToHint)
+        .toList();
+  }
+
   Future<void> test_discardCondition() async {
     var unit = await buildInfoForSingleTestFile('''
 void g(int i) {
@@ -293,10 +301,7 @@ void g(int  i) {
     var migratedContent = 'int /*!*/ f(num /*!*/ n) => n as int;';
     var unit = await buildInfoForSingleTestFile(content,
         migratedContent: migratedContent);
-    var regions = unit.regions
-        .where(
-            (region) => region.kind != NullabilityFixKind.typeNotMadeNullable)
-        .toList();
+    var regions = getNonInformativeRegions(unit.regions);
     expect(regions, hasLength(1));
     var region = regions.single;
     var regionTarget = ' as int';
@@ -316,10 +321,7 @@ void g(int  i) {
     var migratedContent = 'int?/*?*/ f(num /*!*/ n) => n as int?;';
     var unit = await buildInfoForSingleTestFile(content,
         migratedContent: migratedContent);
-    var regions = unit.regions
-        .where(
-            (region) => region.kind != NullabilityFixKind.typeNotMadeNullable)
-        .toList();
+    var regions = getNonInformativeRegions(unit.regions);
     var regionTarget = ' as int?';
     var offset = migratedContent.indexOf(regionTarget);
     var region = regions.where((region) => region.offset == offset).single;
@@ -340,10 +342,7 @@ void g(int  i) {
     var migratedContent = 'int?/*?*/ f(num?/*?*/ n) => n as int?;';
     var unit = await buildInfoForSingleTestFile(content,
         migratedContent: migratedContent);
-    var regions = unit.regions
-        .where(
-            (region) => region.kind != NullabilityFixKind.typeNotMadeNullable)
-        .toList();
+    var regions = getNonInformativeRegions(unit.regions);
     var regionTarget = ' as int?';
     var offset = migratedContent.indexOf(regionTarget);
     var region = regions.where((region) => region.offset == offset).single;
@@ -361,10 +360,7 @@ void g(int  i) {
     var migratedContent = 'int /*!*/ f(num?/*?*/ n) => n as int;';
     var unit = await buildInfoForSingleTestFile(content,
         migratedContent: migratedContent);
-    var regions = unit.regions
-        .where(
-            (region) => region.kind != NullabilityFixKind.typeNotMadeNullable)
-        .toList();
+    var regions = getNonInformativeRegions(unit.regions);
     var regionTarget = ' as int';
     var offset = migratedContent.indexOf(regionTarget);
     var region = regions.where((region) => region.offset == offset).single;
@@ -540,6 +536,30 @@ C /*!*/ _f(C  c) => (c + c)!;
         kind: NullabilityFixKind.checkExpression);
   }
 
+  Future<void> test_nullCheck_dueToHint() async {
+    var content = 'int f(int/*?*/ x) => x/*!*/;';
+    var migratedContent = 'int  f(int?/*?*/ x) => x!/*!*/;';
+    var unit = await buildInfoForSingleTestFile(content,
+        migratedContent: migratedContent);
+    var regions = unit.fixRegions;
+    expect(regions, hasLength(2));
+    // regions[0] is `int?`.
+    var region = regions[1];
+    assertRegion(
+        region: region,
+        offset: migratedContent.indexOf('!/*!*/'),
+        explanation: 'Accepted a null check hint',
+        kind: NullabilityFixKind.checkExpressionDueToHint);
+    // Note that traces are still included.
+    expect(region.traces, isNotEmpty);
+    var textToRemove = '/*!*/';
+    assertEdit(
+        edit: region.edits.single,
+        offset: content.indexOf(textToRemove),
+        length: textToRemove.length,
+        replacement: '');
+  }
+
   Future<void> test_nullCheck_onMemberAccess() async {
     var unit = await buildInfoForSingleTestFile('''
 class C {
@@ -680,10 +700,7 @@ int  f(Object  o) {
 ''';
     var unit = await buildInfoForSingleTestFile(content,
         migratedContent: migratedContent);
-    var regions = unit.regions
-        .where(
-            (region) => region.kind != NullabilityFixKind.typeNotMadeNullable)
-        .toList();
+    var regions = getNonInformativeRegions(unit.regions);
     expect(regions, hasLength(1));
     var region = regions.single;
     var regionTarget = ' as int';
@@ -911,6 +928,36 @@ String? g() => 1 == 2 ? "Hello" : null;
         explanation: "Changed type 'String' to be nullable");
   }
 
+  Future<void> test_type_made_nullable_due_to_hint() async {
+    var content = 'int/*?*/ x = 0;';
+    var migratedContent = 'int?/*?*/ x = 0;';
+    var unit = await buildInfoForSingleTestFile(content,
+        migratedContent: migratedContent);
+    var region = unit.fixRegions.single;
+    assertRegion(
+        region: region,
+        offset: migratedContent.indexOf('?/*?*/'),
+        explanation:
+            "Changed type 'int' to be nullable, due to a nullability hint",
+        kind: NullabilityFixKind.makeTypeNullableDueToHint);
+    // Note that traces are still included.
+    expect(region.traces, isNotNull);
+    var textToRemove = '/*?*/';
+    var edits = region.edits;
+    expect(edits, hasLength(2));
+    var editsByDescription = {for (var edit in edits) edit.description: edit};
+    assertEdit(
+        edit: editsByDescription['Add /*!*/ hint'],
+        offset: content.indexOf(textToRemove),
+        length: textToRemove.length,
+        replacement: '/*!*/');
+    assertEdit(
+        edit: editsByDescription['Remove /*?*/ hint'],
+        offset: content.indexOf(textToRemove),
+        length: textToRemove.length,
+        replacement: '');
+  }
+
   Future<void> test_type_not_made_nullable() async {
     var unit = await buildInfoForSingleTestFile('int i = 0;',
         migratedContent: 'int  i = 0;');
@@ -924,5 +971,37 @@ String? g() => 1 == 2 ? "Hello" : null;
         {'Add /*?*/ hint', 'Add /*!*/ hint'});
     expect(region.traces, isEmpty);
     expect(region.kind, NullabilityFixKind.typeNotMadeNullable);
+  }
+
+  Future<void> test_type_not_made_nullable_due_to_hint() async {
+    var content = 'int/*!*/ i = 0;';
+    var migratedContent = 'int /*!*/ i = 0;';
+    var unit = await buildInfoForSingleTestFile(content,
+        migratedContent: migratedContent);
+    var region = unit.regions
+        .where((regionInfo) =>
+            regionInfo.offset == migratedContent.indexOf(' /*!*/ i'))
+        .single;
+    assertRegion(
+        region: region,
+        offset: migratedContent.indexOf(' /*!*/ i'),
+        explanation: "Type 'int' was not made nullable due to a hint",
+        kind: NullabilityFixKind.typeNotMadeNullableDueToHint);
+    // Note that traces are still included.
+    expect(region.traces, isNotNull);
+    var textToRemove = '/*!*/';
+    var edits = region.edits;
+    expect(edits, hasLength(2));
+    var editsByDescription = {for (var edit in edits) edit.description: edit};
+    assertEdit(
+        edit: editsByDescription['Add /*?*/ hint'],
+        offset: content.indexOf(textToRemove),
+        length: textToRemove.length,
+        replacement: '/*?*/');
+    assertEdit(
+        edit: editsByDescription['Remove /*!*/ hint'],
+        offset: content.indexOf(textToRemove),
+        length: textToRemove.length,
+        replacement: '');
   }
 }

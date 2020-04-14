@@ -48,7 +48,14 @@ class FixBuilderTest extends EdgeBuilderTestBase {
           .having((c) => c.addRequiredKeyword, 'addRequiredKeyword', true);
 
   static final isMakeNullable = TypeMatcher<NodeChangeForTypeAnnotation>()
-      .having((c) => c.makeNullable, 'makeNullable', true);
+      .having((c) => c.makeNullable, 'makeNullable', true)
+      .having((c) => c.makeNullableDueToHint, 'makeNullableDueToHint', false);
+
+  static final isMakeNullableDueToHint =
+      TypeMatcher<NodeChangeForTypeAnnotation>()
+          .having((c) => c.makeNullable, 'makeNullable', true)
+          .having(
+              (c) => c.makeNullableDueToHint, 'makeNullableDueToHint', true);
 
   static const isEdge = TypeMatcher<NullabilityEdge>();
 
@@ -1104,7 +1111,8 @@ int _f({int x = 0}) => x + 1;
     await analyze('''
 int _f({int/*?*/ x}) => 1;
 ''');
-    visitAll(changes: {findNode.typeName('int/*?*/ x'): isMakeNullable});
+    visitAll(
+        changes: {findNode.typeName('int/*?*/ x'): isMakeNullableDueToHint});
   }
 
   Future<void>
@@ -1144,7 +1152,7 @@ void _f({@required int/*?*/ x}) {}
 ''');
     visitAll(changes: {
       findNode.annotation('required'): isRequiredAnnotationToRequiredKeyword,
-      findNode.typeName('int'): isMakeNullable,
+      findNode.typeName('int'): isMakeNullableDueToHint,
     });
   }
 
@@ -2581,7 +2589,7 @@ _f(int/*?*/ x) {
     var xRef = findNode.simple('x/*!*/');
     visitSubexpression(xRef, 'int', changes: {
       xRef: isNodeChangeForExpression.havingNullCheckWithInfo(isInfo(
-          NullabilityFixDescription.checkExpression,
+          NullabilityFixDescription.checkExpressionDueToHint,
           {FixReasonTarget.root: TypeMatcher<FixReason_NullCheckHint>()}))
     });
   }

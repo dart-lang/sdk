@@ -140,6 +140,9 @@ class InfoBuilder {
         //  associated with a parameter and insert an assert if it is.
         edits.add(EditDetail('Add /*!*/ hint', offset, 0, '/*!*/'));
         break;
+      case NullabilityFixKind.checkExpressionDueToHint:
+        edits.add(EditDetail('Remove /*!*/ hint', offset, 5, ''));
+        break;
       case NullabilityFixKind.downcastExpression:
       case NullabilityFixKind.otherCastExpression:
         // There's no useful hint to apply to casts.
@@ -157,6 +160,14 @@ class InfoBuilder {
       case NullabilityFixKind.typeNotMadeNullable:
         edits.add(EditDetail('Add /*!*/ hint', offset, 0, '/*!*/'));
         edits.add(EditDetail('Add /*?*/ hint', offset, 0, '/*?*/'));
+        break;
+      case NullabilityFixKind.makeTypeNullableDueToHint:
+        edits.add(EditDetail('Add /*!*/ hint', offset, 5, '/*!*/'));
+        edits.add(EditDetail('Remove /*?*/ hint', offset, 5, ''));
+        break;
+      case NullabilityFixKind.typeNotMadeNullableDueToHint:
+        edits.add(EditDetail('Remove /*!*/ hint', offset, 5, ''));
+        edits.add(EditDetail('Add /*?*/ hint', offset, 5, '/*?*/'));
         break;
     }
     return edits;

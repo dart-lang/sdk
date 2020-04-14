@@ -167,7 +167,10 @@ class <span id="...">C</span> {
     }
     // The only kinds that should not be displayed are those associated with a
     // place where nothing interesting occurred.
-    expect(nonDisplayedKinds, {NullabilityFixKind.typeNotMadeNullable});
+    expect(nonDisplayedKinds, {
+      NullabilityFixKind.typeNotMadeNullable,
+      NullabilityFixKind.typeNotMadeNullableDueToHint
+    });
   }
 
   Future<void> test_navContentContainsEscapedHtml() async {

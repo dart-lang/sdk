@@ -32,6 +32,8 @@ class UnitRenderer {
     NullabilityFixKind.addType,
     NullabilityFixKind.replaceVar,
     NullabilityFixKind.removeAs,
+    NullabilityFixKind.checkExpressionDueToHint,
+    NullabilityFixKind.makeTypeNullableDueToHint,
     NullabilityFixKind.removeLanguageVersionComment
   ];
 
@@ -246,10 +248,14 @@ class UnitRenderer {
         return '$count cast$s (non-downcast) added';
       case NullabilityFixKind.checkExpression:
         return '$count null check$s added';
+      case NullabilityFixKind.checkExpressionDueToHint:
+        return '$count null check hint$s converted to null check$s';
       case NullabilityFixKind.addType:
         return '$count type$s added';
       case NullabilityFixKind.makeTypeNullable:
         return '$count type$s made nullable';
+      case NullabilityFixKind.makeTypeNullableDueToHint:
+        return '$count nullability hint$s converted to ?$s';
       case NullabilityFixKind.removeAs:
         return '$count cast$s now unnecessary';
       case NullabilityFixKind.removeDeadCode:
@@ -262,6 +268,8 @@ class UnitRenderer {
         return "$count 'var' declaration$s replaced";
       case NullabilityFixKind.typeNotMadeNullable:
         return '$count type$s not made nullable';
+      case NullabilityFixKind.typeNotMadeNullableDueToHint:
+        return '$count type$s not made nullable due to hint$s';
     }
     throw StateError('Null kind');
   }

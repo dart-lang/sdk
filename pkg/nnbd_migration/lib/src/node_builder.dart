@@ -497,10 +497,12 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       case NullabilityComment.bang:
         _graph.makeNonNullableUnion(
             decoratedType.node, NullabilityCommentOrigin(source, node, false));
+        _variables.recordNullabilityHint(source, node);
         break;
       case NullabilityComment.question:
         _graph.makeNullableUnion(
             decoratedType.node, NullabilityCommentOrigin(source, node, true));
+        _variables.recordNullabilityHint(source, node);
         break;
       case NullabilityComment.none:
         break;

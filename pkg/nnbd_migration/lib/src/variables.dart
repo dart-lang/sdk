@@ -60,6 +60,8 @@ class Variables {
 
   final _nullCheckHints = <Source, Set<int>>{};
 
+  final _nullabilityHints = <Source, Set<int>>{};
+
   final _unnecessaryCasts = <Source, Set<int>>{};
 
   final AlreadyMigratedCodeDecorator _alreadyMigratedCodeDecorator;
@@ -164,6 +166,13 @@ class Variables {
   ConditionalDiscard getConditionalDiscard(Source source, AstNode node) =>
       (_conditionalDiscards[source] ?? {})[node.offset];
 
+  /// Queries whether the given [node] is preceded by a `/*?*/` hint.  See
+  /// [recordNullabilityHint].
+  bool hasNullabilityHint(Source source, TypeAnnotation node) {
+    return (_nullabilityHints[source] ?? {})
+        .contains(uniqueIdentifierForSpan(node.offset, node.end));
+  }
+
   /// Queries whether the given [expression] is followed by a null check hint
   /// (`/*!*/`).  See [recordNullCheckHint].
   bool hasNullCheckHint(Source source, Expression expression) {
@@ -231,6 +240,12 @@ class Variables {
   /// Records that the given [node] was preceded by a `/*late*/` hint.
   void recordLateHint(Source source, VariableDeclarationList node) {
     (_lateHints[source] ??= {}).add(node.offset);
+  }
+
+  /// Records that the given [node] was followed by a `/*?*/` or `/*!*/` hint.
+  void recordNullabilityHint(Source source, TypeAnnotation node) {
+    (_nullabilityHints[source] ??= {})
+        .add(uniqueIdentifierForSpan(node.offset, node.end));
   }
 
   /// Records that the given [expression] is followed by a null check hint

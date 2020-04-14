@@ -400,7 +400,8 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
       _wrapExceptions(node, () => type, () {
         if (_fixBuilder._variables.hasNullCheckHint(_fixBuilder.source, node)) {
           type = _addNullCheck(node, type,
-              info: AtomicEditInfo(NullabilityFixDescription.checkExpression, {
+              info: AtomicEditInfo(
+                  NullabilityFixDescription.checkExpressionDueToHint, {
                 FixReasonTarget.root:
                     FixReason_NullCheckHint(CodeReference.fromAstNode(node))
               }));
@@ -701,9 +702,7 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
     var decoratedType = _fixBuilder._variables
         .decoratedTypeAnnotation(_fixBuilder.source, node);
     if (!typeIsNonNullableByContext(node)) {
-      (_fixBuilder._getChange(node) as NodeChangeForTypeAnnotation)
-        ..makeNullable = decoratedType.node.isNullable
-        ..decoratedType = decoratedType;
+      _makeTypeNameNullable(node, decoratedType);
     }
     (node as GenericFunctionTypeImpl).type =
         _fixBuilder._variables.toFinalType(decoratedType);
@@ -717,9 +716,7 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
     if (!typeIsNonNullableByContext(node)) {
       var type = decoratedType.type;
       if (!type.isDynamic && !type.isVoid) {
-        (_fixBuilder._getChange(node) as NodeChangeForTypeAnnotation)
-          ..makeNullable = decoratedType.node.isNullable
-          ..decoratedType = decoratedType;
+        _makeTypeNameNullable(node, decoratedType);
       }
     }
     node.type = _fixBuilder._variables.toFinalType(decoratedType);
@@ -752,5 +749,13 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
     (_fixBuilder._getChange(parameter) as NodeChangeForDefaultFormalParameter)
       ..addRequiredKeyword = true
       ..addRequiredKeywordInfo = info;
+  }
+
+  void _makeTypeNameNullable(TypeAnnotation node, DecoratedType decoratedType) {
+    (_fixBuilder._getChange(node) as NodeChangeForTypeAnnotation)
+        .recordNullability(
+            decoratedType, decoratedType.node.isNullable,
+            nullabilityDueToHint:
+                _fixBuilder._variables.hasNullabilityHint(source, node));
   }
 }

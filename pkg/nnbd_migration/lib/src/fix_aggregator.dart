@@ -597,37 +597,61 @@ class NodeChangeForSimpleFormalParameter
 /// Implementation of [NodeChange] specialized for operating on [TypeAnnotation]
 /// nodes.
 class NodeChangeForTypeAnnotation extends NodeChange<TypeAnnotation> {
-  /// Indicates whether the type should be made nullable by adding a `?`.
-  bool makeNullable = false;
+  bool _makeNullable = false;
+
+  bool _nullabilityDueToHint = false;
 
   /// The decorated type of the type annotation, or `null` if there is no
   /// decorated type info of interest.  If [makeNullable] is `true`, the node
   /// from this type will be attached to the edit that adds the `?`. If
-  /// [makeNullable] is `false`, the node from this type will be attached to the
+  /// [_makeNullable] is `false`, the node from this type will be attached to the
   /// information about why the node wasn't made nullable.
-  DecoratedType decoratedType;
+  DecoratedType _decoratedType;
 
   NodeChangeForTypeAnnotation() : super._();
 
   @override
-  bool get isInformative => !makeNullable;
+  bool get isInformative => !_makeNullable;
+
+  /// Indicates whether the type should be made nullable by adding a `?`.
+  bool get makeNullable => _makeNullable;
+
+  /// Indicates whether we are making the type nullable due to a hint.
+  bool get makeNullableDueToHint => _nullabilityDueToHint;
+
+  void recordNullability(DecoratedType decoratedType, bool makeNullable,
+      {bool nullabilityDueToHint: false}) {
+    _decoratedType = decoratedType;
+    _makeNullable = makeNullable;
+    _nullabilityDueToHint = nullabilityDueToHint;
+  }
 
   @override
   EditPlan _apply(TypeAnnotation node, FixAggregator aggregator) {
     var innerPlan = aggregator.innerPlanForNode(node);
-    if (decoratedType == null) return innerPlan;
-    if (makeNullable) {
+    if (_decoratedType == null) return innerPlan;
+    var typeName = _decoratedType.type.getDisplayString(withNullability: false);
+    var fixReasons = {FixReasonTarget.root: _decoratedType.node};
+    if (_makeNullable) {
+      NullabilityFixDescription description;
+      if (_nullabilityDueToHint) {
+        description =
+            NullabilityFixDescription.makeTypeNullableDueToHint(typeName);
+      } else {
+        description = NullabilityFixDescription.makeTypeNullable(typeName);
+      }
       return aggregator.planner.makeNullable(innerPlan,
-          info: AtomicEditInfo(
-              NullabilityFixDescription.makeTypeNullable(
-                  decoratedType.type.getDisplayString(withNullability: false)),
-              {FixReasonTarget.root: decoratedType.node}));
+          info: AtomicEditInfo(description, fixReasons));
     } else {
+      NullabilityFixDescription description;
+      if (_nullabilityDueToHint) {
+        description =
+            NullabilityFixDescription.typeNotMadeNullableDueToHint(typeName);
+      } else {
+        description = NullabilityFixDescription.typeNotMadeNullable(typeName);
+      }
       return aggregator.planner.explainNonNullable(innerPlan,
-          info: AtomicEditInfo(
-              NullabilityFixDescription.typeNotMadeNullable(
-                  decoratedType.type.getDisplayString(withNullability: false)),
-              {FixReasonTarget.root: decoratedType.node}));
+          info: AtomicEditInfo(description, fixReasons));
     }
   }
 }

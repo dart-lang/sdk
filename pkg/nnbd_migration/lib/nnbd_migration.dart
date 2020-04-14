@@ -60,6 +60,12 @@ class NullabilityFixDescription {
     kind: NullabilityFixKind.checkExpression,
   );
 
+  /// An expression's value will be null-checked due to a hint.
+  static const checkExpressionDueToHint = const NullabilityFixDescription._(
+    appliedMessage: 'Accepted a null check hint',
+    kind: NullabilityFixKind.checkExpressionDueToHint,
+  );
+
   /// An unnecessary downcast has been discarded.
   static const removeLanguageVersionComment = const NullabilityFixDescription._(
     appliedMessage: 'Removed language version comment so that NNBD features '
@@ -110,6 +116,15 @@ class NullabilityFixDescription {
         kind: NullabilityFixKind.makeTypeNullable,
       );
 
+  /// An explicit type mentioned in the source program will be made
+  /// nullable due to a nullability hint.
+  factory NullabilityFixDescription.makeTypeNullableDueToHint(String type) =>
+      NullabilityFixDescription._(
+        appliedMessage:
+            "Changed type '$type' to be nullable, due to a nullability hint",
+        kind: NullabilityFixKind.makeTypeNullableDueToHint,
+      );
+
   /// A 'var' declaration needs to be replaced with an explicit type.
   factory NullabilityFixDescription.replaceVar(String typeText) =>
       NullabilityFixDescription._(
@@ -123,6 +138,14 @@ class NullabilityFixDescription {
       NullabilityFixDescription._(
         appliedMessage: "Type '$type' was not made nullable",
         kind: NullabilityFixKind.typeNotMadeNullable,
+      );
+
+  /// An explicit type mentioned in the source program does not need to be made
+  /// nullable.
+  factory NullabilityFixDescription.typeNotMadeNullableDueToHint(String type) =>
+      NullabilityFixDescription._(
+        appliedMessage: "Type '$type' was not made nullable due to a hint",
+        kind: NullabilityFixKind.typeNotMadeNullableDueToHint,
       );
 
   const NullabilityFixDescription._(
@@ -151,15 +174,18 @@ class NullabilityFixDescription {
 enum NullabilityFixKind {
   addRequired,
   checkExpression,
+  checkExpressionDueToHint,
   downcastExpression,
   addType,
   makeTypeNullable,
+  makeTypeNullableDueToHint,
   otherCastExpression,
   removeAs,
   removeDeadCode,
   removeLanguageVersionComment,
   replaceVar,
   typeNotMadeNullable,
+  typeNotMadeNullableDueToHint,
 }
 
 /// Provisional API for DartFix to perform nullability migration.
