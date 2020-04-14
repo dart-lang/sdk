@@ -88,4 +88,15 @@ class DartFixListener {
         result.path, offset, length, locInfo.lineNumber, locInfo.columnNumber);
     return location;
   }
+
+  /// Reset this listener so that it can accrue a new set of changes.
+  void reset() {
+    suggestions.clear();
+    otherSuggestions.clear();
+    sourceChange
+      ..edits.clear()
+      ..linkedEditGroups.clear()
+      ..selection = null
+      ..id = null;
+  }
 }
