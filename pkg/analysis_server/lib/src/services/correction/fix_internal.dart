@@ -33,6 +33,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/levenshtein.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
+import 'package:analysis_server/src/services/correction/organize_directives.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
@@ -632,6 +633,9 @@ class FixProcessor extends BaseProcessor {
       }
       if (name == LintNames.diagnostic_describe_all_properties) {
         await _addFix_addDiagnosticPropertyReference();
+      }
+      if (name == LintNames.directives_ordering) {
+        await _addFix_sortDirectives();
       }
       if (name == LintNames.empty_catches) {
         await _addFix_removeEmptyCatch();
@@ -4118,6 +4122,21 @@ class FixProcessor extends BaseProcessor {
   Future<void> _addFix_sortChildPropertiesLast() async {
     final changeBuilder = await createBuilder_sortChildPropertyLast();
     _addFixFromBuilder(changeBuilder, DartFixKind.SORT_CHILD_PROPERTY_LAST);
+  }
+
+  Future<void> _addFix_sortDirectives() async {
+    var organizer =
+        DirectiveOrganizer(resolvedResult.content, unit, resolvedResult.errors);
+
+    var changeBuilder = _newDartChangeBuilder();
+    // todo (pq): consider restructuring organizer to allow a passed-in change builder
+    for (var edit in organizer.organize()) {
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addSimpleReplacement(
+            SourceRange(edit.offset, edit.length), edit.replacement);
+      });
+    }
+    _addFixFromBuilder(changeBuilder, DartFixKind.SORT_DIRECTIVES);
   }
 
   Future<void> _addFix_undefinedClass_useSimilar() async {
