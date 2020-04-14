@@ -52,5 +52,15 @@ void main() {
 
       expect(a, equals(b));
     });
+
+    test('consider subclasses when checking for equality', () {
+      final a = TextDocumentRegistrationOptions(
+          [DocumentFilter('dart', 'file', null)]);
+      final b = TextDocumentSaveRegistrationOptions(
+          true, [DocumentFilter('dart', 'file', null)]);
+
+      expect(a, isNot(equals(b)));
+      expect(b, isNot(equals(a)));
+    });
   });
 }

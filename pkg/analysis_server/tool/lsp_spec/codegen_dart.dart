@@ -348,7 +348,10 @@ void _writeEquals(IndentableStringBuffer buffer, Interface interface) {
     ..writeIndentedln('@override')
     ..writeIndentedln('bool operator ==(Object other) {')
     ..indent()
-    ..writeIndentedln('if (other is ${interface.name}) {')
+    // We want an exact type match, but also need `is` to have the analyzer
+    // promote the type to allow access to the fields on `other`.
+    ..writeIndentedln(
+        'if (other is ${interface.name} && other.runtimeType == ${interface.name}) {')
     ..indent()
     ..writeIndented('return ');
   for (var field in _getAllFields(interface)) {
