@@ -26,6 +26,13 @@ class PreviewSiteTest with ResourceProviderMixin {
   MigrationState state;
   List<String> reranPaths;
 
+  Future<void> performEdit(String path, int offset, String replacement) {
+    final pathUri = Uri.file(path).path;
+    return site
+        .performEdit(Uri.parse('localhost://$pathUri?offset=$offset&end=$offset'
+            '&replacement=${Uri.encodeComponent(replacement)}'));
+  }
+
   void setUp() {
     reranPaths = null;
     dartfixListener = DartFixListener(null);
@@ -113,13 +120,11 @@ void main(List args) {
 
   void test_performEdit() {
     final path = convertPath('/test.dart');
-    final pathUri = Uri.file(path).path;
     final file = getFile(path);
     final content = 'int foo() {}';
     site.unitInfoMap[path] = UnitInfo(path)..diskContent = content;
     file.writeAsStringSync(content);
-    site.performEdit(Uri.parse(
-        'localhost://$pathUri?offset=3&end=3&replacement=${Uri.encodeComponent('/*?*/')}'));
+    performEdit(path, 3, '/*?*/');
     expect(file.readAsStringSync(), 'int/*?*/ foo() {}');
     expect(state.hasBeenApplied, false);
     expect(reranPaths, [path]);
@@ -127,16 +132,12 @@ void main(List args) {
 
   void test_performEdit_sanityCheck_dontApply() {
     final path = convertPath('/test.dart');
-    final pathUri = Uri.file(path).path;
     final file = getFile(path);
     site.unitInfoMap[path] = UnitInfo(path)
       ..diskContent = '// different content';
     final currentContent = 'void main() {}';
     file.writeAsStringSync(currentContent);
-    expect(
-        () => site.performEdit(
-            Uri.parse('localhost://$pathUri?offset=0&end=0&replacement=foo')),
-        throwsA(isA<StateError>()));
+    expect(() => performEdit(path, 0, 'foo'), throwsA(isA<StateError>()));
     expect(file.readAsStringSync(), currentContent);
     expect(state.hasBeenApplied, false);
   }
