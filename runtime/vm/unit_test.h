@@ -361,6 +361,11 @@ class TestCase : TestCaseBase {
   static Dart_Isolate CreateTestIsolate(const char* name = nullptr,
                                         void* isolate_group_data = nullptr,
                                         void* isolate_data = nullptr);
+  static Dart_Isolate CreateTestIsolateInGroup(const char* name,
+                                               Dart_Isolate parent,
+                                               void* group_data = nullptr,
+                                               void* isolate_data = nullptr);
+
   static Dart_Handle library_handler(Dart_LibraryTag tag,
                                      Dart_Handle library,
                                      Dart_Handle url);

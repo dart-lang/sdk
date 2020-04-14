@@ -212,16 +212,26 @@ void CodePatcher::PatchInstanceCallAt(uword return_address,
                                       const Object& data,
                                       const Code& target) {
   auto thread = Thread::Current();
+  thread->isolate_group()->RunWithStoppedMutators([&]() {
+    PatchInstanceCallAtWithMutatorsStopped(thread, return_address, caller_code,
+                                           data, target);
+  });
+}
+
+void CodePatcher::PatchInstanceCallAtWithMutatorsStopped(
+    Thread* thread,
+    uword return_address,
+    const Code& caller_code,
+    const Object& data,
+    const Code& target) {
   auto zone = thread->zone();
   ASSERT(caller_code.ContainsInstructionAt(return_address));
   const Instructions& instrs =
       Instructions::Handle(zone, caller_code.instructions());
-  thread->isolate_group()->RunWithStoppedMutators([&]() {
-    WritableInstructionsScope writable(instrs.PayloadStart(), instrs.Size());
-    InstanceCall call(return_address);
-    call.set_data(data);
-    call.set_target(target);
-  });
+  WritableInstructionsScope writable(instrs.PayloadStart(), instrs.Size());
+  InstanceCall call(return_address);
+  call.set_data(data);
+  call.set_target(target);
 }
 
 RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(uword return_address,
@@ -241,6 +251,16 @@ void CodePatcher::PatchSwitchableCallAt(uword return_address,
                                         const Code& caller_code,
                                         const Object& data,
                                         const Code& target) {
+  // Switchable instance calls only generated for precompilation.
+  UNREACHABLE();
+}
+
+void CodePatcher::PatchSwitchableCallAtWithMutatorsStopped(
+    Thread* thread,
+    uword return_address,
+    const Code& caller_code,
+    const Object& data,
+    const Code& target) {
   // Switchable instance calls only generated for precompilation.
   UNREACHABLE();
 }

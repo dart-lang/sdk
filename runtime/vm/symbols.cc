@@ -581,12 +581,22 @@ RawString* Symbols::NewSymbol(Thread* thread, const StringType& str) {
     table.Release();
   }
   if (symbol.IsNull()) {
-    Isolate* isolate = thread->isolate();
-    SafepointMutexLocker ml(isolate->symbols_mutex());
-    data = isolate->object_store()->symbol_table();
-    SymbolTable table(&key, &value, &data);
-    symbol ^= table.InsertNewOrGet(str);
-    isolate->object_store()->set_symbol_table(table.Release());
+    IsolateGroup* group = thread->isolate_group();
+    if (group->object_store() == nullptr) {
+      // in JIT object_store lives on isolate, not on isolate group.
+      Isolate* isolate = thread->isolate();
+      SafepointMutexLocker ml(isolate->symbols_mutex());
+      data = isolate->object_store()->symbol_table();
+      SymbolTable table(&key, &value, &data);
+      symbol ^= table.InsertNewOrGet(str);
+      isolate->object_store()->set_symbol_table(table.Release());
+    } else {
+      SafepointMutexLocker ml(group->symbols_mutex());
+      data = group->object_store()->symbol_table();
+      SymbolTable table(&key, &value, &data);
+      symbol ^= table.InsertNewOrGet(str);
+      group->object_store()->set_symbol_table(table.Release());
+    }
   }
   ASSERT(symbol.IsSymbol());
   ASSERT(symbol.HasHash());
@@ -610,12 +620,22 @@ RawString* Symbols::Lookup(Thread* thread, const StringType& str) {
     table.Release();
   }
   if (symbol.IsNull()) {
-    Isolate* isolate = thread->isolate();
-    SafepointMutexLocker ml(isolate->symbols_mutex());
-    data = isolate->object_store()->symbol_table();
-    SymbolTable table(&key, &value, &data);
-    symbol ^= table.GetOrNull(str);
-    table.Release();
+    IsolateGroup* group = thread->isolate_group();
+    if (group->object_store() == nullptr) {
+      // in JIT object_store lives on isolate, not on isolate group.
+      Isolate* isolate = thread->isolate();
+      SafepointMutexLocker ml(isolate->symbols_mutex());
+      data = isolate->object_store()->symbol_table();
+      SymbolTable table(&key, &value, &data);
+      symbol ^= table.GetOrNull(str);
+      table.Release();
+    } else {
+      SafepointMutexLocker ml(group->symbols_mutex());
+      data = group->object_store()->symbol_table();
+      SymbolTable table(&key, &value, &data);
+      symbol ^= table.GetOrNull(str);
+      table.Release();
+    }
   }
   ASSERT(symbol.IsNull() || symbol.IsSymbol());
   ASSERT(symbol.IsNull() || symbol.HasHash());

@@ -1594,7 +1594,7 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ j(NOT_EQUAL, &not_double);
 
   __ LoadIsolate(RAX);
-  __ movq(RAX, Address(RAX, target::Isolate::object_store_offset()));
+  __ movq(RAX, Address(RAX, target::Isolate::cached_object_store_offset()));
   __ movq(RAX, Address(RAX, target::ObjectStore::double_type_offset()));
   __ ret();
 
@@ -1604,7 +1604,7 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   JumpIfNotInteger(assembler, RAX, &not_integer);
 
   __ LoadIsolate(RAX);
-  __ movq(RAX, Address(RAX, target::Isolate::object_store_offset()));
+  __ movq(RAX, Address(RAX, target::Isolate::cached_object_store_offset()));
   __ movq(RAX, Address(RAX, target::ObjectStore::int_type_offset()));
   __ ret();
 
@@ -1615,7 +1615,7 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   JumpIfNotString(assembler, RAX, &use_declaration_type);
 
   __ LoadIsolate(RAX);
-  __ movq(RAX, Address(RAX, target::Isolate::object_store_offset()));
+  __ movq(RAX, Address(RAX, target::Isolate::cached_object_store_offset()));
   __ movq(RAX, Address(RAX, target::ObjectStore::string_type_offset()));
   __ ret();
 

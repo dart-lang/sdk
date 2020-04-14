@@ -61,6 +61,11 @@ class CodePatcher : public AllStatic {
                                   const Code& caller_code,
                                   const Object& data,
                                   const Code& target);
+  static void PatchInstanceCallAtWithMutatorsStopped(Thread* thread,
+                                                     uword return_address,
+                                                     const Code& caller_code,
+                                                     const Object& data,
+                                                     const Code& target);
 
   // Return target of an unoptimized static call and its ICData object
   // (calls target via a stub).
@@ -78,6 +83,11 @@ class CodePatcher : public AllStatic {
                                     const Code& caller_code,
                                     const Object& data,
                                     const Code& target);
+  static void PatchSwitchableCallAtWithMutatorsStopped(Thread* thread,
+                                                       uword return_address,
+                                                       const Code& caller_code,
+                                                       const Object& data,
+                                                       const Code& target);
   static RawObject* GetSwitchableCallDataAt(uword return_address,
                                             const Code& caller_code);
   static RawCode* GetSwitchableCallTargetAt(uword return_address,
