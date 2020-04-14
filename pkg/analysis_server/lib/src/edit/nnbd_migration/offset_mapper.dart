@@ -13,6 +13,22 @@ abstract class OffsetMapper {
   /// Return a mapper representing the file modified by the given [edits].
   factory OffsetMapper.forEdits(List<SourceEdit> edits) => _EditMapper(edits);
 
+  /// Return a mapper representing the file modified by an insertion at [offset]
+  /// the given with [length].
+  factory OffsetMapper.forInsertion(int offset, int length) =>
+      _SimpleInsertionMapper(offset, length);
+
+  /// Return a mapper representing [rebased] rebased by [rebaser].
+  factory OffsetMapper.rebase(OffsetMapper rebaser, OffsetMapper rebased) {
+    return _RebasedOffsetMapper(rebaser, rebased);
+  }
+
+  /// Return a mapper representing a sequence of edits made in order, with the
+  /// offsets coming out of [first] being the offsets passed into [second].
+  factory OffsetMapper.sequence(OffsetMapper first, OffsetMapper second) {
+    return _OffsetMapperChain([first, second]);
+  }
+
   /// Return the post-edit offset that corresponds to the given pre-edit
   /// [offset].
   int map(int offset);
@@ -70,4 +86,41 @@ class _EditMapper implements OffsetMapper {
 class _IdentityMapper implements OffsetMapper {
   @override
   int map(int offset) => offset;
+}
+
+class _OffsetMapperChain implements OffsetMapper {
+  final List<OffsetMapper> innerMappers;
+
+  _OffsetMapperChain(this.innerMappers);
+
+  @override
+  int map(int offset) {
+    for (final mapper in innerMappers) {
+      offset = mapper.map(offset);
+    }
+    return offset;
+  }
+}
+
+class _RebasedOffsetMapper implements OffsetMapper {
+  final OffsetMapper rebaser;
+  final OffsetMapper rebased;
+
+  _RebasedOffsetMapper(this.rebaser, this.rebased);
+
+  @override
+  int map(int offset) {
+    final delta = rebased.map(offset) - offset;
+    return rebaser.map(offset) + delta;
+  }
+}
+
+class _SimpleInsertionMapper implements OffsetMapper {
+  final int offset;
+  final int length;
+
+  _SimpleInsertionMapper(this.offset, this.length);
+
+  @override
+  int map(int offset) => offset < this.offset ? offset : offset + length;
 }
