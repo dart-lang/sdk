@@ -217,19 +217,16 @@ void handlePostLinkClick(MouseEvent event) async {
   // Don't navigate on link click.
   event.preventDefault();
 
-  document.body.classes.add('rerunning');
-
   try {
     // Directing the server to produce an edit; request it, then do work with the
     // response.
     await doPost(path);
+    // TODO(mfairhurst): Only refresh the regions/dart code, not the window.
     (document.window.location as Location).reload();
   } catch (e, st) {
     logError('handlePostLinkClick: $e', st);
 
     window.alert('Could not load $path ($e).');
-  } finally {
-    document.body.classes.remove('rerunning');
   }
 }
 

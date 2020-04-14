@@ -324,7 +324,7 @@ class InfoBuilder {
     edits.sort((first, second) => first.offset.compareTo(second.offset));
     var mapper = OffsetMapper.forEdits(edits);
     regions.sort((first, second) => first.offset.compareTo(second.offset));
-    unitInfo.offsetMapper = mapper;
+    unitInfo.migrationOffsetMapper = mapper;
     unitInfo.content = content;
     return unitInfo;
   }

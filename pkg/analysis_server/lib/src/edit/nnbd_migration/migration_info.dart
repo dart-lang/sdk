@@ -225,9 +225,13 @@ class UnitInfo {
   /// targets are offsets into the pre-edit content.
   final Set<NavigationTarget> targets = {};
 
-  /// The object used to map the pre-edit offsets in the navigation targets to
-  /// the post-edit offsets in the [content].
-  OffsetMapper offsetMapper = OffsetMapper.identity;
+  /// An offset mapper reflecting changes made by the migration edits.
+  OffsetMapper migrationOffsetMapper = OffsetMapper.identity;
+
+  /// An offset mapper reflecting changes made to disk since the migration was
+  /// run, which can be rebased on [migrationOffsetMapper] to create and
+  /// maintain an offset mapper from current disk state to migration result.
+  OffsetMapper diskChangesOffsetMapper = OffsetMapper.identity;
 
   /// Initialize a newly created unit.
   UnitInfo(this.path);
@@ -248,11 +252,44 @@ class UnitInfo {
       .where((region) => region.regionType == RegionType.informative)
       .toList();
 
+  /// The object used to map the pre-edit offsets in the navigation targets to
+  /// the post-edit offsets in the [content].
+  OffsetMapper get offsetMapper =>
+      OffsetMapper.rebase(diskChangesOffsetMapper, migrationOffsetMapper);
+
   /// Check if this unit's file had expected disk contents [checkContent].
   bool hadDiskContent(String checkContent) {
     assert(_diskContentHash != null);
     return const ListEquality().equals(
         _diskContentHash, md5.convert((checkContent ?? '').codeUnits).bytes);
+  }
+
+  void handleInsertion(int offset, String replacement) {
+    final contentCopy = content;
+    final regionsCopy = List<RegionInfo>.from(regions);
+    final length = replacement.length;
+    offset = offsetMapper.map(offset);
+    try {
+      content = content.replaceRange(offset, offset, replacement);
+      regions.clear();
+      regions.addAll(regionsCopy.map((region) {
+        if (region.offset < offset) {
+          return region;
+        }
+        // TODO: adjust traces
+        return RegionInfo(region.regionType, region.offset + length,
+            region.length, region.lineNumber, region.explanation, region.kind,
+            edits: region.edits, traces: region.traces);
+      }));
+
+      diskChangesOffsetMapper = OffsetMapper.sequence(
+          diskChangesOffsetMapper, OffsetMapper.forInsertion(offset, length));
+    } catch (e) {
+      regions.clear();
+      regions.addAll(regionsCopy);
+      content = contentCopy;
+      rethrow;
+    }
   }
 
   /// Returns the [RegionInfo] at offset [offset].

@@ -232,9 +232,20 @@ class PreviewSite extends Site
       throw StateError(
           'Cannot add hint, $path has changed. Rerun migration and try again.');
     }
-    var newContent = diskContent.replaceRange(offset, end, replacement);
+    final unitInfo = unitInfoMap[path];
+    final diskMapper = unitInfo.diskChangesOffsetMapper;
+    final insertionOnly = offset == end;
+    if (insertionOnly) {
+      unitInfo.handleInsertion(offset, replacement);
+      migrationState.needsRerun = true;
+    }
+    var newContent = diskContent.replaceRange(
+        diskMapper.map(offset), diskMapper.map(end), replacement);
     file.writeAsStringSync(newContent);
-    await rerunMigration([path]);
+    unitInfo.diskContent = newContent;
+    if (!insertionOnly) {
+      await rerunMigration([path]);
+    }
   }
 
   Future<void> rerunMigration([List<String> changedPaths]) async {
