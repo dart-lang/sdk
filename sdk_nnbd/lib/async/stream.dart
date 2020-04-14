@@ -523,10 +523,8 @@ abstract class Stream<T> {
           subscription.pause();
           newValue.then(add, onError: addError).whenComplete(resume);
         } else {
-          if (newValue is! E) {
-            throw "unreachable"; // TODO(lrn): Remove when type promotion works.
-          }
-          controller.add(newValue);
+          // TODO(40014): Remove cast when type promotion works.
+          controller.add(newValue as dynamic);
         }
       });
       controller.onCancel = subscription.cancel;
