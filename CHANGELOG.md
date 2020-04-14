@@ -382,14 +382,8 @@ Other dart2js changes:
 
 #### Linter
 
-Updated the Linter to `0.1.115`, which includes:
+Updated the Linter to `0.1.114`, which includes:
 
-* Updated `avoid_types_as_parameter_names` to check catch-clauses.
-* Fixed `unsafe_html` to check attributes and methods on extensions.
-* Extended `unsafe_html` to include `Window.open`, `Element.html` and `DocumentFragment.html` in unsafe API checks.
-* Improved docs for `sort_child_properties_last`.
-* (internal) `package:analyzer` API updates.
-* New lint: `sized_box_for_whitespace`.
 * Fixed `avoid_shadowing_type_parameters` to support extensions and mixins.
 * Updated `non_constant_identifier_names` to allow named constructors made up of only underscores (`_`).
 * Updated `avoid_unused_constructor_parameters` to ignore unused params named in all underscores (`_`).
