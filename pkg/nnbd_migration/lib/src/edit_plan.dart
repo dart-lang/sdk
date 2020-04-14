@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:meta/meta.dart';
+import 'package:nnbd_migration/fix_reason_target.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 
@@ -128,7 +129,7 @@ class AtomicEditInfo {
   final NullabilityFixDescription description;
 
   /// The reasons for the edit.
-  final List<FixReasonInfo> fixReasons;
+  final Map<FixReasonTarget, FixReasonInfo> fixReasons;
 
   AtomicEditInfo(this.description, this.fixReasons);
 }

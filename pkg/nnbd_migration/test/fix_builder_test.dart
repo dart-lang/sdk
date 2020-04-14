@@ -10,6 +10,7 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
+import 'package:nnbd_migration/fix_reason_target.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/fix_aggregator.dart';
@@ -1391,7 +1392,9 @@ _f(int/*?*/ x) {
     var xRef = findNode.simple('x;');
     visitSubexpression(xRef, 'int', changes: {
       xRef: isNodeChangeForExpression.havingIndroduceAsWithInfo(
-          'int', isInfo(NullabilityFixDescription.downcastExpression, [isEdge]))
+          'int',
+          isInfo(NullabilityFixDescription.downcastExpression,
+              {FixReasonTarget.root: isEdge}))
     });
   }
 
@@ -2579,7 +2582,7 @@ _f(int/*?*/ x) {
     visitSubexpression(xRef, 'int', changes: {
       xRef: isNodeChangeForExpression.havingNullCheckWithInfo(isInfo(
           NullabilityFixDescription.checkExpression,
-          [TypeMatcher<FixReason_NullCheckHint>()]))
+          {FixReasonTarget.root: TypeMatcher<FixReason_NullCheckHint>()}))
     });
   }
 
@@ -2599,8 +2602,10 @@ int f(Object o) {
 ''');
     var xRef = findNode.simple('o;');
     visitSubexpression(xRef, 'int', changes: {
-      xRef: isNodeChangeForExpression.havingIndroduceAsWithInfo('int',
-          isInfo(NullabilityFixDescription.otherCastExpression, [isEdge]))
+      xRef: isNodeChangeForExpression.havingIndroduceAsWithInfo(
+          'int',
+          isInfo(NullabilityFixDescription.otherCastExpression,
+              {FixReasonTarget.root: isEdge}))
     });
   }
 

@@ -16,6 +16,7 @@ import 'package:analyzer/src/error/best_practices_verifier.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:meta/meta.dart';
+import 'package:nnbd_migration/fix_reason_target.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/conditional_discard.dart';
@@ -66,13 +67,13 @@ class AssignmentCheckerForTesting extends Object with _AssignmentChecker {
       {@required DecoratedType source,
       @required DecoratedType destination,
       @required bool hard}) {
-    super._checkAssignment(origin,
+    super._checkAssignment(origin, FixReasonTarget.root,
         source: source, destination: destination, hard: hard);
   }
 
   @override
-  void _connect(
-      NullabilityNode source, NullabilityNode destination, EdgeOrigin origin,
+  void _connect(NullabilityNode source, NullabilityNode destination,
+      EdgeOrigin origin, FixReasonTarget edgeTarget,
       {bool hard = false, bool checkable = true}) {
     _graph.connect(source, destination, origin,
         hard: hard, checkable: checkable);
@@ -413,8 +414,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         expressionType = _decorateUpperOrLowerBound(
             node, node.staticType, leftType, rightType, true,
             node: ifNullNode);
-        _connect(
-            rightType.node, expressionType.node, IfNullOrigin(source, node));
+        _connect(rightType.node, expressionType.node,
+            IfNullOrigin(source, node), null);
       } finally {
         _flowAnalysis.ifNullExpression_end();
         _guards.removeLast();
@@ -697,7 +698,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _linkDecoratedTypes(parameterType, fieldType, origin, isUnion: false);
     } else {
       _dispatch(node.type);
-      _checkAssignment(origin,
+      _checkAssignment(origin, FixReasonTarget.root,
           source: parameterType, destination: fieldType, hard: true);
     }
 
@@ -953,6 +954,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var calleeType = getOrComputeElementType(callee, targetType: createdType);
     for (var i = 0; i < decoratedTypeArguments.length; ++i) {
       _checkAssignment(parameterEdgeOrigins?.elementAt(i),
+          FixReasonTarget.root.typeArgument(i),
           source: decoratedTypeArguments[i],
           destination:
               _variables.decoratedTypeParameterBound(typeParameters[i]),
@@ -1270,7 +1272,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           typeProvider, typeProvider.nullType, _graph, target);
       var origin = ImplicitNullReturnOrigin(source, node);
       _graph.makeNullable(implicitNullType.node, origin);
-      _checkAssignment(origin,
+      _checkAssignment(origin, FixReasonTarget.root,
           source:
               isAsync ? _futureOf(implicitNullType, node) : implicitNullType,
           destination: returnType,
@@ -1615,6 +1617,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
             }
             _checkAssignment(
                 TypeParameterInstantiationOrigin(source, typeArguments[i]),
+                FixReasonTarget.root,
                 source: argumentType,
                 destination: bound,
                 hard: true);
@@ -1757,19 +1760,19 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         hard: _postDominatedLocals.isReferenceInScope(expression),
         guards: _guards);
     if (origin is ExpressionChecksOrigin) {
-      origin.checks.edges.add(edge);
+      origin.checks.edges[FixReasonTarget.root] = edge;
     }
     return sourceType;
   }
 
   @override
-  void _connect(
-      NullabilityNode source, NullabilityNode destination, EdgeOrigin origin,
+  void _connect(NullabilityNode source, NullabilityNode destination,
+      EdgeOrigin origin, FixReasonTarget edgeTarget,
       {bool hard = false, bool checkable = true}) {
     var edge = _graph.connect(source, destination, origin,
         hard: hard, checkable: checkable, guards: _guards);
     if (origin is ExpressionChecksOrigin) {
-      origin.checks.edges.add(edge);
+      origin.checks.edges[edgeTarget] = edge;
     }
   }
 
@@ -2058,6 +2061,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         if (compoundOperatorMethod != null) {
           _checkAssignment(
               CompoundAssignmentOrigin(source, compoundOperatorInfo),
+              FixReasonTarget.root,
               source: destinationType,
               destination: _createNonNullableType(compoundOperatorInfo),
               hard: _postDominatedLocals
@@ -2066,7 +2070,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
               compoundOperatorMethod,
               targetType: destinationType);
           assert(compoundOperatorType.positionalParameters.length > 0);
-          _checkAssignment(edgeOrigin,
+          _checkAssignment(edgeOrigin, FixReasonTarget.root,
               source: sourceType,
               destination: compoundOperatorType.positionalParameters[0],
               hard: _postDominatedLocals.isReferenceInScope(expression),
@@ -2075,6 +2079,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
               compoundOperatorType.returnType, compoundOperatorInfo.staticType);
           _checkAssignment(
               CompoundAssignmentOrigin(source, compoundOperatorInfo),
+              FixReasonTarget.root,
               source: sourceType,
               destination: destinationType,
               hard: false);
@@ -2082,7 +2087,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           sourceType = _makeNullableDynamicType(compoundOperatorInfo);
         }
       } else {
-        _checkAssignment(edgeOrigin,
+        _checkAssignment(edgeOrigin, FixReasonTarget.root,
             source: sourceType,
             destination: destinationType,
             hard: questionAssignNode == null &&
@@ -2209,7 +2214,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       var overriddenFieldType =
           decoratedOverriddenField.substitute(substitution);
       if (method.isGetter) {
-        _checkAssignment(ReturnTypeInheritanceOrigin(source, node),
+        _checkAssignment(
+            ReturnTypeInheritanceOrigin(source, node), FixReasonTarget.root,
             source: _currentFunctionType.returnType,
             destination: overriddenFieldType,
             hard: true);
@@ -2218,7 +2224,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         DecoratedType currentParameterType =
             _currentFunctionType.positionalParameters.single;
         DecoratedType overriddenParameterType = overriddenFieldType;
-        _checkAssignment(ParameterInheritanceOrigin(source, node),
+        _checkAssignment(
+            ParameterInheritanceOrigin(source, node), FixReasonTarget.root,
             source: overriddenParameterType,
             destination: currentParameterType,
             hard: true);
@@ -2235,7 +2242,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
             ReturnTypeInheritanceOrigin(source, node),
             isUnion: false);
       } else {
-        _checkAssignment(ReturnTypeInheritanceOrigin(source, node),
+        _checkAssignment(
+            ReturnTypeInheritanceOrigin(source, node), FixReasonTarget.root,
             source: _currentFunctionType.returnType,
             destination: overriddenFunctionType.returnType,
             hard: true);
@@ -2276,7 +2284,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
                   overriddenParameterType, currentParameterType, origin,
                   isUnion: false);
             } else {
-              _checkAssignment(origin,
+              _checkAssignment(origin, FixReasonTarget.root,
                   source: overriddenParameterType,
                   destination: currentParameterType,
                   hard: false,
@@ -2315,11 +2323,13 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
       var overriddenType = unsubstitutedOverriddenType.substitute(substitution);
       if (overriddenElement.isGetter) {
-        _checkAssignment(ReturnTypeInheritanceOrigin(source, node),
+        _checkAssignment(
+            ReturnTypeInheritanceOrigin(source, node), FixReasonTarget.root,
             source: type, destination: overriddenType, hard: true);
       } else {
         assert(overriddenElement.isSetter);
-        _checkAssignment(ParameterInheritanceOrigin(source, node),
+        _checkAssignment(
+            ParameterInheritanceOrigin(source, node), FixReasonTarget.root,
             source: overriddenType, destination: type, hard: true);
       }
     } else {
@@ -2365,7 +2375,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
               .asInstanceOf(
                   iterableType, typeProvider.iterableDynamicType.element)
               .typeArguments[0];
-          _checkAssignment(ForEachVariableOrigin(source, parts),
+          _checkAssignment(
+              ForEachVariableOrigin(source, parts), FixReasonTarget.root,
               source: elementType, destination: lhsType, hard: false);
         }
       }
@@ -2395,7 +2406,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType _handleInstantiation(DecoratedType type,
       List<DecoratedType> argumentTypes, List<EdgeOrigin> edgeOrigins) {
     for (var i = 0; i < argumentTypes.length; ++i) {
-      _checkAssignment(edgeOrigins?.elementAt(i),
+      _checkAssignment(
+          edgeOrigins?.elementAt(i), FixReasonTarget.root.typeArgument(i),
           source: argumentTypes[i],
           destination: DecoratedTypeParameterBounds.current
               .get((type.type as FunctionType).typeFormals[i]),
@@ -2644,8 +2656,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (sourceType.type.isDynamic) {
       return DynamicAssignmentOrigin(source, expression);
     } else {
-      ExpressionChecksOrigin expressionChecksOrigin = ExpressionChecksOrigin(
-          source, expression, ExpressionChecks(expression.end));
+      ExpressionChecksOrigin expressionChecksOrigin =
+          ExpressionChecksOrigin(source, expression, ExpressionChecks());
       _variables.recordExpressionChecks(
           source, expression, expressionChecksOrigin);
       return expressionChecksOrigin;
@@ -2798,7 +2810,7 @@ mixin _AssignmentChecker {
   /// created.  [hard] indicates whether a hard edge should be created.
   /// [sourceIsFunctionLiteral] indicates whether the source of the assignment
   /// is a function literal expression.
-  void _checkAssignment(EdgeOrigin origin,
+  void _checkAssignment(EdgeOrigin origin, FixReasonTarget edgeTarget,
       {@required DecoratedType source,
       @required DecoratedType destination,
       @required bool hard,
@@ -2821,12 +2833,12 @@ mixin _AssignmentChecker {
           _assumeNonNullabilityInCasts,
           'side cast not supported without assuming non-nullability:'
           ' $sourceType to $destinationType');
-      _connect(source.node, destination.node, origin, hard: hard);
+      _connect(source.node, destination.node, origin, edgeTarget, hard: hard);
       return;
     }
-    _connect(source.node, destination.node, origin,
+    _connect(source.node, destination.node, origin, edgeTarget,
         hard: hard, checkable: checkable);
-    _checkAssignment_recursion(origin,
+    _checkAssignment_recursion(origin, edgeTarget,
         source: source,
         destination: destination,
         sourceIsFunctionLiteral: sourceIsFunctionLiteral);
@@ -2836,7 +2848,7 @@ mixin _AssignmentChecker {
   /// constituting [source] and [destination], and creating the appropriate
   /// edges between them.  [sourceIsFunctionLiteral] indicates whether the
   /// source of the assignment is a function literal expression.
-  void _checkAssignment_recursion(EdgeOrigin origin,
+  void _checkAssignment_recursion(EdgeOrigin origin, FixReasonTarget edgeTarget,
       {@required DecoratedType source,
       @required DecoratedType destination,
       bool sourceIsFunctionLiteral = false}) {
@@ -2880,7 +2892,8 @@ mixin _AssignmentChecker {
         // So the RHS of the "or" is redundant, and we can simplify to:
         // - S0 <: S1.
         var s0 = source.typeArguments[0];
-        _checkAssignment(origin, source: s0, destination: s1, hard: false);
+        _checkAssignment(origin, edgeTarget.yieldedType,
+            source: s0, destination: s1, hard: false);
         return;
       }
       // (From the subtyping spec):
@@ -2895,7 +2908,8 @@ mixin _AssignmentChecker {
       // - or T0 <: S1
       else if (_typeSystem.isSubtypeOf(sourceType, s1.type)) {
         // E.g. FutureOr<int> = (... as int)
-        _checkAssignment_recursion(origin, source: source, destination: s1);
+        _checkAssignment_recursion(origin, edgeTarget.yieldedType,
+            source: source, destination: s1);
         return;
       }
       // - or T0 is X0 and X0 has bound S0 and S0 <: T1
@@ -2920,7 +2934,7 @@ mixin _AssignmentChecker {
       } else {
         // Effectively this is an assignment from the type parameter's bound to
         // the destination type.
-        _checkAssignment(origin,
+        _checkAssignment(origin, edgeTarget,
             source: _getTypeParameterTypeBound(source),
             destination: destination,
             hard: false);
@@ -2939,7 +2953,7 @@ mixin _AssignmentChecker {
       assert(rewrittenSource.typeArguments.length ==
           destination.typeArguments.length);
       for (int i = 0; i < rewrittenSource.typeArguments.length; i++) {
-        _checkAssignment(origin,
+        _checkAssignment(origin, edgeTarget.typeArgument(i),
             source: rewrittenSource.typeArguments[i],
             destination: destination.typeArguments[i],
             hard: false,
@@ -2950,7 +2964,7 @@ mixin _AssignmentChecker {
       // function returning non-null is required, we will insure that the
       // function literal has a non-nullable return type (e.g. by inserting null
       // checks into the function literal).
-      _checkAssignment(origin,
+      _checkAssignment(origin, edgeTarget.returnType,
           source: source.returnType,
           destination: destination.returnType,
           hard: sourceIsFunctionLiteral,
@@ -2964,7 +2978,7 @@ mixin _AssignmentChecker {
               i < destination.positionalParameters.length;
           i++) {
         // Note: source and destination are swapped due to contravariance.
-        _checkAssignment(origin,
+        _checkAssignment(origin, edgeTarget.positionalParameter(i),
             source: destination.positionalParameters[i],
             destination: source.positionalParameters[i],
             hard: false,
@@ -2972,7 +2986,7 @@ mixin _AssignmentChecker {
       }
       for (var entry in destination.namedParameters.entries) {
         // Note: source and destination are swapped due to contravariance.
-        _checkAssignment(origin,
+        _checkAssignment(origin, edgeTarget.namedParameter(entry.key),
             source: entry.value,
             destination: source.namedParameters[entry.key],
             hard: false,
@@ -2995,7 +3009,8 @@ mixin _AssignmentChecker {
     var destinationType = destination.type;
     assert(_typeSystem.isSubtypeOf(destinationType, source.type));
     // Nullability should narrow to maintain subtype relationship.
-    _connect(source.node, destination.node, origin, hard: hard);
+    _connect(source.node, destination.node, origin, FixReasonTarget.root,
+        hard: hard);
 
     if (source.type.isDynamic ||
         source.type.isDartCoreObject ||
@@ -3013,7 +3028,7 @@ mixin _AssignmentChecker {
     } else if (destinationType is TypeParameterType) {
       if (source.type is! TypeParameterType) {
         // Assume an assignment to the type parameter's bound.
-        _checkAssignment(origin,
+        _checkAssignment(origin, FixReasonTarget.root,
             source: source,
             destination: _getTypeParameterTypeBound(destination),
             hard: false);
@@ -3025,6 +3040,7 @@ mixin _AssignmentChecker {
       if (destination.type.isDartAsyncFuture) {
         // FutureOr<T?> is nullable, so the Future<T> should be nullable too.
         _connect(source.typeArguments[0].node, destination.node, origin,
+            FixReasonTarget.root.yieldedType,
             hard: hard);
         _checkDowncast(origin,
             source: source.typeArguments[0],
@@ -3068,8 +3084,8 @@ mixin _AssignmentChecker {
     }
   }
 
-  void _connect(
-      NullabilityNode source, NullabilityNode destination, EdgeOrigin origin,
+  void _connect(NullabilityNode source, NullabilityNode destination,
+      EdgeOrigin origin, FixReasonTarget edgeTarget,
       {bool hard = false, bool checkable = true});
 
   /// Given a [type] representing a type parameter, retrieves the type's bound.

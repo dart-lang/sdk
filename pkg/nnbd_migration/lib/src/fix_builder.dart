@@ -25,6 +25,7 @@ import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:nnbd_migration/fix_reason_target.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/decorated_class_hierarchy.dart';
@@ -301,7 +302,7 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
           var conditionValue = conditionalDiscard.keepTrue;
           (_fixBuilder._getChange(node) as NodeChangeForConditional)
             ..conditionValue = conditionValue
-            ..conditionReasons = conditionalDiscard.reasons.toList();
+            ..conditionReason = conditionalDiscard.reason;
           return conditionValue;
         }
       });
@@ -399,8 +400,10 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
       _wrapExceptions(node, () => type, () {
         if (_fixBuilder._variables.hasNullCheckHint(_fixBuilder.source, node)) {
           type = _addNullCheck(node, type,
-              info: AtomicEditInfo(NullabilityFixDescription.checkExpression,
-                  [FixReason_NullCheckHint(CodeReference.fromAstNode(node))]));
+              info: AtomicEditInfo(NullabilityFixDescription.checkExpression, {
+                FixReasonTarget.root:
+                    FixReason_NullCheckHint(CodeReference.fromAstNode(node))
+              }));
         }
         if (type.isDynamic) return type;
         var ancestor = _findNullabilityContextAncestor(node);
@@ -452,7 +455,7 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
         isDowncast
             ? NullabilityFixDescription.downcastExpression
             : NullabilityFixDescription.otherCastExpression,
-        checks != null ? checks.edges : []);
+        checks != null ? checks.edges : {});
     (_fixBuilder._getChange(node) as NodeChangeForExpression)
         .introduceAs(contextType, info);
     _flowAnalysis.asExpression_end(node, contextType);
@@ -733,7 +736,7 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
     var info = AtomicEditInfo(
         NullabilityFixDescription.addRequired(
             cls.name, method.name, element.name),
-        [node]);
+        {FixReasonTarget.root: node});
     var metadata = parameter.metadata;
     for (var annotation in metadata) {
       if (annotation.elementAnnotation.isRequired) {

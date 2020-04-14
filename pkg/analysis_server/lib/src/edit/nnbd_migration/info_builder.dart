@@ -19,6 +19,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:meta/meta.dart';
+import 'package:nnbd_migration/fix_reason_target.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
@@ -187,8 +188,8 @@ class InfoBuilder {
     }).toList();
   }
 
-  void _computeTraceNonNullableInfo(
-      NullabilityNodeInfo node, List<TraceInfo> traces) {
+  void _computeTraceNonNullableInfo(NullabilityNodeInfo node,
+      List<TraceInfo> traces, FixReasonTarget target) {
     var entries = <TraceEntryInfo>[];
     var step = node.whyNotNullable;
     if (step == null) {
@@ -202,12 +203,12 @@ class InfoBuilder {
       }
       step = step.principalCause;
     }
-    var description = 'Non-nullability reason';
+    var description = 'Non-nullability reason${target.suffix}';
     traces.add(TraceInfo(description, entries));
   }
 
-  void _computeTraceNullableInfo(
-      NullabilityNodeInfo node, List<TraceInfo> traces) {
+  void _computeTraceNullableInfo(NullabilityNodeInfo node,
+      List<TraceInfo> traces, FixReasonTarget target) {
     var entries = <TraceEntryInfo>[];
     var step = node.whyNullable;
     if (step == null) {
@@ -221,24 +222,27 @@ class InfoBuilder {
       }
       step = step.principalCause;
     }
-    var description = 'Nullability reason';
+    var description = 'Nullability reason${target.suffix}';
     traces.add(TraceInfo(description, entries));
   }
 
-  List<TraceInfo> _computeTraces(List<FixReasonInfo> fixReasons) {
+  List<TraceInfo> _computeTraces(
+      Map<FixReasonTarget, FixReasonInfo> fixReasons) {
     var traces = <TraceInfo>[];
-    for (var reason in fixReasons) {
+    for (var entry in fixReasons.entries) {
+      var reason = entry.value;
       if (reason is NullabilityNodeInfo) {
         if (reason.isNullable) {
-          _computeTraceNullableInfo(reason, traces);
+          _computeTraceNullableInfo(reason, traces, FixReasonTarget.root);
         } else {
-          _computeTraceNonNullableInfo(reason, traces);
+          _computeTraceNonNullableInfo(reason, traces, FixReasonTarget.root);
         }
       } else if (reason is EdgeInfo) {
         if (reason.sourceNode.isNullable &&
             !reason.destinationNode.isNullable) {
-          _computeTraceNullableInfo(reason.sourceNode, traces);
-          _computeTraceNonNullableInfo(reason.destinationNode, traces);
+          var target = entry.key;
+          _computeTraceNullableInfo(reason.sourceNode, traces, target);
+          _computeTraceNonNullableInfo(reason.destinationNode, traces, target);
         }
       } else if (reason is SimpleFixReasonInfo) {
         _addSimpleTrace(reason, traces);

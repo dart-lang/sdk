@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:nnbd_migration/fix_reason_target.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
@@ -265,7 +266,7 @@ class NodeChangeForAsExpression extends NodeChangeForExpression<AsExpression> {
       return aggregator.planner.extract(node,
           aggregator.planForNode(node.expression) as NodeProducingEditPlan,
           infoAfter:
-              AtomicEditInfo(NullabilityFixDescription.removeAs, const []));
+              AtomicEditInfo(NullabilityFixDescription.removeAs, const {}));
     } else {
       return super._apply(node, aggregator);
     }
@@ -288,7 +289,7 @@ class NodeChangeForCompilationUnit extends NodeChange<CompilationUnit> {
       innerPlans.add(aggregator.planner.replaceToken(node, comment, '',
           info: AtomicEditInfo(
               NullabilityFixDescription.removeLanguageVersionComment,
-              const [])));
+              const {})));
     }
     innerPlans.addAll(aggregator.innerPlansForNode(node));
     return aggregator.planner.passThrough(node, innerPlans: innerPlans);
@@ -304,9 +305,9 @@ mixin NodeChangeForConditional<N extends AstNode> on NodeChange<N> {
   /// conditional is dead code and should be eliminated.
   bool conditionValue;
 
-  /// If [conditionValue] is not `null`, the reasons that should be included in
+  /// If [conditionValue] is not `null`, the reason that should be included in
   /// the [AtomicEditInfo] for the edit that removes the dead code.
-  List<FixReasonInfo> conditionReasons;
+  FixReasonInfo conditionReason;
 
   /// If dead code removal is warranted for [node], returns an [EditPlan] that
   /// removes the dead code (and performs appropriate updates within any
@@ -333,8 +334,8 @@ mixin NodeChangeForConditional<N extends AstNode> on NodeChange<N> {
         nodeToKeep is Block && nodeToKeep.statements.isEmpty) {
       // The conditional node collapses to a no-op, so try to remove it
       // entirely.
-      var info =
-          AtomicEditInfo(NullabilityFixDescription.discardIf, conditionReasons);
+      var info = AtomicEditInfo(NullabilityFixDescription.discardIf,
+          {FixReasonTarget.root: conditionReason});
       var removeNode = aggregator.planner.tryRemoveNode(node, info: info);
       if (removeNode != null) {
         return removeNode;
@@ -357,8 +358,10 @@ mixin NodeChangeForConditional<N extends AstNode> on NodeChange<N> {
         }
       }
     }
-    var infoBefore = AtomicEditInfo(descriptionBefore, conditionReasons);
-    var infoAfter = AtomicEditInfo(descriptionAfter, conditionReasons);
+    var infoBefore = AtomicEditInfo(
+        descriptionBefore, {FixReasonTarget.root: conditionReason});
+    var infoAfter = AtomicEditInfo(
+        descriptionAfter, {FixReasonTarget.root: conditionReason});
     if (nodeToKeep is Block && nodeToKeep.statements.length == 1) {
       var singleStatement = (nodeToKeep as Block).statements[0];
       if (singleStatement is VariableDeclarationStatement) {
@@ -543,8 +546,8 @@ mixin NodeChangeForNullAware<N extends Expression> on NodeChange<N> {
   EditPlan _applyNullAware(N node, FixAggregator aggregator) {
     if (!removeNullAwareness) return null;
     return aggregator.planner.removeNullAwareness(node,
-        info:
-            AtomicEditInfo(NullabilityFixDescription.removeNullAwareness, []));
+        info: AtomicEditInfo(
+            NullabilityFixDescription.removeNullAwareness, const {}));
   }
 }
 
@@ -618,13 +621,13 @@ class NodeChangeForTypeAnnotation extends NodeChange<TypeAnnotation> {
           info: AtomicEditInfo(
               NullabilityFixDescription.makeTypeNullable(
                   decoratedType.type.getDisplayString(withNullability: false)),
-              [decoratedType.node]));
+              {FixReasonTarget.root: decoratedType.node}));
     } else {
       return aggregator.planner.explainNonNullable(innerPlan,
           info: AtomicEditInfo(
               NullabilityFixDescription.typeNotMadeNullable(
                   decoratedType.type.getDisplayString(withNullability: false)),
-              [decoratedType.node]));
+              {FixReasonTarget.root: decoratedType.node}));
     }
   }
 }
@@ -656,12 +659,12 @@ class NodeChangeForVariableDeclarationList
       var typeText = addExplicitType.getDisplayString(withNullability: true);
       if (node.keyword?.keyword == Keyword.VAR) {
         var info =
-            AtomicEditInfo(NullabilityFixDescription.replaceVar(typeText), []);
+            AtomicEditInfo(NullabilityFixDescription.replaceVar(typeText), {});
         innerPlans.add(aggregator.planner
             .replaceToken(node, node.keyword, typeText, info: info));
       } else {
         var info =
-            AtomicEditInfo(NullabilityFixDescription.addType(typeText), []);
+            AtomicEditInfo(NullabilityFixDescription.addType(typeText), {});
         innerPlans.add(aggregator.planner.insertText(
             node,
             node.variables.first.offset,

@@ -377,6 +377,38 @@ void g(int  i) {
         traces: isNotEmpty);
   }
 
+  Future<void> test_downcast_with_traces() async {
+    var content = 'List<int/*!*/>/*!*/ f(List<int/*?*/>/*?*/ x) => x;';
+    var migratedContent =
+        'List<int /*!*/> /*!*/ f(List<int?/*?*/>?/*?*/ x) => x as List<int>;';
+    var unit = await buildInfoForSingleTestFile(content,
+        migratedContent: migratedContent);
+    var regions = unit.regions.where(
+        (region) => region.kind == NullabilityFixKind.downcastExpression);
+    expect(regions, hasLength(1));
+    var region = regions.single;
+    var regionTarget = ' as List<int>';
+    assertRegion(
+        region: region,
+        offset: migratedContent.indexOf(regionTarget),
+        length: regionTarget.length,
+        kind: NullabilityFixKind.downcastExpression,
+        edits: isEmpty,
+        traces: isNotEmpty);
+    var traceDescriptionToOffset = {
+      for (var trace in region.traces)
+        trace.description: trace.entries[0].target.offset
+    };
+    // Note: +1's below are because trace offsets are actually column numbers.
+    expect(traceDescriptionToOffset, {
+      'Nullability reason': content.indexOf('List<int/*?*/>/*?*/') + 1,
+      'Non-nullability reason': content.indexOf('List<int/*!*/>/*!*/') + 1,
+      'Nullability reason for type argument 0': content.indexOf('int/*?*/') + 1,
+      'Non-nullability reason for type argument 0':
+          content.indexOf('int/*!*/') + 1
+    });
+  }
+
   Future<void> test_dynamicValueIsUsed() async {
     var unit = await buildInfoForSingleTestFile('''
 bool f(int i) {
