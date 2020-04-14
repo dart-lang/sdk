@@ -957,6 +957,9 @@
         ]
       }
     },
+    "dartkb-abi-linux-release-x64": {
+      "__comment__": "This configuration is only used for a custom test runner. If it conflicts with a new configuration you are adding, you can make this configuration more specific by adding options."
+    },
     "dartdevk-checked-(linux|mac|win)-(debug|product|release)-(chrome|firefox)": {
       "options": {
         "checked": true,
@@ -3622,7 +3625,8 @@
         {
           "name": "run tests",
           "script": "tools/run_abi_tests.py",
-          "testRunner": true
+          "testRunner": true,
+          "arguments": ["-ndartkb-abi-linux-release-x64"]
         }
       ]
     },
