@@ -7,6 +7,7 @@ import 'package:analysis_server/src/edit/fix/non_nullable_fix.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/info_builder.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_listener.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/offset_mapper.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
@@ -23,13 +24,18 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
 
   /// Assert that some target in [targets] has various properties.
   void assertInTargets(
-      {@required Iterable<NavigationTarget> targets, int offset, int length}) {
+      {@required Iterable<NavigationTarget> targets,
+      int offset,
+      int length,
+      OffsetMapper offsetMapper}) {
     var failureReasons = [
       if (offset != null) 'offset: $offset',
       if (length != null) 'length: $length',
+      if (offsetMapper != null) 'match a custom offset mapper',
     ].join(' and ');
+    offsetMapper ??= OffsetMapper.identity;
     expect(targets.any((t) {
-      return (offset == null || offset == t.offset) &&
+      return (offset == null || offset == offsetMapper.map(t.offset)) &&
           (length == null || length == t.length);
     }), isTrue, reason: 'Expected one of $targets to contain $failureReasons');
   }
