@@ -201,7 +201,7 @@ class PreviewSite extends Site
     for (final fileEdit in edits) {
       final file = pathMapper.provider.getFile(fileEdit.file);
       var code = file.exists ? file.readAsStringSync() : '';
-      if (!unitInfoMap[file.path].hadOriginalContent(code)) {
+      if (!unitInfoMap[file.path].hadDiskContent(code)) {
         throw StateError('${file.path} has changed, rerun migration to apply.');
       }
     }
@@ -228,7 +228,7 @@ class PreviewSite extends Site
     var replacement = params['replacement'];
     var file = pathMapper.provider.getFile(path);
     var diskContent = file.readAsStringSync();
-    if (!unitInfoMap[path].hadOriginalContent(diskContent)) {
+    if (!unitInfoMap[path].hadDiskContent(diskContent)) {
       throw StateError(
           'Cannot add hint, $path has changed. Rerun migration and try again.');
     }

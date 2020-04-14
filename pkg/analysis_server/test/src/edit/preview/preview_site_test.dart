@@ -57,7 +57,7 @@ class PreviewSiteTest with ResourceProviderMixin {
     final path = convertPath('/test.dart');
     final file = getFile(path);
     site.unitInfoMap[path] = UnitInfo(path)
-      ..originalContent = '// different content';
+      ..diskContent = '// different content';
     final currentContent = 'void main() {}';
     file.writeAsStringSync(currentContent);
     dartfixListener.addSourceChange(
@@ -76,7 +76,7 @@ class PreviewSiteTest with ResourceProviderMixin {
     final file = getFile(path);
     final content = 'void main() {}';
     file.writeAsStringSync(content);
-    site.unitInfoMap[path] = UnitInfo(path)..originalContent = content;
+    site.unitInfoMap[path] = UnitInfo(path)..diskContent = content;
     dartfixListener.addSourceChange(
         'test change',
         Location(path, 10, 0, 1, 10),
@@ -99,7 +99,7 @@ void main(List args) {
     final file = getFile(path);
     final content = 'void main() {}';
     file.writeAsStringSync(content);
-    site.unitInfoMap[path] = UnitInfo(path)..originalContent = content;
+    site.unitInfoMap[path] = UnitInfo(path)..diskContent = content;
     dartfixListener.addSourceChange(
         'test change',
         Location(path, 10, 0, 1, 10),
@@ -116,7 +116,7 @@ void main(List args) {
     final pathUri = Uri.file(path).path;
     final file = getFile(path);
     final content = 'int foo() {}';
-    site.unitInfoMap[path] = UnitInfo(path)..originalContent = content;
+    site.unitInfoMap[path] = UnitInfo(path)..diskContent = content;
     file.writeAsStringSync(content);
     site.performEdit(Uri.parse(
         'localhost://$pathUri?offset=3&end=3&replacement=${Uri.encodeComponent('/*?*/')}'));
@@ -130,7 +130,7 @@ void main(List args) {
     final pathUri = Uri.file(path).path;
     final file = getFile(path);
     site.unitInfoMap[path] = UnitInfo(path)
-      ..originalContent = '// different content';
+      ..diskContent = '// different content';
     final currentContent = 'void main() {}';
     file.writeAsStringSync(currentContent);
     expect(

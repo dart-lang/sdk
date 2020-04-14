@@ -23,44 +23,43 @@ class UnitInfoTest {
     }
   }
 
-  void test_hadOriginalContent_different() {
+  void test_hadDiskContent_different() {
     final unitInfo = UnitInfo('/foo.dart');
-    unitInfo.originalContent = 'abcd';
-    expect(unitInfo.hadOriginalContent('dcba'), false);
+    unitInfo.diskContent = 'abcd';
+    expect(unitInfo.hadDiskContent('dcba'), false);
   }
 
-  void test_hadOriginalContent_nullContentMatchesEmptyString() {
+  void test_hadDiskContent_nullContentMatchesEmptyString() {
     final unitInfo = UnitInfo('/foo.dart');
-    unitInfo.originalContent = '';
-    expect(unitInfo.hadOriginalContent(null), true);
-    expect(unitInfo.hadOriginalContent(''), true);
+    unitInfo.diskContent = '';
+    expect(unitInfo.hadDiskContent(null), true);
+    expect(unitInfo.hadDiskContent(''), true);
   }
 
-  void test_hadOriginalContent_nullMatchesEmptyStringContent() {
+  void test_hadDiskContent_nullMatchesEmptyStringContent() {
     final unitInfo = UnitInfo('/foo.dart');
-    unitInfo.originalContent = null;
-    expect(unitInfo.hadOriginalContent(null), true);
-    expect(unitInfo.hadOriginalContent(''), true);
+    unitInfo.diskContent = null;
+    expect(unitInfo.hadDiskContent(null), true);
+    expect(unitInfo.hadDiskContent(''), true);
   }
 
-  void test_hadOriginalContent_theSame() {
+  void test_hadDiskContent_theSame() {
     final unitInfo = UnitInfo('/foo.dart');
-    unitInfo.originalContent = 'abcd';
-    expect(unitInfo.hadOriginalContent('abcd'), true);
+    unitInfo.diskContent = 'abcd';
+    expect(unitInfo.hadDiskContent('abcd'), true);
   }
 
-  void test_hadOriginalContent_usedBeforeSet_assertsDisabled() {
+  void test_hadDiskContent_usedBeforeSet_assertsDisabled() {
     if (_areAssertsEnabled) return;
 
     final unitInfo = UnitInfo('/foo.dart');
-    expect(unitInfo.hadOriginalContent(''), false);
+    expect(unitInfo.hadDiskContent(''), false);
   }
 
-  void test_hadOriginalContent_usedBeforeSet_assertsEnabled() {
+  void test_hadDiskContent_usedBeforeSet_assertsEnabled() {
     if (!_areAssertsEnabled) return;
 
     final unitInfo = UnitInfo('/foo.dart');
-    expect(
-        () => unitInfo.hadOriginalContent(''), throwsA(isA<AssertionError>()));
+    expect(() => unitInfo.hadDiskContent(''), throwsA(isA<AssertionError>()));
   }
 }

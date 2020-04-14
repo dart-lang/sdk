@@ -208,7 +208,7 @@ class UnitInfo {
   final String path;
 
   /// Hash of the original contents of the unit.
-  List<int> _originalContentHash;
+  List<int> _diskContentHash;
 
   /// The preview content of unit.
   String content;
@@ -232,6 +232,12 @@ class UnitInfo {
   /// Initialize a newly created unit.
   UnitInfo(this.path);
 
+  /// Set the original/disk content of this file to later use [hadDiskContent].
+  /// This does not have a getter because it is backed by a private hash.
+  set diskContent(String originalContent) {
+    _diskContentHash = md5.convert((originalContent ?? '').codeUnits).bytes;
+  }
+
   /// Returns the [regions] that represent a fixed (changed) region of code.
   List<RegionInfo> get fixRegions => regions
       .where((region) => region.regionType != RegionType.informative)
@@ -242,18 +248,11 @@ class UnitInfo {
       .where((region) => region.regionType == RegionType.informative)
       .toList();
 
-  /// Set the original content of this file to later use [hadOriginalContent].
-  /// This does not have a getter because it is backed by a private hash.
-  set originalContent(String originalContent) {
-    assert(_originalContentHash == null);
-    _originalContentHash = md5.convert((originalContent ?? '').codeUnits).bytes;
-  }
-
-  /// Check if this unit's file had original contents [checkContent].
-  bool hadOriginalContent(String checkContent) {
-    assert(_originalContentHash != null);
-    return const ListEquality().equals(_originalContentHash,
-        md5.convert((checkContent ?? '').codeUnits).bytes);
+  /// Check if this unit's file had expected disk contents [checkContent].
+  bool hadDiskContent(String checkContent) {
+    assert(_diskContentHash != null);
+    return const ListEquality().equals(
+        _diskContentHash, md5.convert((checkContent ?? '').codeUnits).bytes);
   }
 
   /// Returns the [RegionInfo] at offset [offset].
