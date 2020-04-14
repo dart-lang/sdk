@@ -42,9 +42,11 @@ class UnboxedFieldBitmap {
   UnboxedFieldBitmap& operator=(const UnboxedFieldBitmap&) = default;
 
   DART_FORCE_INLINE bool Get(intptr_t position) const {
+    if (position >= Length()) return false;
     return Utils::TestBit(bitmap_, position);
   }
   DART_FORCE_INLINE void Set(intptr_t position) {
+    ASSERT(position < Length());
     bitmap_ |= Utils::Bit<decltype(bitmap_)>(position);
   }
   DART_FORCE_INLINE uint64_t Value() const { return bitmap_; }
