@@ -490,7 +490,10 @@ def _BuildArguments(args, interface, constructor=False):
         if len(set(DartType(arg.type.id) for arg in args)) == 1:
             nullable = False
             for arg in args:
-                nullable = nullable or getattr(arg.type, 'nullable', False)
+                # If the 'TreatNullAs' attribute exists, the param technically
+                # is nullable. The conversion happens in the browser.
+                nullable = nullable or getattr(arg.type, 'nullable', False) or \
+                    'TreatNullAs' in arg.ext_attrs
             return (type_ids[0], nullable)
         else:
             return (None, False)

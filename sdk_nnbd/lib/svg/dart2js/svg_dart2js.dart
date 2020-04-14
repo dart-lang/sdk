@@ -3037,7 +3037,7 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
     return container.innerHtml;
   }
 
-  set innerHtml(String value) {
+  set innerHtml(String? value) {
     this.setInnerHtml(value);
   }
 

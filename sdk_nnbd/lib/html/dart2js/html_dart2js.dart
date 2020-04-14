@@ -4049,7 +4049,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   String get cssFloat native;
 
-  set cssFloat(String value) native;
+  set cssFloat(String? value) native;
 
   String get cssText native;
 
@@ -13737,7 +13737,7 @@ class Element extends Node
    * This uses the default sanitization behavior to sanitize the HTML fragment,
    * use [setInnerHtml] to override the default behavior.
    */
-  set innerHtml(String html) {
+  set innerHtml(String? html) {
     this.setInnerHtml(html);
   }
 
@@ -13762,13 +13762,13 @@ class Element extends Node
    * * [NodeValidator]
    * * [NodeTreeSanitizer]
    */
-  void setInnerHtml(String html,
+  void setInnerHtml(String? html,
       {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     text = null;
     if (treeSanitizer is _TrustedHtmlTreeSanitizer) {
       _innerHtml = html;
     } else {
-      append(createFragment(html,
+      append(createFragment(html!,
           validator: validator, treeSanitizer: treeSanitizer));
     }
   }
@@ -14562,7 +14562,7 @@ class Element extends Node
   String get _innerHtml native;
 
   @JSName('innerHTML')
-  set _innerHtml(String value) native;
+  set _innerHtml(String? value) native;
 
   @JSName('localName')
   String get _localName native;
@@ -19196,7 +19196,7 @@ class InputElement extends HtmlElement
 
   String get value native;
 
-  set value(String value) native;
+  set value(String? value) native;
 
   DateTime get valueAsDate =>
       convertNativeToDart_DateTime(this._get_valueAsDate);
@@ -19277,7 +19277,7 @@ abstract class InputElementBase implements Element {
   set name(String value);
 
   String get value;
-  set value(String value);
+  set value(String? value);
 
   List<Node> get labels;
 
@@ -27858,7 +27858,7 @@ class ShadowRoot extends DocumentFragment implements DocumentOrShadowRoot {
   String get innerHtml native;
 
   @JSName('innerHTML')
-  set innerHtml(String value) native;
+  set innerHtml(String? value) native;
 
   String get mode native;
 
@@ -29266,7 +29266,7 @@ class TableCellElement extends HtmlElement {
 
   String get headers native;
 
-  set headers(String value) native;
+  set headers(String? value) native;
 
   int get rowSpan native;
 
@@ -29581,11 +29581,11 @@ class TemplateElement extends HtmlElement {
    *
    * * <https://w3c.github.io/DOM-Parsing/#the-innerhtml-mixin>
    */
-  void setInnerHtml(String html,
+  void setInnerHtml(String? html,
       {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     text = null;
     content.nodes.clear();
-    var fragment = createFragment(html,
+    var fragment = createFragment(html!,
         validator: validator, treeSanitizer: treeSanitizer);
 
     content.append(fragment);
@@ -29723,7 +29723,7 @@ class TextAreaElement extends HtmlElement {
 
   String get value native;
 
-  set value(String value) native;
+  set value(String? value) native;
 
   bool get willValidate native;
 

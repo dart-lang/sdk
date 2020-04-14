@@ -1418,7 +1418,7 @@ $endif
    * This uses the default sanitization behavior to sanitize the HTML fragment,
    * use [setInnerHtml] to override the default behavior.
    */
-  set innerHtml(String html) {
+  set innerHtml(String$NULLABLE html) {
     this.setInnerHtml(html);
   }
 
@@ -1443,7 +1443,7 @@ $endif
    * * [NodeValidator]
    * * [NodeTreeSanitizer]
    */
-  void setInnerHtml(String html,
+  void setInnerHtml(String$NULLABLE html,
     {NodeValidator$NULLABLE validator,
      NodeTreeSanitizer$NULLABLE treeSanitizer}) {
     text = null;
@@ -1451,7 +1451,7 @@ $endif
       _innerHtml = html;
     } else {
       append(createFragment(
-          html, validator: validator, treeSanitizer: treeSanitizer));
+          html$NULLASSERT, validator: validator, treeSanitizer: treeSanitizer));
     }
   }
   String get innerHtml => _innerHtml;
