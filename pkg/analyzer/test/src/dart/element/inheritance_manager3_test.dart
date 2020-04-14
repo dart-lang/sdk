@@ -1075,7 +1075,7 @@ class C implements A, B {
 ''');
 
     _assertInheritedMap('C', r'''
-B.foo: void Function({required int a})
+A.foo: void Function({int a})
 ''');
   }
 

@@ -75,6 +75,7 @@ class InheritanceManager3 {
         type.element,
         interface._inheritedMap,
         interface._overridden,
+        doTopMerge: false,
       );
     }
     return interface._inheritedMap;
@@ -137,6 +138,7 @@ class InheritanceManager3 {
           classElement,
           superClass,
           superClassCandidates,
+          doTopMerge: true,
         );
         superImplemented.add(superClass);
       } else {
@@ -210,6 +212,7 @@ class InheritanceManager3 {
               classElement,
               map,
               candidatesFromSuperAndMixin,
+              doTopMerge: true,
             );
             for (var entry in map.entries) {
               namedCandidates[entry.key] = [entry.value];
@@ -260,6 +263,7 @@ class InheritanceManager3 {
       classElement,
       map,
       namedCandidates,
+      doTopMerge: true,
     );
 
     var noSuchMethodForwarders = <Name>{};
@@ -446,9 +450,11 @@ class InheritanceManager3 {
   /// such single most specific signature (i.e. no valid override), then add a
   /// new conflict description.
   List<Conflict> _findMostSpecificFromNamedCandidates(
-      ClassElement targetClass,
-      Map<Name, ExecutableElement> map,
-      Map<Name, List<ExecutableElement>> namedCandidates) {
+    ClassElement targetClass,
+    Map<Name, ExecutableElement> map,
+    Map<Name, List<ExecutableElement>> namedCandidates, {
+    @required bool doTopMerge,
+  }) {
     TypeSystemImpl typeSystem = targetClass.library.typeSystem;
 
     List<Conflict> conflicts;
@@ -498,7 +504,11 @@ class InheritanceManager3 {
         continue;
       }
 
-      map[name] = _topMerge(typeSystem, targetClass, validOverrides);
+      if (doTopMerge) {
+        map[name] = _topMerge(typeSystem, targetClass, validOverrides);
+      } else {
+        map[name] = validOverrides.first;
+      }
     }
 
     return conflicts;
