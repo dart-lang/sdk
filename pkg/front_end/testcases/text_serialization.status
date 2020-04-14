@@ -1262,6 +1262,8 @@ late_lowering/issue40373: TextSerializationFailure
 late_lowering/issue40373b: TextSerializationFailure
 late_lowering/issue40601: TextSerializationFailure
 late_lowering/issue40805: TextSerializationFailure
+late_lowering/issue41436/issue41436: TextSerializationFailure
+late_lowering/issue41436b: TextSerializationFailure
 late_lowering/late_field_inference: TextSerializationFailure
 late_lowering/late_field_with_initializer: TextSerializationFailure
 late_lowering/late_field_without_initializer: TextSerializationFailure

@@ -155,6 +155,12 @@ class DillClassMember extends BuilderClassMember {
   @override
   bool get isSourceDeclaration => false;
 
+  // TODO(johnniwinther): This should be `true` for fields added for late
+  // lowering. Currently not needed because these fields are private and we only
+  // use this property while checking implementation of abstract members.
+  @override
+  bool get isInternalImplementation => false;
+
   @override
   bool get isProperty =>
       memberBuilder.kind == null ||

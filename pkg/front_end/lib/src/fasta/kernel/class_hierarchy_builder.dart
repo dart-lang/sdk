@@ -222,6 +222,14 @@ abstract class ClassMember {
 
   bool get needsComputation;
   bool get isSynthesized;
+
+  // If `true` this member is not part of the interface but only part of the
+  // class members.
+  //
+  // This is `true` for instance for synthesized fields added for the late
+  // lowering.
+  bool get isInternalImplementation;
+
   bool get isInheritableConflict;
   ClassMember withParent(ClassBuilder classBuilder);
   bool get hasDeclarations;
@@ -1963,7 +1971,9 @@ class ClassHierarchyNodeBuilder {
               return result;
             } else {
               if (isNameVisibleIn(interfaceMember.name, classBuilder.library)) {
-                recordAbstractMember(interfaceMember);
+                if (!interfaceMember.isInternalImplementation) {
+                  recordAbstractMember(interfaceMember);
+                }
               }
               if (interfaceMember.isInheritableConflict) {
                 interfaceMember = interfaceMember.withParent(classBuilder);
@@ -2689,6 +2699,9 @@ abstract class DelayedMember implements ClassMember {
 
   @override
   bool get isSynthesized => true;
+
+  @override
+  bool get isInternalImplementation => false;
 
   @override
   bool get forSetter => isSetter;
