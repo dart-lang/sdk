@@ -20,13 +20,13 @@ void main() {
 class InstrumentationRendererTest extends NnbdMigrationTestBase {
   /// Render the instrumentation view for [files].
   Future<String> renderViewForTestFiles(Map<String, String> files,
-      {bool applied = false}) async {
+      {bool applied = false, bool needsRerun = false}) async {
     var packageRoot = convertPath('/project');
     await buildInfoForTestFiles(files, includedRoot: packageRoot);
     var migrationInfo =
         MigrationInfo(infos, {}, resourceProvider.pathContext, packageRoot);
     var instrumentationRenderer = InstrumentationRenderer(
-        migrationInfo, PathMapper(resourceProvider), applied);
+        migrationInfo, PathMapper(resourceProvider), applied, needsRerun);
     return instrumentationRenderer.render();
   }
 
@@ -34,20 +34,30 @@ class InstrumentationRendererTest extends NnbdMigrationTestBase {
     var renderedView = await renderViewForTestFiles(
         {convertPath('/project/lib/a.dart'): 'int a = null;'},
         applied: true);
-    expect(renderedView, contains('<body class="applied">'));
+    // harmless space in class list due to other potential classes here.
+    expect(renderedView, contains('<body class="applied ">'));
   }
 
   Future<void> test_navigation_containsRoot() async {
     var renderedView = await renderViewForTestFiles(
         {convertPath('/project/lib/a.dart'): 'int a = null;'});
     var expectedPath = convertPath('/project');
+    // harmless space in class list due to other potential classes here.
     expect(renderedView, contains('<p class="root">$expectedPath</p>'));
+  }
+
+  Future<void> test_needsRerunStyle() async {
+    var renderedView = await renderViewForTestFiles(
+        {convertPath('/project/lib/a.dart'): 'int a = null;'},
+        needsRerun: true);
+    expect(renderedView, contains('<body class="proposed needs-rerun">'));
   }
 
   Future<void> test_notAppliedStyle() async {
     var renderedView = await renderViewForTestFiles(
         {convertPath('/project/lib/a.dart'): 'int a = null;'},
         applied: false);
-    expect(renderedView, contains('<body class="proposed">'));
+    // harmless space in class list due to other potential classes here.
+    expect(renderedView, contains('<body class="proposed ">'));
   }
 }

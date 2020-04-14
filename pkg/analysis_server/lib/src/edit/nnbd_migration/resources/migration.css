@@ -27,6 +27,14 @@ body {
   display: none;
 }
 
+.applied .apply-migration:not([disabled]), .needs-rerun .apply-migration:not([disabled]) {
+  display: none;
+}
+
+.proposed:not(.needs-rerun) .apply-migration[disabled] {
+  display: none;
+}
+
 header {
   background-color: #1c2834;
   height: 48px;
@@ -56,6 +64,8 @@ header .apply-migration, .rerun-migration {
   float: right;
   margin: 10px;
 }
+
+/* TODO(mfairhurst): style `.needs-rerun .rerun-migration` to draw attention. */
 
 footer {
   color: #ccc;
