@@ -61,7 +61,7 @@ class _TypePromotionDataInterpreter implements DataInterpreter<DartType> {
   const _TypePromotionDataInterpreter();
 
   @override
-  String getText(DartType actualData) =>
+  String getText(DartType actualData, [String indentation]) =>
       typeToText(actualData, TypeRepresentation.analyzerNonNullableByDefault);
 
   @override

@@ -86,7 +86,7 @@ class _DefiniteAssignmentDataInterpreter implements DataInterpreter<String> {
   const _DefiniteAssignmentDataInterpreter();
 
   @override
-  String getText(String actualData) => actualData;
+  String getText(String actualData, [String indentation]) => actualData;
 
   @override
   String isAsExpected(String actualData, String expectedData) {

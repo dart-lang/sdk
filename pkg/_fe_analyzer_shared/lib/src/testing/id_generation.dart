@@ -12,7 +12,8 @@ Map<Uri, List<Annotation>> computeAnnotationsPerUri<T>(
     Uri mainUri,
     Map<String, Map<Uri, Map<Id, ActualData<T>>>> actualData,
     DataInterpreter<T> dataInterpreter,
-    {Annotation Function(Annotation expected, Annotation actual) createDiff}) {
+    {Annotation Function(Annotation expected, Annotation actual) createDiff,
+    bool forceUpdate: false}) {
   Set<Uri> uriSet = {};
   Set<String> actualMarkers = actualData.keys.toSet();
   Map<Uri, Map<Id, Map<String, IdValue>>> idValuePerUri = {};
@@ -68,7 +69,7 @@ Map<Uri, List<Annotation>> computeAnnotationsPerUri<T>(
         code != null, "No annotated code for ${uri} in ${annotatedCode.keys}");
     result[uri] = _computeAnnotations(code, expectedMaps.keys, actualMarkers,
         idValuePerId, actualDataPerId, dataInterpreter,
-        sortMarkers: false, createDiff: createDiff);
+        sortMarkers: false, createDiff: createDiff, forceUpdate: forceUpdate);
   }
   return result;
 }
@@ -83,31 +84,42 @@ List<Annotation> _computeAnnotations<T>(
     {String defaultPrefix: '/*',
     String defaultSuffix: '*/',
     bool sortMarkers: true,
-    Annotation Function(Annotation expected, Annotation actual) createDiff}) {
+    Annotation Function(Annotation expected, Annotation actual) createDiff,
+    bool forceUpdate: false}) {
   assert(annotatedCode != null);
 
   Annotation createAnnotationFromData(
       ActualData<T> actualData, Annotation annotation) {
+    String getIndentationFromOffset(int offset) {
+      int lineIndex = annotatedCode.getLineIndex(offset);
+      String line = annotatedCode.getLine(lineIndex);
+      String trimmed = line.trimLeft();
+      return line.substring(0, line.length - trimmed.length);
+    }
+
     int offset;
     String prefix;
     String suffix;
+    String indentation;
     if (annotation != null) {
       offset = annotation.offset;
       prefix = annotation.prefix;
       suffix = annotation.suffix;
+      indentation = getIndentationFromOffset(offset);
     } else {
       Id id = actualData.id;
       if (id is NodeId) {
         offset = id.value;
         prefix = defaultPrefix;
         suffix = defaultSuffix;
+        indentation = getIndentationFromOffset(offset);
       } else if (id is ClassId || id is MemberId) {
         // Place the annotation at the line above at the indentation level of
         // the class/member.
         int lineIndex = annotatedCode.getLineIndex(actualData.offset);
         String line = annotatedCode.getLine(lineIndex);
         String trimmed = line.trimLeft();
-        String indentation = line.substring(0, line.length - trimmed.length);
+        indentation = line.substring(0, line.length - trimmed.length);
         offset = annotatedCode.getLineStart(lineIndex);
         prefix = '$indentation$defaultPrefix';
         suffix = '$defaultSuffix\n';
@@ -124,6 +136,7 @@ List<Annotation> _computeAnnotations<T>(
         offset = annotatedCode.getLineStart(lineIndex);
         prefix = '\n$defaultPrefix';
         suffix = '$defaultSuffix\n';
+        indentation = '';
       } else {
         throw 'Unexpected id $id (${id.runtimeType})';
       }
@@ -135,8 +148,8 @@ List<Annotation> _computeAnnotations<T>(
         annotation?.columnNo ?? -1,
         offset,
         prefix,
-        IdValue.idToString(
-            actualData.id, dataInterpreter.getText(actualData.value)),
+        IdValue.idToString(actualData.id,
+            dataInterpreter.getText(actualData.value, indentation)),
         suffix);
   }
 
@@ -154,7 +167,8 @@ List<Annotation> _computeAnnotations<T>(
       Annotation actualAnnotation;
       if (idValue != null && actualData != null) {
         if (dataInterpreter.isAsExpected(actualData.value, idValue.value) ==
-            null) {
+                null &&
+            !forceUpdate) {
           // Use existing annotation.
           expectedAnnotation = actualAnnotation = idValue.annotation;
         } else {
