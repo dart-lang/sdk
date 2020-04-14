@@ -15399,7 +15399,7 @@ class ErrorEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
-@Native("Event,InputEvent")
+@Native("Event,InputEvent,SubmitEvent")
 class Event extends Interceptor {
   // In JS, canBubble and cancelable are technically required parameters to
   // init*Event. In practice, though, if they aren't provided they simply

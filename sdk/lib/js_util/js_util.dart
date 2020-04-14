@@ -76,9 +76,13 @@ setProperty(o, name, value) => JS('', '#[#]=#', o, name, value);
 callMethod(o, String method, List args) =>
     JS('Object|Null', '#[#].apply(#, #)', o, method, o, args);
 
-bool instanceof(o, Function type) => JS('bool', '# instanceof #', o, type);
+/// Check whether [o] is an instance of [type].
+///
+/// The value in [type] is expected to be a JS-interop object that
+/// represents a valid JavaScript constructor function.
+bool instanceof(o, Object type) => JS('bool', '# instanceof #', o, type);
 
-callConstructor(Function constr, List arguments) {
+callConstructor(Object constr, List arguments) {
   if (arguments == null) {
     return JS('Object', 'new #()', constr);
   }
