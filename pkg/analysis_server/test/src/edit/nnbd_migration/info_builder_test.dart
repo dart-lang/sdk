@@ -250,40 +250,6 @@ class InfoBuilderTest extends NnbdMigrationTestBase {
     }
   }
 
-  /// Assert that some target in [targets] has various properties.
-  void assertInTargets(
-      {@required Iterable<NavigationTarget> targets, int offset, int length}) {
-    var failureReasons = [
-      if (offset != null) 'offset: $offset',
-      if (length != null) 'length: $length',
-    ].join(' and ');
-    expect(targets.any((t) {
-      return (offset == null || offset == t.offset) &&
-          (length == null || length == t.length);
-    }), isTrue, reason: 'Expected one of $targets to contain $failureReasons');
-  }
-
-  /// Assert various properties of the given [region]. If an [offset] is
-  /// provided but no [length] is provided, a default length of `1` will be
-  /// used.
-  void assertRegion(
-      {@required RegionInfo region,
-      int offset,
-      int length,
-      Object explanation = anything,
-      Object edits = anything,
-      Object traces = anything,
-      NullabilityFixKind kind = NullabilityFixKind.makeTypeNullable}) {
-    if (offset != null) {
-      expect(region.offset, offset);
-      expect(region.length, length ?? 1);
-    }
-    expect(region.kind, kind);
-    expect(region.edits, edits);
-    expect(region.explanation, explanation);
-    expect(region.traces, traces);
-  }
-
   void assertTraceEntry(UnitInfo unit, TraceEntryInfo entryInfo,
       String function, int offset, Object descriptionMatcher) {
     assert(offset >= 0);
