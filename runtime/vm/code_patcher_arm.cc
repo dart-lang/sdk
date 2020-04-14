@@ -47,19 +47,6 @@ void CodePatcher::PatchInstanceCallAt(uword return_address,
                                       const Code& caller_code,
                                       const Object& data,
                                       const Code& target) {
-  auto thread = Thread::Current();
-  thread->isolate_group()->RunWithStoppedMutators([&]() {
-    PatchInstanceCallAtWithMutatorsStopped(thread, return_address, caller_code,
-                                           data, target);
-  });
-}
-
-void CodePatcher::PatchInstanceCallAtWithMutatorsStopped(
-    Thread* thread,
-    uword return_address,
-    const Code& caller_code,
-    const Object& data,
-    const Code& target) {
   ASSERT(caller_code.ContainsInstructionAt(return_address));
   ICCallPattern call(return_address, caller_code);
   call.SetData(data);
@@ -83,20 +70,6 @@ void CodePatcher::PatchSwitchableCallAt(uword return_address,
                                         const Code& caller_code,
                                         const Object& data,
                                         const Code& target) {
-  auto thread = Thread::Current();
-  // Ensure all threads are suspended as we update data and target pair.
-  thread->isolate_group()->RunWithStoppedMutators([&]() {
-    PatchSwitchableCallAtWithMutatorsStopped(thread, return_address,
-                                             caller_code, data, target);
-  });
-}
-
-void CodePatcher::PatchSwitchableCallAtWithMutatorsStopped(
-    Thread* thread,
-    uword return_address,
-    const Code& caller_code,
-    const Object& data,
-    const Code& target) {
   ASSERT(caller_code.ContainsInstructionAt(return_address));
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     BareSwitchableCallPattern call(return_address, caller_code);
@@ -137,12 +110,10 @@ void CodePatcher::PatchNativeCallAt(uword return_address,
                                     const Code& code,
                                     NativeFunction target,
                                     const Code& trampoline) {
-  Thread::Current()->isolate_group()->RunWithStoppedMutators([&]() {
-    ASSERT(code.ContainsInstructionAt(return_address));
-    NativeCallPattern call(return_address, code);
-    call.set_target(trampoline);
-    call.set_native_function(target);
-  });
+  ASSERT(code.ContainsInstructionAt(return_address));
+  NativeCallPattern call(return_address, code);
+  call.set_target(trampoline);
+  call.set_native_function(target);
 }
 
 RawCode* CodePatcher::GetNativeCallAt(uword return_address,

@@ -355,6 +355,14 @@ class ClassTable {
 
   void Print();
 
+  // Used by the generated code.
+  static intptr_t table_offset() { return OFFSET_OF(ClassTable, table_); }
+
+  // Used by the generated code.
+  static intptr_t shared_class_table_offset() {
+    return OFFSET_OF(ClassTable, shared_class_table_);
+  }
+
 #ifndef PRODUCT
   // Describes layout of heap stats for code generation. See offset_extractor.cc
   struct ArrayLayout {
@@ -379,20 +387,15 @@ class ClassTable {
   friend class MarkingWeakVisitor;
   friend class Scavenger;
   friend class ScavengerWeakVisitor;
-  friend class Dart;
   friend Isolate* CreateWithinExistingIsolateGroup(IsolateGroup* group,
                                                    const char* name,
                                                    char** error);
-  friend class Isolate;  // for table()
   static const int kInitialCapacity = SharedClassTable::kInitialCapacity;
   static const int kCapacityIncrement = SharedClassTable::kCapacityIncrement;
 
   void AddOldTable(RawClass** old_table);
 
   void Grow(intptr_t index);
-
-  RawClass** table() { return table_.load(); }
-  void set_table(RawClass** table);
 
   intptr_t top_;
   intptr_t capacity_;

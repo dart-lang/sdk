@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include <memory>
-
 #include "vm/clustered_snapshot.h"
 
 #include "platform/assert.h"
@@ -233,8 +231,7 @@ class ClassSerializationCluster : public SerializationCluster {
   UnboxedFieldBitmap CalculateTargetUnboxedFieldsBitmap(Serializer* s,
                                                         intptr_t class_id) {
     const auto unboxed_fields_bitmap_host =
-        s->isolate()->group()->shared_class_table()->GetUnboxedFieldsMapAt(
-            class_id);
+        s->isolate()->group()->class_table()->GetUnboxedFieldsMapAt(class_id);
 
     UnboxedFieldBitmap unboxed_fields_bitmap;
     if (unboxed_fields_bitmap_host.IsEmpty() ||
@@ -352,7 +349,7 @@ class ClassDeserializationCluster : public DeserializationCluster {
       }
     }
 
-    auto shared_class_table = d->isolate()->group()->shared_class_table();
+    auto shared_class_table = d->isolate()->group()->class_table();
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawClass* cls = reinterpret_cast<RawClass*>(d->Ref(id));
       Deserializer::InitializeHeader(cls, kClassCid, Class::InstanceSize());
@@ -1204,10 +1201,6 @@ class FieldDeserializationCluster : public DeserializationCluster {
         field.InitializeGuardedListLengthInObjectOffset();
       }
     }
-
-    Isolate* isolate = Isolate::Current();
-    isolate->set_saved_initial_field_table(
-        std::shared_ptr<FieldTable>(isolate->field_table()->Clone()));
   }
 };
 
@@ -3029,8 +3022,7 @@ class InstanceSerializationCluster : public SerializationCluster {
     const intptr_t next_field_offset = host_next_field_offset_in_words_
                                        << kWordSizeLog2;
     const auto unboxed_fields_bitmap =
-        s->isolate()->group()->shared_class_table()->GetUnboxedFieldsMapAt(
-            cid_);
+        s->isolate()->group()->class_table()->GetUnboxedFieldsMapAt(cid_);
     intptr_t offset = Instance::NextFieldOffset();
     while (offset < next_field_offset) {
       // Skips unboxed fields
@@ -3066,8 +3058,7 @@ class InstanceSerializationCluster : public SerializationCluster {
                                  << kWordSizeLog2;
     const intptr_t count = objects_.length();
     const auto unboxed_fields_bitmap =
-        s->isolate()->group()->shared_class_table()->GetUnboxedFieldsMapAt(
-            cid_);
+        s->isolate()->group()->class_table()->GetUnboxedFieldsMapAt(cid_);
     for (intptr_t i = 0; i < count; i++) {
       RawInstance* instance = objects_[i];
       AutoTraceObject(instance);
@@ -3125,8 +3116,7 @@ class InstanceDeserializationCluster : public DeserializationCluster {
         Object::RoundedAllocationSize(instance_size_in_words_ * kWordSize);
 
     const auto unboxed_fields_bitmap =
-        d->isolate()->group()->shared_class_table()->GetUnboxedFieldsMapAt(
-            cid_);
+        d->isolate()->group()->class_table()->GetUnboxedFieldsMapAt(cid_);
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawInstance* instance = reinterpret_cast<RawInstance*>(d->Ref(id));
       bool is_canonical = d->Read<bool>();
@@ -5531,7 +5521,7 @@ static const char* kObjectStoreFieldNames[] = {
 #undef DECLARE_OBJECT_STORE_FIELD
 };
 
-void Serializer::WriteProgramSnapshot(intptr_t num_base_objects,
+void Serializer::WriteIsolateSnapshot(intptr_t num_base_objects,
                                       ObjectStore* object_store) {
   NoSafepointScope no_safepoint;
 
@@ -5542,7 +5532,7 @@ void Serializer::WriteProgramSnapshot(intptr_t num_base_objects,
       AddBaseObject(base_objects.At(i));
     }
   } else {
-    // Base objects carried over from WriteVMSnapshot.
+    // Base objects carried over from WriteVMIsolateSnapshot.
     num_base_objects_ += num_base_objects;
     next_ref_index_ += num_base_objects;
   }
@@ -5823,7 +5813,7 @@ void Deserializer::ReadDispatchTable() {
   }
   ASSERT(repeat_count == 0);
 
-  I->group()->set_dispatch_table(table);
+  I->set_dispatch_table(table);
 #endif
 }
 
@@ -6206,7 +6196,7 @@ void Deserializer::ReadVMSnapshot() {
   }
 }
 
-void Deserializer::ReadProgramSnapshot(ObjectStore* object_store) {
+void Deserializer::ReadIsolateSnapshot(ObjectStore* object_store) {
   Array& refs = Array::Handle();
   Prepare();
 
@@ -6244,8 +6234,8 @@ void Deserializer::ReadProgramSnapshot(ObjectStore* object_store) {
   thread()->isolate()->class_table()->CopySizesFromClassObjects();
   heap_->old_space()->EvaluateAfterLoading();
 
-  Isolate* isolate = thread()->isolate();
 #if defined(DEBUG)
+  Isolate* isolate = thread()->isolate();
   isolate->ValidateClassTable();
   isolate->heap()->Verify();
 #endif
@@ -6253,11 +6243,12 @@ void Deserializer::ReadProgramSnapshot(ObjectStore* object_store) {
   for (intptr_t i = 0; i < num_clusters_; i++) {
     clusters_[i]->PostLoad(refs, kind_, zone_);
   }
-  isolate->isolate_object_store()->PreallocateObjects();
+  object_store->PostLoad();
 
   // Setup native resolver for bootstrap impl.
   Bootstrap::SetupNativeResolver();
 }
+
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 FullSnapshotWriter::FullSnapshotWriter(Snapshot::Kind kind,
@@ -6333,8 +6324,8 @@ intptr_t FullSnapshotWriter::WriteVMSnapshot() {
   return num_objects;
 }
 
-void FullSnapshotWriter::WriteProgramSnapshot(intptr_t num_base_objects) {
-  TIMELINE_DURATION(thread(), Isolate, "WriteProgramSnapshot");
+void FullSnapshotWriter::WriteIsolateSnapshot(intptr_t num_base_objects) {
+  TIMELINE_DURATION(thread(), Isolate, "WriteIsolateSnapshot");
 
   Serializer serializer(thread(), kind_, isolate_snapshot_data_buffer_, alloc_,
                         kInitialSize, isolate_image_writer_, /*vm=*/false,
@@ -6353,7 +6344,7 @@ void FullSnapshotWriter::WriteProgramSnapshot(intptr_t num_base_objects) {
   serializer.WriteVersionAndFeatures(false);
   // Isolate snapshot roots are:
   // - the object store
-  serializer.WriteProgramSnapshot(num_base_objects, object_store);
+  serializer.WriteIsolateSnapshot(num_base_objects, object_store);
   serializer.FillHeader(serializer.kind());
   clustered_isolate_size_ = serializer.bytes_written();
 
@@ -6384,7 +6375,7 @@ void FullSnapshotWriter::WriteFullSnapshot() {
   }
 
   if (isolate_snapshot_data_buffer() != NULL) {
-    WriteProgramSnapshot(num_base_objects);
+    WriteIsolateSnapshot(num_base_objects);
   }
 
   if (FLAG_print_snapshot_sizes) {
@@ -6547,7 +6538,7 @@ RawApiError* FullSnapshotReader::ReadVMSnapshot() {
   return ApiError::null();
 }
 
-RawApiError* FullSnapshotReader::ReadProgramSnapshot() {
+RawApiError* FullSnapshotReader::ReadIsolateSnapshot() {
   SnapshotHeaderReader header_reader(kind_, buffer_, size_);
   intptr_t offset = 0;
   char* error =
@@ -6573,7 +6564,7 @@ RawApiError* FullSnapshotReader::ReadProgramSnapshot() {
   }
 
   auto object_store = thread_->isolate()->object_store();
-  deserializer.ReadProgramSnapshot(object_store);
+  deserializer.ReadIsolateSnapshot(object_store);
 
 #if defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_use_bare_instructions) {

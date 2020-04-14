@@ -31,8 +31,7 @@ SharedClassTable::SharedClassTable()
         calloc(capacity_, sizeof(RelaxedAtomic<intptr_t>))));
   } else {
     // Duplicate the class table from the VM isolate.
-    auto vm_shared_class_table =
-        Dart::vm_isolate()->group()->shared_class_table();
+    auto vm_shared_class_table = Dart::vm_isolate()->group()->class_table();
     capacity_ = vm_shared_class_table->capacity_;
     // Note that [calloc] will zero-initialize the memory.
     RelaxedAtomic<intptr_t>* table = reinterpret_cast<RelaxedAtomic<intptr_t>*>(
@@ -72,13 +71,6 @@ SharedClassTable::~SharedClassTable() {
   NOT_IN_PRODUCT(free(trace_allocation_table_.load()));
 }
 
-void ClassTable::set_table(RawClass** table) {
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != nullptr);
-  table_.store(table);
-  isolate->set_cached_class_table_table(table);
-}
-
 ClassTable::ClassTable(SharedClassTable* shared_class_table)
     : top_(kNumPredefinedCids),
       capacity_(0),
@@ -89,9 +81,6 @@ ClassTable::ClassTable(SharedClassTable* shared_class_table)
     ASSERT(kInitialCapacity >= kNumPredefinedCids);
     capacity_ = kInitialCapacity;
     // Note that [calloc] will zero-initialize the memory.
-    // Don't use set_table because caller is supposed to set up isolates
-    // cached copy when constructing ClassTable. Isolate::Current might not
-    // be available at this point yet.
     table_.store(static_cast<RawClass**>(calloc(capacity_, sizeof(RawClass*))));
   } else {
     // Duplicate the class table from the VM isolate.
@@ -111,9 +100,6 @@ ClassTable::ClassTable(SharedClassTable* shared_class_table)
     table[kDynamicCid] = vm_class_table->At(kDynamicCid);
     table[kVoidCid] = vm_class_table->At(kVoidCid);
     table[kNeverCid] = vm_class_table->At(kNeverCid);
-    // Don't use set_table because caller is supposed to set up isolates
-    // cached copy when constructing ClassTable. Isolate::Current might not
-    // be available at this point yet.
     table_.store(table);
   }
 }
@@ -240,7 +226,7 @@ void ClassTable::Grow(intptr_t new_capacity) {
     new_table[i] = 0;
   }
   old_class_tables_->Add(old_table);
-  set_table(new_table);
+  table_.store(new_table);
 
   capacity_ = new_capacity;
 }

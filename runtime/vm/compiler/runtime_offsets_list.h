@@ -66,6 +66,8 @@
   FIELD(Class, num_type_arguments_offset)                                      \
   FIELD(Class, super_type_offset)                                              \
   FIELD(Class, host_type_arguments_field_offset_in_words_offset)               \
+  FIELD(ClassTable, shared_class_table_offset)                                 \
+  FIELD(ClassTable, table_offset)                                              \
   NOT_IN_PRODUCT(FIELD(SharedClassTable, class_heap_stats_table_offset))       \
   FIELD(Closure, context_offset)                                               \
   FIELD(Closure, delayed_type_arguments_offset)                                \
@@ -104,12 +106,11 @@
   PRECOMP_NO_CHECK(FIELD(ICData, owner_offset))                                \
   PRECOMP_NO_CHECK(FIELD(ICData, state_bits_offset))                           \
   NOT_IN_PRECOMPILED_RUNTIME(FIELD(ICData, receivers_static_type_offset))      \
-  FIELD(Isolate, shared_class_table_offset)                                    \
-  FIELD(Isolate, cached_class_table_table_offset)                              \
+  FIELD(Isolate, class_table_offset)                                           \
   FIELD(Isolate, current_tag_offset)                                           \
   FIELD(Isolate, default_tag_offset)                                           \
   FIELD(Isolate, ic_miss_code_offset)                                          \
-  FIELD(Isolate, cached_object_store_offset)                                   \
+  FIELD(Isolate, object_store_offset)                                          \
   NOT_IN_PRODUCT(FIELD(Isolate, single_step_offset))                           \
   FIELD(Isolate, user_tag_offset)                                              \
   FIELD(LinkedHashMap, data_offset)                                            \

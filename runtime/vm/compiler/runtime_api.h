@@ -1071,12 +1071,11 @@ class ObjectStore : public AllStatic {
 
 class Isolate : public AllStatic {
  public:
-  static word cached_object_store_offset();
+  static word object_store_offset();
   static word default_tag_offset();
   static word current_tag_offset();
   static word user_tag_offset();
-  static word cached_class_table_table_offset();
-  static word shared_class_table_offset();
+  static word class_table_offset();
   static word ic_miss_code_offset();
 #if !defined(PRODUCT)
   static word single_step_offset();
@@ -1090,6 +1089,8 @@ class SharedClassTable : public AllStatic {
 
 class ClassTable : public AllStatic {
  public:
+  static word table_offset();
+  static word shared_class_table_offset();
 #if !defined(PRODUCT)
   static word ClassOffsetFor(intptr_t cid);
   static word SharedTableOffsetFor();

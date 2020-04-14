@@ -1519,7 +1519,7 @@ void ClassFinalizer::RemapClassIds(intptr_t* old_to_new_cid) {
     // The [HeapIterationScope] also safepoints all threads.
     HeapIterationScope his(T);
 
-    IG->shared_class_table()->Remap(old_to_new_cid);
+    IG->class_table()->Remap(old_to_new_cid);
     IG->ForEachIsolate(
         [&](Isolate* I) {
           I->set_remapping_cids(true);

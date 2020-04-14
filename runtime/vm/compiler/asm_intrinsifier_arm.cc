@@ -1583,24 +1583,21 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ b(&not_double, NE);
 
   __ LoadIsolate(R0);
-  __ LoadFromOffset(kWord, R0, R0,
-                    target::Isolate::cached_object_store_offset());
+  __ LoadFromOffset(kWord, R0, R0, target::Isolate::object_store_offset());
   __ LoadFromOffset(kWord, R0, R0, target::ObjectStore::double_type_offset());
   __ Ret();
 
   __ Bind(&not_double);
   JumpIfNotInteger(assembler, R1, R0, &not_integer);
   __ LoadIsolate(R0);
-  __ LoadFromOffset(kWord, R0, R0,
-                    target::Isolate::cached_object_store_offset());
+  __ LoadFromOffset(kWord, R0, R0, target::Isolate::object_store_offset());
   __ LoadFromOffset(kWord, R0, R0, target::ObjectStore::int_type_offset());
   __ Ret();
 
   __ Bind(&not_integer);
   JumpIfNotString(assembler, R1, R0, &use_declaration_type);
   __ LoadIsolate(R0);
-  __ LoadFromOffset(kWord, R0, R0,
-                    target::Isolate::cached_object_store_offset());
+  __ LoadFromOffset(kWord, R0, R0, target::Isolate::object_store_offset());
   __ LoadFromOffset(kWord, R0, R0, target::ObjectStore::string_type_offset());
   __ Ret();
 

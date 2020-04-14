@@ -310,14 +310,9 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
       const Code& current_trampoline =
           Code::Handle(zone, CodePatcher::GetNativeCallAt(
                                  caller_frame->pc(), code, &current_function));
-      // Some other isolate(with code being shared in AOT) might have updated
-      // target function/trampoline already.
       ASSERT(current_function ==
-                 reinterpret_cast<NativeFunction>(LinkNativeCall) ||
-             current_function == target_function);
-      ASSERT(current_trampoline.raw() ==
-                 StubCode::CallBootstrapNative().raw() ||
-             current_function == target_function);
+             reinterpret_cast<NativeFunction>(LinkNativeCall));
+      ASSERT(current_trampoline.raw() == StubCode::CallBootstrapNative().raw());
     }
 #endif
 

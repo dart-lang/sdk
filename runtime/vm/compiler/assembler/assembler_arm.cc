@@ -2004,8 +2004,8 @@ void Assembler::LoadClassId(Register result, Register object, Condition cond) {
 void Assembler::LoadClassById(Register result, Register class_id) {
   ASSERT(result != class_id);
 
-  const intptr_t table_offset =
-      target::Isolate::cached_class_table_table_offset();
+  const intptr_t table_offset = target::Isolate::class_table_offset() +
+                                target::ClassTable::table_offset();
 
   LoadIsolate(result);
   LoadFromOffset(kWord, result, result, table_offset);
@@ -3529,7 +3529,8 @@ void Assembler::LoadAllocationStatsAddress(Register dest, intptr_t cid) {
   ASSERT(cid > 0);
 
   const intptr_t shared_table_offset =
-      target::Isolate::shared_class_table_offset();
+      target::Isolate::class_table_offset() +
+      target::ClassTable::shared_class_table_offset();
   const intptr_t table_offset =
       target::SharedClassTable::class_heap_stats_table_offset();
   const intptr_t class_offset = target::ClassTable::ClassOffsetFor(cid);

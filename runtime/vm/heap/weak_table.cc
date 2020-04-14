@@ -135,7 +135,7 @@ void WeakTable::Rehash() {
 void WeakTable::MergeOtherWeakTable(WeakTable* other) {
   for (intptr_t i = 0; i < other->size(); i++) {
     if (other->IsValidEntryAtExclusive(i)) {
-      SetValueExclusive(other->ObjectAtExclusive(i), ValueIndex(i));
+      SetValue(other->ObjectAtExclusive(i), ValueIndex(i));
     }
   }
 }
