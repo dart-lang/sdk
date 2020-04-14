@@ -230,6 +230,9 @@ class _DirectInvocation extends _Invocation {
           // does not throw exception.
           initializerResult = new Type.nullable(initializerResult);
         }
+        if (kPrintTrace) {
+          tracePrint("Result of ${field} initializer: $initializerResult");
+        }
         fieldValue.setValue(initializerResult, typeFlowAnalysis,
             field.isStatic ? null : args.receiver);
         fieldValue.isInitialized = true;
@@ -989,7 +992,7 @@ class GenericInterfacesInfoImpl implements GenericInterfacesInfo {
     result = new List<Type>(flattenedTypeArgs.length);
     for (int i = 0; i < flattenedTypeArgs.length; ++i) {
       final translated = closedTypeTranslator.translate(flattenedTypeArgs[i]);
-      assertx(translated is RuntimeType || translated is AnyType);
+      assertx(translated is RuntimeType || translated is UnknownType);
       result[i] = translated;
     }
     cachedFlattenedTypeArgsForNonGeneric[klass] = result;

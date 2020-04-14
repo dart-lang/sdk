@@ -190,7 +190,8 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
     if (type is ConcreteType && type.typeArgs != null) {
       typeArgs = type.typeArgs
           .take(type.numImmediateTypeArgs)
-          .map((t) => t is AnyType ? null : (t as RuntimeType).representedType)
+          .map((t) =>
+              t is UnknownType ? null : (t as RuntimeType).representedType)
           .toList();
     }
 
@@ -256,7 +257,7 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
 
     // If the call is not marked as 'isResultUsed', the 'resultType' will
     // not be observed (i.e., it will always be EmptyType). This is the
-    // case even if the result acutally might be used but is not used by
+    // case even if the result actually might be used but is not used by
     // the summary, e.g. if the result is an argument to a closure call.
     // Therefore, we need to pass in 'NullableType(AnyType)' as the
     // inferred result type here (since we don't know what it actually
