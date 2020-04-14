@@ -652,6 +652,34 @@
         "host-checked": true
       }
     },
+    "dart2js-hostasserts-strong-(linux|win)-x64-(d8|chrome)": {
+      "options": {
+        "builder-tag": "dart2js-strong",
+        "enable-experiment": [
+          "non-nullable"
+        ],
+        "dart2js-options": [
+          "--null-safety",
+          "--libraries-spec=sdk_nnbd/lib/libraries.json",
+          "--platform-binaries=out/ReleaseX64NNBD/"
+        ],
+        "host-checked": true
+      }
+    },
+    "dart2js-hostasserts-strong-mac-x64-(d8|chrome)": {
+      "options": {
+        "builder-tag": "dart2js-strong",
+        "enable-experiment": [
+          "non-nullable"
+        ],
+        "dart2js-options": [
+          "--null-safety",
+          "--libraries-spec=sdk_nnbd/lib/libraries.json",
+          "--platform-binaries=xcodebuild/ReleaseX64NNBD/"
+        ],
+        "host-checked": true
+      }
+    },
     "dart2js-old-rti-(linux|mac|win)-x64-d8": {
       "options": {
         "builder-tag": "old_rti",
@@ -2610,7 +2638,8 @@
             "language_2",
             "corelib_2",
             "dart2js_extra",
-            "dart2js_native"
+            "dart2js_native",
+            "kernel"
           ],
           "shards": 6,
           "fileset": "dart2js_hostasserts_nnbd"
@@ -2631,6 +2660,40 @@
             "-ndart2js-hostasserts-weak-linux-x64-chrome",
             "--dart2js-batch",
             "co19_2"
+          ],
+          "shards": 6,
+          "fileset": "dart2js_hostasserts_nnbd"
+        },
+        {
+          "name": "dart2js nnbd strong tests",
+          "arguments": [
+            "-ndart2js-hostasserts-strong-linux-x64-d8",
+            "--dart2js-batch",
+            "language",
+            "corelib",
+            "dart2js_extra",
+            "dart2js_native",
+            "kernel"
+          ],
+          "shards": 6,
+          "fileset": "dart2js_hostasserts_nnbd"
+        },
+        {
+          "name": "dart2js nnbd strong lib tests",
+          "arguments": [
+            "-ndart2js-hostasserts-strong-linux-x64-chrome",
+            "--dart2js-batch",
+            "lib"
+          ],
+          "shards": 3,
+          "fileset": "dart2js_hostasserts_nnbd"
+        },
+        {
+          "name": "dart2js nnbd strong co19 tests",
+          "arguments": [
+            "-ndart2js-hostasserts-strong-linux-x64-chrome",
+            "--dart2js-batch",
+            "co19"
           ],
           "shards": 6,
           "fileset": "dart2js_hostasserts_nnbd"
