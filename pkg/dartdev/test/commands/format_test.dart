@@ -9,7 +9,7 @@ import 'package:test/test.dart';
 import '../utils.dart';
 
 void main() {
-  group('format', format);
+  group('format', format, timeout: longTimeout);
 }
 
 void format() {

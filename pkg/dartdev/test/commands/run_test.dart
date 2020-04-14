@@ -9,7 +9,7 @@ import 'package:test/test.dart';
 import '../utils.dart';
 
 void main() {
-  group('run', run);
+  group('run', run, timeout: longTimeout);
 }
 
 void run() {
