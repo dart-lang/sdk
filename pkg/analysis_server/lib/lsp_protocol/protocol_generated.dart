@@ -999,7 +999,8 @@ class CodeActionRegistrationOptions
   @override
   bool operator ==(Object other) {
     if (other is CodeActionRegistrationOptions) {
-      return documentSelector == other.documentSelector &&
+      return listEqual(documentSelector, other.documentSelector,
+              (DocumentFilter a, DocumentFilter b) => a == b) &&
           listEqual(codeActionKinds, other.codeActionKinds,
               (CodeActionKind a, CodeActionKind b) => a == b) &&
           true;
@@ -1336,7 +1337,8 @@ class CodeLensRegistrationOptions
   bool operator ==(Object other) {
     if (other is CodeLensRegistrationOptions) {
       return resolveProvider == other.resolveProvider &&
-          documentSelector == other.documentSelector &&
+          listEqual(documentSelector, other.documentSelector,
+              (DocumentFilter a, DocumentFilter b) => a == b) &&
           true;
     }
     return false;
@@ -3020,7 +3022,8 @@ class CompletionRegistrationOptions
           listEqual(allCommitCharacters, other.allCommitCharacters,
               (String a, String b) => a == b) &&
           resolveProvider == other.resolveProvider &&
-          documentSelector == other.documentSelector &&
+          listEqual(documentSelector, other.documentSelector,
+              (DocumentFilter a, DocumentFilter b) => a == b) &&
           true;
     }
     return false;
@@ -5226,7 +5229,8 @@ class DocumentLinkRegistrationOptions
   bool operator ==(Object other) {
     if (other is DocumentLinkRegistrationOptions) {
       return resolveProvider == other.resolveProvider &&
-          documentSelector == other.documentSelector &&
+          listEqual(documentSelector, other.documentSelector,
+              (DocumentFilter a, DocumentFilter b) => a == b) &&
           true;
     }
     return false;
@@ -5612,7 +5616,8 @@ class DocumentOnTypeFormattingRegistrationOptions
       return firstTriggerCharacter == other.firstTriggerCharacter &&
           listEqual(moreTriggerCharacter, other.moreTriggerCharacter,
               (String a, String b) => a == b) &&
-          documentSelector == other.documentSelector &&
+          listEqual(documentSelector, other.documentSelector,
+              (DocumentFilter a, DocumentFilter b) => a == b) &&
           true;
     }
     return false;
@@ -9812,7 +9817,8 @@ class RenameRegistrationOptions
   bool operator ==(Object other) {
     if (other is RenameRegistrationOptions) {
       return prepareProvider == other.prepareProvider &&
-          documentSelector == other.documentSelector &&
+          listEqual(documentSelector, other.documentSelector,
+              (DocumentFilter a, DocumentFilter b) => a == b) &&
           true;
     }
     return false;
@@ -11585,7 +11591,8 @@ class SignatureHelpRegistrationOptions
     if (other is SignatureHelpRegistrationOptions) {
       return listEqual(triggerCharacters, other.triggerCharacters,
               (String a, String b) => a == b) &&
-          documentSelector == other.documentSelector &&
+          listEqual(documentSelector, other.documentSelector,
+              (DocumentFilter a, DocumentFilter b) => a == b) &&
           true;
     }
     return false;
@@ -12103,7 +12110,8 @@ class TextDocumentChangeRegistrationOptions
   bool operator ==(Object other) {
     if (other is TextDocumentChangeRegistrationOptions) {
       return syncKind == other.syncKind &&
-          documentSelector == other.documentSelector &&
+          listEqual(documentSelector, other.documentSelector,
+              (DocumentFilter a, DocumentFilter b) => a == b) &&
           true;
     }
     return false;
@@ -15709,7 +15717,9 @@ class TextDocumentRegistrationOptions implements ToJsonable {
   @override
   bool operator ==(Object other) {
     if (other is TextDocumentRegistrationOptions) {
-      return documentSelector == other.documentSelector && true;
+      return listEqual(documentSelector, other.documentSelector,
+              (DocumentFilter a, DocumentFilter b) => a == b) &&
+          true;
     }
     return false;
   }
@@ -15830,7 +15840,8 @@ class TextDocumentSaveRegistrationOptions
   bool operator ==(Object other) {
     if (other is TextDocumentSaveRegistrationOptions) {
       return includeText == other.includeText &&
-          documentSelector == other.documentSelector &&
+          listEqual(documentSelector, other.documentSelector,
+              (DocumentFilter a, DocumentFilter b) => a == b) &&
           true;
     }
     return false;
@@ -17336,8 +17347,11 @@ class WorkspaceEdit implements ToJsonable {
   @override
   bool operator ==(Object other) {
     if (other is WorkspaceEdit) {
-      return mapEqual(changes, other.changes,
-              (List<TextEdit> a, List<TextEdit> b) => a == b) &&
+      return mapEqual(
+              changes,
+              other.changes,
+              (List<TextEdit> a, List<TextEdit> b) =>
+                  listEqual(a, b, (TextEdit a, TextEdit b) => a == b)) &&
           documentChanges == other.documentChanges &&
           true;
     }
