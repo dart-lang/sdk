@@ -661,7 +661,6 @@ class Primitives {
     if (timerFrequency != 0) return;
     // Start with low-resolution. We overwrite the fields if we find better.
     timerFrequency = 1000;
-    timerTicks = dateNow;
     if (JS('bool', 'typeof window == "undefined"')) return;
     var window = JS('var', 'window');
     if (window == null) return;
@@ -673,7 +672,7 @@ class Primitives {
   }
 
   static int timerFrequency = 0;
-  static late int Function() timerTicks;
+  static int Function() timerTicks = dateNow; // Low-resolution version.
 
   static String? currentUri() {
     requiresPreamble();
