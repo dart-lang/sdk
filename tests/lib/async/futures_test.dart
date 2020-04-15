@@ -9,12 +9,12 @@ import "package:expect/expect.dart";
 import 'dart:async';
 
 Future testWaitEmpty() {
-  final futures = new List<Future>();
+  final futures = <Future>[];
   return Future.wait(futures);
 }
 
 Future testCompleteAfterWait() {
-  final futures = new List<Future>();
+  final futures = <Future>[];
   final c = new Completer<Object?>();
   futures.add(c.future);
   Future future = Future.wait(futures);
@@ -23,7 +23,7 @@ Future testCompleteAfterWait() {
 }
 
 Future testCompleteBeforeWait() {
-  final futures = new List<Future>();
+  final futures = <Future>[];
   final c = new Completer();
   futures.add(c.future);
   c.complete(null);
@@ -31,7 +31,7 @@ Future testCompleteBeforeWait() {
 }
 
 Future testWaitWithMultipleValues() {
-  final futures = new List<Future>();
+  final futures = <Future>[];
   final c1 = new Completer();
   final c2 = new Completer();
   futures.add(c1.future);
@@ -44,7 +44,7 @@ Future testWaitWithMultipleValues() {
 }
 
 Future testWaitWithSingleError() {
-  final futures = new List<Future>();
+  final futures = <Future>[];
   final c1 = new Completer();
   final c2 = new Completer();
   futures.add(c1.future);
@@ -52,7 +52,7 @@ Future testWaitWithSingleError() {
   c1.complete();
   c2.completeError('correct error');
 
-  return Future.wait(futures).then((_) {
+  return Future.wait(futures).then<void>((_) {
     throw 'incorrect error';
   }).catchError((error, stackTrace) {
     Expect.equals('correct error', error);
@@ -61,7 +61,7 @@ Future testWaitWithSingleError() {
 }
 
 Future testWaitWithMultipleErrors() {
-  final futures = new List<Future>();
+  final futures = <Future>[];
   final c1 = new Completer();
   final c2 = new Completer();
   futures.add(c1.future);
@@ -69,7 +69,7 @@ Future testWaitWithMultipleErrors() {
   c1.completeError('correct error');
   c2.completeError('incorrect error 1');
 
-  return Future.wait(futures).then((_) {
+  return Future.wait(futures).then<void>((_) {
     throw 'incorrect error 2';
   }).catchError((error, stackTrace) {
     Expect.equals('correct error', error);
@@ -78,7 +78,7 @@ Future testWaitWithMultipleErrors() {
 }
 
 Future testWaitWithMultipleErrorsEager() {
-  final futures = new List<Future>();
+  final futures = <Future>[];
   final c1 = new Completer();
   final c2 = new Completer();
   futures.add(c1.future);
@@ -86,7 +86,7 @@ Future testWaitWithMultipleErrorsEager() {
   c1.completeError('correct error');
   c2.completeError('incorrect error 1');
 
-  return Future.wait(futures, eagerError: true).then((_) {
+  return Future.wait(futures, eagerError: true).then<void>((_) {
     throw 'incorrect error 2';
   }).catchError((error, stackTrace) {
     Expect.equals('correct error', error);
@@ -103,7 +103,7 @@ StackTrace get currentStackTrace {
 }
 
 Future testWaitWithSingleErrorWithStackTrace() {
-  final futures = new List<Future>();
+  final futures = <Future>[];
   final c1 = new Completer();
   final c2 = new Completer();
   futures.add(c1.future);
@@ -111,7 +111,7 @@ Future testWaitWithSingleErrorWithStackTrace() {
   c1.complete();
   c2.completeError('correct error', currentStackTrace);
 
-  return Future.wait(futures).then((_) {
+  return Future.wait(futures).then<void>((_) {
     throw 'incorrect error';
   }).catchError((error, stackTrace) {
     Expect.equals('correct error', error);
@@ -120,7 +120,7 @@ Future testWaitWithSingleErrorWithStackTrace() {
 }
 
 Future testWaitWithMultipleErrorsWithStackTrace() {
-  final futures = new List<Future>();
+  final futures = <Future>[];
   final c1 = new Completer();
   final c2 = new Completer();
   futures.add(c1.future);
@@ -128,7 +128,7 @@ Future testWaitWithMultipleErrorsWithStackTrace() {
   c1.completeError('correct error', currentStackTrace);
   c2.completeError('incorrect error 1');
 
-  return Future.wait(futures).then((_) {
+  return Future.wait(futures).then<void>((_) {
     throw 'incorrect error 2';
   }).catchError((error, stackTrace) {
     Expect.equals('correct error', error);
@@ -137,7 +137,7 @@ Future testWaitWithMultipleErrorsWithStackTrace() {
 }
 
 Future testWaitWithMultipleErrorsWithStackTraceEager() {
-  final futures = new List<Future>();
+  final futures = <Future>[];
   final c1 = new Completer();
   final c2 = new Completer();
   futures.add(c1.future);
@@ -145,7 +145,7 @@ Future testWaitWithMultipleErrorsWithStackTraceEager() {
   c1.completeError('correct error', currentStackTrace);
   c2.completeError('incorrect error 1');
 
-  return Future.wait(futures, eagerError: true).then((_) {
+  return Future.wait(futures, eagerError: true).then<void>((_) {
     throw 'incorrect error 2';
   }).catchError((error, stackTrace) {
     Expect.equals('correct error', error);
@@ -164,7 +164,7 @@ Future testEagerWait() {
   final c2 = new Completer();
   final futures = <Future>[c1.future, c2.future];
   final waited = Future.wait(futures, eagerError: true);
-  final result = waited.then((v) {
+  final result = waited.then<void>((v) {
     throw "should not be called";
   }, onError: (e, s) {
     Expect.equals(e, 42);
@@ -202,7 +202,7 @@ Future testForEachWithException() {
     if (n == 4) throw 'correct exception';
     seen.add(n);
     return new Future.value();
-  }).then((_) {
+  }).then<void>((_) {
     throw 'incorrect exception';
   }).catchError((error) {
     Expect.equals('correct exception', error);
@@ -231,7 +231,7 @@ Future testDoWhileWithException() {
     count++;
     if (count == 4) throw 'correct exception';
     return new Future(() => true);
-  }).then((_) {
+  }).then<void>((_) {
     throw 'incorrect exception';
   }).catchError((error) {
     Expect.equals('correct exception', error);
@@ -241,7 +241,7 @@ Future testDoWhileWithException() {
 }
 
 main() {
-  final futures = new List<Future>();
+  final futures = <Future>[];
 
   futures.add(testWaitEmpty());
   futures.add(testCompleteAfterWait());
