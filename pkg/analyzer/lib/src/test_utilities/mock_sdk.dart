@@ -685,6 +685,12 @@ abstract class Element {
   String get id => throw 0;
 
   set id(String value) => throw 0;
+
+  DocumentFragment createFragment(String html,
+          {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) => null;
+
+  void setInnerHtml(String html,
+          {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {}
 }
 
 class HtmlElement extends Element {
