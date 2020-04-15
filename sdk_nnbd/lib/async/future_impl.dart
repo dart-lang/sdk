@@ -511,7 +511,7 @@ class _Future<T> implements Future<T> {
       }
     } else {
       _FutureListener? listeners = _removeListeners();
-      // TODO(28783): Remove cast when type promotion works.
+      // TODO(40014): Remove cast when type promotion works.
       // This would normally be `as T` but we use `as dynamic` to make the
       // unneeded check be implict to match dart2js unsound optimizations in the
       // user code.
@@ -556,7 +556,7 @@ class _Future<T> implements Future<T> {
     }
     _setPendingComplete();
     _zone.scheduleMicrotask(() {
-      // TODO(28783): Remove cast when type promotion works.
+      // TODO(40014): Remove cast when type promotion works.
       // This would normally be `as T` but we use `as dynamic` to make the
       // unneeded check be implict to match dart2js unsound optimizations in the
       // user code.
