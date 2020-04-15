@@ -80,14 +80,10 @@ extension on ScriptElement {
   void sneakySetSrc1(String url) => src = url; // LINT
   void sneakySetSrc2(String url) => this.src = url; // LINT
 
-  // TODO(srawlins): Re-enable this when analyzer's mock SDK includes
-  // `Element.createFragment`.
-  // void sneakyCreateFragment1(String html) => createFragment(html); // LINT
+  void sneakyCreateFragment1(String html) => createFragment(html); // LINT
   void sneakyCreateFragment2(String html) => this.createFragment(html); // LINT
 
-  // TODO(srawlins): Re-enable this when analyzer's mock SDK includes
-  // `Element.setInnerHtml`.
-  // void sneakySetInnerHtml1(String html) => setInnerHtml(html); // LINT
+  void sneakySetInnerHtml1(String html) => setInnerHtml(html); // LINT
   void sneakySetInnerHtml2(String html) => this.setInnerHtml(html); // LINT
 }
 
