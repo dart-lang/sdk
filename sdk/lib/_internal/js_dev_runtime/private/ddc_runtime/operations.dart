@@ -445,16 +445,17 @@ cast(obj, type) {
 }
 
 bool test(bool obj) {
-  if (obj == null) _throwBooleanConversionError();
+  if (obj == null) throw BooleanConversionAssertionError();
   return obj;
 }
 
 bool dtest(obj) {
-  if (obj is! bool) booleanConversionFailed(obj);
+  // Only throw an AssertionError in weak mode for compatibility. Strong mode
+  // should throw a TypeError.
+  if (obj is! bool)
+    booleanConversionFailed(_strictSubtypeChecks ? obj : test(obj));
   return obj;
 }
-
-void _throwBooleanConversionError() => throw BooleanConversionAssertionError();
 
 void booleanConversionFailed(obj) {
   var actual = typeName(getReifiedType(obj));
