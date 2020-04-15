@@ -7,7 +7,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -414,7 +413,14 @@ class LibraryAnalyzer {
     bool isIgnored(AnalysisError error) {
       var code = error.errorCode;
       // Don't allow error severity issues to be ignored.
-      if (error.severity == Severity.error) {
+      if (!code.isIgnorable) {
+        // The [code] is not ignorable, but we've allowed a few "privileged"
+        // cases. Each is annotated with an issue which represents technical
+        // debt. Once cleaned up, we may remove this notion of "privileged".
+        // In the case of [CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY], we may
+        // just decide that it happens enough in tests that it can be declared
+        // an ignorable error, and in practice other back ends will prevent
+        // non-internal code from importing internal code.
         bool privileged = false;
 
         if (code == StaticTypeWarningCode.UNDEFINED_FUNCTION ||

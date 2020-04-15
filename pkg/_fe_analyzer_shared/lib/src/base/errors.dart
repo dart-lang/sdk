@@ -62,6 +62,10 @@ abstract class ErrorCode {
    */
   ErrorSeverity get errorSeverity;
 
+  /// Whether a finding of this error is ignorable via comments such as
+  /// `// ignore:` or `// ignore_for_file:`.
+  bool get isIgnorable => errorSeverity != ErrorSeverity.ERROR;
+
   /**
    * The type of the error.
    */
@@ -225,7 +229,7 @@ class ErrorType implements Comparable<ErrorType> {
     STATIC_WARNING,
     STATIC_TYPE_WARNING,
     SYNTACTIC_ERROR,
-    LINT
+    LINT,
   ];
 
   /**
