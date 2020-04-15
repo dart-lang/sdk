@@ -1598,35 +1598,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       FileState file, List<AnalysisDriverUnitError> serialized) {
     List<AnalysisError> errors = <AnalysisError>[];
     for (AnalysisDriverUnitError error in serialized) {
-      String errorName = error.uniqueName;
-      ErrorCode errorCode =
-          errorCodeByUniqueName(errorName) ?? _lintCodeByUniqueName(errorName);
-      if (errorCode == null) {
-        // This could fail because the error code is no longer defined, or, in
-        // the case of a lint rule, if the lint rule has been disabled since the
-        // errors were written.
-        AnalysisEngine.instance.instrumentationService
-            .logError('No error code for "$error" in "$file"');
-      } else {
-        List<DiagnosticMessageImpl> contextMessages;
-        if (error.contextMessages.isNotEmpty) {
-          contextMessages = <DiagnosticMessageImpl>[];
-          for (var message in error.contextMessages) {
-            contextMessages.add(DiagnosticMessageImpl(
-                filePath: message.filePath,
-                length: message.length,
-                message: message.message,
-                offset: message.offset));
-          }
-        }
-        errors.add(AnalysisError.forValues(
-            file.source,
-            error.offset,
-            error.length,
-            errorCode,
-            error.message,
-            error.correction.isEmpty ? null : error.correction,
-            contextMessages: contextMessages ?? const []));
+      var analysisError = ErrorEncoding.decode(file.source, error);
+      if (analysisError != null) {
+        errors.add(analysisError);
       }
     }
     return errors;
@@ -1645,24 +1619,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     signature.addString(library.transitiveSignature);
     signature.addString(file.contentHash);
     return signature.toHex();
-  }
-
-  /// Return the lint code with the given [errorName], or `null` if there is no
-  /// lint registered with that name.
-  ErrorCode _lintCodeByUniqueName(String errorName) {
-    const String lintPrefix = 'LintCode.';
-    if (errorName.startsWith(lintPrefix)) {
-      String lintName = errorName.substring(lintPrefix.length);
-      return linter.Registry.ruleRegistry.getRule(lintName)?.lintCode;
-    }
-
-    const String lintPrefixOld = '_LintCode.';
-    if (errorName.startsWith(lintPrefixOld)) {
-      String lintName = errorName.substring(lintPrefixOld.length);
-      return linter.Registry.ruleRegistry.getRule(lintName)?.lintCode;
-    }
-
-    return null;
   }
 
   /// We detected that one of the required `dart` libraries is missing.
@@ -1715,24 +1671,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         : AnalysisDriverUnitIndexBuilder();
     return AnalysisDriverResolvedUnitBuilder(
             errors: errors.map((error) {
-              List<DiagnosticMessageBuilder> contextMessages;
-              if (error.contextMessages != null) {
-                contextMessages = <DiagnosticMessageBuilder>[];
-                for (var message in error.contextMessages) {
-                  contextMessages.add(DiagnosticMessageBuilder(
-                      filePath: message.filePath,
-                      length: message.length,
-                      message: message.message,
-                      offset: message.offset));
-                }
-              }
-              return AnalysisDriverUnitErrorBuilder(
-                  offset: error.offset,
-                  length: error.length,
-                  uniqueName: error.errorCode.uniqueName,
-                  message: error.message,
-                  correction: error.correction,
-                  contextMessages: contextMessages);
+              return ErrorEncoding.encode(error);
             }).toList(),
             index: index)
         .toBuffer();
@@ -2125,6 +2064,94 @@ abstract class DriverWatcher {
 
   /// The context manager has just removed the given analysis [driver].
   void removedDriver(AnalysisDriver driver);
+}
+
+class ErrorEncoding {
+  static AnalysisError decode(
+    Source source,
+    AnalysisDriverUnitError error,
+  ) {
+    String errorName = error.uniqueName;
+    ErrorCode errorCode =
+        errorCodeByUniqueName(errorName) ?? _lintCodeByUniqueName(errorName);
+    if (errorCode == null) {
+      // This could fail because the error code is no longer defined, or, in
+      // the case of a lint rule, if the lint rule has been disabled since the
+      // errors were written.
+      AnalysisEngine.instance.instrumentationService
+          .logError('No error code for "$error" in "$source"');
+      return null;
+    }
+
+    List<DiagnosticMessageImpl> contextMessages;
+    if (error.contextMessages.isNotEmpty) {
+      contextMessages = <DiagnosticMessageImpl>[];
+      for (var message in error.contextMessages) {
+        contextMessages.add(
+          DiagnosticMessageImpl(
+            filePath: message.filePath,
+            length: message.length,
+            message: message.message,
+            offset: message.offset,
+          ),
+        );
+      }
+    }
+
+    return AnalysisError.forValues(
+      source,
+      error.offset,
+      error.length,
+      errorCode,
+      error.message,
+      error.correction.isEmpty ? null : error.correction,
+      contextMessages: contextMessages ?? const [],
+    );
+  }
+
+  static AnalysisDriverUnitErrorBuilder encode(AnalysisError error) {
+    List<DiagnosticMessageBuilder> contextMessages;
+    if (error.contextMessages != null) {
+      contextMessages = <DiagnosticMessageBuilder>[];
+      for (var message in error.contextMessages) {
+        contextMessages.add(
+          DiagnosticMessageBuilder(
+            filePath: message.filePath,
+            length: message.length,
+            message: message.message,
+            offset: message.offset,
+          ),
+        );
+      }
+    }
+
+    return AnalysisDriverUnitErrorBuilder(
+      offset: error.offset,
+      length: error.length,
+      uniqueName: error.errorCode.uniqueName,
+      message: error.message,
+      correction: error.correction,
+      contextMessages: contextMessages,
+    );
+  }
+
+  /// Return the lint code with the given [errorName], or `null` if there is no
+  /// lint registered with that name.
+  static ErrorCode _lintCodeByUniqueName(String errorName) {
+    const String lintPrefix = 'LintCode.';
+    if (errorName.startsWith(lintPrefix)) {
+      String lintName = errorName.substring(lintPrefix.length);
+      return linter.Registry.ruleRegistry.getRule(lintName)?.lintCode;
+    }
+
+    const String lintPrefixOld = '_LintCode.';
+    if (errorName.startsWith(lintPrefixOld)) {
+      String lintName = errorName.substring(lintPrefixOld.length);
+      return linter.Registry.ruleRegistry.getRule(lintName)?.lintCode;
+    }
+
+    return null;
+  }
 }
 
 /// Exception that happened during analysis.

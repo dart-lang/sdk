@@ -3645,6 +3645,148 @@ abstract class _CiderLinkedLibraryCycleMixin
   String toString() => convert.json.encode(toJson());
 }
 
+class CiderUnitErrorsBuilder extends Object
+    with _CiderUnitErrorsMixin
+    implements idl.CiderUnitErrors {
+  List<AnalysisDriverUnitErrorBuilder> _errors;
+  List<int> _signature;
+
+  @override
+  List<AnalysisDriverUnitErrorBuilder> get errors =>
+      _errors ??= <AnalysisDriverUnitErrorBuilder>[];
+
+  set errors(List<AnalysisDriverUnitErrorBuilder> value) {
+    this._errors = value;
+  }
+
+  @override
+  List<int> get signature => _signature ??= <int>[];
+
+  /// The hash signature of this data.
+  set signature(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._signature = value;
+  }
+
+  CiderUnitErrorsBuilder(
+      {List<AnalysisDriverUnitErrorBuilder> errors, List<int> signature})
+      : _errors = errors,
+        _signature = signature;
+
+  /// Flush [informative] data recursively.
+  void flushInformative() {
+    _errors?.forEach((b) => b.flushInformative());
+  }
+
+  /// Accumulate non-[informative] data into [signature].
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    if (this._signature == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._signature.length);
+      for (var x in this._signature) {
+        signature.addInt(x);
+      }
+    }
+    if (this._errors == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._errors.length);
+      for (var x in this._errors) {
+        x?.collectApiSignature(signature);
+      }
+    }
+  }
+
+  List<int> toBuffer() {
+    fb.Builder fbBuilder = fb.Builder();
+    return fbBuilder.finish(finish(fbBuilder), "CUEr");
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_errors;
+    fb.Offset offset_signature;
+    if (!(_errors == null || _errors.isEmpty)) {
+      offset_errors =
+          fbBuilder.writeList(_errors.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (!(_signature == null || _signature.isEmpty)) {
+      offset_signature = fbBuilder.writeListUint32(_signature);
+    }
+    fbBuilder.startTable();
+    if (offset_errors != null) {
+      fbBuilder.addOffset(1, offset_errors);
+    }
+    if (offset_signature != null) {
+      fbBuilder.addOffset(0, offset_signature);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+idl.CiderUnitErrors readCiderUnitErrors(List<int> buffer) {
+  fb.BufferContext rootRef = fb.BufferContext.fromBytes(buffer);
+  return const _CiderUnitErrorsReader().read(rootRef, 0);
+}
+
+class _CiderUnitErrorsReader extends fb.TableReader<_CiderUnitErrorsImpl> {
+  const _CiderUnitErrorsReader();
+
+  @override
+  _CiderUnitErrorsImpl createObject(fb.BufferContext bc, int offset) =>
+      _CiderUnitErrorsImpl(bc, offset);
+}
+
+class _CiderUnitErrorsImpl extends Object
+    with _CiderUnitErrorsMixin
+    implements idl.CiderUnitErrors {
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  _CiderUnitErrorsImpl(this._bc, this._bcOffset);
+
+  List<idl.AnalysisDriverUnitError> _errors;
+  List<int> _signature;
+
+  @override
+  List<idl.AnalysisDriverUnitError> get errors {
+    _errors ??= const fb.ListReader<idl.AnalysisDriverUnitError>(
+            _AnalysisDriverUnitErrorReader())
+        .vTableGet(_bc, _bcOffset, 1, const <idl.AnalysisDriverUnitError>[]);
+    return _errors;
+  }
+
+  @override
+  List<int> get signature {
+    _signature ??=
+        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 0, const <int>[]);
+    return _signature;
+  }
+}
+
+abstract class _CiderUnitErrorsMixin implements idl.CiderUnitErrors {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (errors.isNotEmpty) {
+      _result["errors"] = errors.map((_value) => _value.toJson()).toList();
+    }
+    if (signature.isNotEmpty) {
+      _result["signature"] = signature;
+    }
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+        "errors": errors,
+        "signature": signature,
+      };
+
+  @override
+  String toString() => convert.json.encode(toJson());
+}
+
 class CiderUnlinkedUnitBuilder extends Object
     with _CiderUnlinkedUnitMixin
     implements idl.CiderUnlinkedUnit {

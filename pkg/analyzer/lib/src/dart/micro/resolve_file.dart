@@ -8,6 +8,7 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
@@ -15,6 +16,7 @@ import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart' show ErrorEncoding;
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
@@ -26,6 +28,7 @@ import 'package:analyzer/src/dart/micro/library_graph.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisEngine, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/link.dart' as link2;
@@ -38,9 +41,6 @@ import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
 
-/*
- * Resolves a single file.
- */
 class FileResolver {
   final PerformanceLog logger;
   final ResourceProvider resourceProvider;
@@ -62,6 +62,9 @@ class FileResolver {
 
   final Workspace workspace;
 
+  /// This field gets value only during testing.
+  FileResolverTestView testView;
+
   MicroAnalysisContextImpl analysisContext;
 
   FileSystemState fsState;
@@ -75,19 +78,63 @@ class FileResolver {
 
   FeatureSet get defaultFeatureSet => FeatureSet.fromEnableFlags([]);
 
+  ErrorsResult getErrors(String path) {
+    _throwIfNotAbsoluteNormalizedPath(path);
+
+    return logger.run('Get errors for $path', () {
+      var fileContext = _createFileContext(path);
+      var file = fileContext.file;
+
+      var errorsSignatureBuilder = ApiSignature();
+      errorsSignatureBuilder.addBytes(file.libraryCycle.signature);
+      errorsSignatureBuilder.addBytes(file.digest);
+      var errorsSignature = errorsSignatureBuilder.toByteList();
+
+      var errorsKey = file.path + '.errors';
+      var bytes = byteStore.get(errorsKey);
+
+      List<AnalysisError> errors;
+      if (bytes != null) {
+        var data = CiderUnitErrors.fromBuffer(bytes);
+        if (const ListEquality().equals(data.signature, errorsSignature)) {
+          errors = data.errors.map((error) {
+            return ErrorEncoding.decode(file.source, error);
+          }).toList();
+        }
+      }
+
+      if (errors == null) {
+        var unitResult = resolve(path);
+        errors = unitResult.errors;
+
+        bytes = CiderUnitErrorsBuilder(
+          signature: errorsSignature,
+          errors: errors.map((ErrorEncoding.encode)).toList(),
+        ).toBuffer();
+        byteStore.put(errorsKey, bytes);
+      }
+
+      return ErrorsResultImpl(
+        libraryContext.analysisSession,
+        path,
+        file.uri,
+        file.lineInfo,
+        false, // isPart
+        errors,
+      );
+    });
+  }
+
   ResolvedUnitResult resolve(String path) {
     _throwIfNotAbsoluteNormalizedPath(path);
 
-    var analysisOptions = _getAnalysisOptions(path);
-
     return logger.run('Resolve $path', () {
-      _createContext(analysisOptions);
-
-      var file = logger.run('Get file $path', () {
-        return fsState.getFileForPath(path);
-      });
+      var fileContext = _createFileContext(path);
+      var file = fileContext.file;
 
       libraryContext.load2(file);
+
+      testView?.addResolvedFile(path);
 
       var errorListener = RecordingErrorListener();
       var content = resourceProvider.getFile(path).readAsStringSync();
@@ -96,7 +143,7 @@ class FileResolver {
       Map<FileState, UnitAnalysisResult> results;
       logger.run('Compute analysis results', () {
         var libraryAnalyzer = LibraryAnalyzer(
-          analysisOptions,
+          fileContext.analysisOptions,
           analysisContext.declaredVariables,
           sourceFactory,
           (_) => true,
@@ -206,6 +253,18 @@ class FileResolver {
     }
   }
 
+  _FileContext _createFileContext(String path) {
+    var analysisOptions = _getAnalysisOptions(path);
+
+    _createContext(analysisOptions);
+
+    var file = logger.run('Get file $path', () {
+      return fsState.getFileForPath(path);
+    });
+
+    return _FileContext(analysisOptions, file);
+  }
+
   File _findOptionsFile(Folder folder) {
     while (folder != null) {
       File packagesFile =
@@ -278,6 +337,24 @@ class FileResolver {
     }
     return null;
   }
+}
+
+class FileResolverTestView {
+  /// The paths of files which were resolved.
+  ///
+  /// The file path is added every time when it is resolved.
+  final List<String> resolvedFiles = [];
+
+  void addResolvedFile(String path) {
+    resolvedFiles.add(path);
+  }
+}
+
+class _FileContext {
+  final AnalysisOptionsImpl analysisOptions;
+  final FileState file;
+
+  _FileContext(this.analysisOptions, this.file);
 }
 
 class _LibraryContext {

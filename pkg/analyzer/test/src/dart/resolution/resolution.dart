@@ -257,13 +257,20 @@ mixin ResolutionTest implements ResourceProviderMixin {
     return result;
   }
 
+  void assertErrorsInList(
+    List<AnalysisError> errors,
+    List<ExpectedError> expectedErrors,
+  ) {
+    GatheringErrorListener errorListener = GatheringErrorListener();
+    errorListener.addAll(errors);
+    errorListener.assertErrors(expectedErrors);
+  }
+
   void assertErrorsInResolvedUnit(
     ResolvedUnitResult result,
     List<ExpectedError> expectedErrors,
   ) {
-    GatheringErrorListener errorListener = GatheringErrorListener();
-    errorListener.addAll(result.errors);
-    errorListener.assertErrors(expectedErrors);
+    assertErrorsInList(result.errors, expectedErrors);
   }
 
   void assertFunctionExpressionInvocation(

@@ -26,12 +26,39 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
 
   final StringBuffer logBuffer = StringBuffer();
   PerformanceLog logger;
+  MockSdk sdk;
 
   FileResolver fileResolver;
 
   @override
   void addTestFile(String content) {
     newFile(_testFile, content: content);
+  }
+
+  /// Create a new [FileResolver] into [fileResolver].
+  ///
+  /// We do this the first time, and to test reusing results from [byteStore].
+  void createFileResolver() {
+    var workspace = BazelWorkspace.find(
+      resourceProvider,
+      convertPath(_testFile),
+    );
+
+    fileResolver = FileResolver(
+      logger,
+      resourceProvider,
+      byteStore,
+      workspace.createSourceFactory(sdk, null),
+      (String path) => _getDigest(path),
+      null,
+      workspace: workspace,
+    );
+    fileResolver.testView = FileResolverTestView();
+  }
+
+  ErrorsResult getTestErrors() {
+    var path = convertPath(_testFile);
+    return fileResolver.getErrors(path);
   }
 
   @override
@@ -50,24 +77,11 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
   void setUp() {
     registerLintRules();
 
-    var sdk = MockSdk(resourceProvider: resourceProvider);
     logger = PerformanceLog(logBuffer);
+    sdk = MockSdk(resourceProvider: resourceProvider);
 
     newFile('/workspace/WORKSPACE', content: '');
-    var workspace = BazelWorkspace.find(
-      resourceProvider,
-      convertPath(_testFile),
-    );
-
-    fileResolver = FileResolver(
-      logger,
-      resourceProvider,
-      byteStore,
-      workspace.createSourceFactory(sdk, null),
-      (String path) => _getDigest(path),
-      null,
-      workspace: workspace,
-    );
+    createFileResolver();
   }
 
   String _getDigest(String path) {

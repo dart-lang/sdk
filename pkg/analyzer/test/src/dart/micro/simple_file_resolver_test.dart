@@ -85,6 +85,97 @@ var b = 1 + 2;
     assertType(findElement.topVar('b').type, 'int');
   }
 
+  test_getErrors() {
+    addTestFile(r'''
+var a = b;
+var foo = 0;
+''');
+
+    var result = getTestErrors();
+    expect(result.path, convertPath('/workspace/dart/test/lib/test.dart'));
+    expect(result.uri.toString(), 'package:dart.test/test.dart');
+    assertErrorsInList(result.errors, [
+      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 8, 1),
+    ]);
+    expect(result.lineInfo.lineStarts, [0, 11, 24]);
+  }
+
+  test_getErrors_reuse() {
+    addTestFile('var a = b;');
+
+    var path = convertPath('/workspace/dart/test/lib/test.dart');
+
+    // No resolved files yet.
+    expect(fileResolver.testView.resolvedFiles, isEmpty);
+
+    // No cached, will resolve once.
+    expect(getTestErrors().errors, hasLength(1));
+    expect(fileResolver.testView.resolvedFiles, [path]);
+
+    // Has cached, will be not resolved again.
+    expect(getTestErrors().errors, hasLength(1));
+    expect(fileResolver.testView.resolvedFiles, [path]);
+
+    // New resolver.
+    // Still has cached, will be not resolved.
+    createFileResolver();
+    expect(getTestErrors().errors, hasLength(1));
+    expect(fileResolver.testView.resolvedFiles, []);
+
+    // Change the file, new resolver.
+    // With changed file the previously cached result cannot be used.
+    addTestFile('var a = c;');
+    createFileResolver();
+    expect(getTestErrors().errors, hasLength(1));
+    expect(fileResolver.testView.resolvedFiles, [path]);
+
+    // New resolver.
+    // Still has cached, will be not resolved.
+    createFileResolver();
+    expect(getTestErrors().errors, hasLength(1));
+    expect(fileResolver.testView.resolvedFiles, []);
+  }
+
+  test_getErrors_reuse_changeDependency() {
+    newFile('/workspace/dart/test/lib/a.dart', content: r'''
+var a = 0;
+''');
+
+    addTestFile(r'''
+import 'a.dart';
+var b = a.foo;
+''');
+
+    var path = convertPath('/workspace/dart/test/lib/test.dart');
+
+    // No resolved files yet.
+    expect(fileResolver.testView.resolvedFiles, isEmpty);
+
+    // No cached, will resolve once.
+    expect(getTestErrors().errors, hasLength(1));
+    expect(fileResolver.testView.resolvedFiles, [path]);
+
+    // Has cached, will be not resolved again.
+    expect(getTestErrors().errors, hasLength(1));
+    expect(fileResolver.testView.resolvedFiles, [path]);
+
+    // Change the dependency, new resolver.
+    // The signature of the result is different.
+    // The previously cached result cannot be used.
+    newFile('/workspace/dart/test/lib/a.dart', content: r'''
+var a = 4.2;
+''');
+    createFileResolver();
+    expect(getTestErrors().errors, hasLength(1));
+    expect(fileResolver.testView.resolvedFiles, [path]);
+
+    // New resolver.
+    // Still has cached, will be not resolved.
+    createFileResolver();
+    expect(getTestErrors().errors, hasLength(1));
+    expect(fileResolver.testView.resolvedFiles, []);
+  }
+
   test_hint() async {
     await assertErrorsInCode(r'''
 import 'dart:math';
