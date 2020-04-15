@@ -328,17 +328,11 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
     case RawFunction::kImplicitStaticGetter: {
       ASSERT(helper_.PeekTag() == kField);
       ASSERT(function.IsStaticFunction());
-      const auto& field = Field::Handle(Z, function.accessor_field());
       // In addition to static field initializers, scopes/local variables
       // are needed for implicit getters of static const fields, in order to
       // be able to evaluate their initializers in constant evaluator.
       if (Field::Handle(Z, function.accessor_field()).is_const()) {
         VisitNode();
-      }
-      const bool lib_is_nnbd = function.nnbd_mode() == NNBDMode::kOptedInLib;
-      if (field.is_late() || lib_is_nnbd) {
-        // LoadLateField uses expression_temp_var.
-        needs_expr_temp_ = true;
       }
       break;
     }

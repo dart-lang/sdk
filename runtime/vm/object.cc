@@ -9929,17 +9929,34 @@ RawError* Field::InitializeStatic() const {
   ASSERT(IsOriginal());
   ASSERT(is_static());
   if (StaticValue() == Object::sentinel().raw()) {
-    SetStaticValue(Object::transition_sentinel());
-    const Object& value = Object::Handle(EvaluateInitializer());
-    if (!value.IsNull() && value.IsError()) {
-      SetStaticValue(Object::null_instance());
-      return Error::Cast(value).raw();
+    auto& value = Object::Handle();
+    if (is_late()) {
+      if (!has_initializer()) {
+        Exceptions::ThrowLateInitializationError(String::Handle(name()));
+        UNREACHABLE();
+      }
+      value = EvaluateInitializer();
+      if (value.IsError()) {
+        return Error::Cast(value).raw();
+      }
+      if (is_final() && (StaticValue() != Object::sentinel().raw())) {
+        Exceptions::ThrowLateInitializationError(String::Handle(name()));
+        UNREACHABLE();
+      }
+    } else {
+      SetStaticValue(Object::transition_sentinel());
+      value = EvaluateInitializer();
+      if (value.IsError()) {
+        SetStaticValue(Object::null_instance());
+        return Error::Cast(value).raw();
+      }
     }
     ASSERT(value.IsNull() || value.IsInstance());
     SetStaticValue(value.IsNull() ? Instance::null_instance()
                                   : Instance::Cast(value));
     return Error::null();
   } else if (StaticValue() == Object::transition_sentinel().raw()) {
+    ASSERT(!is_late());
     const Array& ctor_args = Array::Handle(Array::New(1));
     const String& field_name = String::Handle(name());
     ctor_args.SetAt(0, field_name);

@@ -70,6 +70,7 @@ class Exceptions : AllStatic {
     kAbstractClassInstantiation,
     kCyclicInitializationError,
     kCompileTimeError,
+    kLateInitializationError,
   };
 
   DART_NORETURN static void ThrowByType(ExceptionType type,
@@ -85,6 +86,7 @@ class Exceptions : AllStatic {
                                             intptr_t expected_to);
   DART_NORETURN static void ThrowUnsupportedError(const char* msg);
   DART_NORETURN static void ThrowCompileTimeError(const LanguageError& error);
+  DART_NORETURN static void ThrowLateInitializationError(const String& name);
 
   // Returns a RawInstance if the exception is successfully created,
   // otherwise returns a RawError.

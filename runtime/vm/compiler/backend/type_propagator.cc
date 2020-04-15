@@ -1417,10 +1417,6 @@ CompileType LoadStaticFieldInstr::ComputeType() const {
     DEBUG_ASSERT(Isolate::Current()->HasAttemptedReload());
     return CompileType::Dynamic();
   }
-  if (field.is_late() && !is_initialized) {
-    // TODO(dartbug.com/40796): Extend CompileType to handle lateness.
-    is_nullable = CompileType::kNullable;
-  }
   return CompileType(is_nullable, cid, abstract_type);
 }
 

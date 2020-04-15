@@ -4069,9 +4069,12 @@ void InitStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   compiler::Label call_runtime, no_call;
   __ CompareObject(temp, Object::sentinel());
-  __ BranchIf(EQUAL, &call_runtime);
 
-  __ CompareObject(temp, Object::transition_sentinel());
+  if (!field().is_late()) {
+    __ BranchIf(EQUAL, &call_runtime);
+    __ CompareObject(temp, Object::transition_sentinel());
+  }
+
   __ BranchIf(NOT_EQUAL, &no_call);
 
   __ Bind(&call_runtime);

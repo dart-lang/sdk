@@ -441,15 +441,11 @@ Fragment FlowGraphBuilder::LoadLateField(const Field& field,
   Fragment instructions;
   TargetEntryInstr *is_uninitialized, *is_initialized;
   const TokenPosition position = field.token_pos();
-  const bool is_static = field.is_static();
+  ASSERT(!field.is_static());
 
   // Check whether the field has been initialized already.
-  if (is_static) {
-    instructions += LoadStaticField(field);
-  } else {
-    instructions += LoadLocal(instance);
-    instructions += LoadField(field);
-  }
+  instructions += LoadLocal(instance);
+  instructions += LoadField(field);
 
   LocalVariable* temp = parsed_function_->expression_temp_var();
   instructions += StoreLocal(position, temp);
@@ -467,14 +463,9 @@ Fragment FlowGraphBuilder::LoadLateField(const Field& field,
     Function& init_function =
         Function::ZoneHandle(Z, field.EnsureInitializerFunction());
     Fragment initialize(is_uninitialized);
-    if (is_static) {
-      initialize += StaticCall(position, init_function,
-                               /* argument_count = */ 0, ICData::kNoRebind);
-    } else {
-      initialize += LoadLocal(instance);
-      initialize += StaticCall(position, init_function,
-                               /* argument_count = */ 1, ICData::kNoRebind);
-    }
+    initialize += LoadLocal(instance);
+    initialize += StaticCall(position, init_function,
+                             /* argument_count = */ 1, ICData::kNoRebind);
     initialize += StoreLocal(position, temp);
     initialize += Drop();
     initialize += StoreLateField(field, instance, temp);
@@ -2586,9 +2577,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
     field = function.accessor_field();
   }
 
-  const Class& owner = Class::ZoneHandle(Z, field.Owner());
-  const bool lib_is_nnbd = Library::ZoneHandle(Z, owner.library()).is_nnbd();
-
   graph_entry_ =
       new (Z) GraphEntryInstr(*parsed_function_, Compiler::kNoOSRDeoptId);
 
@@ -2659,18 +2647,17 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
     ASSERT(!field.IsUninitialized());
     body += Constant(Instance::ZoneHandle(Z, field.StaticValue()));
   } else {
-    // The field always has an initializer because static fields without
-    // initializers are initialized eagerly and do not have implicit getters.
-    if (lib_is_nnbd) {
-      // In NNBD mode, static fields act like late fields regardless of whether
-      // they're marked late. The only behavioural difference is in compile
-      // errors that are handled by the front end.
-      body += LoadLateField(field, /* instance = */ nullptr);
-    } else {
-      ASSERT(field.has_nontrivial_initializer());
-      body += InitStaticField(field);
-      body += LoadStaticField(field);
-    }
+    // Static fields
+    //  - with trivial initializer
+    //  - without initializer if they are not late
+    // are initialized eagerly and do not have implicit getters.
+    // Static fields with non-trivial initializer need getter to perform
+    // lazy initialization. Late fields without initializer need getter
+    // to make sure they are already initialized.
+    ASSERT(field.has_nontrivial_initializer() ||
+           (field.is_late() && !field.has_initializer()));
+    body += InitStaticField(field);
+    body += LoadStaticField(field);
     if (field.needs_load_guard()) {
 #if defined(PRODUCT)
       UNREACHABLE();

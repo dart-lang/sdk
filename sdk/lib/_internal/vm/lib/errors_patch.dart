@@ -598,6 +598,7 @@ class _DuplicatedFieldInitializerError extends Error {
 
 class _LateInitializationError extends Error
     implements LateInitializationError {
+  @pragma("vm:entry-point")
   _LateInitializationError(this._name);
 
   @pragma("vm:entry-point")

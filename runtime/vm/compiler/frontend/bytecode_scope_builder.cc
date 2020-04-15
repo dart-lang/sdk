@@ -117,12 +117,6 @@ void BytecodeScopeBuilder::BuildScopes() {
     }
     case RawFunction::kImplicitStaticGetter: {
       ASSERT(!IsStaticFieldGetterGeneratedAsInitializer(function, Z));
-      const Field& field = Field::Handle(Z, function.accessor_field());
-      const bool lib_is_nnbd = function.nnbd_mode() == NNBDMode::kOptedInLib;
-      if (field.is_late() || lib_is_nnbd) {
-        // LoadLateField uses expression_temp_var.
-        needs_expr_temp = true;
-      }
       break;
     }
     case RawFunction::kDynamicInvocationForwarder: {
