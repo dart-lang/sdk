@@ -65,7 +65,47 @@ header .apply-migration, .rerun-migration {
   margin: 10px;
 }
 
-/* TODO(mfairhurst): style `.needs-rerun .rerun-migration` to draw attention. */
+.rerun-migration .required {
+  display: none;
+}
+
+.needs-rerun .rerun-migration .required {
+  display: initial;
+}
+
+.needs-rerun .rerun-migration .optional {
+  display:none;
+}
+
+/* Red triangle */
+.rerun-migration .required .icon::before {
+  transform: translate(-8px, -11px);
+  content: '\25B3';
+  font-size: 25px;
+  position: fixed;
+  color: #e82c2c;
+  text-shadow: 0px 0px 5px white;
+  z-index: -3;
+}
+
+/* Red triangle fill */
+.rerun-migration .required .icon::after {
+  transform: translate(-9px, -10px);
+  content: '\25B4';
+  font-size: 25px;
+  position: fixed;
+  color: #b3ecff;
+  z-index: -1;
+}
+
+/* Red triangle exclamation */
+.rerun-migration .required .icon {
+  display: inline-block;
+  margin-right: 8px;
+  transform: translate(0px, 2px);
+  margin-left: 2px;
+  color: #2b2b2b;
+}
 
 footer {
   color: #ccc;
