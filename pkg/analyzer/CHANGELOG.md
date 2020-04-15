@@ -1,3 +1,9 @@
+## 0.39.7
+* Added new error codes: ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING and
+  THROW_OF_INVALID_TYPE.
+* Changed error code NULLABLE_TYPE_IN_CATCH_CLAUSE to a hint.
+* Bug fixes: #40554, #41378, #41399, #41412, and, #41470.
+
 ## 0.39.6
 * Added Window and DocumentFragment to analyzer's mock SDK.  These are required
   for upcoming changes to the unsafe_html lint.
