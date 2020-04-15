@@ -1716,10 +1716,26 @@ Fragment StreamingFlowGraphBuilder::CheckNull(
                                         clear_the_temp);
 }
 
+static void BadArity() {
+#ifndef PRODUCT
+  // TODO(https://github.com/dart-lang/sdk/issues/37517): Should emit code to
+  // throw a NoSuchMethodError.
+  ASSERT(Isolate::Current()->HasAttemptedReload());
+  Report::LongJump(LanguageError::Handle(LanguageError::New(String::Handle(
+      String::New("Unimplemented handling of static target arity change")))));
+#else
+  UNREACHABLE();
+#endif
+}
+
 Fragment StreamingFlowGraphBuilder::StaticCall(TokenPosition position,
                                                const Function& target,
                                                intptr_t argument_count,
                                                ICData::RebindRule rebind_rule) {
+  String& error_message = String::Handle();
+  if (!target.AreValidArgumentCounts(0, argument_count, 0, &error_message)) {
+    BadArity();
+  }
   return flow_graph_builder_->StaticCall(position, target, argument_count,
                                          rebind_rule);
 }
@@ -1733,6 +1749,11 @@ Fragment StreamingFlowGraphBuilder::StaticCall(
     const InferredTypeMetadata* result_type,
     intptr_t type_args_count,
     bool use_unchecked_entry) {
+  String& error_message = String::Handle();
+  if (!target.AreValidArguments(type_args_count, argument_count, argument_names,
+                                &error_message)) {
+    BadArity();
+  }
   return flow_graph_builder_->StaticCall(
       position, target, argument_count, argument_names, rebind_rule,
       result_type, type_args_count, use_unchecked_entry);
