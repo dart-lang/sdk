@@ -151,7 +151,7 @@ class FeatureSetProviderTest with ResourceProviderMixin {
           name: 'ccc',
           rootFolder: newFolder('/packages/ccc'),
           libFolder: newFolder('/packages/ccc/lib'),
-          languageVersion: Version(2, 8, 0),
+          languageVersion: Version(2, 9, 0),
         ),
       },
     );

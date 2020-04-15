@@ -8,4 +8,4 @@
 // 'pkg/front_end/tool/fasta generate-experimental-flags' to update.
 
 int defaultLanguageVersionMajor = 2;
-int defaultLanguageVersionMinor = 8;
+int defaultLanguageVersionMinor = 9;

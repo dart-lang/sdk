@@ -26,17 +26,17 @@ const int enableControlFlowCollectionsMinorVersion = 2;
 const int enableExtensionMethodsMajorVersion = 2;
 const int enableExtensionMethodsMinorVersion = 6;
 const int enableNonNullableMajorVersion = 2;
-const int enableNonNullableMinorVersion = 8;
+const int enableNonNullableMinorVersion = 9;
 const int enableNonfunctionTypeAliasesMajorVersion = 2;
-const int enableNonfunctionTypeAliasesMinorVersion = 8;
+const int enableNonfunctionTypeAliasesMinorVersion = 9;
 const int enableSetLiteralsMajorVersion = 2;
 const int enableSetLiteralsMinorVersion = 2;
 const int enableSpreadCollectionsMajorVersion = 2;
 const int enableSpreadCollectionsMinorVersion = 2;
 const int enableTripleShiftMajorVersion = 2;
-const int enableTripleShiftMinorVersion = 8;
+const int enableTripleShiftMinorVersion = 9;
 const int enableVarianceMajorVersion = 2;
-const int enableVarianceMinorVersion = 8;
+const int enableVarianceMinorVersion = 9;
 
 ExperimentalFlag parseExperimentalFlag(String flag) {
   switch (flag) {

@@ -6,7 +6,7 @@
 // Tests handling of null initializer of covariant field.
 // This test requires non-nullable experiment and NNBD strong mode.
 
-// @dart = 2.8
+// @dart = 2.9
 
 import "package:expect/expect.dart";
 

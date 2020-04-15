@@ -5,7 +5,7 @@
 // Tests elimination of type casts.
 // This test requires non-nullable experiment and NNBD strong mode.
 
-// @dart = 2.8
+// @dart = 2.9
 
 class A<T> {}
 
