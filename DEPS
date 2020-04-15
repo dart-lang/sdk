@@ -113,7 +113,7 @@ vars = {
   "oauth2_tag": "1.2.1",
   "observatory_pub_packages_rev": "0894122173b0f98eb08863a7712e78407d4477bc",
   "package_config_tag": "v1.9.2",
-  "path_tag": "1.6.2",
+  "path_tag": "1.7.0",
   "pedantic_tag": "v1.9.0",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "1.3.6",
