@@ -159,7 +159,6 @@ abstract class AbstractAnalysisServer {
     defaultContextOptions.contextFeatures =
         analyzer_features.FeatureSet.fromEnableFlags(
             options.enabledExperiments);
-    defaultContextOptions.generateImplicitErrors = false;
     defaultContextOptions.useFastaParser = options.useFastaParser;
 
     {
