@@ -2187,9 +2187,9 @@ class _RawDatagramSocket extends Stream<RawSocketEvent>
   void set multicastHops(int value) =>
       _socket.setOption(SocketOption._ipMulticastHops, value);
 
-  NetworkInterface get multicastInterface => throw "Not implemented";
+  NetworkInterface get multicastInterface => throw UnimplementedError();
   void set multicastInterface(NetworkInterface? value) =>
-      throw "Not implemented";
+      throw UnimplementedError();
 
   bool get broadcastEnabled => _socket.getOption(SocketOption._ipBroadcast);
   void set broadcastEnabled(bool value) =>
