@@ -8,7 +8,8 @@ import "dart:math";
 import 'constants.dart' as constants;
 import "dwarf.dart";
 
-String _stackTracePiece(CallInfo call, int depth) => "#${depth}\t${call}";
+String _stackTracePiece(CallInfo call, int depth) =>
+    "#${depth.toString().padRight(6)} ${call}";
 
 // A pattern matching the last line of the non-symbolic stack trace header.
 //

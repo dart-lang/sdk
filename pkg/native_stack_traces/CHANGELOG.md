@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.3
+
+- No externally visible changes.
+
 ## 0.3.2
 
 - The `find` command can now look up addresses given as offsets from static

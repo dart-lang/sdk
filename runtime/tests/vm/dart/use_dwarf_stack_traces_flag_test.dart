@@ -70,18 +70,16 @@ main(List<String> args) async {
     ]);
 
     // Run the resulting Dwarf-AOT compiled script.
-    final dwarfOut1 = await runError(aotRuntime, <String>[
+    final dwarfTrace1 = await runError(aotRuntime, <String>[
       '--dwarf-stack-traces',
       scriptDwarfSnapshot,
       scriptDill,
     ]);
-    final dwarfTrace1 = cleanStacktrace(dwarfOut1);
-    final dwarfOut2 = await runError(aotRuntime, <String>[
+    final dwarfTrace2 = await runError(aotRuntime, <String>[
       '--no-dwarf-stack-traces',
       scriptDwarfSnapshot,
       scriptDill,
     ]);
-    final dwarfTrace2 = cleanStacktrace(dwarfOut2);
 
     // Run the resulting non-Dwarf-AOT compiled script.
     final nonDwarfTrace1 = await runError(aotRuntime, <String>[
@@ -104,10 +102,37 @@ main(List<String> args) async {
     // out of the stack trace, those should be equal.
     Expect.deepEquals(
         collectPCOffsets(dwarfTrace1), collectPCOffsets(dwarfTrace2));
+
+    // Check that translating the DWARF stack trace (without internal frames)
+    // matches the symbolic stack trace.
+    final dwarf = Dwarf.fromFile(scriptDwarfSnapshot);
+    // We are generating unstripped snapshots, so the snapshot should include
+    // the appropriate DWARF information.
+    assert(dwarf != null);
+    final translatedDwarfTrace1 = await Stream.fromIterable(dwarfTrace1)
+        .transform(DwarfStackTraceDecoder(dwarf))
+        .toList();
+
+    final translatedStackFrames = onlySymbolicFrameLines(translatedDwarfTrace1);
+    final originalStackFrames = onlySymbolicFrameLines(nonDwarfTrace1);
+
+    print('Stack frames from translated non-symbolic stack trace:');
+    translatedStackFrames.forEach(print);
+    print('');
+
+    print('Stack frames from original symbolic stack trace:');
+    originalStackFrames.forEach(print);
+    print('');
+
+    Expect.isTrue(translatedStackFrames.length > 0);
+    Expect.isTrue(originalStackFrames.length > 0);
+
+    Expect.deepEquals(translatedStackFrames, originalStackFrames);
   });
 }
 
-Iterable<String> cleanStacktrace(Iterable<String> lines) {
-  // For DWARF stack traces, the pid/tid, if output, will vary over runs.
-  return lines.where((line) => !line.startsWith('pid'));
+final _symbolicFrameRE = RegExp(r'^#\d+\s+');
+
+Iterable<String> onlySymbolicFrameLines(Iterable<String> lines) {
+  return lines.where((line) => _symbolicFrameRE.hasMatch(line));
 }

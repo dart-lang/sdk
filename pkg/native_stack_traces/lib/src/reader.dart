@@ -12,8 +12,10 @@ String paddedHex(int value, [int bytes = 0]) {
 
 class Reader {
   final ByteData bdata;
-  final Endian endian;
-  final int wordSize;
+  // These are mutable so we can update them, in case the endianness and
+  // wordSize are read using the reader (e.g., ELF files).
+  Endian endian;
+  int wordSize;
 
   int _offset = 0;
 
@@ -24,25 +26,10 @@ class Reader {
             ByteData.view(data.buffer, data.offsetInBytes, data.lengthInBytes);
 
   Reader.fromFile(String path, {this.wordSize, this.endian})
-      // TODO(sstrickl): Once Dart > 2.7.1 has been released, rewrite
-      // ByteData.view(<x>.buffer) => ByteData.sublistView(<x>).
-      : bdata = ByteData.view(File(path).readAsBytesSync().buffer);
+      : bdata = ByteData.sublistView(File(path).readAsBytesSync());
 
-  Reader copy() =>
-      Reader.fromTypedData(bdata, wordSize: wordSize, endian: endian);
-
-  Reader shrink(int offset, [int size = -1]) {
-    if (size < 0) size = bdata.lengthInBytes - offset;
-    assert(offset >= 0 && offset < bdata.lengthInBytes);
-    assert(size >= 0 && (offset + size) <= bdata.lengthInBytes);
-    return Reader.fromTypedData(
-        ByteData.view(bdata.buffer, bdata.offsetInBytes + offset, size),
-        wordSize: wordSize,
-        endian: endian);
-  }
-
-  Reader refocus(int pos, [int size = -1]) {
-    if (size < 0) size = bdata.lengthInBytes - pos;
+  /// Returns a reader focused on a different portion of the underlying buffer.
+  Reader refocusedCopy(int pos, int size) {
     assert(pos >= 0 && pos < bdata.buffer.lengthInBytes);
     assert(size >= 0 && (pos + size) <= bdata.buffer.lengthInBytes);
     return Reader.fromTypedData(ByteData.view(bdata.buffer, pos, size),
@@ -60,37 +47,33 @@ class Reader {
     _offset = newOffset;
   }
 
-  void reset() {
-    seek(0, absolute: true);
-  }
-
   int readBytes(int size, {bool signed = false}) {
-    assert(_offset + size < length);
-    int ret;
+    if (_offset + size > length) {
+      throw ArgumentError("attempt to read ${size} bytes with only "
+          "${length - _offset} bytes remaining in the reader");
+    }
+    final start = _offset;
+    _offset += size;
     switch (size) {
       case 1:
-        ret = signed ? bdata.getInt8(_offset) : bdata.getUint8(_offset);
-        break;
+        return signed ? bdata.getInt8(start) : bdata.getUint8(start);
       case 2:
-        ret = signed
-            ? bdata.getInt16(_offset, endian)
-            : bdata.getUint16(_offset, endian);
-        break;
+        return signed
+            ? bdata.getInt16(start, endian)
+            : bdata.getUint16(start, endian);
       case 4:
-        ret = signed
-            ? bdata.getInt32(_offset, endian)
-            : bdata.getUint32(_offset, endian);
+        return signed
+            ? bdata.getInt32(start, endian)
+            : bdata.getUint32(start, endian);
         break;
       case 8:
-        ret = signed
-            ? bdata.getInt64(_offset, endian)
-            : bdata.getUint64(_offset, endian);
-        break;
+        return signed
+            ? bdata.getInt64(start, endian)
+            : bdata.getUint64(start, endian);
       default:
+        _offset -= size;
         throw ArgumentError("invalid request to read $size bytes");
     }
-    _offset += size;
-    return ret;
   }
 
   int readByte({bool signed = false}) => readBytes(1, signed: signed);
@@ -123,12 +106,29 @@ class Reader {
     return ret;
   }
 
-  Iterable<MapEntry<int, S>> readRepeated<S>(
-      S Function(Reader) callback) sync* {
+  /// Repeatedly calls [callback] with this reader to retrieve items.
+  ///
+  /// The key of the returned [MapEntry]s are the offsets of the items. If
+  /// absolute is false, the offsets are from the reader position when
+  /// [readRepeated] was invoked, otherwise they are absolute offsets from
+  /// the start of the reader.
+  ///
+  /// Stops either when the reader is empty or when a null item is returned
+  /// from the callback.
+  Iterable<MapEntry<int, S>> readRepeatedWithOffsets<S>(
+      S Function(Reader) callback,
+      {bool absolute = false}) sync* {
+    final start = offset;
     while (!done) {
-      yield MapEntry<int, S>(offset, callback(this));
+      final itemStart = offset;
+      final item = callback(this);
+      if (item == null) break;
+      yield MapEntry(absolute ? itemStart : itemStart - start, item);
     }
   }
+
+  Iterable<S> readRepeated<S>(S Function(Reader) callback) =>
+      readRepeatedWithOffsets(callback).map((kv) => kv.value);
 
   void writeCurrentReaderPosition(StringBuffer buffer,
       {int maxSize = 0, int bytesPerLine = 16}) {
@@ -159,20 +159,28 @@ class Reader {
   String toString() {
     final buffer = StringBuffer();
     buffer
+      ..write("Word size: ")
+      ..write(wordSize)
+      ..writeln();
+    buffer
+      ..write("Endianness: ")
+      ..write(endian)
+      ..writeln();
+    buffer
       ..write("Start:  0x")
-      ..write(paddedHex(start, wordSize))
+      ..write(paddedHex(start, wordSize ?? 0))
       ..write(" (")
       ..write(start)
       ..writeln(")");
     buffer
       ..write("Offset: 0x")
-      ..write(paddedHex(offset, wordSize))
+      ..write(paddedHex(offset, wordSize ?? 0))
       ..write(" (")
       ..write(offset)
       ..writeln(")");
     buffer
       ..write("Length: 0x")
-      ..write(paddedHex(length, wordSize))
+      ..write(paddedHex(length, wordSize ?? 0))
       ..write(" (")
       ..write(length)
       ..writeln(")");
