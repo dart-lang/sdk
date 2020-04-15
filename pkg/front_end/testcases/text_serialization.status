@@ -413,6 +413,7 @@ general/co19_language_metadata_syntax_t04: TextSerializationFailure # Was: Pass
 general/complex_class_hierarchy: TextSerializationFailure
 general/compound_binary_implicit_as: TextSerializationFailure
 general/const_redirect_to_nonconst: TextSerializationFailure
+general/constant_truncate: TextSerializationFailure
 general/constructor_const_inference: TextSerializationFailure # Was: Pass
 general/constructor_cycle: TextSerializationFailure # Was: Pass
 general/constructor_function_types: TextSerializationFailure # Was: Pass
@@ -1294,6 +1295,7 @@ nnbd/assignability: TextSerializationFailure
 nnbd/bounds_checks: TextSerializationFailure
 nnbd/bounds_from_opt_in: TextSerializationFailure
 nnbd/call: TextSerializationFailure
+nnbd/constant_null_is: TextSerializationFailure
 nnbd/constants: TextSerializationFailure
 nnbd/covariant_equals: TextSerializationFailure
 nnbd/covariant_nnbd_top_merge: TextSerializationFailure

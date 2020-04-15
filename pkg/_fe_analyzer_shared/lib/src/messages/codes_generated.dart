@@ -1290,6 +1290,35 @@ const MessageCode messageConstEvalStartingPoint = const MessageCode(
     message: r"""Constant evaluation error:""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String string,
+        String
+            string2)> templateConstEvalTruncateError = const Template<
+        Message Function(String string, String string2)>(
+    messageTemplate:
+        r"""Binary operator '#string ~/ #string2' results is Infinity or NaN.""",
+    withArguments: _withArgumentsConstEvalTruncateError);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, String string2)>
+    codeConstEvalTruncateError =
+    const Code<Message Function(String string, String string2)>(
+  "ConstEvalTruncateError",
+  templateConstEvalTruncateError,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalTruncateError(String string, String string2) {
+  if (string.isEmpty) throw 'No string provided';
+  if (string2.isEmpty) throw 'No string provided';
+  return new Message(codeConstEvalTruncateError,
+      message:
+          """Binary operator '${string} ~/ ${string2}' results is Infinity or NaN.""",
+      arguments: {'string': string, 'string2': string2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstEvalUnevaluated = messageConstEvalUnevaluated;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

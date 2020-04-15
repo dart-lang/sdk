@@ -1,0 +1,48 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static const field core::int* a0 = 0.{core::num::~/}(0);
+static const field core::int* a1 = 0.0.{core::double::~/}(0);
+static const field core::int* a2 = 0.0.{core::double::unary-}().{core::double::~/}(0);
+static const field core::int* a3 = core::double::nan.{core::double::~/}(0);
+static const field core::int* a4 = core::double::infinity.{core::double::~/}(0);
+static const field core::int* a5 = core::double::negativeInfinity.{core::double::~/}(0);
+static const field core::int* b0 = 0.{core::num::~/}(0.0);
+static const field core::int* b1 = 0.0.{core::double::~/}(0.0);
+static const field core::int* b2 = 0.0.{core::double::unary-}().{core::double::~/}(0.0);
+static const field core::int* b3 = core::double::nan.{core::double::~/}(0.0);
+static const field core::int* b4 = core::double::infinity.{core::double::~/}(0.0);
+static const field core::int* b5 = core::double::negativeInfinity.{core::double::~/}(0.0);
+static const field core::int* c0 = 0.{core::num::~/}(0.0.{core::double::unary-}());
+static const field core::int* c1 = 0.0.{core::double::~/}(0.0.{core::double::unary-}());
+static const field core::int* c2 = 0.0.{core::double::unary-}().{core::double::~/}(0.0.{core::double::unary-}());
+static const field core::int* c3 = core::double::nan.{core::double::~/}(0.0.{core::double::unary-}());
+static const field core::int* c4 = core::double::infinity.{core::double::~/}(0.0.{core::double::unary-}());
+static const field core::int* c5 = core::double::negativeInfinity.{core::double::~/}(0.0.{core::double::unary-}());
+static const field core::int* d0 = 0.{core::num::~/}(core::double::nan);
+static const field core::int* d1 = 0.0.{core::double::~/}(core::double::nan);
+static const field core::int* d2 = 0.0.{core::double::unary-}().{core::double::~/}(core::double::nan);
+static const field core::int* d3 = core::double::nan.{core::double::~/}(core::double::nan);
+static const field core::int* d4 = core::double::infinity.{core::double::~/}(core::double::nan);
+static const field core::int* d5 = core::double::negativeInfinity.{core::double::~/}(core::double::nan);
+static const field core::int* e0 = 0.{core::num::~/}(core::double::infinity);
+static const field core::int* e1 = 0.0.{core::double::~/}(core::double::infinity);
+static const field core::int* e2 = 0.0.{core::double::unary-}().{core::double::~/}(core::double::infinity);
+static const field core::int* e3 = core::double::nan.{core::double::~/}(core::double::infinity);
+static const field core::int* e4 = core::double::infinity.{core::double::~/}(core::double::infinity);
+static const field core::int* e5 = core::double::negativeInfinity.{core::double::~/}(core::double::infinity);
+static const field core::int* f0 = 0.{core::num::~/}(core::double::negativeInfinity);
+static const field core::int* f1 = 0.0.{core::double::~/}(core::double::negativeInfinity);
+static const field core::int* f2 = 0.0.{core::double::unary-}().{core::double::~/}(core::double::negativeInfinity);
+static const field core::int* f3 = core::double::nan.{core::double::~/}(core::double::negativeInfinity);
+static const field core::int* f4 = core::double::infinity.{core::double::~/}(core::double::negativeInfinity);
+static const field core::int* f5 = core::double::negativeInfinity.{core::double::~/}(core::double::negativeInfinity);
+static method main() → dynamic
+  ;
+static method test(core::num* a, core::num* b, () →* core::num* f) → void
+  ;
+static method expect(dynamic expected, dynamic actual) → void
+  ;
+static method throws(() →* core::num* f) → void
+  ;

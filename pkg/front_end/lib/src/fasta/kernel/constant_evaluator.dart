@@ -2122,7 +2122,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
             ..fileOffset = node.fileOffset
             ..flags = node.flags);
     }
-    if (constant is NullConstant) {
+    if (constant is NullConstant && !node.isForNonNullableByDefault) {
       DartType nodeType = node.type;
       return makeBoolConstant(nodeType == typeEnvironment.nullType ||
           nodeType is InterfaceType &&
@@ -2232,27 +2232,28 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
   bool isSubtype(Constant constant, DartType type) {
     DartType constantType = constant.getType(_staticTypeContext);
-    if (targetingJavaScript) {
+    bool result = typeEnvironment.isSubtypeOf(
+        constantType, type, SubtypeCheckMode.withNullabilities);
+    if (targetingJavaScript && !result) {
       if (constantType is InterfaceType &&
-          constantType.classNode == typeEnvironment.coreTypes.intClass &&
-          type is InterfaceType &&
-          type.classNode == typeEnvironment.coreTypes.doubleClass) {
+          constantType.classNode == typeEnvironment.coreTypes.intClass) {
         // With JS semantics, an integer is also a double.
-        return true;
-      }
-
-      if (constantType is InterfaceType &&
-          constantType.classNode == typeEnvironment.coreTypes.doubleClass &&
-          type is InterfaceType &&
-          type.classNode == typeEnvironment.coreTypes.intClass) {
-        double value = (constant as DoubleConstant).value;
-        if (value.isFinite && value == value.truncateToDouble()) {
-          return true;
-        }
+        result = typeEnvironment.isSubtypeOf(
+            new InterfaceType(typeEnvironment.coreTypes.doubleClass,
+                constantType.nullability, const <DartType>[]),
+            type,
+            SubtypeCheckMode.withNullabilities);
+      } else if (intFolder.isInt(constant)) {
+        // With JS semantics, an integer valued double is also an int.
+        result = typeEnvironment.isSubtypeOf(
+            new InterfaceType(typeEnvironment.coreTypes.intClass,
+                constantType.nullability, const <DartType>[]),
+            type,
+            SubtypeCheckMode.withNullabilities);
       }
     }
-    return typeEnvironment.isSubtypeOf(
-        constantType, type, SubtypeCheckMode.withNullabilities);
+
+    return result;
   }
 
   Constant ensureIsSubtype(Constant constant, DartType type, TreeNode node) {
@@ -2367,7 +2368,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
           return report(
               node, templateConstEvalZeroDivisor.withArguments(op, '$a'));
         }
-        return intFolder.truncatingDivide(a, b);
+        return intFolder.truncatingDivide(node, a, b);
       case '%':
         return new DoubleConstant(a % b);
     }

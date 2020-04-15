@@ -122,6 +122,8 @@ ConstEvalNotMapInSpread/example: Fail
 ConstEvalNullValue/example: Fail
 ConstEvalStartingPoint/analyzerCode: Fail # This is just used for displaying the starting point.
 ConstEvalStartingPoint/example: Fail # This is just used for displaying the starting point.
+ConstEvalTruncateError/analyzerCode: Fail
+ConstEvalTruncateError/example: Fail
 ConstEvalUnevaluated/analyzerCode: Fail
 ConstEvalUnevaluated/example: Fail
 ConstEvalZeroDivisor/example: Fail

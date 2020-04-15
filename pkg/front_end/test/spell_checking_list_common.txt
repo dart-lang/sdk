@@ -1447,6 +1447,7 @@ inferrer
 inferring
 infers
 infinite
+infinity
 infix
 info
 inform
@@ -1876,6 +1877,7 @@ namely
 names
 namespace
 naming
+nan
 narrow
 narrower
 native
