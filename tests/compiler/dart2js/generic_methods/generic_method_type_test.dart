@@ -34,9 +34,11 @@ main() {
     """);
 
     for (FunctionTypeData data in signatures) {
-      FunctionType functionType = env.getElementType('t${data.name}');
+      FunctionType functionType =
+          env.getElementType('t${data.name}').withoutNullability;
       FunctionEntity method = env.getElement('m${data.name}');
-      FunctionType methodType = env.getElementType('m${data.name}');
+      FunctionType methodType =
+          env.getElementType('m${data.name}').withoutNullability;
       ParameterStructure parameterStructure = method.parameterStructure;
       Expect.equals(functionType, methodType, "Type mismatch on $data");
       Expect.equals(
