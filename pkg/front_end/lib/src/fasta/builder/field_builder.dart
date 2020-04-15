@@ -674,12 +674,14 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
         new Field(null, fileUri: fileUri, reference: referenceFrom?.reference)
           ..fileOffset = charOffset
           ..fileEndOffset = charEndOffset
-          ..isNonNullableByDefault = true;
+          ..isNonNullableByDefault = true
+          ..isInternalImplementation = true;
     _lateIsSetField = new Field(null,
         fileUri: fileUri, reference: lateIsSetReferenceFrom?.reference)
       ..fileOffset = charOffset
       ..fileEndOffset = charEndOffset
-      ..isNonNullableByDefault = true;
+      ..isNonNullableByDefault = true
+      ..isInternalImplementation = true;
     _lateGetter = new Procedure(
         null, ProcedureKind.Getter, new FunctionNode(null),
         fileUri: fileUri, reference: getterReferenceFrom?.reference)

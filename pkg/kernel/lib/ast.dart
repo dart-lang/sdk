@@ -1739,6 +1739,7 @@ class Field extends Member {
   static const int FlagLate = 1 << 7;
   static const int FlagExtensionMember = 1 << 8;
   static const int FlagNonNullableByDefault = 1 << 9;
+  static const int FlagInternalImplementation = 1 << 10;
 
   /// Whether the field is declared with the `covariant` keyword.
   bool get isCovariant => flags & FlagCovariant != 0;
@@ -1779,6 +1780,13 @@ class Field extends Member {
 
   /// Whether the field is declared with the `late` keyword.
   bool get isLate => flags & FlagLate != 0;
+
+  // If `true` this field is not part of the interface but only part of the
+  // class members.
+  //
+  // This is `true` for instance for synthesized fields added for the late
+  // lowering.
+  bool get isInternalImplementation => flags & FlagInternalImplementation != 0;
 
   void set isCovariant(bool value) {
     flags = value ? (flags | FlagCovariant) : (flags & ~FlagCovariant);
@@ -1821,6 +1829,12 @@ class Field extends Member {
 
   void set isLate(bool value) {
     flags = value ? (flags | FlagLate) : (flags & ~FlagLate);
+  }
+
+  void set isInternalImplementation(bool value) {
+    flags = value
+        ? (flags | FlagInternalImplementation)
+        : (flags & ~FlagInternalImplementation);
   }
 
   /// True if the field is neither final nor const.
