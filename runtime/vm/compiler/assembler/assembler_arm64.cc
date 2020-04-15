@@ -1746,6 +1746,15 @@ void Assembler::GenerateUnRelocatedPcRelativeCall(intptr_t offset_into_target) {
   pattern.set_distance(offset_into_target);
 }
 
+void Assembler::GenerateUnRelocatedPcRelativeTailCall(
+    intptr_t offset_into_target) {
+  // Emit "b <offset>".
+  EmitUnconditionalBranchOp(B, 0);
+  PcRelativeTailCallPattern pattern(buffer_.contents() + buffer_.Size() -
+                                    PcRelativeTailCallPattern::kLengthInBytes);
+  pattern.set_distance(offset_into_target);
+}
+
 Address Assembler::ElementAddressForIntIndex(bool is_external,
                                              intptr_t cid,
                                              intptr_t index_scale,

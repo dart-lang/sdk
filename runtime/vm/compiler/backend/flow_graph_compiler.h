@@ -768,6 +768,7 @@ class FlowGraphCompiler : public ValueObject {
                              intptr_t try_index = kInvalidTryIndex);
 
   void EmitCallToStub(const Code& stub);
+  void EmitTailCallToStub(const Code& stub);
 
   // Emits the following metadata for the current PC:
   //
@@ -971,6 +972,7 @@ class FlowGraphCompiler : public ValueObject {
   void AddPcRelativeCallTarget(const Function& function,
                                Code::EntryKind entry_kind);
   void AddPcRelativeCallStubTarget(const Code& stub_code);
+  void AddPcRelativeTailCallStubTarget(const Code& stub_code);
   void AddStaticCallTarget(const Function& function,
                            Code::EntryKind entry_kind);
 

@@ -245,7 +245,8 @@ void ProgramVisitor::BindStaticCalls(Zone* zone, Isolate* isolate) {
         kind_and_offset_ = view.Get<Code::kSCallTableKindAndOffset>();
         auto const kind = Code::KindField::decode(kind_and_offset_.Value());
         if (kind != Code::kCallViaCode) {
-          ASSERT(!FLAG_precompiled_mode || kind == Code::kPcRelativeCall);
+          ASSERT(!FLAG_precompiled_mode || kind == Code::kPcRelativeCall ||
+                 kind == Code::kPcRelativeTailCall);
           only_call_via_code = false;
           continue;
         }

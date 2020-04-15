@@ -1668,6 +1668,11 @@ class Assembler : public AssemblerBase {
   // function.
   void GenerateUnRelocatedPcRelativeCall(intptr_t offset_into_target = 0);
 
+  // This emits an PC-relative tail call of the form "b <offset>".
+  //
+  // See also above for the pc-relative call.
+  void GenerateUnRelocatedPcRelativeTailCall(intptr_t offset_into_target = 0);
+
   Address ElementAddressForIntIndex(bool is_external,
                                     intptr_t cid,
                                     intptr_t index_scale,

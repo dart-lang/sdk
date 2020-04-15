@@ -189,6 +189,7 @@ class ObjectPointerVisitor;
   RW(Code, re_throw_stub)                                                      \
   RW(Code, assert_boolean_stub)                                                \
   RW(Code, instance_of_stub)                                                   \
+  RW(Code, call_closure_no_such_method_stub)                                   \
   R_(Code, megamorphic_call_miss_code)                                         \
   R_(Function, megamorphic_call_miss_function)                                 \
   R_(GrowableObjectArray, resume_capabilities)                                 \
@@ -217,6 +218,7 @@ class ObjectPointerVisitor;
   DO(stack_overflow_stub_with_fpu_regs_stub, StackOverflowSharedWithFPURegs)   \
   DO(stack_overflow_stub_without_fpu_regs_stub,                                \
      StackOverflowSharedWithoutFPURegs)                                        \
+  DO(call_closure_no_such_method_stub, CallClosureNoSuchMethod)                \
   DO(write_barrier_wrappers_stub, WriteBarrierWrappers)                        \
   DO(array_write_barrier_stub, ArrayWriteBarrier)                              \
   DO(throw_stub, Throw)                                                        \

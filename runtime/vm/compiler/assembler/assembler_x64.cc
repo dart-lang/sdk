@@ -1970,6 +1970,17 @@ void Assembler::GenerateUnRelocatedPcRelativeCall(intptr_t offset_into_target) {
   pattern.set_distance(offset_into_target);
 }
 
+void Assembler::GenerateUnRelocatedPcRelativeTailCall(
+    intptr_t offset_into_target) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  buffer_.Emit<uint8_t>(0xe9);
+  buffer_.Emit<int32_t>(0);
+
+  PcRelativeCallPattern pattern(buffer_.contents() + buffer_.Size() -
+                                PcRelativeCallPattern::kLengthInBytes);
+  pattern.set_distance(offset_into_target);
+}
+
 void Assembler::Align(int alignment, intptr_t offset) {
   ASSERT(Utils::IsPowerOfTwo(alignment));
   intptr_t pos = offset + buffer_.GetPosition();

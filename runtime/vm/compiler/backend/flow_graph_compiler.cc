@@ -788,6 +788,14 @@ void FlowGraphCompiler::AddPcRelativeCallStubTarget(const Code& stub_code) {
       &stub_code));
 }
 
+void FlowGraphCompiler::AddPcRelativeTailCallStubTarget(const Code& stub_code) {
+  ASSERT(stub_code.IsZoneHandle() || stub_code.IsReadOnlyHandle());
+  ASSERT(!stub_code.IsNull());
+  static_calls_target_table_.Add(new (zone()) StaticCallsStruct(
+      Code::kPcRelativeTailCall, Code::kDefaultEntry, assembler()->CodeSize(),
+      nullptr, &stub_code));
+}
+
 void FlowGraphCompiler::AddStaticCallTarget(const Function& func,
                                             Code::EntryKind entry_kind) {
   ASSERT(func.IsZoneHandle());

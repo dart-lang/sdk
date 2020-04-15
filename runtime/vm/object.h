@@ -6043,7 +6043,8 @@ class Code : public Object {
 
   enum CallKind {
     kPcRelativeCall = 1,
-    kCallViaCode = 2,
+    kPcRelativeTailCall = 2,
+    kCallViaCode = 3,
   };
 
   enum CallEntryPoint {

@@ -981,6 +981,25 @@ void FlowGraphCompiler::EmitCallToStub(const Code& stub) {
   }
 }
 
+void FlowGraphCompiler::EmitTailCallToStub(const Code& stub) {
+  ASSERT(!stub.IsNull());
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions &&
+      !stub.InVMIsolateHeap()) {
+    __ LeaveDartFrame();
+    __ GenerateUnRelocatedPcRelativeTailCall();
+    AddPcRelativeTailCallStubTarget(stub);
+#if defined(DEBUG)
+    __ Breakpoint();
+#endif
+  } else {
+    __ LoadObject(CODE_REG, stub);
+    __ LeaveDartFrame();
+    __ ldr(PC, compiler::FieldAddress(
+                   CODE_REG, compiler::target::Code::entry_point_offset()));
+    AddStubCallTarget(stub);
+  }
+}
+
 void FlowGraphCompiler::GeneratePatchableCall(TokenPosition token_pos,
                                               const Code& stub,
                                               RawPcDescriptors::Kind kind,

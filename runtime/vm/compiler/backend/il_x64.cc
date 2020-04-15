@@ -118,9 +118,7 @@ DEFINE_BACKEND(StoreIndexedUnsafe,
 }
 
 DEFINE_BACKEND(TailCall, (NoLocation, Fixed<Register, ARGS_DESC_REG>)) {
-  __ LoadObject(CODE_REG, instr->code());
-  __ LeaveDartFrame();  // The arguments are still on the stack.
-  __ jmp(compiler::FieldAddress(CODE_REG, Code::entry_point_offset()));
+  compiler->EmitTailCallToStub(instr->code());
 
   // Even though the TailCallInstr will be the last instruction in a basic
   // block, the flow graph compiler will emit native code for other blocks after

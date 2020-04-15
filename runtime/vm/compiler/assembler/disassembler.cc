@@ -388,6 +388,9 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
           case Code::kPcRelativeCall:
             skind = "pc-relative-call";
             break;
+          case Code::kPcRelativeTailCall:
+            skind = "pc-relative-tail-call";
+            break;
           case Code::kCallViaCode:
             skind = "call-via-code";
             break;

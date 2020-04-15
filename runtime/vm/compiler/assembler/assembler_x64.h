@@ -955,6 +955,11 @@ class Assembler : public AssemblerBase {
   // function.
   void GenerateUnRelocatedPcRelativeCall(intptr_t offset_into_target = 0);
 
+  // This emits an PC-relative tail call of the form "jmp *[rip+<offset>]".
+  //
+  // See also above for the pc-relative call.
+  void GenerateUnRelocatedPcRelativeTailCall(intptr_t offset_into_target = 0);
+
   // Debugging and bringup support.
   void Breakpoint() override { int3(); }
 

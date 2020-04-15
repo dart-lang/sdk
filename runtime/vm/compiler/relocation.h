@@ -25,12 +25,14 @@ class UnresolvedCall : public IntrusiveDListEntry<UnresolvedCall>,
                  intptr_t call_offset,
                  intptr_t text_offset,
                  RawCode* callee,
-                 intptr_t offset_into_target)
+                 intptr_t offset_into_target,
+                 bool is_tail_call)
       : caller(caller),
         call_offset(call_offset),
         text_offset(text_offset),
         callee(callee),
-        offset_into_target(offset_into_target) {}
+        offset_into_target(offset_into_target),
+        is_tail_call(is_tail_call) {}
 
   UnresolvedCall(const UnresolvedCall& other)
       : IntrusiveDListEntry<UnresolvedCall>(),
@@ -39,18 +41,22 @@ class UnresolvedCall : public IntrusiveDListEntry<UnresolvedCall>,
         call_offset(other.call_offset),
         text_offset(other.text_offset),
         callee(other.callee),
-        offset_into_target(other.offset_into_target) {}
+        offset_into_target(other.offset_into_target),
+        is_tail_call(other.is_tail_call) {}
 
-  // The caller which has an unresolved call.
+  // The caller which has an unresolved call (will be null'ed out when
+  // resolved).
   RawCode* caller;
   // The offset from the payload of the calling code which performs the call.
-  intptr_t call_offset;
+  const intptr_t call_offset;
   // The offset in the .text segment where the call happens.
-  intptr_t text_offset;
-  // The target of the forward call.
+  const intptr_t text_offset;
+  // The target of the forward call (will be null'ed out when resolved).
   RawCode* callee;
   // The extra offset into the target.
-  intptr_t offset_into_target;
+  const intptr_t offset_into_target;
+  // Whether this is a tail call.
+  const bool is_tail_call;
 };
 
 // A list of all unresolved calls.

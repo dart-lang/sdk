@@ -1191,9 +1191,9 @@ class Assembler : public AssemblerBase {
                         Register temp1,
                         Register temp2);
 
-  // This emits an PC-relative call of the form "blr <offset>".  The offset
-  // is not yet known and needs therefore relocation to the right place before
-  // the code can be used.
+  // This emits an PC-relative call of the form "blr.<cond> <offset>".  The
+  // offset is not yet known and needs therefore relocation to the right place
+  // before the code can be used.
   //
   // The neccessary information for the "linker" (i.e. the relocation
   // information) is stored in [RawCode::static_calls_target_table_]: an entry
@@ -1208,6 +1208,12 @@ class Assembler : public AssemblerBase {
   // function.
   void GenerateUnRelocatedPcRelativeCall(Condition cond = AL,
                                          intptr_t offset_into_target = 0);
+
+  // This emits an PC-relative tail call of the form "b.<cond> <offset>".
+  //
+  // See also above for the pc-relative call.
+  void GenerateUnRelocatedPcRelativeTailCall(Condition cond = AL,
+                                             intptr_t offset_into_target = 0);
 
   // Emit data (e.g encoded instruction or immediate) in instruction stream.
   void Emit(int32_t value);

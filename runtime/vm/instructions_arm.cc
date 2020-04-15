@@ -382,8 +382,19 @@ bool ReturnPattern::IsValid() const {
 bool PcRelativeCallPattern::IsValid() const {
   // bl.<cond> <offset>
   const uint32_t word = *reinterpret_cast<uint32_t*>(pc_);
-  const uint32_t branch_link = 0x05;
-  return ((word >> kTypeShift) & ((1 << kTypeBits) - 1)) == branch_link;
+  const uint32_t branch = 0x05;
+  const uword type = ((word >> kTypeShift) & ((1 << kTypeBits) - 1));
+  const uword link = ((word >> kLinkShift) & ((1 << kLinkBits) - 1));
+  return type == branch && link == 1;
+}
+
+bool PcRelativeTailCallPattern::IsValid() const {
+  // b.<cond> <offset>
+  const uint32_t word = *reinterpret_cast<uint32_t*>(pc_);
+  const uint32_t branch = 0x05;
+  const uword type = ((word >> kTypeShift) & ((1 << kTypeBits) - 1));
+  const uword link = ((word >> kLinkShift) & ((1 << kLinkBits) - 1));
+  return type == branch && link == 0;
 }
 
 void PcRelativeTrampolineJumpPattern::Initialize() {
