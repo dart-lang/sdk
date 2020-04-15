@@ -42,7 +42,7 @@ Widget build(bool b) {
     children: [
       Text('aaa'),
       if (b) Column(
-        children: <Widget>[
+        children: [
           Text('bbb'),
         ],
       ),
@@ -73,7 +73,7 @@ class FakeFlutter {
   main() {
     return Container(
       child: Column(
-        children: <Widget>[
+        children: [
           Text('aaa'),
         ],
       ),
@@ -109,7 +109,7 @@ class FakeFlutter {
     return Row(children: [
       Text('aaa'),
       Column(
-        children: <Widget>[
+        children: [
           Text('bbb'),
           Text('ccc'),
         ],
