@@ -1,12 +1,6 @@
-browser:../../third_party/observatory_pub_packages/packages/browser/lib
-charted:../../third_party/observatory_pub_packages/packages/charted/lib
 collection:../../third_party/observatory_pub_packages/packages/collection/lib
-intl:../../third_party/observatory_pub_packages/packages/intl/lib
 logging:../../third_party/observatory_pub_packages/packages/logging/lib
-meta:../../third_party/observatory_pub_packages/packages/meta/lib
-observable:../../third_party/observatory_pub_packages/packages/observable/lib
 path:../../third_party/observatory_pub_packages/packages/path/lib
-quiver:../../third_party/observatory_pub_packages/packages/quiver/lib
 stack_trace:../../third_party/observatory_pub_packages/packages/stack_trace/lib
 usage:../../third_party/observatory_pub_packages/packages/usage/lib
 observatory:lib

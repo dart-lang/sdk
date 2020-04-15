@@ -113,42 +113,6 @@ copy_tree_specs += [
   },
 ]
 
-# All the contents of third_party/observatory_pub_packages should be
-# accounted for here. Uncommented entries are those packages that have
-# files that pass the observatory_ignore_patterns filters.
-observatory_pub_packages = [
-  "browser",
-  "charted",
-  "intl",
-
-  # Dependent packages that have no files that pass the above filter.
-  # "collection",
-  # "logging",
-  # "matcher",
-  # "meta",
-  # "observable",
-  # "path",
-  # "quiver",
-  # "stack_trace",
-  # "usage",
-
-  # Only needed for testing.
-  # "unittest",
-]
-
-foreach(package, observatory_pub_packages) {
-  copy_tree_specs += [
-    {
-      target = "copy_${package}_package"
-      visibility = [ ":deploy_observatory" ]
-      source =
-          "../../third_party/observatory_pub_packages/packages/$package/lib"
-      dest = "$target_out_dir/observatory/deployed/web/packages/$package"
-      ignore_patterns = observatory_ignore_string
-    },
-  ]
-}
-
 # This is not a rule, rather, it generates rules with names of the form:
 #   "copy_$package_package" for the packages in observatory_pub_packages.
 copy_trees("copy_observatory_packages") {
@@ -167,9 +131,6 @@ copy("copy_main_dart_js") {
 
 group("deploy_observatory") {
   deps = [
-    ":copy_browser_package",
-    ":copy_charted_package",
-    ":copy_intl_package",
     ":copy_main_dart_js",
     ":copy_observatory_package",
     ":copy_web_package",
