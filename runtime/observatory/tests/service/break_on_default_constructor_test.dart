@@ -66,7 +66,7 @@ var tests = <IsolateTest>[
       fail("Expected to find function");
     }
 
-    await isolate.resume();
+    isolate.resume();
   }
 ];
 

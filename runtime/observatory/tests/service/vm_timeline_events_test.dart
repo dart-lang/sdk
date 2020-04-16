@@ -9,14 +9,10 @@ import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-primeDartTimeline() async {
+primeDartTimeline() {
   while (true) {
     Timeline.startSync('apple');
     Timeline.finishSync();
-    // Give the VM a chance to send the timeline events. This test is
-    // significantly slower if we loop without yielding control after each
-    // iteration.
-    await Future.delayed(const Duration(milliseconds: 1));
   }
 }
 
@@ -26,8 +22,8 @@ List filterEvents(List events, filter) {
   return events.where(filter).toList();
 }
 
-Completer completer;
-int eventCount;
+Completer completer = new Completer();
+int eventCount = 0;
 
 onTimelineEvent(ServiceEvent event) {
   eventCount++;
@@ -38,11 +34,6 @@ onTimelineEvent(ServiceEvent event) {
 }
 
 var tests = <IsolateTest>[
-  (Isolate isolate) async {
-    // Clear global state.
-    eventCount = 0;
-    completer = Completer<void>();
-  },
   (Isolate isolate) async {
     // Subscribe to the Timeline stream.
     await subscribeToStream(isolate.vm, VM.kTimelineStream, onTimelineEvent);

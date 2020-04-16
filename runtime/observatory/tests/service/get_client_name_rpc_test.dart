@@ -37,10 +37,4 @@ final test = <IsolateTest>[
   },
 ];
 
-Future<void> main(args) => runIsolateTests(
-      args,
-      test,
-      testeeBefore: fooBar,
-      // TODO(bkonyi): client names are not yet supported in DDS.
-      enableDds: false,
-    );
+Future<void> main(args) => runIsolateTests(args, test, testeeBefore: fooBar);

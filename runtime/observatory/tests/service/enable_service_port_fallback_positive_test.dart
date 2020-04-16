@@ -21,15 +21,11 @@ int selectedPort = 0;
 
 main(args) async {
   selectedPort = await _getUnusedPort();
-  await runVMTests(
-    args, tests,
-    enable_service_port_fallback: true,
-    // Choose a port number that should always be open.
-    port: selectedPort,
-    extraArgs: [],
-    // TODO(bkonyi): investigate failure.
-    enableDds: false,
-  );
+  await runVMTests(args, tests,
+      enable_service_port_fallback: true,
+      // Choose a port number that should always be open.
+      port: selectedPort,
+      extraArgs: []);
 }
 
 Future<int> _getUnusedPort() async {

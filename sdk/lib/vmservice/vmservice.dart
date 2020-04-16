@@ -49,8 +49,7 @@ final String serviceAuthToken = _makeAuthToken();
 final Map<int, IsolateEmbedderData> isolateEmbedderData =
     new Map<int, IsolateEmbedderData>();
 
-// These must be kept in sync with the declarations in vm/json_stream.h and
-// pkg/dds/lib/src/stream_manager.dart.
+// These must be kept in sync with the declarations in vm/json_stream.h.
 const kParseError = -32700;
 const kInvalidRequest = -32600;
 const kMethodNotFound = -32601;

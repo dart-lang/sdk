@@ -318,12 +318,8 @@ abstract class CommonWebSocketVM extends VM {
         'params': {'id': serial, 'query': request.method}
       });
     } else {
-      message = json.encode({
-        'jsonrpc': '2.0',
-        'id': serial,
-        'method': request.method,
-        'params': request.params
-      });
+      message = json.encode(
+          {'id': serial, 'method': request.method, 'params': request.params});
     }
     if (request.method != 'getTagProfile' &&
         request.method != 'getIsolateMetric' &&
