@@ -2665,6 +2665,7 @@ class RawArray : public RawInstance {
 
   friend class LinkedHashMapSerializationCluster;
   friend class LinkedHashMapDeserializationCluster;
+  friend class CodeSerializationCluster;
   friend class CodeDeserializationCluster;
   friend class Deserializer;
   friend class RawCode;

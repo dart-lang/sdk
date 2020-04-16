@@ -257,6 +257,8 @@ class Precompiler : public ValueObject {
   void AttachOptimizedTypeTestingStub();
 
   void TraceForRetainedFunctions();
+  void FinalizeDispatchTable();
+  void ReplaceFunctionPCRelativeCallEntries();
   void DropFunctions();
   void DropFields();
   void TraceTypesFromRetainedClasses();

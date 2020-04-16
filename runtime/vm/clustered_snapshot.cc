@@ -1511,13 +1511,30 @@ class CodeSerializationCluster : public SerializationCluster {
     s->Push(code->ptr()->pc_descriptors_);
     s->Push(code->ptr()->catch_entry_);
     s->Push(code->ptr()->compressed_stackmaps_);
-    if (!FLAG_dwarf_stack_traces) {
+    if (!FLAG_dwarf_stack_traces_mode) {
       s->Push(code->ptr()->inlined_id_to_function_);
       s->Push(code->ptr()->code_source_map_);
     }
     if (s->kind() == Snapshot::kFullJIT) {
       s->Push(code->ptr()->deopt_info_array_);
       s->Push(code->ptr()->static_calls_target_table_);
+    } else if (s->kind() == Snapshot::kFullAOT) {
+#if defined(DART_PRECOMPILER)
+      auto const calls_array = code->ptr()->static_calls_target_table_;
+      if (calls_array != Array::null()) {
+        // Some Code entries in the static calls target table may only be
+        // accessible via here, so push the Code objects.
+        auto const length = Smi::Value(calls_array->ptr()->length_);
+        for (intptr_t i = 0; i < length; i++) {
+          auto const object = calls_array->ptr()->data()[i];
+          if (object->IsHeapObject() && object->IsCode()) {
+            s->Push(object);
+          }
+        }
+      }
+#else
+      UNREACHABLE();
+#endif
     }
 #if !defined(PRODUCT)
     s->Push(code->ptr()->return_address_metadata_);
@@ -1591,7 +1608,7 @@ class CodeSerializationCluster : public SerializationCluster {
       WriteField(code, pc_descriptors_);
       WriteField(code, catch_entry_);
       WriteField(code, compressed_stackmaps_);
-      if (FLAG_dwarf_stack_traces) {
+      if (FLAG_dwarf_stack_traces_mode) {
         WriteFieldValue(inlined_id_to_function_, Array::null());
         WriteFieldValue(code_source_map_, CodeSourceMap::null());
       } else {

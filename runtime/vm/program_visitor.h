@@ -28,11 +28,11 @@ namespace dart {
 // VisitFunction.
 //
 // There are no guarantees for the order in which objects of a given type will
-// be visited or how many times they will be visited. The only guarantee is that
-// objects will be visited before any visitable sub-objects they contain. For
-// example, if a FunctionVisitor has a VisitClass implementation that drops
-// methods from a class, the function objects for those methods will not be
-// visited unless they are also found via another source of function objects.
+// be visited, but each object will be visited only once. In addition, each
+// object is visited before any visitable sub-objects it contains. For example,
+// this means a FunctionVisitor with a VisitClass implementation that drops
+// methods from a class will not visit the dropped methods unless they are also
+// found via another source of function objects.
 //
 // Note that WalkProgram only visits objects in the isolate heap. Deduplicating
 // visitors that want to use VM objects as canonical when possible should

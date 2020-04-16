@@ -761,7 +761,7 @@ void FlowGraphCompiler::AddNullCheck(TokenPosition token_pos,
   // the pool index at runtime. There is therefore no reason to put the name
   // into the pool in the first place.
   // TODO(dartbug.com/40605): Move this info to the pc descriptors.
-  if (!FLAG_dwarf_stack_traces) {
+  if (!FLAG_dwarf_stack_traces_mode) {
     const intptr_t name_index =
         assembler()->object_pool_builder().FindObject(name);
     code_source_map_builder_->NoteNullCheck(assembler()->CodeSize(), token_pos,

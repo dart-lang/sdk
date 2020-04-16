@@ -59,9 +59,8 @@ constexpr bool kDartUseBackgroundCompilation = true;
 // The syntax used is the same as that for FLAG_LIST below, as these flags are
 // automatically included in FLAG_LIST.
 #define VM_GLOBAL_FLAG_LIST(P, R, C, D)                                        \
-  P(dwarf_stack_traces, bool, false,                                           \
-    "Emit DWARF line number and inlining info"                                 \
-    "in dylib snapshots and don't symbolize stack traces.")                    \
+  P(dwarf_stack_traces_mode, bool, false,                                      \
+    "Use --[no-]dwarf-stack-traces instead.")                                  \
   P(causal_async_stacks, bool, !USING_PRODUCT, "Improved async stacks")        \
   P(lazy_async_stacks, bool, false, "Reconstruct async stacks from listeners") \
   P(use_bare_instructions, bool, true, "Enable bare instructions mode.")       \
@@ -195,9 +194,9 @@ constexpr bool kDartUseBackgroundCompilation = true;
   P(null_safety, bool, false,                                                  \
     "Respect the nullability of types in casts and instance checks.")          \
   P(use_table_dispatch, bool, true, "Enable dispatch table based calls.")      \
-  P(retain_dispatched_functions, bool, !USING_PRODUCT,                         \
-    "Serialize function objects for code in the dispatch table even if "       \
-    "not needed in the precompiled runtime")                                   \
+  P(retain_function_objects, bool, true,                                       \
+    "Serialize function objects for all code objects even if not otherwise "   \
+    "needed in the precompiled runtime.")                                      \
   P(enable_isolate_groups, bool, false, "Enable isolate group support.")       \
   P(show_invisible_frames, bool, false,                                        \
     "Show invisible frames in stack traces.")                                  \
