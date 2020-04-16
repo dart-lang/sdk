@@ -253,17 +253,20 @@ class FlowGraphBuilderHelper {
     return flow_graph_.GetConstant(Double::Handle(Double::NewCanonical(value)));
   }
 
+  static constexpr Definition* kPhiSelfReference = nullptr;
+
   PhiInstr* Phi(JoinEntryInstr* join,
                 std::initializer_list<std::pair<BlockEntryInstr*, Definition*>>
-                    incomming) {
-    auto phi = new PhiInstr(join, incomming.size());
-    for (size_t i = 0; i < incomming.size(); i++) {
+                    incoming) {
+    auto phi = new PhiInstr(join, incoming.size());
+    for (size_t i = 0; i < incoming.size(); i++) {
       auto input = new Value(flow_graph_.constant_dead());
       phi->SetInputAt(i, input);
       input->definition()->AddInputUse(input);
     }
-    for (auto pair : incomming) {
-      pending_phis_.Add({phi, pair.first, pair.second});
+    for (auto pair : incoming) {
+      pending_phis_.Add({phi, pair.first,
+                         pair.second == kPhiSelfReference ? phi : pair.second});
     }
     return phi;
   }

@@ -166,6 +166,7 @@ compiler_sources_tests = [
   "assembler/assembler_x64_test.cc",
   "assembler/disassembler_test.cc",
   "backend/bce_test.cc",
+  "backend/constant_propagator_test.cc",
   "backend/il_test.cc",
   "backend/il_test_helper.h",
   "backend/il_test_helper.cc",

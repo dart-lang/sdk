@@ -328,11 +328,50 @@ void ConstantPropagator::MarkUnwrappedPhi(Definition* phi) {
   unwrapped_phis_->Add(phi->ssa_temp_index());
 }
 
+ConstantPropagator::PhiInfo* ConstantPropagator::GetPhiInfo(PhiInstr* phi) {
+  if (phi->HasPassSpecificId(CompilerPass::kConstantPropagation)) {
+    const intptr_t id =
+        phi->GetPassSpecificId(CompilerPass::kConstantPropagation);
+    // Note: id might have been assigned by the previous round of constant
+    // propagation, so we need to verify it before using it.
+    if (id < phis_.length() && phis_[id].phi == phi) {
+      return &phis_[id];
+    }
+  }
+
+  phi->SetPassSpecificId(CompilerPass::kConstantPropagation, phis_.length());
+  phis_.Add({phi, 0});
+  return &phis_.Last();
+}
+
 // --------------------------------------------------------------------------
 // Analysis of definitions.  Compute the constant value.  If it has changed
 // and the definition has input uses, add the definition to the definition
 // worklist so that the used can be processed.
 void ConstantPropagator::VisitPhi(PhiInstr* instr) {
+  // Detect convergence issues by checking if visit count for this phi
+  // is too high. We should only visit this phi once for every predecessor
+  // becoming reachable, once for every input changing its constant value and
+  // once for an unwrapped redundant phi becoming non-redundant.
+  // Inputs can only change their constant value at most three times: from
+  // non-constant to unknown to specific constant to non-constant. The first
+  // link (non-constant to ...) can happen when we run the second round of
+  // constant propagation - some instructions can have non-constant assigned to
+  // them at the end of the previous constant propagation.
+  auto info = GetPhiInfo(instr);
+  info->visit_count++;
+  const intptr_t kMaxVisitsExpected = 5 * instr->InputCount();
+  if (info->visit_count > kMaxVisitsExpected) {
+    OS::PrintErr(
+        "ConstantPropagation pass is failing to converge on graph for %s\n",
+        graph_->parsed_function().function().ToCString());
+    OS::PrintErr("Phi %s was visited %" Pd " times\n", instr->ToCString(),
+                 info->visit_count);
+    NOT_IN_PRODUCT(
+        FlowGraphPrinter::PrintGraph("Constant Propagation", graph_));
+    FATAL("Aborting due to non-covergence.");
+  }
+
   // Compute the join over all the reachable predecessor values.
   JoinEntryInstr* block = instr->block();
   Object& value = Object::ZoneHandle(Z, Unknown());

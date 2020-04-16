@@ -75,7 +75,18 @@ class ConstantPropagator : public FlowGraphVisitor {
 
 #define DECLARE_VISIT(type, attrs) virtual void Visit##type(type##Instr* instr);
   FOR_EACH_INSTRUCTION(DECLARE_VISIT)
+
 #undef DECLARE_VISIT
+  // Structure tracking visit counts for phis. Used to detect infinite loops.
+  struct PhiInfo {
+    PhiInstr* phi;
+    intptr_t visit_count;
+  };
+
+  // Returns PhiInfo associated with the given phi. Note that this
+  // pointer can be invalidated by subsequent call to GetPhiInfo and
+  // thus should not be stored anywhere.
+  PhiInfo* GetPhiInfo(PhiInstr* phi);
 
   Isolate* isolate() const { return graph_->isolate(); }
 
@@ -97,6 +108,10 @@ class ConstantPropagator : public FlowGraphVisitor {
   // should be revisited if reachability of the predecessor blocks
   // changes even if that does not change constant value of the phi.
   BitVector* unwrapped_phis_;
+
+  // List of visited phis indexed by their id (stored as pass specific id on
+  // a phi instruction).
+  GrowableArray<PhiInfo> phis_;
 
   // Worklists of blocks and definitions.
   GrowableArray<BlockEntryInstr*> block_worklist_;
