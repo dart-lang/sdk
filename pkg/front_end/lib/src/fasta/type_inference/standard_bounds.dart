@@ -407,8 +407,14 @@ abstract class StandardBounds {
 
     // DOWN(T1, T2) = T1 if T1 <: T2.
     // DOWN(T1, T2) = T2 if T2 <: T1.
+
+    // We use the non-nullable variants of the two types to determine T1 <: T2
+    // without using the nullability of the outermost type. The result uses
+    // [intersectNullabilities] to compute the resulting type if the subtype
+    // relation is established.
     DartType nonNullableType1 = type1.withNullability(Nullability.nonNullable);
     DartType nonNullableType2 = type2.withNullability(Nullability.nonNullable);
+
     if (isSubtypeOf(nonNullableType1, nonNullableType2,
         SubtypeCheckMode.withNullabilities)) {
       return type1.withNullability(
@@ -755,14 +761,26 @@ abstract class StandardBounds {
         "Expected type1 to be an interface type, got '${type1.runtimeType}'.");
     assert(type2 is InterfaceType,
         "Expected type2 to be an interface type, got '${type2.runtimeType}'.");
-    if (isSubtypeOf(type1, type2, SubtypeCheckMode.withNullabilities)) {
+
+    // We use the non-nullable variants of the two interfaces types to determine
+    // T1 <: T2 without using the nullability of the outermost type. The result
+    // uses [uniteNullabilities] to compute the resulting type if the subtype
+    // relation is established.
+    InterfaceType nonNonNullableType1 =
+        type1.withNullability(Nullability.nonNullable);
+    InterfaceType nonNonNullableType2 =
+        type2.withNullability(Nullability.nonNullable);
+
+    if (isSubtypeOf(nonNonNullableType1, nonNonNullableType2,
+        SubtypeCheckMode.withNullabilities)) {
       return type2.withNullability(
           uniteNullabilities(type1.nullability, type2.nullability));
     }
 
     // UP(T1, T2) = T1 if T2 <: T1
     //   Note that both types must be class types at this point.
-    if (isSubtypeOf(type2, type1, SubtypeCheckMode.withNullabilities)) {
+    if (isSubtypeOf(nonNonNullableType2, nonNonNullableType1,
+        SubtypeCheckMode.withNullabilities)) {
       return type1.withNullability(
           uniteNullabilities(type1.nullability, type2.nullability));
     }

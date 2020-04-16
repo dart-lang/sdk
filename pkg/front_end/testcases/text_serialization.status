@@ -1334,6 +1334,7 @@ nnbd/issue40601: TextSerializationFailure
 nnbd/issue40805: TextSerializationFailure
 nnbd/issue41102: TextSerializationFailure
 nnbd/issue41103: TextSerializationFailure
+nnbd/issue41114: TextSerializationFailure
 nnbd/issue41156: TextSerializationFailure
 nnbd/issue41180: TextSerializationFailure
 nnbd/issue41210a/issue41210: TextSerializationFailure
