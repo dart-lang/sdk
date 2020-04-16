@@ -4,8 +4,6 @@
 
 #include "vm/compiler/aot/precompiler.h"
 
-#ifndef DART_PRECOMPILED_RUNTIME
-
 #include "platform/unicode.h"
 #include "vm/class_finalizer.h"
 #include "vm/code_patcher.h"
@@ -3127,5 +3125,3 @@ const char** Obfuscator::SerializeMap(Thread* thread) {
 #endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
 
 }  // namespace dart
-
-#endif  // DART_PRECOMPILED_RUNTIME

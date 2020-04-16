@@ -6,8 +6,6 @@
 
 #include "vm/compiler/frontend/bytecode_reader.h"
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 namespace dart {
 namespace kernel {
 
@@ -189,5 +187,3 @@ LocalVariable* BytecodeScopeBuilder::MakeReceiverVariable(bool is_parameter) {
 
 }  // namespace kernel
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

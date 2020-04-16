@@ -14,8 +14,6 @@
 #include "vm/parser.h"  // for ParsedFunction
 #include "vm/symbols.h"
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 #define Z (zone_)
 #define H (translation_helper_)
 #define T (type_translator_)
@@ -3525,5 +3523,3 @@ void TypeTranslator::SetupFunctionParameters(
 
 }  // namespace kernel
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

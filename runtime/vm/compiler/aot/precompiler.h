@@ -5,7 +5,9 @@
 #ifndef RUNTIME_VM_COMPILER_AOT_PRECOMPILER_H_
 #define RUNTIME_VM_COMPILER_AOT_PRECOMPILER_H_
 
-#ifndef DART_PRECOMPILED_RUNTIME
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 
 #include "vm/allocation.h"
 #include "vm/compiler/aot/dispatch_table_generator.h"
@@ -562,7 +564,5 @@ class Obfuscator {
 #endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
 
 }  // namespace dart
-
-#endif  // DART_PRECOMPILED_RUNTIME
 
 #endif  // RUNTIME_VM_COMPILER_AOT_PRECOMPILER_H_

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"  // NOLINT
-#if defined(TARGET_ARCH_ARM64) && !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(TARGET_ARCH_ARM64)
 
 #define SHOULD_NOT_INCLUDE_RUNTIME
 
@@ -1985,4 +1985,4 @@ void Assembler::GenerateXCbzTbz(Register rn, Condition cond, Label* label) {
 
 }  // namespace dart
 
-#endif  // defined(TARGET_ARCH_ARM64) && !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(TARGET_ARCH_ARM64)
