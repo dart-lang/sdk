@@ -1227,6 +1227,37 @@ FunctionNode wrapSyncYieldingFunctionNode(
 Case<FunctionNode> functionNodeSerializer =
     new Case.uninitialized(const FunctionNodeTagger());
 
+class ProcedureTagger implements Tagger<Procedure> {
+  const ProcedureTagger();
+
+  String tag(Procedure node) {
+    String prefix = node.isStatic ? "static-" : "";
+    switch (node.kind) {
+      case ProcedureKind.Method:
+        return "${prefix}method";
+      default:
+        throw new UnsupportedError("${node.kind}");
+    }
+  }
+}
+
+TextSerializer<Procedure> staticMethodSerializer = new Wrapped(
+    unwrapStaticMethod,
+    wrapStaticMethod,
+    new Tuple2Serializer(nameSerializer, functionNodeSerializer));
+
+Tuple2<Name, FunctionNode> unwrapStaticMethod(Procedure procedure) {
+  return new Tuple2(procedure.name, procedure.function);
+}
+
+Procedure wrapStaticMethod(Tuple2<Name, FunctionNode> tuple) {
+  return new Procedure(tuple.first, ProcedureKind.Method, tuple.second,
+      isStatic: true);
+}
+
+Case<Procedure> procedureSerializer =
+    new Case.uninitialized(const ProcedureTagger());
+
 void initializeSerializers() {
   expressionSerializer.tags.addAll([
     "string",
@@ -1358,4 +1389,6 @@ void initializeSerializers() {
     asyncStarFunctionNodeSerializer,
     syncYieldingStarFunctionNodeSerializer,
   ]);
+  procedureSerializer.tags.addAll(["static-method"]);
+  procedureSerializer.serializers.addAll([staticMethodSerializer]);
 }
