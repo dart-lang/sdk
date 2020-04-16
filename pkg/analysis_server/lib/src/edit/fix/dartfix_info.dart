@@ -423,7 +423,7 @@ class LintFixInfo extends DartFixInfo {
   static final preferSingleQuotes = LintFixInfo(
     'prefer_single_quotes',
     DartFixKind.CONVERT_TO_SINGLE_QUOTED_STRING,
-    'Convert strings using a dobule quote to use a single quote.',
+    'Convert strings using a double quote to use a single quote.',
     isPedantic: true,
   );
 

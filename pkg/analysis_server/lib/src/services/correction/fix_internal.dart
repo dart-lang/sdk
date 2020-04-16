@@ -4470,6 +4470,7 @@ class FixProcessor extends BaseProcessor {
     if (change.edits.isEmpty && !importsOnly) {
       return;
     }
+    change.id = kind.id;
     change.message = formatList(kind.message, args);
     fixes.add(Fix(kind, change));
   }
