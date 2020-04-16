@@ -2990,7 +2990,7 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
                 nonInstanceAccessIsError: false,
                 allowPotentiallyConstantType:
                     _helper.libraryBuilder.isNonNullableByDefault &&
-                        _helper.inAsOperatorType)
+                        _helper.inIsOrAsOperatorType)
             .builder;
       }
     }

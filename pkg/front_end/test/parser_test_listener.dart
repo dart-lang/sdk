@@ -1787,6 +1787,18 @@ class ParserTestListener implements Listener {
         '$closeSquareBracket)');
   }
 
+  void beginIsOperatorType(Token operator) {
+    seen(operator);
+    doPrint('beginIsOperatorType(' '$operator)');
+    indent++;
+  }
+
+  void endIsOperatorType(Token operator) {
+    indent--;
+    seen(operator);
+    doPrint('endIsOperatorType(' '$operator)');
+  }
+
   void handleIsOperator(Token isOperator, Token not) {
     seen(isOperator);
     seen(not);

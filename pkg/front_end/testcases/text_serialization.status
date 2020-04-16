@@ -1387,7 +1387,8 @@ nnbd/override_checks: TextSerializationFailure
 nnbd/platform_definite_assignment/main: TextSerializationFailure
 nnbd/platform_nonnullable_fields/main: TextSerializationFailure
 nnbd/platform_optional_parameters/main: TextSerializationFailure
-nnbd/potentially_constant_type: TextSerializationFailure
+nnbd/potentially_constant_type_as: TextSerializationFailure
+nnbd/potentially_constant_type_is: TextSerializationFailure
 nnbd/potentially_non_nullable_field: TextSerializationFailure
 nnbd/regress_null_aware: TextSerializationFailure
 nnbd/required_name_override: TextSerializationFailure

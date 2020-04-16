@@ -272,10 +272,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   ///
   bool get inLateLocalInitializer => _localInitializerState.head;
 
-  Link<bool> _asOperatorTypeState = const Link<bool>().prepend(false);
+  Link<bool> _isOrAsOperatorTypeState = const Link<bool>().prepend(false);
 
   @override
-  bool get inAsOperatorType => _asOperatorTypeState.head;
+  bool get inIsOrAsOperatorType => _isOrAsOperatorTypeState.head;
 
   Link<bool> _localInitializerState = const Link<bool>().prepend(false);
 
@@ -3240,12 +3240,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   void beginAsOperatorType(Token operator) {
-    _asOperatorTypeState = _asOperatorTypeState.prepend(true);
+    _isOrAsOperatorTypeState = _isOrAsOperatorTypeState.prepend(true);
   }
 
   @override
   void endAsOperatorType(Token operator) {
-    _asOperatorTypeState = _asOperatorTypeState.tail;
+    _isOrAsOperatorTypeState = _isOrAsOperatorTypeState.tail;
   }
 
   @override
@@ -3263,9 +3263,20 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
+  void beginIsOperatorType(Token operator) {
+    _isOrAsOperatorTypeState = _isOrAsOperatorTypeState.prepend(true);
+  }
+
+  @override
+  void endIsOperatorType(Token operator) {
+    _isOrAsOperatorTypeState = _isOrAsOperatorTypeState.tail;
+  }
+
+  @override
   void handleIsOperator(Token isOperator, Token not) {
     debugEvent("IsOperator");
-    DartType type = buildDartType(pop());
+    DartType type = buildDartType(pop(),
+        allowPotentiallyConstantType: libraryBuilder.isNonNullableByDefault);
     Expression operand = popForValue();
     bool isInverted = not != null;
     Expression isExpression = forest.createIsExpression(

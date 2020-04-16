@@ -5470,8 +5470,10 @@ class Parser {
     if (optional('!', token.next)) {
       not = token = token.next;
     }
+    listener.beginIsOperatorType(operator);
     TypeInfo typeInfo = computeTypeAfterIsOrAs(token);
     token = typeInfo.ensureTypeNotVoid(token, this);
+    listener.endIsOperatorType(operator);
     listener.handleIsOperator(operator, not);
     return skipChainedAsIsOperators(token);
   }

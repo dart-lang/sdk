@@ -1286,6 +1286,16 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void beginIsOperatorType(Token operator) {
+    listener?.beginIsOperatorType(operator);
+  }
+
+  @override
+  void endIsOperatorType(Token operator) {
+    listener?.endIsOperatorType(operator);
+  }
+
+  @override
   void handleIsOperator(Token isOperator, Token not) {
     listener?.handleIsOperator(isOperator, not);
   }

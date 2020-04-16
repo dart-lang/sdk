@@ -1364,6 +1364,12 @@ class Listener implements UnescapeErrorListener {
     logEvent("IndexedExpression");
   }
 
+  void beginIsOperatorType(Token operator) {}
+
+  void endIsOperatorType(Token operator) {
+    logEvent("IsOperatorType");
+  }
+
   void handleIsOperator(Token isOperator, Token not) {
     logEvent("IsOperator");
   }
