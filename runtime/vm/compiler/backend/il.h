@@ -17,6 +17,7 @@
 #include "vm/compiler/backend/compile_type.h"
 #include "vm/compiler/backend/locations.h"
 #include "vm/compiler/backend/slot.h"
+#include "vm/compiler/compiler_pass.h"
 #include "vm/compiler/compiler_state.h"
 #include "vm/compiler/ffi/marshaller.h"
 #include "vm/compiler/ffi/native_calling_convention.h"
@@ -772,7 +773,6 @@ class Instruction : public ZoneAllocated {
 
   explicit Instruction(intptr_t deopt_id = DeoptId::kNone)
       : deopt_id_(deopt_id),
-        lifetime_position_(kNoPlaceId),
         previous_(NULL),
         next_(NULL),
         env_(NULL),
@@ -967,8 +967,21 @@ class Instruction : public ZoneAllocated {
   void RemoveEnvironment();
   void ReplaceInEnvironment(Definition* current, Definition* replacement);
 
-  intptr_t lifetime_position() const { return lifetime_position_; }
-  void set_lifetime_position(intptr_t pos) { lifetime_position_ = pos; }
+  // Different compiler passes can assign pass specific ids to the instruction.
+  // Only one id can be stored at a time.
+  intptr_t GetPassSpecificId(CompilerPass::Id pass) const {
+    return (PassSpecificId::DecodePass(pass_specific_id_) == pass)
+               ? PassSpecificId::DecodeId(pass_specific_id_)
+               : PassSpecificId::kNoId;
+  }
+  void SetPassSpecificId(CompilerPass::Id pass, intptr_t id) {
+    pass_specific_id_ = PassSpecificId::Encode(pass, id);
+  }
+  bool HasPassSpecificId(CompilerPass::Id pass) const {
+    return (PassSpecificId::DecodePass(pass_specific_id_) == pass) &&
+           (PassSpecificId::DecodeId(pass_specific_id_) !=
+            PassSpecificId::kNoId);
+  }
 
   bool HasUnmatchedInputRepresentations() const;
 
@@ -1042,11 +1055,6 @@ class Instruction : public ZoneAllocated {
 
   // Get the block entry for this instruction.
   virtual BlockEntryInstr* GetBlock();
-
-  // Place identifiers used by the load optimization pass.
-  intptr_t place_id() const { return place_id_; }
-  void set_place_id(intptr_t place_id) { place_id_ = place_id; }
-  bool HasPlaceId() const { return place_id_ != kNoPlaceId; }
 
   intptr_t inlining_id() const { return inlining_id_; }
   void set_inlining_id(intptr_t value) {
@@ -1145,13 +1153,28 @@ class Instruction : public ZoneAllocated {
 
   virtual void RawSetInputAt(intptr_t i, Value* value) = 0;
 
-  enum { kNoPlaceId = -1 };
+  class PassSpecificId {
+   public:
+    static intptr_t Encode(CompilerPass::Id pass, intptr_t id) {
+      return (id << kPassBits) | pass;
+    }
+
+    static CompilerPass::Id DecodePass(intptr_t value) {
+      return static_cast<CompilerPass::Id>(value & Utils::NBitMask(kPassBits));
+    }
+
+    static intptr_t DecodeId(intptr_t value) { return (value >> kPassBits); }
+
+    static constexpr intptr_t kNoId = -1;
+
+   private:
+    static constexpr intptr_t kPassBits = 8;
+    static_assert(CompilerPass::kNumPasses <= (1 << kPassBits),
+                  "Pass Id does not fit into the bit field");
+  };
 
   intptr_t deopt_id_;
-  union {
-    intptr_t lifetime_position_;  // Position used by register allocator.
-    intptr_t place_id_;
-  };
+  intptr_t pass_specific_id_ = PassSpecificId::kNoId;
   Instruction* previous_;
   Instruction* next_;
   Environment* env_;

@@ -798,10 +798,6 @@ Instruction* FlowGraphDeserializer::ParseInstruction(SExpList* list) {
 
   if (inst == nullptr) return nullptr;
   if (env != nullptr) env->DeepCopyTo(zone(), inst);
-  if (auto const lifetime_sexp =
-          CheckInteger(list->ExtraLookupValue("lifetime_position"))) {
-    inst->set_lifetime_position(lifetime_sexp->value());
-  }
   return inst;
 }
 

@@ -6,6 +6,7 @@
 
 #include "vm/compiler/api/print_filter.h"
 #include "vm/compiler/backend/il.h"
+#include "vm/compiler/backend/linearscan.h"
 #include "vm/compiler/backend/range_analysis.h"
 #include "vm/compiler/ffi/native_calling_convention.h"
 #include "vm/os.h"
@@ -74,8 +75,8 @@ void FlowGraphPrinter::PrintOneInstruction(Instruction* instr,
   if (print_locations && (instr->HasLocs())) {
     instr->locs()->PrintTo(&f);
   }
-  if (instr->lifetime_position() != -1) {
-    THR_Print("%3" Pd ": ", instr->lifetime_position());
+  if (FlowGraphAllocator::HasLifetimePosition(instr)) {
+    THR_Print("%3" Pd ": ", FlowGraphAllocator::GetLifetimePosition(instr));
   }
   if (!instr->IsBlockEntry()) THR_Print("    ");
   THR_Print("%s", str);
