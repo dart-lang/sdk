@@ -24,6 +24,20 @@ enum IsTestSpecialization {
 class SpecializedChecks {
   static IsTestSpecialization findIsTestSpecialization(
       DartType dartType, HGraph graph, JClosedWorld closedWorld) {
+    if (dartType is LegacyType) {
+      DartType base = dartType.baseType;
+      // `Never*` accepts only `null`.
+      if (base is NeverType) return IsTestSpecialization.null_;
+      // TODO(sra): Handle strong checking 'x is Object' --> `x != null`.
+      // `Object*` is top and should be handled by constant folding.
+      if (base.isObject) return null;
+      return _findIsTestSpecialization(base, graph, closedWorld);
+    }
+    return _findIsTestSpecialization(dartType, graph, closedWorld);
+  }
+
+  static IsTestSpecialization _findIsTestSpecialization(
+      DartType dartType, HGraph graph, JClosedWorld closedWorld) {
     if (dartType is InterfaceType) {
       ClassEntity element = dartType.element;
       JCommonElements commonElements = closedWorld.commonElements;

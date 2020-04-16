@@ -3518,7 +3518,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         break;
 
       case IsTestSpecialization.instanceof:
-        InterfaceType type = node.dartType;
+        DartType dartType = node.dartType;
+        // We don't generate instancof specializations for Never* and Object*.
+        assert(dartType is InterfaceType ||
+            (dartType is LegacyType &&
+                !dartType.baseType.isObject &&
+                dartType.baseType is! NeverType));
+        InterfaceType type = dartType.withoutNullability;
         _registry.registerTypeUse(TypeUse.instanceConstructor(type));
         test = handleNegative(js.js('# instanceof #',
             [value, _emitter.constructorAccess(type.element)]));
