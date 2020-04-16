@@ -36,7 +36,8 @@ ConstantPropagator::ConstantPropagator(
       non_constant_(Object::non_constant()),
       constant_value_(Object::Handle(Z)),
       reachable_(new (Z) BitVector(Z, graph->preorder().length())),
-      marked_phis_(new (Z) BitVector(Z, graph->max_virtual_register_number())),
+      unwrapped_phis_(new (Z)
+                          BitVector(Z, graph->max_virtual_register_number())),
       block_worklist_(),
       definition_worklist_(graph, 10) {}
 
@@ -218,7 +219,16 @@ void ConstantPropagator::VisitGoto(GotoInstr* instr) {
   // Phi value depends on the reachability of a predecessor. We have
   // to revisit phis every time a predecessor becomes reachable.
   for (PhiIterator it(instr->successor()); !it.Done(); it.Advance()) {
-    it.Current()->Accept(this);
+    PhiInstr* phi = it.Current();
+    phi->Accept(this);
+
+    // If this phi was previously unwrapped as redundant and it is no longer
+    // redundant (does not unwrap) then we need to revisit the uses.
+    if (unwrapped_phis_->Contains(phi->ssa_temp_index()) &&
+        (UnwrapPhi(phi) == phi)) {
+      unwrapped_phis_->Remove(phi->ssa_temp_index());
+      definition_worklist_.Add(phi);
+    }
   }
 }
 
@@ -313,9 +323,9 @@ Definition* ConstantPropagator::UnwrapPhi(Definition* defn) {
   return defn;
 }
 
-void ConstantPropagator::MarkPhi(Definition* phi) {
+void ConstantPropagator::MarkUnwrappedPhi(Definition* phi) {
   ASSERT(phi->IsPhi());
-  marked_phis_->Add(phi->ssa_temp_index());
+  unwrapped_phis_->Add(phi->ssa_temp_index());
 }
 
 // --------------------------------------------------------------------------
@@ -332,11 +342,7 @@ void ConstantPropagator::VisitPhi(PhiInstr* instr) {
       Join(&value, instr->InputAt(pred_idx)->definition()->constant_value());
     }
   }
-  if (!SetValue(instr, value) &&
-      marked_phis_->Contains(instr->ssa_temp_index())) {
-    marked_phis_->Remove(instr->ssa_temp_index());
-    definition_worklist_.Add(instr);
-  }
+  SetValue(instr, value);
 }
 
 void ConstantPropagator::VisitRedefinition(RedefinitionInstr* instr) {
@@ -521,12 +527,13 @@ void ConstantPropagator::VisitStrictCompare(StrictCompareInstr* instr) {
   Definition* unwrapped_right_defn = UnwrapPhi(right_defn);
   if (unwrapped_left_defn == unwrapped_right_defn) {
     // Fold x === x, and x !== x to true/false.
-    SetValue(instr, Bool::Get(instr->kind() == Token::kEQ_STRICT));
-    if (unwrapped_left_defn != left_defn) {
-      MarkPhi(left_defn);
-    }
-    if (unwrapped_right_defn != right_defn) {
-      MarkPhi(right_defn);
+    if (SetValue(instr, Bool::Get(instr->kind() == Token::kEQ_STRICT))) {
+      if (unwrapped_left_defn != left_defn) {
+        MarkUnwrappedPhi(left_defn);
+      }
+      if (unwrapped_right_defn != right_defn) {
+        MarkUnwrappedPhi(right_defn);
+      }
     }
     return;
   }
@@ -624,12 +631,13 @@ void ConstantPropagator::VisitEqualityCompare(EqualityCompareInstr* instr) {
     Definition* unwrapped_right_defn = UnwrapPhi(right_defn);
     if (unwrapped_left_defn == unwrapped_right_defn) {
       // Fold x === x, and x !== x to true/false.
-      SetValue(instr, Bool::Get(instr->kind() == Token::kEQ));
-      if (unwrapped_left_defn != left_defn) {
-        MarkPhi(left_defn);
-      }
-      if (unwrapped_right_defn != right_defn) {
-        MarkPhi(right_defn);
+      if (SetValue(instr, Bool::Get(instr->kind() == Token::kEQ))) {
+        if (unwrapped_left_defn != left_defn) {
+          MarkUnwrappedPhi(left_defn);
+        }
+        if (unwrapped_right_defn != right_defn) {
+          MarkUnwrappedPhi(right_defn);
+        }
       }
       return;
     }
