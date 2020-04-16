@@ -58,6 +58,9 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
       help:
           'Enable global type flow analysis and related transformations in AOT mode.',
       defaultsTo: false)
+  ..addFlag('tree-shake-write-only-fields',
+      help: 'Enable tree shaking of fields which are only written in AOT mode.',
+      defaultsTo: false)
   ..addFlag('protobuf-tree-shaker',
       help: 'Enable protobuf tree shaker transformation in AOT mode.',
       defaultsTo: false)
@@ -520,7 +523,8 @@ class FrontendCompiler implements CompilerInterface {
           environmentDefines: environmentDefines,
           enableAsserts: options['enable-asserts'],
           useProtobufTreeShaker: options['protobuf-tree-shaker'],
-          minimalKernel: options['minimal-kernel']));
+          minimalKernel: options['minimal-kernel'],
+          treeShakeWriteOnlyFields: options['tree-shake-write-only-fields']));
     }
     if (results.component != null) {
       transformer?.transform(results.component);

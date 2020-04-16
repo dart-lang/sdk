@@ -8,8 +8,6 @@
 
 // @dart = 2.9
 
-import "package:expect/expect.dart";
-
 class _SplayTreeNode<Node extends _SplayTreeNode<Node>> {
   Node? left;
   _SplayTreeNode();
