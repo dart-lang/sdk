@@ -1661,7 +1661,6 @@
           "arguments": [
             "-ndartkp-${sanitizer}-${system}-${mode}-${arch}",
             "vm",
-            "standalone",
             "standalone_2"
           ]
         }
