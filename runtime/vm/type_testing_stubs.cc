@@ -4,10 +4,14 @@
 
 #include "vm/type_testing_stubs.h"
 #include "vm/compiler/assembler/disassembler.h"
+#include "vm/object_store.h"
+#include "vm/stub_code.h"
+#include "vm/timeline.h"
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/backend/il_printer.h"
-#include "vm/object_store.h"
-#include "vm/timeline.h"
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 #define __ assembler->
 
@@ -580,6 +584,7 @@ void RegisterTypeArgumentsUse(const Function& function,
 
 #else  // !defined(TARGET_ARCH_IA32)
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 void RegisterTypeArgumentsUse(const Function& function,
                               TypeUsageInfo* type_usage_info,
                               const Class& klass,
@@ -587,6 +592,7 @@ void RegisterTypeArgumentsUse(const Function& function,
   // We only have a [TypeUsageInfo] object available durin AOT compilation.
   UNREACHABLE();
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 #endif  // !defined(TARGET_ARCH_IA32)
 

@@ -236,6 +236,7 @@ library_for_all_configs("libdart") {
     "vm:libdart_lib",
     "vm:libdart_vm",
   ]
+  compiler_lib = "vm:libdart_compiler"
   extra_configs = [ ":dart_shared_lib" ]
   include_dirs = [ "." ]
   public_configs = [ ":dart_public_config" ]

@@ -11,6 +11,7 @@
 
 #include "platform/utils.h"
 #include "vm/allocation.h"
+#include "vm/constants_x86.h"
 #include "vm/heap/heap.h"
 #include "vm/instructions.h"
 #include "vm/os.h"

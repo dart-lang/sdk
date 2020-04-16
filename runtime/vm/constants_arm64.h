@@ -1326,6 +1326,8 @@ class Instr {
   DISALLOW_IMPLICIT_CONSTRUCTORS(Instr);
 };
 
+const uword kBreakInstructionFiller = 0xD4200000D4200000L;  // brk #0; brk #0
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_CONSTANTS_ARM64_H_

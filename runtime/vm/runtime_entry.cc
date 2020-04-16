@@ -4,14 +4,14 @@
 
 #include "vm/runtime_entry.h"
 
+#include "vm/code_descriptors.h"
 #include "vm/code_patcher.h"
-#include "vm/compiler/assembler/assembler.h"
-#include "vm/compiler/frontend/bytecode_reader.h"
+#include "vm/compiler/api/deopt_id.h"
+#include "vm/compiler/api/type_check_mode.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
-#include "vm/deopt_instructions.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
 #include "vm/heap/verifier.h"
@@ -29,6 +29,10 @@
 #include "vm/thread.h"
 #include "vm/thread_registry.h"
 #include "vm/type_testing_stubs.h"
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/deopt_instructions.h"
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 
@@ -342,14 +346,12 @@ DEFINE_LEAF_RUNTIME_ENTRY(RawObject*,
     const intptr_t length =
         Array::LengthOf(reinterpret_cast<RawArray*>(object));
     add_to_remembered_set =
-        CreateArrayInstr::WillAllocateNewOrRemembered(length);
+        compiler::target::WillAllocateNewOrRememberedArray(length);
   } else if (object->IsContext()) {
     const intptr_t num_context_variables =
         Context::NumVariables(reinterpret_cast<RawContext*>(object));
     add_to_remembered_set =
-        AllocateContextInstr::WillAllocateNewOrRemembered(
-            num_context_variables) ||
-        AllocateUninitializedContextInstr::WillAllocateNewOrRemembered(
+        compiler::target::WillAllocateNewOrRememberedContext(
             num_context_variables);
   }
 

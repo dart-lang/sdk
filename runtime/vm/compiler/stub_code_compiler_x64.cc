@@ -17,6 +17,7 @@
 
 #include "vm/class_id.h"
 #include "vm/code_entry_kind.h"
+#include "vm/compiler/api/type_check_mode.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/constants.h"
 #include "vm/instructions.h"

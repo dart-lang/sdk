@@ -4,6 +4,7 @@
 
 #include "vm/compiler/backend/il_printer.h"
 
+#include "vm/compiler/api/print_filter.h"
 #include "vm/compiler/backend/il.h"
 #include "vm/compiler/backend/range_analysis.h"
 #include "vm/compiler/ffi/native_calling_convention.h"
@@ -14,60 +15,6 @@ namespace dart {
 
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 
-DEFINE_FLAG(charp,
-            print_flow_graph_filter,
-            NULL,
-            "Print only IR of functions with matching names");
-
-// Checks whether function's name matches the given filter, which is
-// a comma-separated list of strings.
-bool FlowGraphPrinter::PassesFilter(const char* filter,
-                                    const Function& function) {
-  if (filter == NULL) {
-    return true;
-  }
-
-  char* save_ptr;  // Needed for strtok_r.
-  const char* scrubbed_name =
-      String::Handle(function.QualifiedScrubbedName()).ToCString();
-  const char* function_name = function.ToFullyQualifiedCString();
-  intptr_t function_name_len = strlen(function_name);
-
-  intptr_t len = strlen(filter) + 1;  // Length with \0.
-  char* filter_buffer = new char[len];
-  strncpy(filter_buffer, filter, len);  // strtok modifies arg 1.
-  char* token = strtok_r(filter_buffer, ",", &save_ptr);
-  bool found = false;
-  while (token != NULL) {
-    if ((strstr(function_name, token) != NULL) ||
-        (strstr(scrubbed_name, token) != NULL)) {
-      found = true;
-      break;
-    }
-    const intptr_t token_len = strlen(token);
-    if (token[token_len - 1] == '%') {
-      if (function_name_len > token_len) {
-        const char* suffix =
-            function_name + (function_name_len - token_len + 1);
-        if (strncmp(suffix, token, token_len - 1) == 0) {
-          found = true;
-          break;
-        }
-      }
-    }
-    token = strtok_r(NULL, ",", &save_ptr);
-  }
-  delete[] filter_buffer;
-
-  return found;
-}
-
-bool FlowGraphPrinter::ShouldPrint(const Function& function) {
-  return PassesFilter(FLAG_print_flow_graph_filter, function);
-}
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 DEFINE_FLAG(bool,
             display_sorted_ic_data,
             false,
@@ -75,6 +22,10 @@ DEFINE_FLAG(bool,
 DEFINE_FLAG(bool, print_environments, false, "Print SSA environments.");
 
 DECLARE_FLAG(bool, trace_inlining_intervals);
+
+bool FlowGraphPrinter::ShouldPrint(const Function& function) {
+  return compiler::PrintFilter::ShouldPrint(function);
+}
 
 void FlowGraphPrinter::PrintGraph(const char* phase, FlowGraph* flow_graph) {
   LogBlock lb;
@@ -1224,11 +1175,7 @@ const char* Environment::ToCString() const {
   return Thread::Current()->zone()->MakeCopyOfString(buffer);
 }
 
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
 #else  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
 
 const char* Instruction::ToCString() const {
   return DebugName();
@@ -1265,8 +1212,6 @@ void FlowGraphPrinter::PrintICData(const ICData& ic_data,
 bool FlowGraphPrinter::ShouldPrint(const Function& function) {
   return false;
 }
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 #endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 

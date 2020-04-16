@@ -22,11 +22,7 @@
 #include "vm/debugger.h"
 #include "vm/dwarf.h"
 #include "vm/elf.h"
-#if !defined(DART_PRECOMPILED_RUNTIME)
-#include "vm/kernel_loader.h"
-#endif
 #include "platform/unicode.h"
-#include "vm/compiler/aot/precompiler.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
 #include "vm/growable_array.h"
@@ -58,6 +54,11 @@
 #include "vm/thread_registry.h"
 #include "vm/uri.h"
 #include "vm/version.h"
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/compiler/aot/precompiler.h"
+#include "vm/kernel_loader.h"
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 

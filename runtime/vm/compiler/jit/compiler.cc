@@ -4,9 +4,9 @@
 
 #include "vm/compiler/jit/compiler.h"
 
-#include "vm/compiler/assembler/assembler.h"
-
+#if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/code_patcher.h"
+#include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/compiler/backend/block_scheduler.h"
 #include "vm/compiler/backend/branch_optimizer.h"
@@ -45,6 +45,7 @@
 #include "vm/thread_registry.h"
 #include "vm/timeline.h"
 #include "vm/timer.h"
+#endif
 
 namespace dart {
 

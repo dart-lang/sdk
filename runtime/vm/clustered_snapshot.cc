@@ -9,10 +9,8 @@
 #include "vm/bss_relocs.h"
 #include "vm/class_id.h"
 #include "vm/code_observers.h"
+#include "vm/compiler/api/print_filter.h"
 #include "vm/compiler/assembler/disassembler.h"
-#include "vm/compiler/backend/code_statistics.h"
-#include "vm/compiler/backend/il_printer.h"
-#include "vm/compiler/relocation.h"
 #include "vm/dart.h"
 #include "vm/dispatch_table.h"
 #include "vm/flag_list.h"
@@ -27,6 +25,12 @@
 #include "vm/symbols.h"
 #include "vm/timeline.h"
 #include "vm/version.h"
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/compiler/backend/code_statistics.h"
+#include "vm/compiler/backend/il_printer.h"
+#include "vm/compiler/relocation.h"
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 
@@ -1746,7 +1750,7 @@ class CodeDeserializationCluster : public DeserializationCluster {
       if (owner.IsFunction()) {
         if ((FLAG_disassemble ||
              (code.is_optimized() && FLAG_disassemble_optimized)) &&
-            FlowGraphPrinter::ShouldPrint(Function::Cast(owner))) {
+            compiler::PrintFilter::ShouldPrint(Function::Cast(owner))) {
           Disassembler::DisassembleCode(Function::Cast(owner), code,
                                         code.is_optimized());
         }

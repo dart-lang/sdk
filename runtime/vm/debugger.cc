@@ -8,13 +8,13 @@
 
 #include "platform/address_sanitizer.h"
 
+#include "vm/code_descriptors.h"
 #include "vm/code_patcher.h"
+#include "vm/compiler/api/deopt_id.h"
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/compiler/assembler/disassembler_kbc.h"
-#include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_entry.h"
-#include "vm/deopt_instructions.h"
 #include "vm/flags.h"
 #include "vm/globals.h"
 #include "vm/interpreter.h"
@@ -40,6 +40,11 @@
 #include "vm/timeline.h"
 #include "vm/token_position.h"
 #include "vm/visitor.h"
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/compiler/frontend/bytecode_reader.h"
+#include "vm/deopt_instructions.h"
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 

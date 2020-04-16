@@ -6,8 +6,6 @@
 #if defined(TARGET_ARCH_IA32)
 
 #include "vm/code_patcher.h"
-#include "vm/compiler/assembler/assembler.h"
-#include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/cpu.h"
 #include "vm/dart_entry.h"
 #include "vm/instructions.h"

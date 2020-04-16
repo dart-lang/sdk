@@ -4,10 +4,10 @@
 
 #ifndef RUNTIME_VM_DEOPT_INSTRUCTIONS_H_
 #define RUNTIME_VM_DEOPT_INSTRUCTIONS_H_
+#if !defined(DART_PRECOMPILED_RUNTIME)
 
 #include "vm/allocation.h"
 #include "vm/code_descriptors.h"
-#include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/backend/locations.h"
 #include "vm/deferred_objects.h"
@@ -19,6 +19,7 @@
 
 namespace dart {
 
+class Location;
 class Value;
 class MaterializeObjectInstr;
 class StackFrame;
@@ -615,4 +616,5 @@ class DeoptInfo : public AllStatic {
 
 }  // namespace dart
 
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 #endif  // RUNTIME_VM_DEOPT_INSTRUCTIONS_H_

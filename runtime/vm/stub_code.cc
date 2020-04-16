@@ -7,8 +7,6 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 #include "vm/clustered_snapshot.h"
-#include "vm/compiler/aot/precompiler.h"
-#include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/flags.h"
 #include "vm/heap/safepoint.h"
@@ -17,6 +15,11 @@
 #include "vm/snapshot.h"
 #include "vm/virtual_memory.h"
 #include "vm/visitor.h"
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/compiler/aot/precompiler.h"
+#include "vm/compiler/assembler/assembler.h"
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 

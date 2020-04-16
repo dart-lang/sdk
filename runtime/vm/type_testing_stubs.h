@@ -5,8 +5,12 @@
 #ifndef RUNTIME_VM_TYPE_TESTING_STUBS_H_
 #define RUNTIME_VM_TYPE_TESTING_STUBS_H_
 
+#include "vm/object.h"
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/backend/il.h"
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 
@@ -369,10 +373,12 @@ class TypeUsageInfo : public ThreadStackResource {
   Class& klass_;
 };
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 void RegisterTypeArgumentsUse(const Function& function,
                               TypeUsageInfo* type_usage_info,
                               const Class& klass,
                               Definition* type_arguments);
+#endif
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 

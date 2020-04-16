@@ -3,12 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/compiler/compiler_state.h"
-#include "vm/growable_array.h"
-
-#ifndef DART_PRECOMPILED_RUNTIME
 
 #include <functional>
 
+#include "vm/compiler/backend/slot.h"
+#include "vm/growable_array.h"
 #include "vm/scopes.h"
 
 namespace dart {
@@ -72,5 +71,3 @@ const ZoneGrowableArray<const Slot*>& CompilerState::GetDummyContextSlots(
 }
 
 }  // namespace dart
-
-#endif  // DART_PRECOMPILED_RUNTIME

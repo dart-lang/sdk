@@ -8,11 +8,7 @@
 #include "vm/bootstrap_natives.h"
 #include "vm/class_finalizer.h"
 #include "vm/class_id.h"
-#include "vm/compiler/assembler/assembler.h"
-#include "vm/compiler/ffi/call.h"
-#include "vm/compiler/ffi/callback.h"
 #include "vm/compiler/ffi/native_type.h"
-#include "vm/compiler/jit/compiler.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
 #include "vm/log.h"
@@ -21,6 +17,13 @@
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/symbols.h"
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/ffi/call.h"
+#include "vm/compiler/ffi/callback.h"
+#include "vm/compiler/jit/compiler.h"
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 
@@ -69,7 +72,7 @@ static const Double& AsDouble(const Instance& instance) {
   return Double::Cast(instance);
 }
 
-// Calcuate the size of a native type.
+// Calculate the size of a native type.
 //
 // You must check [IsConcreteNativeType] and [CheckSized] first to verify that
 // this type has a defined size.

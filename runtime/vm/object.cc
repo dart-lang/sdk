@@ -13,17 +13,10 @@
 #include "vm/bootstrap.h"
 #include "vm/class_finalizer.h"
 #include "vm/code_comments.h"
+#include "vm/code_descriptors.h"
 #include "vm/code_observers.h"
-#include "vm/compiler/aot/precompiler.h"
-#include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/compiler/assembler/disassembler_kbc.h"
-#include "vm/compiler/compiler_state.h"
-#include "vm/compiler/frontend/bytecode_fingerprints.h"
-#include "vm/compiler/frontend/bytecode_reader.h"
-#include "vm/compiler/frontend/kernel_fingerprints.h"
-#include "vm/compiler/frontend/kernel_translation_helper.h"
-#include "vm/compiler/intrinsifier.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/cpu.h"
 #include "vm/dart.h"
@@ -62,6 +55,18 @@
 #include "vm/type_table.h"
 #include "vm/type_testing_stubs.h"
 #include "vm/zone_text_buffer.h"
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/compiler/aot/precompiler.h"
+#include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/backend/code_statistics.h"
+#include "vm/compiler/compiler_state.h"
+#include "vm/compiler/frontend/bytecode_fingerprints.h"
+#include "vm/compiler/frontend/bytecode_reader.h"
+#include "vm/compiler/frontend/kernel_fingerprints.h"
+#include "vm/compiler/frontend/kernel_translation_helper.h"
+#include "vm/compiler/intrinsifier.h"
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 
@@ -2530,8 +2535,7 @@ void Object::InitializeObject(uword address, intptr_t class_id, intptr_t size) {
   uword cur = address + sizeof(RawObject);
   uword end = address + size;
   if (class_id == kInstructionsCid) {
-    compiler::target::uword initial_value =
-        compiler::Assembler::GetBreakInstructionFiller();
+    compiler::target::uword initial_value = kBreakInstructionFiller;
     while (cur < end) {
       *reinterpret_cast<compiler::target::uword*>(cur) = initial_value;
       cur += compiler::target::kWordSize;
@@ -7469,6 +7473,7 @@ void Function::SetIsOptimizable(bool value) const {
   }
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 bool Function::CanBeInlined() const {
   // Our force-optimized functions cannot deoptimize to an unoptimized frame.
   // If the instructions of the force-optimized function body get moved via
@@ -7479,14 +7484,17 @@ bool Function::CanBeInlined() const {
   if (ForceOptimize()) {
     return CompilerState::Current().is_aot();
   }
-#if defined(PRODUCT)
-  return is_inlinable() && !is_external() && !is_generated_body();
-#else
+
+#if !defined(PRODUCT)
   Thread* thread = Thread::Current();
-  return is_inlinable() && !is_external() && !is_generated_body() &&
-         !thread->isolate()->debugger()->HasBreakpoint(*this, thread->zone());
-#endif
+  if (thread->isolate()->debugger()->HasBreakpoint(*this, thread->zone())) {
+    return false;
+  }
+#endif  // !defined(PRODUCT)
+
+  return is_inlinable() && !is_external() && !is_generated_body();
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 intptr_t Function::NumParameters() const {
   return num_fixed_parameters() + NumOptionalParameters();

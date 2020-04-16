@@ -642,8 +642,6 @@ class Assembler : public AssemblerBase {
   // 'size' indicates size in bytes and must be in the range 1..8.
   void nop(int size = 1);
 
-  static uword GetBreakInstructionFiller() { return 0xCCCCCCCCCCCCCCCC; }
-
   void j(Condition condition, Label* label, bool near = kFarJump);
   void jmp(Register reg) { EmitUnaryL(reg, 0xFF, 4); }
   void jmp(const Address& address) { EmitUnaryL(address, 0xFF, 4); }

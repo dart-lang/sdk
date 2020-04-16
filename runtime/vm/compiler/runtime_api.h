@@ -362,6 +362,10 @@ bool CanEmbedAsRawPointerInGeneratedCode(const dart::Object& obj);
 word ToRawPointer(const dart::Object& a);
 #endif  // defined(TARGET_ARCH_IA32)
 
+bool WillAllocateNewOrRememberedContext(intptr_t num_context_variables);
+
+bool WillAllocateNewOrRememberedArray(intptr_t length);
+
 //
 // Target specific offsets and constants.
 //

@@ -247,6 +247,8 @@ class CallingConventions {
   static constexpr ExtensionStrategy kArgumentStackExtension = kExtendedTo4;
 };
 
+const uword kBreakInstructionFiller = 0xCCCCCCCC;
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_CONSTANTS_IA32_H_

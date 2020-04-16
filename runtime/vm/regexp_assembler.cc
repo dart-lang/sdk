@@ -10,6 +10,7 @@
 
 #include "vm/flags.h"
 #include "vm/regexp.h"
+#include "vm/runtime_entry.h"
 #include "vm/unibrow-inl.h"
 
 namespace dart {
@@ -96,8 +97,7 @@ DEFINE_RAW_LEAF_RUNTIME_ENTRY(
     false /* is_float */,
     reinterpret_cast<RuntimeFunction>(&CaseInsensitiveCompareUTF16));
 
-BlockLabel::BlockLabel()
-    : block_(NULL), is_bound_(false), is_linked_(false), pos_(-1) {
+BlockLabel::BlockLabel() {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (!FLAG_interpret_irregexp) {
     // Only needed by the compiled IR backend.

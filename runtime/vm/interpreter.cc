@@ -10,6 +10,7 @@
 
 #include "vm/interpreter.h"
 
+#include "vm/compiler/api/type_check_mode.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler_kbc.h"
 #include "vm/compiler/backend/flow_graph_compiler.h"

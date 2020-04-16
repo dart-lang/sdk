@@ -5804,13 +5804,8 @@ class AllocateUninitializedContextInstr
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool WillAllocateNewOrRemembered() const {
-    return WillAllocateNewOrRemembered(num_context_variables_);
-  }
-
-  static bool WillAllocateNewOrRemembered(intptr_t num_context_variables) {
-    if (!Context::IsValidLength(num_context_variables)) return false;
-    return Heap::IsAllocatableInNewSpace(
-        Context::InstanceSize(num_context_variables));
+    return compiler::target::WillAllocateNewOrRememberedContext(
+        num_context_variables_);
   }
 
   virtual AliasIdentity Identity() const { return identity_; }
@@ -5965,12 +5960,8 @@ class CreateArrayInstr : public TemplateAllocation<2, Throws> {
     if (!num_elements()->BindsToConstant()) return false;
     const Object& length = num_elements()->BoundConstant();
     if (!length.IsSmi()) return false;
-    return WillAllocateNewOrRemembered(Smi::Cast(length).Value());
-  }
-
-  static bool WillAllocateNewOrRemembered(const intptr_t length) {
-    if (!Array::IsValidLength(length)) return false;
-    return !Array::UseCardMarkingForAllocation(length);
+    return compiler::target::WillAllocateNewOrRememberedArray(
+        Smi::Cast(length).Value());
   }
 
  private:
@@ -6291,13 +6282,8 @@ class AllocateContextInstr : public TemplateAllocation<0, NoThrow> {
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool WillAllocateNewOrRemembered() const {
-    return WillAllocateNewOrRemembered(context_slots().length());
-  }
-
-  static bool WillAllocateNewOrRemembered(intptr_t num_context_variables) {
-    if (!Context::IsValidLength(num_context_variables)) return false;
-    return Heap::IsAllocatableInNewSpace(
-        Context::InstanceSize(num_context_variables));
+    return compiler::target::WillAllocateNewOrRememberedContext(
+        context_slots().length());
   }
 
   PRINT_OPERANDS_TO_SUPPORT

@@ -408,6 +408,8 @@ class Instr {
 // becomes important to us.
 const int MAX_NOP_SIZE = 8;
 
+const uword kBreakInstructionFiller = 0xCCCCCCCCCCCCCCCCL;
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_CONSTANTS_X64_H_

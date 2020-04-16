@@ -50,7 +50,6 @@ class StubCodeCompiler : public AllStatic {
       const Object& context_allocation_stub);
 #endif
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
   static RawArray* BuildStaticCallsTable(
       Zone* zone,
       compiler::UnresolvedPcRelativeCalls* unresolved_calls);
@@ -121,30 +120,11 @@ class StubCodeCompiler : public AllStatic {
 
   static void GenerateJITCallbackTrampolines(Assembler* assembler,
                                              intptr_t next_callback_id);
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 };
 
 }  // namespace compiler
 
 enum DeoptStubKind { kLazyDeoptFromReturn, kLazyDeoptFromThrow, kEagerDeopt };
-
-// Invocation mode for TypeCheck runtime entry that describes
-// where we are calling it from.
-enum TypeCheckMode {
-  // TypeCheck is invoked from LazySpecializeTypeTest stub.
-  // It should replace stub on the type with a specialized version.
-  kTypeCheckFromLazySpecializeStub,
-
-  // TypeCheck is invoked from the SlowTypeTest stub.
-  // This means that cache can be lazily created (if needed)
-  // and dst_name can be fetched from the pool.
-  kTypeCheckFromSlowStub,
-
-  // TypeCheck is invoked from normal inline AssertAssignable.
-  // Both cache and dst_name must be already populated.
-  kTypeCheckFromInline
-};
 
 // Zap value used to indicate unused CODE_REG in deopt.
 static const uword kZapCodeReg = 0xf1f1f1f1;

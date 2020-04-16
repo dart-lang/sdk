@@ -5,14 +5,14 @@
 #ifndef RUNTIME_VM_CODE_COMMENTS_H_
 #define RUNTIME_VM_CODE_COMMENTS_H_
 
+#if !defined(DART_PRECOMPILED_RUNTIME) &&                                      \
+    (!defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER))
+
 #include "vm/code_observers.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/object.h"
 
 namespace dart {
-
-#if !defined(DART_PRECOMPILED_RUNTIME) &&                                      \
-    (!defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER))
 
 class CodeCommentsWrapper final : public CodeComments {
  public:
@@ -37,9 +37,9 @@ class CodeCommentsWrapper final : public CodeComments {
 
 const Code::Comments& CreateCommentsFrom(compiler::Assembler* assembler);
 
-#endif  // !defined(DART_PRECOMPILED_RUNTIME) &&                               \
-        // (!defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER))
 
 }  // namespace dart
 
+#endif  // !defined(DART_PRECOMPILED_RUNTIME) &&                               \
+        // (!defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER))
 #endif  // RUNTIME_VM_CODE_COMMENTS_H_

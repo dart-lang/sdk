@@ -431,7 +431,9 @@ class InlinedFunctionsIterator : public ValueObject {
     return code_.raw();
   }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
   intptr_t GetDeoptFpOffset() const;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
  private:
   void SetDone() { index_ = -1; }

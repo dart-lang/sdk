@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/kernel.h"
 
 #include "vm/bit_vector.h"
@@ -14,7 +16,6 @@
 #include "vm/parser.h"  // For Parser::kParameter* constants.
 #include "vm/stack_frame.h"
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 namespace kernel {

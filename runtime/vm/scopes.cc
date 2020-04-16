@@ -1,14 +1,15 @@
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+#if !defined(DART_PRECOMPILED_RUNTIME)
 
 #include "vm/scopes.h"
 
+#include "vm/compiler/backend/slot.h"
 #include "vm/object.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 

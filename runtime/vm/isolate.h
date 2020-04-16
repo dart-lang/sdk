@@ -20,7 +20,6 @@
 #include "vm/class_table.h"
 #include "vm/constants_kbc.h"
 #include "vm/exceptions.h"
-#include "vm/ffi_callback_trampolines.h"
 #include "vm/field_table.h"
 #include "vm/fixed_cache.h"
 #include "vm/growable_array.h"
@@ -36,6 +35,10 @@
 #include "vm/thread_stack_resource.h"
 #include "vm/token_position.h"
 #include "vm/virtual_memory.h"
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/ffi_callback_trampolines.h"
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 

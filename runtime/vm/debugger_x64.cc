@@ -8,7 +8,6 @@
 #include "vm/debugger.h"
 
 #include "vm/code_patcher.h"
-#include "vm/compiler/assembler/assembler.h"
 #include "vm/cpu.h"
 #include "vm/instructions.h"
 #include "vm/stub_code.h"

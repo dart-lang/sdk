@@ -1034,11 +1034,6 @@ class Assembler : public AssemblerBase {
   // Breakpoint.
   void brk(uint16_t imm) { EmitExceptionGenOp(BRK, imm); }
 
-  static uword GetBreakInstructionFiller() {
-    const intptr_t encoding = ExceptionGenOpEncoding(BRK, 0);
-    return encoding << 32 | encoding;
-  }
-
   // Double floating point.
   bool fmovdi(VRegister vd, double immd) {
     int64_t imm64 = bit_cast<int64_t, double>(immd);
