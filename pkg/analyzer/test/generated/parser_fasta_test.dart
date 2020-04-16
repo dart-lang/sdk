@@ -2725,6 +2725,28 @@ main() {
     parseCompilationUnit('D? foo(X? x) { X? x1; X? x2 = x; }');
   }
 
+  void test_bangQuestionIndex() {
+    // http://dartbug.com/41177
+    CompilationUnit unit = parseCompilationUnit('f(dynamic a) { a!?[0]; }');
+    FunctionDeclaration funct = unit.declarations[0];
+    BlockFunctionBody body = funct.functionExpression.body;
+
+    ExpressionStatement statement = body.block.statements[0];
+    IndexExpression expression = statement.expression;
+
+    IntegerLiteral index = expression.index;
+    expect(index.value, 0);
+
+    Token question = expression.question;
+    expect(question, isNotNull);
+    expect(question.lexeme, "?");
+
+    PostfixExpression target = expression.target;
+    SimpleIdentifier identifier = target.operand;
+    expect(identifier.name, 'a');
+    expect(target.operator.lexeme, '!');
+  }
+
   void test_bangBeforeFuctionCall1() {
     // https://github.com/dart-lang/sdk/issues/39776
     var unit = parseCompilationUnit('f() { Function? f1; f1!(42); }');
