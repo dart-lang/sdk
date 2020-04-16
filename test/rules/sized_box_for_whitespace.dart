@@ -13,21 +13,21 @@ Widget containerWithChild() {
 }
 
 Widget containerWithChildAndWidth() {
-  return Container( // OK
+  return Container( // LINT
     width: 10,
     child: Row(),
   );
 }
 
 Widget containerWithChildAndHeight() {
-  return Container( // OK
+  return Container( // LINT
     height: 10,
     child: Column(),
   );
 }
 
 Widget containerWithChildWidthAndHeight() {
-  return Container( // OK
+  return Container( // LINT
     width: 10,
     height: 10,
     child: Row(),
@@ -40,19 +40,27 @@ Widget emptyContainer() {
 }
 
 Widget emptyContainerWithWidth() {
-  return Container( // LINT
+  return Container( // OK
     width: 10,
   );
 }
 
 Widget emptyContainerWithHeight() {
-  return Container( // LINT
+  return Container( // OK
     height:10,
   );
 }
 
 Widget emptyContainerWithWidthAndHeight() {
   return Container( // LINT
+    width: 10,
+    height: 10,
+  );
+}
+
+Widget emptyContainerWithKeyAndWidthAndHeight() {
+  return Container( // LINT
+    key: null,
     width: 10,
     height: 10,
   );

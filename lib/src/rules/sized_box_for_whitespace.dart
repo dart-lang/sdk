@@ -12,7 +12,7 @@ const _desc = r'SizedBox for whitespace.';
 
 const _details = r'''Use SizedBox to add whitespace to a layout.
 
-A `Container` is a heavier Widget than a `SizedBox`, and as bonus, `SizedBox` 
+A `Container` is a heavier Widget than a `SizedBox`, and as bonus, `SizedBox`
 has a `const` constructor.
 
 **BAD:**
@@ -76,24 +76,37 @@ class _Visitor extends SimpleAstVisitor {
 
     final visitor = _WidthOrHeightArgumentVisitor();
     node.visitChildren(visitor);
-    if (visitor.seenWidthOrHeight && !visitor.seenOtherParams) {
+    if (visitor.seenIncompatibleParams) {
+      return;
+    }
+    if (visitor.seenChild && (visitor.seenWidth || visitor.seenHeight) ||
+        visitor.seenWidth && visitor.seenHeight) {
       rule.reportLint(node.constructorName);
     }
   }
 }
 
 class _WidthOrHeightArgumentVisitor extends SimpleAstVisitor<void> {
-  var seenWidthOrHeight = false;
-  var seenOtherParams = false;
+  var seenWidth = false;
+  var seenHeight = false;
+  var seenChild = false;
+  var seenIncompatibleParams = false;
 
   @override
   void visitArgumentList(ArgumentList node) {
-    for (final arg in node.arguments) {
-      if (arg is NamedExpression &&
-          (arg.name.label.name == 'width' || arg.name.label.name == 'height')) {
-        seenWidthOrHeight = true;
+    for (final name in node.arguments
+        .cast<NamedExpression>()
+        .map((arg) => arg.name.label.name)) {
+      if (name == 'width') {
+        seenWidth = true;
+      } else if (name == 'height') {
+        seenHeight = true;
+      } else if (name == 'child') {
+        seenChild = true;
+      } else if (name == 'key') {
+        // key doesn't matter (both SiezdBox and Container have it)
       } else {
-        seenOtherParams = true;
+        seenIncompatibleParams = true;
       }
     }
   }
