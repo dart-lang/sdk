@@ -16973,8 +16973,16 @@ abstract class _LinkedNodeTypeFormalParameterMixin
 class LinkedNodeTypeSubstitutionBuilder extends Object
     with _LinkedNodeTypeSubstitutionMixin
     implements idl.LinkedNodeTypeSubstitution {
+  bool _isLegacy;
   List<LinkedNodeTypeBuilder> _typeArguments;
   List<int> _typeParameters;
+
+  @override
+  bool get isLegacy => _isLegacy ??= false;
+
+  set isLegacy(bool value) {
+    this._isLegacy = value;
+  }
 
   @override
   List<LinkedNodeTypeBuilder> get typeArguments =>
@@ -16993,8 +17001,11 @@ class LinkedNodeTypeSubstitutionBuilder extends Object
   }
 
   LinkedNodeTypeSubstitutionBuilder(
-      {List<LinkedNodeTypeBuilder> typeArguments, List<int> typeParameters})
-      : _typeArguments = typeArguments,
+      {bool isLegacy,
+      List<LinkedNodeTypeBuilder> typeArguments,
+      List<int> typeParameters})
+      : _isLegacy = isLegacy,
+        _typeArguments = typeArguments,
         _typeParameters = typeParameters;
 
   /// Flush [informative] data recursively.
@@ -17020,6 +17031,7 @@ class LinkedNodeTypeSubstitutionBuilder extends Object
         x?.collectApiSignature(signature);
       }
     }
+    signature.addBool(this._isLegacy == true);
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -17033,6 +17045,9 @@ class LinkedNodeTypeSubstitutionBuilder extends Object
       offset_typeParameters = fbBuilder.writeListUint32(_typeParameters);
     }
     fbBuilder.startTable();
+    if (_isLegacy == true) {
+      fbBuilder.addBool(2, true);
+    }
     if (offset_typeArguments != null) {
       fbBuilder.addOffset(1, offset_typeArguments);
     }
@@ -17061,8 +17076,15 @@ class _LinkedNodeTypeSubstitutionImpl extends Object
 
   _LinkedNodeTypeSubstitutionImpl(this._bc, this._bcOffset);
 
+  bool _isLegacy;
   List<idl.LinkedNodeType> _typeArguments;
   List<int> _typeParameters;
+
+  @override
+  bool get isLegacy {
+    _isLegacy ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 2, false);
+    return _isLegacy;
+  }
 
   @override
   List<idl.LinkedNodeType> get typeArguments {
@@ -17085,6 +17107,9 @@ abstract class _LinkedNodeTypeSubstitutionMixin
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
+    if (isLegacy != false) {
+      _result["isLegacy"] = isLegacy;
+    }
     if (typeArguments.isNotEmpty) {
       _result["typeArguments"] =
           typeArguments.map((_value) => _value.toJson()).toList();
@@ -17097,6 +17122,7 @@ abstract class _LinkedNodeTypeSubstitutionMixin
 
   @override
   Map<String, Object> toMap() => {
+        "isLegacy": isLegacy,
         "typeArguments": typeArguments,
         "typeParameters": typeParameters,
       };
