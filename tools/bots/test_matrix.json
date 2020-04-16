@@ -2691,7 +2691,7 @@
           "arguments": [
             "-ndart2js-hostasserts-strong-linux-x64-chrome",
             "--dart2js-batch",
-            "co19"
+            "co19/LanguageFeatures/nnbd"
           ],
           "shards": 6,
           "fileset": "dart2js_hostasserts_nnbd"
