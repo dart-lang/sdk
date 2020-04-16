@@ -64,11 +64,11 @@ class _Visitor extends SimpleAstVisitor<void> {
   // single-quotes to match the convention in the analyzer and linter packages.
   // This requires some coordination within Google, as various allow-lists are
   // keyed on the exact text of the LintCode message.
-  static const unsafeAttributeCode =
-      LintCode('unsafe_html', '$_descPrefix (assigning "{0}" attribute).');
-  static const unsafeMethodCode = LintCode(
+  static const unsafeAttributeCode = SecurityLintCode(
+      'unsafe_html', '$_descPrefix (assigning "{0}" attribute).');
+  static const unsafeMethodCode = SecurityLintCode(
       'unsafe_html', "$_descPrefix (calling the '{0}' method of {1}).");
-  static const unsafeConstructorCode = LintCode(
+  static const unsafeConstructorCode = SecurityLintCode(
       'unsafe_html', "$_descPrefix (calling the '{0}' constructor of {1}).");
 
   final LintRule rule;
