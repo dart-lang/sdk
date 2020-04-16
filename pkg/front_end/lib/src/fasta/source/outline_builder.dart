@@ -515,8 +515,7 @@ class OutlineBuilder extends StackListenerImpl {
   void handleClassOrMixinImplements(
       Token implementsKeyword, int interfacesCount) {
     debugEvent("ClassOrMixinImplements");
-    push(const FixedNullableList<NamedTypeBuilder>()
-            .pop(stack, interfacesCount) ??
+    push(const FixedNullableList<TypeBuilder>().pop(stack, interfacesCount) ??
         NullValue.TypeBuilderList);
   }
 
@@ -1327,7 +1326,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endTypeList(int count) {
     debugEvent("TypeList");
-    push(const FixedNullableList<NamedTypeBuilder>().pop(stack, count) ??
+    push(const FixedNullableList<TypeBuilder>().pop(stack, count) ??
         new ParserRecovery(-1));
   }
 

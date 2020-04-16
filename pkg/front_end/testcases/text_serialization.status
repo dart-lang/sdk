@@ -1598,6 +1598,7 @@ regress/issue_39040: TextSerializationFailure
 regress/issue_39091_1: RuntimeError
 regress/issue_39091_2: TextSerializationFailure
 regress/issue_39682: TextSerializationFailure
+regress/issue_41265.crash: TextSerializationFailure
 runtime_checks_new/abstract_override_becomes_forwarding_stub: ExpectationFileMismatch
 runtime_checks_new/abstract_override_becomes_forwarding_stub: TextSerializationFailure # Was: Pass
 runtime_checks_new/call_through_this: TextSerializationFailure # Was: Pass

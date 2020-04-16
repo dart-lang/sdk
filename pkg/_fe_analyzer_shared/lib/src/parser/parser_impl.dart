@@ -1151,6 +1151,7 @@ class Parser {
   }
 
   Token parseWithClauseOpt(Token token) {
+    // <mixins> ::= with <typeNotVoidList>
     Token withKeyword = token.next;
     if (optional('with', withKeyword)) {
       token = parseTypeList(withKeyword);
@@ -1936,6 +1937,7 @@ class Parser {
   }
 
   Token parseClassExtendsOpt(Token token) {
+    // extends <typeNotVoid>
     Token next = token.next;
     if (optional('extends', next)) {
       Token extendsKeyword = next;
