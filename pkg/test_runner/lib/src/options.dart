@@ -615,9 +615,8 @@ compiler.''',
     // Only one value in the configuration map is mutable:
     if (selectors.containsKey('observatory_ui')) {
       if (selectors.length == 1) {
-        configuration['packages'] = Repository.uri
-            .resolve('runtime/observatory/.packages')
-            .toFilePath();
+        configuration['packages'] =
+            Repository.uri.resolve('.packages').toFilePath();
       } else {
         // Make a new configuration whose selectors map only contains
         // observatory_ui, and remove observatory_ui from the original
@@ -630,9 +629,8 @@ compiler.''',
         selectors.remove('observatory_ui');
 
         // Set the packages flag.
-        observatoryConfiguration['packages'] = Repository.uri
-            .resolve('runtime/observatory/.packages')
-            .toFilePath();
+        observatoryConfiguration['packages'] =
+            Repository.uri.resolve('.packages').toFilePath();
 
         return [
           ..._expandConfigurations(configuration, selectors),

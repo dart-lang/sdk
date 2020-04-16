@@ -111,7 +111,6 @@ vars = {
   "mockito_tag": "d39ac507483b9891165e422ec98d9fb480037c8b",
   "mustache_tag" : "5e81b12215566dbe2473b2afd01a8a8aedd56ad9",
   "oauth2_tag": "1.2.1",
-  "observatory_pub_packages_rev": "0894122173b0f98eb08863a7712e78407d4477bc",
   "package_config_tag": "v1.9.2",
   "path_tag": "1.7.0",
   "pedantic_tag": "v1.9.0",
@@ -332,9 +331,6 @@ deps = {
       + "@" + Var("mustache_tag"),
   Var("dart_root") + "/third_party/pkg/oauth2":
       Var("dart_git") + "oauth2.git" + "@" + Var("oauth2_tag"),
-  Var("dart_root") + "/third_party/observatory_pub_packages":
-      Var("dart_git") + "observatory_pub_packages.git"
-      + "@" + Var("observatory_pub_packages_rev"),
   Var("dart_root") + "/third_party/pkg_tested/package_config":
       Var("dart_git") + "package_config.git" +
       "@" + Var("package_config_tag"),

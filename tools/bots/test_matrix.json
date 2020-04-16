@@ -53,7 +53,6 @@
       "tests/ffi_2/",
       "third_party/babel/babel.min.js",
       "third_party/d8/",
-      "third_party/observatory_pub_packages/packages/web_components/",
       "third_party/pkg/",
       "third_party/pkg_tested/",
       "third_party/requirejs/",
@@ -97,7 +96,6 @@
       "tests/ffi_2/",
       "third_party/babel/babel.min.js",
       "third_party/d8/",
-      "third_party/observatory_pub_packages/packages/web_components/",
       "third_party/pkg/",
       "third_party/pkg_tested/",
       "third_party/requirejs/",
@@ -245,7 +243,6 @@
       "out/ReleaseX64/",
       "third_party/pkg/",
       "third_party/pkg_tested/",
-      "third_party/observatory_pub_packages/packages/",
       "tools/sdks/dart-sdk/",
       "pkg/_fe_analyzer_shared/",
       "pkg/async_helper/",
@@ -305,7 +302,6 @@
       "third_party/android_tools/ndk/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64/bin/arm-linux-androideabi-strip",
       "third_party/pkg/",
       "third_party/pkg_tested/",
-      "third_party/observatory_pub_packages/packages/",
       "tests/.dart_tool/package_config.json",
       "tests/angular/",
       "tests/co19_2/co19_2-analyzer.status",
@@ -391,7 +387,6 @@
       "third_party/android_tools/ndk/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64/bin/arm-linux-androideabi-strip",
       "third_party/pkg/",
       "third_party/pkg_tested/",
-      "third_party/observatory_pub_packages/packages/",
       "tests/.dart_tool/package_config.json",
       "tests/angular/",
       "tests/co19_2/co19_2-analyzer.status",
@@ -3308,7 +3303,6 @@
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": [
             "--fatal-warnings",
-            "--packages=runtime/observatory/.packages",
             "runtime/observatory"
           ]
         },
