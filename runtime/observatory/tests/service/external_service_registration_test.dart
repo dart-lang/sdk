@@ -123,4 +123,9 @@ var tests = <IsolateTest>[
   },
 ];
 
-main(args) => runIsolateTests(args, tests);
+main(args) => runIsolateTests(
+      args,
+      tests,
+      // TODO(bkonyi): service extensions are not yet supported in DDS.
+      enableDds: false,
+    );

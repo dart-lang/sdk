@@ -7,6 +7,7 @@ library test_helper;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:dds/dds.dart';
 import 'package:observatory/service_io.dart';
 import 'package:test/test.dart';
 import 'service_test_common.dart';
@@ -15,6 +16,9 @@ export 'service_test_common.dart' show IsolateTest, VMTest;
 /// Whether to use causal async stacks (if not we use lazy async stacks).
 const bool useCausalAsyncStacks =
     const bool.fromEnvironment('dart.developer.causal_async_stacks');
+
+/// Determines whether DDS is enabled for this test run.
+const bool useDds = const bool.fromEnvironment('USE_DDS');
 
 /// The extra arguments to use
 const List<String> extraDebuggingArgs = useCausalAsyncStacks
@@ -97,6 +101,8 @@ class _ServiceTesteeRunner {
 class _ServiceTesteeLauncher {
   Process process;
   final List<String> args;
+  Future<void> get exited => _processCompleter.future;
+  final _processCompleter = Completer<void>();
   bool killedByTester = false;
 
   _ServiceTesteeLauncher() : args = [Platform.script.toFilePath()] {}
@@ -286,6 +292,7 @@ class _ServiceTesteeLauncher {
           throw "Testee exited with $exitCode";
         }
         print("** Process exited");
+        _processCompleter.complete();
       });
 
       // Wait for the blank line which signals that we're ready to run.
@@ -295,9 +302,16 @@ class _ServiceTesteeLauncher {
       }
       final content = await serviceInfoFile.readAsString();
       final infoJson = json.decode(content);
-      uri = Uri.parse(infoJson['uri']);
+      String rawUri = infoJson['uri'];
+
+      // If rawUri ends with a /, Uri.parse will include an empty string as the
+      // last path segment. Make sure it's not there to ensure we have a
+      // consistent Uri.
+      if (rawUri.endsWith('/')) {
+        rawUri = rawUri.substring(0, rawUri.length - 1);
+      }
+      uri = Uri.parse(rawUri);
       completer.complete(uri);
-      print('** Signaled to run test queries on $uri');
     });
     return completer.future;
   }
@@ -314,7 +328,7 @@ class _ServiceTesteeLauncher {
 
 void setupAddresses(Uri serverAddress) {
   serviceWebsocketAddress =
-      'ws://${serverAddress.authority}${serverAddress.path}ws';
+      'ws://${serverAddress.authority}${serverAddress.path}/ws';
   serviceHttpAddress = 'http://${serverAddress.authority}${serverAddress.path}';
 }
 
@@ -331,16 +345,18 @@ class _ServiceTesterRunner {
     bool pause_on_unhandled_exceptions: false,
     bool enable_service_port_fallback: false,
     bool testeeControlsServer: false,
+    bool enableDds: true,
     int port = 0,
   }) {
     if (executableArgs == null) {
       executableArgs = Platform.executableArguments;
     }
-
-    final process = new _ServiceTesteeLauncher();
-    final name = Platform.script.pathSegments.last;
+    DartDevelopmentService dds;
     WebSocketVM vm;
+    _ServiceTesteeLauncher process;
+
     setUp(() async {
+      process = _ServiceTesteeLauncher();
       await process
           .launch(
               pause_on_start,
@@ -358,7 +374,15 @@ class _ServiceTesterRunner {
           print("Testee has pid $pid, waiting $wait before continuing");
           sleep(wait);
         }
-        setupAddresses(serverAddress);
+        if (useDds) {
+          dds = await DartDevelopmentService.startDartDevelopmentService(
+              serverAddress);
+          setupAddresses(dds.uri);
+        } else {
+          setupAddresses(serverAddress);
+        }
+        print('** Signaled to run test queries on $serviceHttpAddress'
+            ' (${useDds ? "DDS" : "VM Service"})');
         vm = new WebSocketVM(new WebSocketVMTarget(serviceWebsocketAddress));
         print('Loading VM...');
         await vm.load();
@@ -366,43 +390,66 @@ class _ServiceTesterRunner {
       });
     });
 
-    test(
-      name,
-      () async {
-        // Run vm tests.
-        if (vmTests != null) {
-          int testIndex = 1;
-          final totalTests = vmTests.length;
-          for (var test in vmTests) {
-            vm.verbose = verbose_vm;
-            print('Running $name [$testIndex/$totalTests]');
-            testIndex++;
-            await test(vm);
-          }
-        }
-
-        // Run isolate tests.
-        if (isolateTests != null) {
-          final isolate = await getFirstIsolate(vm);
-          int testIndex = 1;
-          final totalTests = isolateTests.length;
-          for (var test in isolateTests) {
-            vm.verbose = verbose_vm;
-            print('Running $name [$testIndex/$totalTests]');
-            testIndex++;
-            await test(isolate);
-          }
-        }
-      },
-      retry: 0,
-      // Some service tests run fairly long (e.g., valid_source_locations_test).
-      timeout: Timeout.none,
-    );
-
-    tearDown(() {
-      print('All service tests completed successfully.');
+    tearDown(() async {
+      if (useDds) {
+        await dds.shutdown();
+      }
       process.requestExit();
     });
+
+    final name = Platform.script.pathSegments.last;
+    runTest(String name) {
+      test(
+        '$name (${useDds ? 'DDS' : 'VM Service'})',
+        () async {
+          bool testsDone = false;
+          try {
+            // Run vm tests.
+            if (vmTests != null) {
+              int testIndex = 1;
+              final totalTests = vmTests.length;
+              for (var test in vmTests) {
+                vm.verbose = verbose_vm;
+                print('Running $name [$testIndex/$totalTests]');
+                testIndex++;
+                await test(vm);
+              }
+            }
+
+            // Run isolate tests.
+            if (isolateTests != null) {
+              final isolate = await getFirstIsolate(vm);
+              int testIndex = 1;
+              final totalTests = isolateTests.length;
+              for (var test in isolateTests) {
+                vm.verbose = verbose_vm;
+                print('Running $name [$testIndex/$totalTests]');
+                testIndex++;
+                await test(isolate);
+              }
+            }
+
+            print('All service tests completed successfully.');
+            testsDone = true;
+          } catch (error, stackTrace) {
+            if (testsDone) {
+              print('Ignoring late exception during process exit:\n'
+                  '$error\n$stackTrace');
+            } else {
+              rethrow;
+            }
+          }
+        },
+        // Some service tests run fairly long (e.g., valid_source_locations_test).
+        timeout: Timeout.none,
+      );
+    }
+
+    if (useDds && !enableDds) {
+      print('Skipping DDS run for $name');
+    } else {
+      runTest(name);
+    }
   }
 
   Future<Isolate> getFirstIsolate(WebSocketVM vm) async {
@@ -460,6 +507,7 @@ Future runIsolateTests(List<String> mainArgs, List<IsolateTest> tests,
     bool verbose_vm: false,
     bool pause_on_unhandled_exceptions: false,
     bool testeeControlsServer: false,
+    bool enableDds: true,
     List<String> extraArgs}) async {
   assert(!pause_on_start || testeeBefore == null);
   if (_isTestee()) {
@@ -477,7 +525,8 @@ Future runIsolateTests(List<String> mainArgs, List<IsolateTest> tests,
         pause_on_exit: pause_on_exit,
         verbose_vm: verbose_vm,
         pause_on_unhandled_exceptions: pause_on_unhandled_exceptions,
-        testeeControlsServer: testeeControlsServer);
+        testeeControlsServer: testeeControlsServer,
+        enableDds: enableDds);
   }
 }
 
@@ -529,6 +578,7 @@ Future runVMTests(List<String> mainArgs, List<VMTest> tests,
     bool verbose_vm: false,
     bool pause_on_unhandled_exceptions: false,
     bool enable_service_port_fallback: false,
+    bool enableDds: true,
     int port = 0,
     List<String> extraArgs,
     List<String> executableArgs}) async {
@@ -549,6 +599,7 @@ Future runVMTests(List<String> mainArgs, List<VMTest> tests,
       verbose_vm: verbose_vm,
       pause_on_unhandled_exceptions: pause_on_unhandled_exceptions,
       enable_service_port_fallback: enable_service_port_fallback,
+      enableDds: enableDds,
       port: port,
     );
   }
