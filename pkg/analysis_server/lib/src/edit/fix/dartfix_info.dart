@@ -63,6 +63,9 @@ final allFixes = <DartFixInfo>[
   LintFixInfo.preferAdjacentStringConcatenation,
   LintFixInfo.preferCollectionLiterals,
   LintFixInfo.preferConditionalAssignment,
+  LintFixInfo.preferConstConstructors,
+  LintFixInfo.preferConstConstructorsInImmutables,
+  LintFixInfo.preferConstDeclarations,
   LintFixInfo.preferContains,
   LintFixInfo.preferEqualForDefaultValues,
   LintFixInfo.preferFinalFields,
@@ -320,6 +323,24 @@ class LintFixInfo extends DartFixInfo {
     DartFixKind.REPLACE_WITH_CONDITIONAL_ASSIGNMENT,
     'Replace with a conditional assignment.',
     isPedantic: true,
+  );
+
+  static final preferConstConstructors = LintFixInfo(
+    'prefer_const_constructors',
+    DartFixKind.ADD_CONST,
+    'Make the instantiation const.',
+  );
+
+  static final preferConstConstructorsInImmutables = LintFixInfo(
+    'prefer_const_constructors_in_immutables',
+    DartFixKind.ADD_CONST,
+    'Make the constructor const.',
+  );
+
+  static final preferConstDeclarations = LintFixInfo(
+    'prefer_const_declarations',
+    DartFixKind.REPLACE_FINAL_WITH_CONST,
+    'Make the declaration const.',
   );
 
   static final preferContains = LintFixInfo(

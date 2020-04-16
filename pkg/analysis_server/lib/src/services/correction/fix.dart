@@ -85,6 +85,9 @@ bool hasFix(ErrorCode errorCode) =>
             errorCode.name == LintNames.null_closures ||
             errorCode.name == LintNames.prefer_collection_literals ||
             errorCode.name == LintNames.prefer_conditional_assignment ||
+            errorCode.name == LintNames.prefer_const_constructors ||
+            errorCode.name ==
+                LintNames.prefer_const_constructors_in_immutables ||
             errorCode.name == LintNames.prefer_const_declarations ||
             errorCode.name == LintNames.prefer_equal_for_default_values ||
             errorCode.name == LintNames.prefer_final_fields ||
