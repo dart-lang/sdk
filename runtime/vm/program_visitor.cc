@@ -58,6 +58,11 @@ class ProgramWalker : public CodeVisitor {
         VisitFunction(function_);
       }
     }
+
+    if (!visitor_->IsCodeVisitor()) return;
+
+    code_ = cls.allocation_stub();
+    if (!code_.IsNull()) VisitCode(code_);
   }
 
   void VisitFunction(const Function& function) {
@@ -235,8 +240,9 @@ void ProgramVisitor::BindStaticCalls(Zone* zone, Isolate* isolate) {
           target_code_(Code::Handle(zone)) {}
 
     void VisitCode(const Code& code) {
-      if (!code.IsFunctionCode()) return;
       table_ = code.static_calls_target_table();
+      if (table_.IsNull()) return;
+
       StaticCallsTable static_calls(table_);
       // We can only remove the target table in precompiled mode, since more
       // calls may be added later otherwise.

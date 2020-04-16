@@ -183,12 +183,18 @@ class ObjectPointerVisitor;
   RW(Code, allocate_mint_without_fpu_regs_stub)                                \
   RW(Code, stack_overflow_stub_with_fpu_regs_stub)                             \
   RW(Code, stack_overflow_stub_without_fpu_regs_stub)                          \
+  RW(Code, allocate_array_stub)                                                \
+  RW(Code, allocate_context_stub)                                              \
+  RW(Code, allocate_object_stub)                                               \
+  RW(Code, allocate_object_parametrized_stub)                                  \
+  RW(Code, clone_context_stub)                                                 \
   RW(Code, write_barrier_wrappers_stub)                                        \
   RW(Code, array_write_barrier_stub)                                           \
   RW(Code, throw_stub)                                                         \
   RW(Code, re_throw_stub)                                                      \
   RW(Code, assert_boolean_stub)                                                \
   RW(Code, instance_of_stub)                                                   \
+  RW(Code, init_static_field_stub)                                             \
   RW(Code, call_closure_no_such_method_stub)                                   \
   R_(Code, megamorphic_call_miss_code)                                         \
   R_(Function, megamorphic_call_miss_function)                                 \
@@ -218,12 +224,18 @@ class ObjectPointerVisitor;
   DO(stack_overflow_stub_with_fpu_regs_stub, StackOverflowSharedWithFPURegs)   \
   DO(stack_overflow_stub_without_fpu_regs_stub,                                \
      StackOverflowSharedWithoutFPURegs)                                        \
+  DO(allocate_array_stub, AllocateArray)                                       \
+  DO(allocate_context_stub, AllocateContext)                                   \
+  DO(allocate_object_stub, AllocateObject)                                     \
+  DO(allocate_object_parametrized_stub, AllocateObjectParameterized)           \
+  DO(clone_context_stub, CloneContext)                                         \
   DO(call_closure_no_such_method_stub, CallClosureNoSuchMethod)                \
   DO(write_barrier_wrappers_stub, WriteBarrierWrappers)                        \
   DO(array_write_barrier_stub, ArrayWriteBarrier)                              \
   DO(throw_stub, Throw)                                                        \
   DO(re_throw_stub, ReThrow)                                                   \
   DO(assert_boolean_stub, AssertBoolean)                                       \
+  DO(init_static_field_stub, InitStaticField)                                  \
   DO(instance_of_stub, InstanceOf)
 
 // The object store is a per isolate instance which stores references to

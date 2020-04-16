@@ -4063,6 +4063,10 @@ void InitStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       compiler::target::Thread::field_table_values_offset();
   const intptr_t field_offset = compiler::target::FieldTable::OffsetOf(field());
 
+  auto object_store = compiler->isolate()->object_store();
+  const auto& init_static_field_stub = Code::ZoneHandle(
+      compiler->zone(), object_store->init_static_field_stub());
+
   const Register temp = InitStaticFieldABI::kFieldReg;
   __ LoadMemoryValue(temp, THR, static_cast<int32_t>(field_table_offset));
   __ LoadMemoryValue(temp, temp, static_cast<int32_t>(field_offset));
@@ -4080,7 +4084,7 @@ void InitStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(&call_runtime);
   __ LoadObject(InitStaticFieldABI::kFieldReg,
                 Field::ZoneHandle(field().Original()));
-  compiler->GenerateStubCall(token_pos(), StubCode::InitStaticField(),
+  compiler->GenerateStubCall(token_pos(), init_static_field_stub,
                              /*kind=*/RawPcDescriptors::kOther, locs(),
                              deopt_id());
   __ Bind(&no_call);
@@ -4125,7 +4129,11 @@ LocationSummary* ThrowInstr::MakeLocationSummary(Zone* zone, bool opt) const {
 }
 
 void ThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  compiler->GenerateStubCall(token_pos(), StubCode::Throw(),
+  auto object_store = compiler->isolate()->object_store();
+  const auto& throw_stub =
+      Code::ZoneHandle(compiler->zone(), object_store->throw_stub());
+
+  compiler->GenerateStubCall(token_pos(), throw_stub,
                              /*kind=*/RawPcDescriptors::kOther, locs(),
                              deopt_id());
   // Issue(dartbug.com/41353): Right now we have to emit an extra breakpoint
@@ -4148,8 +4156,12 @@ LocationSummary* ReThrowInstr::MakeLocationSummary(Zone* zone, bool opt) const {
 }
 
 void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  auto object_store = compiler->isolate()->object_store();
+  const auto& re_throw_stub =
+      Code::ZoneHandle(compiler->zone(), object_store->re_throw_stub());
+
   compiler->SetNeedsStackTrace(catch_try_index());
-  compiler->GenerateStubCall(token_pos(), StubCode::ReThrow(),
+  compiler->GenerateStubCall(token_pos(), re_throw_stub,
                              /*kind=*/RawPcDescriptors::kOther, locs(),
                              deopt_id());
   // Issue(dartbug.com/41353): Right now we have to emit an extra breakpoint
@@ -4175,11 +4187,15 @@ LocationSummary* AssertBooleanInstr::MakeLocationSummary(Zone* zone,
 void AssertBooleanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Check that the type of the value is allowed in conditional context.
   ASSERT(locs()->always_calls());
-  compiler::Label done;
 
+  auto object_store = compiler->isolate()->object_store();
+  const auto& assert_boolean_stub =
+      Code::ZoneHandle(compiler->zone(), object_store->assert_boolean_stub());
+
+  compiler::Label done;
   __ CompareObject(AssertBooleanABI::kObjectReg, Object::null_instance());
   __ BranchIf(NOT_EQUAL, &done);
-  compiler->GenerateStubCall(token_pos(), StubCode::AssertBoolean(),
+  compiler->GenerateStubCall(token_pos(), assert_boolean_stub,
                              /*kind=*/RawPcDescriptors::kOther, locs(),
                              deopt_id());
   __ Bind(&done);

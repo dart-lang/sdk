@@ -3050,7 +3050,11 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       return;
     }
   }
-  compiler->GenerateStubCall(token_pos(), StubCode::AllocateArray(),
+
+  auto object_store = compiler->isolate()->object_store();
+  const auto& allocate_array_stub =
+      Code::ZoneHandle(compiler->zone(), object_store->allocate_array_stub());
+  compiler->GenerateStubCall(token_pos(), allocate_array_stub,
                              RawPcDescriptors::kOther, locs(), deopt_id());
   ASSERT(locs()->out(0).reg() == kResultReg);
 }
@@ -3350,10 +3354,13 @@ class AllocateContextSlowPath
 
     compiler->SaveLiveRegisters(locs);
 
+    auto object_store = compiler->isolate()->object_store();
+    const auto& allocate_context_stub = Code::ZoneHandle(
+        compiler->zone(), object_store->allocate_context_stub());
     __ LoadImmediate(R1, instruction()->num_context_variables());
     compiler->GenerateStubCall(instruction()->token_pos(),
-                               StubCode::AllocateContext(),
-                               RawPcDescriptors::kOther, locs);
+                               allocate_context_stub, RawPcDescriptors::kOther,
+                               locs);
     ASSERT(instruction()->locs()->out(0).reg() == R0);
     compiler->RestoreLiveRegisters(instruction()->locs());
     __ b(exit_label());
@@ -3398,8 +3405,11 @@ void AllocateContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->temp(0).reg() == R1);
   ASSERT(locs()->out(0).reg() == R0);
 
+  auto object_store = compiler->isolate()->object_store();
+  const auto& allocate_context_stub =
+      Code::ZoneHandle(compiler->zone(), object_store->allocate_context_stub());
   __ LoadImmediate(R1, num_context_variables());
-  compiler->GenerateStubCall(token_pos(), StubCode::AllocateContext(),
+  compiler->GenerateStubCall(token_pos(), allocate_context_stub,
                              RawPcDescriptors::kOther, locs());
 }
 
@@ -3418,7 +3428,10 @@ void CloneContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(0).reg() == R4);
   ASSERT(locs()->out(0).reg() == R0);
 
-  compiler->GenerateStubCall(token_pos(), StubCode::CloneContext(),
+  auto object_store = compiler->isolate()->object_store();
+  const auto& clone_context_stub =
+      Code::ZoneHandle(compiler->zone(), object_store->clone_context_stub());
+  compiler->GenerateStubCall(token_pos(), clone_context_stub,
                              /*kind=*/RawPcDescriptors::kOther, locs());
 }
 

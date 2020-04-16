@@ -2545,7 +2545,10 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   __ Bind(&slow_path);
-  compiler->GenerateStubCall(token_pos(), StubCode::AllocateArray(),
+  auto object_store = compiler->isolate()->object_store();
+  const auto& allocate_array_stub =
+      Code::ZoneHandle(compiler->zone(), object_store->allocate_array_stub());
+  compiler->GenerateStubCall(token_pos(), allocate_array_stub,
                              RawPcDescriptors::kOther, locs(), deopt_id());
   __ Bind(&done);
   ASSERT(locs()->out(0).reg() == kResultReg);
@@ -2832,11 +2835,15 @@ class AllocateContextSlowPath
 
     compiler->SaveLiveRegisters(locs);
 
+    auto object_store = compiler->isolate()->object_store();
+    const auto& allocate_context_stub = Code::ZoneHandle(
+        compiler->zone(), object_store->allocate_context_stub());
+
     __ LoadImmediate(
         R10, compiler::Immediate(instruction()->num_context_variables()));
     compiler->GenerateStubCall(instruction()->token_pos(),
-                               StubCode::AllocateContext(),
-                               RawPcDescriptors::kOther, locs);
+                               allocate_context_stub, RawPcDescriptors::kOther,
+                               locs);
     ASSERT(instruction()->locs()->out(0).reg() == RAX);
     compiler->RestoreLiveRegisters(instruction()->locs());
     __ jmp(exit_label());
@@ -2881,8 +2888,12 @@ void AllocateContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->temp(0).reg() == R10);
   ASSERT(locs()->out(0).reg() == RAX);
 
+  auto object_store = compiler->isolate()->object_store();
+  const auto& allocate_context_stub =
+      Code::ZoneHandle(compiler->zone(), object_store->allocate_context_stub());
+
   __ LoadImmediate(R10, compiler::Immediate(num_context_variables()));
-  compiler->GenerateStubCall(token_pos(), StubCode::AllocateContext(),
+  compiler->GenerateStubCall(token_pos(), allocate_context_stub,
                              RawPcDescriptors::kOther, locs());
 }
 
@@ -2901,7 +2912,10 @@ void CloneContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(0).reg() == R9);
   ASSERT(locs()->out(0).reg() == RAX);
 
-  compiler->GenerateStubCall(token_pos(), StubCode::CloneContext(),
+  auto object_store = compiler->isolate()->object_store();
+  const auto& clone_context_stub =
+      Code::ZoneHandle(compiler->zone(), object_store->clone_context_stub());
+  compiler->GenerateStubCall(token_pos(), clone_context_stub,
                              /*kind=*/RawPcDescriptors::kOther, locs());
 }
 

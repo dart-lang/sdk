@@ -2042,8 +2042,12 @@ void StubCodeCompiler::GenerateAllocateObjectSlowStub(Assembler* assembler) {
 }
 
 // Called for inline allocation of objects.
-void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
-                                                      const Class& cls) {
+void StubCodeCompiler::GenerateAllocationStubForClass(
+    Assembler* assembler,
+    UnresolvedPcRelativeCalls* unresolved_calls,
+    const Class& cls,
+    const Code& allocate_object,
+    const Code& allocat_object_parametrized) {
   static_assert(kAllocationStubTypeArgumentsReg == RDX,
                 "Adjust register allocation in the AllocationStub");
 
@@ -2075,27 +2079,37 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
   __ movq(kTagsReg, Immediate(tags));
 
   // Load the appropriate generic alloc. stub.
-  uintptr_t stub_entry_point_offset;
   if (!FLAG_use_slow_path && FLAG_inline_alloc &&
       !target::Class::TraceAllocation(cls) &&
       target::SizeFitsInSizeTag(instance_size)) {
-    if (!is_cls_parameterized) {
-      stub_entry_point_offset =
-          target::Thread::allocate_object_entry_point_offset();
+    if (is_cls_parameterized) {
+      if (!IsSameObject(NullObject(),
+                        CastHandle<Object>(allocat_object_parametrized))) {
+        __ GenerateUnRelocatedPcRelativeTailCall();
+        unresolved_calls->Add(new UnresolvedPcRelativeCall(
+            __ CodeSize(), allocat_object_parametrized, /*is_tail_call=*/true));
+      } else {
+        __ jmp(Address(THR,
+                       target::Thread::
+                           allocate_object_parameterized_entry_point_offset()));
+      }
     } else {
-      stub_entry_point_offset =
-          target::Thread::allocate_object_parameterized_entry_point_offset();
+      if (!IsSameObject(NullObject(), CastHandle<Object>(allocate_object))) {
+        __ GenerateUnRelocatedPcRelativeTailCall();
+        unresolved_calls->Add(new UnresolvedPcRelativeCall(
+            __ CodeSize(), allocate_object, /*is_tail_call=*/true));
+      } else {
+        __ jmp(
+            Address(THR, target::Thread::allocate_object_entry_point_offset()));
+      }
     }
   } else {
     if (!is_cls_parameterized) {
       __ LoadObject(kAllocationStubTypeArgumentsReg, NullObject());
     }
-    stub_entry_point_offset =
-        target::Thread::allocate_object_slow_entry_point_offset();
+    __ jmp(Address(THR,
+                   target::Thread::allocate_object_slow_entry_point_offset()));
   }
-
-  // Tail call to generic allocation stub.
-  __ jmp(Address(THR, stub_entry_point_offset));
 }
 
 // Called for invoking "dynamic noSuchMethod(Invocation invocation)" function

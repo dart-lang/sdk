@@ -282,25 +282,22 @@ void Precompiler::DoCompileAll() {
         global_object_pool_builder()->Reset();
         stub_pool.CopyInto(global_object_pool_builder());
 
-        // We have two global code objects we need to re-generate with the new
-        // global object pool, namely the
-        //   - megamorphic miss handler code and the
-        //   - build method extractor code
-        MegamorphicCacheTable::ReInitMissHandlerCode(
-            isolate_, global_object_pool_builder());
-
+        // We have various stubs we would like to generate inside the isolate,
+        // to ensure the rest of the AOT compilation will use the
+        // isolate-specific stubs (callable via pc-relative calls).
         auto& stub_code = Code::Handle();
-
-        stub_code =
-            StubCode::GetBuildMethodExtractorStub(global_object_pool_builder());
-        I->object_store()->set_build_method_extractor_code(stub_code);
 #define DO(member, name)                                                       \
   stub_code = StubCode::BuildIsolateSpecific##name##Stub(                      \
       global_object_pool_builder());                                           \
   I->object_store()->set_##member(stub_code);
-
         OBJECT_STORE_STUB_CODE_LIST(DO)
 #undef DO
+        stub_code =
+            StubCode::GetBuildMethodExtractorStub(global_object_pool_builder());
+        I->object_store()->set_build_method_extractor_code(stub_code);
+
+        MegamorphicCacheTable::ReInitMissHandlerCode(
+            isolate_, global_object_pool_builder());
       }
 
       CollectDynamicFunctionNames();
