@@ -4,6 +4,11 @@
 
 /// Utility methods to compute the value of the features used for code
 /// completion.
+import 'dart:math' as math;
+
+import 'package:analysis_server/src/protocol_server.dart'
+    show convertElementToElementKind;
+import 'package:analysis_server/src/services/completion/dart/relevance_tables.g.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart'
@@ -89,6 +94,29 @@ class FeatureComputer {
     }
   }
 
+  /// Return the value of the _element kind_ feature for the [element] when
+  /// completing at the given [completionLocation]. If a [distance] is given it
+  /// will be used to provide finer-grained relevance scores.
+  double elementKindFeature(Element element, String completionLocation,
+      {int distance}) {
+    if (completionLocation == null) {
+      return -1.0;
+    }
+    var locationTable = elementKindRelevance[completionLocation];
+    if (locationTable == null) {
+      return -1.0;
+    }
+    var kind = convertElementToElementKind(element);
+    var range = locationTable[kind];
+    if (range == null) {
+      return 0.0;
+    }
+    if (distance == null) {
+      return range.upper;
+    }
+    return range.conditionalProbability(_distanceToPercent(distance));
+  }
+
   /// Return the value of the _has deprecated_ feature for the given [element].
   double hasDeprecatedFeature(Element element) {
     return element.hasDeprecated ? 0.0 : 1.0;
@@ -115,7 +143,7 @@ class FeatureComputer {
     if (distance < 0) {
       return 0.0;
     }
-    return 1.0 / (distance + 1);
+    return _distanceToPercent(distance);
   }
 
   /// Return the value of the _starts with dollar_ feature.
@@ -128,6 +156,9 @@ class FeatureComputer {
       containingMethodName == null
           ? -1.0
           : (proposedMemberName == containingMethodName ? 1.0 : 0.0);
+
+  /// Convert a [distance] to a percentage value and return the percentage.
+  double _distanceToPercent(int distance) => math.pow(0.95, distance);
 
   /// Return the inheritance distance between the [subclass] and the
   /// [superclass]. The set of [visited] elements is used to guard against

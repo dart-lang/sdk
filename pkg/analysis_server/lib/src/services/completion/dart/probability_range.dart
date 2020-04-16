@@ -18,6 +18,6 @@ class ProbabilityRange {
   /// on the event represented by this range, return the probability of the
   /// event independent of the event based on this range.
   double conditionalProbability(double probability) {
-    return lower + (upper - lower) * probability;
+    return lower + ((upper - lower) * probability);
   }
 }
