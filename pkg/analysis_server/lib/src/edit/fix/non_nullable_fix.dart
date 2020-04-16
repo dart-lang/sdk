@@ -12,11 +12,11 @@ import 'package:analysis_server/src/edit/preview/http_preview_server.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:charcode/charcode.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
@@ -27,6 +27,13 @@ class NonNullableFix extends FixCodeTask {
   /// TODO(paulberry): stop using permissive mode once the migration logic is
   /// mature enough.
   static const bool _usePermissiveMode = true;
+
+  // TODO(srawlins): Refactor to use
+  //  `Feature.non_nullable.firstSupportedVersion` when this becomes non-null.
+  static const String _intendedMinimumSdkVersion = '2.8.0';
+
+  static const String _intendedSdkVersionConstraint =
+      '>=$_intendedMinimumSdkVersion <3.0.0';
 
   final int preferredPort;
 
@@ -96,101 +103,102 @@ class NonNullableFix extends FixCodeTask {
     }
   }
 
-  /// If the package contains an analysis_options.yaml file, then update the
-  /// file to enabled NNBD. If that file does not exist, but the package
-  /// contains a pubspec.yaml, then create the analysis_options.yaml file.
+  /// Update the pubspec.yaml file to specify a minimum Dart SDK version which
+  /// enables the Null Safety feature.
   @override
   Future<void> processPackage(Folder pkgFolder) async {
     if (!_packageIsNNBD) {
       return;
     }
 
-    // TODO(danrubel): Update pubspec.yaml to enable NNBD
-
-    var optionsFile = pkgFolder.getChildAssumingFile('analysis_options.yaml');
-    String optionsContent;
-    YamlNode optionsMap;
-    if (optionsFile.exists) {
-      try {
-        optionsContent = optionsFile.readAsStringSync();
-      } on FileSystemException catch (e) {
-        processYamlException('read', optionsFile.path, e);
-        return;
-      }
-      try {
-        optionsMap = loadYaml(optionsContent);
-      } on YamlException catch (e) {
-        processYamlException('parse', optionsFile.path, e);
-        return;
-      }
+    var pubspecFile = pkgFolder.getChildAssumingFile('pubspec.yaml');
+    String pubspecContent;
+    YamlNode pubspecMap;
+    if (!pubspecFile.exists) {
+      // TODO(srawlins): Handle other package types, such as Bazel.
+      return;
     }
 
-    SourceSpan parentSpan;
-    String content;
-    YamlNode analyzerOptions;
-    if (optionsMap is YamlMap) {
-      analyzerOptions = optionsMap.nodes[AnalyzerOptions.analyzer];
+    try {
+      pubspecContent = pubspecFile.readAsStringSync();
+    } on FileSystemException catch (e) {
+      processYamlException('read', pubspecFile.path, e);
+      return;
     }
-    if (analyzerOptions == null) {
-      var start = SourceLocation(0, line: 0, column: 0);
-      parentSpan = SourceSpan(start, start, '');
-      content = '''
-analyzer:
-  enable-experiment:
-    - non-nullable
-
-''';
-    } else if (analyzerOptions is YamlMap) {
-      var experiments = analyzerOptions.nodes[AnalyzerOptions.enableExperiment];
-      if (experiments == null) {
-        parentSpan = analyzerOptions.span;
-        content = '''
-
-  enable-experiment:
-    - non-nullable''';
-      } else if (experiments is YamlList) {
-        experiments.nodes.firstWhere(
-          (node) => node.span.text == EnableString.non_nullable,
-          orElse: () {
-            parentSpan = experiments.span;
-            content = '''
-
-    - non-nullable''';
-            return null;
-          },
-        );
-      }
+    try {
+      pubspecMap = loadYaml(pubspecContent);
+    } on YamlException catch (e) {
+      processYamlException('parse', pubspecFile.path, e);
+      return;
     }
 
-    if (parentSpan != null) {
-      final space = ' '.codeUnitAt(0);
-      final cr = '\r'.codeUnitAt(0);
-      final lf = '\n'.codeUnitAt(0);
-
+    /// Inserts [content] into [pubspecFile], immediately after [parentSpan].
+    void insertAfterParent(SourceSpan parentSpan, String content) {
       var line = parentSpan.end.line;
       var offset = parentSpan.end.offset;
+      // Walk [offset] and [line] back to the first non-whitespace character
+      // before [offset].
       while (offset > 0) {
-        var ch = optionsContent.codeUnitAt(offset - 1);
-        if (ch == space || ch == cr) {
+        var ch = pubspecContent.codeUnitAt(offset - 1);
+        if (ch == $space || ch == $cr) {
           --offset;
-        } else if (ch == lf) {
+        } else if (ch == $lf) {
           --offset;
           --line;
         } else {
           break;
         }
       }
+      var edit = SourceEdit(offset, 0, content);
       listener.addSourceFileEdit(
-          'enable non-nullable analysis',
-          Location(
-            optionsFile.path,
-            offset,
-            content.length,
-            line,
-            0,
-          ),
-          SourceFileEdit(optionsFile.path, 0,
-              edits: [SourceEdit(offset, 0, content)]));
+          'enable Null Safety language feature',
+          Location(pubspecFile.path, offset, content.length, line, 0),
+          SourceFileEdit(pubspecFile.path, 0, edits: [edit]));
+    }
+
+    void replaceSpan(SourceSpan span, String content) {
+      var line = span.start.line;
+      var offset = span.start.offset;
+      var edit = SourceEdit(offset, span.length, content);
+      listener.addSourceFileEdit(
+          'enable Null Safety language feature',
+          Location(pubspecFile.path, offset, content.length, line, 0),
+          SourceFileEdit(pubspecFile.path, 0, edits: [edit]));
+    }
+
+    YamlNode environmentOptions;
+    if (pubspecMap is YamlMap) {
+      environmentOptions = pubspecMap.nodes['environment'];
+    }
+    if (environmentOptions == null) {
+      var start = SourceLocation(0, line: 0, column: 0);
+      var content = '''
+environment:
+  sdk: '$_intendedSdkVersionConstraint'
+
+''';
+      insertAfterParent(SourceSpan(start, start, ''), content);
+    } else if (environmentOptions is YamlMap) {
+      var sdk = environmentOptions.nodes['sdk'];
+      if (sdk == null) {
+        var content = """
+
+  sdk: '$_intendedSdkVersionConstraint'""";
+        insertAfterParent(environmentOptions.span, content);
+      } else if (sdk is YamlScalar) {
+        var currentConstraint = VersionConstraint.parse(sdk.value);
+        var minimumVersion = Version.parse('2.8.0');
+        if (currentConstraint is VersionRange &&
+            currentConstraint.min >= minimumVersion) {
+          // The current SDK version constraint already enables Null Safety.
+          return;
+        } else {
+          // TODO(srawlins): This overwrites the current maximum version. In
+          // the uncommon situation that the maximum is not '<3.0.0', it should
+          // not.
+          replaceSpan(sdk.span, "'$_intendedSdkVersionConstraint'");
+        }
+      }
     }
   }
 
@@ -219,11 +227,11 @@ analyzer:
   $optionsFilePath
   $error
 
-  Manually update this file to enable non-nullable by adding:
+  Manually update this file to enable the Null Safety language feature by
+  adding:
 
-    analyzer:
-      enable-experiment:
-        - non-nullable
+    environment:
+      sdk: '$_intendedSdkVersionConstraint';
 ''');
     _packageIsNNBD = false;
   }

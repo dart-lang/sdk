@@ -175,72 +175,74 @@ void test() {
         throwsA(TypeMatcher<StateError>()));
   }
 
-  Future<void> test_nonNullable_analysisOptions_created() async {
-    // Add pubspec for nnbd migration to detect
-    newFile('/project/pubspec.yaml', content: '''
-name: testnnbd
-''');
+  Future<void> test_nonNullable_pubspec_environmentAdded() async {
+    var originalContent = '''
+name: foo
+''';
+    newFile('/project/pubspec.yaml', content: originalContent);
     createProject();
     var result = await performFix(includedFixes: ['non-nullable']);
     expect(result.suggestions.length, greaterThanOrEqualTo(1));
     expect(result.hasErrors, isFalse);
     expect(result.edits, hasLength(1));
-    expectFileEdits('', result.edits[0], '''
-analyzer:
-  enable-experiment:
-    - non-nullable
+    expectFileEdits(originalContent, result.edits[0], '''
+environment:
+  sdk: '>=2.8.0 <3.0.0'
 
+name: foo
 ''');
   }
 
-  Future<void> test_nonNullable_analysisOptions_experimentsAdded() async {
-    var originalOptions = '''
-analyzer:
-  something:
-    - other
-
-linter:
-  - boo
+  Future<void> test_nonNullable_pubspec_sdkAdded() async {
+    var originalContent = '''
+name: foo
+environment:
+  x: y
 ''';
-    newFile('/project/analysis_options.yaml', content: originalOptions);
+    newFile('/project/pubspec.yaml', content: originalContent);
     createProject();
     var result = await performFix(includedFixes: ['non-nullable']);
     expect(result.suggestions.length, greaterThanOrEqualTo(1));
     expect(result.hasErrors, isFalse);
     expect(result.edits, hasLength(1));
-    expectFileEdits(originalOptions, result.edits[0], '''
-analyzer:
-  something:
-    - other
-  enable-experiment:
-    - non-nullable
-
-linter:
-  - boo
+    expectFileEdits(originalContent, result.edits[0], '''
+name: foo
+environment:
+  x: y
+  sdk: '>=2.8.0 <3.0.0'
 ''');
   }
 
-  Future<void> test_nonNullable_analysisOptions_nnbdAdded() async {
-    var originalOptions = '''
-analyzer:
-  enable-experiment:
-    - other
-linter:
-  - boo
+  Future<void> test_nonNullable_pubspec_sdkNotUpdated() async {
+    var originalContent = '''
+name: foo
+environment:
+  sdk: '>=2.8.0 <3.0.0'
 ''';
-    newFile('/project/analysis_options.yaml', content: originalOptions);
+    newFile('/project/pubspec.yaml', content: originalContent);
+    createProject();
+    var result = await performFix(includedFixes: ['non-nullable']);
+    expect(result.suggestions, isEmpty);
+    expect(result.hasErrors, isFalse);
+    expect(result.edits, isEmpty);
+  }
+
+  Future<void> test_nonNullable_pubspec_sdkUpdated() async {
+    var originalContent = '''
+name: foo
+environment:
+  sdk: '>=2.7.0 <3.0.0'
+''';
+    newFile('/project/pubspec.yaml', content: originalContent);
     createProject();
     var result = await performFix(includedFixes: ['non-nullable']);
     expect(result.suggestions.length, greaterThanOrEqualTo(1));
     expect(result.hasErrors, isFalse);
     expect(result.edits, hasLength(1));
-    expectFileEdits(originalOptions, result.edits[0], '''
-analyzer:
-  enable-experiment:
-    - other
-    - non-nullable
-linter:
-  - boo
+    expectFileEdits(originalContent, result.edits[0], '''
+name: foo
+environment:
+  sdk: '>=2.8.0 <3.0.0'
 ''');
   }
 
