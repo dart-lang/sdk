@@ -24,6 +24,8 @@
 #include "vm/resolver.h"
 #include "vm/stack_frame.h"
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
 namespace dart {
 namespace kernel {
 
@@ -3021,3 +3023,5 @@ void FlowGraphBuilder::SetCurrentTryCatchBlock(TryCatchBlock* try_catch_block) {
 }  // namespace kernel
 
 }  // namespace dart
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)

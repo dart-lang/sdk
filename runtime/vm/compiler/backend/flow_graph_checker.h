@@ -5,10 +5,7 @@
 #ifndef RUNTIME_VM_COMPILER_BACKEND_FLOW_GRAPH_CHECKER_H_
 #define RUNTIME_VM_COMPILER_BACKEND_FLOW_GRAPH_CHECKER_H_
 
-#if defined(DART_PRECOMPILED_RUNTIME)
-#error "AOT runtime should not use compiler sources (including header files)"
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
-
+#if !defined(DART_PRECOMPILED_RUNTIME)
 #if defined(DEBUG)
 
 #include "vm/compiler/backend/flow_graph.h"
@@ -72,5 +69,6 @@ class FlowGraphChecker : public FlowGraphVisitor {
 }  // namespace dart
 
 #endif  // defined(DEBUG)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 #endif  // RUNTIME_VM_COMPILER_BACKEND_FLOW_GRAPH_CHECKER_H_

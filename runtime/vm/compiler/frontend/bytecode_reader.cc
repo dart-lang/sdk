@@ -24,6 +24,8 @@
 #include "vm/stack_frame_kbc.h"
 #include "vm/timeline.h"
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
 #define Z (zone_)
 #define H (translation_helper_)
 #define I (translation_helper_.isolate())
@@ -3730,3 +3732,5 @@ bool IsStaticFieldGetterGeneratedAsInitializer(const Function& function,
 
 }  // namespace kernel
 }  // namespace dart
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)

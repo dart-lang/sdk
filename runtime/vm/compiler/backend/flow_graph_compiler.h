@@ -5,10 +5,6 @@
 #ifndef RUNTIME_VM_COMPILER_BACKEND_FLOW_GRAPH_COMPILER_H_
 #define RUNTIME_VM_COMPILER_BACKEND_FLOW_GRAPH_COMPILER_H_
 
-#if defined(DART_PRECOMPILED_RUNTIME)
-#error "AOT runtime should not use compiler sources (including header files)"
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
-
 #include <functional>
 
 #include "vm/allocation.h"

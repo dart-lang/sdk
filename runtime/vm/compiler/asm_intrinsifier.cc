@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Class for intrinsifying functions.
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
 #define SHOULD_NOT_INCLUDE_RUNTIME
 
 #include "vm/compiler/asm_intrinsifier.h"
@@ -33,3 +36,5 @@ void AsmIntrinsifier::RegExp_ExecuteMatchSticky(Assembler* assembler,
 
 }  // namespace compiler
 }  // namespace dart
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)

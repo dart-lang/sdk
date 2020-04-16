@@ -9,6 +9,8 @@
 
 #include "vm/compiler/stub_code_compiler.h"
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/compiler/assembler/assembler.h"
 
 #define __ assembler->
@@ -81,3 +83,5 @@ void StubCodeCompiler::GenerateInstanceOfStub(Assembler* assembler) {
 }  // namespace compiler
 
 }  // namespace dart
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)

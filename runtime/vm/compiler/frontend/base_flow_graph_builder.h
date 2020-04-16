@@ -5,15 +5,13 @@
 #ifndef RUNTIME_VM_COMPILER_FRONTEND_BASE_FLOW_GRAPH_BUILDER_H_
 #define RUNTIME_VM_COMPILER_FRONTEND_BASE_FLOW_GRAPH_BUILDER_H_
 
-#if defined(DART_PRECOMPILED_RUNTIME)
-#error "AOT runtime should not use compiler sources (including header files)"
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
-
 #include <initializer_list>
 
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/il.h"
 #include "vm/object.h"
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 
@@ -453,4 +451,5 @@ class BaseFlowGraphBuilder {
 }  // namespace kernel
 }  // namespace dart
 
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 #endif  // RUNTIME_VM_COMPILER_FRONTEND_BASE_FLOW_GRAPH_BUILDER_H_

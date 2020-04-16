@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#ifndef DART_PRECOMPILED_RUNTIME
 #include "vm/compiler/call_specializer.h"
 
 #include "vm/compiler/backend/flow_graph_compiler.h"
@@ -1793,3 +1794,4 @@ void CallSpecializer::ReplaceInstanceCallsWithDispatchTableCalls() {
 }
 
 }  // namespace dart
+#endif  // DART_PRECOMPILED_RUNTIME

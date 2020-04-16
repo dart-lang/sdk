@@ -194,6 +194,7 @@ const char* MethodRecognizer::KindToCString(Kind kind) {
   return "?";
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 void MethodRecognizer::InitializeState() {
   GrowableArray<Library*> libs(3);
   Libraries(&libs);
@@ -256,6 +257,7 @@ void MethodRecognizer::Libraries(GrowableArray<Library*>* libs) {
   libs->Add(&Library::ZoneHandle(Library::AsyncLibrary()));
   libs->Add(&Library::ZoneHandle(Library::FfiLibrary()));
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 Token::Kind MethodTokenRecognizer::RecognizeTokenKind(const String& name_) {
   Thread* thread = Thread::Current();

@@ -4,6 +4,8 @@
 
 #include "vm/compiler/compiler_pass.h"
 
+#ifndef DART_PRECOMPILED_RUNTIME
+
 #include "vm/compiler/backend/block_scheduler.h"
 #include "vm/compiler/backend/branch_optimizer.h"
 #include "vm/compiler/backend/constant_propagator.h"
@@ -573,3 +575,5 @@ COMPILER_PASS(RoundTripSerialization, {
 })
 
 }  // namespace dart
+
+#endif  // DART_PRECOMPILED_RUNTIME

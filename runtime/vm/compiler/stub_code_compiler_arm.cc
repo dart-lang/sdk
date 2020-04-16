@@ -12,7 +12,7 @@
 
 #include "vm/compiler/stub_code_compiler.h"
 
-#if defined(TARGET_ARCH_ARM)
+#if defined(TARGET_ARCH_ARM) && !defined(DART_PRECOMPILED_RUNTIME)
 
 #include "vm/class_id.h"
 #include "vm/code_entry_kind.h"
@@ -1349,11 +1349,9 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
 //   R3 : current thread.
 void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
     Assembler* assembler) {
-  if (FLAG_precompiled_mode) {
-    __ Stop("Not using interpreter");
-    return;
-  }
-
+#if defined(DART_PRECOMPILED_RUNTIME)
+  __ Stop("Not using interpreter");
+#else
   __ Push(LR);  // Marker for the profiler.
   __ EnterFrame((1 << FP) | (1 << LR), 0);
 
@@ -1484,6 +1482,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
   __ LeaveFrame((1 << FP) | (1 << LR));
   __ Drop(1);
   __ Ret();
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 // Helper to generate space allocation of context stub.
@@ -2713,10 +2712,9 @@ void StubCodeCompiler::GenerateLazyCompileStub(Assembler* assembler) {
 // R4: Arguments descriptor.
 // R0: Function.
 void StubCodeCompiler::GenerateInterpretCallStub(Assembler* assembler) {
-  if (FLAG_precompiled_mode) {
-    __ Stop("Not using interpreter");
-    return;
-  }
+#if defined(DART_PRECOMPILED_RUNTIME)
+  __ Stop("Not using interpreter")
+#else
   __ EnterStubFrame();
 
 #if defined(DEBUG)
@@ -2782,6 +2780,7 @@ void StubCodeCompiler::GenerateInterpretCallStub(Assembler* assembler) {
 
   __ LeaveStubFrame();
   __ Ret();
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 // R9: Contains an ICData.
@@ -3773,4 +3772,4 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsMayShareFunctionTAStub(
 
 }  // namespace dart
 
-#endif  // defined(TARGET_ARCH_ARM)
+#endif  // defined(TARGET_ARCH_ARM) && !defined(DART_PRECOMPILED_RUNTIME)

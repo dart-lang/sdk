@@ -11,7 +11,7 @@
 
 #include "vm/compiler/stub_code_compiler.h"
 
-#if defined(TARGET_ARCH_IA32)
+#if defined(TARGET_ARCH_IA32) && !defined(DART_PRECOMPILED_RUNTIME)
 
 #include "vm/class_id.h"
 #include "vm/code_entry_kind.h"
@@ -3029,4 +3029,4 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsMayShareFunctionTAStub(
 
 }  // namespace dart
 
-#endif  // defined(TARGET_ARCH_IA32)
+#endif  // defined(TARGET_ARCH_IA32) && !defined(DART_PRECOMPILED_RUNTIME)

@@ -11,6 +11,8 @@
 #include "vm/growable_array.h"
 #include "vm/object_store.h"
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
 namespace dart {
 namespace kernel {
 
@@ -1144,3 +1146,5 @@ Fragment BaseFlowGraphBuilder::InitConstantParameters() {
 
 }  // namespace kernel
 }  // namespace dart
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/compiler/frontend/flow_graph_builder.h"
 
 #include "vm/compiler/backend/branch_optimizer.h"
@@ -388,3 +390,5 @@ bool SimpleInstanceOfType(const AbstractType& type) {
 }
 
 }  // namespace dart
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)

@@ -13,6 +13,8 @@
 #include "vm/stack_frame.h"
 #include "vm/stack_frame_kbc.h"
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
 #define B (flow_graph_builder_)
 #define Z (zone_)
 
@@ -2346,3 +2348,5 @@ FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
 
 }  // namespace kernel
 }  // namespace dart
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)

@@ -4,6 +4,8 @@
 
 #include "vm/compiler/backend/slot.h"
 
+#ifndef DART_PRECOMPILED_RUNTIME
+
 #include "vm/compiler/compiler_state.h"
 #include "vm/hash_map.h"
 #include "vm/parser.h"
@@ -321,3 +323,5 @@ intptr_t Slot::Hashcode() const {
 }
 
 }  // namespace dart
+
+#endif  // DART_PRECOMPILED_RUNTIME

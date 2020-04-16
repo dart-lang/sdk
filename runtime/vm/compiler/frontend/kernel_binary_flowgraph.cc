@@ -13,6 +13,8 @@
 #include "vm/object_store.h"
 #include "vm/stack_frame.h"
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
 namespace dart {
 
 DECLARE_FLAG(bool, enable_interpreter);
@@ -5268,3 +5270,5 @@ Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction() {
 
 }  // namespace kernel
 }  // namespace dart
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)

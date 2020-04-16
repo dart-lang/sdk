@@ -5,9 +5,7 @@
 #ifndef RUNTIME_VM_COMPILER_COMPILER_PASS_H_
 #define RUNTIME_VM_COMPILER_COMPILER_PASS_H_
 
-#if defined(DART_PRECOMPILED_RUNTIME)
-#error "AOT runtime should not use compiler sources (including header files)"
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
+#ifndef DART_PRECOMPILED_RUNTIME
 
 #include <initializer_list>
 
@@ -202,5 +200,7 @@ class CompilerPass {
 };
 
 }  // namespace dart
+
+#endif
 
 #endif  // RUNTIME_VM_COMPILER_COMPILER_PASS_H_

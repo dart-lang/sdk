@@ -55,10 +55,12 @@ class MethodRecognizer : public AllStatic {
   static intptr_t MethodKindToReceiverCid(Kind kind);
   static const char* KindToCString(Kind kind);
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
   static void InitializeState();
 
  private:
   static void Libraries(GrowableArray<Library*>* libs);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 };
 
 // Recognizes token corresponding to a method name.
@@ -67,11 +69,13 @@ class MethodTokenRecognizer : public AllStatic {
   static Token::Kind RecognizeTokenKind(const String& name);
 };
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 #define CHECK_FINGERPRINT2(f, p0, p1, fp)                                      \
   ASSERT(f.CheckSourceFingerprint(#p0 ", " #p1, fp))
 
 #define CHECK_FINGERPRINT3(f, p0, p1, p2, fp)                                  \
   ASSERT(f.CheckSourceFingerprint(#p0 ", " #p1 ", " #p2, fp))
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 // Class that recognizes factories and returns corresponding result cid.
 class FactoryRecognizer : public AllStatic {

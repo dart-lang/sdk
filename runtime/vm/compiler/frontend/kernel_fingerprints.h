@@ -5,12 +5,10 @@
 #ifndef RUNTIME_VM_COMPILER_FRONTEND_KERNEL_FINGERPRINTS_H_
 #define RUNTIME_VM_COMPILER_FRONTEND_KERNEL_FINGERPRINTS_H_
 
-#if defined(DART_PRECOMPILED_RUNTIME)
-#error "AOT runtime should not use compiler sources (including header files)"
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
-
 #include "platform/allocation.h"
 #include "vm/object.h"
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 namespace kernel {
@@ -25,4 +23,5 @@ class KernelSourceFingerprintHelper : public AllStatic {
 }  // namespace kernel
 }  // namespace dart
 
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 #endif  // RUNTIME_VM_COMPILER_FRONTEND_KERNEL_FINGERPRINTS_H_

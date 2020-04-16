@@ -8,6 +8,8 @@
 #include "vm/constants_kbc.h"
 #include "vm/hash.h"
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
 namespace dart {
 namespace kernel {
 
@@ -205,3 +207,5 @@ uint32_t BytecodeFingerprintHelper::CalculateFunctionFingerprint(
 
 }  // namespace kernel
 }  // namespace dart
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)

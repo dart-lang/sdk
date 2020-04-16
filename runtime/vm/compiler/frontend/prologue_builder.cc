@@ -15,6 +15,7 @@
 #include "vm/resolver.h"
 #include "vm/stack_frame.h"
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 namespace dart {
 namespace kernel {
 
@@ -529,3 +530,5 @@ void PrologueBuilder::SortOptionalNamedParametersInto(int* opt_param_position,
 
 }  // namespace kernel
 }  // namespace dart
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)

@@ -14,12 +14,16 @@
 
 namespace dart {
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 DECLARE_FLAG(bool, check_code_pointer);
 DECLARE_FLAG(bool, inline_alloc);
 DECLARE_FLAG(bool, precompiled_mode);
 DECLARE_FLAG(bool, use_slow_path);
+#endif
 
 namespace compiler {
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
 
 Assembler::Assembler(ObjectPoolBuilder* object_pool_builder,
                      bool use_far_branches)
@@ -2295,6 +2299,8 @@ Address Assembler::ElementAddressForRegIndex(bool is_external,
                         target::Instance::DataOffsetFor(cid));
   }
 }
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace compiler
 }  // namespace dart
