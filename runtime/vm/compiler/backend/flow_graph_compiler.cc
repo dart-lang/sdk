@@ -44,8 +44,6 @@ DEFINE_FLAG(bool,
 
 DEFINE_FLAG(bool, enable_peephole, true, "Enable peephole optimization");
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 DEFINE_FLAG(bool,
             enable_simd_inline,
             true,
@@ -2788,6 +2786,5 @@ void FlowGraphCompiler::EmitMoveConst(const compiler::ffi::NativeLocation& dst,
 }
 
 #undef __
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace dart

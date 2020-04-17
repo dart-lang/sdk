@@ -12,8 +12,6 @@ namespace compiler {
 
 namespace ffi {
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 RawFunction* NativeCallbackFunction(const Function& c_signature,
                                     const Function& dart_target,
                                     const Instance& exceptional_return) {
@@ -65,8 +63,6 @@ RawFunction* NativeCallbackFunction(const Function& c_signature,
 
   return function.raw();
 }
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace ffi
 

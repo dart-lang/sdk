@@ -13,7 +13,6 @@
 
 #include "vm/simulator.h"
 
-#include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/constants.h"
 #include "vm/cpu.h"

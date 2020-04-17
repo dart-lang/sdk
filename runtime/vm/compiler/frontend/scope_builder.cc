@@ -7,8 +7,6 @@
 #include "vm/compiler/backend/il.h"  // For CompileType.
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 namespace dart {
 namespace kernel {
 
@@ -1858,5 +1856,3 @@ void ScopeBuilder::LookupCapturedVariableByName(LocalVariable** variable,
 
 }  // namespace kernel
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

@@ -16,8 +16,6 @@ namespace compiler {
 
 namespace ffi {
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 // Argument #0 is the function pointer.
 const intptr_t kNativeParamsStartAt = 1;
 
@@ -302,8 +300,6 @@ intptr_t NativeCallingConvention::StackTopInBytes() const {
   }
   return Utils::RoundUp(max_height_in_bytes, compiler::target::kWordSize);
 }
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace ffi
 

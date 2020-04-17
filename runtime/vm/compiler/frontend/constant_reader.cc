@@ -4,8 +4,6 @@
 
 #include "vm/compiler/frontend/constant_reader.h"
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 namespace dart {
 namespace kernel {
 
@@ -328,5 +326,3 @@ RawInstance* ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
 
 }  // namespace kernel
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

@@ -12,8 +12,6 @@ namespace compiler {
 
 namespace ffi {
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 // TODO(dartbug.com/36607): Cache the trampolines.
 RawFunction* TrampolineFunction(const Function& dart_signature,
                                 const Function& c_signature) {
@@ -54,8 +52,6 @@ RawFunction* TrampolineFunction(const Function& dart_signature,
 
   return function.raw();
 }
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace ffi
 
