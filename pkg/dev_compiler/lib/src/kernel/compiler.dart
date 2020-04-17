@@ -2748,35 +2748,28 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
       helperCall = 'gFnType(#)';
 
-      /// Whether the type parameter [t] has an explicit bound, like
-      /// `<T extends C>`, `<T extends Object>` or `<T extends dynamic>`.
+      /// Returns `true` when the type parameter [t] has a `Object*` bound
+      /// either implicit `<T>` or explicit `<T extends Object>` written in a
+      /// legacy library.
       ///
-      /// In contrast, a type parameter like `<T>` has an implicit bound.
-      /// Implicit bounds are a bit unusual, in that `Object` is used as the
-      /// bound for checking, but `dynamic` is filled in as the default value.
-      ///
-      /// Kernel represents `<T>` as `<T extends Object = dynamic>`. We can find
-      /// explicit bounds by looking for anything *except* that.
-      bool typeParameterHasExplicitBound(TypeParameter t) =>
-          t.bound != _types.coreTypes.objectLegacyRawType ||
-          t.defaultType != const DynamicType();
+      /// Note: Kernel represents these differently in the default values.
+      /// `<T extends Object* = dynamic>` vs `<T extends Object* = Object*>` but
+      /// at runtime we treat both as having a default value of dynamic as it is
+      /// correct for the cases that appear more frequently.
+      bool typeParameterHasLegacyTopBound(TypeParameter t) =>
+          t.bound == _types.coreTypes.objectLegacyRawType;
 
-      // If any explicit bounds were passed, emit them.
-      if (typeFormals.any(typeParameterHasExplicitBound)) {
+      // Avoid emitting these bounds when possible and interpret the empty
+      // bounds at runtime to mean all bounds are `Object*`.
+      // TODO(nshahan) Revisit this representation when more libraries have
+      // migrated to null safety.
+      if (!typeFormals.every(typeParameterHasLegacyTopBound)) {
         /// Emits the bound of the type parameter [t] for use in runtime
-        /// checking and the default value (e.g. for dynamic class).
+        /// checking.
         ///
-        /// For most type parameters we can use [TypeParameter.bound]. However,
-        /// for *implicit* bounds such as `<T>` (represented in Kernel as
-        /// `<T extends Object = dynamic>`) we need to emit `dynamic` so we use
-        /// the correct default value at runtime.
-        ///
-        /// Because `dynamic` and `Object` are both top types, they'll behave
-        /// identically for the purposes of type checks.
+        /// Default values e.g. dynamic get replaced at runtime.
         js_ast.Expression emitTypeParameterBound(TypeParameter t) =>
-            typeParameterHasExplicitBound(t)
-                ? _emitType(t.bound)
-                : visitDynamicType(const DynamicType());
+            _emitType(t.bound);
 
         var bounds = typeFormals.map(emitTypeParameterBound).toList();
         typeParts.add(addTypeFormalsAsParameters(bounds));
