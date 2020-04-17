@@ -543,3 +543,17 @@ class MemberSuggestionBuilder {
     return toRelevance(score, Relevance.member);
   }
 }
+
+/// An object used to build a list of suggestions in response to a single
+/// completion request.
+class SuggestionBuilder {
+  /// The completion request for which suggestions are being built.
+  final DartCompletionRequest request;
+
+  /// A collection of completion suggestions.
+  final List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
+
+  /// Initialize a newly created suggestion builder to build suggestions for the
+  /// given [request].
+  SuggestionBuilder(this.request);
+}

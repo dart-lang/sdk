@@ -16,7 +16,7 @@ import 'package:analyzer/dart/element/element.dart';
 class CombinatorContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
-      DartCompletionRequest request) async {
+      DartCompletionRequest request, SuggestionBuilder builder) async {
     var node = request.target.containingNode;
     if (node is! Combinator) {
       return const <CompletionSuggestion>[];

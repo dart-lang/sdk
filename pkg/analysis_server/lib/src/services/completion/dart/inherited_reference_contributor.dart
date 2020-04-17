@@ -21,14 +21,14 @@ import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart'
 /// via an implicit target of `this`.
 class InheritedReferenceContributor extends DartCompletionContributor {
   /// The builder used to build the suggestions.
-  MemberSuggestionBuilder builder;
+  MemberSuggestionBuilder memberBuilder;
 
   /// The kind of suggestion to make.
   CompletionSuggestionKind kind;
 
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
-      DartCompletionRequest request) async {
+      DartCompletionRequest request, SuggestionBuilder builder) async {
     if (!request.includeIdentifiers) {
       return const <CompletionSuggestion>[];
     }
@@ -40,7 +40,7 @@ class InheritedReferenceContributor extends DartCompletionContributor {
     var classOrMixin = member.parent;
     if (classOrMixin is ClassOrMixinDeclaration &&
         classOrMixin.declaredElement != null) {
-      builder = MemberSuggestionBuilder(request);
+      memberBuilder = MemberSuggestionBuilder(request);
       return _computeSuggestionsForClass(classOrMixin.declaredElement, request);
     }
     return const <CompletionSuggestion>[];
@@ -54,12 +54,12 @@ class InheritedReferenceContributor extends DartCompletionContributor {
       for (var accessor in type.accessors) {
         if (accessor.isGetter) {
           if (opType.includeReturnValueSuggestions) {
-            builder.addSuggestionForAccessor(
+            memberBuilder.addSuggestionForAccessor(
                 accessor: accessor, inheritanceDistance: inheritanceDistance);
           }
         } else {
           if (opType.includeVoidReturnSuggestions) {
-            builder.addSuggestionForAccessor(
+            memberBuilder.addSuggestionForAccessor(
                 accessor: accessor, inheritanceDistance: inheritanceDistance);
           }
         }
@@ -67,20 +67,20 @@ class InheritedReferenceContributor extends DartCompletionContributor {
     }
     for (var method in type.methods) {
       if (method.returnType == null) {
-        builder.addSuggestionForMethod(
+        memberBuilder.addSuggestionForMethod(
             method: method,
             inheritanceDistance: inheritanceDistance,
             kind: kind);
       } else if (!method.returnType.isVoid) {
         if (opType.includeReturnValueSuggestions) {
-          builder.addSuggestionForMethod(
+          memberBuilder.addSuggestionForMethod(
               method: method,
               inheritanceDistance: inheritanceDistance,
               kind: kind);
         }
       } else {
         if (opType.includeVoidReturnSuggestions) {
-          var suggestion = builder.addSuggestionForMethod(
+          var suggestion = memberBuilder.addSuggestionForMethod(
               method: method,
               inheritanceDistance: inheritanceDistance,
               kind: kind);
@@ -105,7 +105,7 @@ class InheritedReferenceContributor extends DartCompletionContributor {
       _addSuggestionsForType(type, request, inheritanceDistance,
           isFunctionalArgument: isFunctionalArgument);
     }
-    return builder.suggestions.toList();
+    return memberBuilder.suggestions.toList();
   }
 
   /// Return the class member containing the target or `null` if the target is

@@ -17,7 +17,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 class NamedConstructorContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
-      DartCompletionRequest request) async {
+      DartCompletionRequest request, SuggestionBuilder builder) async {
     var node = request.target.containingNode;
     var libraryElement = request.libraryElement;
     if (libraryElement == null) {

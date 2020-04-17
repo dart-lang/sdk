@@ -9,6 +9,7 @@ import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart'
     show DartCompletionManager, DartCompletionRequestImpl;
+import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
@@ -53,7 +54,9 @@ abstract class DartCompletionContributorTest
   @override
   Future<List<CompletionSuggestion>> computeContributedSuggestions(
       DartCompletionRequest request) async {
-    return contributor.computeSuggestions(request);
+    var builder = SuggestionBuilder(request);
+    var suggestions = await contributor.computeSuggestions(request, builder);
+    return [...suggestions, ...builder.suggestions];
   }
 
   DartCompletionContributor createContributor();

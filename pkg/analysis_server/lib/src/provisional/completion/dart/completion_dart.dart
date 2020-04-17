@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
+import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -23,8 +24,10 @@ export 'package:analyzer_plugin/utilities/completion/relevance.dart';
 abstract class DartCompletionContributor {
   /// Return a [Future] that completes with a list of suggestions
   /// for the given completion [request].
+  // TODO(brianwilkerson) When all of the suggestions are being built using the
+  //  builder, change the return type to `Future<void>`.
   Future<List<CompletionSuggestion>> computeSuggestions(
-      DartCompletionRequest request);
+      DartCompletionRequest request, SuggestionBuilder builder);
 }
 
 /// The information about a requested list of completions within a Dart file.

@@ -23,7 +23,7 @@ import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor
 class TypeMemberContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
-      DartCompletionRequest request) async {
+      DartCompletionRequest request, SuggestionBuilder builder) async {
     var containingLibrary = request.libraryElement;
     // Gracefully degrade if the library could not be determined, such as with a
     // detached part file or source change.

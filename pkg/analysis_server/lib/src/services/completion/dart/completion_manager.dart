@@ -30,6 +30,7 @@ import 'package:analysis_server/src/services/completion/dart/local_reference_con
 import 'package:analysis_server/src/services/completion/dart/named_constructor_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/override_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/static_member_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/type_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/variable_name_contributor.dart';
@@ -122,6 +123,7 @@ class DartCompletionManager implements CompletionContributor {
     // Request Dart specific completions from each contributor
     var suggestionMap = <String, CompletionSuggestion>{};
     var constructorMap = <String, List<String>>{};
+    var builder = SuggestionBuilder(dartRequest);
     var contributors = <DartCompletionContributor>[
       ArgListContributor(),
       CombinatorContributor(),
@@ -150,38 +152,47 @@ class DartCompletionManager implements CompletionContributor {
       contributors.add(ImportedReferenceContributor());
     }
 
+    void addSuggestionToMap(CompletionSuggestion newSuggestion) {
+      // TODO(brianwilkerson) After all contributors are using SuggestionBuilder
+      //  move this logic into SuggestionBuilder.
+      var key = newSuggestion.completion;
+
+      // Append parenthesis for constructors to disambiguate from classes.
+      if (_isConstructor(newSuggestion)) {
+        key += '()';
+        var className = _getConstructorClassName(newSuggestion);
+        _ensureList(constructorMap, className).add(key);
+      }
+
+      // Local declarations hide both the class and its constructors.
+      if (!_isClass(newSuggestion)) {
+        var constructorKeys = constructorMap[key];
+        constructorKeys?.forEach(suggestionMap.remove);
+      }
+
+      var oldSuggestion = suggestionMap[key];
+      if (oldSuggestion == null ||
+          oldSuggestion.relevance < newSuggestion.relevance) {
+        suggestionMap[key] = newSuggestion;
+      }
+    }
+
     try {
       for (var contributor in contributors) {
         var contributorTag =
             'DartCompletionManager - ${contributor.runtimeType}';
         performance.logStartTime(contributorTag);
         var contributorSuggestions =
-            await contributor.computeSuggestions(dartRequest);
+            await contributor.computeSuggestions(dartRequest, builder);
         performance.logElapseTime(contributorTag);
         request.checkAborted();
 
         for (var newSuggestion in contributorSuggestions) {
-          var key = newSuggestion.completion;
-
-          // Append parenthesis for constructors to disambiguate from classes.
-          if (_isConstructor(newSuggestion)) {
-            key += '()';
-            var className = _getConstructorClassName(newSuggestion);
-            _ensureList(constructorMap, className).add(key);
-          }
-
-          // Local declarations hide both the class and its constructors.
-          if (!_isClass(newSuggestion)) {
-            var constructorKeys = constructorMap[key];
-            constructorKeys?.forEach(suggestionMap.remove);
-          }
-
-          var oldSuggestion = suggestionMap[key];
-          if (oldSuggestion == null ||
-              oldSuggestion.relevance < newSuggestion.relevance) {
-            suggestionMap[key] = newSuggestion;
-          }
+          addSuggestionToMap(newSuggestion);
         }
+      }
+      for (var newSuggestion in builder.suggestions) {
+        addSuggestionToMap(newSuggestion);
       }
     } on InconsistentAnalysisException {
       // The state of the code being analyzed has changed, so results are likely
