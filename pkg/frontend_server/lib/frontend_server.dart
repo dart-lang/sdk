@@ -913,46 +913,45 @@ class FrontendCompiler implements CompilerInterface {
       Map<String, String> jsFrameValues,
       String moduleName,
       String expression) async {
-    final String boundaryKey = Uuid().generateV4();
-    _outputStream.writeln('result $boundaryKey');
-
     _generator.accept();
     errors.clear();
 
-    if (_bundler != null) {
-      var kernel2jsCompiler = _bundler.compilers[moduleName];
-      if (kernel2jsCompiler == null) {
-        throw Exception('Cannot find kernel2js compiler for $moduleName. '
-            'Compilers are avaiable for modules: '
-            '\n\t${_bundler.compilers.keys.toString()}');
-      }
-      assert(kernel2jsCompiler != null);
+    if (_bundler == null) {
+      reportError('JavaScript bundler is null');
+      return;
+    }
+    if (!_bundler.compilers.containsKey(moduleName)) {
+      reportError('Cannot find kernel2js compiler for $moduleName.');
+      return;
+    }
 
-      var evaluator = new ExpressionCompiler(
-          _generator.generator, kernel2jsCompiler, _component,
-          verbose: _compilerOptions.verbose,
-          onDiagnostic: _compilerOptions.onDiagnostic);
+    final String boundaryKey = Uuid().generateV4();
+    _outputStream.writeln('result $boundaryKey');
 
-      var procedure = await evaluator.compileExpressionToJs(libraryUri, line,
-          column, jsModules, jsFrameValues, moduleName, expression);
+    var kernel2jsCompiler = _bundler.compilers[moduleName];
 
-      var result = errors.length > 0 ? errors[0] : procedure;
+    var evaluator = new ExpressionCompiler(
+        _generator.generator, kernel2jsCompiler, _component,
+        verbose: _compilerOptions.verbose,
+        onDiagnostic: _compilerOptions.onDiagnostic);
 
-      // TODO(annagrin): kernelBinaryFilename is too specific
-      // rename to _outputFileName?
-      await File(_kernelBinaryFilename).writeAsString(result);
+    var procedure = await evaluator.compileExpressionToJs(libraryUri, line,
+        column, jsModules, jsFrameValues, moduleName, expression);
 
-      _outputStream
-          .writeln('$boundaryKey $_kernelBinaryFilename ${errors.length}');
+    var result = errors.length > 0 ? errors[0] : procedure;
 
-      // TODO(annagrin): do we need to add asserts/error reporting if
-      // initial compilation didn't happen and _kernelBinaryFilename
-      // is different from below?
-      if (procedure != null) {
-        _kernelBinaryFilename = _kernelBinaryFilenameIncremental;
-      }
-    } else {
-      _outputStream.writeln('$boundaryKey');
+    // TODO(annagrin): kernelBinaryFilename is too specific
+    // rename to _outputFileName?
+    await File(_kernelBinaryFilename).writeAsString(result);
+
+    _outputStream
+        .writeln('$boundaryKey $_kernelBinaryFilename ${errors.length}');
+
+    // TODO(annagrin): do we need to add asserts/error reporting if
+    // initial compilation didn't happen and _kernelBinaryFilename
+    // is different from below?
+    if (procedure != null) {
+      _kernelBinaryFilename = _kernelBinaryFilenameIncremental;
     }
   }
 
