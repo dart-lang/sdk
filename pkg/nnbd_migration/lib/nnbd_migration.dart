@@ -13,6 +13,8 @@ import 'package:meta/meta.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/nullability_migration_impl.dart';
 
+export 'package:nnbd_migration/src/utilities/hint_utils.dart' show HintComment;
+
 /// Description of fixes that might be performed by nullability migration.
 class NullabilityFixDescription {
   /// An if-test or conditional expression needs to have its condition and

@@ -68,7 +68,7 @@ class UnitRenderer {
     var editListsByKind = <NullabilityFixKind, List<EditListItem>>{};
     for (var region in unitInfo.fixRegions) {
       var kind = region.kind;
-      if (kind != null) {
+      if (kind != null && region.isCounted) {
         (editListsByKind[kind] ??= []).add(EditListItem(
             line: region.lineNumber,
             explanation: region.explanation,

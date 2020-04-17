@@ -157,6 +157,9 @@ class RegionInfo {
   /// The kind of fix that was applied.
   final NullabilityFixKind kind;
 
+  /// Indicates whether this region should be counted in the edit summary.
+  final bool isCounted;
+
   /// A list of the edits that are related to this range.
   List<EditDetail> edits;
 
@@ -166,7 +169,7 @@ class RegionInfo {
 
   /// Initialize a newly created region.
   RegionInfo(this.regionType, this.offset, this.length, this.lineNumber,
-      this.explanation, this.kind,
+      this.explanation, this.kind, this.isCounted,
       {this.edits = const [], this.traces = const []});
 }
 
@@ -284,9 +287,16 @@ class UnitInfo {
           return region;
         }
         // TODO: adjust traces
-        return RegionInfo(region.regionType, region.offset + length,
-            region.length, region.lineNumber, region.explanation, region.kind,
-            edits: region.edits, traces: region.traces);
+        return RegionInfo(
+            region.regionType,
+            region.offset + length,
+            region.length,
+            region.lineNumber,
+            region.explanation,
+            region.kind,
+            region.isCounted,
+            edits: region.edits,
+            traces: region.traces);
       }));
 
       diskChangesOffsetMapper = OffsetMapper.sequence(

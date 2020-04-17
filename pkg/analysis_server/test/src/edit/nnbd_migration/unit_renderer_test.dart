@@ -77,6 +77,18 @@ bool  b = a!.isEven;
         equals('Added a non-null assertion to nullable expression'));
   }
 
+  Future<void> test_editList_countsHintAcceptanceSingly() async {
+    await buildInfoForSingleTestFile('int f(int/*?*/ x) => x/*!*/;',
+        migratedContent: 'int  f(int/*?*/ x) => x/*!*/;');
+    var output = renderUnits()[0];
+    expect(
+        output.edits.keys,
+        unorderedEquals([
+          '1 null check hint converted to null check',
+          '1 nullability hint converted to ?'
+        ]));
+  }
+
   Future<void> test_editList_pluralHeader() async {
     await buildInfoForSingleTestFile('''
 int a = null;

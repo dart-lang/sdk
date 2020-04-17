@@ -288,6 +288,7 @@ class InfoBuilder {
     var regions = unitInfo.regions;
     var lineInfo = result.unit.lineInfo;
     var insertions = <int, List<AtomicEdit>>{};
+    var hintsSeen = <HintComment>{};
 
     // Apply edits and build the regions.
     var changes = sourceInfo.changes ?? {};
@@ -315,27 +316,29 @@ class InfoBuilder {
         var lineNumber = lineInfo.getLocation(sourceOffset).lineNumber;
         var traces = info == null ? const [] : _computeTraces(info.fixReasons);
         var description = info?.description;
+        var hint = info?.hintComment;
+        var isCounted = hint == null || hintsSeen.add(hint);
         if (description != null) {
           var explanation = description.appliedMessage;
           var kind = description.kind;
           if (edit.isInformative) {
             regions.add(RegionInfo(RegionType.informative, offset,
-                replacement.length, lineNumber, explanation, kind,
+                replacement.length, lineNumber, explanation, kind, isCounted,
                 edits: edits, traces: traces));
           } else if (edit.isInsertion) {
             regions.add(RegionInfo(RegionType.add, offset, replacement.length,
-                lineNumber, explanation, kind,
+                lineNumber, explanation, kind, isCounted,
                 edits: edits, traces: traces));
           } else if (edit.isDeletion) {
             regions.add(RegionInfo(RegionType.remove, offset, length,
-                lineNumber, explanation, kind,
+                lineNumber, explanation, kind, isCounted,
                 edits: edits, traces: traces));
           } else if (edit.isReplacement) {
             regions.add(RegionInfo(RegionType.remove, offset, length,
-                lineNumber, explanation, kind,
+                lineNumber, explanation, kind, isCounted,
                 edits: edits, traces: traces));
             regions.add(RegionInfo(RegionType.add, end, replacement.length,
-                lineNumber, explanation, kind,
+                lineNumber, explanation, kind, isCounted,
                 edits: edits, traces: traces));
           } else {
             throw StateError(
