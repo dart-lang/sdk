@@ -50,7 +50,7 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
       Object explanation = anything,
       Object edits = anything,
       Object traces = anything,
-      NullabilityFixKind kind = NullabilityFixKind.makeTypeNullable}) {
+      Object kind = NullabilityFixKind.makeTypeNullable}) {
     if (offset != null) {
       expect(region.offset, offset);
       expect(region.length, length ?? 1);
@@ -59,6 +59,36 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
     expect(region.edits, edits);
     expect(region.explanation, explanation);
     expect(region.traces, traces);
+  }
+
+  /// Asserts various properties of the pair of [regions], `regions[index]` and
+  /// `regions[index + 1]`.  The expected offsets and lengths are specified
+  /// separately; everything else is asserted using the same matcher.
+  void assertRegionPair(List<RegionInfo> regions, int index,
+      {int offset1,
+      int length1,
+      int offset2,
+      int length2,
+      Object explanation = anything,
+      Object edits = anything,
+      Object traces = anything,
+      Object kind = anything}) {
+    assertRegion(
+        region: regions[index],
+        offset: offset1,
+        length: length1,
+        explanation: explanation,
+        edits: edits,
+        traces: traces,
+        kind: kind);
+    assertRegion(
+        region: regions[index + 1],
+        offset: offset2,
+        length: length2,
+        explanation: explanation,
+        edits: edits,
+        traces: traces,
+        kind: kind);
   }
 
   /// Uses the InfoBuilder to build information for [testFile].

@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
+import 'package:nnbd_migration/src/utilities/hint_utils.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -57,6 +58,59 @@ class EditPlanTest extends AbstractSingleUnitTest {
 
   NodeProducingEditPlan extract(AstNode inner, AstNode outer) =>
       planner.extract(outer, planner.passThrough(inner));
+
+  Future<void> test_acceptLateHint() async {
+    var code = '/* late */ int x = 0;';
+    await analyze(code);
+    var hint = getPrefixHint(findNode.simple('int').token);
+    checkPlan(
+        planner.acceptLateHint(
+            planner.passThrough(findNode.simple('int')), hint),
+        'late int x = 0;');
+  }
+
+  Future<void> test_acceptLateHint_space_needed_after() async {
+    var code = '/* late */int x = 0;';
+    await analyze(code);
+    var hint = getPrefixHint(findNode.simple('int').token);
+    checkPlan(
+        planner.acceptLateHint(
+            planner.passThrough(findNode.simple('int')), hint),
+        'late int x = 0;');
+  }
+
+  Future<void> test_acceptLateHint_space_needed_before() async {
+    var code = '@deprecated/* late */ int x = 0;';
+    await analyze(code);
+    var hint = getPrefixHint(findNode.simple('int').token);
+    checkPlan(
+        planner.acceptLateHint(
+            planner.passThrough(findNode.simple('int')), hint),
+        '@deprecated late int x = 0;');
+  }
+
+  Future<void> test_acceptNullabilityOrNullCheckHint() async {
+    var code = 'int /*?*/ x = 0;';
+    await analyze(code);
+    var intRef = findNode.simple('int');
+    var typeName = planner.passThrough(intRef);
+    checkPlan(
+        planner.acceptNullabilityOrNullCheckHint(
+            typeName, getPostfixHint(intRef.token)),
+        'int? x = 0;');
+  }
+
+  Future<void> test_acceptNullabilityOrNullCheckHint_inside_extract() async {
+    var code = 'f(x) => 3 * x /*!*/ * 4;';
+    await analyze(code);
+    var xRef = findNode.simple('x /*');
+    checkPlan(
+        planner.extract(
+            xRef.parent.parent,
+            planner.acceptNullabilityOrNullCheckHint(
+                planner.passThrough(xRef), getPostfixHint(xRef.token))),
+        'f(x) => x!;');
+  }
 
   Future<void> test_addBinaryPostfix_assignment_right_associative() async {
     await analyze('_f(a, b, c) => a = b;');
@@ -286,6 +340,50 @@ class EditPlanTest extends AbstractSingleUnitTest {
       expect(plan.endsInCascade, false);
       checkPlan(plan, 'f(a, c) => a..b = (c = 1..isEven);');
     }
+  }
+
+  Future<void> test_dropNullabilityHint() async {
+    var code = 'int /*!*/ x = 0;';
+    await analyze(code);
+    var intRef = findNode.simple('int');
+    var typeName = planner.passThrough(intRef);
+    checkPlan(
+        planner.dropNullabilityHint(typeName, getPostfixHint(intRef.token)),
+        'int x = 0;');
+  }
+
+  Future<void> test_dropNullabilityHint_space_before_must_be_kept() async {
+    var code = 'int /*!*/x = 0;';
+    await analyze(code);
+    var intRef = findNode.simple('int');
+    var typeName = planner.passThrough(intRef);
+    var changes = checkPlan(
+        planner.dropNullabilityHint(typeName, getPostfixHint(intRef.token)),
+        'int x = 0;');
+    expect(changes.keys, unorderedEquals([code.indexOf('/*')]));
+  }
+
+  Future<void> test_dropNullabilityHint_space_needed() async {
+    var code = 'int/*!*/x = 0;';
+    await analyze(code);
+    var intRef = findNode.simple('int');
+    var typeName = planner.passThrough(intRef);
+    checkPlan(
+        planner.dropNullabilityHint(typeName, getPostfixHint(intRef.token)),
+        'int x = 0;');
+  }
+
+  Future<void> test_dropNullabilityHint_tight_no_space_needed() async {
+    // We try to minimize how much we alter the source code, so we don't insert
+    // a space in this example even though it would look prettier to do so.
+    var code = 'void Function()/*!*/x = () {};';
+    await analyze(code);
+    var functionType = findNode.genericFunctionType('Function');
+    var typeName = planner.passThrough(functionType);
+    checkPlan(
+        planner.dropNullabilityHint(
+            typeName, getPostfixHint(functionType.endToken)),
+        'void Function()x = () {};');
   }
 
   Future<void> test_explainNonNullable() async {

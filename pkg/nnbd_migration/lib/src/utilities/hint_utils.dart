@@ -3,26 +3,36 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
+import 'package:nnbd_migration/src/edit_plan.dart';
 
-/// Determine if the given token is a nullability hint, and if so, return the
-/// type of nullability hint it is.
-NullabilityComment classifyComment(Token token) {
-  if (token is CommentToken) {
-    if (token.lexeme == '/*!*/') return NullabilityComment.bang;
-    if (token.lexeme == '/*?*/') return NullabilityComment.question;
-  }
-  return NullabilityComment.none;
-}
-
-/// Determine if the given [token] is followed by a nullability hint, and if so,
-/// return the type of nullability hint it is followed by.
-NullabilityComment getPostfixHint(Token token) {
+/// Determines if the given [token] is followed by a nullability hint, and if
+/// so, returns information about it.  Otherwise returns `null`.
+HintComment getPostfixHint(Token token) {
   var commentToken = token.next.precedingComments;
-  var commentType = classifyComment(commentToken);
-  return commentType;
+  if (commentToken != null) {
+    HintCommentKind kind;
+    if (commentToken.lexeme == '/*!*/') {
+      kind = HintCommentKind.bang;
+    } else if (commentToken.lexeme == '/*?*/') {
+      kind = HintCommentKind.question;
+    } else {
+      return null;
+    }
+    return HintComment(
+        kind,
+        token.end,
+        commentToken.offset,
+        commentToken.offset + '/*'.length,
+        commentToken.end - '*/'.length,
+        commentToken.end,
+        commentToken.end);
+  }
+  return null;
 }
 
-PrefixHintComment getPrefixHint(Token token) {
+/// Determines if the given [token] is preceded by a hint, and if so, returns
+/// information about it.  Otherwise returns `null`.
+HintComment getPrefixHint(Token token) {
   Token commentToken = token.precedingComments;
   if (commentToken != null) {
     while (true) {
@@ -31,16 +41,131 @@ PrefixHintComment getPrefixHint(Token token) {
       commentToken = nextComment;
     }
     var lexeme = commentToken.lexeme;
-    if (lexeme.startsWith('/*') && lexeme.endsWith('*/') && lexeme.length > 4) {
-      var commentText = lexeme.substring(2, lexeme.length - 2).trim();
-      if (commentText == 'late') return PrefixHintComment.late_;
+    if (lexeme.startsWith('/*') &&
+        lexeme.endsWith('*/') &&
+        lexeme.length > 'late'.length) {
+      var commentText =
+          lexeme.substring('/*'.length, lexeme.length - '*/'.length).trim();
+      if (commentText == 'late') {
+        var commentOffset = commentToken.offset;
+        var lateOffset = commentOffset + commentToken.lexeme.indexOf('late');
+        return HintComment(
+            HintCommentKind.late_,
+            commentOffset,
+            commentOffset,
+            lateOffset,
+            lateOffset + 'late'.length,
+            commentToken.end,
+            token.offset);
+      }
     }
   }
-  return PrefixHintComment.none;
+  return null;
 }
 
-/// Types of comments that can influence nullability
-enum NullabilityComment {
+/// Information about a hint found in a source file.
+class HintComment {
+  static final _alphaNumericRegexp = RegExp('[a-zA-Z0-9]');
+
+  /// What kind of hint this is.
+  final HintCommentKind kind;
+
+  /// The file offset of the first character that should be removed if the hint
+  /// is to be removed.
+  final int _removeOffset;
+
+  /// The file offset of the first character of the hint comment itself.
+  final int _commentOffset;
+
+  /// The file offset of the first character that should be kept if the hint is
+  /// to be replaced with the hinted text.
+  final int _keepOffset;
+
+  /// The file offset just beyond the last character that should be kept if the
+  /// hint is to be replaced with the hinted text.
+  final int _keepEnd;
+
+  /// The file offset just beyond the last character of the hint comment itself.
+  final int _commentEnd;
+
+  /// The file offset just beyond the last character that should be removed if
+  /// the hint is to be removed.
+  final int _removeEnd;
+
+  HintComment(this.kind, this._removeOffset, this._commentOffset,
+      this._keepOffset, this._keepEnd, this._commentEnd, this._removeEnd)
+      : assert(_removeOffset <= _commentOffset),
+        assert(_commentOffset < _keepOffset),
+        assert(_keepOffset < _keepEnd),
+        assert(_keepEnd < _commentEnd),
+        assert(_commentEnd <= _removeEnd);
+
+  /// Creates the changes necessary to accept the given hint (replace it with
+  /// its contents and fix up whitespace).
+  Map<int, List<AtomicEdit>> changesToAccept(String sourceText,
+      {AtomicEditInfo info}) {
+    return {
+      _removeOffset: [
+        if (_isAlphaNumericBeforeOffset(sourceText, _removeOffset) &&
+            _isAlphaNumericAtOffset(sourceText, _keepOffset))
+          AtomicEdit.insert(' '),
+        AtomicEdit.delete(_keepOffset - _removeOffset, info: info)
+      ],
+      _keepEnd: [AtomicEdit.delete(_removeEnd - _keepEnd, info: info)],
+      if (_isAlphaNumericBeforeOffset(sourceText, _keepEnd) &&
+          _isAlphaNumericAtOffset(sourceText, _removeEnd))
+        _removeEnd: [AtomicEdit.insert(' ')]
+    };
+  }
+
+  /// Creates the changes necessary to remove the given hint (and fix up
+  /// whitespace).
+  Map<int, List<AtomicEdit>> changesToRemove(String sourceText,
+      {AtomicEditInfo info}) {
+    bool appendSpace = false;
+    var removeOffset = this._removeOffset;
+    if (_isAlphaNumericBeforeOffset(sourceText, removeOffset) &&
+        _isAlphaNumericAtOffset(sourceText, _removeEnd)) {
+      if (sourceText[removeOffset] == ' ') {
+        // We can just keep this space.
+        removeOffset++;
+      } else {
+        appendSpace = true;
+      }
+    }
+    return {
+      removeOffset: [
+        AtomicEdit.delete(_removeEnd - removeOffset, info: info),
+        if (appendSpace) AtomicEdit.insert(' ')
+      ]
+    };
+  }
+
+  /// Creates the changes necessary to replace the given hint with a different
+  /// hint.
+  Map<int, List<AtomicEdit>> changesToReplace(
+      String sourceText, String replacement,
+      {AtomicEditInfo info}) {
+    return {
+      _commentOffset: [
+        AtomicEdit.replace(_commentEnd - _commentOffset, replacement,
+            info: info)
+      ]
+    };
+  }
+
+  static bool _isAlphaNumericAtOffset(String sourceText, int offset) {
+    return offset < sourceText.length &&
+        _alphaNumericRegexp.hasMatch(sourceText[offset]);
+  }
+
+  static bool _isAlphaNumericBeforeOffset(String sourceText, int offset) {
+    return offset > 0 && _alphaNumericRegexp.hasMatch(sourceText[offset - 1]);
+  }
+}
+
+/// Types of hint comments
+enum HintCommentKind {
   /// The comment `/*!*/`, which indicates that the type should not have a `?`
   /// appended.
   bang,
@@ -49,16 +174,7 @@ enum NullabilityComment {
   /// appended.
   question,
 
-  /// No special comment.
-  none,
-}
-
-/// Types of comments that can appear before a token
-enum PrefixHintComment {
   /// The comment `/*late*/`, which indicates that the variable declaration
   /// should be late.
   late_,
-
-  /// No special comment
-  none,
 }

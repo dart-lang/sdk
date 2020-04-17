@@ -6,6 +6,7 @@ import 'package:analysis_server/src/edit/nnbd_migration/offset_mapper.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/unit_link.dart';
 import 'package:analysis_server/src/edit/preview/preview_site.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:meta/meta.dart';
@@ -29,6 +30,12 @@ class EditDetail {
 
   /// Initialize a newly created detail.
   EditDetail(this.description, this.offset, this.length, this.replacement);
+
+  /// Initializes a detail based on a [SourceEdit] object.
+  factory EditDetail.fromSourceEdit(
+          String description, SourceEdit sourceEdit) =>
+      EditDetail(description, sourceEdit.offset, sourceEdit.length,
+          sourceEdit.replacement);
 }
 
 /// A class storing rendering information for an entire migration report.

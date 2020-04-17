@@ -14,6 +14,7 @@ import 'package:meta/meta.dart';
 import 'package:nnbd_migration/fix_reason_target.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
+import 'package:nnbd_migration/src/utilities/hint_utils.dart';
 
 Map<int, List<AtomicEdit>> _removeCode(
     int offset, int end, _RemovalStyle removalStyle, AtomicEditInfo info) {
@@ -131,7 +132,11 @@ class AtomicEditInfo {
   /// The reasons for the edit.
   final Map<FixReasonTarget, FixReasonInfo> fixReasons;
 
-  AtomicEditInfo(this.description, this.fixReasons);
+  /// If the edit is being made due to a hint, the hint in question; otherwise
+  /// `null`.
+  final HintComment hintComment;
+
+  AtomicEditInfo(this.description, this.fixReasons, {this.hintComment});
 }
 
 /// An [EditPlan] is a builder capable of accumulating a set of edits to be
@@ -177,6 +182,36 @@ class EditPlanner {
   final String sourceText;
 
   EditPlanner(this.lineInfo, this.sourceText, {this.removeViaComments = false});
+
+  /// Creates a new edit plan that consists of executing [innerPlan], and then
+  /// converting the late [hint] into an explicit `late`.
+  NodeProducingEditPlan acceptLateHint(
+      NodeProducingEditPlan innerPlan, HintComment hint,
+      {AtomicEditInfo info}) {
+    var affixPlan = innerPlan is _CommentAffixPlan
+        ? innerPlan
+        : _CommentAffixPlan(innerPlan);
+    var changes = hint.changesToAccept(sourceText, info: info);
+    assert(affixPlan.offset >= _endForChanges(changes));
+    affixPlan.offset = _offsetForChanges(changes);
+    affixPlan._prefixChanges = changes + affixPlan._prefixChanges;
+    return affixPlan;
+  }
+
+  /// Creates a new edit plan that consists of executing [innerPlan], and then
+  /// converting the nullability [hint] into an explicit `?` or `!`.
+  NodeProducingEditPlan acceptNullabilityOrNullCheckHint(
+      NodeProducingEditPlan innerPlan, HintComment hint,
+      {AtomicEditInfo info}) {
+    var affixPlan = innerPlan is _CommentAffixPlan
+        ? innerPlan
+        : _CommentAffixPlan(innerPlan);
+    var changes = hint.changesToAccept(sourceText);
+    assert(affixPlan.end <= _offsetForChanges(changes));
+    affixPlan.end = _endForChanges(changes);
+    affixPlan._postfixChanges += hint.changesToAccept(sourceText, info: info);
+    return affixPlan;
+  }
 
   /// Creates a new edit plan that consists of executing [innerPlan], and then
   /// appending the given [operand], with an intervening binary [operator].
@@ -262,6 +297,21 @@ class EditPlanner {
   @visibleForTesting
   PassThroughBuilder createPassThroughBuilder(AstNode node) =>
       _PassThroughBuilderImpl(node);
+
+  /// Creates a new edit plan that consists of executing [innerPlan], and then
+  /// dropping the given nullability [hint].
+  NodeProducingEditPlan dropNullabilityHint(
+      NodeProducingEditPlan innerPlan, HintComment hint,
+      {AtomicEditInfo info}) {
+    var affixPlan = innerPlan is _CommentAffixPlan
+        ? innerPlan
+        : _CommentAffixPlan(innerPlan);
+    var changes = hint.changesToRemove(sourceText, info: info);
+    assert(affixPlan.end <= _offsetForChanges(changes));
+    affixPlan.end = _endForChanges(changes);
+    affixPlan._postfixChanges += changes;
+    return affixPlan;
+  }
 
   /// Creates a new edit plan that consists of executing [innerPlan], and then
   /// appending an informative ` `, to illustrate that the type is non-nullable.
@@ -603,6 +653,18 @@ class EditPlanner {
     return lineInfo.lineStarts[lineNumber - 1];
   }
 
+  int _endForChanges(Map<int, List<AtomicEdit>> changes) {
+    int result;
+    for (var entry in changes.entries) {
+      var end = entry.key;
+      for (var edit in entry.value) {
+        end += edit.length;
+      }
+      if (result == null || end > result) result = end;
+    }
+    return result;
+  }
+
   /// Finds the deepest entry in [builderStack] that matches an entry in
   /// [ancestryStack], taking advantage of the fact that [builderStack] walks
   /// stepwise down the AST, and [ancestryStack] walks stepwise up the AST, with
@@ -663,6 +725,14 @@ class EditPlanner {
   /// are all whitespace characters.
   bool _isWhitespaceRange(int offset, int end) {
     return sourceText.substring(offset, end).trimRight().isEmpty;
+  }
+
+  int _offsetForChanges(Map<int, List<AtomicEdit>> changes) {
+    int result;
+    for (var key in changes.keys) {
+      if (result == null || key < result) result = key;
+    }
+    return result;
   }
 
   /// If the given [node] maintains a variable-length sequence of child nodes,
@@ -783,6 +853,28 @@ abstract class PassThroughBuilder {
   /// Called when no more edit plans need to be added.  Returns the final
   /// [EditPlan].
   NodeProducingEditPlan finish(EditPlanner planner);
+}
+
+/// [EditPlan] that wraps an inner plan with optional prefix and suffix changes.
+class _CommentAffixPlan extends _NestedEditPlan {
+  Map<int, List<AtomicEdit>> _prefixChanges;
+
+  Map<int, List<AtomicEdit>> _postfixChanges;
+
+  @override
+  int offset;
+
+  @override
+  int end;
+
+  _CommentAffixPlan(NodeProducingEditPlan innerPlan)
+      : offset = innerPlan.offset,
+        end = innerPlan.end,
+        super(innerPlan.sourceNode, innerPlan);
+
+  @override
+  Map<int, List<AtomicEdit>> _getChanges(bool parens) =>
+      _prefixChanges + innerPlan._getChanges(parens) + _postfixChanges;
 }
 
 /// Visitor that determines whether a given [AstNode] ends in a cascade.

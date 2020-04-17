@@ -125,7 +125,20 @@ class InfoBuilder {
   }
 
   /// Return an edit that can be applied.
-  List<EditDetail> _computeEdits(AtomicEditInfo fixInfo, int offset) {
+  List<EditDetail> _computeEdits(
+      AtomicEditInfo fixInfo, int offset, String content) {
+    EditDetail _removeHint(String description) => EditDetail.fromSourceEdit(
+        description,
+        fixInfo.hintComment.changesToRemove(content).toSourceEdits().single);
+
+    EditDetail _changeHint(String description, String replacement) =>
+        EditDetail.fromSourceEdit(
+            description,
+            fixInfo.hintComment
+                .changesToReplace(content, replacement)
+                .toSourceEdits()
+                .single);
+
     var edits = <EditDetail>[];
     var fixKind = fixInfo.description.kind;
     switch (fixKind) {
@@ -141,7 +154,7 @@ class InfoBuilder {
         edits.add(EditDetail('Add /*!*/ hint', offset, 0, '/*!*/'));
         break;
       case NullabilityFixKind.checkExpressionDueToHint:
-        edits.add(EditDetail('Remove /*!*/ hint', offset, 5, ''));
+        edits.add(_removeHint('Remove /*!*/ hint'));
         break;
       case NullabilityFixKind.downcastExpression:
       case NullabilityFixKind.otherCastExpression:
@@ -162,12 +175,12 @@ class InfoBuilder {
         edits.add(EditDetail('Add /*?*/ hint', offset, 0, '/*?*/'));
         break;
       case NullabilityFixKind.makeTypeNullableDueToHint:
-        edits.add(EditDetail('Add /*!*/ hint', offset, 5, '/*!*/'));
-        edits.add(EditDetail('Remove /*?*/ hint', offset, 5, ''));
+        edits.add(_changeHint('Change to /*!*/ hint', '/*!*/'));
+        edits.add(_removeHint('Remove /*?*/ hint'));
         break;
       case NullabilityFixKind.typeNotMadeNullableDueToHint:
-        edits.add(EditDetail('Remove /*!*/ hint', offset, 5, ''));
-        edits.add(EditDetail('Add /*?*/ hint', offset, 5, '/*?*/'));
+        edits.add(_removeHint('Remove /*!*/ hint'));
+        edits.add(_changeHint('Change to /*?*/ hint', '/*?*/'));
         break;
     }
     return edits;
@@ -296,7 +309,9 @@ class InfoBuilder {
           (insertions[sourceOffset] ??= []).add(AtomicEdit.insert(replacement));
         }
         var info = edit.info;
-        var edits = info != null ? _computeEdits(info, sourceOffset) : [];
+        var edits = info != null
+            ? _computeEdits(info, sourceOffset, result.content)
+            : [];
         var lineNumber = lineInfo.getLocation(sourceOffset).lineNumber;
         var traces = info == null ? const [] : _computeTraces(info.fixReasons);
         var description = info?.description;

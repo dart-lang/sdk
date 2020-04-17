@@ -33,6 +33,7 @@ import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/fix_aggregator.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
+import 'package:nnbd_migration/src/utilities/hint_utils.dart';
 import 'package:nnbd_migration/src/utilities/permissive_mode.dart';
 import 'package:nnbd_migration/src/utilities/resolution_utils.dart';
 import 'package:nnbd_migration/src/variables.dart';
@@ -398,13 +399,18 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
   @override
   DartType modifyExpressionType(Expression node, DartType type) =>
       _wrapExceptions(node, () => type, () {
-        if (_fixBuilder._variables.hasNullCheckHint(_fixBuilder.source, node)) {
+        var hint =
+            _fixBuilder._variables.getNullCheckHint(_fixBuilder.source, node);
+        if (hint != null) {
           type = _addNullCheck(node, type,
               info: AtomicEditInfo(
-                  NullabilityFixDescription.checkExpressionDueToHint, {
-                FixReasonTarget.root:
-                    FixReason_NullCheckHint(CodeReference.fromAstNode(node))
-              }));
+                  NullabilityFixDescription.checkExpressionDueToHint,
+                  {
+                    FixReasonTarget.root:
+                        FixReason_NullCheckHint(CodeReference.fromAstNode(node))
+                  },
+                  hintComment: hint),
+              hint: hint);
         }
         if (type.isDynamic) return type;
         var ancestor = _findNullabilityContextAncestor(node);
@@ -464,7 +470,7 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
   }
 
   DartType _addNullCheck(Expression node, DartType type,
-      {AtomicEditInfo info}) {
+      {AtomicEditInfo info, HintComment hint}) {
     var checks =
         _fixBuilder._variables.expressionChecks(_fixBuilder.source, node);
     info ??= checks != null
@@ -472,7 +478,7 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
             NullabilityFixDescription.checkExpression, checks.edges)
         : null;
     (_fixBuilder._getChange(node) as NodeChangeForExpression)
-        .addNullCheck(info);
+        .addNullCheck(info, hint: hint);
     _flowAnalysis.nonNullAssert_end(node);
     return _fixBuilder._typeSystem.promoteToNonNull(type as TypeImpl);
   }
@@ -654,9 +660,10 @@ class _FixBuilderPostVisitor extends GeneralizingAstVisitor<void>
         }
       }
     }
-    if (_fixBuilder._variables.isLateHinted(source, node)) {
+    var lateHint = _fixBuilder._variables.getLateHint(source, node);
+    if (lateHint != null) {
       (_fixBuilder._getChange(node) as NodeChangeForVariableDeclarationList)
-          .addLate = true;
+          .lateHint = lateHint;
     }
     super.visitVariableDeclarationList(node);
   }
@@ -755,7 +762,7 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
     (_fixBuilder._getChange(node) as NodeChangeForTypeAnnotation)
         .recordNullability(
             decoratedType, decoratedType.node.isNullable,
-            nullabilityDueToHint:
-                _fixBuilder._variables.hasNullabilityHint(source, node));
+            nullabilityHint:
+                _fixBuilder._variables.getNullabilityHint(source, node));
   }
 }

@@ -566,7 +566,7 @@ class EdgeBuilderTest extends EdgeBuilderTestBase {
   }
 
   bool hasNullCheckHint(Expression expression) =>
-      variables.hasNullCheckHint(testSource, expression);
+      variables.getNullCheckHint(testSource, expression) != null;
 
   Future<void> test_already_migrated_field() async {
     await analyze('''

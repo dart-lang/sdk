@@ -224,7 +224,7 @@ void main() {
 }
 ''';
     var expected = '''
-class C<T extends num?/*?*/> {}
+class C<T extends num?> {}
 
 void main() {
   C<num> c = C();
@@ -306,7 +306,7 @@ abstract class C {
 }
 ''';
     var expected = '''
-class B<E> implements List<E?/*?*/> {
+class B<E> implements List<E?> {
   final C c;
   B(this.c);
   B<T> cast<T>() => c._castFrom<E, T>(this);
@@ -447,7 +447,7 @@ main() {
 }
 ''';
     var expected = '''
-void f(int/*!*/ i) {}
+void f(int i) {}
 void g(bool b, int? i) {
   if (b) f(i!);
 }
@@ -466,7 +466,7 @@ void _f() {
 ''';
     var expected = '''
 void _f() {
-  int?/*?*/ i = 0;
+  int? i = 0;
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -609,8 +609,8 @@ num? f3<T extends num>(bool b, num? x, T y) => b ? x : y;
 num f4<T extends num>(bool b, num x, T y) => b ? x : y;
 
 void main() {
-  int? x1 = f1<int?/*?*/>(true, 0, null) as int?;
-  int? x2 = f2<int/*!*/>(true, 0, null) as int?;
+  int? x1 = f1<int?>(true, 0, null) as int?;
+  int? x2 = f2<int>(true, 0, null) as int?;
   int? x3 = f3<int>(true, null, 0) as int?;
   int x4 = f4<int>(true, 0, 0) as int;
 }
@@ -798,7 +798,7 @@ int f(C c) => c.f;
 ''';
     var expected = '''
 class C {
-  int?/*?*/ f = 0;
+  int? f = 0;
 }
 int? f(C c) => c.f;
 ''';
@@ -928,7 +928,7 @@ int f(C<int/*?*/> x) => x.getValue();
 abstract class C<T> {
   T getValue();
 }
-int? f(C<int?/*?*/> x) => x.getValue();
+int? f(C<int?> x) => x.getValue();
 ''';
     await _checkSingleFileChanges(content, expected);
   }
@@ -1245,7 +1245,7 @@ void test() {
     // Note: https://github.com/dart-lang/sdk/issues/40471 tracks the fact that
     // we ought to alert the user to the presence of such casts.
     var expected = '''
-void f(int/*!*/ Function(int?) callback) {
+void f(int Function(int?) callback) {
   callback(null);
 }
 int? g(int? x) => x;
@@ -1332,16 +1332,14 @@ void f(dynamic a) {
   nullNonNull = hardToNullNonNull
 }
 ''';
-
-    // TODO(paulberry): remove the /*!*/, /*?*/ comments on migration.
     var expected = '''
 void f(dynamic a) {
   List<int> hardToNonNullNonNull = a;
   List<int?> hardToNullNonNull = a;
   List<int>? hardToNonNullNull = a;
-  List<int/*!*/>/*!*/ nonNullNonNull;
-  List<int/*?*/>/*!*/ nullNonNull;
-  List<int/*!*/>/*?*/ nonNullNull;
+  List<int> nonNullNonNull;
+  List<int?> nullNonNull;
+  List<int>? nonNullNull;
   nonNullNonNull = hardToNonNullNonNull
   nonNullNull = hardToNonNullNull
   nullNonNull = hardToNullNonNull
@@ -1375,10 +1373,8 @@ void main() {
     var content = '''
 List<int> f(Iterable<int/*?*/> a) => a;
 ''';
-
-    // TODO(paulberry): remove the /*!*/, /*?*/ comments on migration.
     var expected = '''
-List<int?> f(Iterable<int/*?*/> a) => a;
+List<int?> f(Iterable<int?> a) => a;
 ''';
     await _checkSingleFileChanges(content, expected);
   }
@@ -1406,8 +1402,6 @@ List<int?> f2(Object b) => b;
 abstract class C<A, B> implements List<A> {}
 C<int, num> f(List<int> a) => a;
 ''';
-
-    // TODO(paulberry): remove the /*!*/, /*?*/ comments on migration.
     var expected = '''
 abstract class C<A, B> implements List<A> {}
 C<int, num?> f(List<int> a) => a;
@@ -1509,7 +1503,7 @@ String f(dynamic x) => x.toString();
 List<int> _f(List<int/*!*/> xs) => [for(var x in xs) if (x == null) 1];
 ''';
     var expected = '''
-List<int> _f(List<int/*!*/> xs) => [];
+List<int> _f(List<int> xs) => [];
 ''';
     await _checkSingleFileChanges(content, expected);
   }
@@ -1692,7 +1686,7 @@ void main() {
 int f(int/*?*/ i) => i + 1;
 ''';
     var expected = '''
-int f(int?/*?*/ i) => i! + 1;
+int f(int? i) => i! + 1;
 ''';
     await _checkSingleFileChanges(content, expected);
   }
@@ -1702,7 +1696,7 @@ int f(int?/*?*/ i) => i! + 1;
 int f(int/*?*/ i) => i/*!*/;
 ''';
     var expected = '''
-int f(int?/*?*/ i) => i!/*!*/;
+int f(int? i) => i!;
 ''';
     await _checkSingleFileChanges(content, expected, removeViaComments: true);
   }
@@ -1714,7 +1708,7 @@ int/*?*/ f(int/*?*/ i) => i/*!*/;
     // The user requested a null check so we should add it even if it's not
     // required to avoid compile errors.
     var expected = '''
-int?/*?*/ f(int?/*?*/ i) => i!/*!*/;
+int? f(int? i) => i!;
 ''';
     await _checkSingleFileChanges(content, expected, removeViaComments: true);
   }
@@ -1723,15 +1717,13 @@ int?/*?*/ f(int?/*?*/ i) => i!/*!*/;
     var content = 'int/*?*/ f() => 1/*!*/;';
     // The user requested a null check so we should add it even if it's not
     // required to avoid compile errors.
-    var expected = 'int?/*?*/ f() => 1!/*!*/;';
+    var expected = 'int? f() => 1!;';
     await _checkSingleFileChanges(content, expected, removeViaComments: true);
   }
 
   Future<void> test_expression_bang_hint_with_cast() async {
     var content = 'int f(Object/*?*/ o) => o/*!*/;';
-    // TODO(paulberry): it would be better to remove the `/*` and `*/` so we
-    // would be left with `o! as int;`
-    var expected = 'int f(Object?/*?*/ o) => o! as int/*!*/;';
+    var expected = 'int f(Object? o) => o! as int;';
     await _checkSingleFileChanges(content, expected);
   }
 
@@ -1866,7 +1858,7 @@ main() {
 ''';
     var expected = '''
 class C {
-  int/*!*/ i;
+  int i;
   C(int this.i);
 }
 void f(int? i, bool b) {
@@ -2283,7 +2275,7 @@ int test(C c) {
     var expected = '''
 abstract class C {
   void Function(int?) f();
-  int?/*?*/ Function() g();
+  int? Function() g();
 }
 int? test(C c) {
   c.f()(null);
@@ -2307,7 +2299,7 @@ int test(C c) {
     var expected = '''
 abstract class C {
   void Function(int?) get f;
-  int?/*?*/ Function() get g;
+  int? Function() get g;
 }
 int? test(C c) {
   c.f(null);
@@ -2382,9 +2374,9 @@ void f(
 import 'dart:async';
 void f(
     FutureOr<int> foi1,
-    FutureOr<int?/*?*/> foi2,
-    FutureOr<int>?/*?*/ foi3,
-    FutureOr<int?/*?*/>?/*?*/ foi4
+    FutureOr<int?> foi2,
+    FutureOr<int>? foi3,
+    FutureOr<int?>? foi4
 ) {
   int i1 = foi1 as int;
   int? i2 = foi2 as int?;
@@ -2486,7 +2478,7 @@ int f() => null;
 ''';
     var expected = '''
 class C {
-  final Comparator<int/*!*/> comparison;
+  final Comparator<int> comparison;
   C(int Function(int, int) comparison) : comparison = comparison;
   void test() {
     comparison(f()!, f()!);
@@ -2593,7 +2585,7 @@ class A<T> {
   final T? value;
   A(this.value);
 }
-class C implements A<String/*!*/> {
+class C implements A<String> {
   String? get value => false ? "y" : null;
 }
 ''';
@@ -2630,7 +2622,7 @@ void f(List<int?> x) {
   x.add(null);
 }
 void g() {
-  f(<int/*!*/>[]);
+  f(<int>[]);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -2668,7 +2660,7 @@ class C implements A, B {
     // unnecessarily force B.f's parameter type to be nullable.
     var expected = '''
 abstract class A {
-  void f(int?/*?*/ i);
+  void f(int? i);
 }
 abstract class B {
   void f(int i);
@@ -2697,7 +2689,7 @@ class C implements A, B {
     // B.f's return type to be nullable.
     var expected = '''
 abstract class A {
-  int?/*?*/ f();
+  int? f();
 }
 abstract class B {
   int f();
@@ -2860,8 +2852,8 @@ main() {
 }
 ''';
     var expected = '''
-class C<T extends Object/*!*/> {
-  C(T/*!*/ t);
+class C<T extends Object> {
+  C(T t);
 }
 main() {
   C<int> c = C<int>(null!);
@@ -2882,7 +2874,7 @@ main() {
 ''';
     var expected = '''
 class C<T> {
-  C(T/*!*/ t);
+  C(T t);
 }
 main() {
   C<int?> c = C<int?>(null);
@@ -2901,8 +2893,8 @@ main() {
 }
 ''';
     var expected = '''
-class C<T extends Object/*!*/> {
-  C(T/*!*/ t);
+class C<T extends Object> {
+  C(T t);
 }
 main() {
   C<int> c = C(null!);
@@ -2923,7 +2915,7 @@ main() {
 ''';
     var expected = '''
 class C<T> {
-  C(T/*!*/ t);
+  C(T t);
 }
 main() {
   C<int?> c = C(null);
@@ -3041,12 +3033,10 @@ class C {
   int g() => x;
 }
 ''';
-    // TODO(paulberry): it would be better to just replace the comment with the
-    // word `late`.
     var expected = '''
 class C {
   C();
-  /*late*/ late int x;
+  late int x;
   f() {
     x = 1;
   }
@@ -3066,11 +3056,9 @@ class C {
   int g() => x;
 }
 ''';
-    // TODO(paulberry): it would be better to just replace the comment with the
-    // word `late`.
     var expected = '''
 class C {
-  /*late*/ late int x;
+  late int x;
   f() {
     x = 1;
   }
@@ -3093,11 +3081,9 @@ int f(bool b1, bool b2) {
   return 0;
 }
 ''';
-    // TODO(paulberry): it would be better to just replace the comment with the
-    // word `late`.
     var expected = '''
 int f(bool b1, bool b2) {
-  /*late*/ late int x;
+  late int x;
   if (b1) {
     x = 1;
   }
@@ -3120,11 +3106,9 @@ class C {
   int g() => x;
 }
 ''';
-    // TODO(paulberry): it would be better to just replace the comment with the
-    // word `late`.
     var expected = '''
 class C {
-  static /*late*/ late int x;
+  static late int x;
   f() {
     x = 1;
   }
@@ -3142,10 +3126,8 @@ f() {
 }
 int g() => x;
 ''';
-    // TODO(paulberry): it would be better to just replace the comment with the
-    // word `late`.
     var expected = '''
-/*late*/ late int x;
+late int x;
 f() {
   x = 1;
 }
@@ -3396,7 +3378,7 @@ void g() {
 }
 ''';
     var expected = '''
-T f<T extends Object/*!*/>(T/*!*/ t) => t;
+T f<T extends Object>(T t) => t;
 void g() {
   int x = f<int>(null!);
 }
@@ -3413,7 +3395,7 @@ void g() {
 }
 ''';
     var expected = '''
-T f<T>(T/*!*/ t) => t;
+T f<T>(T t) => t;
 void g() {
   int? x = f<int?>(null);
 }
@@ -3446,7 +3428,7 @@ void g() {
 }
 ''';
     var expected = '''
-T f<T extends Object/*!*/>(T/*!*/ t) => t;
+T f<T extends Object>(T t) => t;
 void g() {
   int x = f(null!);
 }
@@ -3463,7 +3445,7 @@ void g() {
 }
 ''';
     var expected = '''
-T f<T>(T/*!*/ t) => t;
+T f<T>(T t) => t;
 void g() {
   int? x = f(null);
 }
@@ -3781,10 +3763,10 @@ abstract class C {
 ''';
     var expected = '''
 abstract class C {
-  void f(List<int/*!*/> x, int y) {
+  void f(List<int> x, int y) {
     x.add(y);
   }
-  int?/*?*/ g();
+  int? g();
   void test() {
     f(<int>[], g()!);
   }
@@ -3806,7 +3788,7 @@ main() {
     // safely passed to f.
     var expected = '''
 Iterable<int> f(List<int?> x) => x.map(g as int Function(int?));
-int g(int/*!*/ x) => x + 1;
+int g(int x) => x + 1;
 main() {
   f([null]);
 }
@@ -3926,8 +3908,8 @@ test(int/*?*/ j) {
 class _C {
   f() {}
 }
-_C g(int/*!*/ i) => _C();
-test(int?/*?*/ j) {
+_C g(int i) => _C();
+test(int? j) {
   g(j!)..f();
 }
 ''';
@@ -3943,7 +3925,7 @@ abstract class C<E, T extends Iterable<E>/*?*/> {
 }
 ''';
     var expected = '''
-abstract class C<E, T extends Iterable<E>?/*?*/> {
+abstract class C<E, T extends Iterable<E>?> {
   void f(T iter) {
     for(var i in iter!) {}
   }
@@ -4102,7 +4084,7 @@ int g() => null;
 ''';
     var expected = '''
 abstract class Base {
-  int/*!*/ f();
+  int f();
 }
 class Derived extends Base {
   int f() => g()!;
@@ -4253,7 +4235,7 @@ abstract class C<T> {
   D<T> operator-();
 }
 class D<U> {}
-D<int?> test(C<int?/*?*/> c) => -c;
+D<int?> test(C<int?> c) => -c;
 ''';
     await _checkSingleFileChanges(content, expected);
   }
@@ -4324,7 +4306,7 @@ int/*!*/ f(List<int/*?*/>/*?*/ x) {
     // `x ??= [0]` promotes x from List<int?>? to List<int?>.  Since there is
     // still a `?` on the `int`, `x[0]` must be null checked.
     var expected = '''
-int/*!*/ f(List<int?/*?*/>?/*?*/ x) {
+int f(List<int?>? x) {
   x ??= [0];
   return x[0]!;
 }
@@ -4347,7 +4329,7 @@ void test() {
     // return type of the function literal.  As a result, the reference to `x`
     // in the function literal is null checked.
     var expected = '''
-void f(int/*!*/ Function(int?) callback) {
+void f(int Function(int?) callback) {
   callback(null);
 }
 void test() {
@@ -4499,7 +4481,7 @@ void f(Object o) { // parameter should not be made nullable
 
   Future<void> test_remove_question_from_question_dot() async {
     var content = '_f(int/*!*/ i) => i?.isEven;';
-    var expected = '_f(int/*!*/ i) => i.isEven;';
+    var expected = '_f(int i) => i.isEven;';
     await _checkSingleFileChanges(content, expected);
   }
 
@@ -4512,16 +4494,16 @@ int/*!*/ f(C/*!*/ c) => c?.i;
 ''';
     var expected = '''
 class C {
-  int?/*?*/ i;
+  int? i;
 }
-int/*!*/ f(C/*!*/ c) => c.i!;
+int f(C c) => c.i!;
 ''';
     await _checkSingleFileChanges(content, expected);
   }
 
   Future<void> test_remove_question_from_question_dot_method() async {
     var content = '_f(int/*!*/ i) => i?.abs();';
-    var expected = '_f(int/*!*/ i) => i.abs();';
+    var expected = '_f(int i) => i.abs();';
     await _checkSingleFileChanges(content, expected);
   }
 
@@ -4534,9 +4516,9 @@ bool/*?*/ f(C/*?*/ c) => c?.i?.isEven;
 ''';
     var expected = '''
 class C {
-  int/*!*/ i;
+  int i;
 }
-bool?/*?*/ f(C?/*?*/ c) => c?.i.isEven;
+bool? f(C? c) => c?.i.isEven;
 ''';
     await _checkSingleFileChanges(content, expected);
   }
@@ -4910,7 +4892,7 @@ f() {
     var expected = '''
 typedef F = Function(int?);
 
-F/*!*/ _f;
+F _f;
 
 f() {
   _f(null);
@@ -4975,7 +4957,7 @@ f() {
     var expected = '''
 typedef F = Function<T>(T);
 
-F/*!*/ _f;
+F _f;
 
 f() {
   _f<int?>(null);
@@ -4997,7 +4979,7 @@ f() {
     var expected = '''
 typedef F<R> = Function<T>(T);
 
-F<Object>/*!*/ _f;
+F<Object> _f;
 
 f() {
   _f<int?>(null);
@@ -5019,7 +5001,7 @@ f() {
     var expected = '''
 typedef F<T> = Function(T);
 
-F<int?>/*!*/ _f;
+F<int?> _f;
 
 f() {
   _f(null);
@@ -5041,7 +5023,7 @@ f() {
     var expected = '''
 typedef F<T> = Function(T);
 
-F<int?>/*!*/ _f;
+F<int?> _f;
 
 f() {
   _f(null);
@@ -5077,7 +5059,7 @@ f() {
     var expected = '''
 typedef F(int? x);
 
-F/*!*/ _f;
+F _f;
 
 f() {
   _f(null);
@@ -5127,7 +5109,7 @@ f() {
     var expected = '''
 typedef F<T>(T t);
 
-F<int?>/*!*/ _f;
+F<int?> _f;
 
 f() {
   _f(null);
@@ -5149,7 +5131,7 @@ f() {
     var expected = '''
 typedef F<T>(T t);
 
-F<int?>/*!*/ _f;
+F<int?> _f;
 
 f() {
   _f(null);
