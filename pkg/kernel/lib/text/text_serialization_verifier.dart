@@ -61,11 +61,18 @@ class TextSerializationVerifier implements Visitor<void> {
   final List<TextSerializationVerificationFailure> failures =
       <TextSerializationVerificationFailure>[];
 
+  final CanonicalName root;
+
   Uri lastSeenUri = noUri;
 
   int lastSeenOffset = noOffset;
 
-  TextSerializationVerifier() {
+  static const bool showStackTrace = bool.fromEnvironment(
+      "text_serialization.showStackTrace",
+      defaultValue: false);
+
+  TextSerializationVerifier({CanonicalName root})
+      : root = root ?? new CanonicalName.root() {
     initializeSerializers();
   }
 
@@ -85,15 +92,22 @@ class TextSerializationVerifier implements Visitor<void> {
     stream.moveNext();
     T result;
     try {
-      result = serializer.readFrom(
-          stream, new DeserializationState(null, new CanonicalName.root()));
-    } catch (exception) {
-      failures.add(
-          new TextDeserializationFailure(exception.toString(), uri, offset));
+      result =
+          serializer.readFrom(stream, new DeserializationState(null, root));
+    } catch (exception, stackTrace) {
+      String message =
+          showStackTrace ? "${exception}\n${stackTrace}" : "${exception}";
+      failures.add(new TextDeserializationFailure(message, uri, offset));
     }
     if (stream.moveNext()) {
       failures.add(new TextDeserializationFailure(
           "unexpected trailing text", uri, offset));
+    }
+    if (result == null) {
+      failures.add(new TextDeserializationFailure(
+          "Deserialization of the following returned null: '${input}'",
+          uri,
+          offset));
     }
     return result;
   }
@@ -103,9 +117,10 @@ class TextSerializationVerifier implements Visitor<void> {
     StringBuffer buffer = new StringBuffer();
     try {
       serializer.writeTo(buffer, node, new SerializationState(null));
-    } catch (exception) {
-      failures
-          .add(new TextSerializationFailure(exception.toString(), uri, offset));
+    } catch (exception, stackTrace) {
+      String message =
+          showStackTrace ? "${exception}\n${stackTrace}" : "${exception}";
+      failures.add(new TextSerializationFailure(message, uri, offset));
     }
     return buffer.toString();
   }
@@ -124,6 +139,9 @@ class TextSerializationVerifier implements Visitor<void> {
     // Do the round trip.
     Expression deserialized =
         readNode(initial, expressionSerializer, uri, offset);
+    // The error is reported elsewhere for the case of null.
+    if (deserialized == null) return;
+
     String serialized =
         writeNode(deserialized, expressionSerializer, uri, offset);
 
@@ -140,6 +158,9 @@ class TextSerializationVerifier implements Visitor<void> {
 
     // Do the round trip.
     DartType deserialized = readNode(initial, dartTypeSerializer, uri, offset);
+    // The error is reported elsewhere for the case of null.
+    if (deserialized == null) return;
+
     String serialized =
         writeNode(deserialized, dartTypeSerializer, uri, offset);
 
@@ -162,8 +183,11 @@ class TextSerializationVerifier implements Visitor<void> {
     // Do the round trip.
     Statement deserialized =
         readNode(initial, statementSerializer, uri, offset);
+    // The error is reported elsewhere for the case of null.
+    if (deserialized == null) return;
+
     String serialized =
-        writeNode(deserialized, expressionSerializer, uri, offset);
+        writeNode(deserialized, statementSerializer, uri, offset);
 
     if (initial != serialized) {
       failures.add(new TextRoundTripFailure(initial, serialized, uri, offset));
@@ -758,7 +782,7 @@ class TextSerializationVerifier implements Visitor<void> {
   @override
   void visitBlock(Block node) {
     storeLastSeenUriAndOffset(node);
-    makeStatementRoundTrip(node);
+    node.visitChildren(this);
   }
 
   @override

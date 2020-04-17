@@ -318,7 +318,8 @@ class KernelTextSerialization
     return await CompilerContext.runWithOptions(options,
         (compilerContext) async {
       compilerContext.uriToSource.addAll(component.uriToSource);
-      TextSerializationVerifier verifier = new TextSerializationVerifier();
+      TextSerializationVerifier verifier =
+          new TextSerializationVerifier(root: component.root);
       for (Library library in component.libraries) {
         if (library.importUri.scheme != "dart" &&
             library.importUri.scheme != "package") {
@@ -329,13 +330,11 @@ class KernelTextSerialization
         LocatedMessage message;
         if (failure is TextSerializationFailure) {
           message = templateUnspecified
-              .withArguments(
-                  "Failed to serialize a node: ${failure.message.isNotEmpty}")
+              .withArguments("Failed to serialize a node: ${failure.message}")
               .withLocation(failure.uri, failure.offset, 1);
         } else if (failure is TextDeserializationFailure) {
           message = templateUnspecified
-              .withArguments(
-                  "Failed to deserialize a node: ${failure.message.isNotEmpty}")
+              .withArguments("Failed to deserialize a node: ${failure.message}")
               .withLocation(failure.uri, failure.offset, 1);
         } else if (failure is TextRoundTripFailure) {
           String formattedInitial =

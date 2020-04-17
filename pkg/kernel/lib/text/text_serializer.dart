@@ -40,13 +40,8 @@ Name wrapPrivateName(Tuple2<String, String> tuple) {
   throw UnimplementedError('deserialization of private names');
 }
 
-const TextSerializer<Name> nameSerializer = const Case(const NameTagger(), [
-  "public",
-  "private",
-], [
-  publicName,
-  privateName
-]);
+TextSerializer<Name> nameSerializer = new Case(
+    const NameTagger(), {"public": publicName, "private": privateName});
 
 class ExpressionTagger extends ExpressionVisitor<String>
     implements Tagger<Expression> {
@@ -440,8 +435,8 @@ PropertySet wrapPropertySet(Tuple3<Expression, Name, Expression> tuple) {
   return new PropertySet(tuple.first, tuple.second, tuple.third);
 }
 
-const TextSerializer<SuperPropertyGet> superPropertyGetSerializer =
-    const Wrapped(unwrapSuperPropertyGet, wrapSuperPropertyGet, nameSerializer);
+TextSerializer<SuperPropertyGet> superPropertyGetSerializer =
+    new Wrapped(unwrapSuperPropertyGet, wrapSuperPropertyGet, nameSerializer);
 
 Name unwrapSuperPropertyGet(SuperPropertyGet expression) {
   return expression.name;
@@ -822,15 +817,11 @@ VariableDeclaration wrapConstDeclaration(
 }
 
 TextSerializer<VariableDeclaration> variableDeclarationSerializer =
-    new Case(const VariableDeclarationTagger(), [
-  "var",
-  "final",
-  "const",
-], [
-  varDeclarationSerializer,
-  finalDeclarationSerializer,
-  constDeclarationSerializer,
-]);
+    new Case(const VariableDeclarationTagger(), {
+  "var": varDeclarationSerializer,
+  "final": finalDeclarationSerializer,
+  "const": constDeclarationSerializer,
+});
 
 const TextSerializer<TypeParameter> typeParameterSerializer =
     const Wrapped(unwrapTypeParameter, wrapTypeParameter, const DartString());
@@ -1285,141 +1276,74 @@ Library wrapLibraryNode(Tuple2<Uri, List<Procedure>> tuple) {
 Case<Library> librarySerializer = new Case.uninitialized(const LibraryTagger());
 
 void initializeSerializers() {
-  expressionSerializer.tags.addAll([
-    "string",
-    "int",
-    "double",
-    "bool",
-    "null",
-    "invalid",
-    "not",
-    "&&",
-    "||",
-    "concat",
-    "symbol",
-    "this",
-    "rethrow",
-    "throw",
-    "await",
-    "cond",
-    "is",
-    "as",
-    "type",
-    "list",
-    "const-list",
-    "set",
-    "const-set",
-    "map",
-    "const-map",
-    "let",
-    "get-prop",
-    "set-prop",
-    "get-super",
-    "set-super",
-    "invoke-method",
-    "invoke-super",
-    "get-var",
-    "set-var",
-    "get-static",
-    "set-static",
-    "get-direct-prop",
-    "set-direct-prop",
-    "invoke-static",
-    "invoke-const-static",
-    "invoke-direct-method",
-    "invoke-constructor",
-    "invoke-const-constructor",
-    "fun",
-  ]);
-  expressionSerializer.serializers.addAll([
-    stringLiteralSerializer,
-    intLiteralSerializer,
-    doubleLiteralSerializer,
-    boolLiteralSerializer,
-    nullLiteralSerializer,
-    invalidExpressionSerializer,
-    notSerializer,
-    logicalAndSerializer,
-    logicalOrSerializer,
-    stringConcatenationSerializer,
-    symbolLiteralSerializer,
-    thisExpressionSerializer,
-    rethrowSerializer,
-    throwSerializer,
-    awaitExpressionSerializer,
-    conditionalExpressionSerializer,
-    isExpressionSerializer,
-    asExpressionSerializer,
-    typeLiteralSerializer,
-    listLiteralSerializer,
-    constListLiteralSerializer,
-    setLiteralSerializer,
-    constSetLiteralSerializer,
-    mapLiteralSerializer,
-    constMapLiteralSerializer,
-    letSerializer,
-    propertyGetSerializer,
-    propertySetSerializer,
-    superPropertyGetSerializer,
-    superPropertySetSerializer,
-    methodInvocationSerializer,
-    superMethodInvocationSerializer,
-    variableGetSerializer,
-    variableSetSerializer,
-    staticGetSerializer,
-    staticSetSerializer,
-    directPropertyGetSerializer,
-    directPropertySetSerializer,
-    staticInvocationSerializer,
-    constStaticInvocationSerializer,
-    directMethodInvocationSerializer,
-    constructorInvocationSerializer,
-    constConstructorInvocationSerializer,
-    functionExpressionSerializer,
-  ]);
-  dartTypeSerializer.tags.addAll([
-    "invalid",
-    "dynamic",
-    "void",
-    "bottom",
-    "->",
-    "par",
-  ]);
-  dartTypeSerializer.serializers.addAll([
-    invalidTypeSerializer,
-    dynamicTypeSerializer,
-    voidTypeSerializer,
-    bottomTypeSerializer,
-    functionTypeSerializer,
-    typeParameterTypeSerializer,
-  ]);
-  statementSerializer.tags.addAll([
-    "expr",
-    "ret",
-  ]);
-  statementSerializer.serializers.addAll([
-    expressionStatementSerializer,
-    returnStatementSerializer,
-  ]);
-  functionNodeSerializer.tags.addAll([
-    "sync",
-    "async",
-    "sync-star",
-    "async-star",
-    "sync-yielding",
-  ]);
-  functionNodeSerializer.serializers.addAll([
-    syncFunctionNodeSerializer,
-    asyncFunctionNodeSerializer,
-    syncStarFunctionNodeSerializer,
-    asyncStarFunctionNodeSerializer,
-    syncYieldingStarFunctionNodeSerializer,
-  ]);
-  procedureSerializer.tags.addAll(["static-method"]);
-  procedureSerializer.serializers.addAll([staticMethodSerializer]);
-  librarySerializer.tags.addAll(["legacy", "null-safe"]);
-  librarySerializer.serializers.addAll([
-    libraryContentsSerializer,
-    libraryContentsSerializer,
-  ]);
+  expressionSerializer.registerTags({
+    "string": stringLiteralSerializer,
+    "int": intLiteralSerializer,
+    "double": doubleLiteralSerializer,
+    "bool": boolLiteralSerializer,
+    "null": nullLiteralSerializer,
+    "invalid": invalidExpressionSerializer,
+    "not": notSerializer,
+    "&&": logicalAndSerializer,
+    "||": logicalOrSerializer,
+    "concat": stringConcatenationSerializer,
+    "symbol": symbolLiteralSerializer,
+    "this": thisExpressionSerializer,
+    "rethrow": rethrowSerializer,
+    "throw": throwSerializer,
+    "await": awaitExpressionSerializer,
+    "cond": conditionalExpressionSerializer,
+    "is": isExpressionSerializer,
+    "as": asExpressionSerializer,
+    "type": typeLiteralSerializer,
+    "list": listLiteralSerializer,
+    "const-list": constListLiteralSerializer,
+    "set": setLiteralSerializer,
+    "const-set": constSetLiteralSerializer,
+    "map": mapLiteralSerializer,
+    "const-map": constMapLiteralSerializer,
+    "let": letSerializer,
+    "get-prop": propertyGetSerializer,
+    "set-prop": propertySetSerializer,
+    "get-super": superPropertyGetSerializer,
+    "set-super": superPropertySetSerializer,
+    "invoke-method": methodInvocationSerializer,
+    "invoke-super": superMethodInvocationSerializer,
+    "get-var": variableGetSerializer,
+    "set-var": variableSetSerializer,
+    "get-static": staticGetSerializer,
+    "set-static": staticSetSerializer,
+    "get-direct-prop": directPropertyGetSerializer,
+    "set-direct-prop": directPropertySetSerializer,
+    "invoke-static": staticInvocationSerializer,
+    "invoke-const-static": constStaticInvocationSerializer,
+    "invoke-direct-method": directMethodInvocationSerializer,
+    "invoke-constructor": constructorInvocationSerializer,
+    "invoke-const-constructor": constConstructorInvocationSerializer,
+    "fun": functionExpressionSerializer,
+  });
+  dartTypeSerializer.registerTags({
+    "invalid": invalidTypeSerializer,
+    "dynamic": dynamicTypeSerializer,
+    "void": voidTypeSerializer,
+    "bottom": bottomTypeSerializer,
+    "->": functionTypeSerializer,
+    "par": typeParameterTypeSerializer,
+  });
+  statementSerializer.registerTags({
+    "expr": expressionStatementSerializer,
+    "ret": returnStatementSerializer,
+  });
+  functionNodeSerializer.registerTags({
+    "sync": syncFunctionNodeSerializer,
+    "async": asyncFunctionNodeSerializer,
+    "sync-star": syncStarFunctionNodeSerializer,
+    "async-star": asyncStarFunctionNodeSerializer,
+    "sync-yielding": syncYieldingStarFunctionNodeSerializer,
+  });
+  procedureSerializer.registerTags({"static-method": staticMethodSerializer});
+  librarySerializer.registerTags({
+    "legacy": libraryContentsSerializer,
+    "null-safe": libraryContentsSerializer,
+  });
 }
