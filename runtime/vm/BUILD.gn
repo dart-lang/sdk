@@ -105,6 +105,16 @@ library_for_all_configs_with_compiler("libdart_compiler") {
                                 ])
   sources = rebase_path(compiler_sources, ".", "./compiler/")
   include_dirs = [ ".." ]
+  if (is_fuchsia) {
+    if (using_fuchsia_sdk) {
+      extra_deps = [ "$fuchsia_sdk_root/pkg:trace-engine" ]
+    } else {
+      extra_deps = [
+        "//zircon/public/lib/fbl",
+        "//zircon/public/lib/trace-engine",
+      ]
+    }
+  }
 }
 
 library_for_all_configs("libdart_lib") {
@@ -206,7 +216,9 @@ executable("offsets_extractor") {
     "..:dart_maybe_product_config",
     ":libdart_vm_config",
   ]
-  sources = [ "compiler/offsets_extractor.cc" ]
+  sources = [
+    "compiler/offsets_extractor.cc",
+  ]
   include_dirs = [ ".." ]
 }
 
@@ -218,6 +230,8 @@ executable("offsets_extractor_precompiled_runtime") {
     "..:dart_maybe_product_config",
     ":libdart_vm_config",
   ]
-  sources = [ "compiler/offsets_extractor.cc" ]
+  sources = [
+    "compiler/offsets_extractor.cc",
+  ]
   include_dirs = [ ".." ]
 }
