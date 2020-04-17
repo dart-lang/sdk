@@ -14,7 +14,7 @@ import 'package:observatory/src/elements/script_inset.dart';
 class SourceInsetElement extends CustomElement implements Renderable {
   static const tag = const Tag<SourceInsetElement>('source-inset');
 
-  RenderingScheduler _r;
+  RenderingScheduler<SourceInsetElement> _r;
 
   Stream<RenderedEvent<SourceInsetElement>> get onRendered => _r.onRendered;
 

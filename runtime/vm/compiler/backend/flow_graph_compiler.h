@@ -348,6 +348,21 @@ class NullArgErrorSlowPath : public ThrowErrorSlowPathCode {
   }
 };
 
+class RangeErrorSlowPath : public ThrowErrorSlowPathCode {
+ public:
+  static const intptr_t kNumberOfArguments = 0;
+
+  RangeErrorSlowPath(GenericCheckBoundInstr* instruction, intptr_t try_index)
+      : ThrowErrorSlowPathCode(instruction,
+                               kRangeErrorRuntimeEntry,
+                               kNumberOfArguments,
+                               try_index) {}
+  virtual const char* name() { return "check bound"; }
+
+  virtual void EmitSharedStubCall(FlowGraphCompiler* compielr,
+                                  bool save_fpu_registers);
+};
+
 class FlowGraphCompiler : public ValueObject {
  private:
   class BlockInfo : public ZoneAllocated {
@@ -548,7 +563,8 @@ class FlowGraphCompiler : public ValueObject {
                      Representation src_type,
                      TemporaryRegisterAllocator* temp);
 
-  void GenerateAssertAssignable(TokenPosition token_pos,
+  void GenerateAssertAssignable(CompileType* receiver_type,
+                                TokenPosition token_pos,
                                 intptr_t deopt_id,
                                 const AbstractType& dst_type,
                                 const String& dst_name,
@@ -559,13 +575,15 @@ class FlowGraphCompiler : public ValueObject {
   static bool ShouldUseTypeTestingStubFor(bool optimizing,
                                           const AbstractType& type);
 
-  void GenerateAssertAssignableViaTypeTestingStub(TokenPosition token_pos,
+  void GenerateAssertAssignableViaTypeTestingStub(CompileType* receiver_type,
+                                                  TokenPosition token_pos,
                                                   intptr_t deopt_id,
                                                   const AbstractType& dst_type,
                                                   const String& dst_name,
                                                   LocationSummary* locs);
 
   void GenerateAssertAssignableViaTypeTestingStub(
+      CompileType* receiver_type,
       const AbstractType& dst_type,
       const String& dst_name,
       const Register dst_type_reg_to_call,
@@ -578,16 +596,12 @@ class FlowGraphCompiler : public ValueObject {
                            intptr_t argument_count,
                            LocationSummary* locs);
 
-  void GenerateCall(TokenPosition token_pos,
-                    const Code& stub,
-                    RawPcDescriptors::Kind kind,
-                    LocationSummary* locs);
-
-  void GenerateCallWithDeopt(TokenPosition token_pos,
-                             intptr_t deopt_id,
-                             const Code& stub,
-                             RawPcDescriptors::Kind kind,
-                             LocationSummary* locs);
+  void GenerateStubCall(TokenPosition token_pos,
+                        const Code& stub,
+                        RawPcDescriptors::Kind kind,
+                        LocationSummary* locs,
+                        intptr_t deopt_id = DeoptId::kNone,
+                        Environment* env = nullptr);
 
   void GeneratePatchableCall(TokenPosition token_pos,
                              const Code& stub,
@@ -744,6 +758,7 @@ class FlowGraphCompiler : public ValueObject {
                                       bool needs_number_check,
                                       TokenPosition token_pos,
                                       intptr_t deopt_id);
+  Condition EmitBoolTest(Register value, BranchLabels labels, bool invert);
 
   bool NeedsEdgeCounter(BlockEntryInstr* block);
 
@@ -751,6 +766,9 @@ class FlowGraphCompiler : public ValueObject {
 
   void RecordCatchEntryMoves(Environment* env = NULL,
                              intptr_t try_index = kInvalidTryIndex);
+
+  void EmitCallToStub(const Code& stub);
+  void EmitTailCallToStub(const Code& stub);
 
   // Emits the following metadata for the current PC:
   //
@@ -954,6 +972,7 @@ class FlowGraphCompiler : public ValueObject {
   void AddPcRelativeCallTarget(const Function& function,
                                Code::EntryKind entry_kind);
   void AddPcRelativeCallStubTarget(const Code& stub_code);
+  void AddPcRelativeTailCallStubTarget(const Code& stub_code);
   void AddStaticCallTarget(const Function& function,
                            Code::EntryKind entry_kind);
 

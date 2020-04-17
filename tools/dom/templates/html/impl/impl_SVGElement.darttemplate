@@ -82,7 +82,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     return container.innerHtml;
   }
 
-  set innerHtml(String value) {
+  set innerHtml(String$NULLABLE value) {
     this.setInnerHtml(value);
   }
 

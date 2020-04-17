@@ -224,7 +224,8 @@ class BodyBuilderTest extends BodyBuilder {
       String name,
       List<UnresolvedType> typeArguments,
       int charOffset,
-      Constness constness) {
+      Constness constness,
+      {bool isTypeArgumentsInForest = false}) {
     Token maybeNewOrConst = nameToken.previous;
     bool doReport = true;
     if (maybeNewOrConst is KeywordToken) {
@@ -247,7 +248,8 @@ class BodyBuilderTest extends BodyBuilder {
           nameToken.length);
     }
     return super.buildConstructorInvocation(type, nameToken, nameLastToken,
-        arguments, name, typeArguments, charOffset, constness);
+        arguments, name, typeArguments, charOffset, constness,
+        isTypeArgumentsInForest: isTypeArgumentsInForest);
   }
 }
 

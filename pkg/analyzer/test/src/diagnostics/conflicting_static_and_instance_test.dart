@@ -434,10 +434,20 @@ class ConflictingStaticAndInstanceEnumTest extends DriverResolutionTest {
   test_index() async {
     await assertErrorsInCode(r'''
 enum E {
-  a, index
+  a, index, b
 }
 ''', [
       error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 14, 5),
+    ]);
+  }
+
+  test_toString() async {
+    await assertErrorsInCode(r'''
+enum E {
+  a, toString, b
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 14, 8),
     ]);
   }
 }

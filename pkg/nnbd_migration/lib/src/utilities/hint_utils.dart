@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 
 /// Determine if the given token is a nullability hint, and if so, return the
 /// type of nullability hint it is.
@@ -15,10 +14,10 @@ NullabilityComment classifyComment(Token token) {
   return NullabilityComment.none;
 }
 
-/// Determine if the given [node] is followed by a nullability hint, and if so,
+/// Determine if the given [token] is followed by a nullability hint, and if so,
 /// return the type of nullability hint it is followed by.
-NullabilityComment getPostfixHint(AstNode node) {
-  var commentToken = node.endToken.next.precedingComments;
+NullabilityComment getPostfixHint(Token token) {
+  var commentToken = token.next.precedingComments;
   var commentType = classifyComment(commentToken);
   return commentType;
 }
@@ -31,7 +30,11 @@ PrefixHintComment getPrefixHint(Token token) {
       if (nextComment == null) break;
       commentToken = nextComment;
     }
-    if (commentToken.lexeme == '/*late*/') return PrefixHintComment.late_;
+    var lexeme = commentToken.lexeme;
+    if (lexeme.startsWith('/*') && lexeme.endsWith('*/') && lexeme.length > 4) {
+      var commentText = lexeme.substring(2, lexeme.length - 2).trim();
+      if (commentText == 'late') return PrefixHintComment.late_;
+    }
   }
   return PrefixHintComment.none;
 }

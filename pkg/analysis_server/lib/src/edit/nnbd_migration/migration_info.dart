@@ -6,7 +6,10 @@ import 'package:analysis_server/src/edit/nnbd_migration/offset_mapper.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/unit_link.dart';
 import 'package:analysis_server/src/edit/preview/preview_site.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:collection/collection.dart';
+import 'package:crypto/crypto.dart';
 import 'package:meta/meta.dart';
+import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:path/path.dart' as path;
 
 /// A description of an edit that can be applied before rerunning the migration
@@ -126,19 +129,6 @@ class NavigationTarget extends NavigationRegion {
   String toString() => 'NavigationTarget["$filePath", $line, $offset, $length]';
 }
 
-/// An additional detail related to a region.
-class RegionDetail {
-  /// A textual description of the detail.
-  final String description;
-
-  /// The location associated with the detail, such as the location of an
-  /// argument that's assigned to a parameter.
-  final NavigationTarget target;
-
-  /// Initialize a newly created detail.
-  RegionDetail(this.description, this.target);
-}
-
 /// A description of an explanation associated with a region of code that was
 /// modified.
 class RegionInfo {
@@ -157,8 +147,8 @@ class RegionInfo {
   /// The explanation to be displayed for the region.
   final String explanation;
 
-  /// Details that further explain why a change was made.
-  final List<RegionDetail> details;
+  /// The kind of fix that was applied.
+  final NullabilityFixKind kind;
 
   /// A list of the edits that are related to this range.
   List<EditDetail> edits;
@@ -169,7 +159,7 @@ class RegionInfo {
 
   /// Initialize a newly created region.
   RegionInfo(this.regionType, this.offset, this.length, this.lineNumber,
-      this.explanation, this.details,
+      this.explanation, this.kind,
       {this.edits = const [], this.traces = const []});
 }
 
@@ -217,7 +207,10 @@ class UnitInfo {
   /// The absolute and normalized path of the unit.
   final String path;
 
-  /// The content of unit.
+  /// Hash of the original contents of the unit.
+  List<int> _diskContentHash;
+
+  /// The preview content of unit.
   String content;
 
   /// The information about the regions that have an explanation associated with
@@ -232,12 +225,22 @@ class UnitInfo {
   /// targets are offsets into the pre-edit content.
   final Set<NavigationTarget> targets = {};
 
-  /// The object used to map the pre-edit offsets in the navigation targets to
-  /// the post-edit offsets in the [content].
-  OffsetMapper offsetMapper = OffsetMapper.identity;
+  /// An offset mapper reflecting changes made by the migration edits.
+  OffsetMapper migrationOffsetMapper = OffsetMapper.identity;
+
+  /// An offset mapper reflecting changes made to disk since the migration was
+  /// run, which can be rebased on [migrationOffsetMapper] to create and
+  /// maintain an offset mapper from current disk state to migration result.
+  OffsetMapper diskChangesOffsetMapper = OffsetMapper.identity;
 
   /// Initialize a newly created unit.
   UnitInfo(this.path);
+
+  /// Set the original/disk content of this file to later use [hadDiskContent].
+  /// This does not have a getter because it is backed by a private hash.
+  set diskContent(String originalContent) {
+    _diskContentHash = md5.convert((originalContent ?? '').codeUnits).bytes;
+  }
 
   /// Returns the [regions] that represent a fixed (changed) region of code.
   List<RegionInfo> get fixRegions => regions
@@ -248,6 +251,46 @@ class UnitInfo {
   List<RegionInfo> get informativeRegions => regions
       .where((region) => region.regionType == RegionType.informative)
       .toList();
+
+  /// The object used to map the pre-edit offsets in the navigation targets to
+  /// the post-edit offsets in the [content].
+  OffsetMapper get offsetMapper =>
+      OffsetMapper.rebase(diskChangesOffsetMapper, migrationOffsetMapper);
+
+  /// Check if this unit's file had expected disk contents [checkContent].
+  bool hadDiskContent(String checkContent) {
+    assert(_diskContentHash != null);
+    return const ListEquality().equals(
+        _diskContentHash, md5.convert((checkContent ?? '').codeUnits).bytes);
+  }
+
+  void handleInsertion(int offset, String replacement) {
+    final contentCopy = content;
+    final regionsCopy = List<RegionInfo>.from(regions);
+    final length = replacement.length;
+    offset = offsetMapper.map(offset);
+    try {
+      content = content.replaceRange(offset, offset, replacement);
+      regions.clear();
+      regions.addAll(regionsCopy.map((region) {
+        if (region.offset < offset) {
+          return region;
+        }
+        // TODO: adjust traces
+        return RegionInfo(region.regionType, region.offset + length,
+            region.length, region.lineNumber, region.explanation, region.kind,
+            edits: region.edits, traces: region.traces);
+      }));
+
+      diskChangesOffsetMapper = OffsetMapper.sequence(
+          diskChangesOffsetMapper, OffsetMapper.forInsertion(offset, length));
+    } catch (e) {
+      regions.clear();
+      regions.addAll(regionsCopy);
+      content = contentCopy;
+      rethrow;
+    }
+  }
 
   /// Returns the [RegionInfo] at offset [offset].
   // TODO(srawlins): This is O(n), used each time the user clicks on a region.

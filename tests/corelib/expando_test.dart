@@ -10,7 +10,7 @@ class ExpandoTest {
   static testMain() {
     var legal = [
       new Object(),
-      new List(),
+      new List.filled(0, null),
       [1, 2, 3],
       const [1, 2, 3],
       new Map(),

@@ -4,17 +4,19 @@
 
 import 'dart:typed_data';
 
-import 'package:analyzer/dart/analysis/context_locator.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/src/context/context.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
+import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/context_root.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart' show ErrorEncoding;
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
@@ -23,19 +25,22 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/micro/analysis_context.dart';
 import 'package:analyzer/src/dart/micro/library_analyzer.dart';
 import 'package:analyzer/src/dart/micro/library_graph.dart';
+import 'package:analyzer/src/generated/engine.dart'
+    show AnalysisEngine, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/link.dart' as link2;
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
+import 'package:yaml/yaml.dart';
 
-/*
- * Resolves a single file.
- */
 class FileResolver {
   final PerformanceLog logger;
   final ResourceProvider resourceProvider;
@@ -55,125 +60,265 @@ class FileResolver {
    */
   final void Function(List<String> paths) prefetchFiles;
 
-  Workspace workspace;
+  final Workspace workspace;
+
+  /// This field gets value only during testing.
+  FileResolverTestView testView;
 
   MicroAnalysisContextImpl analysisContext;
 
+  FileSystemState fsState;
+
+  _LibraryContext libraryContext;
+
   FileResolver(this.logger, this.resourceProvider, this.byteStore,
       this.sourceFactory, this.getFileDigest, this.prefetchFiles,
-      {Workspace workspace})
+      {@required Workspace workspace})
       : this.workspace = workspace;
 
   FeatureSet get defaultFeatureSet => FeatureSet.fromEnableFlags([]);
+
+  ErrorsResult getErrors(String path) {
+    _throwIfNotAbsoluteNormalizedPath(path);
+
+    return logger.run('Get errors for $path', () {
+      var fileContext = _createFileContext(path);
+      var file = fileContext.file;
+
+      var errorsSignatureBuilder = ApiSignature();
+      errorsSignatureBuilder.addBytes(file.libraryCycle.signature);
+      errorsSignatureBuilder.addBytes(file.digest);
+      var errorsSignature = errorsSignatureBuilder.toByteList();
+
+      var errorsKey = file.path + '.errors';
+      var bytes = byteStore.get(errorsKey);
+
+      List<AnalysisError> errors;
+      if (bytes != null) {
+        var data = CiderUnitErrors.fromBuffer(bytes);
+        if (const ListEquality().equals(data.signature, errorsSignature)) {
+          errors = data.errors.map((error) {
+            return ErrorEncoding.decode(file.source, error);
+          }).toList();
+        }
+      }
+
+      if (errors == null) {
+        var unitResult = resolve(path);
+        errors = unitResult.errors;
+
+        bytes = CiderUnitErrorsBuilder(
+          signature: errorsSignature,
+          errors: errors.map((ErrorEncoding.encode)).toList(),
+        ).toBuffer();
+        byteStore.put(errorsKey, bytes);
+      }
+
+      return ErrorsResultImpl(
+        libraryContext.analysisSession,
+        path,
+        file.uri,
+        file.lineInfo,
+        false, // isPart
+        errors,
+      );
+    });
+  }
 
   ResolvedUnitResult resolve(String path) {
     _throwIfNotAbsoluteNormalizedPath(path);
 
     return logger.run('Resolve $path', () {
+      var fileContext = _createFileContext(path);
+      var file = fileContext.file;
+
+      libraryContext.load2(file);
+
+      testView?.addResolvedFile(path);
+
+      var errorListener = RecordingErrorListener();
+      var content = resourceProvider.getFile(path).readAsStringSync();
+      var unit = file.parse(errorListener, content);
+
+      Map<FileState, UnitAnalysisResult> results;
+      logger.run('Compute analysis results', () {
+        var libraryAnalyzer = LibraryAnalyzer(
+          fileContext.analysisOptions,
+          analysisContext.declaredVariables,
+          sourceFactory,
+          (_) => true,
+          // _isLibraryUri
+          libraryContext.analysisContext,
+          libraryContext.elementFactory,
+          libraryContext.inheritanceManager,
+          file,
+          resourceProvider,
+          (String path) => resourceProvider.getFile(path).readAsStringSync(),
+        );
+
+        results = libraryAnalyzer.analyzeSync();
+      });
+      UnitAnalysisResult fileResult = results[file];
+
+      return ResolvedUnitResultImpl(
+        analysisContext.currentSession,
+        path,
+        file.uri,
+        file.exists,
+        content,
+        unit.lineInfo,
+        false, // isPart
+        fileResult.unit,
+        fileResult.errors,
+      );
+    });
+  }
+
+  /// Make sure that [analysisContext], [fsState] and [libraryContext] are
+  /// compatible with the given [fileAnalysisOptions].
+  ///
+  /// Specifically we check that `implicit-casts` and `strict-inference`
+  /// flags are the same, so the type systems would be the same.
+  void _createContext(AnalysisOptionsImpl fileAnalysisOptions) {
+    if (analysisContext != null) {
+      var analysisOptions = analysisContext.analysisOptions;
+      var analysisOptionsImpl = analysisOptions as AnalysisOptionsImpl;
+      if (analysisOptionsImpl.implicitCasts !=
+              fileAnalysisOptions.implicitCasts ||
+          analysisOptionsImpl.strictInference !=
+              fileAnalysisOptions.strictInference) {
+        logger.writeln(
+          'Reset the context, different type system affecting options.',
+        );
+        fsState = null; // TODO(scheglov) don't do this
+        analysisContext = null;
+        libraryContext = null;
+      }
+    }
+
+    var analysisOptions = AnalysisOptionsImpl()
+      ..implicitCasts = fileAnalysisOptions.implicitCasts
+      ..strictInference = fileAnalysisOptions.strictInference;
+
+    if (fsState == null) {
+      var featureSetProvider = FeatureSetProvider.build(
+        resourceProvider: resourceProvider,
+        packages: Packages.empty,
+        packageDefaultFeatureSet: analysisOptions.contextFeatures,
+        nonPackageDefaultFeatureSet: analysisOptions.nonPackageFeatureSet,
+      );
+
+      fsState = FileSystemState(
+        logger,
+        resourceProvider,
+        byteStore,
+        sourceFactory,
+        analysisOptions,
+        Uint32List(0), // linkedSalt
+        featureSetProvider,
+        getFileDigest,
+        prefetchFiles,
+      );
+    }
+
+    if (analysisContext == null) {
       logger.run('Create AnalysisContext', () {
-        var contextLocator = ContextLocator(
-          resourceProvider: this.resourceProvider,
+        var root = ContextRootImpl(
+          resourceProvider,
+          resourceProvider.getFolder(workspace.root),
         );
-
-        var roots = contextLocator.locateRoots(
-          includedPaths: [path],
-          excludedPaths: [],
-        );
-        if (roots.length != 1) {
-          throw StateError('Exactly one root expected: $roots');
-        }
-        var root = roots[0];
-
-        var analysisOptions = AnalysisOptionsImpl();
-        var declaredVariables = DeclaredVariables();
 
         analysisContext = MicroAnalysisContextImpl(
           this,
           root,
           analysisOptions,
-          declaredVariables,
+          DeclaredVariables(),
           sourceFactory,
           resourceProvider,
           workspace: workspace,
         );
       });
+    }
 
-      return _resolve(path);
-    });
+    if (libraryContext == null) {
+      libraryContext = _LibraryContext(
+        logger,
+        resourceProvider,
+        byteStore,
+        analysisContext.currentSession,
+        analysisContext.analysisOptions,
+        sourceFactory,
+        analysisContext.declaredVariables,
+      );
+    }
   }
 
-  ResolvedUnitResultImpl _resolve(String path) {
-    var options = analysisContext.analysisOptions;
-    var featureSetProvider = FeatureSetProvider.build(
-      resourceProvider: resourceProvider,
-      packages: Packages.empty,
-      packageDefaultFeatureSet: analysisContext.analysisOptions.contextFeatures,
-      nonPackageDefaultFeatureSet:
-          (options as AnalysisOptionsImpl).nonPackageFeatureSet,
-    );
+  _FileContext _createFileContext(String path) {
+    var analysisOptions = _getAnalysisOptions(path);
 
-    var fsState = FileSystemState(
-      logger,
-      resourceProvider,
-      byteStore,
-      analysisContext.sourceFactory,
-      analysisContext.analysisOptions,
-      Uint32List(0), // linkedSalt
-      featureSetProvider,
-      getFileDigest,
-      prefetchFiles,
-    );
+    _createContext(analysisOptions);
 
-    FileState file;
-    logger.run('Get file $path', () {
-      file = fsState.getFileForPath(path);
+    var file = logger.run('Get file $path', () {
+      return fsState.getFileForPath(path);
     });
 
-    var errorListener = RecordingErrorListener();
-    var content = resourceProvider.getFile(path).readAsStringSync();
-    var unit = file.parse(errorListener, content);
+    return _FileContext(analysisOptions, file);
+  }
 
-    _LibraryContext libraryContext = _LibraryContext(
-      logger,
-      resourceProvider,
-      byteStore,
-      analysisContext.currentSession,
-      analysisContext.analysisOptions,
-      analysisContext.sourceFactory,
-      analysisContext.declaredVariables,
-    );
-    libraryContext.load2(file);
+  File _findOptionsFile(Folder folder) {
+    while (folder != null) {
+      File packagesFile =
+          _getFile(folder, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
+      if (packagesFile != null) {
+        return packagesFile;
+      }
+      folder = folder.parent;
+    }
+    return null;
+  }
 
-    Map<FileState, UnitAnalysisResult> results;
-    logger.run('Compute analysis results', () {
-      var libraryAnalyzer = LibraryAnalyzer(
-        analysisContext.analysisOptions,
-        analysisContext.declaredVariables,
-        analysisContext.sourceFactory,
-        (_) => true, // _isLibraryUri
-        libraryContext.analysisContext,
-        libraryContext.elementFactory,
-        libraryContext.inheritanceManager,
-        file,
-        resourceProvider,
-        (String path) => resourceProvider.getFile(path).readAsStringSync(),
-      );
+  /// Return the analysis options.
+  ///
+  /// If the [optionsFile] is not `null`, read it.
+  ///
+  /// If the [workspace] is a [WorkspaceWithDefaultAnalysisOptions], get the
+  /// default options, if the file exists.
+  ///
+  /// Otherwise, return the default options.
+  AnalysisOptionsImpl _getAnalysisOptions(String path) {
+    YamlMap optionMap;
+    var folder = resourceProvider.getFile(path).parent;
+    var optionsFile = _findOptionsFile(folder);
+    if (optionsFile != null) {
+      try {
+        var optionsProvider = AnalysisOptionsProvider(sourceFactory);
+        optionMap = optionsProvider.getOptionsFromFile(optionsFile);
+      } catch (e) {
+        // ignored
+      }
+    } else {
+      Source source;
+      if (workspace is WorkspaceWithDefaultAnalysisOptions) {
+        source = sourceFactory.forUri(WorkspaceWithDefaultAnalysisOptions.uri);
+      }
 
-      results = libraryAnalyzer.analyzeSync();
-    });
-    UnitAnalysisResult fileResult = results[file];
+      if (source != null && source.exists()) {
+        try {
+          var optionsProvider = AnalysisOptionsProvider(sourceFactory);
+          optionMap = optionsProvider.getOptionsFromSource(source);
+        } catch (e) {
+          // ignored
+        }
+      }
+    }
 
-    return ResolvedUnitResultImpl(
-      analysisContext.currentSession,
-      path,
-      file.uri,
-      file.exists,
-      content,
-      unit.lineInfo,
-      false, // isPart
-      fileResult.unit,
-      fileResult.errors,
-    );
+    var options = AnalysisOptionsImpl();
+
+    if (optionMap != null) {
+      applyToAnalysisOptions(options, optionMap);
+    }
+
+    return options;
   }
 
   void _throwIfNotAbsoluteNormalizedPath(String path) {
@@ -184,6 +329,32 @@ class FileResolver {
       );
     }
   }
+
+  static File _getFile(Folder directory, String name) {
+    Resource resource = directory.getChild(name);
+    if (resource is File && resource.exists) {
+      return resource;
+    }
+    return null;
+  }
+}
+
+class FileResolverTestView {
+  /// The paths of files which were resolved.
+  ///
+  /// The file path is added every time when it is resolved.
+  final List<String> resolvedFiles = [];
+
+  void addResolvedFile(String path) {
+    resolvedFiles.add(path);
+  }
+}
+
+class _FileContext {
+  final AnalysisOptionsImpl analysisOptions;
+  final FileState file;
+
+  _FileContext(this.analysisOptions, this.file);
 }
 
 class _LibraryContext {
@@ -354,14 +525,6 @@ class _LibraryContext {
     inheritanceManager = InheritanceManager3();
   }
 
-  static CiderLinkedLibraryCycleBuilder serializeBundle(
-      List<int> signature, link2.LinkResult linkResult) {
-    return CiderLinkedLibraryCycleBuilder(
-      signature: signature,
-      bundle: linkResult.bundle,
-    );
-  }
-
   void _createElementFactory() {
     elementFactory = LinkedElementFactory(
       analysisContext,
@@ -377,5 +540,13 @@ class _LibraryContext {
       var dartAsync = elementFactory.libraryOfUri('dart:async');
       elementFactory.createTypeProviders(dartCore, dartAsync);
     }
+  }
+
+  static CiderLinkedLibraryCycleBuilder serializeBundle(
+      List<int> signature, link2.LinkResult linkResult) {
+    return CiderLinkedLibraryCycleBuilder(
+      signature: signature,
+      bundle: linkResult.bundle,
+    );
   }
 }

@@ -395,6 +395,8 @@ class DartFixKind {
       FixKind('REPLACE_WITH_VAR', 50, "Replace type annotation with 'var'");
   static const SORT_CHILD_PROPERTY_LAST = FixKind('SORT_CHILD_PROPERTY_LAST',
       50, 'Move child property to end of arguments');
+  static const SORT_DIRECTIVES =
+      FixKind('SORT_DIRECTIVES', 50, 'Sort directives');
   static const UPDATE_SDK_CONSTRAINTS =
       FixKind('UPDATE_SDK_CONSTRAINTS', 50, 'Update the SDK constraints');
   static const USE_CONST = FixKind('USE_CONST', 50, 'Change to constant');

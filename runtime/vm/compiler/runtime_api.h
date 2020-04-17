@@ -313,6 +313,9 @@ inline int FrameOffsetInBytesForVariable(const LocalVariable* variable) {
   return frame_layout.FrameSlotForVariable(variable) * kWordSize;
 }
 
+// Check whether instance_size is small enough to be encoded in the size tag.
+bool SizeFitsInSizeTag(uword instance_size);
+
 // Encode tag word for a heap allocated object with the given class id and
 // size.
 //
@@ -370,6 +373,8 @@ class RawObject : public AllStatic {
   static const word kCardRememberedBit;
   static const word kOldAndNotRememberedBit;
   static const word kOldAndNotMarkedBit;
+  static const word kSizeTagPos;
+  static const word kSizeTagSize;
   static const word kClassIdTagPos;
   static const word kClassIdTagSize;
   static const word kSizeTagMaxSizeTag;
@@ -457,10 +462,14 @@ class Function : public AllStatic {
   static word NextFieldOffset();
 };
 
+class CallSiteData : public AllStatic {
+ public:
+  static word arguments_descriptor_offset();
+};
+
 class ICData : public AllStatic {
  public:
   static word owner_offset();
-  static word arguments_descriptor_offset();
   static word entries_offset();
   static word receivers_static_type_offset();
   static word state_bits_offset();
@@ -482,7 +491,6 @@ class MegamorphicCache : public AllStatic {
   static const word kSpreadFactor;
   static word mask_offset();
   static word buckets_offset();
-  static word arguments_descriptor_offset();
   static word InstanceSize();
   static word NextFieldOffset();
 };
@@ -952,16 +960,15 @@ class Thread : public AllStatic {
   static word field_table_values_offset();
   static word store_buffer_block_offset();
   static word call_to_runtime_entry_point_offset();
-  static word null_error_shared_with_fpu_regs_entry_point_offset();
-  static word null_error_shared_without_fpu_regs_entry_point_offset();
-  static word null_arg_error_shared_with_fpu_regs_entry_point_offset();
-  static word null_arg_error_shared_without_fpu_regs_entry_point_offset();
   static word write_barrier_mask_offset();
-  static word monomorphic_miss_entry_offset();
+  static word switchable_call_miss_entry_offset();
   static word write_barrier_wrappers_thread_offset(Register regno);
   static word array_write_barrier_entry_point_offset();
   static word allocate_mint_with_fpu_regs_entry_point_offset();
   static word allocate_mint_without_fpu_regs_entry_point_offset();
+  static word allocate_object_entry_point_offset();
+  static word allocate_object_parameterized_entry_point_offset();
+  static word allocate_object_slow_entry_point_offset();
   static word write_barrier_entry_point_offset();
   static word vm_tag_offset();
   static uword vm_tag_compiled_id();
@@ -989,7 +996,7 @@ class Thread : public AllStatic {
   static word fix_callers_target_code_offset();
   static word fix_allocation_stub_code_offset();
 
-  static word monomorphic_miss_stub_offset();
+  static word switchable_call_miss_stub_offset();
   static word lazy_specialize_type_test_stub_offset();
   static word slow_type_test_stub_offset();
   static word call_to_runtime_stub_offset();
@@ -1000,6 +1007,8 @@ class Thread : public AllStatic {
   static word null_error_shared_with_fpu_regs_stub_offset();
   static word null_arg_error_shared_without_fpu_regs_stub_offset();
   static word null_arg_error_shared_with_fpu_regs_stub_offset();
+  static word range_error_shared_without_fpu_regs_stub_offset();
+  static word range_error_shared_with_fpu_regs_stub_offset();
   static word stack_overflow_shared_without_fpu_regs_entry_point_offset();
   static word stack_overflow_shared_without_fpu_regs_stub_offset();
   static word stack_overflow_shared_with_fpu_regs_entry_point_offset();
@@ -1008,6 +1017,9 @@ class Thread : public AllStatic {
   static word lazy_deopt_from_throw_stub_offset();
   static word allocate_mint_with_fpu_regs_stub_offset();
   static word allocate_mint_without_fpu_regs_stub_offset();
+  static word allocate_object_stub_offset();
+  static word allocate_object_parameterized_stub_offset();
+  static word allocate_object_slow_stub_offset();
   static word optimize_stub_offset();
   static word deoptimize_stub_offset();
   static word enter_safepoint_stub_offset();

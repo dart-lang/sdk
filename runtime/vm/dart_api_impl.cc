@@ -6270,7 +6270,7 @@ Dart_Handle Dart_SaveCompilationTrace(uint8_t** buffer,
   CHECK_NULL(buffer);
   CHECK_NULL(buffer_length);
   CompilationTraceSaver saver(thread->zone());
-  ProgramVisitor::VisitFunctions(&saver);
+  ProgramVisitor::WalkProgram(thread->zone(), thread->isolate(), &saver);
   saver.StealBuffer(buffer, buffer_length);
   return Api::Success();
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
@@ -6292,7 +6292,7 @@ Dart_Handle Dart_SaveTypeFeedback(uint8_t** buffer, intptr_t* buffer_length) {
   saver.WriteHeader();
   saver.SaveClasses();
   saver.SaveFields();
-  ProgramVisitor::VisitFunctions(&saver);
+  ProgramVisitor::WalkProgram(thread->zone(), thread->isolate(), &saver);
   *buffer_length = stream.bytes_written();
 
   return Api::Success();
@@ -6612,7 +6612,7 @@ DART_EXPORT Dart_Handle Dart_CreateCoreJITSnapshotAsBlobs(
   BackgroundCompiler::Stop(I);
   DropRegExpMatchCode(Z);
 
-  ProgramVisitor::Dedup();
+  ProgramVisitor::Dedup(T);
   Symbols::Compact();
 
   TIMELINE_DURATION(T, Isolate, "WriteCoreJITSnapshot");
@@ -6688,7 +6688,7 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
   BackgroundCompiler::Stop(I);
   DropRegExpMatchCode(Z);
 
-  ProgramVisitor::Dedup();
+  ProgramVisitor::Dedup(T);
   Symbols::Compact();
 
   if (FLAG_dump_tables) {

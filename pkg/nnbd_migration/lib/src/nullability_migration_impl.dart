@@ -97,7 +97,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
         library.typeSystem as TypeSystemImpl,
         _variables,
         library,
-        listener,
+        _permissive ? listener : null,
         unit);
     try {
       DecoratedTypeParameterBounds.current = _decoratedTypeParameterBounds;

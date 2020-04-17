@@ -24,6 +24,8 @@ analyzer/test/src/dart/analysis/driver_kernel_test: Slow, Pass
 analyzer/test/src/summary/resynthesize_kernel_test: Slow, Pass
 analyzer/test/src/task/strong/checker_test: Slow, Pass
 analyzer_plugin/test/plugin/folding_mixin_test: Slow, Pass
+dartdev/test/commands/analyze_test: Slow, Pass
+dartdev/test/commands/help_test: Slow, Pass
 dev_compiler/test/modular/*: Slow, Pass
 dev_compiler/test/options/*: Skip # test needs fixes
 dev_compiler/test/sourcemap/*: SkipByDesign # Skip sourcemap tests
@@ -53,6 +55,7 @@ front_end/tool/incremental_perf_test: Slow, Pass
 kernel/test/closures_test: Slow, Pass
 kernel/testcases/*: Skip # These are not tests but input for tests.
 vm/test/frontend_server_test: Slow, Pass
+vm/test/kernel_front_end_test: Skip # Issue http://dartbug.com/41489
 vm/test/transformations/type_flow/transformer_test: Slow, Pass
 vm/testcases/*: SkipByDesign # These are not tests but input for tests.
 
@@ -117,6 +120,7 @@ analyzer/test/src/task/strong/front_end_inference_test: Slow, Pass
 analyzer/test/src/task/strong/inferred_type_test: Slow, Pass
 analyzer_plugin/test/src/utilities/change_builder/change_builder_dart_test: Slow, Pass
 analyzer_plugin/test/src/utilities/completion/optype_test: Slow, Pass
+dartdev/test/*: Slow, Pass
 mutation_observer: Skip # Skip tests on the VM if the package depends on dart:html
 
 [ $runtime != vm ]

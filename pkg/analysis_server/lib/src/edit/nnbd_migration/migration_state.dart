@@ -35,6 +35,9 @@ class MigrationState {
   /// The object used to map paths.
   PathMapper pathMapper;
 
+  /// If there have been changes to disk so the migration needs to be rerun.
+  bool needsRerun = false;
+
   /// Initialize a newly created migration state with the given values.
   MigrationState(this.migration, this.includedRoot, this.listener,
       this.instrumentationListener, this.adapter);

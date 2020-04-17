@@ -188,13 +188,13 @@ class ReturnPattern : public ValueObject {
   const uword pc_;
 };
 
-class PcRelativeCallPattern : public ValueObject {
+class PcRelativeCallPatternBase : public ValueObject {
  public:
   // 24 bit signed integer which will get multiplied by 4.
-  static const intptr_t kLowerCallingRange = -(1 << 25);
+  static const intptr_t kLowerCallingRange = -(1 << 25) + Instr::kPCReadOffset;
   static const intptr_t kUpperCallingRange = (1 << 25) - 1;
 
-  explicit PcRelativeCallPattern(uword pc) : pc_(pc) {}
+  explicit PcRelativeCallPatternBase(uword pc) : pc_(pc) {}
 
   static const int kLengthInBytes = 1 * Instr::kInstrSize;
 
@@ -217,10 +217,23 @@ class PcRelativeCallPattern : public ValueObject {
 #endif
   }
 
-  bool IsValid() const;
-
- private:
+ protected:
   uword pc_;
+};
+
+class PcRelativeCallPattern : public PcRelativeCallPatternBase {
+ public:
+  explicit PcRelativeCallPattern(uword pc) : PcRelativeCallPatternBase(pc) {}
+
+  bool IsValid() const;
+};
+
+class PcRelativeTailCallPattern : public PcRelativeCallPatternBase {
+ public:
+  explicit PcRelativeTailCallPattern(uword pc)
+      : PcRelativeCallPatternBase(pc) {}
+
+  bool IsValid() const;
 };
 
 // Instruction pattern for a tail call to a signed 32-bit PC-relative offset

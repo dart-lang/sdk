@@ -22,7 +22,7 @@ class ErrorViewElement extends CustomElement implements Renderable {
         ViewFooterElement.tag
       ]);
 
-  RenderingScheduler _r;
+  RenderingScheduler<ErrorViewElement> _r;
 
   Stream<RenderedEvent<ErrorViewElement>> get onRendered => _r.onRendered;
 

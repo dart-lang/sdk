@@ -38,6 +38,30 @@ def _CheckNnbdSdkSync(input_api, output_api):
     return []
 
 
+def _CheckSdkDdcRuntimeSync(input_api, output_api):
+    files = [git_file.LocalPath() for git_file in input_api.AffectedTextFiles()]
+    unsynchronized_files = []
+    runtime_lib = 'lib/_internal/js_dev_runtime/private/ddc_runtime/'
+    for nnbd_file in files:
+        if nnbd_file.startswith('sdk_nnbd/' + runtime_lib):
+            file = 'sdk/' + runtime_lib + nnbd_file[4:]
+            if not file in files:
+                unsynchronized_files.append(file)
+    if unsynchronized_files:
+        return [
+            output_api.PresubmitPromptWarning(
+                'Changes were made to '
+                'sdk_nnbd/lib/_internal/js_dev_runtime/private/ddc_runtime/ '
+                'that were not made to '
+                'sdk/lib/_internal/js_dev_runtime/private/ddc_runtime/ '
+                'Please copy those changes (without Null Safety syntax) to '
+                'these files as well:\n'
+                '\n'
+                '%s' % ('\n'.join(unsynchronized_files)))
+        ]
+    return []
+
+
 def _CheckNnbdTestSync(input_api, output_api):
     """Make sure that any forked SDK tests are kept in sync. If a CL touches
     a test, the test's counterpart (if it exists at all) should be in the CL
@@ -316,6 +340,7 @@ def _CheckClangTidy(input_api, output_api):
 def _CommonChecks(input_api, output_api):
     results = []
     results.extend(_CheckNnbdSdkSync(input_api, output_api))
+    results.extend(_CheckSdkDdcRuntimeSync(input_api, output_api))
     results.extend(_CheckNnbdTestSync(input_api, output_api))
     results.extend(_CheckValidHostsInDEPS(input_api, output_api))
     results.extend(_CheckDartFormat(input_api, output_api))

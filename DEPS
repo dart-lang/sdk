@@ -39,7 +39,7 @@ vars = {
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes. It requires access to the dart-build-access group, which EngProd
   # has.
-  "co19_rev": "9934d8540d097366287267519413e888a7f6a482",
+  "co19_rev": "929da300c553ebb8a9ff744746bcc1326613e1f9",
   "co19_2_rev": "368bfa9e877a2df003547f64bb17e30596af10c7",
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
@@ -86,7 +86,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
   "dart_style_tag": "1.3.2",  # Please see the note above before updating.
 
-  "dartdoc_tag" : "v0.30.3",
+  "dartdoc_tag" : "v0.30.4",
   "ffi_tag": "ea88d71b043ee14b268c3aedff14e9eb32e20959",
   "fixnum_tag": "0.10.9",
   "glob_tag": "1.1.7",
@@ -97,7 +97,7 @@ vars = {
   "http_retry_tag": "0.1.1",
   "http_tag" : "0.12.0+2",
   "http_throttle_tag" : "1.0.2",
-  "icu_rev" : "c56c671998902fcc4fc9ace88c83daa99f980793",
+  "icu_rev" : "5005010d694e16571b8dfbf07d70817841f80a69",
   "idl_parser_rev": "5fb1ebf49d235b5a70c9f49047e83b0654031eb7",
   "intl_tag": "0.16.1",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
@@ -111,14 +111,13 @@ vars = {
   "mockito_tag": "d39ac507483b9891165e422ec98d9fb480037c8b",
   "mustache_tag" : "5e81b12215566dbe2473b2afd01a8a8aedd56ad9",
   "oauth2_tag": "1.2.1",
-  "observatory_pub_packages_rev": "0894122173b0f98eb08863a7712e78407d4477bc",
   "package_config_tag": "v1.9.2",
-  "path_tag": "1.6.2",
-  "pedantic_tag": "v1.8.0",
+  "path_tag": "1.7.0",
+  "pedantic_tag": "v1.9.0",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "1.3.6",
   "protobuf_rev": "3746c8fd3f2b0147623a8e3db89c3ff4330de760",
-  "pub_rev": "978cc9c4be7d8978348e56d4ae82be8257a59579",
+  "pub_rev": "3606265962da4248d34d352aa3d170aae4496a90",
   "pub_semver_tag": "v1.4.4",
   "quiver-dart_tag": "2.0.0+1",
   "resource_rev": "f8e37558a1c4f54550aa463b88a6a831e3e33cd6",
@@ -332,9 +331,6 @@ deps = {
       + "@" + Var("mustache_tag"),
   Var("dart_root") + "/third_party/pkg/oauth2":
       Var("dart_git") + "oauth2.git" + "@" + Var("oauth2_tag"),
-  Var("dart_root") + "/third_party/observatory_pub_packages":
-      Var("dart_git") + "observatory_pub_packages.git"
-      + "@" + Var("observatory_pub_packages_rev"),
   Var("dart_root") + "/third_party/pkg_tested/package_config":
       Var("dart_git") + "package_config.git" +
       "@" + Var("package_config_tag"),
@@ -469,7 +465,7 @@ deps = {
     "packages": [
       {
         "package": "dart/cfe/dart2js_dills",
-        "version": "binary_version:40",
+        "version": "binary_version:42",
       }
     ],
     "dep_type": "cipd",

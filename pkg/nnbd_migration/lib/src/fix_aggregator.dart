@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:nnbd_migration/fix_reason_target.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
@@ -265,7 +266,7 @@ class NodeChangeForAsExpression extends NodeChangeForExpression<AsExpression> {
       return aggregator.planner.extract(node,
           aggregator.planForNode(node.expression) as NodeProducingEditPlan,
           infoAfter:
-              AtomicEditInfo(NullabilityFixDescription.removeAs, const []));
+              AtomicEditInfo(NullabilityFixDescription.removeAs, const {}));
     } else {
       return super._apply(node, aggregator);
     }
@@ -285,10 +286,10 @@ class NodeChangeForCompilationUnit extends NodeChange<CompilationUnit> {
     if (removeLanguageVersionComment) {
       final comment = (node as CompilationUnitImpl).languageVersionToken;
       assert(comment != null);
-      innerPlans.add(aggregator.planner.replaceToken(node, comment, [],
+      innerPlans.add(aggregator.planner.replaceToken(node, comment, '',
           info: AtomicEditInfo(
               NullabilityFixDescription.removeLanguageVersionComment,
-              const [])));
+              const {})));
     }
     innerPlans.addAll(aggregator.innerPlansForNode(node));
     return aggregator.planner.passThrough(node, innerPlans: innerPlans);
@@ -304,9 +305,9 @@ mixin NodeChangeForConditional<N extends AstNode> on NodeChange<N> {
   /// conditional is dead code and should be eliminated.
   bool conditionValue;
 
-  /// If [conditionValue] is not `null`, the reasons that should be included in
+  /// If [conditionValue] is not `null`, the reason that should be included in
   /// the [AtomicEditInfo] for the edit that removes the dead code.
-  List<FixReasonInfo> conditionReasons;
+  FixReasonInfo conditionReason;
 
   /// If dead code removal is warranted for [node], returns an [EditPlan] that
   /// removes the dead code (and performs appropriate updates within any
@@ -333,8 +334,8 @@ mixin NodeChangeForConditional<N extends AstNode> on NodeChange<N> {
         nodeToKeep is Block && nodeToKeep.statements.isEmpty) {
       // The conditional node collapses to a no-op, so try to remove it
       // entirely.
-      var info =
-          AtomicEditInfo(NullabilityFixDescription.discardIf, conditionReasons);
+      var info = AtomicEditInfo(NullabilityFixDescription.discardIf,
+          {FixReasonTarget.root: conditionReason});
       var removeNode = aggregator.planner.tryRemoveNode(node, info: info);
       if (removeNode != null) {
         return removeNode;
@@ -357,8 +358,10 @@ mixin NodeChangeForConditional<N extends AstNode> on NodeChange<N> {
         }
       }
     }
-    var infoBefore = AtomicEditInfo(descriptionBefore, conditionReasons);
-    var infoAfter = AtomicEditInfo(descriptionAfter, conditionReasons);
+    var infoBefore = AtomicEditInfo(
+        descriptionBefore, {FixReasonTarget.root: conditionReason});
+    var infoAfter = AtomicEditInfo(
+        descriptionAfter, {FixReasonTarget.root: conditionReason});
     if (nodeToKeep is Block && nodeToKeep.statements.length == 1) {
       var singleStatement = (nodeToKeep as Block).statements[0];
       if (singleStatement is VariableDeclarationStatement) {
@@ -427,6 +430,13 @@ class NodeChangeForExpression<N extends Expression> extends NodeChange<N> {
 
   /// Indicates whether [addNullCheck] has been called.
   bool get addsNullCheck => _addsNullCheck;
+
+  /// Gets the info for any introduced "as" cast
+  AtomicEditInfo get introducesAsInfo => _introduceAsInfo;
+
+  /// Gets the type for any introduced "as" cast, or `null` if no "as" cast is
+  /// being introduced.
+  DartType get introducesAsType => _introducesAsType;
 
   /// Causes a null check to be added to this expression, with the given [info].
   void addNullCheck(AtomicEditInfo info) {
@@ -536,8 +546,8 @@ mixin NodeChangeForNullAware<N extends Expression> on NodeChange<N> {
   EditPlan _applyNullAware(N node, FixAggregator aggregator) {
     if (!removeNullAwareness) return null;
     return aggregator.planner.removeNullAwareness(node,
-        info:
-            AtomicEditInfo(NullabilityFixDescription.removeNullAwareness, []));
+        info: AtomicEditInfo(
+            NullabilityFixDescription.removeNullAwareness, const {}));
   }
 }
 
@@ -587,37 +597,61 @@ class NodeChangeForSimpleFormalParameter
 /// Implementation of [NodeChange] specialized for operating on [TypeAnnotation]
 /// nodes.
 class NodeChangeForTypeAnnotation extends NodeChange<TypeAnnotation> {
-  /// Indicates whether the type should be made nullable by adding a `?`.
-  bool makeNullable = false;
+  bool _makeNullable = false;
+
+  bool _nullabilityDueToHint = false;
 
   /// The decorated type of the type annotation, or `null` if there is no
   /// decorated type info of interest.  If [makeNullable] is `true`, the node
   /// from this type will be attached to the edit that adds the `?`. If
-  /// [makeNullable] is `false`, the node from this type will be attached to the
+  /// [_makeNullable] is `false`, the node from this type will be attached to the
   /// information about why the node wasn't made nullable.
-  DecoratedType decoratedType;
+  DecoratedType _decoratedType;
 
   NodeChangeForTypeAnnotation() : super._();
 
   @override
-  bool get isInformative => !makeNullable;
+  bool get isInformative => !_makeNullable;
+
+  /// Indicates whether the type should be made nullable by adding a `?`.
+  bool get makeNullable => _makeNullable;
+
+  /// Indicates whether we are making the type nullable due to a hint.
+  bool get makeNullableDueToHint => _nullabilityDueToHint;
+
+  void recordNullability(DecoratedType decoratedType, bool makeNullable,
+      {bool nullabilityDueToHint: false}) {
+    _decoratedType = decoratedType;
+    _makeNullable = makeNullable;
+    _nullabilityDueToHint = nullabilityDueToHint;
+  }
 
   @override
   EditPlan _apply(TypeAnnotation node, FixAggregator aggregator) {
     var innerPlan = aggregator.innerPlanForNode(node);
-    if (decoratedType == null) return innerPlan;
-    if (makeNullable) {
+    if (_decoratedType == null) return innerPlan;
+    var typeName = _decoratedType.type.getDisplayString(withNullability: false);
+    var fixReasons = {FixReasonTarget.root: _decoratedType.node};
+    if (_makeNullable) {
+      NullabilityFixDescription description;
+      if (_nullabilityDueToHint) {
+        description =
+            NullabilityFixDescription.makeTypeNullableDueToHint(typeName);
+      } else {
+        description = NullabilityFixDescription.makeTypeNullable(typeName);
+      }
       return aggregator.planner.makeNullable(innerPlan,
-          info: AtomicEditInfo(
-              NullabilityFixDescription.makeTypeNullable(
-                  decoratedType.type.getDisplayString(withNullability: false)),
-              [decoratedType.node]));
+          info: AtomicEditInfo(description, fixReasons));
     } else {
+      NullabilityFixDescription description;
+      if (_nullabilityDueToHint) {
+        description =
+            NullabilityFixDescription.typeNotMadeNullableDueToHint(typeName);
+      } else {
+        description = NullabilityFixDescription.typeNotMadeNullable(typeName);
+      }
       return aggregator.planner.explainNonNullable(innerPlan,
-          info: AtomicEditInfo(
-              NullabilityFixDescription.typeNotMadeNullable(
-                  decoratedType.type.getDisplayString(withNullability: false)),
-              [decoratedType.node]));
+          info: AtomicEditInfo(description, fixReasons));
     }
   }
 }
@@ -648,13 +682,17 @@ class NodeChangeForVariableDeclarationList
     if (addExplicitType != null) {
       var typeText = addExplicitType.getDisplayString(withNullability: true);
       if (node.keyword?.keyword == Keyword.VAR) {
+        var info =
+            AtomicEditInfo(NullabilityFixDescription.replaceVar(typeText), {});
         innerPlans.add(aggregator.planner
-            .replaceToken(node, node.keyword, [AtomicEdit.insert(typeText)]));
+            .replaceToken(node, node.keyword, typeText, info: info));
       } else {
+        var info =
+            AtomicEditInfo(NullabilityFixDescription.addType(typeText), {});
         innerPlans.add(aggregator.planner.insertText(
             node,
             node.variables.first.offset,
-            [AtomicEdit.insert(typeText), AtomicEdit.insert(' ')]));
+            [AtomicEdit.insert(typeText, info: info), AtomicEdit.insert(' ')]));
       }
     }
     innerPlans.addAll(aggregator.innerPlansForNode(node));

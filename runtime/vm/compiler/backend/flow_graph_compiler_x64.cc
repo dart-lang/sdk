@@ -207,8 +207,11 @@ void FlowGraphCompiler::GenerateBoolToJump(Register bool_register,
   compiler::Label fall_through;
   __ CompareObject(bool_register, Object::null_object());
   __ j(EQUAL, &fall_through, compiler::Assembler::kNearJump);
-  __ CompareObject(bool_register, Bool::True());
-  __ j(EQUAL, is_true);
+  BranchLabels labels = {is_true, is_false, &fall_through};
+  Condition true_condition =
+      EmitBoolTest(bool_register, labels, /*invert=*/false);
+  ASSERT(true_condition != kInvalidCondition);
+  __ j(true_condition, is_true);
   __ jmp(is_false);
   __ Bind(&fall_through);
 }
@@ -433,11 +436,16 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
   __ LoadClassId(TMP, TypeTestABI::kInstanceReg);
   __ LoadClassById(R10, TMP);
   // R10: instance class.
-  // Check immediate superclass equality.
-  __ movq(R13, compiler::FieldAddress(R10, Class::super_type_offset()));
-  __ movq(R13, compiler::FieldAddress(R13, Type::type_class_id_offset()));
-  __ CompareImmediate(R13, compiler::Immediate(Smi::RawValue(type_class.id())));
-  __ j(EQUAL, is_instance_lbl);
+  // Check immediate superclass equality. If type_class is Object, then testing
+  // supertype may yield a wrong result for Null in NNBD strong mode (because
+  // Null also extends Object).
+  if (!type_class.IsObjectClass() || !Isolate::Current()->null_safety()) {
+    __ movq(R13, compiler::FieldAddress(R10, Class::super_type_offset()));
+    __ movq(R13, compiler::FieldAddress(R13, Type::type_class_id_offset()));
+    __ CompareImmediate(R13,
+                        compiler::Immediate(Smi::RawValue(type_class.id())));
+    __ j(EQUAL, is_instance_lbl);
+  }
 
   const Register kInstantiatorTypeArgumentsReg = kNoRegister;
   const Register kFunctionTypeArgumentsReg = kNoRegister;
@@ -638,19 +646,11 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
   // test_cache is null if there is no fall-through.
   compiler::Label done;
   if (!test_cache.IsNull()) {
-    // Generate runtime call.
-    __ PushObject(Object::null_object());  // Make room for the result.
-    __ pushq(TypeTestABI::kInstanceReg);   // Push the instance.
-    __ PushObject(type);                   // Push the type.
-    __ pushq(TypeTestABI::kInstantiatorTypeArgumentsReg);
-    __ pushq(TypeTestABI::kFunctionTypeArgumentsReg);
-    __ LoadUniqueObject(RAX, test_cache);
-    __ pushq(RAX);
-    GenerateRuntimeCall(token_pos, deopt_id, kInstanceofRuntimeEntry, 5, locs);
-    // Pop the parameters supplied to the runtime entry. The result of the
-    // instanceof runtime call will be left as the result of the operation.
-    __ Drop(5);
-    __ popq(RAX);
+    // Generate Runtime call.
+    __ LoadUniqueObject(TypeTestABI::kDstTypeReg, type);
+    __ LoadUniqueObject(TypeTestABI::kSubtypeTestCacheReg, test_cache);
+    GenerateStubCall(token_pos, StubCode::InstanceOf(),
+                     /*kind=*/RawPcDescriptors::kOther, locs, deopt_id);
     __ jmp(&done, compiler::Assembler::kNearJump);
   }
   __ Bind(&is_not_instance);
@@ -674,7 +674,8 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
 // - object in RAX for successful assignable check (or throws TypeError).
 // Performance notes: positive checks must be quick, negative checks can be slow
 // as they throw an exception.
-void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
+void FlowGraphCompiler::GenerateAssertAssignable(CompileType* receiver_type,
+                                                 TokenPosition token_pos,
                                                  intptr_t deopt_id,
                                                  const AbstractType& dst_type,
                                                  const String& dst_name,
@@ -686,8 +687,8 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
   ASSERT(!dst_type.IsTopTypeForAssignability());
 
   if (ShouldUseTypeTestingStubFor(is_optimizing(), dst_type)) {
-    GenerateAssertAssignableViaTypeTestingStub(token_pos, deopt_id, dst_type,
-                                               dst_name, locs);
+    GenerateAssertAssignableViaTypeTestingStub(
+        receiver_type, token_pos, deopt_id, dst_type, dst_name, locs);
   } else {
     compiler::Label is_assignable, runtime_call;
 
@@ -722,6 +723,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
 }
 
 void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
+    CompileType* receiver_type,
     TokenPosition token_pos,
     intptr_t deopt_id,
     const AbstractType& dst_type,
@@ -733,8 +735,8 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
       dst_type.IsTypeParameter() ? RSI : TypeTestABI::kDstTypeReg;
   const Register kScratchReg = kRegToCall;
 
-  GenerateAssertAssignableViaTypeTestingStub(dst_type, dst_name, kRegToCall,
-                                             kScratchReg, &done);
+  GenerateAssertAssignableViaTypeTestingStub(receiver_type, dst_type, dst_name,
+                                             kRegToCall, kScratchReg, &done);
 
   // We use 2 consecutive entries in the pool for the subtype cache and the
   // destination name.  The second entry, namely [dst_name] seems to be unused,
@@ -931,19 +933,33 @@ void FlowGraphCompiler::CompileGraph() {
   }
 }
 
-void FlowGraphCompiler::GenerateCall(TokenPosition token_pos,
-                                     const Code& stub,
-                                     RawPcDescriptors::Kind kind,
-                                     LocationSummary* locs) {
+void FlowGraphCompiler::EmitCallToStub(const Code& stub) {
+  ASSERT(!stub.IsNull());
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions &&
       !stub.InVMIsolateHeap()) {
     __ GenerateUnRelocatedPcRelativeCall();
     AddPcRelativeCallStubTarget(stub);
-    EmitCallsiteMetadata(token_pos, DeoptId::kNone, kind, locs);
   } else {
-    ASSERT(!stub.IsNull());
     __ Call(stub);
-    EmitCallsiteMetadata(token_pos, DeoptId::kNone, kind, locs);
+    AddStubCallTarget(stub);
+  }
+}
+
+void FlowGraphCompiler::EmitTailCallToStub(const Code& stub) {
+  ASSERT(!stub.IsNull());
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions &&
+      !stub.InVMIsolateHeap()) {
+    __ LeaveDartFrame();
+    __ GenerateUnRelocatedPcRelativeTailCall();
+    AddPcRelativeTailCallStubTarget(stub);
+#if defined(DEBUG)
+    __ Breakpoint();
+#endif
+  } else {
+    __ LoadObject(CODE_REG, stub);
+    __ LeaveDartFrame();
+    __ jmp(compiler::FieldAddress(
+        CODE_REG, compiler::target::Code::entry_point_offset()));
     AddStubCallTarget(stub);
   }
 }
@@ -1094,9 +1110,27 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   __ Comment("MegamorphicCall");
   // Load receiver into RDX.
   __ movq(RDX, compiler::Address(RSP, (args_desc.Count() - 1) * kWordSize));
-  __ LoadObject(RBX, cache);
-  __ call(
-      compiler::Address(THR, Thread::megamorphic_call_checked_entry_offset()));
+
+  // Use same code pattern as instance call so it can be parsed by code patcher.
+  if (FLAG_precompiled_mode) {
+    if (FLAG_use_bare_instructions) {
+      // The AOT runtime will replace the slot in the object pool with the
+      // entrypoint address - see clustered_snapshot.cc.
+      __ LoadUniqueObject(RCX, StubCode::MegamorphicCall());
+    } else {
+      __ LoadUniqueObject(CODE_REG, StubCode::MegamorphicCall());
+      __ movq(RCX, compiler::FieldAddress(CODE_REG,
+                                          Code::entry_point_offset(
+                                              Code::EntryKind::kMonomorphic)));
+    }
+    __ LoadUniqueObject(RBX, cache);
+    __ call(RCX);
+  } else {
+    __ LoadUniqueObject(RBX, cache);
+    __ LoadUniqueObject(CODE_REG, StubCode::MegamorphicCall());
+    __ call(compiler::FieldAddress(
+        CODE_REG, Code::entry_point_offset(Code::EntryKind::kMonomorphic)));
+  }
 
   RecordSafepoint(locs, slow_path_argument_count);
   const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
@@ -1131,7 +1165,7 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
   ASSERT(entry_kind == Code::EntryKind::kNormal ||
          entry_kind == Code::EntryKind::kUnchecked);
   ASSERT(ic_data.NumArgsTested() == 1);
-  const Code& initial_stub = StubCode::UnlinkedCall();
+  const Code& initial_stub = StubCode::SwitchableCallMiss();
   const char* switchable_call_mode = "smiable";
   if (!receiver_can_be_smi) {
     switchable_call_mode = "non-smi";
@@ -1256,6 +1290,15 @@ Condition FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
     __ CompareRegisters(left, right);
   }
   return EQUAL;
+}
+
+Condition FlowGraphCompiler::EmitBoolTest(Register value,
+                                          BranchLabels labels,
+                                          bool invert) {
+  __ Comment("BoolTest");
+  __ testq(value, compiler::Immediate(
+                      compiler::target::ObjectAlignment::kBoolValueMask));
+  return invert ? NOT_EQUAL : EQUAL;
 }
 
 // This function must be in sync with FlowGraphCompiler::RecordSafepoint and

@@ -9,7 +9,7 @@ import 'package:test/test.dart';
 import '../utils.dart';
 
 void main() {
-  group('help', help);
+  group('help', help, timeout: longTimeout);
 }
 
 void help() {

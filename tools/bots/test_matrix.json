@@ -53,7 +53,6 @@
       "tests/ffi_2/",
       "third_party/babel/babel.min.js",
       "third_party/d8/",
-      "third_party/observatory_pub_packages/packages/web_components/",
       "third_party/pkg/",
       "third_party/pkg_tested/",
       "third_party/requirejs/",
@@ -97,7 +96,6 @@
       "tests/ffi_2/",
       "third_party/babel/babel.min.js",
       "third_party/d8/",
-      "third_party/observatory_pub_packages/packages/web_components/",
       "third_party/pkg/",
       "third_party/pkg_tested/",
       "third_party/requirejs/",
@@ -245,7 +243,6 @@
       "out/ReleaseX64/",
       "third_party/pkg/",
       "third_party/pkg_tested/",
-      "third_party/observatory_pub_packages/packages/",
       "tools/sdks/dart-sdk/",
       "pkg/_fe_analyzer_shared/",
       "pkg/async_helper/",
@@ -305,7 +302,6 @@
       "third_party/android_tools/ndk/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64/bin/arm-linux-androideabi-strip",
       "third_party/pkg/",
       "third_party/pkg_tested/",
-      "third_party/observatory_pub_packages/packages/",
       "tests/.dart_tool/package_config.json",
       "tests/angular/",
       "tests/co19_2/co19_2-analyzer.status",
@@ -391,7 +387,6 @@
       "third_party/android_tools/ndk/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64/bin/arm-linux-androideabi-strip",
       "third_party/pkg/",
       "third_party/pkg_tested/",
-      "third_party/observatory_pub_packages/packages/",
       "tests/.dart_tool/package_config.json",
       "tests/angular/",
       "tests/co19_2/co19_2-analyzer.status",
@@ -624,7 +619,7 @@
         "host-checked": true
       }
     },
-    "dart2js-hostasserts-weak-(linux|mac|win)-x64-(d8|chrome)": {
+    "dart2js-hostasserts-weak-(linux|win)-x64-(d8|chrome)": {
       "options": {
         "builder-tag": "dart2js-weak",
         "enable-experiment": [
@@ -632,7 +627,50 @@
         ],
         "dart2js-options": [
           "--no-null-safety",
-          "--libraries-spec=sdk_nnbd/lib/libraries.json"
+          "--libraries-spec=sdk_nnbd/lib/libraries.json",
+          "--platform-binaries=out/ReleaseX64NNBD/"
+        ],
+        "host-checked": true
+      }
+    },
+    "dart2js-hostasserts-weak-mac-x64-(d8|chrome)": {
+      "options": {
+        "builder-tag": "dart2js-weak",
+        "enable-experiment": [
+          "non-nullable"
+        ],
+        "dart2js-options": [
+          "--no-null-safety",
+          "--libraries-spec=sdk_nnbd/lib/libraries.json",
+          "--platform-binaries=xcodebuild/ReleaseX64NNBD/"
+        ],
+        "host-checked": true
+      }
+    },
+    "dart2js-hostasserts-strong-(linux|win)-x64-(d8|chrome)": {
+      "options": {
+        "builder-tag": "dart2js-strong",
+        "enable-experiment": [
+          "non-nullable"
+        ],
+        "dart2js-options": [
+          "--null-safety",
+          "--libraries-spec=sdk_nnbd/lib/libraries.json",
+          "--platform-binaries=out/ReleaseX64NNBD/"
+        ],
+        "host-checked": true
+      }
+    },
+    "dart2js-hostasserts-strong-mac-x64-(d8|chrome)": {
+      "options": {
+        "builder-tag": "dart2js-strong",
+        "enable-experiment": [
+          "non-nullable"
+        ],
+        "dart2js-options": [
+          "--null-safety",
+          "--libraries-spec=sdk_nnbd/lib/libraries.json",
+          "--platform-binaries=xcodebuild/ReleaseX64NNBD/"
         ],
         "host-checked": true
       }
@@ -913,6 +951,9 @@
           "--enable_interpreter"
         ]
       }
+    },
+    "dartkb-abi-linux-release-x64": {
+      "__comment__": "This configuration is only used for a custom test runner. If it conflicts with a new configuration you are adding, you can make this configuration more specific by adding options."
     },
     "dartdevk-checked-(linux|mac|win)-(debug|product|release)-(chrome|firefox)": {
       "options": {
@@ -1364,7 +1405,7 @@
             "standalone/io"
           ]
         },
-	{
+        {
           "name": "vm nnbd tests in strong mode",
           "arguments": [
             "-ndartkp-strong-${system}-${mode}-${arch}",
@@ -1525,100 +1566,33 @@
     {
       "builders": [
         "vm-kernel-asan-linux-release-ia32",
-        "vm-kernel-asan-linux-release-x64"
-      ],
-      "meta": {
-        "description": "This configuration is used by the vm builders with AddressSanitizer (asan)."
-      },
-      "steps": [
-        {
-          "name": "configure dart",
-          "script": "tools/gn.py",
-          "arguments": [
-            "--mode=${mode}",
-            "--arch=${arch}",
-            "--sanitizer=asan"
-          ]
-        },
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "--sanitizer=asan",
-            "runtime"
-          ]
-        },
-        {
-          "name": "vm tests",
-          "arguments": [
-            "-ndartk-asan-linux-release-${arch}"
-          ]
-        }
-      ]
-    },
-    {
-      "builders": [
+        "vm-kernel-asan-linux-release-x64",
         "vm-kernel-lsan-linux-release-ia32",
-        "vm-kernel-lsan-linux-release-x64"
+        "vm-kernel-lsan-linux-release-x64",        
+        "vm-kernel-msan-linux-release-x64",
+        "vm-kernel-ubsan-linux-release-ia32",
+        "vm-kernel-ubsan-linux-release-x64"
       ],
       "meta": {
-        "description": "This configuration is used by the vm builders with LeakSanitizer (lsan)."
+        "description": "This configuration is used by the VM/JIT builders with sanitizers."
       },
       "steps": [
         {
           "name": "configure dart",
           "script": "tools/gn.py",
-          "arguments": [
-            "--mode=${mode}",
-            "--arch=${arch}",
-            "--sanitizer=lsan"
-          ]
+          "arguments": []
         },
         {
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "--sanitizer=lsan",
             "runtime"
           ]
         },
         {
           "name": "vm tests",
           "arguments": [
-            "-ndartk-lsan-linux-release-${arch}"
-          ]
-        }
-      ]
-    },
-    {
-      "builders": [
-        "vm-kernel-msan-linux-release-x64"
-      ],
-      "meta": {
-        "description": "This configuration is used by the vm builders with MemorySanitizer (msan)."
-      },
-      "steps": [
-        {
-          "name": "configure dart",
-          "script": "tools/gn.py",
-          "arguments": [
-            "--mode=${mode}",
-            "--arch=${arch}",
-            "--sanitizer=msan"
-          ]
-        },
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "--sanitizer=msan",
-            "runtime"
-          ]
-        },
-        {
-          "name": "vm tests",
-          "arguments": [
-            "-ndartk-msan-linux-release-${arch}"
+            "-ndartk-${sanitizer}-${system}-${mode}-${arch}"
           ]
         }
       ]
@@ -1628,30 +1602,25 @@
         "vm-kernel-tsan-linux-release-x64"
       ],
       "meta": {
-        "description": "This configuration is used by the vm builders with ThreadSanitizer (tsan)."
+        "description": "This configuration is used by the VM/JIT builders with sanitizers."
       },
       "steps": [
         {
           "name": "configure dart",
           "script": "tools/gn.py",
-          "arguments": [
-            "--mode=${mode}",
-            "--arch=${arch}",
-            "--sanitizer=tsan"
-          ]
+          "arguments": []
         },
         {
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "--sanitizer=tsan",
             "runtime"
           ]
         },
         {
           "name": "vm tests",
           "arguments": [
-            "-ndartk-tsan-linux-release-${arch}",
+            "-ndartk-${sanitizer}-${system}-${mode}-${arch}",
             "vm"
           ]
         }
@@ -1659,34 +1628,65 @@
     },
     {
       "builders": [
-        "vm-kernel-ubsan-linux-release-ia32",
-        "vm-kernel-ubsan-linux-release-x64"
+        "vm-kernel-precomp-asan-linux-release-x64",
+        "vm-kernel-precomp-lsan-linux-release-x64",
+        "vm-kernel-precomp-msan-linux-release-x64",
+        "vm-kernel-precomp-ubsan-linux-release-x64"
       ],
       "meta": {
-        "description": "This configuration is used by the vm builders with UndefinedBehaviorSanitizer (ubsan)."
+        "description": "This configuration is used by the VM/AOT builders with sanitizers."
       },
       "steps": [
         {
           "name": "configure dart",
           "script": "tools/gn.py",
-          "arguments": [
-            "--mode=${mode}",
-            "--arch=${arch}",
-            "--sanitizer=ubsan"
-          ]
+          "arguments": []
         },
         {
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "--sanitizer=ubsan",
-            "runtime"
+            "runtime",
+            "runtime_precompiled"
           ]
         },
         {
           "name": "vm tests",
           "arguments": [
-            "-ndartk-ubsan-linux-release-${arch}"
+            "-ndartkp-${sanitizer}-${system}-${mode}-${arch}",
+            "vm",
+            "standalone",
+            "standalone_2"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-kernel-precomp-tsan-linux-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the VM/AOT builders with sanitizers."
+      },
+      "steps": [
+        {
+          "name": "configure dart",
+          "script": "tools/gn.py",
+          "arguments": []
+        },
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime",
+            "runtime_precompiled"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-ndartkp-${sanitizer}-${system}-${mode}-${arch}",
+            "vm"
           ]
         }
       ]
@@ -2043,6 +2043,17 @@
           "arguments": [
             "--enable-experiment=non-nullable",
             "pkg/dev_compiler/tool/check_nnbd_sdk.dart"
+          ]
+        },
+        {
+          "name": "ddc weak modular tests",
+          "script": "out/ReleaseX64NNBD/dart-sdk/bin/dart",
+          "testRunner": true,
+          "arguments": [
+            "pkg/dev_compiler/test/modular_suite_nnbd.dart",
+            "-ndartdevk-weak-${system}-release-chrome",
+            "--verbose",
+            "--use-sdk"
           ]
         },
         {
@@ -2625,7 +2636,8 @@
             "language_2",
             "corelib_2",
             "dart2js_extra",
-            "dart2js_native"
+            "dart2js_native",
+            "kernel"
           ],
           "shards": 6,
           "fileset": "dart2js_hostasserts_nnbd"
@@ -2646,6 +2658,40 @@
             "-ndart2js-hostasserts-weak-linux-x64-chrome",
             "--dart2js-batch",
             "co19_2"
+          ],
+          "shards": 6,
+          "fileset": "dart2js_hostasserts_nnbd"
+        },
+        {
+          "name": "dart2js nnbd strong tests",
+          "arguments": [
+            "-ndart2js-hostasserts-strong-linux-x64-d8",
+            "--dart2js-batch",
+            "language",
+            "corelib",
+            "dart2js_extra",
+            "dart2js_native",
+            "kernel"
+          ],
+          "shards": 6,
+          "fileset": "dart2js_hostasserts_nnbd"
+        },
+        {
+          "name": "dart2js nnbd strong lib tests",
+          "arguments": [
+            "-ndart2js-hostasserts-strong-linux-x64-chrome",
+            "--dart2js-batch",
+            "lib"
+          ],
+          "shards": 3,
+          "fileset": "dart2js_hostasserts_nnbd"
+        },
+        {
+          "name": "dart2js nnbd strong co19 tests",
+          "arguments": [
+            "-ndart2js-hostasserts-strong-linux-x64-chrome",
+            "--dart2js-batch",
+            "co19/LanguageFeatures/nnbd"
           ],
           "shards": 6,
           "fileset": "dart2js_hostasserts_nnbd"
@@ -3257,7 +3303,6 @@
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": [
             "--fatal-warnings",
-            "--packages=runtime/observatory/.packages",
             "runtime/observatory"
           ]
         },
@@ -3448,41 +3493,6 @@
           "arguments": [
             "clean"
           ]
-        },
-        {
-          "name": "generate ninja for linux-x64-bytecode",
-          "script": "tools/gn.py",
-          "arguments": [
-            "--mode=release",
-            "--arch=x64",
-            "--bytecode"
-          ]
-        },
-        {
-          "name": "build linux-x64-bytecode for benchmarking",
-          "script": "tools/build.py",
-          "arguments": [
-            "--mode=release",
-            "--arch=x64",
-            "create_sdk",
-            "runtime",
-            "gen_snapshot",
-            "dart_precompiled_runtime"
-          ]
-        },
-        {
-          "name": "archive linux-x64-bytecode for benchmarking",
-          "script": "tools/bots/try_benchmarks.sh",
-          "arguments": [
-            "linux-x64-bytecode-archive"
-          ]
-        },
-        {
-          "name": "try linux-x64-bytecode benchmarking",
-          "script": "tools/bots/try_benchmarks.sh",
-          "arguments": [
-            "linux-x64-bytecode-benchmark"
-          ]
         }
       ]
     },
@@ -3609,7 +3619,8 @@
         {
           "name": "run tests",
           "script": "tools/run_abi_tests.py",
-          "testRunner": true
+          "testRunner": true,
+          "arguments": ["-ndartkb-abi-linux-release-x64"]
         }
       ]
     },

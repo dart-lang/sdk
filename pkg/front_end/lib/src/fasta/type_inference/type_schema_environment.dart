@@ -102,7 +102,9 @@ class TypeConstraint {
 
 class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     with StandardBounds {
-  TypeSchemaEnvironment(CoreTypes coreTypes, ClassHierarchy hierarchy)
+  final ClassHierarchy hierarchy;
+
+  TypeSchemaEnvironment(CoreTypes coreTypes, this.hierarchy)
       : super(coreTypes, hierarchy);
 
   Class get functionClass => coreTypes.functionClass;
@@ -364,7 +366,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       unwrappedSupertype =
           (unwrappedSupertype as InterfaceType).typeArguments.single;
     }
-    if (subtype == coreTypes.nullType && unwrappedSupertype is UnknownType) {
+    if (unwrappedSupertype is UnknownType) {
       return const IsSubtypeOf.always();
     }
     return super.performNullabilityAwareSubtypeCheck(subtype, supertype);

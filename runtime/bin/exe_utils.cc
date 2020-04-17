@@ -54,6 +54,7 @@ Utils::CStringUniquePtr EXEUtils::GetDirectoryPrefixFromExeName() {
   if (name == nullptr) {
     name = Platform::GetExecutableName();
     target_size = strlen(name);
+    ASSERT(target_size < kTargetSize);
   }
   Namespace* namespc = Namespace::Create(Namespace::Default());
   if (File::GetType(namespc, name, false) == File::kIsLink) {

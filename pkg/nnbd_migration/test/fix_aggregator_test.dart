@@ -695,9 +695,10 @@ f(Object o) => o as a.Future<Null>;
     var typeName = findNode.typeName('int');
     var previewInfo = run({
       typeName: NodeChangeForTypeAnnotation()
-        ..makeNullable = true
-        ..decoratedType = MockDecoratedType(
-            MockDartType(toStringValueWithoutNullability: 'int'))
+        ..recordNullability(
+            MockDecoratedType(
+                MockDartType(toStringValueWithoutNullability: 'int')),
+            true)
     });
     expect(previewInfo.applyTo(code), 'f(int? x) {}');
   }
@@ -707,8 +708,10 @@ f(Object o) => o as a.Future<Null>;
     var typeName = findNode.typeName('int');
     var previewInfo = run({
       typeName: NodeChangeForTypeAnnotation()
-        ..decoratedType = MockDecoratedType(
-            MockDartType(toStringValueWithoutNullability: 'int'))
+        ..recordNullability(
+            MockDecoratedType(
+                MockDartType(toStringValueWithoutNullability: 'int')),
+            false)
     });
     expect(previewInfo.applyTo(code), 'int x = 0;');
     expect(previewInfo.applyTo(code, includeInformative: true), 'int  x = 0;');
@@ -934,9 +937,10 @@ int f() => null;
       findNode.unit: NodeChangeForCompilationUnit()
         ..removeLanguageVersionComment = true,
       findNode.typeAnnotation('int'): NodeChangeForTypeAnnotation()
-        ..makeNullable = true
-        ..decoratedType = MockDecoratedType(
-            MockDartType(toStringValueWithoutNullability: 'int'))
+        ..recordNullability(
+            MockDecoratedType(
+                MockDartType(toStringValueWithoutNullability: 'int')),
+            true)
     });
     // TODO(mfairhurst): Remove beginning \n once it renders properly in preview
     expect(previewInfo.applyTo(code), '\nint? f() => null;\n');
@@ -987,9 +991,10 @@ int f() => null;
       methodInvocation: NodeChangeForMethodInvocation()
         ..removeNullAwareness = true,
       typeAnnotation: NodeChangeForTypeAnnotation()
-        ..makeNullable = true
-        ..decoratedType = MockDecoratedType(
-            MockDartType(toStringValueWithoutNullability: 'int'))
+        ..recordNullability(
+            MockDecoratedType(
+                MockDartType(toStringValueWithoutNullability: 'int')),
+            true)
     });
     expect(previewInfo.applyTo(code), 'f(x) => x.m<int?>();');
   }

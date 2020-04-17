@@ -3420,15 +3420,16 @@ class InferenceVisitor
       {bool isNot}) {
     assert(isNot != null);
     inferrer.flowAnalysis.equalityOp_rightBegin(left);
-    ObjectAccessTarget equalsTarget = inferrer.findInterfaceMember(
-        leftType, equalsName, fileOffset,
-        includeExtensionMethods: true);
+    ObjectAccessTarget objectEqualsTarget =
+        inferrer.getObjectMemberIfNullableReceiver(leftType, equalsName);
+    ObjectAccessTarget equalsTarget = objectEqualsTarget ??
+        inferrer.findInterfaceMember(leftType, equalsName, fileOffset,
+            includeExtensionMethods: true);
 
     bool typeNeeded = !inferrer.isTopLevel;
     ExpressionInferenceResult rightResult = inferrer.inferExpression(
         right, const UnknownType(), typeNeeded,
         isVoidAllowed: false);
-    right = rightResult.expression;
 
     assert(equalsTarget.isInstanceMember);
     if (inferrer.instrumentation != null && leftType == const DynamicType()) {
@@ -3438,6 +3439,11 @@ class InferenceVisitor
           'target',
           new InstrumentationValueForMember(equalsTarget.member));
     }
+    DartType rightType =
+        inferrer.getPositionalParameterTypeForTarget(equalsTarget, leftType, 0);
+    right = inferrer.ensureAssignableResult(
+        rightType.withNullability(inferrer.library.nullable), rightResult,
+        errorTemplate: templateArgumentTypeNotAssignable);
 
     Expression equals = new MethodInvocation(
         left,
@@ -3849,9 +3855,12 @@ class InferenceVisitor
       {bool isThisReceiver}) {
     assert(isThisReceiver != null);
 
-    ObjectAccessTarget readTarget = inferrer.findInterfaceMember(
-        receiverType, propertyName, fileOffset,
-        includeExtensionMethods: true);
+    ObjectAccessTarget objectReadTarget =
+        inferrer.getObjectMemberIfNullableReceiver(receiverType, propertyName);
+
+    ObjectAccessTarget readTarget = objectReadTarget ??
+        inferrer.findInterfaceMember(receiverType, propertyName, fileOffset,
+            includeExtensionMethods: true);
 
     DartType readType = inferrer.getGetterType(readTarget, receiverType);
 
@@ -5600,7 +5609,8 @@ class InferenceVisitor
     if (!inferrer.isTopLevel) {
       bool isUnassigned = !inferrer.flowAnalysis.isAssigned(variable);
       if (isUnassigned) {
-        inferrer.dataForTesting?.flowAnalysisResult?.unassignedNodes?.add(node);
+        inferrer.dataForTesting?.flowAnalysisResult?.potentiallyUnassignedNodes
+            ?.add(node);
       }
       bool isDefinitelyUnassigned =
           inferrer.flowAnalysis.isUnassigned(variable);

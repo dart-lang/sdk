@@ -18,7 +18,9 @@ import 'edit_planner_pass_through_merging_test.dart'
 import 'fantasyland/test_all.dart' as fantasyland;
 import 'fix_aggregator_test.dart' as fix_aggregator_test;
 import 'fix_builder_test.dart' as fix_builder_test;
+import 'fix_reason_target_test.dart' as fix_reason_target_test;
 import 'instrumentation_test.dart' as instrumentation_test;
+import 'isolate_server_test.dart' as isolate_server_test;
 import 'node_builder_test.dart' as node_builder_test;
 import 'nullability_node_test.dart' as nullability_node_test;
 import 'utilities/test_all.dart' as utilities;
@@ -37,7 +39,9 @@ main() {
     fantasyland.main();
     fix_aggregator_test.main();
     fix_builder_test.main();
+    fix_reason_target_test.main();
     instrumentation_test.main();
+    isolate_server_test.main();
     node_builder_test.main();
     nullability_node_test.main();
     utilities.main();

@@ -30,7 +30,6 @@ library test;
 //
 import self as self;
 import "dart:core" as core;
-import "dart:_internal" as _in;
 
 class Foo extends core::Object {
   field core::int* bar = 42;
@@ -44,7 +43,7 @@ class Bar<T extends core::Iterable<core::String*>* = core::Iterable<core::String
     ;
   method foo(generic-covariant-impl self::Bar::T* t) → void {
     {
-      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(t).{core::Iterable::iterator};
+      core::Iterator<core::String*>* :sync-for-iterator = t.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         core::String* i = :sync-for-iterator.{core::Iterator::current};
         {
@@ -62,7 +61,7 @@ class Baz<T extends core::Object* = dynamic, E extends core::Iterable<self::Baz:
     ;
   method foo(generic-covariant-impl self::Baz::S* t) → void {
     {
-      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(t).{core::Iterable::iterator};
+      core::Iterator<self::Baz::T*>* :sync-for-iterator = t.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         self::Baz::T* i = :sync-for-iterator.{core::Iterator::current};
         {
@@ -78,7 +77,7 @@ class Baz<T extends core::Object* = dynamic, E extends core::Iterable<self::Baz:
 static method test() → dynamic {
   core::List<self::Foo*>* list = <self::Foo*>[];
   {
-    core::Iterator<self::Foo*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<self::Foo*>*>(list).{core::Iterable::iterator};
+    core::Iterator<self::Foo*>* :sync-for-iterator = list.{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       self::Foo* x = :sync-for-iterator.{core::Iterator::current};
       {
@@ -90,7 +89,7 @@ static method test() → dynamic {
     }
   }
   {
-    core::Iterator<self::Foo*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<self::Foo*>*>(list).{core::Iterable::iterator};
+    core::Iterator<self::Foo*>* :sync-for-iterator = list.{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       dynamic x = :sync-for-iterator.{core::Iterator::current};
       {
@@ -99,7 +98,7 @@ static method test() → dynamic {
     }
   }
   {
-    core::Iterator<self::Foo*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<self::Foo*>*>(list).{core::Iterable::iterator};
+    core::Iterator<self::Foo*>* :sync-for-iterator = list.{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       final self::Foo* #t4 = :sync-for-iterator.{core::Iterator::current};
       {
@@ -114,7 +113,7 @@ Try changing the type of the variable.
   }
   dynamic z;
   {
-    core::Iterator<self::Foo*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<self::Foo*>*>(list).{core::Iterable::iterator};
+    core::Iterator<self::Foo*>* :sync-for-iterator = list.{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       final self::Foo* #t6 = :sync-for-iterator.{core::Iterator::current};
       {
@@ -125,7 +124,7 @@ Try changing the type of the variable.
   }
   core::Iterable<dynamic>* iter = list;
   {
-    core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(iter).{core::Iterable::iterator};
+    core::Iterator<dynamic>* :sync-for-iterator = iter.{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       final dynamic #t7 = :sync-for-iterator.{core::Iterator::current};
       {
@@ -136,7 +135,7 @@ Try changing the type of the variable.
   }
   dynamic iter2 = list;
   {
-    core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(iter2 as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
+    core::Iterator<dynamic>* :sync-for-iterator = (iter2 as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       final dynamic #t8 = :sync-for-iterator.{core::Iterator::current};
       {
@@ -147,7 +146,7 @@ Try changing the type of the variable.
   }
   core::Map<core::String*, self::Foo*>* map = <core::String*, self::Foo*>{};
   {
-    core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:60:70: Error: The type 'Map<String, Foo>' used in the 'for' loop must implement 'Iterable<dynamic>'.
+    core::Iterator<dynamic>* :sync-for-iterator = (let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:60:70: Error: The type 'Map<String, Foo>' used in the 'for' loop must implement 'Iterable<dynamic>'.
  - 'Map' is from 'dart:core'.
  - 'Foo' is from 'pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart'.
  - 'Iterable' is from 'dart:core'.
@@ -161,7 +160,7 @@ Try changing the type of the variable.
     }
   }
   {
-    core::Iterator<core::String*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::String*>*>(map.{core::Map::keys}).{core::Iterable::iterator};
+    core::Iterator<core::String*>* :sync-for-iterator = map.{core::Map::keys}.{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       core::String* x = :sync-for-iterator.{core::Iterator::current};
       {

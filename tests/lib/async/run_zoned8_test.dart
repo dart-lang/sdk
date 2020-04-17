@@ -24,7 +24,7 @@ main() {
       events.add(counter);
       throw counter;
     });
-  }, (e, [s]) {
+  }, (e, [StackTrace? s]) {
     events.add("error: $e");
     Expect.isNotNull(s); // Regression test for http://dartbug.com/33589
   });

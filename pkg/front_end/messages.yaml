@@ -129,6 +129,9 @@ ConstEvalZeroDivisor:
 ConstEvalNegativeShift:
   template: "Binary operator '#string' on '#string2' requires non-negative operand, but was '#string3'."
 
+ConstEvalTruncateError:
+  template: "Binary operator '#string ~/ #string2' results is Infinity or NaN."
+
 ConstEvalInvalidMethodInvocation:
   template: "The method '#string' can't be invoked on '#constant' in a constant expression."
   analyzerCode: UNDEFINED_OPERATOR

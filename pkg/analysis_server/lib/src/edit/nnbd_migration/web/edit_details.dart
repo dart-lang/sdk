@@ -7,10 +7,6 @@ import 'package:meta/meta.dart';
 /// Information about what should be populated into the "Edit Details" view of
 /// the migration preview tool.
 class EditDetails {
-  /// A list of the bulleted items that should be displayed as rationale for the
-  /// edit.
-  final List<EditRationale> details;
-
   /// A list of edits that can be offered to the user related to this source
   /// location (e.g. adding/removing hints).  `null` if this feature is
   /// disabled.
@@ -30,25 +26,20 @@ class EditDetails {
   final List<Trace> traces;
 
   EditDetails(
-      {@required this.details,
-      this.edits,
+      {this.edits,
       @required this.explanation,
       @required this.line,
       @required this.path,
       this.traces = const []});
 
   EditDetails.fromJson(dynamic json)
-      : details = [
-          for (var detail in json['details']) EditRationale.fromJson(detail)
-        ],
-        edits = _decodeEdits(json['edits']),
+      : edits = _decodeEdits(json['edits']),
         explanation = json['explanation'],
         line = json['line'],
         path = json['path'],
         traces = _decodeTraces(json['traces']);
 
   Map<String, Object> toJson() => {
-        'details': [for (var detail in details) detail.toJson()],
         if (edits != null) 'edits': [for (var edit in edits) edit.toJson()],
         'explanation': explanation,
         'line': line,
@@ -85,30 +76,6 @@ class EditLink {
         'description': description,
         'href': href,
       };
-}
-
-/// Information about what should be populated into a single "rational" bullet
-/// item in the "Edit Details" view of the migration preview tool.
-class EditRationale {
-  /// Description of the rationale.
-  final String description;
-
-  /// Link the user may click to see the source code in question.  May be null.
-  final TargetLink link;
-
-  EditRationale({@required this.description, this.link});
-
-  EditRationale.fromJson(dynamic json)
-      : description = json['description'],
-        link = _decodeLink(json['link']);
-
-  Map<String, Object> toJson() => {
-        'description': description,
-        if (link != null) 'link': link.toJson(),
-      };
-
-  static TargetLink _decodeLink(dynamic json) =>
-      json == null ? null : TargetLink.fromJson(json);
 }
 
 /// Information about a single link that should be included in the

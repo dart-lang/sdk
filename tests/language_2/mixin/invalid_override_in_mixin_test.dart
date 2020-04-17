@@ -13,7 +13,6 @@ class A {
 
 class C extends Object with A {
 //    ^
-// [analyzer] COMPILE_TIME_ERROR.INCONSISTENT_INHERITANCE
 // [cfe] Applying the mixin 'A' to 'Object' introduces an erroneous override of 'noSuchMethod'.
 //    ^
 // [cfe] Class 'Object with A' inherits multiple members named 'noSuchMethod' with incompatible signatures.

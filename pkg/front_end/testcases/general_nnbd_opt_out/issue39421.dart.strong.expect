@@ -16,15 +16,6 @@ library;
 //   foo(List<A> a) {}
 //            ^
 //
-// pkg/front_end/testcases/general_nnbd_opt_out/issue39421.dart:18:15: Error: The parameter 'a' of the method 'C.foo' has type 'List<invalid-type>', which does not match the corresponding type, 'List<Null>', in the overridden method, 'B.foo'.
-//  - 'List' is from 'dart:core'.
-// Change to a supertype of 'List<Null>', or, for a covariant parameter, a subtype.
-//   foo(List<A> a) {}
-//               ^
-// pkg/front_end/testcases/general_nnbd_opt_out/issue39421.dart:14:3: Context: This is the overridden method ('foo').
-//   foo(List<Null> a) {}
-//   ^
-//
 // pkg/front_end/testcases/general_nnbd_opt_out/issue39421.dart:18:12: Error: Can't use 'A' because it is declared more than once.
 //   foo(List<A> a) {}
 //            ^

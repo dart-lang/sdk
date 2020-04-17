@@ -70,7 +70,7 @@ class _TypePromotionDataInterpreter implements DataInterpreter<DartType> {
   const _TypePromotionDataInterpreter();
 
   @override
-  String getText(DartType actualData) {
+  String getText(DartType actualData, [String indentation]) {
     if (actualData is TypeParameterTypeImpl) {
       var element = actualData.element;
       var promotedBound = actualData.promotedBound;

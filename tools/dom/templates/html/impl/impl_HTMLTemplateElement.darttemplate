@@ -16,13 +16,13 @@ $!MEMBERS
    *
    * * <https://w3c.github.io/DOM-Parsing/#the-innerhtml-mixin>
    */
-  void setInnerHtml(String html,
+  void setInnerHtml(String$NULLABLE html,
     {NodeValidator$NULLABLE validator,
      NodeTreeSanitizer$NULLABLE treeSanitizer}) {
     text = null;
     content.nodes.clear();
     var fragment = createFragment(
-        html, validator: validator, treeSanitizer: treeSanitizer);
+        html$NULLASSERT, validator: validator, treeSanitizer: treeSanitizer);
 
     content.append(fragment);
   }

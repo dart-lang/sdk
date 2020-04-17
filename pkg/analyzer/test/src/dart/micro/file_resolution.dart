@@ -5,78 +5,92 @@
 import 'dart:convert';
 
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:analyzer/src/test_utilities/find_element.dart';
+import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/workspace/bazel.dart';
 import 'package:crypto/crypto.dart';
+import 'package:linter/src/rules.dart';
 
 import '../resolution/resolution.dart';
 
 /// [FileResolver] based implementation of [ResolutionTest].
 class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
+  static final String _testFile = '/workspace/dart/test/lib/test.dart';
+
   final ByteStore byteStore = MemoryByteStore();
 
   final StringBuffer logBuffer = StringBuffer();
   PerformanceLog logger;
+  MockSdk sdk;
 
-  DartSdk sdk;
-  Map<String, List<Folder>> packageMap;
   FileResolver fileResolver;
 
-  List<MockSdkLibrary> get additionalMockSdkLibraries => [];
+  @override
+  void addTestFile(String content) {
+    newFile(_testFile, content: content);
+  }
 
-  /// Override this to change the analysis options for a given set of tests.
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl();
+  /// Create a new [FileResolver] into [fileResolver].
+  ///
+  /// We do this the first time, and to test reusing results from [byteStore].
+  void createFileResolver() {
+    var workspace = BazelWorkspace.find(
+      resourceProvider,
+      convertPath(_testFile),
+    );
+
+    fileResolver = FileResolver(
+      logger,
+      resourceProvider,
+      byteStore,
+      workspace.createSourceFactory(sdk, null),
+      (String path) => _getDigest(path),
+      null,
+      workspace: workspace,
+    );
+    fileResolver.testView = FileResolverTestView();
+  }
+
+  ErrorsResult getTestErrors() {
+    var path = convertPath(_testFile);
+    return fileResolver.getErrors(path);
+  }
 
   @override
   Future<ResolvedUnitResult> resolveFile(String path) async {
     return fileResolver.resolve(path);
   }
 
-  String _getDigest(String path) {
-    var content;
-    try {
-      content = resourceProvider.getFile(path).readAsStringSync();
-    } catch (_) {
-      return '';
-    }
-    var contentBytes = utf8.encode(content);
-    return md5.convert(contentBytes).toString();
+  @override
+  Future<void> resolveTestFile() async {
+    var path = convertPath(_testFile);
+    result = await resolveFile(path);
+    findNode = FindNode(result.content, result.unit);
+    findElement = FindElement(result.unit);
   }
 
   void setUp() {
-    sdk = MockSdk(
-      resourceProvider: resourceProvider,
-      additionalLibraries: additionalMockSdkLibraries,
-    );
+    registerLintRules();
+
     logger = PerformanceLog(logBuffer);
+    sdk = MockSdk(resourceProvider: resourceProvider);
 
-    // TODO(brianwilkerson) Create an empty package map by default and only add
-    //  packages in the tests that need them.
-    packageMap = <String, List<Folder>>{
-      'test': [getFolder('/test/lib')],
-      'aaa': [getFolder('/aaa/lib')],
-      'bbb': [getFolder('/bbb/lib')],
-      'meta': [getFolder('/.pub-cache/meta/lib')],
-    };
+    newFile('/workspace/WORKSPACE', content: '');
+    createFileResolver();
+  }
 
-    fileResolver = FileResolver(
-        logger,
-        resourceProvider,
-        byteStore,
-        SourceFactory([
-          DartUriResolver(sdk),
-          PackageMapUriResolver(resourceProvider, packageMap),
-          ResourceUriResolver(resourceProvider)
-        ]),
-        (String path) => _getDigest(path),
-        null);
+  String _getDigest(String path) {
+    try {
+      var content = resourceProvider.getFile(path).readAsStringSync();
+      var contentBytes = utf8.encode(content);
+      return md5.convert(contentBytes).toString();
+    } catch (_) {
+      return '';
+    }
   }
 }

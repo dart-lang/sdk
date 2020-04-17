@@ -788,6 +788,14 @@ void FlowGraphCompiler::AddPcRelativeCallStubTarget(const Code& stub_code) {
       &stub_code));
 }
 
+void FlowGraphCompiler::AddPcRelativeTailCallStubTarget(const Code& stub_code) {
+  ASSERT(stub_code.IsZoneHandle() || stub_code.IsReadOnlyHandle());
+  ASSERT(!stub_code.IsNull());
+  static_calls_target_table_.Add(new (zone()) StaticCallsStruct(
+      Code::kPcRelativeTailCall, Code::kDefaultEntry, assembler()->CodeSize(),
+      nullptr, &stub_code));
+}
+
 void FlowGraphCompiler::AddStaticCallTarget(const Function& func,
                                             Code::EntryKind entry_kind) {
   ASSERT(func.IsZoneHandle());
@@ -1346,22 +1354,14 @@ bool FlowGraphCompiler::TryIntrinsifyHelper() {
   return complete;
 }
 
-void FlowGraphCompiler::GenerateCallWithDeopt(TokenPosition token_pos,
-                                              intptr_t deopt_id,
-                                              const Code& stub,
-                                              RawPcDescriptors::Kind kind,
-                                              LocationSummary* locs) {
-  GenerateCall(token_pos, stub, kind, locs);
-  if (!FLAG_precompiled_mode) {
-    const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
-    if (is_optimizing()) {
-      AddDeoptIndexAtCall(deopt_id_after);
-    } else {
-      // Add deoptimization continuation point after the call and before the
-      // arguments are removed.
-      AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
-    }
-  }
+void FlowGraphCompiler::GenerateStubCall(TokenPosition token_pos,
+                                         const Code& stub,
+                                         RawPcDescriptors::Kind kind,
+                                         LocationSummary* locs,
+                                         intptr_t deopt_id,
+                                         Environment* env) {
+  EmitCallToStub(stub);
+  EmitCallsiteMetadata(token_pos, deopt_id, kind, locs, env);
 }
 
 static const Code& StubEntryFor(const ICData& ic_data, bool optimized) {
@@ -2333,6 +2333,7 @@ FlowGraphCompiler::GetTypeTestStubKindForTypeParameter(
 }
 
 void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
+    CompileType* receiver_type,
     const AbstractType& dst_type,
     const String& dst_name,
     const Register dst_type_reg_to_call,
@@ -2350,6 +2351,8 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
   bool is_non_smi = false;
   if (int_type.IsSubtypeOf(dst_type, Heap::kOld)) {
     __ BranchIfSmi(TypeTestABI::kInstanceReg, done);
+    is_non_smi = true;
+  } else if (receiver_type->IsNotSmi()) {
     is_non_smi = true;
   }
 
@@ -2519,25 +2522,22 @@ void ThrowErrorSlowPathCode::EmitNativeCode(FlowGraphCompiler* compiler) {
       instruction()->UseSharedSlowPathStub(compiler->is_optimizing());
   const bool live_fpu_registers =
       instruction()->locs()->live_registers()->FpuRegisterCount() > 0;
-  ASSERT(!use_shared_stub || num_args_ == 0);
   __ Bind(entry_label());
   EmitCodeAtSlowPathEntry(compiler);
   LocationSummary* locs = instruction()->locs();
   // Save registers as they are needed for lazy deopt / exception handling.
-  if (!use_shared_stub) {
-    compiler->SaveLiveRegisters(locs);
-  }
-  intptr_t i = 0;
-  if (num_args_ % 2 != 0) {
-    __ PushRegister(locs->in(i).reg());
-    ++i;
-  }
-  for (; i < num_args_; i += 2) {
-    __ PushRegisterPair(locs->in(i + 1).reg(), locs->in(i).reg());
-  }
   if (use_shared_stub) {
     EmitSharedStubCall(compiler, live_fpu_registers);
   } else {
+    compiler->SaveLiveRegisters(locs);
+    intptr_t i = 0;
+    if (num_args_ % 2 != 0) {
+      __ PushRegister(locs->in(i).reg());
+      ++i;
+    }
+    for (; i < num_args_; i += 2) {
+      __ PushRegisterPair(locs->in(i + 1).reg(), locs->in(i).reg());
+    }
     __ CallRuntime(runtime_entry_, num_args_);
   }
   const intptr_t deopt_id = instruction()->deopt_id();

@@ -251,6 +251,7 @@ class EditDartFix
   }
 
   Future<bool> rerunTasks([List<String> changedPaths]) async {
+    listener.reset();
     if (changedPaths == null) {
       final drivers = <AnalysisDriver>{};
       for (var path in getPathsToProcess()) {

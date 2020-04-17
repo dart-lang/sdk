@@ -116,7 +116,7 @@ class _ReachabilityDataInterpreter
   const _ReachabilityDataInterpreter();
 
   @override
-  String getText(Set<_ReachabilityAssertion> actualData) =>
+  String getText(Set<_ReachabilityAssertion> actualData, [String indentation]) =>
       _sortedRepresentation(_toStrings(actualData));
 
   @override

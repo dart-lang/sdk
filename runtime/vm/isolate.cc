@@ -79,6 +79,7 @@ static void DeterministicModeHandler(bool value) {
     FLAG_background_compilation = false;  // Timing dependent.
     FLAG_concurrent_mark = false;         // Timing dependent.
     FLAG_concurrent_sweep = false;        // Timing dependent.
+    FLAG_scavenger_tasks = 0;             // Timing dependent.
     FLAG_random_seed = 0x44617274;        // "Dart"
   }
 }
@@ -2497,7 +2498,8 @@ void IsolateGroup::ForEachIsolate(
     ASSERT(Thread::Current()->IsAtSafepoint() ||
            (Thread::Current()->task_kind() == Thread::kMutatorTask) ||
            (Thread::Current()->task_kind() == Thread::kMarkerTask) ||
-           (Thread::Current()->task_kind() == Thread::kCompactorTask));
+           (Thread::Current()->task_kind() == Thread::kCompactorTask) ||
+           (Thread::Current()->task_kind() == Thread::kScavengerTask));
     for (Isolate* isolate : isolates_) {
       function(isolate);
     }

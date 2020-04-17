@@ -15,7 +15,7 @@ namespace dart {
 class CompilationTraceSaver : public FunctionVisitor {
  public:
   explicit CompilationTraceSaver(Zone* zone);
-  void Visit(const Function& function);
+  void VisitFunction(const Function& function);
 
   void StealBuffer(uint8_t** buffer, intptr_t* buffer_length) {
     *buffer = reinterpret_cast<uint8_t*>(buf_.buffer());
@@ -72,7 +72,7 @@ class TypeFeedbackSaver : public FunctionVisitor {
   void WriteHeader();
   void SaveClasses();
   void SaveFields();
-  void Visit(const Function& function);
+  void VisitFunction(const Function& function);
 
  private:
   void WriteClassByName(const Class& cls);

@@ -4,35 +4,34 @@
 
 // Requirements=nnbd
 
-import 'dart:_runtime' as dart;
+import 'dart:_runtime' show legacy, nullable, typeRep, legacyTypeRep;
 
 import 'package:expect/expect.dart';
-
-import 'runtime_utils_nnbd.dart';
 
 class A {}
 
 void main() {
   // A?? == A?
-  Expect.identical(nullable(nullable(A)), nullable(A));
+  Expect.identical(nullable(typeRep<A?>()), typeRep<A?>());
   // A?* == A?
-  Expect.identical(legacy(nullable(A)), nullable(A));
+  Expect.identical(legacy(typeRep<A?>()), typeRep<A?>());
   // A*? == A?
-  Expect.identical(nullable(legacy(A)), nullable(A));
+  Expect.identical(nullable(legacyTypeRep<A>()), typeRep<A?>());
   // A** == A*
-  Expect.identical(legacy(legacy(A)), legacy(A));
+  Expect.identical(legacy(legacyTypeRep<A>()), legacyTypeRep<A>());
+
+  // The tests below need explicit wrapping in nullable and legacy to ensure
+  // they appear at runtime and the runtime library normalizes them correctly.
   // Null? == Null
-  Expect.identical(nullable(Null), Null);
+  Expect.identical(nullable(typeRep<Null>()), typeRep<Null>());
   // Never? == Null
-  Expect.identical(nullable(Never), Null);
+  Expect.identical(nullable(typeRep<Never>()), typeRep<Null>());
   // dynamic? == dynamic
-  Expect.identical(nullable(dynamic), dynamic);
+  Expect.identical(nullable(typeRep<dynamic>()), typeRep<dynamic>());
   // void? == void
-  Expect.identical(
-      nullable(dart.wrapType(dart.void_)), dart.wrapType(dart.void_));
+  Expect.identical(nullable(typeRep<void>()), typeRep<void>());
   // dynamic* == dynamic
-  Expect.identical(legacy(dynamic), dynamic);
+  Expect.identical(legacy(typeRep<dynamic>()), typeRep<dynamic>());
   // void* == void
-  Expect.identical(
-      legacy(dart.wrapType(dart.void_)), dart.wrapType(dart.void_));
+  Expect.identical(legacy(typeRep<void>()), typeRep<void>());
 }

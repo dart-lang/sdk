@@ -33,6 +33,6 @@ class Operators7 extends core::Object {
     ;
   operator <<() → dynamic {}
   operator >(dynamic a) → invalid-type
-    return true as{TypeError} invalid-type;
+    return true;
 }
 static method main() → dynamic {}

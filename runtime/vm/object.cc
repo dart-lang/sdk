@@ -128,6 +128,8 @@ SHARED_READONLY_HANDLES_LIST(DEFINE_SHARED_READONLY_HANDLE)
 #undef DEFINE_SHARED_READONLY_HANDLE
 
 RawObject* Object::null_ = reinterpret_cast<RawObject*>(RAW_NULL);
+RawBool* Object::true_ = reinterpret_cast<RawBool*>(RAW_NULL);
+RawBool* Object::false_ = reinterpret_cast<RawBool*>(RAW_NULL);
 RawClass* Object::class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::dynamic_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::void_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -534,7 +536,7 @@ static RawBytecode* CreateVMInternalBytecode(KernelBytecode::Opcode opcode) {
   return bytecode.raw();
 }
 
-void Object::InitNull(Isolate* isolate) {
+void Object::InitNullAndBool(Isolate* isolate) {
   // Should only be run by the vm isolate.
   ASSERT(isolate == Dart::vm_isolate());
 
@@ -552,6 +554,42 @@ void Object::InitNull(Isolate* isolate) {
     // The call below is using 'null_' to initialize itself.
     InitializeObject(address, kNullCid, Instance::InstanceSize());
   }
+
+  // Allocate and initialize the bool instances.
+  // These must be allocated such that at kBoolValueBitPosition, the address
+  // of true is 0 and the address of false is 1, and their addresses are
+  // otherwise identical.
+  {
+    // Allocate a dummy bool object to give true the desired alignment.
+    uword address = heap->Allocate(Bool::InstanceSize(), Heap::kOld);
+    InitializeObject(address, kBoolCid, Bool::InstanceSize());
+  }
+  {
+    // Allocate true.
+    uword address = heap->Allocate(Bool::InstanceSize(), Heap::kOld);
+    true_ = reinterpret_cast<RawBool*>(address + kHeapObjectTag);
+    InitializeObject(address, kBoolCid, Bool::InstanceSize());
+    true_->ptr()->value_ = true;
+    true_->SetCanonical();
+  }
+  {
+    // Allocate false.
+    uword address = heap->Allocate(Bool::InstanceSize(), Heap::kOld);
+    false_ = reinterpret_cast<RawBool*>(address + kHeapObjectTag);
+    InitializeObject(address, kBoolCid, Bool::InstanceSize());
+    false_->ptr()->value_ = false;
+    false_->SetCanonical();
+  }
+
+  // Check that the objects have been allocated at appropriate addresses.
+  ASSERT(reinterpret_cast<uword>(true_) ==
+         reinterpret_cast<uword>(null_) + kTrueOffsetFromNull);
+  ASSERT(reinterpret_cast<uword>(false_) ==
+         reinterpret_cast<uword>(null_) + kFalseOffsetFromNull);
+  ASSERT((reinterpret_cast<uword>(true_) & kBoolValueMask) == 0);
+  ASSERT((reinterpret_cast<uword>(false_) & kBoolValueMask) != 0);
+  ASSERT(reinterpret_cast<uword>(false_) ==
+         (reinterpret_cast<uword>(true_) | kBoolValueMask));
 }
 
 void Object::InitVtables() {
@@ -671,6 +709,8 @@ void Object::Init(Isolate* isolate) {
   *empty_type_arguments_ = TypeArguments::null();
   *null_abstract_type_ = AbstractType::null();
   *null_compressed_stack_maps_ = CompressedStackMaps::null();
+  *bool_true_ = true_;
+  *bool_false_ = false_;
 
   // Initialize the empty and zero array handles to null_ in order to be able to
   // check if the empty and zero arrays were allocated (RAW_NULL is not
@@ -1064,11 +1104,8 @@ void Object::Init(Isolate* isolate) {
   cls.SetFields(Object::empty_array());
   cls.SetFunctions(Object::empty_array());
 
-  // Allocate and initialize singleton true and false boolean objects.
   cls = Class::New<Bool, RTN::Bool>(isolate);
   isolate->object_store()->set_bool_class(cls);
-  *bool_true_ = Bool::New(true);
-  *bool_false_ = Bool::New(false);
 
   *smi_illegal_cid_ = Smi::New(kIllegalCid);
   *smi_zero_ = Smi::New(0);
@@ -1223,6 +1260,8 @@ void Object::FinishInit(Isolate* isolate) {
 
 void Object::Cleanup() {
   null_ = reinterpret_cast<RawObject*>(RAW_NULL);
+  true_ = reinterpret_cast<RawBool*>(RAW_NULL);
+  false_ = reinterpret_cast<RawBool*>(RAW_NULL);
   class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   dynamic_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   void_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -2068,6 +2107,8 @@ RawError* Object::Init(Isolate* isolate,
     object_store->set_legacy_int_type(type);
     type = type.ToNullability(Nullability::kNonNullable, Heap::kOld);
     object_store->set_non_nullable_int_type(type);
+    type = type.ToNullability(Nullability::kNullable, Heap::kOld);
+    object_store->set_nullable_int_type(type);
 
     cls = Class::New<Instance, RTN::Instance>(kIllegalCid, isolate,
                                               /*register_class=*/true,
@@ -2082,6 +2123,8 @@ RawError* Object::Init(Isolate* isolate,
     object_store->set_legacy_double_type(type);
     type = type.ToNullability(Nullability::kNonNullable, Heap::kOld);
     object_store->set_non_nullable_double_type(type);
+    type = type.ToNullability(Nullability::kNullable, Heap::kOld);
+    object_store->set_nullable_double_type(type);
 
     name = Symbols::_String().raw();
     cls = Class::New<Instance, RTN::Instance>(kIllegalCid, isolate,
@@ -2549,12 +2592,15 @@ void Object::CheckHandle() const {
     ASSERT(vtable() == builtin_vtables_[cid]);
     if (FLAG_verify_handles && raw_->IsHeapObject()) {
       Heap* isolate_heap = IsolateGroup::Current()->heap();
-      Heap* vm_isolate_heap = Dart::vm_isolate()->heap();
-      uword addr = RawObject::ToAddr(raw_);
-      if (!isolate_heap->Contains(addr) && !vm_isolate_heap->Contains(addr)) {
-        ASSERT(FLAG_write_protect_code);
-        addr = RawObject::ToAddr(HeapPage::ToWritable(raw_));
-        ASSERT(isolate_heap->Contains(addr) || vm_isolate_heap->Contains(addr));
+      if (!isolate_heap->new_space()->scavenging()) {
+        Heap* vm_isolate_heap = Dart::vm_isolate()->heap();
+        uword addr = RawObject::ToAddr(raw_);
+        if (!isolate_heap->Contains(addr) && !vm_isolate_heap->Contains(addr)) {
+          ASSERT(FLAG_write_protect_code);
+          addr = RawObject::ToAddr(HeapPage::ToWritable(raw_));
+          ASSERT(isolate_heap->Contains(addr) ||
+                 vm_isolate_heap->Contains(addr));
+        }
       }
     }
   }
@@ -4312,8 +4358,14 @@ RawClass* Class::NewNativeWrapper(const Library& library,
     // Compute instance size. First word contains a pointer to a properly
     // sized typed array once the first native field has been set.
     const intptr_t host_instance_size = sizeof(RawInstance) + kWordSize;
+#if defined(PRECOMPILER)
+    const intptr_t target_instance_size =
+        compiler::target::Instance::InstanceSize() +
+        compiler::target::kWordSize;
+#else
     const intptr_t target_instance_size =
         sizeof(RawInstance) + compiler::target::kWordSize;
+#endif
     cls.set_instance_size(
         RoundedAllocationSize(host_instance_size),
         compiler::target::RoundedAllocationSize(target_instance_size));
@@ -5595,6 +5647,39 @@ void Class::RehashConstants(Zone* zone) const {
     InsertCanonicalConstant(zone, constant);
   }
   set.Release();
+}
+
+bool Class::RequireLegacyErasureOfConstants(Zone* zone) const {
+  const intptr_t num_type_params = NumTypeParameters();
+  const intptr_t num_type_args = NumTypeArguments();
+  const intptr_t from_index = num_type_args - num_type_params;
+  Instance& constant = Instance::Handle(zone);
+  TypeArguments& type_arguments = TypeArguments::Handle(zone);
+  AbstractType& type = AbstractType::Handle(zone);
+  CanonicalInstancesSet set(zone, constants());
+  CanonicalInstancesSet::Iterator it(&set);
+  while (it.MoveNext()) {
+    constant ^= set.GetKey(it.Current());
+    ASSERT(!constant.IsNull());
+    ASSERT(!constant.IsTypeArguments());
+    ASSERT(!constant.IsType());
+    type_arguments = constant.GetTypeArguments();
+    if (type_arguments.IsNull()) {
+      continue;
+    }
+    for (intptr_t i = 0; i < num_type_params; i++) {
+      type = type_arguments.TypeAt(from_index + i);
+      if (!type.IsLegacy() && !type.IsVoidType() && !type.IsDynamicType() &&
+          !type.IsNullType()) {
+        return true;
+      }
+      // It is not possible for a legacy type to have non-legacy type
+      // arguments or for a legacy function type to have non-legacy parameter
+      // types, non-legacy type parameters, or required named parameters.
+    }
+  }
+  set.Release();
+  return false;
 }
 
 intptr_t TypeArguments::ComputeNullability() const {
@@ -7177,7 +7262,7 @@ intptr_t Function::GetRequiredFlagIndex(intptr_t index,
 }
 
 bool Function::IsRequiredAt(intptr_t index) const {
-  if (index < num_fixed_parameters()) {
+  if (index < num_fixed_parameters() + NumOptionalPositionalParameters()) {
     return false;
   }
   intptr_t flag_mask;
@@ -7558,7 +7643,8 @@ bool Function::AreValidArguments(const ArgumentsDescriptor& args_desc,
   }
   if (isolate->null_safety()) {
     // Verify that all required named parameters are filled.
-    for (intptr_t j = num_positional_args; j < num_parameters; j++) {
+    for (intptr_t j = num_parameters - NumOptionalNamedParameters();
+         j < num_parameters; j++) {
       if (IsRequiredAt(j)) {
         parameter_name = ParameterNameAt(j);
         ASSERT(parameter_name.IsSymbol());
@@ -8027,7 +8113,7 @@ bool Function::IsSubtypeOf(const Function& other, Heap::Space space) const {
     // Check that for each required named parameter in this function, there's a
     // corresponding required named parameter in the other function.
     String& param_name = other_param_name;
-    for (intptr_t j = num_fixed_params; j < num_params; j++) {
+    for (intptr_t j = num_params - num_opt_named_params; j < num_params; j++) {
       if (IsRequiredAt(j)) {
         param_name = ParameterNameAt(j);
         ASSERT(param_name.IsSymbol());
@@ -8404,7 +8490,7 @@ void Function::PrintSignatureParameters(Thread* thread,
       printer->AddString("{");
     }
     for (intptr_t i = num_fixed_params; i < num_params; i++) {
-      if (IsRequiredAt(i)) {
+      if (num_opt_named_params > 0 && IsRequiredAt(i)) {
         printer->AddString("required ");
       }
       param_type = ParameterTypeAt(i);
@@ -9843,17 +9929,34 @@ RawError* Field::InitializeStatic() const {
   ASSERT(IsOriginal());
   ASSERT(is_static());
   if (StaticValue() == Object::sentinel().raw()) {
-    SetStaticValue(Object::transition_sentinel());
-    const Object& value = Object::Handle(EvaluateInitializer());
-    if (!value.IsNull() && value.IsError()) {
-      SetStaticValue(Object::null_instance());
-      return Error::Cast(value).raw();
+    auto& value = Object::Handle();
+    if (is_late()) {
+      if (!has_initializer()) {
+        Exceptions::ThrowLateInitializationError(String::Handle(name()));
+        UNREACHABLE();
+      }
+      value = EvaluateInitializer();
+      if (value.IsError()) {
+        return Error::Cast(value).raw();
+      }
+      if (is_final() && (StaticValue() != Object::sentinel().raw())) {
+        Exceptions::ThrowLateInitializationError(String::Handle(name()));
+        UNREACHABLE();
+      }
+    } else {
+      SetStaticValue(Object::transition_sentinel());
+      value = EvaluateInitializer();
+      if (value.IsError()) {
+        SetStaticValue(Object::null_instance());
+        return Error::Cast(value).raw();
+      }
     }
     ASSERT(value.IsNull() || value.IsInstance());
     SetStaticValue(value.IsNull() ? Instance::null_instance()
                                   : Instance::Cast(value));
     return Error::null();
   } else if (StaticValue() == Object::transition_sentinel().raw()) {
+    ASSERT(!is_late());
     const Array& ctor_args = Array::Handle(Array::New(1));
     const String& field_name = String::Handle(name());
     ctor_args.SetAt(0, field_name);
@@ -12014,12 +12117,12 @@ RawLibrary* Library::NewLibraryHelper(const String& url, bool import_core_lib) {
   result.StorePointer(&result.raw_ptr()->exported_names_, Array::null());
   result.StorePointer(&result.raw_ptr()->dictionary_,
                       Object::empty_array().raw());
-  result.StorePointer(&result.raw_ptr()->metadata_,
-                      GrowableObjectArray::New(4, Heap::kOld));
+  GrowableObjectArray& list = GrowableObjectArray::Handle(zone);
+  list = GrowableObjectArray::New(4, Heap::kOld);
+  result.StorePointer(&result.raw_ptr()->metadata_, list.raw());
   result.StorePointer(&result.raw_ptr()->toplevel_class_, Class::null());
-  const GrowableObjectArray& scripts = GrowableObjectArray::Handle(zone,
-      GrowableObjectArray::New(Object::empty_array(), Heap::kOld));
-  result.StorePointer(&result.raw_ptr()->used_scripts_, scripts.raw());
+  list = GrowableObjectArray::New(Object::empty_array(), Heap::kOld);
+  result.StorePointer(&result.raw_ptr()->used_scripts_, list.raw());
   result.StorePointer(&result.raw_ptr()->imports_, Object::empty_array().raw());
   result.StorePointer(&result.raw_ptr()->exports_, Object::empty_array().raw());
   result.StorePointer(&result.raw_ptr()->loaded_scripts_, Array::null());
@@ -14172,6 +14275,22 @@ const char* MonomorphicSmiableCall::ToCString() const {
   return "MonomorphicSmiableCall";
 }
 
+const char* CallSiteData::ToCString() const {
+  // CallSiteData is an abstract class.  We should never reach here.
+  UNREACHABLE();
+  return "CallSiteData";
+}
+
+void CallSiteData::set_target_name(const String& value) const {
+  ASSERT(!value.IsNull());
+  StorePointer(&raw_ptr()->target_name_, value.raw());
+}
+
+void CallSiteData::set_arguments_descriptor(const Array& value) const {
+  ASSERT(!value.IsNull());
+  StorePointer(&raw_ptr()->args_descriptor_, value.raw());
+}
+
 #if !defined(DART_PRECOMPILED_RUNTIME)
 void ICData::SetReceiversStaticType(const AbstractType& type) const {
   StorePointer(&raw_ptr()->receivers_static_type_, type.raw());
@@ -14233,16 +14352,6 @@ void ICData::SetOriginal(const ICData& value) const {
 
 void ICData::set_owner(const Function& value) const {
   StorePointer(&raw_ptr()->owner_, reinterpret_cast<RawObject*>(value.raw()));
-}
-
-void ICData::set_target_name(const String& value) const {
-  ASSERT(!value.IsNull());
-  StorePointer(&raw_ptr()->target_name_, value.raw());
-}
-
-void ICData::set_arguments_descriptor(const Array& value) const {
-  ASSERT(!value.IsNull());
-  StorePointer(&raw_ptr()->args_descriptor_, value.raw());
 }
 
 void ICData::set_deopt_id(intptr_t value) const {
@@ -16141,9 +16250,9 @@ void Code::GetInlinedFunctionsAtInstruction(
   const CodeSourceMap& map = CodeSourceMap::Handle(code_source_map());
   if (map.IsNull()) {
     ASSERT(!IsFunctionCode() ||
-           (Isolate::Current()->object_store()->megamorphic_miss_code() ==
+           (Isolate::Current()->object_store()->megamorphic_call_miss_code() ==
             this->raw()));
-    return;  // VM stub, allocation stub, or megamorphic miss function.
+    return;  // VM stub, allocation stub, or megamorphic call miss function.
   }
   const Array& id_map = Array::Handle(inlined_id_to_function());
   const Function& root = Function::Handle(function());
@@ -16683,14 +16792,6 @@ intptr_t MegamorphicCache::filled_entry_count() const {
 
 void MegamorphicCache::set_filled_entry_count(intptr_t count) const {
   StoreNonPointer(&raw_ptr()->filled_entry_count_, count);
-}
-
-void MegamorphicCache::set_target_name(const String& value) const {
-  StorePointer(&raw_ptr()->target_name_, value.raw());
-}
-
-void MegamorphicCache::set_arguments_descriptor(const Array& value) const {
-  StorePointer(&raw_ptr()->args_descriptor_, value.raw());
 }
 
 RawMegamorphicCache* MegamorphicCache::New() {
@@ -17827,7 +17928,8 @@ bool Instance::RuntimeTypeIsSubtypeOf(
   }
   const Class& cls = Class::Handle(zone, clazz());
   if (cls.IsClosureClass()) {
-    if (other.IsDartFunctionType() || other.IsDartClosureType()) {
+    if (other.IsDartFunctionType() || other.IsDartClosureType() ||
+        other.IsObjectType()) {
       return true;
     }
     AbstractType& instantiated_other = AbstractType::Handle(zone, other.raw());
@@ -18143,6 +18245,32 @@ Nullability AbstractType::nullability() const {
   // AbstractType is an abstract class.
   UNREACHABLE();
   return Nullability::kNullable;
+}
+
+bool AbstractType::IsStrictlyNonNullable() const {
+  // Null can be assigned to legacy and nullable types.
+  if (!IsNonNullable()) {
+    return false;
+  }
+
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+
+  // In weak mode null can be assigned to any type.
+  if (!thread->isolate()->null_safety()) {
+    return false;
+  }
+
+  if (IsTypeParameter()) {
+    const auto& bound =
+        AbstractType::Handle(zone, TypeParameter::Cast(*this).bound());
+    ASSERT(!bound.IsNull());
+    return bound.IsStrictlyNonNullable();
+  }
+  if (IsFutureOrType()) {
+    return AbstractType::Handle(zone, UnwrapFutureOr()).IsStrictlyNonNullable();
+  }
+  return true;
 }
 
 RawAbstractType* AbstractType::SetInstantiatedNullability(
@@ -18855,6 +18983,10 @@ RawType* Type::IntType() {
   return Isolate::Current()->object_store()->int_type();
 }
 
+RawType* Type::NullableIntType() {
+  return Isolate::Current()->object_store()->nullable_int_type();
+}
+
 RawType* Type::SmiType() {
   return Isolate::Current()->object_store()->smi_type();
 }
@@ -18865,6 +18997,10 @@ RawType* Type::MintType() {
 
 RawType* Type::Double() {
   return Isolate::Current()->object_store()->double_type();
+}
+
+RawType* Type::NullableDouble() {
+  return Isolate::Current()->object_store()->nullable_double_type();
 }
 
 RawType* Type::Float32x4() {
@@ -19541,7 +19677,9 @@ intptr_t Type::ComputeHash() const {
         param_name = sig_fun.ParameterNameAt(i);
         result = CombineHashes(result, param_name.Hash());
       }
+      // Required flag is not hashed, see comment above.
     }
+    // TODO(regis): Missing hash of type parameters.
   }
   result = FinalizeHash(result, kHashBits);
   SetHash(result);
@@ -19807,7 +19945,7 @@ RawTypeParameter* TypeParameter::ToNullability(Nullability value,
   if (nullability() == value) {
     return raw();
   }
-  // Clone type and set new nullability.
+  // Clone type parameter and set new nullability.
   TypeParameter& type_parameter = TypeParameter::Handle();
   type_parameter ^= Object::Clone(*this, space);
   type_parameter.set_nullability(value);

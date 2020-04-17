@@ -9,15 +9,20 @@ unexpected failures, note the breaking changes listed below.
 
 ### Language
 
-There are no new language features in this release. The only noteworthy change
-is a very minor breaking change in anticipation of the future support for null
-safety.
+There are no new language features in this release. There are only two
+minor breaking changes:
 
 *   **Breaking change** [#40675][]: Fixed an implementation bug where local
     variable inference would incorrectly use the promoted type of a type
     variable.
 
+*   **Breaking change** [#41362][]: Dart 2.0.0 made the clauses `implements
+    Function`, `extends Function`, or `with Function` have no effect (spec
+    section 19.6). We fixed an implementation bug that may be visible on some
+    rare scenarios.
+
 [#40675]: https://github.com/dart-lang/sdk/issues/40675
+[#41362]: https://github.com/dart-lang/sdk/issues/41362
 
 ### Core libraries
 
@@ -104,9 +109,17 @@ safety.
     of `Node`, even though it was not returning anything. This has been
     corrected to `void`.
 
+*   **Breaking Change**: `CssClassSet.add()` previously returned `null` if the
+    `CssClassSet` corresponded to multiple elements. In order to align with the
+    null-safe changes in the `Set` interface, it will now return `false`
+    instead. The same applies for `CssClassSet.toggle`.
+
 [#39627]: https://github.com/dart-lang/sdk/issues/39627
 
 #### `dart:io`
+
+*   Class `OSError` now implements `Exception`. This change means `OSError` will
+    now be caught in catch clauses catching `Exception`s.
 
 *   Class `HttpParser` will no longer throw an exception when a HTTP response
     status code is within [0, 999]. Customized status codes in this range are

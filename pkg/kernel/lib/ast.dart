@@ -1739,6 +1739,7 @@ class Field extends Member {
   static const int FlagLate = 1 << 7;
   static const int FlagExtensionMember = 1 << 8;
   static const int FlagNonNullableByDefault = 1 << 9;
+  static const int FlagInternalImplementation = 1 << 10;
 
   /// Whether the field is declared with the `covariant` keyword.
   bool get isCovariant => flags & FlagCovariant != 0;
@@ -1779,6 +1780,13 @@ class Field extends Member {
 
   /// Whether the field is declared with the `late` keyword.
   bool get isLate => flags & FlagLate != 0;
+
+  // If `true` this field is not part of the interface but only part of the
+  // class members.
+  //
+  // This is `true` for instance for synthesized fields added for the late
+  // lowering.
+  bool get isInternalImplementation => flags & FlagInternalImplementation != 0;
 
   void set isCovariant(bool value) {
     flags = value ? (flags | FlagCovariant) : (flags & ~FlagCovariant);
@@ -1821,6 +1829,12 @@ class Field extends Member {
 
   void set isLate(bool value) {
     flags = value ? (flags | FlagLate) : (flags & ~FlagLate);
+  }
+
+  void set isInternalImplementation(bool value) {
+    flags = value
+        ? (flags | FlagInternalImplementation)
+        : (flags & ~FlagInternalImplementation);
   }
 
   /// True if the field is neither final nor const.
@@ -7922,7 +7936,23 @@ class Supertype extends Node {
 
   @override
   String toStringInternal() {
-    return "";
+    StringBuffer sb = new StringBuffer();
+    if (_verboseTypeToString) {
+      sb.write(className.toStringInternal());
+    } else {
+      sb.write(classNode.name);
+    }
+    if (typeArguments.isNotEmpty) {
+      sb.write("<");
+      String comma = "";
+      for (DartType typeArgument in typeArguments) {
+        sb.write(comma);
+        sb.write(typeArgument.toStringInternal());
+        comma = ", ";
+      }
+      sb.write(">");
+    }
+    return sb.toString();
   }
 }
 
@@ -8417,7 +8447,12 @@ class Component extends TreeNode {
       <String, MetadataRepository<dynamic>>{};
 
   /// Reference to the main method in one of the libraries.
-  Reference mainMethodName;
+  Reference _mainMethodName;
+  Reference get mainMethodName => _mainMethodName;
+  NonNullableByDefaultCompiledMode _mode;
+  NonNullableByDefaultCompiledMode get mode {
+    return _mode ?? NonNullableByDefaultCompiledMode.Disabled;
+  }
 
   Component(
       {CanonicalName nameRoot,
@@ -8501,8 +8536,12 @@ class Component extends TreeNode {
 
   Procedure get mainMethod => mainMethodName?.asProcedure;
 
-  void set mainMethod(Procedure main) {
-    mainMethodName = getMemberReference(main);
+  void setMainMethodAndMode(Reference main, bool overwriteMainIfSet,
+      NonNullableByDefaultCompiledMode mode) {
+    if (_mainMethodName == null || overwriteMainIfSet) {
+      _mainMethodName = main;
+    }
+    _mode = mode;
   }
 
   R accept<R>(TreeVisitor<R> v) => v.visitComponent(this);
@@ -8521,6 +8560,15 @@ class Component extends TreeNode {
   /// Translates an offset to line and column numbers in the given file.
   Location getLocation(Uri file, int offset) {
     return uriToSource[file]?.getLocation(file, offset);
+  }
+
+  /// Translates line and column numbers to an offset in the given file.
+  ///
+  /// Returns offset of the line and column in the file, or -1 if the
+  /// source is not available or has no lines.
+  /// Throws [RangeError] if line or calculated offset are out of range.
+  int getOffset(Uri file, int line, int column) {
+    return uriToSource[file]?.getOffset(line, column) ?? -1;
   }
 
   void addMetadataRepository(MetadataRepository repository) {
@@ -8768,7 +8816,7 @@ class Source {
     throw "Internal error";
   }
 
-  /// Translates an offset to line and column numbers in the given file.
+  /// Translates an offset to 1-based line and column numbers in the given file.
   Location getLocation(Uri file, int offset) {
     if (lineStarts == null || lineStarts.isEmpty) {
       return new Location(file, TreeNode.noOffset, TreeNode.noOffset);
@@ -8789,6 +8837,21 @@ class Source {
     int lineNumber = 1 + lineIndex;
     int columnNumber = 1 + offset - lineStart;
     return new Location(file, lineNumber, columnNumber);
+  }
+
+  /// Translates 1-based line and column numbers to an offset in the given file
+  ///
+  /// Returns offset of the line and column in the file, or -1 if the source
+  /// has no lines.
+  /// Throws [RangeError] if line or calculated offset are out of range.
+  int getOffset(int line, int column) {
+    if (lineStarts == null || lineStarts.isEmpty) {
+      return -1;
+    }
+    RangeError.checkValueInInterval(line, 1, lineStarts.length, 'line');
+    var offset = lineStarts[line - 1] + column - 1;
+    RangeError.checkValueInInterval(offset, 0, lineStarts.last, 'offset');
+    return offset;
   }
 }
 

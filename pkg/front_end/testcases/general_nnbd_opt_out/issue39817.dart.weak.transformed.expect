@@ -1,12 +1,11 @@
 library;
 import self as self;
 import "dart:core" as core;
-import "dart:_internal" as _in;
 
 static method foo() → dynamic {
   core::Null? _null;
   {
-    core::Iterator<core::Null?>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::Null?>*>(_null).{core::Iterable::iterator};
+    core::Iterator<core::Null?>* :sync-for-iterator = _null.{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       dynamic i = :sync-for-iterator.{core::Iterator::current};
       {}

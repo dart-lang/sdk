@@ -239,12 +239,20 @@ class LibraryAnalyzer {
       unit.accept(Dart2JSVerifier(errorReporter));
     }
 
-    unit.accept(BestPracticesVerifier(
-        errorReporter, _typeProvider, _libraryElement, unit, file.content,
+    unit.accept(
+      BestPracticesVerifier(
+        errorReporter,
+        _typeProvider,
+        _libraryElement,
+        unit,
+        file.content,
+        declaredVariables: _declaredVariables,
         typeSystem: _typeSystem,
         inheritanceManager: _inheritance,
         resourceProvider: _resourceProvider,
-        analysisOptions: _context.analysisOptions));
+        analysisOptions: _context.analysisOptions,
+      ),
+    );
 
     unit.accept(OverrideVerifier(
       _inheritance,
@@ -403,12 +411,46 @@ class LibraryAnalyzer {
     LineInfo lineInfo = _fileToLineInfo[file];
 
     bool isIgnored(AnalysisError error) {
+      var code = error.errorCode;
+      // Don't allow error severity issues to be ignored.
+      if (!code.isIgnorable) {
+        // The [code] is not ignorable, but we've allowed a few "privileged"
+        // cases. Each is annotated with an issue which represents technical
+        // debt. Once cleaned up, we may remove this notion of "privileged".
+        // In the case of [CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY], we may
+        // just decide that it happens enough in tests that it can be declared
+        // an ignorable error, and in practice other back ends will prevent
+        // non-internal code from importing internal code.
+        bool privileged = false;
+
+        if (code == StaticTypeWarningCode.UNDEFINED_FUNCTION ||
+            code == StaticTypeWarningCode.UNDEFINED_PREFIXED_NAME) {
+          // Special case a small number of errors in Flutter code which are
+          // ignored. The erroneous code is found in a conditionally imported
+          // library, which uses a special version of the "dart:ui" library
+          // which the Analyzer does not use during analysis. See
+          // https://github.com/flutter/flutter/issues/52899.
+          if (file.path.contains('flutter')) {
+            privileged = true;
+          }
+        }
+
+        if (code == CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY &&
+            file.path.contains('tests/compiler/dart2js')) {
+          // Special case the dart2js language tests. Some of these import
+          // various internal libraries.
+          privileged = true;
+        }
+
+        if (!privileged) return false;
+      }
+
       int errorLine = lineInfo.getLocation(error.offset).lineNumber;
-      String name = error.errorCode.name.toLowerCase();
+      String name = code.name.toLowerCase();
       if (ignoreInfo.ignoredAt(name, errorLine)) {
         return true;
       }
-      String uniqueName = error.errorCode.uniqueName;
+      String uniqueName = code.uniqueName;
       int period = uniqueName.indexOf('.');
       if (period >= 0) {
         uniqueName = uniqueName.substring(period + 1);

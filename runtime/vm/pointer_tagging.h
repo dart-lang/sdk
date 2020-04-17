@@ -34,6 +34,13 @@ struct ObjectAlignment {
   static constexpr intptr_t kObjectAlignment = 2 * word_size;
   static constexpr intptr_t kObjectAlignmentLog2 = word_size_log2 + 1;
   static constexpr intptr_t kObjectAlignmentMask = kObjectAlignment - 1;
+
+  // Discriminate between true and false based on the alignment bit.
+  static constexpr intptr_t kBoolValueBitPosition = kObjectAlignmentLog2;
+  static constexpr intptr_t kBoolValueMask = 1 << kBoolValueBitPosition;
+
+  static constexpr intptr_t kTrueOffsetFromNull = kObjectAlignment * 2;
+  static constexpr intptr_t kFalseOffsetFromNull = kObjectAlignment * 3;
 };
 
 using HostObjectAlignment = ObjectAlignment<kWordSize, kWordSizeLog2>;
@@ -50,6 +57,13 @@ static constexpr intptr_t kObjectAlignmentLog2 =
     HostObjectAlignment::kObjectAlignmentLog2;
 static constexpr intptr_t kObjectAlignmentMask =
     HostObjectAlignment::kObjectAlignmentMask;
+static constexpr intptr_t kBoolValueBitPosition =
+    HostObjectAlignment::kBoolValueBitPosition;
+static constexpr intptr_t kBoolValueMask = HostObjectAlignment::kBoolValueMask;
+static constexpr intptr_t kTrueOffsetFromNull =
+    HostObjectAlignment::kTrueOffsetFromNull;
+static constexpr intptr_t kFalseOffsetFromNull =
+    HostObjectAlignment::kFalseOffsetFromNull;
 
 // The largest value of kObjectAlignment across all configurations.
 static constexpr intptr_t kMaxObjectAlignment = 16;

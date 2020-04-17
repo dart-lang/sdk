@@ -150,6 +150,8 @@ class ClassSerializationCluster : public SerializationCluster {
     RawClass* cls = Class::RawCast(object);
     intptr_t class_id = cls->ptr()->id_;
 
+    // Classes expected to be dropped by the precompiler should not be traced.
+    ASSERT(class_id != kIllegalCid);
     if (class_id < kNumPredefinedCids) {
       // These classes are allocated by Object::Init or Object::InitOnce, so the
       // deserializer must find them in the class table instead of allocating
@@ -200,6 +202,9 @@ class ClassSerializationCluster : public SerializationCluster {
       s->UnexpectedObject(cls, "Class with illegal cid");
     }
     s->WriteCid(class_id);
+    if (s->kind() == Snapshot::kFull && RequireLegacyErasureOfConstants(cls)) {
+      s->UnexpectedObject(cls, "Class with non mode agnostic constants");
+    }
     if (s->kind() != Snapshot::kFullAOT) {
       s->Write<uint32_t>(cls->ptr()->binary_declaration_);
     }
@@ -253,6 +258,20 @@ class ClassSerializationCluster : public SerializationCluster {
     }
 
     return unboxed_fields_bitmap;
+  }
+
+  bool RequireLegacyErasureOfConstants(RawClass* cls) {
+    // Do not generate a core snapshot containing constants that would require
+    // a legacy erasure of their types if loaded in an isolate running in weak
+    // mode.
+    if (cls->ptr()->host_type_arguments_field_offset_in_words_ ==
+            Class::kNoTypeArguments ||
+        cls->ptr()->constants_ == Object::empty_array().raw()) {
+      return false;
+    }
+    Zone* zone = Thread::Current()->zone();
+    const Class& clazz = Class::Handle(zone, cls);
+    return clazz.RequireLegacyErasureOfConstants(zone);
   }
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
@@ -2050,7 +2069,7 @@ class WeakSerializationReferenceSerializationCluster
   // the object ID from the heap directly.
   bool ShouldDrop(RawWeakSerializationReference* ref) const {
     auto const target = WeakSerializationReference::TargetOf(ref);
-    return Serializer::IsAllocatedReference(heap_->GetObjectId(target));
+    return Serializer::IsReachableReference(heap_->GetObjectId(target));
   }
 
   Heap* const heap_;
@@ -5440,8 +5459,8 @@ void Serializer::AddVMIsolateBaseObjects() {
 
   ClassTable* table = isolate()->class_table();
   for (intptr_t cid = kClassCid; cid < kInstanceCid; cid++) {
-    // Error has no class object.
-    if (cid != kErrorCid) {
+    // Error, CallSiteData has no class object.
+    if (cid != kErrorCid && cid != kCallSiteDataCid) {
       ASSERT(table->HasValidClassAt(cid));
       AddBaseObject(table->At(cid), "Class");
     }
@@ -6056,13 +6075,16 @@ void Deserializer::Deserialize() {
 class HeapLocker : public StackResource {
  public:
   HeapLocker(Thread* thread, PageSpace* page_space)
-      : StackResource(thread), page_space_(page_space) {
-    page_space_->AcquireDataLock();
+      : StackResource(thread),
+        page_space_(page_space),
+        freelist_(page_space->DataFreeList()) {
+    page_space_->AcquireLock(freelist_);
   }
-  ~HeapLocker() { page_space_->ReleaseDataLock(); }
+  ~HeapLocker() { page_space_->ReleaseLock(freelist_); }
 
  private:
   PageSpace* page_space_;
+  FreeList* freelist_;
 };
 
 void Deserializer::AddVMIsolateBaseObjects() {
@@ -6107,8 +6129,8 @@ void Deserializer::AddVMIsolateBaseObjects() {
 
   ClassTable* table = isolate()->class_table();
   for (intptr_t cid = kClassCid; cid <= kUnwindErrorCid; cid++) {
-    // Error has no class object.
-    if (cid != kErrorCid) {
+    // Error, CallSiteData has no class object.
+    if (cid != kErrorCid && cid != kCallSiteDataCid) {
       ASSERT(table->HasValidClassAt(cid));
       AddBaseObject(table->At(cid));
     }
@@ -6548,7 +6570,7 @@ RawApiError* FullSnapshotReader::ReadIsolateSnapshot() {
   if (FLAG_use_bare_instructions) {
     // By default, every switchable call site will put (ic_data, code) into the
     // object pool.  The [code] is initialized (at AOT compile-time) to be a
-    // [StubCode::UnlinkedCall].
+    // [StubCode::SwitchableCallMiss].
     //
     // In --use-bare-instruction we reduce the extra indirection via the [code]
     // object and store instead (ic_data, entrypoint) in the object pool.
@@ -6563,9 +6585,15 @@ RawApiError* FullSnapshotReader::ReadIsolateSnapshot() {
     for (intptr_t i = 0; i < pool.Length(); i++) {
       if (pool.TypeAt(i) == ObjectPool::EntryType::kTaggedObject) {
         entry = pool.ObjectAt(i);
-        if (entry.raw() == StubCode::UnlinkedCall().raw()) {
+        if (entry.raw() == StubCode::SwitchableCallMiss().raw()) {
           smi = Smi::FromAlignedAddress(
-              StubCode::UnlinkedCall().MonomorphicEntryPoint());
+              StubCode::SwitchableCallMiss().MonomorphicEntryPoint());
+          pool.SetTypeAt(i, ObjectPool::EntryType::kImmediate,
+                         ObjectPool::Patchability::kPatchable);
+          pool.SetObjectAt(i, smi);
+        } else if (entry.raw() == StubCode::MegamorphicCall().raw()) {
+          smi = Smi::FromAlignedAddress(
+              StubCode::MegamorphicCall().MonomorphicEntryPoint());
           pool.SetTypeAt(i, ObjectPool::EntryType::kImmediate,
                          ObjectPool::Patchability::kPatchable);
           pool.SetObjectAt(i, smi);

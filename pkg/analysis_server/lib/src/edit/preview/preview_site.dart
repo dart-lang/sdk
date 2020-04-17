@@ -197,6 +197,15 @@ class PreviewSite extends Site
 
     final edits = migrationState.listener.sourceChange.edits;
 
+    // Perform a full check that no files have changed before touching the disk.
+    for (final fileEdit in edits) {
+      final file = pathMapper.provider.getFile(fileEdit.file);
+      var code = file.exists ? file.readAsStringSync() : '';
+      if (!unitInfoMap[file.path].hadDiskContent(code)) {
+        throw StateError('${file.path} has changed, rerun migration to apply.');
+      }
+    }
+
     // Eagerly mark the migration applied. If this throws, we cannot go back.
     migrationState.markApplied();
     for (final fileEdit in edits) {
@@ -213,15 +222,30 @@ class PreviewSite extends Site
     // Update the code on disk.
     //
     var params = uri.queryParameters;
-    var path = uri.path;
+    var path = Uri.parse(uri.path).toFilePath();
     var offset = int.parse(params['offset']);
     var end = int.parse(params['end']);
     var replacement = params['replacement'];
     var file = pathMapper.provider.getFile(path);
-    var oldContent = file.readAsStringSync();
-    var newContent = oldContent.replaceRange(offset, end, replacement);
+    var diskContent = file.readAsStringSync();
+    if (!unitInfoMap[path].hadDiskContent(diskContent)) {
+      throw StateError(
+          'Cannot add hint, $path has changed. Rerun migration and try again.');
+    }
+    final unitInfo = unitInfoMap[path];
+    final diskMapper = unitInfo.diskChangesOffsetMapper;
+    final insertionOnly = offset == end;
+    if (insertionOnly) {
+      unitInfo.handleInsertion(offset, replacement);
+      migrationState.needsRerun = true;
+    }
+    var newContent = diskContent.replaceRange(
+        diskMapper.map(offset), diskMapper.map(end), replacement);
     file.writeAsStringSync(newContent);
-    await rerunMigration([path]);
+    unitInfo.diskContent = newContent;
+    if (!insertionOnly) {
+      await rerunMigration([path]);
+    }
   }
 
   Future<void> rerunMigration([List<String> changedPaths]) async {

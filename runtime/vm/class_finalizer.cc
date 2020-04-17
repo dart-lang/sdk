@@ -1699,8 +1699,27 @@ void ClassFinalizer::ClearAllCode(bool including_nonchanging_cids) {
     }
   }
 
-  class ClearCodeFunctionVisitor : public FunctionVisitor {
-    void Visit(const Function& function) {
+  auto const thread = Thread::Current();
+  auto const isolate = thread->isolate();
+  StackZone stack_zone(thread);
+  HANDLESCOPE(thread);
+  auto const zone = thread->zone();
+
+  class ClearCodeVisitor : public FunctionVisitor {
+   public:
+    ClearCodeVisitor(Zone* zone, bool force)
+        : force_(force),
+          bytecode_(Bytecode::Handle(zone)),
+          pool_(ObjectPool::Handle(zone)),
+          entry_(Object::Handle(zone)) {}
+
+    void VisitClass(const Class& cls) {
+      if (force_ || cls.id() >= kNumPredefinedCids) {
+        cls.DisableAllocationStub();
+      }
+    }
+
+    void VisitFunction(const Function& function) {
       bytecode_ = function.bytecode();
       if (!bytecode_.IsNull()) {
         pool_ = bytecode_.object_pool();
@@ -1720,41 +1739,27 @@ void ClassFinalizer::ClearAllCode(bool including_nonchanging_cids) {
       function.ClearICDataArray();
     }
 
-    Bytecode& bytecode_ = Bytecode::Handle();
-    ObjectPool& pool_ = ObjectPool::Handle();
-    Object& entry_ = Object::Handle();
-  };
-  ClearCodeFunctionVisitor function_visitor;
-  ProgramVisitor::VisitFunctions(&function_visitor);
-
-  class ClearCodeClassVisitor : public ClassVisitor {
-   public:
-    explicit ClearCodeClassVisitor(bool force) : force_(force) {}
-
-    void Visit(const Class& cls) {
-      if (force_ || cls.id() >= kNumPredefinedCids) {
-        cls.DisableAllocationStub();
-      }
-    }
-
    private:
-    bool force_;
+    const bool force_;
+    Bytecode& bytecode_;
+    ObjectPool& pool_;
+    Object& entry_;
   };
-  ClearCodeClassVisitor class_visitor(including_nonchanging_cids);
-  ProgramVisitor::VisitClasses(&class_visitor);
+
+  ClearCodeVisitor visitor(zone, including_nonchanging_cids);
+  ProgramVisitor::WalkProgram(zone, isolate, &visitor);
 
   // Apart from normal function code and allocation stubs we have two global
   // code objects to clear.
   if (including_nonchanging_cids) {
-    auto thread = Thread::Current();
-    auto object_store = thread->isolate()->object_store();
-    auto& null_code = Code::Handle(thread->zone());
+    auto object_store = isolate->object_store();
+    auto& null_code = Code::Handle(zone);
     object_store->set_build_method_extractor_code(null_code);
 
-    auto& miss_function = Function::Handle(
-        thread->zone(), object_store->megamorphic_miss_function());
+    auto& miss_function =
+        Function::Handle(zone, object_store->megamorphic_call_miss_function());
     miss_function.ClearCode();
-    object_store->SetMegamorphicMissHandler(null_code, miss_function);
+    object_store->SetMegamorphicCallMissHandler(null_code, miss_function);
   }
 #endif  // !DART_PRECOMPILED_RUNTIME
 }

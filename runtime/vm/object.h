@@ -524,7 +524,7 @@ class Object {
   }
 
   // Initialize the VM isolate.
-  static void InitNull(Isolate* isolate);
+  static void InitNullAndBool(Isolate* isolate);
   static void Init(Isolate* isolate);
   static void InitVtables();
   static void FinishInit(Isolate* isolate);
@@ -752,6 +752,8 @@ class Object {
   // The static values below are singletons shared between the different
   // isolates. They are all allocated in the non-GC'd Dart::vm_isolate_.
   static RawObject* null_;
+  static RawBool* true_;
+  static RawBool* false_;
 
   static RawClass* class_class_;           // Class of the Class vm object.
   static RawClass* dynamic_class_;         // Class of the 'dynamic' type.
@@ -1315,6 +1317,8 @@ class Class : public Object {
 
   void RehashConstants(Zone* zone) const;
 
+  bool RequireLegacyErasureOfConstants(Zone* zone) const;
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawClass));
   }
@@ -1751,7 +1755,7 @@ class Class : public Object {
   friend class Type;
   friend class InterpreterHelpers;
   friend class Intrinsifier;
-  friend class ClassFunctionVisitor;
+  friend class ProgramWalker;
 };
 
 // Classification of type genericity according to type parameter owners.
@@ -1930,12 +1934,37 @@ class UnlinkedCall : public Object {
   friend class Class;
 };
 
+class CallSiteData : public Object {
+ public:
+  RawString* target_name() const { return raw_ptr()->target_name_; }
+
+  RawArray* arguments_descriptor() const { return raw_ptr()->args_descriptor_; }
+
+  static intptr_t target_name_offset() {
+    return OFFSET_OF(RawCallSiteData, target_name_);
+  }
+
+  static intptr_t arguments_descriptor_offset() {
+    return OFFSET_OF(RawCallSiteData, args_descriptor_);
+  }
+
+ private:
+  void set_target_name(const String& value) const;
+
+  void set_arguments_descriptor(const Array& value) const;
+
+  HEAP_OBJECT_IMPLEMENTATION(CallSiteData, Object)
+
+  friend class ICData;
+  friend class MegamorphicCache;
+};
+
 // Object holding information about an IC: test classes and their
 // corresponding targets. The owner of the ICData can be either the function
 // or the original ICData object. In case of background compilation we
 // copy the ICData in a child object, thus freezing it during background
 // compilation. Code may contain only original ICData objects.
-class ICData : public Object {
+class ICData : public CallSiteData {
  public:
   RawFunction* Owner() const;
 
@@ -1944,10 +1973,6 @@ class ICData : public Object {
   void SetOriginal(const ICData& value) const;
 
   bool IsOriginal() const { return Original() == this->raw(); }
-
-  RawString* target_name() const { return raw_ptr()->target_name_; }
-
-  RawArray* arguments_descriptor() const { return raw_ptr()->args_descriptor_; }
 
   intptr_t NumArgsTested() const;
 
@@ -2086,10 +2111,6 @@ class ICData : public Object {
     return RoundedAllocationSize(sizeof(RawICData));
   }
 
-  static intptr_t target_name_offset() {
-    return OFFSET_OF(RawICData, target_name_);
-  }
-
   static intptr_t state_bits_offset() {
     return OFFSET_OF(RawICData, state_bits_);
   }
@@ -2098,10 +2119,6 @@ class ICData : public Object {
 
   static intptr_t NumArgsTestedMask() {
     return ((1 << kNumArgsTestedSize) - 1) << kNumArgsTestedPos;
-  }
-
-  static intptr_t arguments_descriptor_offset() {
-    return OFFSET_OF(RawICData, args_descriptor_);
   }
 
   static intptr_t entries_offset() { return OFFSET_OF(RawICData, entries_); }
@@ -2280,8 +2297,6 @@ class ICData : public Object {
   RawArray* Grow(intptr_t* index) const;
 
   void set_owner(const Function& value) const;
-  void set_target_name(const String& value) const;
-  void set_arguments_descriptor(const Array& value) const;
   void set_deopt_id(intptr_t value) const;
   void SetNumArgsTested(intptr_t value) const;
   void set_entries(const Array& value) const;
@@ -2370,7 +2385,7 @@ class ICData : public Object {
   // A cache of VM heap allocated preinitialized empty ic data entry arrays.
   static RawArray* cached_icdata_arrays_[kCachedICDataArrayCount];
 
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(ICData, Object);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(ICData, CallSiteData);
   friend class CallSiteResetter;
   friend class CallTargets;
   friend class Class;
@@ -6028,7 +6043,8 @@ class Code : public Object {
 
   enum CallKind {
     kPcRelativeCall = 1,
-    kCallViaCode = 2,
+    kPcRelativeTailCall = 2,
+    kCallViaCode = 3,
   };
 
   enum CallEntryPoint {
@@ -6745,7 +6761,7 @@ class ContextScope : public Object {
   friend class Object;
 };
 
-class MegamorphicCache : public Object {
+class MegamorphicCache : public CallSiteData {
  public:
   static const intptr_t kInitialCapacity = 16;
   static const intptr_t kSpreadFactor = 7;
@@ -6762,10 +6778,6 @@ class MegamorphicCache : public Object {
 
   intptr_t mask() const;
   void set_mask(intptr_t mask) const;
-
-  RawString* target_name() const { return raw_ptr()->target_name_; }
-
-  RawArray* arguments_descriptor() const { return raw_ptr()->args_descriptor_; }
 
   intptr_t filled_entry_count() const;
   void set_filled_entry_count(intptr_t num) const;
@@ -6800,9 +6812,6 @@ class MegamorphicCache : public Object {
 
   static RawMegamorphicCache* New();
 
-  void set_target_name(const String& value) const;
-  void set_arguments_descriptor(const Array& value) const;
-
   // The caller must hold Isolate::megamorphic_mutex().
   void EnsureCapacityLocked() const;
   void InsertLocked(const Smi& class_id, const Object& target) const;
@@ -6816,7 +6825,7 @@ class MegamorphicCache : public Object {
   static inline RawObject* GetTargetFunction(const Array& array,
                                              intptr_t index);
 
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(MegamorphicCache, Object);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(MegamorphicCache, CallSiteData);
 };
 
 class SubtypeTestCache : public Object {
@@ -7566,21 +7575,21 @@ class AbstractType : public Instance {
   virtual Nullability nullability() const;
   // Returns true if type has '?' nullability suffix, or it is a
   // built-in type which is always nullable (Null, dynamic or void).
-  virtual bool IsNullable() const {
-    return nullability() == Nullability::kNullable;
-  }
+  bool IsNullable() const { return nullability() == Nullability::kNullable; }
   // Returns true if type does not have any nullability suffix.
   // This function also returns true for type parameters without
   // nullability suffix ("T") which can be instantiated with
   // nullable or legacy types.
-  virtual bool IsNonNullable() const {
+  bool IsNonNullable() const {
     return nullability() == Nullability::kNonNullable;
   }
   // Returns true if type has '*' nullability suffix, i.e.
   // it is from a legacy (opted-out) library.
-  virtual bool IsLegacy() const {
-    return nullability() == Nullability::kLegacy;
-  }
+  bool IsLegacy() const { return nullability() == Nullability::kLegacy; }
+  // Returns true if it is guaranteed that null cannot be
+  // assigned to this type.
+  bool IsStrictlyNonNullable() const;
+
   virtual RawAbstractType* SetInstantiatedNullability(
       const TypeParameter& type_param,
       Heap::Space space) const;
@@ -7908,6 +7917,9 @@ class Type : public AbstractType {
   // The 'int' type.
   static RawType* IntType();
 
+  // The 'int?' type.
+  static RawType* NullableIntType();
+
   // The 'Smi' type.
   static RawType* SmiType();
 
@@ -7916,6 +7928,9 @@ class Type : public AbstractType {
 
   // The 'double' type.
   static RawType* Double();
+
+  // The 'double?' type.
+  static RawType* NullableDouble();
 
   // The 'Float32x4' type.
   static RawType* Float32x4();
@@ -10847,12 +10862,16 @@ void Object::SetRaw(RawObject* value) {
   if (FLAG_verify_handles && raw_->IsHeapObject()) {
     Isolate* isolate = Isolate::Current();
     Heap* isolate_heap = isolate->heap();
-    Heap* vm_isolate_heap = Dart::vm_isolate()->heap();
-    uword addr = RawObject::ToAddr(raw_);
-    if (!isolate_heap->Contains(addr) && !vm_isolate_heap->Contains(addr)) {
-      ASSERT(FLAG_write_protect_code);
-      addr = RawObject::ToAddr(HeapPage::ToWritable(raw_));
-      ASSERT(isolate_heap->Contains(addr) || vm_isolate_heap->Contains(addr));
+    // TODO(rmacnak): Remove after rewriting StackFrame::VisitObjectPointers
+    // to not use handles.
+    if (!isolate_heap->new_space()->scavenging()) {
+      Heap* vm_isolate_heap = Dart::vm_isolate()->heap();
+      uword addr = RawObject::ToAddr(raw_);
+      if (!isolate_heap->Contains(addr) && !vm_isolate_heap->Contains(addr)) {
+        ASSERT(FLAG_write_protect_code);
+        addr = RawObject::ToAddr(HeapPage::ToWritable(raw_));
+        ASSERT(isolate_heap->Contains(addr) || vm_isolate_heap->Contains(addr));
+      }
     }
   }
 #endif

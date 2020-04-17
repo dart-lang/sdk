@@ -8,6 +8,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:meta/meta.dart';
+import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -234,16 +235,6 @@ int i;
 
 @reflectiveTest
 class InfoBuilderTest extends NnbdMigrationTestBase {
-  /// Assert various properties of the given [detail].
-  void assertDetail({@required RegionDetail detail, int offset, int length}) {
-    if (offset != null) {
-      expect(detail.target.offset, offset);
-    }
-    if (length != null) {
-      expect(detail.target.length, length);
-    }
-  }
-
   /// Assert various properties of the given [edit].
   void assertEdit(
       {@required EditDetail edit, int offset, int length, String replacement}) {
@@ -259,37 +250,6 @@ class InfoBuilderTest extends NnbdMigrationTestBase {
     }
   }
 
-  /// Assert that some target in [targets] has various properties.
-  void assertInTargets(
-      {@required Iterable<NavigationTarget> targets, int offset, int length}) {
-    var failureReasons = [
-      if (offset != null) 'offset: $offset',
-      if (length != null) 'length: $length',
-    ].join(' and ');
-    expect(targets.any((t) {
-      return (offset == null || offset == t.offset) &&
-          (length == null || length == t.length);
-    }), isTrue, reason: 'Expected one of $targets to contain $failureReasons');
-  }
-
-  /// Assert various properties of the given [region]. If an [offset] is
-  /// provided but no [length] is provided, a default length of `1` will be
-  /// used.
-  void assertRegion(
-      {@required RegionInfo region,
-      int offset,
-      int length,
-      List<String> details}) {
-    if (offset != null) {
-      expect(region.offset, offset);
-      expect(region.length, length ?? 1);
-    }
-    if (details != null) {
-      expect(region.details.map((detail) => detail.description),
-          unorderedEquals(details));
-    }
-  }
-
   void assertTraceEntry(UnitInfo unit, TraceEntryInfo entryInfo,
       String function, int offset, Object descriptionMatcher) {
     assert(offset >= 0);
@@ -302,159 +262,12 @@ class InfoBuilderTest extends NnbdMigrationTestBase {
     expect(entryInfo.description, descriptionMatcher);
   }
 
-  Future<void> test_asExpression() async {
-    var unit = await buildInfoForSingleTestFile('''
-void f([num a]) {
-  int b = a as int;
-}
-''', migratedContent: '''
-void f([num? a]) {
-  int? b = a as int?;
-}
-''');
-    var regions = unit.regions;
-    expect(regions, hasLength(3));
-    // regions[0] is `num? a`.
-    assertRegion(
-        region: regions[1],
-        offset: 24,
-        details: ['This variable is initialized to a nullable value']);
-    assertRegion(
-        region: regions[2],
-        offset: 38,
-        details: ['The value of the expression is nullable']);
-  }
-
-  Future<void> test_asExpression_insideReturn() async {
-    var unit = await buildInfoForSingleTestFile('''
-int f([num a]) {
-  return a as int;
-}
-''', migratedContent: '''
-int? f([num? a]) {
-  return a as int?;
-}
-''');
-    var regions = unit.regions;
-    expect(regions, hasLength(3));
-    // regions[0] is `inf? f`.
-    // regions[1] is `num? a`.
-    assertRegion(
-        region: regions[2],
-        offset: 36,
-        details: ['The value of the expression is nullable']);
-  }
-
-  Future<void> test_bound() async {
-    var unit = await buildInfoForSingleTestFile('''
-class C<T extends Object> {}
-
-void f() {
-  C<int/*?*/> c = null;
-}
-''', migratedContent: '''
-class C<T extends Object?> {}
-
-void f() {
-  C<int?/*?*/>? c = null;
-}
-''');
-    var regions = unit.regions;
-    expect(regions, hasLength(3));
-    assertRegion(
-        region: regions[0],
-        offset: 24,
-        details: ['This type parameter is instantiated with a nullable type']);
-  }
-
-  Future<void> test_bound_instantiation_explicit() async {
-    var unit = await buildInfoForSingleTestFile('''
-class C<T extends Object> {}
-
-void main() {
-  C<int/*?*/>();
-}
-''', migratedContent: '''
-class C<T extends Object?> {}
-
-void main() {
-  C<int?/*?*/>();
-}
-''');
-    var regions = unit.regions;
-    expect(regions, hasLength(2));
-    assertRegion(
-        region: regions[0],
-        offset: 24,
-        details: ['This type parameter is instantiated with a nullable type']);
-  }
-
-  Future<void> test_bound_instantiation_implicit() async {
-    var unit = await buildInfoForSingleTestFile('''
-class C<T extends Object> {
-  C(T/*!*/ t);
-}
-
-void main() {
-  C(null);
-}
-''', migratedContent: '''
-class C<T extends Object?> {
-  C(T /*!*/ t);
-}
-
-void main() {
-  C(null);
-}
-''');
-    var regions = unit.regions;
-    expect(regions, hasLength(2));
-    assertRegion(region: regions[0], offset: 24, details: [
-      'This type parameter is instantiated with an inferred nullable type'
-    ]);
-  }
-
-  Future<void> test_bound_method_explicit() async {
-    var unit = await buildInfoForSingleTestFile('''
-f<T extends Object> {}
-
-void main() {
-  f<int/*?*/>();
-}
-''', migratedContent: '''
-f<T extends Object?> {}
-
-void main() {
-  f<int?/*?*/>();
-}
-''');
-    var regions = unit.regions;
-    expect(regions, hasLength(2));
-    assertRegion(
-        region: regions[0],
-        offset: 18,
-        details: ['This type parameter is instantiated with a nullable type']);
-  }
-
-  Future<void> test_bound_method_implicit() async {
-    var unit = await buildInfoForSingleTestFile('''
-f<T extends Object>(T/*!*/ t) {}
-
-void main() {
-  f(null);
-}
-''', migratedContent: '''
-f<T extends Object?>(T /*!*/ t) {}
-
-void main() {
-  f(null);
-}
-''');
-    var regions = unit.regions;
-    expect(regions, hasLength(2));
-    assertRegion(region: regions[0], offset: 18, details: [
-      'This type parameter is instantiated with an inferred nullable type'
-    ]);
+  List<RegionInfo> getNonInformativeRegions(List<RegionInfo> regions) {
+    return regions
+        .where((region) =>
+            region.kind != NullabilityFixKind.typeNotMadeNullable &&
+            region.kind != NullabilityFixKind.typeNotMadeNullableDueToHint)
+        .toList();
   }
 
   Future<void> test_discardCondition() async {
@@ -471,30 +284,125 @@ void g(int  i) {
 ''');
     var regions = unit.fixRegions;
     expect(regions, hasLength(2));
-    assertRegion(region: regions[0], offset: 38, length: 3);
-    assertRegion(region: regions[1], offset: 56, length: 3);
+    assertRegion(
+        region: regions[0],
+        offset: 38,
+        length: 3,
+        kind: NullabilityFixKind.removeDeadCode);
+    assertRegion(
+        region: regions[1],
+        offset: 56,
+        length: 3,
+        kind: NullabilityFixKind.removeDeadCode);
   }
 
-  Future<void> test_discardElse() async {
-    var unit = await buildInfoForSingleTestFile('''
-void g(int i) {
-  print(i.isEven);
-  if (i != null) print('NULL');
-  else print('NOT NULL');
-}
-''', migratedContent: '''
-void g(int  i) {
-  print(i.isEven);
-  /* if (i != null) */ print('NULL'); /*
-  else print('NOT NULL'); */
-}
-''');
-    var regions = unit.fixRegions;
-    expect(regions, hasLength(4));
-    assertRegion(region: regions[0], offset: 38, length: 3);
-    assertRegion(region: regions[1], offset: 56, length: 3);
-    assertRegion(region: regions[2], offset: 73, length: 3);
-    assertRegion(region: regions[3], offset: 102, length: 3);
+  Future<void> test_downcast_nonNullable() async {
+    var content = 'int/*!*/ f(num/*!*/ n) => n;';
+    var migratedContent = 'int /*!*/ f(num /*!*/ n) => n as int;';
+    var unit = await buildInfoForSingleTestFile(content,
+        migratedContent: migratedContent);
+    var regions = getNonInformativeRegions(unit.regions);
+    expect(regions, hasLength(1));
+    var region = regions.single;
+    var regionTarget = ' as int';
+    assertRegion(
+        region: region,
+        offset: migratedContent.indexOf(regionTarget),
+        length: regionTarget.length,
+        kind: NullabilityFixKind.downcastExpression,
+        edits: isEmpty,
+        traces: isEmpty);
+  }
+
+  Future<void> test_downcast_nonNullable_to_nullable() async {
+    var content = 'int/*?*/ f(num/*!*/ n) => n;';
+    // TODO(paulberry): we should actually cast to `int`, not `int?`, because we
+    // know `n` is non-nullable.
+    var migratedContent = 'int?/*?*/ f(num /*!*/ n) => n as int?;';
+    var unit = await buildInfoForSingleTestFile(content,
+        migratedContent: migratedContent);
+    var regions = getNonInformativeRegions(unit.regions);
+    var regionTarget = ' as int?';
+    var offset = migratedContent.indexOf(regionTarget);
+    var region = regions.where((region) => region.offset == offset).single;
+    // TODO(paulberry): once we are correctly casting to `int`, not `int?`, this
+    // should be classified as a downcast.  Currently it's classified as a side
+    // cast.
+    assertRegion(
+        region: region,
+        offset: offset,
+        length: regionTarget.length,
+        kind: NullabilityFixKind.otherCastExpression,
+        edits: isEmpty,
+        traces: isEmpty);
+  }
+
+  Future<void> test_downcast_nullable() async {
+    var content = 'int/*?*/ f(num/*?*/ n) => n;';
+    var migratedContent = 'int?/*?*/ f(num?/*?*/ n) => n as int?;';
+    var unit = await buildInfoForSingleTestFile(content,
+        migratedContent: migratedContent);
+    var regions = getNonInformativeRegions(unit.regions);
+    var regionTarget = ' as int?';
+    var offset = migratedContent.indexOf(regionTarget);
+    var region = regions.where((region) => region.offset == offset).single;
+    assertRegion(
+        region: region,
+        offset: offset,
+        length: regionTarget.length,
+        kind: NullabilityFixKind.downcastExpression,
+        edits: isEmpty,
+        traces: isEmpty);
+  }
+
+  Future<void> test_downcast_nullable_to_nonNullable() async {
+    var content = 'int/*!*/ f(num/*?*/ n) => n;';
+    var migratedContent = 'int /*!*/ f(num?/*?*/ n) => n as int;';
+    var unit = await buildInfoForSingleTestFile(content,
+        migratedContent: migratedContent);
+    var regions = getNonInformativeRegions(unit.regions);
+    var regionTarget = ' as int';
+    var offset = migratedContent.indexOf(regionTarget);
+    var region = regions.where((region) => region.offset == offset).single;
+    assertRegion(
+        region: region,
+        offset: offset,
+        length: regionTarget.length,
+        kind: NullabilityFixKind.downcastExpression,
+        edits: isEmpty,
+        traces: isNotEmpty);
+  }
+
+  Future<void> test_downcast_with_traces() async {
+    var content = 'List<int/*!*/>/*!*/ f(List<int/*?*/>/*?*/ x) => x;';
+    var migratedContent =
+        'List<int /*!*/> /*!*/ f(List<int?/*?*/>?/*?*/ x) => x as List<int>;';
+    var unit = await buildInfoForSingleTestFile(content,
+        migratedContent: migratedContent);
+    var regions = unit.regions.where(
+        (region) => region.kind == NullabilityFixKind.downcastExpression);
+    expect(regions, hasLength(1));
+    var region = regions.single;
+    var regionTarget = ' as List<int>';
+    assertRegion(
+        region: region,
+        offset: migratedContent.indexOf(regionTarget),
+        length: regionTarget.length,
+        kind: NullabilityFixKind.downcastExpression,
+        edits: isEmpty,
+        traces: isNotEmpty);
+    var traceDescriptionToOffset = {
+      for (var trace in region.traces)
+        trace.description: trace.entries[0].target.offset
+    };
+    // Note: +1's below are because trace offsets are actually column numbers.
+    expect(traceDescriptionToOffset, {
+      'Nullability reason': content.indexOf('List<int/*?*/>/*?*/') + 1,
+      'Non-nullability reason': content.indexOf('List<int/*!*/>/*!*/') + 1,
+      'Nullability reason for type argument 0': content.indexOf('int/*?*/') + 1,
+      'Non-nullability reason for type argument 0':
+          content.indexOf('int/*!*/') + 1
+    });
   }
 
   Future<void> test_dynamicValueIsUsed() async {
@@ -521,68 +429,12 @@ void g() {
     expect(regions, hasLength(1));
     var region = regions[0];
     var edits = region.edits;
-    assertRegion(region: region, offset: 11, details: [
-      'A dynamic value, which is nullable is passed as an argument'
-    ]);
-    assertDetail(detail: region.details[0], offset: 104, length: 1);
+    assertRegion(
+        region: region,
+        offset: 11,
+        explanation: "Changed type 'int' to be nullable");
     assertEdit(edit: edits[0], offset: 10, replacement: '/*!*/');
     assertEdit(edit: edits[1], offset: 10, replacement: '/*?*/');
-  }
-
-  Future<void> test_exactNullable() async {
-    var unit = await buildInfoForSingleTestFile('''
-void f(List<int> list) {
-  list[0] = null;
-}
-
-void g() {
-  f(<int>[]);
-}
-''', migratedContent: '''
-void f(List<int?>  list) {
-  list[0] = null;
-}
-
-void g() {
-  f(<int?>[]);
-}
-''');
-    var regions = unit.regions;
-    expect(regions, hasLength(3));
-    assertRegion(region: regions[0], offset: 15, details: [
-      "An explicit 'null' is assigned in the function 'f'",
-    ]);
-    // regions[1] is the hard edge that f's parameter is non-nullable.
-    assertRegion(
-        region: regions[2],
-        offset: 67,
-        details: ['This is later required to accept null.']);
-  }
-
-  @FailingTest(issue: 'https://dartbug.com/40587')
-  Future<void> test_exactNullable_exactNullable() async {
-    var unit = await buildInfoForSingleTestFile('''
-void g(List<int> list1, List<int> list2) {
-  list1[0] = null;
-  list2[0] = list1[0];
-}
-''', migratedContent: '''
-void g(List<int?> list1, List<int?> list2) {
-  list1[0] = null;
-  list2[0] = list1[0];
-}
-''');
-    var regions = unit.regions;
-    expect(regions, hasLength(4));
-    // regions[0] is the hard edge that list1 is unconditionally indexed
-    assertRegion(region: regions[1], offset: 15, details: [
-      "An explicit 'null' is assigned in the function 'g'",
-    ]);
-    // regions[2] is the hard edge that list2 is unconditionally indexed
-    assertRegion(
-        region: regions[3],
-        offset: 33,
-        details: ["A nullable value is assigned in the function 'g'"]);
   }
 
   Future<void> test_expressionFunctionReturnTarget() async {
@@ -592,304 +444,12 @@ String g() => 1 == 2 ? "Hello" : null;
 String? g() => 1 == 2 ? "Hello" : null;
 ''');
     assertInTargets(targets: unit.targets, offset: 7, length: 1); // "g"
-    assertInTargets(targets: unit.targets, offset: 11, length: 2); // "=>"
     var regions = unit.regions;
     expect(regions, hasLength(1));
     assertRegion(
         region: regions[0],
         offset: 6,
-        details: ['This function returns a nullable value on line 1']);
-    assertDetail(detail: regions[0].details[0], offset: 11, length: 2);
-  }
-
-  Future<void> test_field_fieldFormalInitializer_optional() async {
-    var unit = await buildInfoForSingleTestFile('''
-class A {
-  int _f;
-  A([this._f]);
-}
-''', migratedContent: '''
-class A {
-  int? _f;
-  A([this._f]);
-}
-''');
-    var regions = unit.regions;
-    expect(regions, hasLength(1));
-    assertRegion(region: regions[0], offset: 15, details: [
-      'This field is initialized by an optional field formal parameter that '
-          "has an implicit default value of 'null'"
-    ]);
-  }
-
-  Future<void> test_field_fieldFormalInitializer_optional_defaultNull() async {
-    var unit = await buildInfoForSingleTestFile('''
-class A {
-  int _f;
-  A([this._f = null]);
-}
-''', migratedContent: '''
-class A {
-  int? _f;
-  A([this._f = null]);
-}
-''');
-    var regions = unit.regions;
-    expect(regions, hasLength(1));
-    assertRegion(region: regions[0], offset: 15, details: [
-      'This field is initialized by an optional field formal parameter that '
-          "has an explicit default value of 'null'"
-    ]);
-  }
-
-  Future<void> test_field_fieldFormalInitializer_required() async {
-    var unit = await buildInfoForSingleTestFile('''
-class A {
-  int _f;
-  A(this._f);
-}
-void g() {
-  A(null);
-}
-''', migratedContent: '''
-class A {
-  int? _f;
-  A(this._f);
-}
-void g() {
-  A(null);
-}
-''');
-    var regions = unit.fixRegions;
-    expect(regions, hasLength(1));
-    // TODO(brianwilkerson) It would be nice if the target for the region could
-    //  be the argument rather than the field formal parameter.
-    assertRegion(region: regions[0], offset: 15, details: [
-      'This field is initialized by a field formal parameter and a nullable '
-          'value is passed as an argument'
-    ]);
-  }
-
-  Future<void> test_field_initializer() async {
-    var unit = await buildInfoForSingleTestFile('''
-class A {
-  int _f = null;
-  int _f2 = _f;
-}
-''', migratedContent: '''
-class A {
-  int? _f = null;
-  int? _f2 = _f;
-}
-''');
-    var regions = unit.regions;
-    expect(regions, hasLength(2));
-    assertRegion(
-        region: regions[0],
-        offset: 15,
-        details: ["This field is initialized to an explicit 'null'"]);
-    assertRegion(
-        region: regions[1],
-        offset: 33,
-        details: ['This field is initialized to a nullable value']);
-  }
-
-  Future<void> test_fieldLaterAssignedNullable() async {
-    var unit = await buildInfoForSingleTestFile('''
-class Foo {
-  int value = 7;
-  void bar() {
-    value = null;
-  }
-}
-''', migratedContent: '''
-class Foo {
-  int? value = 7;
-  void bar() {
-    value = null;
-  }
-}
-''');
-    var regions = unit.regions;
-    expect(regions, hasLength(1));
-    var region = regions.single;
-    assertRegion(region: region, offset: 17, details: [
-      "An explicit 'null' is assigned in the method 'Foo.bar'",
-    ]);
-
-    assertDetail(detail: region.details[0], offset: 56, length: 4);
-  }
-
-  Future<void> test_functionType_nullable_asArgument() async {
-    var unit = await buildInfoForSingleTestFile('''
-class C {
-  f(void Function(int) cb1) {}
-  g(void Function(int) cb2) {
-    f(cb2);
-  }
-  h() => f(null);
-}
-''', migratedContent: '''
-class C {
-  f(void Function(int )? cb1) {}
-  g(void Function(int )  cb2) {
-    f(cb2);
-  }
-  h() => f(null);
-}
-''');
-    var regions = unit.fixRegions;
-    expect(regions, hasLength(1));
-    assertRegion(
-        region: regions[0],
-        offset: 33,
-        details: ["An explicit 'null' is passed as an argument"]);
-    assertDetail(detail: regions[0].details[0], offset: 98, length: 4);
-  }
-
-  Future<void> test_functionType_nullableParameter_asArgument() async {
-    var unit = await buildInfoForSingleTestFile('''
-class C {
-  f(void Function(int) cb1) {
-    cb1(null);
-  }
-  g(void Function(int) cb2) {
-    f(cb2);
-  }
-}
-''', migratedContent: '''
-class C {
-  f(void Function(int?)  cb1) {
-    cb1(null);
-  }
-  g(void Function(int?)  cb2) {
-    f(cb2);
-  }
-}
-''');
-    var regions = unit.fixRegions;
-    expect(regions, hasLength(2));
-    assertRegion(
-        region: regions[0],
-        offset: 31,
-        details: ["An explicit 'null' is passed as an argument"]);
-    assertRegion(region: regions[1], offset: 82, details: [
-      'The function-typed element in which this parameter is declared is '
-          'assigned to a function whose matching parameter is nullable'
-    ]);
-    assertDetail(detail: regions[1].details[0], offset: 95, length: 3);
-  }
-
-  Future<void> test_functionType_nullableParameter_assignment() async {
-    var unit = await buildInfoForSingleTestFile('''
-class C {
-  void Function(int) _cb = (x) {};
-  f(void Function(int) cb) {
-    _cb = cb;
-  }
-  g() => _cb(null);
-}
-''', migratedContent: '''
-class C {
-  void Function(int?)  _cb = (x) {};
-  f(void Function(int?)  cb) {
-    _cb = cb;
-  }
-  g() => _cb(null);
-}
-''');
-    var regions = unit.fixRegions;
-    expect(regions, hasLength(2));
-    // regions[0] is `void Function(int?) _cb`.
-    assertRegion(region: regions[1], offset: 68, details: [
-      'The function-typed element in which this parameter is declared is '
-          'assigned to a function whose matching parameter is nullable'
-    ]);
-    assertDetail(detail: regions[1].details[0], offset: 84, length: 2);
-  }
-
-  Future<void> test_functionType_nullableParameter_fieldInitializer() async {
-    var unit = await buildInfoForSingleTestFile('''
-class C {
-  void Function(int) _cb;
-  C(void Function(int) cb): _cb = cb;
-  f() => _cb(null);
-}
-''', migratedContent: '''
-class C {
-  void Function(int?)  _cb;
-  C(void Function(int?)  cb): _cb = cb;
-  f() => _cb(null);
-}
-''');
-    var regions = unit.fixRegions;
-    expect(regions, hasLength(2));
-    assertRegion(
-        region: regions[0],
-        offset: 29,
-        details: ["An explicit 'null' is passed as an argument"]);
-    assertRegion(region: regions[1], offset: 59, details: [
-      'The function-typed element in which this parameter is declared is '
-          'assigned to a function whose matching parameter is nullable'
-    ]);
-    assertDetail(detail: regions[1].details[0], offset: 70, length: 2);
-  }
-
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40034')
-  Future<void> test_functionType_nullableParameter_typedef() async {
-    var unit = await buildInfoForSingleTestFile('''
-typedef Cb = void Function(int);
-class C {
-  Cb _cb;
-  C(void Function(int) cb): _cb = cb;
-  f() => _cb(null);
-}
-''', migratedContent: '''
-typedef Cb = void Function(int?);
-class C {
-  Cb _cb;
-  C(void Function(int?) cb): _cb = cb;
-  f() => _cb(null);
-}
-''');
-    var regions = unit.fixRegions;
-    expect(regions, hasLength(2));
-    // regions[0] is `typedef Cb = void Function(int?);`.
-    assertRegion(region: regions[1], offset: 75, details: [
-      'The function-typed element in which this parameter is declared is '
-          'assigned to a function whose matching parameter is nullable'
-    ]);
-    assertDetail(detail: regions[1].details[0], offset: 70, length: 2);
-  }
-
-  Future<void> test_functionType_nullableReturn() async {
-    var unit = await buildInfoForSingleTestFile('''
-class C {
-  int Function() _cb = () => 7;
-  f(int Function() cb) {
-    _cb = cb;
-  }
-  g() {
-    f(() => null);
-  }
-}
-''', migratedContent: '''
-class C {
-  int? Function()  _cb = () => 7;
-  f(int? Function()  cb) {
-    _cb = cb;
-  }
-  g() {
-    f(() => null);
-  }
-}
-''');
-    var regions = unit.fixRegions;
-    expect(regions, hasLength(2));
-    assertRegion(region: regions[0], offset: 15, details: [
-      'A function-typed value with a nullable return type is assigned'
-    ]);
-    assertDetail(detail: regions[0].details[0], offset: 77, length: 2);
+        explanation: "Changed type 'String' to be nullable");
   }
 
   Future<void> test_insertedRequired_fieldFormal() async {
@@ -910,10 +470,12 @@ class C {
     expect(regions, hasLength(1));
     var region = regions[0];
     var edits = region.edits;
-    assertRegion(region: region, offset: 44, length: 9, details: [
-      'This parameter is non-nullable, so cannot have an implicit default '
-          "value of 'null'"
-    ]);
+    assertRegion(
+        region: region,
+        offset: 44,
+        length: 9,
+        explanation: "Add 'required' keyword to parameter 'level' in 'C.'",
+        kind: NullabilityFixKind.addRequired);
     assertEdit(
         edit: edits[0], offset: 42, length: 0, replacement: '@required ');
   }
@@ -934,10 +496,12 @@ class C {
     expect(regions, hasLength(1));
     var region = regions[0];
     var edits = region.edits;
-    assertRegion(region: region, offset: 39, length: 9, details: [
-      'This parameter is non-nullable, so cannot have an implicit default '
-          "value of 'null'"
-    ]);
+    assertRegion(
+        region: region,
+        offset: 39,
+        length: 9,
+        explanation: "Add 'required' keyword to parameter 'lvl' in 'C.f'",
+        kind: NullabilityFixKind.addRequired);
     assertEdit(
         edit: edits[0], offset: 37, length: 0, replacement: '@required ');
   }
@@ -963,233 +527,37 @@ C /*!*/ _f(C  c) => (c + c)!;
         region: regions[0],
         offset: migratedContent.indexOf('? operator'),
         length: 1,
-        details: ["This method returns an explicit 'null' on line 2"]);
+        explanation: "Changed type 'C' to be nullable");
     assertRegion(
         region: regions[1],
         offset: migratedContent.indexOf('!;'),
         length: 1,
-        details: ['This value must be null-checked before use here.']);
+        explanation: 'Added a non-null assertion to nullable expression',
+        kind: NullabilityFixKind.checkExpression);
   }
 
-  Future<void> test_listAndSetLiteralTypeArgument() async {
-    var unit = await buildInfoForSingleTestFile('''
-void f() {
-  String s = null;
-  var x = <String>["hello", s];
-  var y = <String>{"hello", s};
-}
-''', migratedContent: '''
-void f() {
-  String? s = null;
-  var x = <String?>["hello", s];
-  var y = <String?>{"hello", s};
-}
-''');
-    var regions = unit.fixRegions;
-    expect(regions, hasLength(3));
-    // regions[0] is the `String? s` fix.
-    assertRegion(
-        region: regions[1],
-        offset: 48,
-        details: ['This list is initialized with a nullable value on line 3']);
-    assertDetail(detail: regions[1].details[0], offset: 58, length: 1);
-    assertRegion(
-        region: regions[2],
-        offset: 81,
-        details: ['This set is initialized with a nullable value on line 4']);
-    assertDetail(detail: regions[2].details[0], offset: 90, length: 1);
-  }
-
-  Future<void> test_listConstructor_length() async {
-    var unit = await buildInfoForSingleTestFile('''
-void f() {
-  List<int> list = List<int>(10);
-}
-''', migratedContent: '''
-void f() {
-  List<int?>  list = List<int?>(10);
-}
-''');
+  Future<void> test_nullCheck_dueToHint() async {
+    var content = 'int f(int/*?*/ x) => x/*!*/;';
+    var migratedContent = 'int  f(int?/*?*/ x) => x!/*!*/;';
+    var unit = await buildInfoForSingleTestFile(content,
+        migratedContent: migratedContent);
     var regions = unit.fixRegions;
     expect(regions, hasLength(2));
-    // regions[0] is `num? a`.
-    assertRegion(region: regions[1], offset: 40, details: [
-      'A length is specified in the "List()" constructor and the list items '
-          'are initialized to null'
-    ]);
-  }
-
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40064')
-  Future<void> test_listConstructor_length_implicitType() async {
-    var unit = await buildInfoForSingleTestFile('''
-void f() {
-  List<int> list = List(10);
-}
-''', migratedContent: '''
-void f() {
-  List<int?> list = List(10);
-}
-''');
-    var regions = unit.regions;
-    expect(regions, hasLength(2));
-    // regions[0] is `num? a`.
-    assertRegion(region: regions[1], offset: 40, details: [
-      'List value type must be nullable because a length is specified,'
-          ' and the list items are initialized as null.'
-    ]);
-  }
-
-  Future<void> test_listLiteralTypeArgument_collectionIf() async {
-    var unit = await buildInfoForSingleTestFile('''
-void f() {
-  String s = null;
-  var x = <String>[
-    "hello",
-    if (1 == 2) s
-  ];
-}
-''', migratedContent: '''
-void f() {
-  String? s = null;
-  var x = <String?>[
-    "hello",
-    if (1 == 2) s
-  ];
-}
-''');
-    var regions = unit.fixRegions;
-    expect(regions, hasLength(2));
-    // regions[0] is the `String? s` fix.
+    // regions[0] is `int?`.
+    var region = regions[1];
     assertRegion(
-        region: regions[1],
-        offset: 48,
-        details: ['This list is initialized with a nullable value on line 5']);
-    assertDetail(detail: regions[1].details[0], offset: 79, length: 1);
-  }
-
-  Future<void> test_localVariable() async {
-    var unit = await buildInfoForSingleTestFile('''
-void f() {
-  int v1 = null;
-  int v2 = v1;
-}
-''', migratedContent: '''
-void f() {
-  int? v1 = null;
-  int? v2 = v1;
-}
-''');
-    var regions = unit.fixRegions;
-    expect(regions, hasLength(2));
-    assertRegion(
-        region: regions[0],
-        offset: 16,
-        details: ["This variable is initialized to an explicit 'null'"]);
-    assertRegion(
-        region: regions[1],
-        offset: 34,
-        details: ['This variable is initialized to a nullable value']);
-  }
-
-  Future<void> test_mapLiteralTypeArgument() async {
-    var unit = await buildInfoForSingleTestFile('''
-void f() {
-  String s = null;
-  var x = <String, bool>{"hello": false, s: true};
-  var y = <bool, String>{false: "hello", true: s};
-}
-''', migratedContent: '''
-void f() {
-  String? s = null;
-  var x = <String?, bool >{"hello": false, s: true};
-  var y = <bool , String?>{false: "hello", true: s};
-}
-''');
-    var regions = unit.fixRegions;
-    expect(regions, hasLength(3));
-    // regions[0] is the `String? s` fix.
-    assertRegion(
-        region: regions[1],
-        offset: 48,
-        details: ['This map is initialized with a nullable value on line 3']);
-    assertDetail(detail: regions[1].details[0], offset: 71, length: 1);
-    assertRegion(
-        region: regions[2],
-        offset: 108,
-        details: ['This map is initialized with a nullable value on line 4']);
-    assertDetail(detail: regions[2].details[0], offset: 128, length: 1);
-  }
-
-  Future<void> test_namedParameterWithDefault_fromOverridden_explicit() async {
-    var unit = await buildInfoForSingleTestFile('''
-class A {
-  void m({int p = 0}) {}
-}
-class B extends A {
-  void m({num p = 0}) {}
-}
-void f(A a) {
-  a.m(p: null);
-}
-''', migratedContent: '''
-class A {
-  void m({int? p = 0}) {}
-}
-class B extends A {
-  void m({num? p = 0}) {}
-}
-void f(A  a) {
-  a.m(p: null);
-}
-''');
-    var regions = unit.fixRegions;
-    expect(regions, hasLength(2));
-    // regions[0] is "an explicit null is passed..."
-    assertRegion(region: regions[1], offset: 71, details: [
-      'The corresponding parameter in the overridden method, A.m, is nullable'
-    ]);
-    assertDetail(detail: regions[1].details[0], offset: 20, length: 3);
-  }
-
-  Future<void> test_nonNullableType_assert() async {
-    var unit = await buildInfoForSingleTestFile('''
-void f(String s) {
-  assert(s != null);
-}
-''', migratedContent: '''
-void f(String  s) {
-  assert(s != null);
-}
-''');
-    var regions = unit.informativeRegions;
-    expect(regions, hasLength(1));
-    assertRegion(region: regions[0], offset: 13, length: 1, details: []);
-  }
-
-  Future<void> test_nonNullableType_exclamationComment() async {
-    var unit = await buildInfoForSingleTestFile('''
-void f(String /*!*/ s) {}
-''', migratedContent: '''
-void f(String  /*!*/ s) {}
-''');
-    var regions = unit.informativeRegions;
-    expect(regions, hasLength(1));
-    assertRegion(region: regions[0], offset: 13, length: 1, details: []);
-  }
-
-  Future<void> test_nonNullableType_unconditionalFieldAccess() async {
-    var unit = await buildInfoForSingleTestFile('''
-void f(String s) {
-  print(s.length);
-}
-''', migratedContent: '''
-void f(String  s) {
-  print(s.length);
-}
-''');
-    var regions = unit.informativeRegions;
-    expect(regions, hasLength(1));
-    assertRegion(region: regions[0], offset: 13, length: 1, details: []);
+        region: region,
+        offset: migratedContent.indexOf('!/*!*/'),
+        explanation: 'Accepted a null check hint',
+        kind: NullabilityFixKind.checkExpressionDueToHint);
+    // Note that traces are still included.
+    expect(region.traces, isNotEmpty);
+    var textToRemove = '/*!*/';
+    assertEdit(
+        edit: region.edits.single,
+        offset: content.indexOf(textToRemove),
+        length: textToRemove.length,
+        replacement: '');
   }
 
   Future<void> test_nullCheck_onMemberAccess() async {
@@ -1215,175 +583,12 @@ class C {
     // regions[0] is `int?`.
     var region = regions[1];
     var edits = region.edits;
-    assertRegion(region: regions[1], offset: 65, details: [
-      'This value must be null-checked before accessing its properties.'
-    ]);
-    assertEdit(edit: edits[0], offset: 64, length: 0, replacement: '/*!*/');
-  }
-
-  Future<void> test_nullCheck_onMethodCall() async {
-    var unit = await buildInfoForSingleTestFile('''
-class C {
-  int value;
-  C([this.value]);
-  void f() {
-    value.abs();
-  }
-}
-''', migratedContent: '''
-class C {
-  int? value;
-  C([this.value]);
-  void f() {
-    value!.abs();
-  }
-}
-''');
-    var regions = unit.regions;
-    expect(regions, hasLength(2));
-    // regions[0] is `int?`.
-    assertRegion(region: regions[1], offset: 65, details: [
-      'This value must be null-checked before calling its methods.'
-    ]);
-  }
-
-  Future<void> test_parameter_fromInvocation_explicit() async {
-    var unit = await buildInfoForSingleTestFile('''
-void f(String s) {}
-void g() {
-  f(null);
-}
-''', migratedContent: '''
-void f(String? s) {}
-void g() {
-  f(null);
-}
-''');
-    var regions = unit.regions;
-    expect(regions, hasLength(1));
     assertRegion(
-        region: regions[0],
-        offset: 13,
-        details: ["An explicit 'null' is passed as an argument"]);
-  }
-
-  Future<void> test_parameter_fromInvocation_implicit() async {
-    var unit = await buildInfoForSingleTestFile('''
-void f(String s) {}
-void g(p) {
-  f(p);
-}
-void h() => g(null);
-''', migratedContent: '''
-void f(String? s) {}
-void g(p) {
-  f(p);
-}
-void h() => g(null);
-''');
-    var regions = unit.regions;
-    expect(regions, hasLength(1));
-    assertRegion(region: regions[0], offset: 13, details: [
-      'A dynamic value, which is nullable is passed as an argument'
-    ]);
-  }
-
-  Future<void> test_parameter_fromMultipleOverridden_explicit() async {
-    var unit = await buildInfoForSingleTestFile('''
-class A {
-  void m(int p) {}
-}
-class B extends A {
-  void m(num p) {}
-}
-class C extends B {
-  void m(Object p) {}
-}
-void f(A a) {
-  a.m(null);
-}
-''', migratedContent: '''
-class A {
-  void m(int? p) {}
-}
-class B extends A {
-  void m(num? p) {}
-}
-class C extends B {
-  void m(Object? p) {}
-}
-void f(A  a) {
-  a.m(null);
-}
-''');
-    var regions = unit.fixRegions;
-    expect(regions, hasLength(3));
-    // regions[0] is "an explicit null is passed..."
-    assertRegion(region: regions[1], offset: 64, details: [
-      'The corresponding parameter in the overridden method, A.m, is nullable'
-    ]);
-    assertRegion(region: regions[2], offset: 109, details: [
-      'The corresponding parameter in the overridden method, B.m, is nullable'
-    ]);
-    assertDetail(detail: regions[1].details[0], offset: 19, length: 3);
-    assertDetail(detail: regions[2].details[0], offset: 60, length: 3);
-  }
-
-  Future<void> test_parameter_fromMultipleOverridden_implicit() async {
-    var unit = await buildInfoForSingleTestFile('''
-class A {
-  void m(int p) {}
-}
-class B extends A {
-  void m(p) {}
-}
-class C extends B {
-  void m(Object p) {}
-}
-void f(A a) {
-  a.m(null);
-}
-''', migratedContent: '''
-class A {
-  void m(int? p) {}
-}
-class B extends A {
-  void m(p) {}
-}
-class C extends B {
-  void m(Object? p) {}
-}
-void f(A  a) {
-  a.m(null);
-}
-''');
-    var regions = unit.fixRegions;
-    expect(regions, hasLength(2));
-    // regions[0] is "an explicit null is passed..."
-    assertRegion(region: regions[1], offset: 104, details: [
-      'The corresponding parameter in the overridden method is nullable'
-    ]);
-  }
-
-  Future<void> test_parameter_fromOverridden_implicitDynamic() async {
-    var unit = await buildInfoForSingleTestFile('''
-class A {
-  void m(p) {}
-}
-class B extends A {
-  void m(Object p) {}
-}
-''', migratedContent: '''
-class A {
-  void m(p) {}
-}
-class B extends A {
-  void m(Object  p) {}
-}
-''');
-    var regions = unit.informativeRegions;
-    expect(regions, hasLength(1));
-    assertRegion(region: regions[0], offset: 62, details: []);
+        region: regions[1],
+        offset: 65,
+        explanation: 'Added a non-null assertion to nullable expression',
+        kind: NullabilityFixKind.checkExpression);
+    assertEdit(edit: edits[0], offset: 64, length: 0, replacement: '/*!*/');
   }
 
   Future<void> test_parameter_fromOverriddenField_explicit() async {
@@ -1406,16 +611,14 @@ void f(A  a) => a.m = null;
 ''');
     var regions = unit.fixRegions;
     expect(regions, hasLength(2));
-    assertRegion(region: regions[0], offset: 15, details: [
-      'This field is not initialized',
-      "An explicit 'null' is assigned in the function 'f'",
-    ]);
-    assertRegion(region: regions[1], offset: 61, details: [
-      // TODO(srawlins): Improve this message to include "B.m".
-      'The corresponding parameter in the overridden method is nullable'
-    ]);
-    assertDetail(detail: regions[0].details[1], offset: 90, length: 4);
-    assertDetail(detail: regions[1].details[0], offset: 12, length: 3);
+    assertRegion(
+        region: regions[0],
+        offset: 15,
+        explanation: "Changed type 'int' to be nullable");
+    assertRegion(
+        region: regions[1],
+        offset: 61,
+        explanation: "Changed type 'Object' to be nullable");
 
     expect(regions[0].traces, hasLength(1));
     var trace = regions[0].traces.first;
@@ -1426,105 +629,6 @@ void f(A  a) => a.m = null;
     // TODO(srawlins): "A" is probably incorrect here. Should be "A.m".
     assertTraceEntry(unit, entries[0], 'A', unit.content.indexOf('int?'),
         contains('explicit type'));
-  }
-
-  Future<void> test_parameter_named_omittedInCall() async {
-    var unit = await buildInfoForSingleTestFile('''
-void f() { g(); }
-
-void g({int i}) {}
-''', migratedContent: '''
-void f() { g(); }
-
-void g({int? i}) {}
-''');
-    var regions = unit.fixRegions;
-    expect(regions, hasLength(1));
-    assertRegion(region: regions[0], offset: 30, details: [
-      'This named parameter is omitted in a call to this function',
-      "This parameter has an implicit default value of 'null'",
-    ]);
-    assertDetail(detail: regions[0].details[0], offset: 11, length: 3);
-  }
-
-  Future<void> test_parameter_named_omittedInCall_inArgumentList() async {
-    var unit = await buildInfoForSingleTestFile('''
-int f({int compare}) => 7
-void g() {
-  h(f());
-}
-void h(int x) {}
-''', migratedContent: '''
-int  f({int? compare}) => 7
-void g() {
-  h(f());
-}
-void h(int  x) {}
-''');
-    var regions = unit.fixRegions;
-    expect(regions, hasLength(1));
-    assertRegion(region: regions[0], offset: 11, details: [
-      "This parameter has an implicit default value of 'null'",
-      'This named parameter is omitted in a call to this function'
-    ]);
-  }
-
-  Future<void> test_parameter_optional_explicitDefault_null() async {
-    var unit = await buildInfoForSingleTestFile('''
-void f({String s = null}) {}
-''', migratedContent: '''
-void f({String? s = null}) {}
-''');
-    var regions = unit.fixRegions;
-    expect(regions, hasLength(1));
-    assertRegion(
-        region: regions[0],
-        offset: 14,
-        details: ["This parameter has an explicit default value of 'null'"]);
-  }
-
-  Future<void> test_parameter_optional_explicitDefault_nullable() async {
-    var unit = await buildInfoForSingleTestFile('''
-String sd = null;
-void f({String s = sd}) {}
-''', migratedContent: '''
-String? sd = null;
-void f({String? s = sd}) {}
-''');
-    var regions = unit.fixRegions;
-    expect(regions, hasLength(2));
-    assertRegion(
-        region: regions[1],
-        offset: 33,
-        details: ['This parameter has a nullable default value']);
-  }
-
-  Future<void> test_parameter_optional_implicitDefault_named() async {
-    var unit = await buildInfoForSingleTestFile('''
-void f({String s}) {}
-''', migratedContent: '''
-void f({String? s}) {}
-''');
-    var regions = unit.fixRegions;
-    expect(regions, hasLength(1));
-    assertRegion(
-        region: regions[0],
-        offset: 14,
-        details: ["This parameter has an implicit default value of 'null'"]);
-  }
-
-  Future<void> test_parameter_optional_implicitDefault_positional() async {
-    var unit = await buildInfoForSingleTestFile('''
-void f([String s]) {}
-''', migratedContent: '''
-void f([String? s]) {}
-''');
-    var regions = unit.fixRegions;
-    expect(regions, hasLength(1));
-    assertRegion(
-        region: regions[0],
-        offset: 14,
-        details: ["This parameter has an implicit default value of 'null'"]);
   }
 
   Future<void> test_removal_handles_offsets_correctly() async {
@@ -1553,59 +657,13 @@ void f(num  n, int?/*?*/ i) {
         region: regions[1],
         offset: migratedContent.indexOf(' as int'),
         length: ' as int'.length,
-        details: []);
+        explanation: 'Discarded a downcast that is now unnecessary',
+        kind: NullabilityFixKind.removeAs);
     assertRegion(
         region: regions[2],
         offset: migratedContent.indexOf('! + 1'),
-        details: ['This value must be null-checked before use here.']);
-  }
-
-  Future<void> test_return_fromOverriden() async {
-    var unit = await buildInfoForSingleTestFile('''
-abstract class A {
-  String m();
-}
-class B implements A {
-  String m() => 1 == 2 ? "Hello" : null;
-}
-''', migratedContent: '''
-abstract class A {
-  String? m();
-}
-class B implements A {
-  String? m() => 1 == 2 ? "Hello" : null;
-}
-''');
-    var regions = unit.fixRegions;
-    expect(regions, hasLength(2));
-    assertRegion(
-        region: regions[0],
-        offset: 27,
-        details: ['An overridding method has a nullable return value']);
-    assertDetail(detail: regions[0].details[0], offset: 60, length: 6);
-  }
-
-  Future<void> test_return_multipleReturns() async {
-    var unit = await buildInfoForSingleTestFile('''
-String g() {
-  int x = 1;
-  if (x == 2) return x == 3 ? "Hello" : null;
-  return "Hello";
-}
-''', migratedContent: '''
-String? g() {
-  int  x = 1;
-  if (x == 2) return x == 3 ? "Hello" : null;
-  return "Hello";
-}
-''');
-    var regions = unit.fixRegions;
-    expect(regions, hasLength(1));
-    assertRegion(
-        region: regions[0],
-        offset: 6,
-        details: ['This function returns a nullable value on line 3']);
-    assertInTargets(targets: unit.targets, offset: 40, length: 6); // "return"
+        explanation: 'Added a non-null assertion to nullable expression',
+        kind: NullabilityFixKind.checkExpression);
   }
 
   Future<void> test_returnDetailTarget() async {
@@ -1619,154 +677,39 @@ String? g() {
 }
 ''');
     assertInTargets(targets: unit.targets, offset: 7, length: 1); // "g"
-    assertInTargets(targets: unit.targets, offset: 15, length: 6); // "return"
     var regions = unit.regions;
     expect(regions, hasLength(1));
     assertRegion(
         region: regions[0],
         offset: 6,
-        details: ['This function returns a nullable value on line 2']);
-    assertDetail(detail: regions[0].details[0], offset: 15, length: 6);
+        explanation: "Changed type 'String' to be nullable");
   }
 
-  Future<void> test_returnNoValue() async {
-    var unit = await buildInfoForSingleTestFile('''
-int f() {
-  return;
+  Future<void> test_suspicious_cast() async {
+    var content = '''
+int f(Object o) {
+  if (o is! String) return 0;
+  return o;
 }
-''', migratedContent: '''
-int? f() {
-  return;
+''';
+    var migratedContent = '''
+int  f(Object  o) {
+  if (o is! String ) return 0;
+  return o as int;
 }
-''');
-    var regions = unit.fixRegions;
+''';
+    var unit = await buildInfoForSingleTestFile(content,
+        migratedContent: migratedContent);
+    var regions = getNonInformativeRegions(unit.regions);
     expect(regions, hasLength(1));
-    assertRegion(region: regions[0], offset: 3, details: [
-      'This function contains a return statement with no value on line 2,'
-          ' which implicitly returns null.'
-    ]);
-  }
-
-  Future<void> test_returnType_function_expression() async {
-    var unit = await buildInfoForSingleTestFile('''
-int _f = null;
-int f() => _f;
-''', migratedContent: '''
-int? _f = null;
-int? f() => _f;
-''');
-    var regions = unit.regions;
-    expect(regions, hasLength(2));
+    var region = regions.single;
+    var regionTarget = ' as int';
     assertRegion(
-        region: regions[0],
-        offset: 3,
-        details: ["This variable is initialized to an explicit 'null'"]);
-    assertRegion(
-        region: regions[1],
-        offset: 19,
-        details: ['This function returns a nullable value on line 2']);
-  }
-
-  Future<void> test_returnType_getter_block() async {
-    var unit = await buildInfoForSingleTestFile('''
-class A {
-  int _f = null;
-  int get f {
-    return _f;
-  }
-}
-''', migratedContent: '''
-class A {
-  int? _f = null;
-  int? get f {
-    return _f;
-  }
-}
-''');
-    var regions = unit.regions;
-    expect(regions, hasLength(2));
-    assertRegion(
-        region: regions[0],
-        offset: 15,
-        details: ["This field is initialized to an explicit 'null'"]);
-    assertRegion(
-        region: regions[1],
-        offset: 33,
-        details: ['This getter returns a nullable value on line 4']);
-  }
-
-  Future<void> test_returnType_getter_expression() async {
-    var unit = await buildInfoForSingleTestFile('''
-class A {
-  int _f = null;
-  int get f => _f;
-}
-''', migratedContent: '''
-class A {
-  int? _f = null;
-  int? get f => _f;
-}
-''');
-    var regions = unit.regions;
-    expect(regions, hasLength(2));
-    assertRegion(
-        region: regions[0],
-        offset: 15,
-        details: ["This field is initialized to an explicit 'null'"]);
-    assertRegion(
-        region: regions[1],
-        offset: 33,
-        details: ['This getter returns a nullable value on line 3']);
-  }
-
-  Future<void> test_setLiteralTypeArgument_nestedList() async {
-    var unit = await buildInfoForSingleTestFile('''
-void f() {
-  String s = null;
-  var x = <List<String>>{
-    ["hello"],
-    if (1 == 2) [s]
-  };
-}
-''', migratedContent: '''
-void f() {
-  String? s = null;
-  var x = <List<String?> >{
-    ["hello"],
-    if (1 == 2) [s]
-  };
-}
-''');
-    var regions = unit.fixRegions;
-    expect(regions, hasLength(2));
-    // regions[0] is the `String? s` fix.
-    assertRegion(
-        region: regions[1],
-        offset: 53,
-        details: ['This set is initialized with a nullable value on line 5']);
-    // TODO(srawlins): Actually, this is marking the `[s]`, but I think only
-    //  `s` should be marked. Minor bug for now.
-    assertDetail(detail: regions[1].details[0], offset: 87, length: 3);
-  }
-
-  Future<void> test_topLevelVariable() async {
-    var unit = await buildInfoForSingleTestFile('''
-int _f = null;
-int _f2 = _f;
-''', migratedContent: '''
-int? _f = null;
-int? _f2 = _f;
-''');
-    var regions = unit.fixRegions;
-    expect(regions, hasLength(2));
-    assertRegion(
-        region: regions[0],
-        offset: 3,
-        details: ["This variable is initialized to an explicit 'null'"]);
-    assertRegion(
-        region: regions[1],
-        offset: 19,
-        details: ['This variable is initialized to a nullable value']);
+        region: region,
+        offset: migratedContent.indexOf(regionTarget),
+        length: regionTarget.length,
+        kind: NullabilityFixKind.otherCastExpression,
+        edits: isEmpty);
   }
 
   Future<void> test_trace_deadCode() async {
@@ -1928,8 +871,7 @@ void h(int?/*?*/ i) {
   }
 
   Future<void> test_trace_nullCheckHint() async {
-    UnitInfo unit = await buildInfoForSingleTestFile(
-        'int f(int/*?*/ i) => i/*!*/;',
+    var unit = await buildInfoForSingleTestFile('int f(int/*?*/ i) => i/*!*/;',
         migratedContent: 'int  f(int?/*?*/ i) => i!/*!*/;');
     var region = unit.regions
         .where(
@@ -1971,6 +913,51 @@ String /*!*/ y = x[0]!;
     expect(region.traces[0].description, 'Non-nullability reason');
   }
 
+  Future<void> test_type_made_nullable() async {
+    var unit = await buildInfoForSingleTestFile('''
+String g() => 1 == 2 ? "Hello" : null;
+''', migratedContent: '''
+String? g() => 1 == 2 ? "Hello" : null;
+''');
+    assertInTargets(targets: unit.targets, offset: 7, length: 1); // "g"
+    var regions = unit.regions;
+    expect(regions, hasLength(1));
+    assertRegion(
+        region: regions[0],
+        offset: 6,
+        explanation: "Changed type 'String' to be nullable");
+  }
+
+  Future<void> test_type_made_nullable_due_to_hint() async {
+    var content = 'int/*?*/ x = 0;';
+    var migratedContent = 'int?/*?*/ x = 0;';
+    var unit = await buildInfoForSingleTestFile(content,
+        migratedContent: migratedContent);
+    var region = unit.fixRegions.single;
+    assertRegion(
+        region: region,
+        offset: migratedContent.indexOf('?/*?*/'),
+        explanation:
+            "Changed type 'int' to be nullable, due to a nullability hint",
+        kind: NullabilityFixKind.makeTypeNullableDueToHint);
+    // Note that traces are still included.
+    expect(region.traces, isNotNull);
+    var textToRemove = '/*?*/';
+    var edits = region.edits;
+    expect(edits, hasLength(2));
+    var editsByDescription = {for (var edit in edits) edit.description: edit};
+    assertEdit(
+        edit: editsByDescription['Add /*!*/ hint'],
+        offset: content.indexOf(textToRemove),
+        length: textToRemove.length,
+        replacement: '/*!*/');
+    assertEdit(
+        edit: editsByDescription['Remove /*?*/ hint'],
+        offset: content.indexOf(textToRemove),
+        length: textToRemove.length,
+        replacement: '');
+  }
+
   Future<void> test_type_not_made_nullable() async {
     var unit = await buildInfoForSingleTestFile('int i = 0;',
         migratedContent: 'int  i = 0;');
@@ -1980,91 +967,41 @@ String /*!*/ y = x[0]!;
     expect(region.length, 1);
     expect(region.lineNumber, 1);
     expect(region.explanation, "Type 'int' was not made nullable");
-    expect(region.details, isEmpty);
     expect(region.edits.map((edit) => edit.description).toSet(),
-        {'Force type to be non-nullable.', 'Force type to be nullable.'});
+        {'Add /*?*/ hint', 'Add /*!*/ hint'});
     expect(region.traces, isEmpty);
+    expect(region.kind, NullabilityFixKind.typeNotMadeNullable);
   }
 
-  Future<void> test_uninitializedField() async {
-    var unit = await buildInfoForSingleTestFile('''
-class C {
-  int value;
-  C();
-  C.one() {
-    this.value = 7;
-  }
-  C.two() {}
-}
-''', migratedContent: '''
-class C {
-  int? value;
-  C();
-  C.one() {
-    this.value = 7;
-  }
-  C.two() {}
-}
-''');
-    var regions = unit.regions;
-    expect(regions, hasLength(1));
-    var region = regions.single;
-    assertRegion(region: region, offset: 15, details: [
-      "The constructor 'C' does not initialize this field in its initializer "
-          'list',
-      "The constructor 'C.one' does not initialize this field in its "
-          'initializer list',
-      "The constructor 'C.two' does not initialize this field in its "
-          'initializer list',
-    ]);
-
-    assertDetail(detail: region.details[0], offset: 25, length: 1);
-    assertDetail(detail: region.details[1], offset: 34, length: 3);
-    assertDetail(detail: region.details[2], offset: 70, length: 3);
-  }
-
-  Future<void> test_uninitializedMember() async {
-    var unit = await buildInfoForSingleTestFile('''
-class C {
-  int level;
-}
-''', migratedContent: '''
-class C {
-  int? level;
-}
-''');
-    var regions = unit.fixRegions;
-    expect(regions, hasLength(1));
-    expect(regions[0].details, isNotEmpty);
+  Future<void> test_type_not_made_nullable_due_to_hint() async {
+    var content = 'int/*!*/ i = 0;';
+    var migratedContent = 'int /*!*/ i = 0;';
+    var unit = await buildInfoForSingleTestFile(content,
+        migratedContent: migratedContent);
+    var region = unit.regions
+        .where((regionInfo) =>
+            regionInfo.offset == migratedContent.indexOf(' /*!*/ i'))
+        .single;
     assertRegion(
-        region: regions[0],
-        offset: 15,
-        length: 1,
-        details: ['This field is not initialized']);
-  }
-
-  Future<void> test_uninitializedVariable_notLate_uninitializedUse() async {
-    var unit = await buildInfoForSingleTestFile('''
-void f() {
-  int v1;
-  if (1 == 2) v1 = 7;
-  g(v1);
-}
-void g(int i) => print(i.isEven);
-''', migratedContent: '''
-void f() {
-  int? v1;
-  if (1 == 2) v1 = 7;
-  g(v1!);
-}
-void g(int  i) => print(i.isEven);
-''');
-    var regions = unit.fixRegions;
-    expect(regions, hasLength(2));
-    assertRegion(
-        region: regions[0],
-        offset: 16,
-        details: ['Used on line 4, when it is possibly uninitialized']);
-    // regions[1] is the `v1!` fix.
+        region: region,
+        offset: migratedContent.indexOf(' /*!*/ i'),
+        explanation: "Type 'int' was not made nullable due to a hint",
+        kind: NullabilityFixKind.typeNotMadeNullableDueToHint);
+    // Note that traces are still included.
+    expect(region.traces, isNotNull);
+    var textToRemove = '/*!*/';
+    var edits = region.edits;
+    expect(edits, hasLength(2));
+    var editsByDescription = {for (var edit in edits) edit.description: edit};
+    assertEdit(
+        edit: editsByDescription['Add /*?*/ hint'],
+        offset: content.indexOf(textToRemove),
+        length: textToRemove.length,
+        replacement: '/*?*/');
+    assertEdit(
+        edit: editsByDescription['Remove /*!*/ hint'],
+        offset: content.indexOf(textToRemove),
+        length: textToRemove.length,
+        replacement: '');
   }
 }

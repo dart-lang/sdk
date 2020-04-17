@@ -71,7 +71,13 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   }
 
   List<Keyword> get constructorParameter {
-    var keywords = <Keyword>[Keyword.COVARIANT, Keyword.DYNAMIC, Keyword.THIS];
+    var keywords = <Keyword>[
+      Keyword.COVARIANT,
+      Keyword.DYNAMIC,
+      Keyword.THIS,
+      Keyword.DYNAMIC,
+      Keyword.VOID
+    ];
     if (isEnabled(ExperimentalFeatures.non_nullable)) {
       keywords.add(Keyword.REQUIRED);
     }
@@ -156,7 +162,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   }
 
   List<Keyword> get methodParameter {
-    var keywords = <Keyword>[Keyword.COVARIANT, Keyword.DYNAMIC];
+    var keywords = <Keyword>[Keyword.COVARIANT, Keyword.DYNAMIC, Keyword.VOID];
     if (isEnabled(ExperimentalFeatures.non_nullable)) {
       keywords.add(Keyword.REQUIRED);
     }
@@ -1028,9 +1034,23 @@ class C {
     assertSuggestKeywords(constructorParameter);
   }
 
+  Future<void> test_constructor_param_noPrefix_func_parameter() async {
+    addTestSource('class A { A(^ Function(){}) {}}');
+    await computeSuggestions();
+    expect(suggestions, isNotEmpty);
+    assertSuggestKeywords(constructorParameter);
+  }
+
   Future<void> test_constructor_param_prefix() async {
     addTestSource('class A { A(t^) {}}');
     await computeSuggestions();
+    assertSuggestKeywords(constructorParameter);
+  }
+
+  Future<void> test_constructor_param_prefix_func_parameter() async {
+    addTestSource('class A { A(v^ Function(){}) {}}');
+    await computeSuggestions();
+    expect(suggestions, isNotEmpty);
     assertSuggestKeywords(constructorParameter);
   }
 
@@ -1971,6 +1991,13 @@ f() => <int>{1, ^, 2};
     assertSuggestKeywords(methodParameter);
   }
 
+  Future<void> test_method_param_noPrefix_func_parameter() async {
+    addTestSource('class A { foo(^ Function(){}) {}}');
+    await computeSuggestions();
+    expect(suggestions, isNotEmpty);
+    assertSuggestKeywords(methodParameter);
+  }
+
   Future<void> test_method_param_positional_init() async {
     addTestSource('class A { foo([bool bar = ^]) {}}');
     await computeSuggestions();
@@ -1987,6 +2014,13 @@ f() => <int>{1, ^, 2};
 
   Future<void> test_method_param_prefix() async {
     addTestSource('class A { foo(t^) {}}');
+    await computeSuggestions();
+    expect(suggestions, isNotEmpty);
+    assertSuggestKeywords(methodParameter);
+  }
+
+  Future<void> test_method_param_prefix_func_parameter() async {
+    addTestSource('class A { foo(v^ Function(){}) {}}');
     await computeSuggestions();
     expect(suggestions, isNotEmpty);
     assertSuggestKeywords(methodParameter);

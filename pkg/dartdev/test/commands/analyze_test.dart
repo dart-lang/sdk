@@ -7,7 +7,7 @@ import 'package:test/test.dart';
 import '../utils.dart';
 
 void main() {
-  group('analyze', defineAnalyze, timeout: defaultTimeout);
+  group('analyze', defineAnalyze, timeout: longTimeout);
 }
 
 const String _analyzeDescriptionText = "Analyze the project's Dart code.";

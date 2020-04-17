@@ -494,6 +494,13 @@ bool PcRelativeCallPattern::IsValid() const {
   return (word >> 26) == branch_link;
 }
 
+bool PcRelativeTailCallPattern::IsValid() const {
+  // b <offset>
+  const uint32_t word = *reinterpret_cast<uint32_t*>(pc_);
+  const uint32_t branch_link = 0x5;
+  return (word >> 26) == branch_link;
+}
+
 void PcRelativeTrampolineJumpPattern::Initialize() {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   uint32_t* pattern = reinterpret_cast<uint32_t*>(pattern_start_);

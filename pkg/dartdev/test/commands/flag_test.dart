@@ -9,8 +9,8 @@ import 'package:test/test.dart';
 import '../utils.dart';
 
 void main() {
-  group('command', command);
-  group('flag', help);
+  group('command', command, timeout: longTimeout);
+  group('flag', help, timeout: longTimeout);
 }
 
 void command() {

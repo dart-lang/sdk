@@ -25,6 +25,7 @@ import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:nnbd_migration/fix_reason_target.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/decorated_class_hierarchy.dart';
@@ -301,7 +302,7 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
           var conditionValue = conditionalDiscard.keepTrue;
           (_fixBuilder._getChange(node) as NodeChangeForConditional)
             ..conditionValue = conditionValue
-            ..conditionReasons = conditionalDiscard.reasons.toList();
+            ..conditionReason = conditionalDiscard.reason;
           return conditionValue;
         }
       });
@@ -399,8 +400,11 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
       _wrapExceptions(node, () => type, () {
         if (_fixBuilder._variables.hasNullCheckHint(_fixBuilder.source, node)) {
           type = _addNullCheck(node, type,
-              info: AtomicEditInfo(NullabilityFixDescription.checkExpression,
-                  [FixReason_NullCheckHint(CodeReference.fromAstNode(node))]));
+              info: AtomicEditInfo(
+                  NullabilityFixDescription.checkExpressionDueToHint, {
+                FixReasonTarget.root:
+                    FixReason_NullCheckHint(CodeReference.fromAstNode(node))
+              }));
         }
         if (type.isDynamic) return type;
         var ancestor = _findNullabilityContextAncestor(node);
@@ -413,7 +417,7 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
           if (_fixBuilder._typeSystem.isSubtypeOf(nonNullType, context)) {
             return _addNullCheck(node, type);
           } else {
-            return _addCast(node, context);
+            return _addCast(node, type, context);
           }
         }
         if (!_fixBuilder._typeSystem.isNullable(type)) return type;
@@ -442,13 +446,17 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
     _flowAnalysis = flowAnalysis;
   }
 
-  DartType _addCast(Expression node, DartType contextType) {
+  DartType _addCast(
+      Expression node, DartType expressionType, DartType contextType) {
+    var isDowncast =
+        _fixBuilder._typeSystem.isSubtypeOf(contextType, expressionType);
     var checks =
         _fixBuilder._variables.expressionChecks(_fixBuilder.source, node);
-    var info = checks != null
-        ? AtomicEditInfo(
-            NullabilityFixDescription.checkExpression, checks.edges)
-        : null;
+    var info = AtomicEditInfo(
+        isDowncast
+            ? NullabilityFixDescription.downcastExpression
+            : NullabilityFixDescription.otherCastExpression,
+        checks != null ? checks.edges : {});
     (_fixBuilder._getChange(node) as NodeChangeForExpression)
         .introduceAs(contextType, info);
     _flowAnalysis.asExpression_end(node, contextType);
@@ -694,9 +702,7 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
     var decoratedType = _fixBuilder._variables
         .decoratedTypeAnnotation(_fixBuilder.source, node);
     if (!typeIsNonNullableByContext(node)) {
-      (_fixBuilder._getChange(node) as NodeChangeForTypeAnnotation)
-        ..makeNullable = decoratedType.node.isNullable
-        ..decoratedType = decoratedType;
+      _makeTypeNameNullable(node, decoratedType);
     }
     (node as GenericFunctionTypeImpl).type =
         _fixBuilder._variables.toFinalType(decoratedType);
@@ -710,9 +716,7 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
     if (!typeIsNonNullableByContext(node)) {
       var type = decoratedType.type;
       if (!type.isDynamic && !type.isVoid) {
-        (_fixBuilder._getChange(node) as NodeChangeForTypeAnnotation)
-          ..makeNullable = decoratedType.node.isNullable
-          ..decoratedType = decoratedType;
+        _makeTypeNameNullable(node, decoratedType);
       }
     }
     node.type = _fixBuilder._variables.toFinalType(decoratedType);
@@ -729,7 +733,7 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
     var info = AtomicEditInfo(
         NullabilityFixDescription.addRequired(
             cls.name, method.name, element.name),
-        [node]);
+        {FixReasonTarget.root: node});
     var metadata = parameter.metadata;
     for (var annotation in metadata) {
       if (annotation.elementAnnotation.isRequired) {
@@ -745,5 +749,13 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
     (_fixBuilder._getChange(parameter) as NodeChangeForDefaultFormalParameter)
       ..addRequiredKeyword = true
       ..addRequiredKeywordInfo = info;
+  }
+
+  void _makeTypeNameNullable(TypeAnnotation node, DecoratedType decoratedType) {
+    (_fixBuilder._getChange(node) as NodeChangeForTypeAnnotation)
+        .recordNullability(
+            decoratedType, decoratedType.node.isNullable,
+            nullabilityDueToHint:
+                _fixBuilder._variables.hasNullabilityHint(source, node));
   }
 }

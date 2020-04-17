@@ -23,7 +23,7 @@ class IndexFilePage extends PreviewPage {
   @override
   Future<void> generatePage(Map<String, String> params) async {
     var renderer = InstrumentationRenderer(site.migrationInfo, site.pathMapper,
-        site.migrationState.hasBeenApplied);
+        site.migrationState.hasBeenApplied, site.migrationState.needsRerun);
     buf.write(renderer.render());
   }
 }

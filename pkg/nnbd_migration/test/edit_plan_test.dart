@@ -1122,8 +1122,8 @@ C<int, String>? c;
     await analyze('var x = 1;');
     var variableDeclarationList = findNode.variableDeclarationList('var x');
     checkPlan(
-        planner.replaceToken(variableDeclarationList,
-            variableDeclarationList.keyword, [AtomicEdit.insert('int')]),
+        planner.replaceToken(
+            variableDeclarationList, variableDeclarationList.keyword, 'int'),
         'int x = 1;');
   }
 

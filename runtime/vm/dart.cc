@@ -264,7 +264,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     ASSERT(T != NULL);
     StackZone zone(T);
     HandleScope handle_scope(T);
-    Object::InitNull(vm_isolate_);
+    Object::InitNullAndBool(vm_isolate_);
     ObjectStore::Init(vm_isolate_);
     TargetCPUFeatures::Init();
     Object::Init(vm_isolate_);
@@ -732,7 +732,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
 
 #if defined(DART_PRECOMPILED_RUNTIME)
   // AOT: The megamorphic miss function and code come from the snapshot.
-  ASSERT(I->object_store()->megamorphic_miss_code() != Code::null());
+  ASSERT(I->object_store()->megamorphic_call_miss_code() != Code::null());
   ASSERT(I->object_store()->build_method_extractor_code() != Code::null());
   if (FLAG_print_llvm_constant_pool) {
     StackZone printing_zone(T);
@@ -778,9 +778,9 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
     THR_Print("%s", b.buf());
   }
 #else
-  // JIT: The megamorphic miss function and code come from the snapshot in JIT
-  // app snapshot, otherwise create them.
-  if (I->object_store()->megamorphic_miss_code() == Code::null()) {
+  // JIT: The megamorphic call miss function and code come from the snapshot in
+  // JIT app snapshot, otherwise create them.
+  if (I->object_store()->megamorphic_call_miss_code() == Code::null()) {
     MegamorphicCacheTable::InitMissHandler(I);
   }
 #if !defined(TARGET_ARCH_IA32)
@@ -791,9 +791,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
 #endif
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
-  const Code& miss_code =
-      Code::Handle(I->object_store()->megamorphic_miss_code());
-  I->set_ic_miss_code(miss_code);
+  I->set_ic_miss_code(StubCode::SwitchableCallMiss());
 
   if ((snapshot_data == NULL) || (kernel_buffer != NULL)) {
     const Error& error = Error::Handle(I->object_store()->PreallocateObjects());

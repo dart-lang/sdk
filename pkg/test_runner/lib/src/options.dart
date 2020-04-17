@@ -202,7 +202,7 @@ test options, specifying how tests should be run.''',
         '''Progress indication mode.
 
 Allowed values are:
-compact, color, line, verbose, silent, status, buildbot, diff''',
+compact, color, line, verbose, silent, status, buildbot''',
         abbr: 'p',
         values: Progress.names,
         defaultsTo: Progress.compact.name,
@@ -210,6 +210,8 @@ compact, color, line, verbose, silent, status, buildbot, diff''',
     _Option('step_name', 'Step name for use by -pbuildbot.', hide: true),
     _Option.bool('report',
         'Print a summary report of the number of tests, by expectation.',
+        hide: true),
+    _Option.bool('report_failures', 'Print a summary of the tests that failed.',
         hide: true),
     _Option.int('tasks', 'The number of parallel tasks to run.',
         abbr: 'j', defaultsTo: Platform.numberOfProcessors),
@@ -366,6 +368,7 @@ compiler.''',
     'progress',
     'repeat',
     'report',
+    'report_failures',
     'safari',
     'shard',
     'shards',
@@ -612,9 +615,8 @@ compiler.''',
     // Only one value in the configuration map is mutable:
     if (selectors.containsKey('observatory_ui')) {
       if (selectors.length == 1) {
-        configuration['packages'] = Repository.uri
-            .resolve('runtime/observatory/.packages')
-            .toFilePath();
+        configuration['packages'] =
+            Repository.uri.resolve('.packages').toFilePath();
       } else {
         // Make a new configuration whose selectors map only contains
         // observatory_ui, and remove observatory_ui from the original
@@ -627,9 +629,8 @@ compiler.''',
         selectors.remove('observatory_ui');
 
         // Set the packages flag.
-        observatoryConfiguration['packages'] = Repository.uri
-            .resolve('runtime/observatory/.packages')
-            .toFilePath();
+        observatoryConfiguration['packages'] =
+            Repository.uri.resolve('.packages').toFilePath();
 
         return [
           ..._expandConfigurations(configuration, selectors),
@@ -726,6 +727,7 @@ compiler.''',
           silentFailures: data["silent_failures"] as bool,
           printTiming: data["time"] as bool,
           printReport: data["report"] as bool,
+          reportFailures: data["report_failures"] as bool,
           reportInJson: data["report_in_json"] as bool,
           resetBrowser: data["reset_browser_configuration"] as bool,
           skipCompilation: data["skip_compilation"] as bool,

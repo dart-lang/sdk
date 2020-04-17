@@ -251,7 +251,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
         continue;
       }
 
-      var suggestion = createSuggestion(constructor,
+      var suggestion = createSuggestion(request, constructor,
           relevance: relevance, useNewRelevance: useNewRelevance);
       if (suggestion != null) {
         var name = suggestion.completion;

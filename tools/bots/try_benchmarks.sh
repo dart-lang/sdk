@@ -26,9 +26,6 @@ Where COMMAND is one of:"
     linux-x64-build - Build linux-x64 for benchmarking.
     linux-x64-archive - Archive linux-x64.
     linux-x64-benchmark - Try linux-x64 benchmarking.
-    linux-x64-bytecode-build - Build linux-x64 with bytecode for benchmarking.
-    linux-x64-bytecode-archive - Archive linux-x64 with bytecode.
-    linux-x64-bytecode-benchmark - Try linux-x64 with bytecode benchmarking.
 EOF
   exit 1
 fi
@@ -191,19 +188,13 @@ EOF
     out/ReleaseIA32/dart benchmarks/FfiStruct/dart/FfiStruct.dart
     cd ..
     rm -rf tmp
-  elif [ "$command" = linux-x64-build ] ||
-       [ "$command" = linux-x64-bytecode-build ]; then
+  elif [ "$command" = linux-x64-build ]; then
     # NOTE: These are duplicated in tools/bots/test_matrix.json, keep in sync.
-    if [ "$command" = linux-x64-bytecode-build ]; then
-      # Beware: Don't mix --bytecode with a non-bytecode out/.
-      ./tools/gn.py --mode=release --arch=x64 --bytecode
-    fi
     ./tools/build.py --mode=release --arch=x64 create_sdk
     ./tools/build.py --mode=release --arch=x64 runtime
     ./tools/build.py --mode=release --arch=x64 gen_snapshot
     ./tools/build.py --mode=release --arch=x64 dart_precompiled_runtime
-  elif [ "$command" = linux-x64-archive ] ||
-       [ "$command" = linux-x64-bytecode-archive ]; then
+  elif [ "$command" = linux-x64-archive ]; then
     strip -w \
       -K 'kDartVmSnapshotData' \
       -K 'kDartVmSnapshotInstructions' \
@@ -309,8 +300,7 @@ EOF
       runtime/lib \
       benchmarks \
       || (rm -f linux-x64.tar.gz; exit 1)
-  elif [ "$command" = linux-x64-benchmark ] ||
-       [ "$command" = linux-x64-bytecode-benchmark ]; then
+  elif [ "$command" = linux-x64-benchmark ]; then
     rm -rf tmp
     mkdir tmp
     cd tmp
@@ -323,13 +313,7 @@ EOF
     out/ReleaseX64/dart --profile-period=10000 --packages=.packages hello.dart
     DART_CONFIGURATION=ReleaseX64 pkg/vm/tool/precompiler2 --packages=.packages hello.dart blob.bin
     DART_CONFIGURATION=ReleaseX64 pkg/vm/tool/dart_precompiled_runtime2 --profile-period=10000 blob.bin
-    DART_CONFIGURATION=ReleaseX64 pkg/vm/tool/precompiler2 --no-gen-bytecode --packages=.packages hello.dart blob.bin
-    DART_CONFIGURATION=ReleaseX64 pkg/vm/tool/dart_precompiled_runtime2 --profile-period=10000 blob.bin
     out/ReleaseX64/dart --profile-period=10000 --packages=.packages --optimization-counter-threshold=-1 hello.dart
-    out/ReleaseX64/dart --profile-period=10000 --packages=.packages --enable-interpreter hello.dart
-    out/ReleaseX64/dart --profile-period=10000 --packages=.packages --enable-interpreter --compilation-counter-threshold=-1 hello.dart
-    out/ReleaseX64/dart --profile-period=10000 --packages=.packages --use-bytecode-compiler hello.dart
-    out/ReleaseX64/dart --profile-period=10000 --packages=.packages --use-bytecode-compiler --optimization-counter-threshold=-1 hello.dart
     out/ReleaseX64/dart-sdk/bin/dart2js --packages=.packages --out=out.js -m hello.dart
     third_party/d8/linux/x64/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
     out/ReleaseX64/dart-sdk/bin/dart2js --packages=.packages --out=out.js -m hello.dart

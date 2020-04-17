@@ -38,7 +38,7 @@ class LibraryPrefixContributor extends DartCompletionContributor {
         if (libraryElement != null) {
           var relevance =
               useNewRelevance ? Relevance.prefix : DART_RELEVANCE_DEFAULT;
-          var suggestion = createSuggestion(libraryElement,
+          var suggestion = createSuggestion(request, libraryElement,
               completion: completion,
               kind: CompletionSuggestionKind.IDENTIFIER,
               relevance: relevance,

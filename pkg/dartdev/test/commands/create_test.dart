@@ -12,7 +12,7 @@ import 'package:test/test.dart';
 import '../utils.dart';
 
 void main() {
-  group('create', defineCreateTests);
+  group('create', defineCreateTests, timeout: longTimeout);
 }
 
 void defineCreateTests() {

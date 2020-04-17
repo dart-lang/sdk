@@ -53,6 +53,7 @@ class ObjectPointerVisitor;
   RW(Type, int_type)                                                           \
   RW(Type, legacy_int_type)                                                    \
   RW(Type, non_nullable_int_type)                                              \
+  RW(Type, nullable_int_type)                                                  \
   RW(Class, integer_implementation_class)                                      \
   RW(Type, int64_type)                                                         \
   RW(Class, smi_class)                                                         \
@@ -67,6 +68,7 @@ class ObjectPointerVisitor;
   RW(Type, double_type)                                                        \
   RW(Type, legacy_double_type)                                                 \
   RW(Type, non_nullable_double_type)                                           \
+  RW(Type, nullable_double_type)                                               \
   RW(Type, float32x4_type)                                                     \
   RW(Type, int32x4_type)                                                       \
   RW(Type, float64x2_type)                                                     \
@@ -175,14 +177,27 @@ class ObjectPointerVisitor;
   RW(Code, null_error_stub_without_fpu_regs_stub)                              \
   RW(Code, null_arg_error_stub_with_fpu_regs_stub)                             \
   RW(Code, null_arg_error_stub_without_fpu_regs_stub)                          \
+  RW(Code, range_error_stub_with_fpu_regs_stub)                                \
+  RW(Code, range_error_stub_without_fpu_regs_stub)                             \
   RW(Code, allocate_mint_with_fpu_regs_stub)                                   \
   RW(Code, allocate_mint_without_fpu_regs_stub)                                \
   RW(Code, stack_overflow_stub_with_fpu_regs_stub)                             \
   RW(Code, stack_overflow_stub_without_fpu_regs_stub)                          \
+  RW(Code, allocate_array_stub)                                                \
+  RW(Code, allocate_context_stub)                                              \
+  RW(Code, allocate_object_stub)                                               \
+  RW(Code, allocate_object_parametrized_stub)                                  \
+  RW(Code, clone_context_stub)                                                 \
   RW(Code, write_barrier_wrappers_stub)                                        \
   RW(Code, array_write_barrier_stub)                                           \
-  R_(Code, megamorphic_miss_code)                                              \
-  R_(Function, megamorphic_miss_function)                                      \
+  RW(Code, throw_stub)                                                         \
+  RW(Code, re_throw_stub)                                                      \
+  RW(Code, assert_boolean_stub)                                                \
+  RW(Code, instance_of_stub)                                                   \
+  RW(Code, init_static_field_stub)                                             \
+  RW(Code, call_closure_no_such_method_stub)                                   \
+  R_(Code, megamorphic_call_miss_code)                                         \
+  R_(Function, megamorphic_call_miss_function)                                 \
   R_(GrowableObjectArray, resume_capabilities)                                 \
   R_(GrowableObjectArray, exit_listeners)                                      \
   R_(GrowableObjectArray, error_listeners)                                     \
@@ -193,7 +208,35 @@ class ObjectPointerVisitor;
   RW(Class, ffi_native_type_class)                                             \
   RW(Class, ffi_struct_class)                                                  \
   RW(Object, ffi_as_function_internal)                                         \
-// Please remember the last entry must be referred in the 'to' function below.
+  // Please remember the last entry must be referred in the 'to' function below.
+
+#define OBJECT_STORE_STUB_CODE_LIST(DO)                                        \
+  DO(dispatch_table_null_error_stub, DispatchTableNullError)                   \
+  DO(null_error_stub_with_fpu_regs_stub, NullErrorSharedWithFPURegs)           \
+  DO(null_error_stub_without_fpu_regs_stub, NullErrorSharedWithoutFPURegs)     \
+  DO(null_arg_error_stub_with_fpu_regs_stub, NullArgErrorSharedWithFPURegs)    \
+  DO(null_arg_error_stub_without_fpu_regs_stub,                                \
+     NullArgErrorSharedWithoutFPURegs)                                         \
+  DO(range_error_stub_with_fpu_regs_stub, RangeErrorSharedWithFPURegs)         \
+  DO(range_error_stub_without_fpu_regs_stub, RangeErrorSharedWithoutFPURegs)   \
+  DO(allocate_mint_with_fpu_regs_stub, AllocateMintSharedWithFPURegs)          \
+  DO(allocate_mint_without_fpu_regs_stub, AllocateMintSharedWithoutFPURegs)    \
+  DO(stack_overflow_stub_with_fpu_regs_stub, StackOverflowSharedWithFPURegs)   \
+  DO(stack_overflow_stub_without_fpu_regs_stub,                                \
+     StackOverflowSharedWithoutFPURegs)                                        \
+  DO(allocate_array_stub, AllocateArray)                                       \
+  DO(allocate_context_stub, AllocateContext)                                   \
+  DO(allocate_object_stub, AllocateObject)                                     \
+  DO(allocate_object_parametrized_stub, AllocateObjectParameterized)           \
+  DO(clone_context_stub, CloneContext)                                         \
+  DO(call_closure_no_such_method_stub, CallClosureNoSuchMethod)                \
+  DO(write_barrier_wrappers_stub, WriteBarrierWrappers)                        \
+  DO(array_write_barrier_stub, ArrayWriteBarrier)                              \
+  DO(throw_stub, Throw)                                                        \
+  DO(re_throw_stub, ReThrow)                                                   \
+  DO(assert_boolean_stub, AssertBoolean)                                       \
+  DO(init_static_field_stub, InitStaticField)                                  \
+  DO(instance_of_stub, InstanceOf)
 
 // The object store is a per isolate instance which stores references to
 // objects used by the VM.
@@ -247,10 +290,10 @@ class ObjectStore {
     }
   }
 
-  void SetMegamorphicMissHandler(const Code& code, const Function& func) {
+  void SetMegamorphicCallMissHandler(const Code& code, const Function& func) {
     // Hold onto the code so it is traced and not detached from the function.
-    megamorphic_miss_code_ = code.raw();
-    megamorphic_miss_function_ = func.raw();
+    megamorphic_call_miss_code_ = code.raw();
+    megamorphic_call_miss_function_ = func.raw();
   }
 
   // Visit all object pointers.
@@ -291,7 +334,7 @@ class ObjectStore {
         return reinterpret_cast<RawObject**>(&global_object_pool_);
       case Snapshot::kFullJIT:
       case Snapshot::kFullAOT:
-        return reinterpret_cast<RawObject**>(&megamorphic_miss_function_);
+        return reinterpret_cast<RawObject**>(&megamorphic_call_miss_function_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:

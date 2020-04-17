@@ -23,8 +23,36 @@ abstract class MixinInferrer {
   void infer(ClassHierarchy hierarchy, Class classNode);
 }
 
+/// Core interface for answering queries needed to compute the subtyping
+/// relation.
+abstract class ClassHierarchyBase {
+  CoreTypes get coreTypes;
+
+  /// Returns the instantiation of [superclass] that is implemented by [type],
+  /// or `null` if [type] does not implement [superclass] at all.
+  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass,
+      Library clientLibrary, CoreTypes coreTypes);
+
+  /// Returns the type arguments of the instantiation of [superclass] that is
+  /// implemented by [type], or `null` if [type] does not implement [superclass]
+  /// at all.
+  List<DartType> getTypeArgumentsAsInstanceOf(
+      InterfaceType type, Class superclass);
+
+  /// Returns the possibly abstract interface member of [class_] with the given
+  /// [name].
+  ///
+  /// If [setter] is `false`, only fields, methods, and getters with that name
+  /// will be found.  If [setter] is `true`, only non-final fields and setters
+  /// will be found.
+  ///
+  /// If multiple members with that name are inherited and not overridden, the
+  /// member from the first declared supertype is returned.
+  Member getInterfaceMember(Class class_, Name name, {bool setter: false});
+}
+
 /// Interface for answering various subclassing queries.
-abstract class ClassHierarchy {
+abstract class ClassHierarchy implements ClassHierarchyBase {
   factory ClassHierarchy(Component component, CoreTypes coreTypes,
       {HandleAmbiguousSupertypes onAmbiguousSupertypes,
       MixinInferrer mixinInferrer}) {
@@ -77,17 +105,6 @@ abstract class ClassHierarchy {
   Supertype getClassAsInstanceOf(Class class_, Class superclass);
 
   /// Returns the instantiation of [superclass] that is implemented by [type],
-  /// or `null` if [type] does not implement [superclass] at all.
-  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass,
-      Library clientLibrary, CoreTypes coreTypes);
-
-  /// Returns the type arguments of the instantiation of [superclass] that is
-  /// implemented by [type], or `null` if [type] does not implement [superclass]
-  /// at all.
-  List<DartType> getTypeArgumentsAsInstanceOf(
-      InterfaceType type, Class superclass);
-
-  /// Returns the instantiation of [superclass] that is implemented by [type],
   /// or `null` if [type] does not implement [superclass].  [superclass] must
   /// be a generic class.
   Supertype asInstantiationOf(Supertype type, Class superclass);
@@ -118,17 +135,6 @@ abstract class ClassHierarchy {
   ///
   /// The returned list should not be modified.
   List<Member> getDispatchTargets(Class class_, {bool setters: false});
-
-  /// Returns the possibly abstract interface member of [class_] with the given
-  /// [name].
-  ///
-  /// If [setter] is `false`, only fields, methods, and getters with that name
-  /// will be found.  If [setter] is `true`, only non-final fields and setters
-  /// will be found.
-  ///
-  /// If multiple members with that name are inherited and not overridden, the
-  /// member from the first declared supertype is returned.
-  Member getInterfaceMember(Class class_, Name name, {bool setter: false});
 
   /// Returns the list of members denoting the interface for [class_], which
   /// may include abstract members.

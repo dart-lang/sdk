@@ -166,8 +166,8 @@ class _FileStreamConsumer extends StreamConsumer<List<int>> {
   _FileStreamConsumer.fromStdio(int fd)
       : _openFuture = new Future.value(_File._openStdioSync(fd));
 
-  Future<File> addStream(Stream<List<int>> stream) {
-    Completer<File> completer = new Completer<File>.sync();
+  Future<File?> addStream(Stream<List<int>> stream) {
+    Completer<File?> completer = new Completer<File?>.sync();
     _openFuture.then((openedFile) {
       late StreamSubscription<List<int>> _subscription;
       void error(e, StackTrace stackTrace) {

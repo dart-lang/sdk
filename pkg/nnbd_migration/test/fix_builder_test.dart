@@ -10,10 +10,12 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
+import 'package:nnbd_migration/fix_reason_target.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/fix_aggregator.dart';
 import 'package:nnbd_migration/src/fix_builder.dart';
+import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -46,7 +48,16 @@ class FixBuilderTest extends EdgeBuilderTestBase {
           .having((c) => c.addRequiredKeyword, 'addRequiredKeyword', true);
 
   static final isMakeNullable = TypeMatcher<NodeChangeForTypeAnnotation>()
-      .having((c) => c.makeNullable, 'makeNullable', true);
+      .having((c) => c.makeNullable, 'makeNullable', true)
+      .having((c) => c.makeNullableDueToHint, 'makeNullableDueToHint', false);
+
+  static final isMakeNullableDueToHint =
+      TypeMatcher<NodeChangeForTypeAnnotation>()
+          .having((c) => c.makeNullable, 'makeNullable', true)
+          .having(
+              (c) => c.makeNullableDueToHint, 'makeNullableDueToHint', true);
+
+  static const isEdge = TypeMatcher<NullabilityEdge>();
 
   static final isExplainNonNullable = TypeMatcher<NodeChangeForTypeAnnotation>()
       .having((c) => c.makeNullable, 'makeNullable', false);
@@ -1100,7 +1111,8 @@ int _f({int x = 0}) => x + 1;
     await analyze('''
 int _f({int/*?*/ x}) => 1;
 ''');
-    visitAll(changes: {findNode.typeName('int/*?*/ x'): isMakeNullable});
+    visitAll(
+        changes: {findNode.typeName('int/*?*/ x'): isMakeNullableDueToHint});
   }
 
   Future<void>
@@ -1140,7 +1152,7 @@ void _f({@required int/*?*/ x}) {}
 ''');
     visitAll(changes: {
       findNode.annotation('required'): isRequiredAnnotationToRequiredKeyword,
-      findNode.typeName('int'): isMakeNullable,
+      findNode.typeName('int'): isMakeNullableDueToHint,
     });
   }
 
@@ -1381,6 +1393,17 @@ _f(int/*?*/ x) {
 }
 ''');
     visitStatement(findNode.statement('if'));
+  }
+
+  Future<void> test_implicit_downcast() async {
+    await analyze('int f(num x) => x;');
+    var xRef = findNode.simple('x;');
+    visitSubexpression(xRef, 'int', changes: {
+      xRef: isNodeChangeForExpression.havingIndroduceAsWithInfo(
+          'int',
+          isInfo(NullabilityFixDescription.downcastExpression,
+              {FixReasonTarget.root: isEdge}))
+    });
   }
 
   Future<void> test_indexExpression_dynamic() async {
@@ -2566,8 +2589,8 @@ _f(int/*?*/ x) {
     var xRef = findNode.simple('x/*!*/');
     visitSubexpression(xRef, 'int', changes: {
       xRef: isNodeChangeForExpression.havingNullCheckWithInfo(isInfo(
-          NullabilityFixDescription.checkExpression,
-          [TypeMatcher<FixReason_NullCheckHint>()]))
+          NullabilityFixDescription.checkExpressionDueToHint,
+          {FixReasonTarget.root: TypeMatcher<FixReason_NullCheckHint>()}))
     });
   }
 
@@ -2576,6 +2599,22 @@ _f(int/*?*/ x) {
 f() => 'foo';
 ''');
     visitSubexpression(findNode.stringLiteral("'foo'"), 'String');
+  }
+
+  Future<void> test_suspicious_cast() async {
+    await analyze('''
+int f(Object o) {
+  if (o is! String) return 0;
+  return o;
+}
+''');
+    var xRef = findNode.simple('o;');
+    visitSubexpression(xRef, 'int', changes: {
+      xRef: isNodeChangeForExpression.havingIndroduceAsWithInfo(
+          'int',
+          isInfo(NullabilityFixDescription.otherCastExpression,
+              {FixReasonTarget.root: isEdge}))
+    });
   }
 
   Future<void> test_symbolLiteral() async {
@@ -2859,7 +2898,14 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
 }
 
 extension on TypeMatcher<NodeChangeForExpression> {
-  TypeMatcher<NodeChangeForExpression> havingNullCheckWithInfo(matcher) =>
+  TypeMatcher<NodeChangeForExpression> havingNullCheckWithInfo(
+          dynamic matcher) =>
       having((c) => c.addsNullCheck, 'addsNullCheck', true)
           .having((c) => c.addNullCheckInfo, 'addNullCheckInfo', matcher);
+
+  TypeMatcher<NodeChangeForExpression> havingIndroduceAsWithInfo(
+          dynamic typeStringMatcher, dynamic infoMatcher) =>
+      having((c) => c.introducesAsType.toString(), 'introducesAsType (string)',
+              typeStringMatcher)
+          .having((c) => c.introducesAsInfo, 'introducesAsInfo', infoMatcher);
 }

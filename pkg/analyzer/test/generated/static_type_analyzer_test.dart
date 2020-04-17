@@ -263,7 +263,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     ClassElementImpl derivedClass =
         ElementFactory.classElement2('Derived', ['T']);
     derivedClass.supertype =
-        futureType(typeParameterType(derivedClass.typeParameters[0]));
+        futureType(typeParameterTypeStar(derivedClass.typeParameters[0]));
     InterfaceType intType = _typeProvider.intType;
     DartType dynamicType = _typeProvider.dynamicType;
     InterfaceType derivedIntType =
@@ -307,7 +307,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     ClassElementImpl derivedClass =
         ElementFactory.classElement2('Derived', ['T']);
     derivedClass.supertype =
-        futureType(typeParameterType(derivedClass.typeParameters[0]));
+        futureType(typeParameterTypeStar(derivedClass.typeParameters[0]));
     // class A extends Derived<int> implements Derived<num> { ... }
     ClassElementImpl classA = ElementFactory.classElement(
         'A', interfaceTypeStar(derivedClass, typeArguments: [intType]));
@@ -905,16 +905,6 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
         AstTestFactory.propertyAccess2(AstTestFactory.identifier3("a"), "b");
     node.propertyName.staticElement = setter;
     expect(_analyze(node), same(boolType));
-    _listener.assertNoErrors();
-  }
-
-  void test_visitSimpleIdentifier_dynamic() {
-    // "dynamic"
-    SimpleIdentifier identifier = AstTestFactory.identifier3('dynamic');
-    DynamicElementImpl element = DynamicElementImpl.instance;
-    identifier.staticElement = element;
-    identifier.staticType = _typeProvider.typeType;
-    expect(_analyze(identifier), same(_typeProvider.typeType));
     _listener.assertNoErrors();
   }
 

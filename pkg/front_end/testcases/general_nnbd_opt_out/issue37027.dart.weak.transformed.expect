@@ -2,7 +2,6 @@ library;
 import self as self;
 import "dart:core" as core;
 import "dart:collection" as col;
-import "dart:_internal" as _in;
 
 class C extends core::Object {
   final field core::Set<core::int*>* s;
@@ -10,7 +9,7 @@ class C extends core::Object {
     : self::C::s = block {
       final core::Set<core::int*>* #t1 = col::LinkedHashSet::•<core::int*>();
       {
-        core::Iterator<core::int*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::int*>*>(ell).{core::Iterable::iterator};
+        core::Iterator<core::int*>* :sync-for-iterator = ell.{core::Iterable::iterator};
         for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
           core::int* e = :sync-for-iterator.{core::Iterator::current};
           if(e.{core::int::isOdd})

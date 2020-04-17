@@ -32,7 +32,7 @@ abstract class C {
   List<T> v11 = [];
   final T v12;
 
-  C(): v12 = T();
+  C(): v12 = null;
   C.name1(this.v10, this.v12);
   factory C.name2(T arg1, T arg2) = C.name1;
 
@@ -57,11 +57,10 @@ T Function(T) id = (x) => x;
 main() {
   var v13 = <T>[];
   var v14 = <Set<T>, Set<T>>{{}: {}};
-  v14[{}] = {T()};
+  v14[{}] = {D1()};
   var v15 = {v13};
   Set<List<T>> v16 = v15;
   v15 = v16;
-  T();
-  T v17 = foo<T>(T());
+  T v17 = foo<T>(null);
   id(v17);
 }

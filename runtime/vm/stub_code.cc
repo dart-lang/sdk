@@ -124,13 +124,45 @@ bool StubCode::InJumpToFrameStub(uword pc) {
   return (pc >= entry) && (pc < (entry + size));
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+static RawArray* BuildStaticCallsTable(
+    Zone* zone,
+    compiler::UnresolvedPcRelativeCalls* unresolved_calls) {
+  if (unresolved_calls->length() == 0) {
+    return Array::null();
+  }
+  const intptr_t array_length =
+      unresolved_calls->length() * Code::kSCallTableEntryLength;
+  const auto& static_calls_table =
+      Array::Handle(zone, Array::New(array_length, Heap::kOld));
+  StaticCallsTable entries(static_calls_table);
+  auto& kind_type_and_offset = Smi::Handle(zone);
+  for (intptr_t i = 0; i < unresolved_calls->length(); i++) {
+    auto& unresolved_call = (*unresolved_calls)[i];
+    auto call_kind = unresolved_call->is_tail_call() ? Code::kPcRelativeTailCall
+                                                     : Code::kPcRelativeCall;
+    kind_type_and_offset =
+        Smi::New(Code::KindField::encode(call_kind) |
+                 Code::EntryPointField::encode(Code::kDefaultEntry) |
+                 Code::OffsetField::encode(unresolved_call->offset()));
+    auto view = entries[i];
+    view.Set<Code::kSCallTableKindAndOffset>(kind_type_and_offset);
+    view.Set<Code::kSCallTableCodeTarget>(unresolved_call->target());
+  }
+  return static_calls_table.raw();
+}
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
 RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
   Thread* thread = Thread::Current();
+  auto object_store = thread->isolate()->object_store();
   Zone* zone = thread->zone();
   const Error& error = Error::Handle(zone, cls.EnsureIsFinalized(thread));
   ASSERT(error.IsNull());
   if (cls.id() == kArrayCid) {
-    return AllocateArray().raw();
+    return object_store->allocate_array_stub();
+  } else if (cls.id() == kContextCid) {
+    return object_store->allocate_context_stub();
   }
   Code& stub = Code::Handle(zone, cls.allocation_stub());
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -148,9 +180,25 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
             ? Code::PoolAttachment::kNotAttachPool
             : Code::PoolAttachment::kAttachPool;
 
+    auto zone = thread->zone();
+    auto object_store = thread->isolate()->object_store();
+    auto& allocate_object_stub = Code::ZoneHandle(zone);
+    auto& allocate_object_parametrized_stub = Code::ZoneHandle(zone);
+    if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+      allocate_object_stub = object_store->allocate_object_stub();
+      allocate_object_parametrized_stub =
+          object_store->allocate_object_parametrized_stub();
+    }
+
     compiler::Assembler assembler(wrapper);
+    compiler::UnresolvedPcRelativeCalls unresolved_calls;
     const char* name = cls.ToCString();
-    compiler::StubCodeCompiler::GenerateAllocationStubForClass(&assembler, cls);
+    compiler::StubCodeCompiler::GenerateAllocationStubForClass(
+        &assembler, &unresolved_calls, cls, allocate_object_stub,
+        allocate_object_parametrized_stub);
+
+    const auto& static_calls_table =
+        Array::Handle(zone, BuildStaticCallsTable(zone, &unresolved_calls));
 
     auto mutator_fun = [&]() {
       stub = Code::FinalizeCode(nullptr, &assembler, pool_attachment,
@@ -159,6 +207,9 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
       // Check if background compilation thread has not already added the stub.
       if (cls.allocation_stub() == Code::null()) {
         stub.set_owner(cls);
+        if (!static_calls_table.IsNull()) {
+          stub.set_static_calls_target_table(static_calls_table);
+        }
         cls.set_allocation_stub(stub);
       }
     };
@@ -172,6 +223,9 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
       stub = Code::FinalizeCode(nullptr, &assembler, pool_attachment,
                                 /*optimized=*/false, /*stats=*/nullptr);
       stub.set_owner(cls);
+      if (!static_calls_table.IsNull()) {
+        stub.set_static_calls_target_table(static_calls_table);
+      }
       cls.set_allocation_stub(stub);
     };
 

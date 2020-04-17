@@ -27,6 +27,14 @@ body {
   display: none;
 }
 
+.applied .apply-migration:not([disabled]), .needs-rerun .apply-migration:not([disabled]) {
+  display: none;
+}
+
+.proposed:not(.needs-rerun) .apply-migration[disabled] {
+  display: none;
+}
+
 header {
   background-color: #1c2834;
   height: 48px;
@@ -55,6 +63,48 @@ header .apply-migration, .rerun-migration {
   right: 0px;
   float: right;
   margin: 10px;
+}
+
+.rerun-migration .required {
+  display: none;
+}
+
+.needs-rerun .rerun-migration .required {
+  display: initial;
+}
+
+.needs-rerun .rerun-migration .optional {
+  display:none;
+}
+
+/* Red triangle */
+.rerun-migration .required .icon::before {
+  transform: translate(-8px, -11px);
+  content: '\25B3';
+  font-size: 25px;
+  position: fixed;
+  color: #e82c2c;
+  text-shadow: 0px 0px 5px white;
+  z-index: -3;
+}
+
+/* Red triangle fill */
+.rerun-migration .required .icon::after {
+  transform: translate(-9px, -10px);
+  content: '\25B4';
+  font-size: 25px;
+  position: fixed;
+  color: #b3ecff;
+  z-index: -1;
+}
+
+/* Red triangle exclamation */
+.rerun-migration .required .icon {
+  display: inline-block;
+  margin-right: 8px;
+  transform: translate(0px, 2px);
+  margin-left: 2px;
+  color: #2b2b2b;
 }
 
 footer {
@@ -416,7 +466,12 @@ a:hover {
   fill: #fff;
 }
 
-button {
+a.post-link {
+  display: inline-block;
+  margin: 3px;
+}
+
+button, a.post-link {
   background-color: #33ccff;
   border: 2px solid #37aedc;
   border-radius: 3px;
@@ -425,7 +480,7 @@ button {
   color: #282828;
 }
 
-button:hover {
+button:hover, a.post-link:hover {
   background-color: #80dfff;
   border: 2px solid #52b8e0;
   cursor: pointer;

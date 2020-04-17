@@ -1038,43 +1038,23 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // * There isn't an obvious place in dart:_runtime were we could place a
       //   method that adds these type tests (similar to addTypeTests()) because
       //   in the bootstrap ordering the Future class hasn't been defined yet.
-      if (_options.enableNullSafety) {
-        var typeParam =
-            TypeParameterType(c.typeParameters[0], Nullability.undetermined);
-        var typeT = visitTypeParameterType(typeParam);
-        var futureOfT = visitInterfaceType(InterfaceType(
-            _coreTypes.futureClass, currentLibrary.nonNullable, [typeParam]));
-        body.add(js.statement('''
-            #.is = function is_FutureOr(o) {
-              return #.is(o) || #.is(o);
-            }
-            ''', [className, typeT, futureOfT]));
-        body.add(js.statement('''
-            #.as = function as_FutureOr(o) {
-              if (#.is(o) || #.is(o)) return o;
-              return #.as(o, this);
-            }
-            ''', [className, typeT, futureOfT, runtimeModule]));
-        return null;
-      } else {
-        var typeParam =
-            TypeParameterType(c.typeParameters[0], Nullability.legacy);
-        var typeT = visitTypeParameterType(typeParam);
-        var futureOfT = visitInterfaceType(InterfaceType(
-            _coreTypes.futureClass, Nullability.legacy, [typeParam]));
-        body.add(js.statement('''
-            #.is = function is_FutureOr(o) {
-              return #.is(o) || #.is(o);
-            }
-            ''', [className, typeT, futureOfT]));
-        body.add(js.statement('''
-            #.as = function as_FutureOr(o) {
-              if (o == null || #.is(o) || #.is(o)) return o;
-              #.castError(o, this);
-            }
-            ''', [className, typeT, futureOfT, runtimeModule]));
-        return null;
-      }
+      var typeParam =
+          TypeParameterType(c.typeParameters[0], Nullability.undetermined);
+      var typeT = visitTypeParameterType(typeParam);
+      var futureOfT = visitInterfaceType(InterfaceType(
+          _coreTypes.futureClass, currentLibrary.nonNullable, [typeParam]));
+      body.add(js.statement('''
+          #.is = function is_FutureOr(o) {
+            return #.is(o) || #.is(o);
+          }
+          ''', [className, typeT, futureOfT]));
+      body.add(js.statement('''
+          #.as = function as_FutureOr(o) {
+            if (#.is(o) || #.is(o)) return o;
+            return #.as(o, this);
+          }
+          ''', [className, typeT, futureOfT, runtimeModule]));
+      return null;
     }
 
     body.add(runtimeStatement('addTypeTests(#)', [className]));
@@ -2574,13 +2554,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           _coreTypes.futureClass, futureOr.nullability, [typeArgument]);
     } else if (typeArgument is InterfaceType &&
         typeArgument.classNode == _coreTypes.nullClass) {
-      // TODO(40266) Remove this workaround when we unfork dart:_runtime
-      var nullability = _options.enableNullSafety
-          ? Nullability.nullable
-          : currentLibrary.nullable;
       // FutureOr<Null> --> Future<Null>?
-      normalizedType =
-          InterfaceType(_coreTypes.futureClass, nullability, [typeArgument]);
+      normalizedType = InterfaceType(
+          _coreTypes.futureClass, Nullability.nullable, [typeArgument]);
     } else if (futureOr.nullability == Nullability.nullable &&
         typeArgument.nullability == Nullability.nullable) {
       // FutureOr<T?>? --> FutureOr<T?>
@@ -2655,27 +2631,38 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     //   * `class A extends B {...}` where B is the InterfaceType.
     //   * Emitting non-null constructor calls.
     // * The InterfaceType is the Null type.
-    if (!emitNullability || type == _coreTypes.nullType) return typeRep;
+    // * The types were written in JS context or as part of the dart:_runtime
+    //   library.
+    if (!emitNullability ||
+        type == _coreTypes.nullType ||
+        // TODO(38701) Remove these once the SDK has unforked and is running
+        // "opted-in"
+        !coreLibrary.isNonNullableByDefault &&
+            (_isInForeignJS || isSdkInternalRuntime(currentLibrary))) {
+      return typeRep;
+    }
 
     if (type.nullability == Nullability.undetermined) {
       throw UnsupportedError('Undetermined Nullability');
     }
-    return _emitNullabilityWrapper(typeRep, type.nullability);
+
+    // Emit non-nullable version directly.
+    typeRep = _emitNullabilityWrapper(typeRep, type.nullability);
+    if (!_cacheTypes || type.nullability == Nullability.nonNullable) {
+      return typeRep;
+    }
+
+    // Hoist the nullable or legacy versions of the type to the top level and
+    // use it everywhere it appears.
+    return _typeTable.nameType(type, typeRep);
   }
 
   /// Wraps [typeRep] in the appropriate wrapper for the given [nullability].
-  ///
-  /// NOTE: This is currently a no-op if the null safety experiment is not
-  /// enabled.
   ///
   /// Non-nullable and undetermined nullability will not cause any wrappers to
   /// be emitted.
   js_ast.Expression _emitNullabilityWrapper(
       js_ast.Expression typeRep, Nullability nullability) {
-    // TODO(nshahan) Cleanup this check once it is safe to always emit the
-    // legacy wrapper.
-    if (!_options.enableNullSafety) return typeRep;
-
     switch (nullability) {
       case Nullability.legacy:
         return runtimeCall('legacy(#)', [typeRep]);
@@ -2798,13 +2785,22 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       helperCall = 'fnType(#)';
     }
     var typeRep = runtimeCall(helperCall, [typeParts]);
-    // Avoid caching the nullability of the function type itself so it can be
-    // shared by nullable, non-nullable, and legacy versions at the use site.
+    // First add the type to the type table in its non-nullable form. It can be
+    // reused by the nullable and legacy versions.
     typeRep = _cacheTypes
-        ? _typeTable.nameFunctionType(type, typeRep, lazy: lazy)
+        ? _typeTable.nameFunctionType(
+            type.withNullability(Nullability.nonNullable), typeRep,
+            lazy: lazy)
         : typeRep;
 
-    return _emitNullabilityWrapper(typeRep, type.nullability);
+    if (type.nullability == Nullability.nonNullable) return typeRep;
+
+    // Hoist the nullable or legacy versions of the type to the top level and
+    // use it everywhere it appears.
+    typeRep = _emitNullabilityWrapper(typeRep, type.nullability);
+    return _cacheTypes
+        ? _typeTable.nameFunctionType(type, typeRep, lazy: lazy)
+        : typeRep;
   }
 
   /// Emits an expression that lets you access statics on a [type] from code.
@@ -2846,9 +2842,17 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression _emitTypeParameterType(TypeParameterType type,
       {bool emitNullability = true}) {
     var typeParam = _emitTypeParameter(type.parameter);
-    if (!emitNullability) return typeParam;
+    if (!emitNullability ||
+        !_cacheTypes ||
+        // Emit non-nullable version directly.
+        type.isPotentiallyNonNullable) {
+      return typeParam;
+    }
 
-    return _emitNullabilityWrapper(typeParam, type.nullability);
+    // Hoist the wrapped version to the top level and use it everywhere this
+    // type appears.
+    return _typeTable.nameType(
+        type, _emitNullabilityWrapper(typeParam, type.nullability));
   }
 
   js_ast.Identifier _emitTypeParameter(TypeParameter t) =>
@@ -4746,8 +4750,16 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     // Optimize some internal SDK calls.
     if (isSdkInternalRuntime(target.enclosingLibrary)) {
-      if (node.arguments.positional.length == 1) {
-        var name = target.name.name;
+      var name = target.name.name;
+      if (node.arguments.positional.isEmpty) {
+        if (name == 'typeRep') {
+          return _emitType(node.arguments.types.single);
+        }
+        if (name == 'legacyTypeRep') {
+          return _emitType(
+              node.arguments.types.single.withNullability(Nullability.legacy));
+        }
+      } else if (node.arguments.positional.length == 1) {
         var firstArg = node.arguments.positional[0];
         if (name == 'getGenericClass' && firstArg is TypeLiteral) {
           var type = firstArg.type;
@@ -4762,17 +4774,20 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           return getExtensionSymbolInternal(firstArg.value);
         }
       } else if (node.arguments.positional.length == 2) {
-        var name = target.name.name;
         var firstArg = node.arguments.positional[0];
         var secondArg = node.arguments.positional[1];
         if (name == '_jsInstanceOf' && secondArg is TypeLiteral) {
-          return js.call('# instanceof #',
-              [_visitExpression(firstArg), _emitType(secondArg.type)]);
+          return js.call('# instanceof #', [
+            _visitExpression(firstArg),
+            _emitType(secondArg.type.withNullability(Nullability.nonNullable))
+          ]);
         }
 
         if (name == '_equalType' && secondArg is TypeLiteral) {
-          return js.call('# === #',
-              [_visitExpression(firstArg), _emitType(secondArg.type)]);
+          return js.call('# === #', [
+            _visitExpression(firstArg),
+            _emitType(secondArg.type.withNullability(Nullability.nonNullable))
+          ]);
         }
       }
     }

@@ -602,6 +602,10 @@ class Assembler : public AssemblerBase {
 
   void LoadIsolate(Register dst);
 
+  void LoadUniqueObject(Register dst, const Object& object) {
+    LoadObject(dst, object, /*movable_referent=*/true);
+  }
+
   void LoadObject(Register dst,
                   const Object& object,
                   bool movable_referent = false);
@@ -704,10 +708,6 @@ class Assembler : public AssemblerBase {
             bool movable_target = false,
             CodeEntryKind entry_kind = CodeEntryKind::kNormal);
   void CallToRuntime();
-
-  void CallNullErrorShared(bool save_fpu_registers) { UNREACHABLE(); }
-
-  void CallNullArgErrorShared(bool save_fpu_registers) { UNREACHABLE(); }
 
   void Jmp(const Code& code);
   void J(Condition condition, const Code& code);

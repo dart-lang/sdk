@@ -16,10 +16,10 @@ F<List<num>, num> g(C<num> c) {
 
 void main() {
   var tearoff = g(new C<int>());
-  // Since C.f's x parameter is covariant, its type is changed to Object when
+  // Since C.f's x parameter is covariant, its type is changed to `Object?` when
   // determining the type of the tearoff.  So the type of the tearoff should be
-  // `(Object) -> int`.  (Not, for example, `(List<Object>) -> int` or
-  // `(List<Object>) -> Object`)
+  // `(Object?) -> int`.  (Not, for example, `(List<Object?>) -> int` or
+  // `(List<Object?>) -> Object?`)
   Expect.isTrue(tearoff is F<Object, int>);
   // Because the function accepts any object, we can pass strings to it.  This
   // will not work in Dart 1.

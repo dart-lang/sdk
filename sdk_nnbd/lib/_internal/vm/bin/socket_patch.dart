@@ -1446,7 +1446,7 @@ class _RawServerSocket extends Stream<RawSocket> implements RawServerSocket {
         controller.add(_RawSocket(socket));
         if (controller.isPaused) return;
       }
-    }), error: zone.bindBinaryCallbackGuarded((Object e, StackTrace st) {
+    }), error: zone.bindBinaryCallbackGuarded((Object e, StackTrace? st) {
       controller.addError(e, st);
       controller.close();
     }), destroyed: () {
@@ -1560,7 +1560,7 @@ class _RawSocket extends Stream<RawSocketEvent> implements RawSocket {
           _controller.add(RawSocketEvent.closed);
           _controller.close();
         },
-        error: zone.bindBinaryCallbackGuarded((Object e, StackTrace st) {
+        error: zone.bindBinaryCallbackGuarded((Object e, StackTrace? st) {
           _controller.addError(e, st);
           _socket.close();
         }));
@@ -2113,7 +2113,7 @@ class _RawDatagramSocket extends Stream<RawSocketEvent>
           _controller.add(RawSocketEvent.closed);
           _controller.close();
         },
-        error: zone.bindBinaryCallbackGuarded((Object e, StackTrace st) {
+        error: zone.bindBinaryCallbackGuarded((Object e, StackTrace? st) {
           _controller.addError(e, st);
           _socket.close();
         }));
@@ -2187,9 +2187,9 @@ class _RawDatagramSocket extends Stream<RawSocketEvent>
   void set multicastHops(int value) =>
       _socket.setOption(SocketOption._ipMulticastHops, value);
 
-  NetworkInterface get multicastInterface => throw "Not implemented";
+  NetworkInterface get multicastInterface => throw UnimplementedError();
   void set multicastInterface(NetworkInterface? value) =>
-      throw "Not implemented";
+      throw UnimplementedError();
 
   bool get broadcastEnabled => _socket.getOption(SocketOption._ipBroadcast);
   void set broadcastEnabled(bool value) =>

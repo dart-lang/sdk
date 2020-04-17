@@ -68,8 +68,8 @@ testIntersection() {
     var r1 = createRectangle(test[1]);
     var expected = createRectangle(test[2]);
 
-    Expect.equals(expected, r0.intersection(r1));
-    Expect.equals(expected, r1.intersection(r0));
+    Expect.equals(expected, r0?.intersection(r1!));
+    Expect.equals(expected, r1?.intersection(r0!));
   }
 }
 
@@ -114,8 +114,8 @@ testBoundingBox() {
     var r1 = createRectangle(test[1]);
     var expected = createRectangle(test[2]);
 
-    Expect.equals(expected, r0.boundingBox(r1));
-    Expect.equals(expected, r1.boundingBox(r0));
+    Expect.equals(expected, r0?.boundingBox(r1!));
+    Expect.equals(expected, r1?.boundingBox(r0!));
   }
 }
 

@@ -33,7 +33,7 @@
       )
     },
     'package_vm': {
-      'filepath': '^pkg/vm',
+      'filepath': '^pkg/vm/',
     },
     'messages_review': {
       'filepath': (

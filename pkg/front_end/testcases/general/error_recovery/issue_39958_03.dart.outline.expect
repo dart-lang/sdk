@@ -1,0 +1,12 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/error_recovery/issue_39958_03.dart:1:1: Error: Expected 0 type arguments.
+// int<int> f() {}
+// ^
+//
+import self as self;
+
+static method f() → invalid-type
+  ;

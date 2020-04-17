@@ -473,6 +473,30 @@ class TypeSchemaEnvironmentTest {
     testLower("B*", "A", "B");
     testLower("B?", "A", "B");
     testLower("B", "A", "B");
+
+    testLower("Iterable<A>*", "List<B>*", "List<B>*");
+    testLower("Iterable<A>*", "List<B>?", "List<B>*");
+    testLower("Iterable<A>*", "List<B>", "List<B>");
+
+    testLower("Iterable<A>?", "List<B>*", "List<B>*");
+    testLower("Iterable<A>?", "List<B>?", "List<B>?");
+    testLower("Iterable<A>?", "List<B>", "List<B>");
+
+    testLower("Iterable<A>", "List<B>*", "List<B>");
+    testLower("Iterable<A>", "List<B>?", "List<B>");
+    testLower("Iterable<A>", "List<B>", "List<B>");
+
+    testLower("List<B>*", "Iterable<A>*", "List<B>*");
+    testLower("List<B>?", "Iterable<A>*", "List<B>*");
+    testLower("List<B>", "Iterable<A>*", "List<B>");
+
+    testLower("List<B>*", "Iterable<A>?", "List<B>*");
+    testLower("List<B>?", "Iterable<A>?", "List<B>?");
+    testLower("List<B>", "Iterable<A>?", "List<B>");
+
+    testLower("List<B>*", "Iterable<A>", "List<B>");
+    testLower("List<B>?", "Iterable<A>", "List<B>");
+    testLower("List<B>", "Iterable<A>", "List<B>");
   }
 
   void test_lower_bound_top() {
@@ -840,11 +864,20 @@ class TypeSchemaEnvironmentTest {
     testUpper("List<B*>", "Iterable<A*>", "Iterable<A*>");
     testUpper("List<B*>", "Iterable<A?>", "Iterable<A?>");
     testUpper("List<B*>", "Iterable<A>", "Iterable<A>");
+    testUpper("List<B>*", "Iterable<A>*", "Iterable<A>*");
+    testUpper("List<B>*", "Iterable<A>?", "Iterable<A>?");
+    testUpper("List<B>*", "Iterable<A>", "Iterable<A>*");
+    testUpper("List<B>?", "Iterable<A>*", "Iterable<A>?");
+    testUpper("List<B>?", "Iterable<A>?", "Iterable<A>?");
+    testUpper("List<B>?", "Iterable<A>", "Iterable<A>?");
 
     // UP(T1, T2) = T2 if T1 <: T2
     //   Note that both types must be class types at this point
     testUpper("List<B?>", "Iterable<A*>", "Iterable<A*>");
     testUpper("List<B?>", "Iterable<A?>", "Iterable<A?>");
+    testUpper("List<B>?", "Iterable<A>*", "Iterable<A>?");
+    testUpper("List<B>?", "Iterable<A>?", "Iterable<A>?");
+    testUpper("List<B>?", "Iterable<A>", "Iterable<A>?");
     // UP(C0<T0, ..., Tn>, C1<S0, ..., Sk>)
     //     = least upper bound of two interfaces as in Dart 1.
     testUpper("List<B?>", "Iterable<A>", "Object");
@@ -854,22 +887,31 @@ class TypeSchemaEnvironmentTest {
     testUpper("List<B>", "Iterable<A*>", "Iterable<A*>");
     testUpper("List<B>", "Iterable<A?>", "Iterable<A?>");
     testUpper("List<B>", "Iterable<A>", "Iterable<A>");
+    testUpper("List<B>", "Iterable<A>*", "Iterable<A>*");
+    testUpper("List<B>", "Iterable<A>?", "Iterable<A>?");
 
     // UP(T1, T2) = T1 if T2 <: T1
     //   Note that both types must be class types at this point
     testUpper("Iterable<A*>", "List<B*>", "Iterable<A*>");
     testUpper("Iterable<A*>", "List<B?>", "Iterable<A*>");
     testUpper("Iterable<A*>", "List<B>", "Iterable<A*>");
+    testUpper("Iterable<A>*", "List<B>*", "Iterable<A>*");
+    testUpper("Iterable<A>*", "List<B>?", "Iterable<A>?");
+    testUpper("Iterable<A>*", "List<B>", "Iterable<A>*");
 
     // UP(T1, T2) = T1 if T2 <: T1
     //   Note that both types must be class types at this point
     testUpper("Iterable<A?>", "List<B*>", "Iterable<A?>");
     testUpper("Iterable<A?>", "List<B?>", "Iterable<A?>");
     testUpper("Iterable<A?>", "List<B>", "Iterable<A?>");
+    testUpper("Iterable<A>?", "List<B>*", "Iterable<A>?");
+    testUpper("Iterable<A>?", "List<B>?", "Iterable<A>?");
+    testUpper("Iterable<A>?", "List<B>", "Iterable<A>?");
 
     // UP(T1, T2) = T1 if T2 <: T1
     //   Note that both types must be class types at this point
     testUpper("Iterable<A>", "List<B*>", "Iterable<A>");
+    testUpper("Iterable<A>", "List<B>*", "Iterable<A>*");
     // UP(C0<T0, ..., Tn>, C1<S0, ..., Sk>)
     //     = least upper bound of two interfaces as in Dart 1.
     testUpper("Iterable<A>", "List<B?>", "Object");

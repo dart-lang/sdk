@@ -47,7 +47,7 @@ void testBadResponseAdd() {
     request.contentLength = 0;
     request.add([0]);
     request.close();
-    request.done.catchError((error) {
+    Future<HttpClientResponse?>.value(request.done).catchError((error) {
       asyncEnd();
     }, test: (e) => e is HttpException);
     return request.done;
@@ -59,7 +59,7 @@ void testBadResponseAdd() {
     request.add([0, 0, 0]);
     request.add([0, 0, 0]);
     request.close();
-    request.done.catchError((error) {
+    Future<HttpClientResponse?>.value(request.done).catchError((error) {
       asyncEnd();
     }, test: (e) => e is HttpException);
     return request.done;
@@ -72,7 +72,7 @@ void testBadResponseAdd() {
     request.add(new Uint8List(64 * 1024));
     request.add(new Uint8List(64 * 1024));
     request.close();
-    request.done.catchError((error) {
+    Future<HttpClientResponse?>.value(request.done).catchError((error) {
       asyncEnd();
     }, test: (e) => e is HttpException);
     return request.done;
@@ -84,7 +84,7 @@ void testBadResponseClose() {
   testClientRequest((request) {
     request.contentLength = 5;
     request.close();
-    request.done.catchError((error) {
+    Future<HttpClientResponse?>.value(request.done).catchError((error) {
       asyncEnd();
     }, test: (e) => e is HttpException);
     return request.done;
@@ -95,7 +95,7 @@ void testBadResponseClose() {
     request.contentLength = 5;
     request.add([0]);
     request.close();
-    request.done.catchError((error) {
+    Future<HttpClientResponse?>.value(request.done).catchError((error) {
       asyncEnd();
     }, test: (e) => e is HttpException);
     return request.done;

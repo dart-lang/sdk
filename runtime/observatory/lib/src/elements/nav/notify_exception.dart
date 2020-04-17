@@ -19,7 +19,7 @@ class ExceptionDeleteEvent {
 class NavNotifyExceptionElement extends CustomElement implements Renderable {
   static const tag = const Tag<NavNotifyExceptionElement>('nav-exception');
 
-  RenderingScheduler _r;
+  RenderingScheduler<NavNotifyExceptionElement> _r;
 
   Stream<RenderedEvent<NavNotifyExceptionElement>> get onRendered =>
       _r.onRendered;

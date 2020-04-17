@@ -93,6 +93,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       performance.logStartTime(COMPUTE_SUGGESTIONS_TAG);
 
       var manager = DartCompletionManager(
+        dartdocDirectiveInfo: server.getDartdocDirectiveInfoFor(request.result),
         includedElementKinds: includedElementKinds,
         includedElementNames: includedElementNames,
         includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,

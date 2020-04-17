@@ -21,33 +21,49 @@ class NullabilityFixDescription {
     appliedMessage:
         'Discarded a condition which is always false, and the "then" branch '
         'that follows',
-    kind: NullabilityFixKind.discardThen,
+    kind: NullabilityFixKind.removeDeadCode,
   );
 
   /// An if-test or conditional expression needs to have its condition
   /// discarded.
   static const discardCondition = const NullabilityFixDescription._(
     appliedMessage: 'Discarded a condition which is always true',
-    kind: NullabilityFixKind.discardCondition,
+    kind: NullabilityFixKind.removeDeadCode,
   );
 
   /// An if-test or conditional expression needs to have its condition and
   /// "else" branch discarded.
   static const discardElse = const NullabilityFixDescription._(
     appliedMessage: 'Discarded an unreachable conditional else branch',
-    kind: NullabilityFixKind.discardElse,
+    kind: NullabilityFixKind.removeDeadCode,
   );
 
   /// An if-test needs to be discarded completely.
   static const discardIf = const NullabilityFixDescription._(
     appliedMessage: 'Discarded an if-test with no effect',
-    kind: NullabilityFixKind.discardIf,
+    kind: NullabilityFixKind.removeDeadCode,
+  );
+
+  static const downcastExpression = const NullabilityFixDescription._(
+    appliedMessage: 'Added a downcast to an expression',
+    kind: NullabilityFixKind.downcastExpression,
+  );
+
+  static const otherCastExpression = const NullabilityFixDescription._(
+    appliedMessage: 'Added a cast to an expression (non-downcast)',
+    kind: NullabilityFixKind.otherCastExpression,
   );
 
   /// An expression's value needs to be null-checked.
   static const checkExpression = const NullabilityFixDescription._(
     appliedMessage: 'Added a non-null assertion to nullable expression',
     kind: NullabilityFixKind.checkExpression,
+  );
+
+  /// An expression's value will be null-checked due to a hint.
+  static const checkExpressionDueToHint = const NullabilityFixDescription._(
+    appliedMessage: 'Accepted a null check hint',
+    kind: NullabilityFixKind.checkExpressionDueToHint,
   );
 
   /// An unnecessary downcast has been discarded.
@@ -68,7 +84,7 @@ class NullabilityFixDescription {
   static const removeNullAwareness = const NullabilityFixDescription._(
       appliedMessage:
           'Changed a null-aware access into an ordinary access, because the target cannot be null',
-      kind: NullabilityFixKind.removeNullAwareness);
+      kind: NullabilityFixKind.removeDeadCode);
 
   /// A message used to indicate a fix has been applied.
   final String appliedMessage;
@@ -85,6 +101,13 @@ class NullabilityFixDescription {
         kind: NullabilityFixKind.addRequired,
       );
 
+  /// An explicit type needs to be added.
+  factory NullabilityFixDescription.addType(String typeText) =>
+      NullabilityFixDescription._(
+        appliedMessage: "Add the explicit type '$typeText'",
+        kind: NullabilityFixKind.replaceVar,
+      );
+
   /// An explicit type mentioned in the source program needs to be made
   /// nullable.
   factory NullabilityFixDescription.makeTypeNullable(String type) =>
@@ -93,12 +116,36 @@ class NullabilityFixDescription {
         kind: NullabilityFixKind.makeTypeNullable,
       );
 
+  /// An explicit type mentioned in the source program will be made
+  /// nullable due to a nullability hint.
+  factory NullabilityFixDescription.makeTypeNullableDueToHint(String type) =>
+      NullabilityFixDescription._(
+        appliedMessage:
+            "Changed type '$type' to be nullable, due to a nullability hint",
+        kind: NullabilityFixKind.makeTypeNullableDueToHint,
+      );
+
+  /// A 'var' declaration needs to be replaced with an explicit type.
+  factory NullabilityFixDescription.replaceVar(String typeText) =>
+      NullabilityFixDescription._(
+        appliedMessage: "Replace 'var' with '$typeText'",
+        kind: NullabilityFixKind.replaceVar,
+      );
+
   /// An explicit type mentioned in the source program does not need to be made
   /// nullable.
   factory NullabilityFixDescription.typeNotMadeNullable(String type) =>
       NullabilityFixDescription._(
         appliedMessage: "Type '$type' was not made nullable",
         kind: NullabilityFixKind.typeNotMadeNullable,
+      );
+
+  /// An explicit type mentioned in the source program does not need to be made
+  /// nullable.
+  factory NullabilityFixDescription.typeNotMadeNullableDueToHint(String type) =>
+      NullabilityFixDescription._(
+        appliedMessage: "Type '$type' was not made nullable due to a hint",
+        kind: NullabilityFixKind.typeNotMadeNullableDueToHint,
       );
 
   const NullabilityFixDescription._(
@@ -127,15 +174,18 @@ class NullabilityFixDescription {
 enum NullabilityFixKind {
   addRequired,
   checkExpression,
-  discardCondition,
-  discardElse,
-  discardIf,
-  discardThen,
+  checkExpressionDueToHint,
+  downcastExpression,
+  addType,
   makeTypeNullable,
+  makeTypeNullableDueToHint,
+  otherCastExpression,
   removeAs,
+  removeDeadCode,
   removeLanguageVersionComment,
-  removeNullAwareness,
+  replaceVar,
   typeNotMadeNullable,
+  typeNotMadeNullableDueToHint,
 }
 
 /// Provisional API for DartFix to perform nullability migration.

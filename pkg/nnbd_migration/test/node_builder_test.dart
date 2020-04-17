@@ -1737,6 +1737,14 @@ typedef F = void Function();
         true);
   }
 
+  Future<void> test_variableDeclaration_late_hint_with_spaces() async {
+    await analyze('/* late */ int i;');
+    expect(
+        variables.isLateHinted(
+            testSource, findNode.variableDeclarationList('int i')),
+        true);
+  }
+
   Future<void> test_variableDeclaration_type_simple() async {
     await analyze('''
 main() {

@@ -97,11 +97,12 @@ class Builder {
   final System system;
   final Mode mode;
   final Architecture arch;
+  final Sanitizer sanitizer;
   final Runtime runtime;
   final List<Configuration> testedConfigurations;
 
   Builder(this.name, this.description, this.steps, this.system, this.mode,
-      this.arch, this.runtime, this.testedConfigurations);
+      this.arch, this.sanitizer, this.runtime, this.testedConfigurations);
 
   /// Create a [Builder] from its name, a list of 'step templates', the
   /// supported named configurations and a description.
@@ -115,6 +116,7 @@ class Builder {
     var systemName = _findPart(builderParts, System.names);
     var modeName = _findPart(builderParts, Mode.names);
     var archName = _findPart(builderParts, Architecture.names);
+    var sanitizerName = _findPart(builderParts, Sanitizer.names);
     var runtimeName = _findPart(builderParts, Runtime.names);
     var parsedSteps = steps
         .map((step) => Step.parse(
@@ -123,6 +125,7 @@ class Builder {
               "system": systemName,
               "mode": modeName,
               "arch": archName,
+              "sanitizer": sanitizerName,
               "runtime": runtimeName,
             },
             configurations))
@@ -135,6 +138,7 @@ class Builder {
         _findIfNotNull(System.find, systemName),
         _findIfNotNull(Mode.find, modeName),
         _findIfNotNull(Architecture.find, archName),
+        _findIfNotNull(Sanitizer.find, sanitizerName),
         _findIfNotNull(Runtime.find, runtimeName),
         testedConfigurations);
   }
@@ -157,7 +161,7 @@ String _tryReplace(String string, String variableName, String value) {
 /// Replace the use of supported variable names with the their value given
 /// in [values] and throws an exception if an unsupported variable name is used.
 String _expandVariables(String string, Map<String, String> values) {
-  for (var variable in ["system", "mode", "arch", "runtime"]) {
+  for (var variable in ["system", "mode", "arch", "sanitizer", "runtime"]) {
     string = _tryReplace(string, variable, values[variable]);
   }
   return string;

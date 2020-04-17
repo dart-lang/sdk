@@ -137,7 +137,7 @@ class _Visitor extends LocalDeclarationVisitor {
         completion = '$completion.$name';
       }
 
-      var suggestion = createSuggestion(element,
+      var suggestion = createSuggestion(request, element,
           completion: completion,
           relevance: relevance,
           useNewRelevance: useNewRelevance);

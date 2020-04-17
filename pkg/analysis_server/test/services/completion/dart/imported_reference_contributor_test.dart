@@ -1959,6 +1959,80 @@ class B extends ^
     assertNoSuggestions();
   }
 
+  Future<void> test_FieldDeclaration_type() async {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // FieldDeclaration
+    addSource('/home/test/lib/a.dart', 'class A { }');
+    addTestSource('''
+        import 'a.dart';
+        class C {^ foo;) ''');
+
+    await computeSuggestions();
+    assertSuggestClass('A');
+    assertCoreTypeSuggestions();
+  }
+
+  Future<void> test_FieldDeclaration_type_after_comment1() async {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // FieldDeclaration
+    addSource('/home/test/lib/a.dart', 'class A { }');
+    addTestSource('''
+        import 'a.dart';
+        class C {
+          // comment
+          ^ foo;
+        } ''');
+
+    await computeSuggestions();
+    assertSuggestClass('A');
+    assertCoreTypeSuggestions();
+  }
+
+  Future<void> test_FieldDeclaration_type_after_comment2() async {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // FieldDeclaration
+    addSource('/home/test/lib/a.dart', 'class A { }');
+    addTestSource('''
+        import 'a.dart';
+        class C {
+          /* comment */
+          ^ foo;
+        } ''');
+
+    await computeSuggestions();
+    assertSuggestClass('A');
+    assertCoreTypeSuggestions();
+  }
+
+  Future<void> test_FieldDeclaration_type_after_comment3() async {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // FieldDeclaration
+    addSource('/home/test/lib/a.dart', 'class A { }');
+    addTestSource('''
+        import 'a.dart';
+        class C {
+          /// some dartdoc
+          ^ foo;
+        } ''');
+
+    await computeSuggestions();
+    assertSuggestClass('A');
+    assertCoreTypeSuggestions();
+  }
+
+  Future<void> test_FieldDeclaration_type_without_semicolon() async {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // FieldDeclaration
+    addSource('/home/test/lib/a.dart', 'class A { }');
+    addTestSource('''
+        import 'a.dart';
+        class C {^ foo} ''');
+
+    await computeSuggestions();
+    assertSuggestClass('A');
+    assertCoreTypeSuggestions();
+  }
+
   Future<void> test_FieldFormalParameter_in_non_constructor() async {
     // SimpleIdentifier  FieldFormalParameter  FormalParameterList
     addTestSource('class A {B(this.^foo) {}}');
@@ -4328,6 +4402,74 @@ class B extends A {
     assertNotSuggested('X');
     assertNotSuggested('Object');
     assertNotSuggested('==');
+  }
+
+  Future<void> test_TopLevelVariableDeclaration_type() async {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // TopLevelVariableDeclaration
+    addSource('/home/test/lib/a.dart', 'class A { }');
+    addTestSource('''
+        import 'a.dart';
+        ^ foo; ''');
+
+    await computeSuggestions();
+    assertSuggestClass('A');
+    assertCoreTypeSuggestions();
+  }
+
+  Future<void> test_TopLevelVariableDeclaration_type_after_comment1() async {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // TopLevelVariableDeclaration
+    addSource('/home/test/lib/a.dart', 'class A { }');
+    addTestSource('''
+        import 'a.dart';
+        // comment
+        ^ foo; ''');
+
+    await computeSuggestions();
+    assertSuggestClass('A');
+    assertCoreTypeSuggestions();
+  }
+
+  Future<void> test_TopLevelVariableDeclaration_type_after_comment2() async {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // TopLevelVariableDeclaration
+    addSource('/home/test/lib/a.dart', 'class A { }');
+    addTestSource('''
+        import 'a.dart';
+        /* comment */
+        ^ foo; ''');
+
+    await computeSuggestions();
+    assertSuggestClass('A');
+    assertCoreTypeSuggestions();
+  }
+
+  Future<void> test_TopLevelVariableDeclaration_type_after_comment3() async {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // TopLevelVariableDeclaration
+    addSource('/home/test/lib/a.dart', 'class A { }');
+    addTestSource('''
+        import 'a.dart';
+        /// some dartdoc
+        ^ foo; ''');
+
+    await computeSuggestions();
+    assertSuggestClass('A');
+    assertCoreTypeSuggestions();
+  }
+
+  Future<void> test_TopLevelVariableDeclaration_type_without_semicolon() async {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // TopLevelVariableDeclaration
+    addSource('/home/test/lib/a.dart', 'class A { }');
+    addTestSource('''
+        import 'a.dart';
+        ^ foo ''');
+
+    await computeSuggestions();
+    assertSuggestClass('A');
+    assertCoreTypeSuggestions();
   }
 
   Future<void> test_TopLevelVariableDeclaration_typed_name() async {

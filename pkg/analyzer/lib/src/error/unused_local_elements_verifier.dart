@@ -108,12 +108,21 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
       }
     } else {
       _useIdentifierElement(node);
+      var enclosingElement = element?.enclosingElement;
       if (element == null) {
         if (isIdentifierRead) {
           usedElements.unresolvedReadMembers.add(node.name);
         }
-      } else if ((element.enclosingElement is ClassElement ||
-              element.enclosingElement is ExtensionElement) &&
+      } else if (enclosingElement is ClassElement &&
+          enclosingElement.isEnum &&
+          element.name == 'values') {
+        // If the 'values' static accessor of the enum is accessed, then all of
+        // the enum values have been read.
+        for (var value in enclosingElement.fields) {
+          usedElements.readMembers.add(value.getter);
+        }
+      } else if ((enclosingElement is ClassElement ||
+              enclosingElement is ExtensionElement) &&
           !identical(element, _enclosingExec)) {
         usedElements.members.add(element);
         if (isIdentifierRead) {

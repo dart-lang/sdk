@@ -71,9 +71,9 @@ lazyFn(closure, Object Function() computeType) {
 }
 
 // TODO(vsm): How should we encode the runtime type?
-final _runtimeType = JS('', 'Symbol("_runtimeType")');
+final Object _runtimeType = JS('!', 'Symbol("_runtimeType")');
 
-final _moduleName = JS('', 'Symbol("_moduleName")');
+final Object _moduleName = JS('!', 'Symbol("_moduleName")');
 
 getFunctionType(obj) {
   // TODO(vsm): Encode this properly on the function for Dart-generated code.
@@ -90,7 +90,7 @@ getReifiedType(obj) {
   switch (JS<String>('!', 'typeof #', obj)) {
     case "object":
       if (obj == null) return JS('', '#', Null);
-      if (JS('!', '# instanceof #', obj, Object)) {
+      if (_jsInstanceOf(obj, Object)) {
         return JS('', '#.constructor', obj);
       }
       var result = JS('', '#[#]', obj, _extensionType);
@@ -123,7 +123,7 @@ final _loadedPartMaps = JS('', 'new Map()');
 final _loadedSourceMaps = JS('', 'new Map()');
 
 List<String> getModuleNames() {
-  return JSArray<String>.of(JS('', 'Array.from(#.keys())', _loadedModules));
+  return JS<List<String>>('', 'Array.from(#.keys())', _loadedModules);
 }
 
 String getSourceMap(String moduleName) {
@@ -148,7 +148,7 @@ void trackLibraries(
     // Added for backwards compatibility.
     // package:build_web_compilers currently invokes this without [parts]
     // in its bootstrap code.
-    sourceMap = parts as String;
+    sourceMap = parts;
     parts = JS('', '{}');
   }
   JS('', '#.set(#, #)', _loadedSourceMaps, moduleName, sourceMap);
@@ -171,6 +171,8 @@ _computeLibraryMetadata() {
   for (var name in modules) {
     // Add libraries from each module.
     var module = getModuleLibraries(name);
+    // TODO(nshahan) Can we optimize this cast and the one below to use
+    // JsArray.of() to be more efficient?
     var libraries = getOwnPropertyNames(module).cast<String>();
     _libraries.addAll(libraries);
     for (var library in libraries) {

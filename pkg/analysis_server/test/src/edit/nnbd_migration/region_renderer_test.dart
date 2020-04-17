@@ -32,18 +32,6 @@ class RegionRendererTest extends NnbdMigrationTestBase {
         .render();
   }
 
-  Future<void> test_modifiedOutput_containsDetail() async {
-    await buildInfoForSingleTestFile('int a = null;',
-        migratedContent: 'int? a = null;');
-    var response = renderRegion(3);
-    expect(response.details, hasLength(1));
-    var detail = response.details.single;
-    expect(detail.description,
-        equals("This variable is initialized to an explicit 'null'"));
-    expect(detail.link.path, equals('test.dart'));
-    expect(detail.link.href, equals('test.dart?offset=8&line=1'));
-  }
-
   Future<void> test_modifiedOutput_containsExplanation() async {
     await buildInfoForSingleTestFile('int a = null;',
         migratedContent: 'int? a = null;');
@@ -57,23 +45,6 @@ class RegionRendererTest extends NnbdMigrationTestBase {
     var response = renderRegion(3);
     expect(response.path, equals(convertPath('/project/bin/test.dart')));
     expect(response.line, equals(1));
-  }
-
-  @FailingTest(reason: "Unmodified output reason doesn't contain detail")
-  Future<void> test_unmodifiedOutput_containsDetail() async {
-    await buildInfoForSingleTestFile('f(int a) => a.isEven;',
-        migratedContent: 'f(int  a) => a.isEven;');
-    var response = renderRegion(5);
-    expect(response.details, isNotEmpty);
-    // TODO(paulberry): fix and re-enable.
-//    expect(response.details, hasLength(1));
-//    var detail = response.details.single;
-//    expect(
-//        detail.description,
-//        equals('This value is unconditionally used in a '
-//            'non-nullable context'));
-//    expect(detail.link.path, equals('test.dart'));
-//    expect(detail.link.href, equals('test.dart?offset=12&line=1'));
   }
 
   Future<void> test_unmodifiedOutput_containsExplanation() async {

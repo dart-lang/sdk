@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:expect/expect.dart';
@@ -152,7 +153,9 @@ Future<Iterable<String>> runOutput(String executable, List<String> args) async {
   Expect.isTrue(result.stdout.isNotEmpty);
   Expect.isTrue(result.stderr.isEmpty);
 
-  return result.stdout.split(RegExp(r'[\r\n]'));
+  return await Stream.value(result.stdout as String)
+      .transform(const LineSplitter())
+      .toList();
 }
 
 Future<Iterable<String>> runError(String executable, List<String> args) async {
@@ -164,7 +167,9 @@ Future<Iterable<String>> runError(String executable, List<String> args) async {
   Expect.isTrue(result.stdout.isEmpty);
   Expect.isTrue(result.stderr.isNotEmpty);
 
-  return result.stderr.split(RegExp(r'[\r\n]'));
+  return await Stream.value(result.stderr as String)
+      .transform(const LineSplitter())
+      .toList();
 }
 
 const keepTempKey = 'KEEP_TEMPORARY_DIRECTORIES';

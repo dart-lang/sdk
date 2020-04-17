@@ -103,8 +103,15 @@ class F {m() { m(); !1}}''', <String>['1+m']);
 class F {var x = !1false;}''', <String>['1+true']);
 
     buildTests('testCommentSnippets018', '''
-class Map{}class Arrays{}class C{ m(!1){} n(!2 x, q)''',
-        <String>['1+Map', '1-void', '1-null', '2+Arrays', '2-void', '2-null']);
+class Map{}class Arrays{}class C{ m(!1){} n(!2 x, q)''', <String>[
+      '1+Map',
+      '1+dynamic',
+      '1+void',
+      '1-null',
+      '2+Arrays',
+      '2-void',
+      '2-null'
+    ]);
 
     buildTests('testCommentSnippets019', '''
 class A{m(){Object x;x.!1/**/clear()''', <String>['1+toString']);

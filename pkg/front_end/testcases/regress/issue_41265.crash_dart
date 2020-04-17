@@ -1,0 +1,23 @@
+// Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE.md file.
+
+class A<T> {}
+
+mixin M<T> {}
+
+class DND1 extends Object with M<dynamic> Function()> {
+}
+
+class DND2 extends Object with M<dynamic> Function() {
+}
+
+class DND3 extends M<dynamic> Function() {
+}
+
+class DND4 implements M<dynamic> Function() {
+}
+
+main() {
+  // nothing.
+}

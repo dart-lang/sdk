@@ -73,7 +73,7 @@ class _DefiniteAssignmentDataExtractor extends AstDataExtractor<String> {
     if (node is SimpleIdentifier && node.inGetterContext()) {
       var element = node.staticElement;
       if (element is LocalVariableElement || element is ParameterElement) {
-        if (_flowResult.unassignedNodes.contains(node)) {
+        if (_flowResult.potentiallyUnassignedNodes.contains(node)) {
           return 'unassigned';
         }
       }
@@ -86,7 +86,7 @@ class _DefiniteAssignmentDataInterpreter implements DataInterpreter<String> {
   const _DefiniteAssignmentDataInterpreter();
 
   @override
-  String getText(String actualData) => actualData;
+  String getText(String actualData, [String indentation]) => actualData;
 
   @override
   String isAsExpected(String actualData, String expectedData) {

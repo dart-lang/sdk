@@ -39,6 +39,7 @@ class TestConfiguration {
       this.silentFailures,
       this.printTiming,
       this.printReport,
+      this.reportFailures,
       this.reportInJson,
       this.resetBrowser,
       this.skipCompilation,
@@ -89,6 +90,7 @@ class TestConfiguration {
   final bool silentFailures;
   final bool printTiming;
   final bool printReport;
+  final bool reportFailures;
   final bool reportInJson;
   final bool resetBrowser;
   final bool skipCompilation;
@@ -496,12 +498,11 @@ class Progress {
   static const silent = Progress._('silent');
   static const status = Progress._('status');
   static const buildbot = Progress._('buildbot');
-  static const diff = Progress._('diff');
 
   static final List<String> names = _all.keys.toList();
 
   static final _all = Map<String, Progress>.fromIterable(
-      [compact, color, line, verbose, silent, status, buildbot, diff],
+      [compact, color, line, verbose, silent, status, buildbot],
       key: (progress) => (progress as Progress).name);
 
   static Progress find(String name) {

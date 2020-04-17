@@ -15,10 +15,11 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
@@ -238,14 +239,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   final _UninstantiatedBoundChecker _uninstantiatedBoundChecker;
 
-  /// Setting this flag to `true` disables the check for conflicting generics.
-  /// This is used when running with the old task model to work around
-  /// dartbug.com/32421.
-  ///
-  /// TODO(paulberry): remove this flag once dartbug.com/32421 is properly
-  /// fixed.
-  final bool disableConflictingGenericsCheck;
-
   /// The features enabled in the unit currently being checked for errors.
   FeatureSet _featureSet;
 
@@ -258,8 +251,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * Initialize a newly created error verifier.
    */
   ErrorVerifier(ErrorReporter errorReporter, this._currentLibrary,
-      this._typeProvider, this._inheritanceManager, bool enableSuperMixins,
-      {this.disableConflictingGenericsCheck = false})
+      this._typeProvider, this._inheritanceManager, bool enableSuperMixins)
       : _errorReporter = errorReporter,
         _uninstantiatedBoundChecker =
             _UninstantiatedBoundChecker(errorReporter),
@@ -437,7 +429,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     try {
       _isInCatchClause = true;
       _checkForTypeAnnotationDeferredClass(node.exceptionType);
-      _checkForNullableTypeInCatchClause(node.exceptionType);
       super.visitCatchClause(node);
     } finally {
       _isInCatchClause = previousIsInCatchClause;
@@ -1212,6 +1203,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void visitThrowExpression(ThrowExpression node) {
     _checkForConstEvalThrowsException(node);
     _checkForUseOfVoidResult(node.expression);
+    _checkForThrowOfInvalidType(node);
     super.visitThrowExpression(node);
   }
 
@@ -1332,9 +1324,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkImplementsSuperClass(implementsClause);
       _checkMixinInference(node, withClause);
       _checkForMixinWithConflictingPrivateMember(withClause, superclass);
-      if (!disableConflictingGenericsCheck) {
-        _checkForConflictingGenerics(node);
-      }
+      _checkForConflictingGenerics(node);
     }
   }
 
@@ -1957,58 +1947,26 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkForConflictingGenerics(NamedCompilationUnitMember node) {
-    var visitedClasses = <ClassElement>[];
-    var interfaces = <ClassElement, InterfaceType>{};
+    var element = node.declaredElement as ClassElement;
 
-    void visit(InterfaceType type) {
-      if (type == null) return;
+    var analysisSession = _currentLibrary.session as AnalysisSessionImpl;
+    var errors = analysisSession.classHierarchy.errors(element);
 
-      var element = type.element;
-      if (visitedClasses.contains(element)) return;
-      visitedClasses.add(element);
-
-      if (element.typeParameters.isNotEmpty) {
-        if (_typeSystem.isNonNullableByDefault) {
-          type = _typeSystem.normalize(type);
-          var oldType = interfaces[element];
-          if (oldType == null) {
-            interfaces[element] = type;
-          } else {
-            try {
-              var result = _typeSystem.topMerge(oldType, type);
-              interfaces[element] = result;
-            } catch (_) {
-              _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES,
-                node,
-                [_enclosingClass.name, oldType, type],
-              );
-            }
-          }
-        } else {
-          type = _toLegacyType(type);
-          var oldType = interfaces[element];
-          if (oldType == null) {
-            interfaces[element] = type;
-          } else if (type != oldType) {
-            _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES,
-              node,
-              [_enclosingClass.name, oldType, type],
-            );
-          }
-        }
+    for (var error in errors) {
+      if (error is IncompatibleInterfacesClassHierarchyError) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES,
+          node,
+          [
+            _enclosingClass.name,
+            error.first.getDisplayString(withNullability: true),
+            error.second.getDisplayString(withNullability: true),
+          ],
+        );
+      } else {
+        throw UnimplementedError('${error.runtimeType}');
       }
-
-      visit(type.superclass);
-      type.mixins.forEach(visit);
-      type.superclassConstraints.forEach(visit);
-      type.interfaces.forEach(visit);
-
-      visitedClasses.removeLast();
     }
-
-    visit(_enclosingClass.thisType);
   }
 
   /**
@@ -2554,6 +2512,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         NamespaceBuilder().createExportNamespaceForDirective(element);
 
     for (var element in namespace.definedNames.values) {
+      if (element == DynamicElementImpl.instance ||
+          element == NeverElementImpl.instance) {
+        continue;
+      }
       if (!element.library.isNonNullableByDefault) {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.EXPORT_LEGACY_SYMBOL,
@@ -2872,35 +2834,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * If the current function is async, async*, or sync*, verify that its
    * declared return type is assignable to Future, Stream, or Iterable,
    * respectively. This is called by [_checkForIllegalReturnType] to check if
-   * the declared [returnTypeName] is assignable to the required [expectedType]
-   * and if not report [errorCode].
+   * a value with the type of the declared [returnTypeName] is assignable to
+   * [expectedElement] and if not report [errorCode].
    */
   void _checkForIllegalReturnTypeCode(TypeAnnotation returnTypeName,
       ClassElement expectedElement, StaticTypeWarningCode errorCode) {
-    DartType returnType = _enclosingFunction.returnType;
-    //
-    // When checking an async/sync*/async* method, we know the exact type
-    // that will be returned (e.g. Future, Iterable, or Stream).
-    //
-    // For example an `async` function body will return a `Future<T>` for
-    // some `T` (possibly `dynamic`).
-    //
-    // We allow the declared return type to be a supertype of that
-    // (e.g. `dynamic`, `Object`), or Future<S> for some S.
-    // (We assume the T <: S relation is checked elsewhere.)
-    //
-    // We do not allow user-defined subtypes of Future, because an `async`
-    // method will never return those.
-    //
-    // To check for this, we ensure that `Future<bottom> <: returnType`.
-    //
-    // Similar logic applies for sync* and async*.
-    //
-    var lowerBound = expectedElement.instantiate(
-      typeArguments: [NeverTypeImpl.instance],
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-    if (!_typeSystem.isSubtypeOf2(lowerBound, returnType)) {
+    if (!_isLegalReturnType(expectedElement)) {
       _errorReporter.reportErrorForNode(errorCode, returnTypeName);
     }
   }
@@ -3939,23 +3878,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  void _checkForNullableTypeInCatchClause(TypeAnnotation type) {
-    if (!_isNonNullableByDefault) {
-      return;
-    }
-
-    if (type == null) {
-      return;
-    }
-
-    if (_typeSystem.isPotentiallyNullable(type.type)) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.NULLABLE_TYPE_IN_CATCH_CLAUSE,
-        type,
-      );
-    }
-  }
-
   /**
    * Verify that all classes of the given [onClause] are valid.
    *
@@ -4349,6 +4271,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (_inAsync) {
       toType = _typeSystem.flatten(toType);
       fromType = _typeSystem.flatten(fromType);
+      if (!_isLegalReturnType(_typeProvider.futureElement)) {
+        // ILLEGAL_ASYNC_RETURN_TYPE has already been reported, meaning the
+        // _declared_ return type is illegal; don't confuse by also reporting
+        // that the type being returned here does not match that illegal return
+        // type.
+        return;
+      }
     }
 
     void reportTypeError() {
@@ -4508,6 +4437,21 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           StaticWarningCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE,
           expression,
           [expressionType, caseType]);
+    }
+  }
+
+  void _checkForThrowOfInvalidType(ThrowExpression node) {
+    if (!_isNonNullableByDefault) return;
+
+    var expression = node.expression;
+    var type = node.expression.staticType;
+
+    if (!_typeSystem.isAssignableTo2(type, _typeSystem.objectNone)) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.THROW_OF_INVALID_TYPE,
+        expression,
+        [type],
+      );
     }
   }
 
@@ -5190,9 +5134,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         implementsClause?.interfaces,
         CompileTimeErrorCode.IMPLEMENTS_REPEATED,
       );
-      if (!disableConflictingGenericsCheck) {
-        _checkForConflictingGenerics(node);
-      }
+      _checkForConflictingGenerics(node);
     }
   }
 
@@ -5229,12 +5171,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (!_isNonNullableByDefault) return;
 
     var parent = node.parent;
-    var defaultValuesAreExpected = parent is ConstructorDeclaration ||
-        parent is FunctionExpression ||
-        parent is MethodDeclaration &&
-            !parent.isAbstract &&
-            parent.externalKeyword == null &&
-            parent.body is! NativeFunctionBody;
+    var defaultValuesAreExpected =
+        parent is ConstructorDeclaration && parent.externalKeyword == null ||
+            parent is FunctionExpression ||
+            parent is MethodDeclaration &&
+                !parent.isAbstract &&
+                parent.externalKeyword == null &&
+                parent.body is! NativeFunctionBody;
 
     for (var parameter in node.parameters) {
       if (parameter is DefaultFormalParameter) {
@@ -5482,6 +5425,35 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     return false;
   }
 
+  /// Returns whether a value with the type of the the enclosing function's
+  /// declared return type is assignable to [expectedElement].
+  bool _isLegalReturnType(ClassElement expectedElement) {
+    DartType returnType = _enclosingFunction.returnType;
+    //
+    // When checking an async/sync*/async* method, we know the exact type
+    // that will be returned (e.g. Future, Iterable, or Stream).
+    //
+    // For example an `async` function body will return a `Future<T>` for
+    // some `T` (possibly `dynamic`).
+    //
+    // We allow the declared return type to be a supertype of that
+    // (e.g. `dynamic`, `Object`), or Future<S> for some S.
+    // (We assume the T <: S relation is checked elsewhere.)
+    //
+    // We do not allow user-defined subtypes of Future, because an `async`
+    // method will never return those.
+    //
+    // To check for this, we ensure that `Future<bottom> <: returnType`.
+    //
+    // Similar logic applies for sync* and async*.
+    //
+    var lowerBound = expectedElement.instantiate(
+      typeArguments: [NeverTypeImpl.instance],
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
+    return _typeSystem.isSubtypeOf2(lowerBound, returnType);
+  }
+
   /**
    * Return `true` if the given 'this' [expression] is in a valid context.
    */
@@ -5550,13 +5522,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return parameter.parameter.identifier;
     }
     return null;
-  }
-
-  /// If in a legacy library, return the legacy version of the [type].
-  /// Otherwise, return the original type.
-  DartType _toLegacyType(DartType type) {
-    if (_isNonNullableByDefault) return type;
-    return NullabilityEliminator.perform(_typeProvider, type);
   }
 
   /**

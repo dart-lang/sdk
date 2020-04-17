@@ -1660,7 +1660,26 @@ class VariableModel<Type> {
     List<Type> thisPromotedTypes = promotedTypes;
     List<Type> otherPromotedTypes = otherModel.promotedTypes;
     bool newAssigned = assigned || otherModel.assigned;
-    bool newUnassigned = unassigned;
+    // The variable can only be unassigned in this state if it was also
+    // unassigned in the other state or if the other state didn't complete
+    // normally. For the latter case the resulting state is unreachable but to
+    // avoid creating a variable model that is both assigned and unassigned we
+    // take the intersection below.
+    //
+    // This situation can occur in try-finally like:
+    //
+    //   method() {
+    //     var local;
+    //     try {
+    //       local = 0;
+    //       return; // assigned
+    //     } finally {
+    //       local; // unassigned
+    //     }
+    //     local; // unreachable state
+    //   }
+    //
+    bool newUnassigned = unassigned && otherModel.unassigned;
     bool newWriteCaptured = writeCaptured || otherModel.writeCaptured;
     List<Type> newPromotedTypes;
     if (unsafe) {

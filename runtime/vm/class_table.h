@@ -42,9 +42,11 @@ class UnboxedFieldBitmap {
   UnboxedFieldBitmap& operator=(const UnboxedFieldBitmap&) = default;
 
   DART_FORCE_INLINE bool Get(intptr_t position) const {
+    if (position >= Length()) return false;
     return Utils::TestBit(bitmap_, position);
   }
   DART_FORCE_INLINE void Set(intptr_t position) {
+    ASSERT(position < Length());
     bitmap_ |= Utils::Bit<decltype(bitmap_)>(position);
   }
   DART_FORCE_INLINE uint64_t Value() const { return bitmap_; }
@@ -134,14 +136,24 @@ class SharedClassTable {
     const intptr_t num_cids = NumCids();
     const intptr_t bytes = sizeof(intptr_t) * num_cids;
     auto size_table = static_cast<intptr_t*>(malloc(bytes));
-    memmove(size_table, table_.load(), sizeof(intptr_t) * num_cids);
+    auto table = table_.load();
+    for (intptr_t i = 0; i < num_cids; i++) {
+      // Don't use memmove, which changes this from a relaxed atomic operation
+      // to a non-atomic operation.
+      size_table[i] = table[i];
+    }
     *copy_num_cids = num_cids;
     *copy = size_table;
   }
 
   void ResetBeforeHotReload() {
     // The [IsolateReloadContext] is now source-of-truth for GC.
-    memset(table_.load(), 0, sizeof(intptr_t) * top_);
+    auto table = table_.load();
+    for (intptr_t i = 0; i < top_; i++) {
+      // Don't use memset, which changes this from a relaxed atomic operation
+      // to a non-atomic operation.
+      table[i] = 0;
+    }
   }
 
   void ResetAfterHotReload(intptr_t* old_table,
@@ -151,7 +163,12 @@ class SharedClassTable {
     // return, so we restore size information for all classes.
     if (is_rollback) {
       SetNumCids(num_old_cids);
-      memmove(table_.load(), old_table, sizeof(intptr_t) * num_old_cids);
+      auto table = table_.load();
+      for (intptr_t i = 0; i < num_old_cids; i++) {
+        // Don't use memmove, which changes this from a relaxed atomic operation
+        // to a non-atomic operation.
+        table[i] = old_table[i];
+      }
     }
 
     // Can't free this table immediately as another thread (e.g., concurrent
@@ -247,7 +264,12 @@ class ClassTable {
     const intptr_t num_cids = NumCids();
     const intptr_t bytes = sizeof(RawClass*) * num_cids;
     auto class_table = static_cast<RawClass**>(malloc(bytes));
-    memmove(class_table, table_.load(), sizeof(RawClass*) * num_cids);
+    auto table = table_.load();
+    for (intptr_t i = 0; i < num_cids; i++) {
+      // Don't use memmove, which changes this from a relaxed atomic operation
+      // to a non-atomic operation.
+      class_table[i] = table[i];
+    }
     *copy_num_cids = num_cids;
     *copy = class_table;
   }
@@ -267,7 +289,12 @@ class ClassTable {
     // return, so we restore size information for all classes.
     if (is_rollback) {
       SetNumCids(num_old_cids);
-      memmove(table_.load(), old_table, sizeof(RawClass*) * num_old_cids);
+      auto table = table_.load();
+      for (intptr_t i = 0; i < num_old_cids; i++) {
+        // Don't use memmove, which changes this from a relaxed atomic operation
+        // to a non-atomic operation.
+        table[i] = old_table[i];
+      }
     } else {
       CopySizesFromClassObjects();
     }

@@ -195,6 +195,11 @@ const Slot& Slot::Get(const Field& field,
     }
   }
 
+  AbstractType& type = AbstractType::ZoneHandle(zone, field.type());
+  if (type.IsStrictlyNonNullable()) {
+    is_nullable = false;
+  }
+
   bool used_guarded_state = false;
   if (field.guarded_cid() != kIllegalCid &&
       field.guarded_cid() != kDynamicCid) {
@@ -209,8 +214,6 @@ const Slot& Slot::Get(const Field& field,
       used_guarded_state = true;
     }
   }
-
-  AbstractType& type = AbstractType::ZoneHandle(zone, field.type());
 
   if (field.needs_load_guard()) {
     // Should be kept in sync with LoadStaticFieldInstr::ComputeType.

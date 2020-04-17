@@ -93,7 +93,7 @@ abstract class TypesBuilder {
       if (bound is TypeParameterType) {
         result = const AnyType();
       } else {
-        return fromStaticType(bound, canBeNull);
+        result = fromStaticType(bound, canBeNull);
       }
     } else {
       throw 'Unexpected type ${type.runtimeType} $type';
@@ -101,7 +101,7 @@ abstract class TypesBuilder {
     if (nullSafety && type.nullability == Nullability.nonNullable) {
       canBeNull = false;
     }
-    if (canBeNull) {
+    if (canBeNull && result is! NullableType) {
       result = new Type.nullable(result);
     }
     return result;
@@ -186,6 +186,7 @@ abstract class Type extends TypeExpr {
 /// Order of precedence between types for evaluation of union/intersection.
 enum TypeOrder {
   RuntimeType,
+  Unknown,
   Empty,
   Nullable,
   Any,
@@ -293,7 +294,6 @@ class NullableType extends Type {
 
 /// Type representing any instance except `null`.
 /// Semantically equivalent to ConeType of Object, but more efficient.
-/// Can also represent a set of types, the set of all types.
 class AnyType extends Type {
   const AnyType();
 
@@ -612,7 +612,7 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
   int _hashCode;
 
   // May be null if there are no type arguments constraints. The type arguments
-  // should represent type sets, i.e. `AnyType` or `RuntimeType`. The type
+  // should represent type sets, i.e. `UnknownType` or `RuntimeType`. The type
   // arguments vector is factored against the generic interfaces implemented by
   // the class (see [TypeHierarchy.flattenedTypeArgumentsFor]).
   //
@@ -693,11 +693,13 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
           runtimeType.numImmediateTypeArgs);
 
       for (int i = 0; i < runtimeType.numImmediateTypeArgs; ++i) {
-        if (usableTypeArgs[i + interfaceOffset] == const AnyType())
+        final ta = usableTypeArgs[i + interfaceOffset];
+        if (ta is UnknownType) {
           return false;
-        assertx(usableTypeArgs[i + interfaceOffset] is RuntimeType);
-        if (!usableTypeArgs[i + interfaceOffset]
-            .isSubtypeOfRuntimeType(typeHierarchy, runtimeType.typeArgs[i])) {
+        }
+        assertx(ta is RuntimeType);
+        if (!ta.isSubtypeOfRuntimeType(
+            typeHierarchy, runtimeType.typeArgs[i])) {
           return false;
         }
       }
@@ -864,7 +866,7 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
 //   class A<T> extends Comparable<A<T>> {}
 //
 // To avoid these cycles, we approximate generic super-bounded types (the second
-// case), so the representation for 'A<String>' would be simply 'AnyType'.
+// case), so the representation for 'A<String>' would be simply 'UnknownType'.
 // However, approximating non-generic types like 'int' and 'num' (the first
 // case) would be too coarse, so we leave an null 'typeArgs' field for these
 // types. As a result, when doing an 'isSubtypeOfRuntimeType' against
@@ -963,11 +965,11 @@ class RuntimeType extends Type {
   Type union(Type other, TypeHierarchy typeHierarchy) =>
       throw "ERROR: RuntimeType does not support union.";
 
-  // This only works between "type-set" representations ('AnyType' and
+  // This only works between "type-set" representations ('UnknownType' and
   // 'RuntimeType') and is used when merging type arguments.
   @override
   Type intersection(Type other, TypeHierarchy typeHierarchy) {
-    if (other is AnyType) {
+    if (other is UnknownType) {
       return this;
     } else if (other is RuntimeType) {
       return this == other ? this : const EmptyType();
@@ -1041,5 +1043,54 @@ class RuntimeType extends Type {
       }
     }
     return true;
+  }
+}
+
+/// Type which is not known at compile time.
+/// It is used as the right-hand-side of type tests.
+class UnknownType extends Type {
+  const UnknownType();
+
+  @override
+  int get hashCode => 1019;
+
+  @override
+  bool operator ==(other) => (other is UnknownType);
+
+  @override
+  String toString() => "UNKNOWN";
+
+  @override
+  int get order => TypeOrder.Unknown.index;
+
+  @override
+  bool isSubtypeOf(TypeHierarchy typeHierarchy, Class cls) =>
+      throw "ERROR: UnknownType does not support isSubtypeOf.";
+
+  @override
+  Type union(Type other, TypeHierarchy typeHierarchy) {
+    if (other is UnknownType || other is RuntimeType) {
+      return this;
+    }
+    throw "ERROR: UnknownType does not support union with ${other.runtimeType}";
+  }
+
+  // This only works between "type-set" representations ('UnknownType' and
+  // 'RuntimeType') and is used when merging type arguments.
+  @override
+  Type intersection(Type other, TypeHierarchy typeHierarchy) {
+    if (other is UnknownType || other is RuntimeType) {
+      return other;
+    }
+    throw "ERROR: UnknownType does not support intersection with ${other.runtimeType}";
+  }
+
+  bool isSubtypeOfRuntimeType(TypeHierarchy typeHierarchy, RuntimeType other) {
+    final rhs = other._type;
+    return (rhs is DynamicType) ||
+        (rhs is VoidType) ||
+        (rhs is InterfaceType &&
+            rhs.classNode == typeHierarchy.coreTypes.objectClass &&
+            rhs.nullability != Nullability.nonNullable);
   }
 }

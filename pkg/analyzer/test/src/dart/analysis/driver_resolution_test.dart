@@ -1344,7 +1344,7 @@ class B<U> {
 
     ClassDeclaration bNode = result.unit.declarations[1];
     TypeParameterType uType =
-        typeParameterType(bNode.declaredElement.typeParameters[0]);
+        typeParameterTypeStar(bNode.declaredElement.typeParameters[0]);
     InterfaceType auType = aElement.instantiate(
       typeArguments: [uType],
       nullabilitySuffix: NullabilitySuffix.star,
@@ -1720,7 +1720,8 @@ class C<T> {
     FieldDeclaration fDeclaration = cNode.members[0];
     VariableDeclaration fNode = fDeclaration.fields.variables[0];
     FieldElement fElement = fNode.declaredElement;
-    expect(fElement.type, typeProvider.listType2(typeParameterType(tElement)));
+    expect(
+        fElement.type, typeProvider.listType2(typeParameterTypeStar(tElement)));
   }
 
   test_field_generic() async {
@@ -4010,7 +4011,7 @@ void main() {
 
     TypeName fReturnTypeNode = fNode.returnType;
     expect(fReturnTypeNode.name.staticElement, same(tElement));
-    expect(fReturnTypeNode.type, typeParameterType(tElement));
+    expect(fReturnTypeNode.type, typeParameterTypeStar(tElement));
 
     expect(fExpression.declaredElement, same(fElement));
 
@@ -4025,13 +4026,13 @@ void main() {
           name: 'a',
           offset: 28,
           kind: ParameterKind.REQUIRED,
-          type: typeParameterType(tElement));
+          type: typeParameterTypeStar(tElement));
 
       _assertSimpleParameter(nodes[1], parameters[1],
           name: 'b',
           offset: 33,
           kind: ParameterKind.REQUIRED,
-          type: typeParameterType(uElement));
+          type: typeParameterTypeStar(uElement));
 
       var aRef = findNode.simple('a;');
       assertElement(aRef, parameters[0]);
@@ -7266,7 +7267,7 @@ class C<T> {
 
       VariableDeclaration bNode = bDeclaration.fields.variables[0];
       expect(bNode.declaredElement, same(bElement));
-      expect(bElement.type, typeParameterType(tElement));
+      expect(bElement.type, typeParameterTypeStar(tElement));
       expect(bNode.name.staticElement, same(bElement));
       expect(bNode.name.staticType, isNull);
     }
@@ -7504,7 +7505,7 @@ typedef int F<T>(bool a, T b);
         name: 'b',
         offset: 27,
         kind: ParameterKind.REQUIRED,
-        type: typeParameterType(aliasElement.typeParameters[0]));
+        type: typeParameterTypeStar(aliasElement.typeParameters[0]));
   }
 
   test_top_typeParameter() async {

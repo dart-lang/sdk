@@ -120,6 +120,10 @@ class _ChildrenElementList extends ListBase<Element>
     }
   }
 
+  void insertAll(int index, Iterable<Element> iterable) {
+    throw new UnimplementedError();
+  }
+
   void setAll(int index, Iterable<Element> iterable) {
     throw new UnimplementedError();
   }
@@ -130,6 +134,9 @@ class _ChildrenElementList extends ListBase<Element>
 
   Element removeAt(int index) {
     final result = this[index];
+  $if NNBD
+    // TODO(41258): Remove null check after unfork/strong mode.
+  $endif
     if (result != null) {
       _element._removeChild(result);
     }
@@ -138,9 +145,7 @@ class _ChildrenElementList extends ListBase<Element>
 
   Element removeLast() {
     final result = this.last;
-    if (result != null) {
-      _element._removeChild(result);
-    }
+    _element._removeChild(result);
     return result;
   }
 
@@ -566,6 +571,9 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
   @pragma('dart2js:tryInline')
   String$NULLABLE getAttribute(String name) {
+$if NNBD
+    // TODO(41258): Delete this assertion after forcing strong mode.
+$endif
     // Protect [name] against string conversion to "null" or "undefined".
     assert(name != null, 'Attribute name cannot be null');
     return _getAttribute(name);
@@ -573,6 +581,9 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
   @pragma('dart2js:tryInline')
   String$NULLABLE getAttributeNS(String$NULLABLE namespaceURI, String name) {
+$if NNBD
+    // TODO(41258): Delete this assertion after forcing strong mode.
+$endif
     // Protect [name] against string conversion to "null" or "undefined".
     // [namespaceURI] does not need protecting, both `null` and `undefined` map to `null`.
     assert(name != null, 'Attribute name cannot be null');
@@ -581,6 +592,9 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
   @pragma('dart2js:tryInline')
   bool hasAttribute(String name) {
+$if NNBD
+    // TODO(41258): Delete this assertion after forcing strong mode.
+$endif
     // Protect [name] against string conversion to "null" or "undefined".
     assert(name != null, 'Attribute name cannot be null');
     return _hasAttribute(name);
@@ -588,6 +602,9 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
   @pragma('dart2js:tryInline')
   bool hasAttributeNS(String$NULLABLE namespaceURI, String name) {
+$if NNBD
+    // TODO(41258): Delete this assertion after forcing strong mode.
+$endif
     // Protect [name] against string conversion to "null" or "undefined".
     // [namespaceURI] does not need protecting, both `null` and `undefined` map to `null`.
     assert(name != null, 'Attribute name cannot be null');
@@ -596,6 +613,9 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
   @pragma('dart2js:tryInline')
   void removeAttribute(String name) {
+$if NNBD
+    // TODO(41258): Delete this assertion after forcing strong mode.
+$endif
     // Protect [name] against string conversion to "null" or "undefined".
     assert(name != null, 'Attribute name cannot be null');
     _removeAttribute(name);
@@ -603,6 +623,9 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
   @pragma('dart2js:tryInline')
   void removeAttributeNS(String$NULLABLE namespaceURI, String name) {
+$if NNBD
+    // TODO(41258): Delete this assertion after forcing strong mode.
+$endif
     // Protect [name] against string conversion to "null" or "undefined".
     assert(name != null, 'Attribute name cannot be null');
     _removeAttributeNS(namespaceURI, name);
@@ -610,6 +633,9 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
   @pragma('dart2js:tryInline')
   void setAttribute(String name, String value) {
+$if NNBD
+    // TODO(41258): Delete these assertions after forcing strong mode.
+$endif
     // Protect [name] against string conversion to "null" or "undefined".
     assert(name != null, 'Attribute name cannot be null');
     // TODO(sra): assert(value != null, 'Attribute value cannot be null.');
@@ -618,6 +644,9 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
   @pragma('dart2js:tryInline')
   void setAttributeNS(String$NULLABLE namespaceURI, String name, String value) {
+$if NNBD
+    // TODO(41258): Delete these assertions after forcing strong mode.
+$endif
     // Protect [name] against string conversion to "null" or "undefined".
     assert(name != null, 'Attribute name cannot be null');
     // TODO(sra): assert(value != null, 'Attribute value cannot be null.');
@@ -1389,7 +1418,7 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    * This uses the default sanitization behavior to sanitize the HTML fragment,
    * use [setInnerHtml] to override the default behavior.
    */
-  set innerHtml(String html) {
+  set innerHtml(String$NULLABLE html) {
     this.setInnerHtml(html);
   }
 
@@ -1414,7 +1443,7 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    * * [NodeValidator]
    * * [NodeTreeSanitizer]
    */
-  void setInnerHtml(String html,
+  void setInnerHtml(String$NULLABLE html,
     {NodeValidator$NULLABLE validator,
      NodeTreeSanitizer$NULLABLE treeSanitizer}) {
     text = null;
@@ -1422,7 +1451,7 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
       _innerHtml = html;
     } else {
       append(createFragment(
-          html, validator: validator, treeSanitizer: treeSanitizer));
+          html$NULLASSERT, validator: validator, treeSanitizer: treeSanitizer));
     }
   }
   String get innerHtml => _innerHtml;

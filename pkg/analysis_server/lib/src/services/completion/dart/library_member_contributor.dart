@@ -62,7 +62,7 @@ class LibraryMemberContributor extends DartCompletionContributor {
             var relevance = useNewRelevance
                 ? Relevance.loadLibrary
                 : DART_RELEVANCE_DEFAULT;
-            builder.suggestions.add(createSuggestion(function,
+            builder.suggestions.add(createSuggestion(request, function,
                 relevance: relevance, useNewRelevance: useNewRelevance));
           }
         }

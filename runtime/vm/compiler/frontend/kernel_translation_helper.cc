@@ -2654,14 +2654,33 @@ TokenPosition KernelReaderHelper::ReadPosition() {
   return position;
 }
 
+intptr_t KernelReaderHelper::SourceTableFieldCountFromFirstLibraryOffset() {
+  // translation_helper_.info() might not be initialized at this point so we
+  // can't use translation_helper_.info().kernel_binary_version().
+  SetOffset(KernelFormatVersionOffset);
+  uint32_t formatVersion = reader_.ReadUInt32();
+  intptr_t count_from_first_library_offset =
+      SourceTableFieldCountFromFirstLibraryOffsetPre41;
+  static_assert(kMinSupportedKernelFormatVersion < 41, "cleanup this code");
+  if (formatVersion >= 41) {
+    count_from_first_library_offset =
+        SourceTableFieldCountFromFirstLibraryOffset41Plus;
+  }
+  return count_from_first_library_offset;
+}
+
 intptr_t KernelReaderHelper::SourceTableSize() {
   AlternativeReadingScope alt(&reader_);
   intptr_t library_count = reader_.ReadFromIndexNoReset(
       reader_.size(), LibraryCountFieldCountFromEnd, 1, 0);
+
+  const intptr_t count_from_first_library_offset =
+      SourceTableFieldCountFromFirstLibraryOffset();
+
   intptr_t source_table_offset = reader_.ReadFromIndexNoReset(
       reader_.size(),
       LibraryCountFieldCountFromEnd + 1 + library_count + 1 +
-          SourceTableFieldCountFromFirstLibraryOffset,
+          count_from_first_library_offset,
       1, 0);
   SetOffset(source_table_offset);  // read source table offset.
   return reader_.ReadUInt32();     // read source table size.
@@ -2671,10 +2690,14 @@ intptr_t KernelReaderHelper::GetOffsetForSourceInfo(intptr_t index) {
   AlternativeReadingScope alt(&reader_);
   intptr_t library_count = reader_.ReadFromIndexNoReset(
       reader_.size(), LibraryCountFieldCountFromEnd, 1, 0);
+
+  const intptr_t count_from_first_library_offset =
+      SourceTableFieldCountFromFirstLibraryOffset();
+
   intptr_t source_table_offset = reader_.ReadFromIndexNoReset(
       reader_.size(),
       LibraryCountFieldCountFromEnd + 1 + library_count + 1 +
-          SourceTableFieldCountFromFirstLibraryOffset,
+          count_from_first_library_offset,
       1, 0);
   intptr_t next_field_offset = reader_.ReadUInt32();
   SetOffset(source_table_offset);

@@ -24,7 +24,8 @@ class Heap;
 class Isolate;
 class JSONObject;
 class ObjectSet;
-class ScavengerVisitor;
+template <bool parallel>
+class ScavengerVisitorBase;
 
 // Wrapper around VirtualMemory that adds caching and handles the empty case.
 class SemiSpace {
@@ -139,38 +140,14 @@ class Scavenger {
   }
   void MakeTLABIterable(Thread* thread);
   void AbandonRemainingTLAB(Thread* thread);
-
-  uword AllocateGC(intptr_t size) {
-    ASSERT(Utils::IsAligned(size, kObjectAlignment));
-    ASSERT(heap_ != Dart::vm_isolate()->heap());
-    ASSERT(scavenging_);
-    uword result = top_;
-    intptr_t remaining = end_ - top_;
-
-    // This allocation happens only in GC and only when copying objects to
-    // the new to_ space. It must succeed.
-    ASSERT(size <= remaining);
-    ASSERT(to_->Contains(result));
-    ASSERT((result & kObjectAlignmentMask) == kNewObjectAlignmentOffset);
-    top_ += size;
-    ASSERT((to_->Contains(top_)) || (top_ == to_->end()));
-    return result;
-  }
+  template <bool parallel>
+  bool TryAllocateNewTLAB(ScavengerVisitorBase<parallel>* visitor);
 
   // Collect the garbage in this scavenger.
   void Scavenge();
 
   // Promote all live objects.
   void Evacuate();
-
-  uword top() { return top_; }
-  uword end() { return end_; }
-
-  void set_top(uword value) { top_ = value; }
-  void set_end(uword value) {
-    ASSERT(to_->end() == value);
-    end_ = value;
-  }
 
   // Report (TLAB) abandoned bytes that should be taken account when
   // deciding whether to grow new space or not.
@@ -225,6 +202,8 @@ class Scavenger {
   void MakeNewSpaceIterable() const;
   int64_t FreeSpaceInWords(Isolate* isolate) const;
 
+  bool scavenging() const { return scavenging_; }
+
  private:
   static const intptr_t kTLABSize = 512 * KB;
 
@@ -264,58 +243,33 @@ class Scavenger {
   void TryAllocateNewTLAB(Thread* thread);
   void AddAbandonedInBytesLocked(intptr_t value) { abandoned_ += value; }
   void AbandonRemainingTLABLocked(Thread* thread);
-  void AbandonTLABsLocked(IsolateGroup* isolate_group);
+  void AbandonTLABsLocked();
 
   uword FirstObjectStart() const {
     return to_->start() + kNewObjectAlignmentOffset;
   }
-  SemiSpace* Prologue(IsolateGroup* isolate_group);
-  void IterateStoreBuffers(IsolateGroup* isolate_group,
-                           ScavengerVisitor* visitor);
-  void IterateObjectIdTable(IsolateGroup* isolate_group,
-                            ScavengerVisitor* visitor);
-  void IterateRoots(IsolateGroup* isolate_group, ScavengerVisitor* visitor);
-  void IterateWeakProperties(IsolateGroup* isolate_group,
-                             ScavengerVisitor* visitor);
-  void IterateWeakReferences(IsolateGroup* isolate_group,
-                             ScavengerVisitor* visitor);
-  void IterateWeakRoots(IsolateGroup* isolate_group, HandleVisitor* visitor);
-  void ProcessToSpace(ScavengerVisitor* visitor);
-  void EnqueueWeakProperty(RawWeakProperty* raw_weak);
-  uword ProcessWeakProperty(RawWeakProperty* raw_weak,
-                            ScavengerVisitor* visitor);
-  void Epilogue(IsolateGroup* isolate_group, SemiSpace* from);
+  SemiSpace* Prologue();
+  intptr_t ParallelScavenge(SemiSpace* from);
+  intptr_t SerialScavenge(SemiSpace* from);
+  void IterateIsolateRoots(ObjectPointerVisitor* visitor);
+  template <bool parallel>
+  void IterateStoreBuffers(ScavengerVisitorBase<parallel>* visitor);
+  template <bool parallel>
+  void IterateRememberedCards(ScavengerVisitorBase<parallel>* visitor);
+  void IterateObjectIdTable(ObjectPointerVisitor* visitor);
+  template <bool parallel>
+  void IterateRoots(ScavengerVisitorBase<parallel>* visitor);
+  void MournWeakHandles();
+  void Epilogue(SemiSpace* from);
 
   bool IsUnreachable(RawObject** p);
 
   void VerifyStoreBuffers();
 
-  // During a scavenge we need to remember the promoted objects.
-  // This is implemented as a stack of objects at the end of the to space. As
-  // object sizes are always greater than sizeof(uword) and promoted objects do
-  // not consume space in the to space they leave enough room for this stack.
-  void PushToPromotedStack(uword addr) {
-    ASSERT(scavenging_);
-    end_ -= sizeof(addr);
-    ASSERT(end_ > top_);
-    *reinterpret_cast<uword*>(end_) = addr;
-  }
-  uword PopFromPromotedStack() {
-    ASSERT(scavenging_);
-    uword result = *reinterpret_cast<uword*>(end_);
-    end_ += sizeof(result);
-    ASSERT(end_ <= to_->end());
-    return result;
-  }
-  bool PromotedStackHasMore() const {
-    ASSERT(scavenging_);
-    return end_ < to_->end();
-  }
-
   void UpdateMaxHeapCapacity();
   void UpdateMaxHeapUsage();
 
-  void ProcessWeakReferences();
+  void MournWeakTables();
 
   intptr_t NewSizeInWords(intptr_t old_size_in_words) const;
 
@@ -337,13 +291,14 @@ class Scavenger {
   // whether to grow newspace or not.
   intptr_t abandoned_ = 0;
 
+  PromotionStack promotion_stack_;
+
   intptr_t max_semi_capacity_in_words_;
 
   // Keep track whether a scavenge is currently running.
   bool scavenging_;
-
-  // Keep track of pending weak properties discovered while scagenging.
-  RawWeakProperty* delayed_weak_properties_;
+  RelaxedAtomic<intptr_t> root_slices_started_;
+  StoreBufferBlock* blocks_;
 
   int64_t gc_time_micros_;
   intptr_t collections_;
@@ -361,7 +316,8 @@ class Scavenger {
   // Protects new space during the allocation of new TLABs
   mutable Mutex space_lock_;
 
-  friend class ScavengerVisitor;
+  template <bool>
+  friend class ScavengerVisitorBase;
   friend class ScavengerWeakVisitor;
 
   DISALLOW_COPY_AND_ASSIGN(Scavenger);

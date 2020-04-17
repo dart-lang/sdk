@@ -45,7 +45,7 @@ class CanonicalNameSdkError extends CanonicalNameError {
 }
 
 class _ComponentIndex {
-  static const numberOfFixedFields = 9;
+  static const numberOfFixedFields = 10;
 
   int binaryOffsetForSourceTable;
   int binaryOffsetForCanonicalNames;
@@ -54,6 +54,7 @@ class _ComponentIndex {
   int binaryOffsetForStringTable;
   int binaryOffsetForConstantTable;
   int mainMethodReference;
+  NonNullableByDefaultCompiledMode compiledMode;
   List<int> libraryOffsets;
   int libraryCount;
   int componentFileSizeInBytes;
@@ -85,6 +86,7 @@ class BinaryBuilder {
   int _transformerFlags = 0;
   Library _currentLibrary;
   int _componentStartOffset = 0;
+  NonNullableByDefaultCompiledMode compilationMode;
 
   // If something goes wrong, this list should indicate what library,
   // class, and member was being built.
@@ -621,6 +623,7 @@ class BinaryBuilder {
     result.binaryOffsetForStringTable = _componentStartOffset + readUint32();
     result.binaryOffsetForConstantTable = _componentStartOffset + readUint32();
     result.mainMethodReference = readUint32();
+    result.compiledMode = NonNullableByDefaultCompiledMode.values[readUint32()];
     for (int i = 0; i < result.libraryCount + 1; ++i) {
       result.libraryOffsets[i] = _componentStartOffset + readUint32();
     }
@@ -675,6 +678,12 @@ class BinaryBuilder {
 
     // Read component index from the end of this ComponentFiles serialized data.
     _ComponentIndex index = _readComponentIndex(componentFileSize);
+    if (compilationMode == null) {
+      compilationMode = index.compiledMode;
+    } else if (compilationMode != index.compiledMode) {
+      throw fail("Mixed compilation mode found: $compilationMode "
+          "and ${index.compiledMode}.");
+    }
 
     _byteOffset = index.binaryOffsetForStringTable;
     readStringTable(_stringTable);
@@ -711,9 +720,9 @@ class BinaryBuilder {
       }
     }
 
-    var mainMethod =
+    Reference mainMethod =
         getMemberReferenceFromInt(index.mainMethodReference, allowNull: true);
-    component.mainMethodName ??= mainMethod;
+    component.setMainMethodAndMode(mainMethod, false, index.compiledMode);
 
     _byteOffset = _componentStartOffset + componentFileSize;
 

@@ -25,7 +25,7 @@ class FlutterRemoveWidgetTest extends AssistProcessorTest {
 import 'package:flutter/material.dart';
 main() {
   Column(
-    children: <Widget>[
+    children: [
       Center(
         child: /*caret*/Padding(
           padding: const EdgeInsets.all(8.0),
@@ -43,7 +43,7 @@ main() {
 import 'package:flutter/material.dart';
 main() {
   Column(
-    children: <Widget>[
+    children: [
       Center(
         child: Center(
           heightFactor: 0.5,
@@ -87,7 +87,7 @@ main() {
 import 'package:flutter/material.dart';
 main() {
   Column(
-    children: <Widget>[
+    children: [
       Text('foo'),
       /*caret*/Center(
         heightFactor: 0.5,
@@ -105,7 +105,7 @@ main() {
 import 'package:flutter/material.dart';
 main() {
   Column(
-    children: <Widget>[
+    children: [
       Text('foo'),
       Padding(
         padding: const EdgeInsets.all(8.0),
@@ -186,7 +186,7 @@ main() {
 import 'package:flutter/material.dart';
 main() {
   Column(
-    children: <Widget>[
+    children: [
       Text('aaa'),
       /*caret*/Column(
         children: [
@@ -213,7 +213,7 @@ main() {
 import 'package:flutter/material.dart';
 main() {
   Column(
-    children: <Widget>[
+    children: [
       Text('aaa'),
       Row(
         children: [

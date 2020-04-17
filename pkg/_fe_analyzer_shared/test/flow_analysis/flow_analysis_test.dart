@@ -1799,9 +1799,7 @@ main() {
 
       test('unchanged', () {
         var h = _Harness();
-        var s1 = FlowModel<_Var, _Type>(true)
-            .declare(objectQVar, false)
-            .write(objectQVar, _Type('Object?'), h);
+        var s1 = FlowModel<_Var, _Type>(true).declare(objectQVar, true);
         var s2 = s1.write(objectQVar, _Type('Object?'), h);
         expect(s2, same(s1));
       });
@@ -1823,8 +1821,7 @@ main() {
       test('un-promotes fully', () {
         var h = _Harness();
         var s1 = FlowModel<_Var, _Type>(true)
-            .declare(objectQVar, false)
-            .write(objectQVar, _Type('Object?'), h)
+            .declare(objectQVar, true)
             .tryPromote(h, objectQVar, _Type('int'))
             .ifTrue;
         expect(s1.variableInfo, contains(objectQVar));
@@ -1842,8 +1839,7 @@ main() {
       test('un-promotes partially, when no exact match', () {
         var h = _Harness();
         var s1 = FlowModel<_Var, _Type>(true)
-            .declare(objectQVar, false)
-            .write(objectQVar, _Type('Object?'), h)
+            .declare(objectQVar, true)
             .tryPromote(h, objectQVar, _Type('num?'))
             .ifTrue
             .tryPromote(h, objectQVar, _Type('int'))
@@ -1869,8 +1865,7 @@ main() {
       test('un-promotes partially, when exact match', () {
         var h = _Harness();
         var s1 = FlowModel<_Var, _Type>(true)
-            .declare(objectQVar, false)
-            .write(objectQVar, _Type('Object?'), h)
+            .declare(objectQVar, true)
             .tryPromote(h, objectQVar, _Type('num?'))
             .ifTrue
             .tryPromote(h, objectQVar, _Type('num'))
@@ -1898,8 +1893,7 @@ main() {
       test('leaves promoted, when exact match', () {
         var h = _Harness();
         var s1 = FlowModel<_Var, _Type>(true)
-            .declare(objectQVar, false)
-            .write(objectQVar, _Type('Object?'), h)
+            .declare(objectQVar, true)
             .tryPromote(h, objectQVar, _Type('num?'))
             .ifTrue
             .tryPromote(h, objectQVar, _Type('num'))
@@ -1919,8 +1913,7 @@ main() {
       test('leaves promoted, when writing a subtype', () {
         var h = _Harness();
         var s1 = FlowModel<_Var, _Type>(true)
-            .declare(objectQVar, false)
-            .write(objectQVar, _Type('Object?'), h)
+            .declare(objectQVar, true)
             .tryPromote(h, objectQVar, _Type('num?'))
             .ifTrue
             .tryPromote(h, objectQVar, _Type('num'))
@@ -1940,8 +1933,7 @@ main() {
       test('Promotes to type of interest when not previously promoted', () {
         var h = _Harness();
         var s1 = FlowModel<_Var, _Type>(true)
-            .declare(objectQVar, false)
-            .write(objectQVar, _Type('Object?'), h)
+            .declare(objectQVar, true)
             .tryPromote(h, objectQVar, _Type('num?'))
             .ifFalse;
         expect(s1.variableInfo, {
@@ -1956,8 +1948,7 @@ main() {
       test('Promotes to type of interest when previously promoted', () {
         var h = _Harness();
         var s1 = FlowModel<_Var, _Type>(true)
-            .declare(objectQVar, false)
-            .write(objectQVar, _Type('Object?'), h)
+            .declare(objectQVar, true)
             .tryPromote(h, objectQVar, _Type('num?'))
             .ifTrue
             .tryPromote(h, objectQVar, _Type('int?'))
@@ -1977,8 +1968,7 @@ main() {
           () {
         var h = _Harness();
         var s1 = FlowModel<_Var, _Type>(true)
-            .declare(objectQVar, false)
-            .write(objectQVar, _Type('Object?'), h)
+            .declare(objectQVar, true)
             .tryPromote(h, objectQVar, _Type('int?'))
             .ifFalse
             .tryPromote(h, objectQVar, _Type('num?'))
@@ -1999,8 +1989,7 @@ main() {
           () {
         var h = _Harness();
         var s1 = FlowModel<_Var, _Type>(true)
-            .declare(objectQVar, false)
-            .write(objectQVar, _Type('Object?'), h)
+            .declare(objectQVar, true)
             .tryPromote(h, objectQVar, _Type('num?'))
             .ifFalse
             .tryPromote(h, objectQVar, _Type('int?'))
@@ -2019,8 +2008,7 @@ main() {
       test('Multiple candidate types of interest; ambiguous', () {
         var h = _Harness();
         var s1 = FlowModel<_Var, _Type>(true)
-            .declare(objectQVar, false)
-            .write(objectQVar, _Type('Object?'), h)
+            .declare(objectQVar, true)
             .tryPromote(h, objectQVar, _Type('num?'))
             .ifFalse
             .tryPromote(h, objectQVar, _Type('num*'))
@@ -2039,8 +2027,7 @@ main() {
           () {
         var h = _Harness();
         var s1 = FlowModel<_Var, _Type>(true)
-            .declare(objectQVar, false)
-            .write(objectQVar, _Type('Object?'), h)
+            .declare(objectQVar, true)
             .tryPromote(h, objectQVar, _Type('num?'))
             .ifFalse
             .tryPromote(h, objectQVar, _Type('num*'))
@@ -2337,9 +2324,7 @@ main() {
             List<String> expectedChain) {
           var h = _Harness();
           var x = _Var('x', _Type('Object?'));
-          var s0 = FlowModel<_Var, _Type>(true)
-              .declare(x, false)
-              .write(x, _Type('Object?'), h);
+          var s0 = FlowModel<_Var, _Type>(true).declare(x, true);
           var s1 = thisType == null
               ? s0
               : s0.tryPromote(h, x, _Type(thisType)).ifTrue;
@@ -2391,9 +2376,7 @@ main() {
             List<String> inFinally, List<String> expectedResult) {
           var h = _Harness();
           var x = _Var('x', _Type('Object?'));
-          var initialModel = FlowModel<_Var, _Type>(true)
-              .declare(x, false)
-              .write(x, _Type('Object?'), h);
+          var initialModel = FlowModel<_Var, _Type>(true).declare(x, true);
           for (var t in before) {
             initialModel = initialModel.tryPromote(h, x, _Type(t)).ifTrue;
           }
@@ -2445,7 +2428,7 @@ main() {
         var h = _Harness();
         var x = _Var('x', _Type('Object?'));
         var s0 = FlowModel<_Var, _Type>(true);
-        var s1 = s0.declare(x, false).write(x, _Type('Object?'), h);
+        var s1 = s0.declare(x, true);
         expect(s0.restrict(h, s1, {}), same(s0));
         expect(s0.restrict(h, s1, {x}), same(s0));
         expect(s1.restrict(h, s0, {}), same(s0));

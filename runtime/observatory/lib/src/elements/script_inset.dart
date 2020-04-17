@@ -19,7 +19,7 @@ import 'package:observatory/utils.dart';
 class ScriptInsetElement extends CustomElement implements Renderable {
   static const tag = const Tag<ScriptInsetElement>('script-inset');
 
-  RenderingScheduler _r;
+  RenderingScheduler<ScriptInsetElement> _r;
 
   Stream<RenderedEvent<ScriptInsetElement>> get onRendered => _r.onRendered;
 

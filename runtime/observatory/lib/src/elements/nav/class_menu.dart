@@ -13,7 +13,7 @@ import 'package:observatory/src/elements/helpers/uris.dart';
 class NavClassMenuElement extends CustomElement implements Renderable {
   static const tag = const Tag<NavClassMenuElement>('nav-class-menu');
 
-  RenderingScheduler _r;
+  RenderingScheduler<NavClassMenuElement> _r;
 
   Stream<RenderedEvent<NavClassMenuElement>> get onRendered => _r.onRendered;
 

@@ -109,11 +109,44 @@ struct TypeTestABI {
   static const Register kDstTypeReg = EBX;
   static const Register kInstantiatorTypeArgumentsReg = EDX;
   static const Register kFunctionTypeArgumentsReg = ECX;
+  static const Register kSubtypeTestCacheReg =
+      EDI;  // On ia32 we don't use CODE_REG.
+
+  // For call to InstanceOfStub.
+  static const Register kResultReg = kNoRegister;
 };
 
 // ABI for InitStaticFieldStub.
 struct InitStaticFieldABI {
   static const Register kFieldReg = EAX;
+};
+
+// ABI for InitInstanceFieldStub.
+struct InitInstanceFieldABI {
+  static const Register kInstanceReg = EAX;
+  static const Register kFieldReg = EBX;
+};
+
+// ABI for ThrowStub.
+struct ThrowABI {
+  static const Register kExceptionReg = EAX;
+};
+
+// ABI for ReThrowStub.
+struct ReThrowABI {
+  static const Register kExceptionReg = EAX;
+  static const Register kStackTraceReg = EBX;
+};
+
+// ABI for AssertBooleanStub.
+struct AssertBooleanABI {
+  static const Register kObjectReg = EAX;
+};
+
+// ABI for RangeErrorStub.
+struct RangeErrorABI {
+  static const Register kLengthReg = EAX;
+  static const Register kIndexReg = EBX;
 };
 
 typedef uint32_t RegList;

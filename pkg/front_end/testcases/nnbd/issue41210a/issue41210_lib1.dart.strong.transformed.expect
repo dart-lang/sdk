@@ -1,0 +1,63 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "issue41210_lib1.dart" as iss;
+
+import "org-dartlang-testcase:///issue41210_lib1.dart";
+
+abstract class _C&Object&A extends core::Object implements iss::A /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C&Object&A*
+    : super core::Object::•()
+    ;
+  method /* from org-dartlang-testcase:///issue41210_lib1.dart */ method({core::String* s = #C1}) → core::String*
+    return s;
+}
+abstract class _C&Object&A&B extends self::_C&Object&A implements iss::B /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C&Object&A&B*
+    : super self::_C&Object&A::•()
+    ;
+  abstract forwarding-stub method method({core::String* s = #C1}) → core::String*;
+}
+class C extends self::_C&Object&A&B {
+  synthetic constructor •() → self::C*
+    : super self::_C&Object&A&B::•()
+    ;
+  abstract forwarding-stub method method({core::String* s = #C1}) → core::String*;
+}
+static method main() → dynamic {
+  core::print(new self::C::•().{self::C::method}());
+}
+
+library;
+import self as iss;
+import "dart:core" as core;
+import "issue41210_lib2.dart" as iss2;
+
+import "org-dartlang-testcase:///issue41210_lib2.dart";
+
+abstract class A extends core::Object implements iss2::Interface /*isMixinDeclaration*/  {
+  method method({core::String* s = #C1}) → core::String*
+    return s;
+}
+abstract class B extends core::Object implements iss2::Interface {
+  synthetic constructor •() → iss::B*
+    : super core::Object::•()
+    ;
+  abstract member-signature method method() → core::String*;
+}
+static method main() → void {}
+
+library /*isNonNullableByDefault*/;
+import self as iss2;
+import "dart:core" as core;
+
+abstract class Interface extends core::Object {
+  synthetic constructor •() → iss2::Interface
+    : super core::Object::•()
+    ;
+  abstract method method() → core::String;
+}
+
+constants  {
+  #C1 = "hello"
+}

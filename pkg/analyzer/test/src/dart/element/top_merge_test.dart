@@ -46,7 +46,7 @@ class TopMergeTest extends _Base {
     _check(
       functionTypeNone(returnType: voidNone),
       functionTypeNone(returnType: objectQuestion),
-      functionTypeNone(returnType: voidNone),
+      functionTypeNone(returnType: objectQuestion),
     );
 
     _check(
@@ -213,7 +213,7 @@ class TopMergeTest extends _Base {
     _check(
       listNone(voidNone),
       listNone(objectQuestion),
-      listNone(voidNone),
+      listNone(objectQuestion),
     );
 
     _check(
@@ -263,16 +263,19 @@ class TopMergeTest extends _Base {
     // NNBD_TOP_MERGE(Object?, Object?) = Object?
     _check(objectQuestion, objectQuestion, objectQuestion);
 
+    // NNBD_TOP_MERGE(Object?, void) = Object?
+    // NNBD_TOP_MERGE(void, Object?) = Object?
+    _check(objectQuestion, voidNone, objectQuestion);
+
     // NNBD_TOP_MERGE(Object?, dynamic) = Object?
     // NNBD_TOP_MERGE(dynamic, Object?) = Object?
     _check(objectQuestion, dynamicNone, objectQuestion);
-    _check(dynamicNone, objectQuestion, objectQuestion);
   }
 
   test_objectStar() {
-    // NNBD_TOP_MERGE(Object*, void) = void
-    // NNBD_TOP_MERGE(void, Object*) = void
-    _check(objectStar, voidNone, voidNone);
+    // NNBD_TOP_MERGE(Object*, void) = Object?
+    // NNBD_TOP_MERGE(void, Object*) = Object?
+    _check(objectStar, voidNone, objectQuestion);
 
     // NNBD_TOP_MERGE(Object*, dynamic) = Object?
     // NNBD_TOP_MERGE(dynamic, Object*) = Object?
@@ -303,15 +306,9 @@ class TopMergeTest extends _Base {
     // NNBD_TOP_MERGE(void, void) = void
     _check(voidNone, voidNone, voidNone);
 
-    // NNBD_TOP_MERGE(void, Object?) = void
-    // NNBD_TOP_MERGE(Object?, void) = void
-    _check(voidNone, objectQuestion, voidNone);
-    _check(objectQuestion, voidNone, voidNone);
-
-    // NNBD_TOP_MERGE(void, dynamic) = void
-    // NNBD_TOP_MERGE(dynamic, void) = void
-    _check(voidNone, dynamicNone, voidNone);
-    _check(dynamicNone, voidNone, voidNone);
+    // NNBD_TOP_MERGE(void, dynamic) = Object?
+    // NNBD_TOP_MERGE(dynamic, void) = Object?
+    _check(voidNone, dynamicNone, objectQuestion);
   }
 
   void _check(DartType T, DartType S, DartType expected) {

@@ -9,9 +9,12 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
-import 'package:analyzer/src/generated/resolver.dart' show TypeSystemImpl;
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
+import 'package:analyzer/src/generated/type_system.dart';
+import 'package:nnbd_migration/fix_reason_target.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/decorated_class_hierarchy.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
@@ -36,6 +39,8 @@ class AssignmentCheckerTest extends Object
     with EdgeTester, DecoratedTypeTester {
   static const EdgeOrigin origin = const _TestEdgeOrigin();
 
+  LibraryElementImpl _myLibrary;
+
   ClassElement _myListOfListClass;
 
   DecoratedType _myListOfListSupertype;
@@ -53,6 +58,8 @@ class AssignmentCheckerTest extends Object
 
   factory AssignmentCheckerTest() {
     var typeProvider = TestTypeProvider();
+    _setCoreLibrariesTypeSystem(typeProvider);
+
     var graph = NullabilityGraphForTesting();
     var decoratedClassHierarchy = _DecoratedClassHierarchyForTesting();
     var checker = AssignmentCheckerForTesting(
@@ -80,10 +87,12 @@ class AssignmentCheckerTest extends Object
   }
 
   DecoratedType myListOfList(DecoratedType elementType) {
+    _initMyLibrary();
     if (_myListOfListClass == null) {
       var t = typeParameter('T', object());
       _myListOfListSupertype = list(list(typeParameterType(t)));
       _myListOfListClass = ClassElementImpl('MyListOfList', 0)
+        ..enclosingElement = _myLibrary.definingCompilationUnit
         ..typeParameters = [t]
         ..supertype = _myListOfListSupertype.type as InterfaceType;
     }
@@ -438,6 +447,63 @@ class AssignmentCheckerTest extends Object
     checker.bounds[t] = bound;
     return t;
   }
+
+  void _initMyLibrary() {
+    if (_myLibrary != null) {
+      return;
+    }
+
+    var coreLibrary = typeProvider.boolElement.library as LibraryElementImpl;
+    var analysisContext = coreLibrary.context;
+    var analysisSession = coreLibrary.session;
+    var typeSystem = coreLibrary.typeSystem;
+
+    var uriStr = 'package:test/test.dart';
+
+    _myLibrary = LibraryElementImpl(analysisContext, analysisSession, uriStr,
+        -1, 0, typeSystem.isNonNullableByDefault);
+    _myLibrary.typeSystem = typeSystem;
+    _myLibrary.typeProvider = coreLibrary.typeProvider;
+
+    var uri = Uri.parse(uriStr);
+    var source = _MockSource(uri);
+
+    var definingUnit = CompilationUnitElementImpl();
+    definingUnit.source = source;
+    definingUnit.librarySource = source;
+
+    definingUnit.enclosingElement = _myLibrary;
+    _myLibrary.definingCompilationUnit = definingUnit;
+  }
+
+  static void _setCoreLibrariesTypeSystem(TestTypeProvider typeProvider) {
+    var typeSystem = TypeSystemImpl(
+      isNonNullableByDefault: false,
+      implicitCasts: true,
+      strictInference: false,
+      typeProvider: typeProvider,
+    );
+    _setLibraryTypeSystem(
+      typeProvider.objectElement.library,
+      typeProvider,
+      typeSystem,
+    );
+    _setLibraryTypeSystem(
+      typeProvider.futureElement.library,
+      typeProvider,
+      typeSystem,
+    );
+  }
+
+  static void _setLibraryTypeSystem(
+    LibraryElement libraryElement,
+    TypeProvider typeProvider,
+    TypeSystem typeSystem,
+  ) {
+    var libraryElementImpl = libraryElement as LibraryElementImpl;
+    libraryElementImpl.typeProvider = typeProvider as TypeProviderImpl;
+    libraryElementImpl.typeSystem = typeSystem as TypeSystemImpl;
+  }
 }
 
 @reflectiveTest
@@ -482,7 +548,7 @@ class EdgeBuilderTest extends EdgeBuilderTestBase {
   /// needed.
   void assertNullCheck(
       ExpressionChecksOrigin expressionChecks, NullabilityEdge expectedEdge) {
-    expect(expressionChecks.checks.edges, contains(expectedEdge));
+    expect(expressionChecks.checks.edges.values, contains(expectedEdge));
   }
 
   /// Gets the [ExpressionChecks] associated with the expression whose text
@@ -3292,7 +3358,7 @@ void g() {
   f();
 }
 ''');
-    var optional_i = possiblyOptionalParameter('int i');
+    var optional_i = decoratedTypeAnnotation('int i').node;
     expect(getEdges(always, optional_i), isNotEmpty);
   }
 
@@ -3308,8 +3374,6 @@ void g() {
 }
 ''');
     // The call at `f()` is presumed to be in error; no constraint is recorded.
-    var optional_i = possiblyOptionalParameter('int i');
-    expect(optional_i, isNull);
     var nullable_i = decoratedTypeAnnotation('int i').node;
     assertNoUpstreamNullability(nullable_i);
   }
@@ -3902,8 +3966,8 @@ f(int i) => C<int>(i/*check*/);
     var nullable_c_t = decoratedTypeAnnotation('C<int>').typeArguments[0].node;
     var nullable_t = decoratedTypeAnnotation('T t').node;
     var check_i = checkExpression('i/*check*/');
-    var nullable_c_t_or_nullable_t = check_i.checks.edges.single.destinationNode
-        as NullabilityNodeForSubstitution;
+    var nullable_c_t_or_nullable_t = check_i.checks.edges[FixReasonTarget.root]
+        .destinationNode as NullabilityNodeForSubstitution;
     expect(nullable_c_t_or_nullable_t.innerNode, same(nullable_c_t));
     expect(nullable_c_t_or_nullable_t.outerNode, same(nullable_t));
     assertNullCheck(check_i,
@@ -3921,8 +3985,8 @@ f(int i) => C<int>(t: i/*check*/);
     var nullable_c_t = decoratedTypeAnnotation('C<int>').typeArguments[0].node;
     var nullable_t = decoratedTypeAnnotation('T t').node;
     var check_i = checkExpression('i/*check*/');
-    var nullable_c_t_or_nullable_t = check_i.checks.edges.single.destinationNode
-        as NullabilityNodeForSubstitution;
+    var nullable_c_t_or_nullable_t = check_i.checks.edges[FixReasonTarget.root]
+        .destinationNode as NullabilityNodeForSubstitution;
     expect(nullable_c_t_or_nullable_t.innerNode, same(nullable_c_t));
     expect(nullable_c_t_or_nullable_t.outerNode, same(nullable_t));
     assertNullCheck(check_i,
@@ -4279,7 +4343,7 @@ class C extends B {
 ''');
     var bReturnType = decoratedMethodType('f/*B*/').positionalParameters[0];
     var cReturnType = decoratedMethodType('f/*C*/').positionalParameters[0];
-    assertUnion(bReturnType.node, cReturnType.node);
+    assertEdge(bReturnType.node, cReturnType.node, hard: true);
   }
 
   Future<void> test_method_parameterType_inferred_named() async {
@@ -4293,7 +4357,7 @@ class C extends B {
 ''');
     var bReturnType = decoratedMethodType('f/*B*/').namedParameters['x'];
     var cReturnType = decoratedMethodType('f/*C*/').namedParameters['x'];
-    assertUnion(bReturnType.node, cReturnType.node);
+    assertEdge(bReturnType.node, cReturnType.node, hard: true);
   }
 
   Future<void> test_method_returnType_inferred() async {
@@ -4307,7 +4371,7 @@ class C extends B {
 ''');
     var bReturnType = decoratedMethodType('f/*B*/').returnType;
     var cReturnType = decoratedMethodType('f/*C*/').returnType;
-    assertUnion(bReturnType.node, cReturnType.node);
+    assertEdge(cReturnType.node, bReturnType.node, hard: true);
   }
 
   Future<void>
@@ -4624,8 +4688,8 @@ void g(C<int> c, int i) {
     var nullable_c_t = decoratedTypeAnnotation('C<int>').typeArguments[0].node;
     var nullable_t = decoratedTypeAnnotation('T t').node;
     var check_i = checkExpression('i/*check*/');
-    var nullable_c_t_or_nullable_t = check_i.checks.edges.single.destinationNode
-        as NullabilityNodeForSubstitution;
+    var nullable_c_t_or_nullable_t = check_i.checks.edges[FixReasonTarget.root]
+        .destinationNode as NullabilityNodeForSubstitution;
     expect(nullable_c_t_or_nullable_t.innerNode, same(nullable_c_t));
     expect(nullable_c_t_or_nullable_t.outerNode, same(nullable_t));
     assertNullCheck(check_i,
@@ -4651,7 +4715,9 @@ void f(List<int> x, int i) {
     assertEdge(nullable_t, never, hard: true, checkable: false);
     var check_i = checkExpression('i/*check*/');
     var nullable_list_t_or_nullable_t = check_i
-        .checks.edges.single.destinationNode as NullabilityNodeForSubstitution;
+        .checks
+        .edges[FixReasonTarget.root]
+        .destinationNode as NullabilityNodeForSubstitution;
     expect(nullable_list_t_or_nullable_t.innerNode, same(nullable_list_t));
     expect(nullable_list_t_or_nullable_t.outerNode, same(nullable_t));
     assertNullCheck(check_i,
@@ -4669,8 +4735,8 @@ void g(int i) {
     var nullable_f_t = decoratedTypeAnnotation('int>').node;
     var nullable_t = decoratedTypeAnnotation('T t').node;
     var check_i = checkExpression('i/*check*/');
-    var nullable_f_t_or_nullable_t = check_i.checks.edges.single.destinationNode
-        as NullabilityNodeForSubstitution;
+    var nullable_f_t_or_nullable_t = check_i.checks.edges[FixReasonTarget.root]
+        .destinationNode as NullabilityNodeForSubstitution;
     expect(nullable_f_t_or_nullable_t.innerNode, same(nullable_f_t));
     expect(nullable_f_t_or_nullable_t.outerNode, same(nullable_t));
     assertNullCheck(check_i,
@@ -4784,8 +4850,8 @@ int g() => (f<int>(1));
     var check_i = checkExpression('(f<int>(1))');
     var t_bound = decoratedTypeAnnotation('Object').node;
     var nullable_f_t = decoratedTypeAnnotation('int>').node;
-    var nullable_f_t_or_nullable_t = check_i.checks.edges.single.sourceNode
-        as NullabilityNodeForSubstitution;
+    var nullable_f_t_or_nullable_t = check_i.checks.edges[FixReasonTarget.root]
+        .sourceNode as NullabilityNodeForSubstitution;
     var nullable_t = decoratedTypeAnnotation('T f').node;
     expect(nullable_f_t_or_nullable_t.innerNode, same(nullable_f_t));
     expect(nullable_f_t_or_nullable_t.outerNode, same(nullable_t));
@@ -7399,6 +7465,16 @@ class _DecoratedClassHierarchyForTesting implements DecoratedClassHierarchy {
       ClassElement class_, ClassElement superclass) {
     throw UnimplementedError('TODO(paulberry)');
   }
+}
+
+class _MockSource implements Source {
+  @override
+  final Uri uri;
+
+  _MockSource(this.uri);
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _TestEdgeOrigin implements EdgeOrigin {

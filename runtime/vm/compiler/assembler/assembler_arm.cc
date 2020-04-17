@@ -1592,7 +1592,6 @@ void Assembler::LoadIsolate(Register rd) {
 
 bool Assembler::CanLoadFromObjectPool(const Object& object) const {
   ASSERT(IsOriginalObject(object));
-  ASSERT(!target::CanLoadFromThread(object));
   if (!constant_pool_allowed()) {
     return false;
   }
@@ -1608,24 +1607,31 @@ void Assembler::LoadObjectHelper(Register rd,
                                  bool is_unique,
                                  Register pp) {
   ASSERT(IsOriginalObject(object));
-  intptr_t offset = 0;
-  if (target::CanLoadFromThread(object, &offset)) {
-    // Load common VM constants from the thread. This works also in places where
-    // no constant pool is set up (e.g. intrinsic code).
-    ldr(rd, Address(THR, offset), cond);
-  } else if (target::IsSmi(object)) {
-    // Relocation doesn't apply to Smis.
-    LoadImmediate(rd, target::ToRawSmi(object), cond);
-  } else if (CanLoadFromObjectPool(object)) {
-    // Make sure that class CallPattern is able to decode this load from the
-    // object pool.
-    const auto index = is_unique ? object_pool_builder().AddObject(object)
-                                 : object_pool_builder().FindObject(object);
-    const int32_t offset = target::ObjectPool::element_offset(index);
-    LoadWordFromPoolOffset(rd, offset - kHeapObjectTag, pp, cond);
-  } else {
-    UNREACHABLE();
+  // `is_unique == true` effectively means object has to be patchable.
+  if (!is_unique) {
+    intptr_t offset = 0;
+    if (target::CanLoadFromThread(object, &offset)) {
+      // Load common VM constants from the thread. This works also in places
+      // where no constant pool is set up (e.g. intrinsic code).
+      ldr(rd, Address(THR, offset), cond);
+      return;
+    }
+    if (target::IsSmi(object)) {
+      // Relocation doesn't apply to Smis.
+      LoadImmediate(rd, target::ToRawSmi(object), cond);
+      return;
+    }
   }
+  if (!CanLoadFromObjectPool(object)) {
+    UNREACHABLE();
+    return;
+  }
+  // Make sure that class CallPattern is able to decode this load from the
+  // object pool.
+  const auto index = is_unique ? object_pool_builder().AddObject(object)
+                               : object_pool_builder().FindObject(object);
+  const int32_t offset = target::ObjectPool::element_offset(index);
+  LoadWordFromPoolOffset(rd, offset - kHeapObjectTag, pp, cond);
 }
 
 void Assembler::LoadObject(Register rd, const Object& object, Condition cond) {
@@ -1965,6 +1971,25 @@ void Assembler::StoreIntoSmiField(const Address& dest, Register value) {
   Bind(&done);
 #endif  // defined(DEBUG)
   str(value, dest);
+}
+
+void Assembler::ExtractClassIdFromTags(Register result, Register tags) {
+  ASSERT(target::RawObject::kClassIdTagPos == 16);
+  ASSERT(target::RawObject::kClassIdTagSize == 16);
+  ASSERT(sizeof(classid_t) == sizeof(uint16_t));
+  Lsr(result, tags, Operand(target::RawObject::kClassIdTagPos), AL);
+}
+
+void Assembler::ExtractInstanceSizeFromTags(Register result, Register tags) {
+  ASSERT(target::RawObject::kSizeTagPos == 8);
+  ASSERT(target::RawObject::kSizeTagSize == 8);
+  Lsr(result, tags,
+      Operand(target::RawObject::kSizeTagPos -
+              target::ObjectAlignment::kObjectAlignmentLog2),
+      AL);
+  AndImmediate(result, result,
+               (Utils::NBitMask(target::RawObject::kSizeTagSize)
+                << target::ObjectAlignment::kObjectAlignmentLog2));
 }
 
 void Assembler::LoadClassId(Register result, Register object, Condition cond) {
@@ -2727,27 +2752,6 @@ void Assembler::BranchLinkToRuntime() {
   blx(IP);
 }
 
-void Assembler::CallNullErrorShared(bool save_fpu_registers) {
-  uword entry_point_offset =
-      save_fpu_registers
-          ? target::Thread::null_error_shared_with_fpu_regs_entry_point_offset()
-          : target::Thread::
-                null_error_shared_without_fpu_regs_entry_point_offset();
-  ldr(LR, Address(THR, entry_point_offset));
-  blx(LR);
-}
-
-void Assembler::CallNullArgErrorShared(bool save_fpu_registers) {
-  const uword entry_point_offset =
-      save_fpu_registers
-          ? target::Thread::
-                null_arg_error_shared_with_fpu_regs_entry_point_offset()
-          : target::Thread::
-                null_arg_error_shared_without_fpu_regs_entry_point_offset();
-  ldr(LR, Address(THR, entry_point_offset));
-  blx(LR);
-}
-
 void Assembler::BranchLinkWithEquivalence(const Code& target,
                                           const Object& equivalence,
                                           CodeEntryKind entry_kind) {
@@ -3459,7 +3463,7 @@ void Assembler::MonomorphicCheckedEntryJIT() {
   LoadClassIdMayBeSmi(IP, R0);
   add(R2, R2, Operand(target::ToRawSmi(1)));
   cmp(R1, Operand(IP, LSL, 1));
-  Branch(Address(THR, target::Thread::monomorphic_miss_entry_offset()), NE);
+  Branch(Address(THR, target::Thread::switchable_call_miss_entry_offset()), NE);
   str(R2, FieldAddress(R9, count_offset));
   LoadImmediate(R4, 0);  // GC-safe for OptimizeInvokedFunction.
 
@@ -3488,7 +3492,7 @@ void Assembler::MonomorphicCheckedEntryAOT() {
 
   LoadClassId(IP, R0);
   cmp(R9, Operand(IP, LSL, 1));
-  Branch(Address(THR, target::Thread::monomorphic_miss_entry_offset()), NE);
+  Branch(Address(THR, target::Thread::switchable_call_miss_entry_offset()), NE);
 
   // Fall through to unchecked entry.
   ASSERT_EQUAL(CodeSize() - start,
@@ -3633,6 +3637,17 @@ void Assembler::GenerateUnRelocatedPcRelativeCall(Condition cond,
 
   PcRelativeCallPattern pattern(buffer_.contents() + buffer_.Size() -
                                 PcRelativeCallPattern::kLengthInBytes);
+  pattern.set_distance(offset_into_target);
+}
+
+void Assembler::GenerateUnRelocatedPcRelativeTailCall(
+    Condition cond,
+    intptr_t offset_into_target) {
+  // Emit "b <offset>".
+  EmitType5(cond, 0x686868, /*link=*/false);
+
+  PcRelativeTailCallPattern pattern(buffer_.contents() + buffer_.Size() -
+                                    PcRelativeTailCallPattern::kLengthInBytes);
   pattern.set_distance(offset_into_target);
 }
 

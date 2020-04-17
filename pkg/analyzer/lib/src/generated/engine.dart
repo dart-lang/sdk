@@ -221,6 +221,7 @@ abstract class AnalysisOptions {
 
   /// Function that returns `true` if analysis is to parse and analyze function
   /// bodies for a given source.
+  @deprecated
   AnalyzeFunctionBodiesPredicate get analyzeFunctionBodiesPredicate;
 
   /// Return the maximum number of sources for which AST structures should be
@@ -247,6 +248,7 @@ abstract class AnalysisOptions {
   /// This option should not be used when the analyzer is part of a long running
   /// process (such as the analysis server) because it has the potential to
   /// prevent memory from being reclaimed.
+  @deprecated
   bool get disableCacheFlushing;
 
   /// Return `true` if the parser is to parse asserts in the initializer list of
@@ -281,6 +283,7 @@ abstract class AnalysisOptions {
 
   /// Return `true` to enable the lazy compound assignment operators '&&=' and
   /// '||='.
+  @deprecated
   bool get enableLazyAssignmentOperators;
 
   /// Return `true` if mixins are allowed to inherit from types other than
@@ -305,10 +308,12 @@ abstract class AnalysisOptions {
 
   /// Return `true` if errors, warnings and hints should be generated for sources
   /// that are implicitly being analyzed. The default value is `true`.
+  @deprecated
   bool get generateImplicitErrors;
 
   /// Return `true` if errors, warnings and hints should be generated for sources
   /// in the SDK. The default value is `false`.
+  @deprecated
   bool get generateSdkErrors;
 
   /// Return `true` if analysis is to generate hint results (e.g. type inference
@@ -324,9 +329,11 @@ abstract class AnalysisOptions {
 
   /// A mapping from Dart SDK library name (e.g. "dart:core") to a list of paths
   /// to patch files that should be applied to the library.
+  @deprecated
   Map<String, List<String>> get patchPaths;
 
   /// Return `true` if analysis is to parse comments.
+  @deprecated
   bool get preserveComments;
 
   /// Return `true` if analyzer should enable the use of Dart 2.0 features.
@@ -356,6 +363,7 @@ abstract class AnalysisOptions {
   /// by analysis cache.  This option should only be set to `false` if analysis
   /// is performed in such a way that none of the inputs is ever changed
   /// during the life time of the context.
+  @deprecated
   bool get trackCacheDependencies;
 
   /// Return `true` if analyzer should use the Dart 2.0 Front End parser.
@@ -365,6 +373,7 @@ abstract class AnalysisOptions {
   bool isLintEnabled(String name);
 
   /// Reset the state of this set of analysis options to its original state.
+  @deprecated
   void resetToDefaults();
 
   /// Set the values of the cross-context options to match those in the given set
@@ -403,6 +412,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   /// A predicate indicating whether analysis is to parse and analyze function
   /// bodies.
+  @deprecated
   AnalyzeFunctionBodiesPredicate _analyzeFunctionBodiesPredicate =
       _analyzeAllFunctionBodies;
 
@@ -434,6 +444,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   List<String> enabledPluginNames = const <String>[];
 
+  @deprecated
   @override
   bool enableLazyAssignmentOperators = false;
 
@@ -447,9 +458,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   /// A list of exclude patterns used to exclude some sources from analysis.
   List<String> _excludePatterns;
 
+  @deprecated
   @override
   bool generateImplicitErrors = true;
 
+  @deprecated
   @override
   bool generateSdkErrors = false;
 
@@ -463,18 +476,22 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   /// `true`.
   List<Linter> _lintRules;
 
+  @deprecated
   @override
   Map<String, List<String>> patchPaths = {};
 
+  @deprecated
   @override
   bool preserveComments = true;
 
+  @deprecated
   @override
   bool trackCacheDependencies = true;
 
   @override
   bool useFastaParser = true;
 
+  @deprecated
   @override
   bool disableCacheFlushing = false;
 
@@ -516,19 +533,24 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   /// Initialize a newly created set of analysis options to have the same values
   /// as those in the given set of analysis [options].
   AnalysisOptionsImpl.from(AnalysisOptions options) {
+    // ignore: deprecated_member_use_from_same_package
     analyzeFunctionBodiesPredicate = options.analyzeFunctionBodiesPredicate;
     dart2jsHint = options.dart2jsHint;
     contextFeatures = options.contextFeatures;
     enabledPluginNames = options.enabledPluginNames;
+    // ignore: deprecated_member_use_from_same_package
     enableLazyAssignmentOperators = options.enableLazyAssignmentOperators;
     enableTiming = options.enableTiming;
     errorProcessors = options.errorProcessors;
     excludePatterns = options.excludePatterns;
+    // ignore: deprecated_member_use_from_same_package
     generateImplicitErrors = options.generateImplicitErrors;
+    // ignore: deprecated_member_use_from_same_package
     generateSdkErrors = options.generateSdkErrors;
     hint = options.hint;
     lint = options.lint;
     lintRules = options.lintRules;
+    // ignore: deprecated_member_use_from_same_package
     preserveComments = options.preserveComments;
     useFastaParser = options.useFastaParser;
     if (options is AnalysisOptionsImpl) {
@@ -537,12 +559,16 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       strictInference = options.strictInference;
       strictRawTypes = options.strictRawTypes;
     }
+    // ignore: deprecated_member_use_from_same_package
     trackCacheDependencies = options.trackCacheDependencies;
+    // ignore: deprecated_member_use_from_same_package
     disableCacheFlushing = options.disableCacheFlushing;
+    // ignore: deprecated_member_use_from_same_package
     patchPaths = options.patchPaths;
     sdkVersionConstraint = options.sdkVersionConstraint;
   }
 
+  @deprecated
   bool get analyzeFunctionBodies {
     if (identical(analyzeFunctionBodiesPredicate, _analyzeAllFunctionBodies)) {
       return true;
@@ -554,6 +580,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     }
   }
 
+  @deprecated
   set analyzeFunctionBodies(bool value) {
     if (value) {
       analyzeFunctionBodiesPredicate = _analyzeAllFunctionBodies;
@@ -562,10 +589,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     }
   }
 
+  @deprecated
   @override
   AnalyzeFunctionBodiesPredicate get analyzeFunctionBodiesPredicate =>
       _analyzeFunctionBodiesPredicate;
 
+  @deprecated
   set analyzeFunctionBodiesPredicate(AnalyzeFunctionBodiesPredicate value) {
     if (value == null) {
       throw ArgumentError.notNull('analyzeFunctionBodiesPredicate');
@@ -701,6 +730,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       }
 
       // Append boolean flags.
+      // ignore: deprecated_member_use_from_same_package
       buffer.addBool(enableLazyAssignmentOperators);
       buffer.addBool(implicitCasts);
       buffer.addBool(implicitDynamic);
@@ -755,6 +785,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       ApiSignature buffer = ApiSignature();
 
       // Append boolean flags.
+      // ignore: deprecated_member_use_from_same_package
       buffer.addBool(enableLazyAssignmentOperators);
       buffer.addBool(useFastaParser);
 
@@ -780,6 +811,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     return lintRules.any((rule) => rule.name == name);
   }
 
+  @deprecated
   @override
   void resetToDefaults() {
     contextFeatures = ExperimentStatus();
@@ -826,10 +858,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   /// Predicate used for [analyzeFunctionBodiesPredicate] when
   /// [analyzeFunctionBodies] is set to `true`.
+  @deprecated
   static bool _analyzeAllFunctionBodies(Source _) => true;
 
   /// Predicate used for [analyzeFunctionBodiesPredicate] when
   /// [analyzeFunctionBodies] is set to `false`.
+  @deprecated
   static bool _analyzeNoFunctionBodies(Source _) => false;
 }
 

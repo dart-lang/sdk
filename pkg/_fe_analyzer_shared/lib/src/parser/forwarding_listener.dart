@@ -1037,6 +1037,16 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void beginAsOperatorType(Token operator) {
+    listener?.beginAsOperatorType(operator);
+  }
+
+  @override
+  void endAsOperatorType(Token operator) {
+    listener?.endAsOperatorType(operator);
+  }
+
+  @override
   void handleAsOperator(Token operator) {
     listener?.handleAsOperator(operator);
   }
@@ -1273,6 +1283,16 @@ class ForwardingListener implements Listener {
   @override
   void handleInvalidTypeReference(Token token) {
     listener?.handleInvalidTypeReference(token);
+  }
+
+  @override
+  void beginIsOperatorType(Token operator) {
+    listener?.beginIsOperatorType(operator);
+  }
+
+  @override
+  void endIsOperatorType(Token operator) {
+    listener?.endIsOperatorType(operator);
   }
 
   @override

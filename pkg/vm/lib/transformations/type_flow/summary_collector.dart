@@ -584,7 +584,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   Summary createSummary(Member member,
       {fieldSummaryType: FieldSummaryType.kInitializer}) {
-    debugPrint("===== ${member} =====");
+    debugPrint(
+        "===== ${member}${fieldSummaryType == FieldSummaryType.kFieldGuard ? " (guard)" : ""} =====");
     assertx(!member.isAbstract);
 
     _staticTypeContext = new StaticTypeContext(member, _environment);
@@ -779,7 +780,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
     final numTypeParameters = numTypeParams(member);
     for (int i = 0; i < numTypeParameters; ++i) {
-      args.add(const AnyType());
+      args.add(const UnknownType());
     }
 
     if (hasReceiverArg(member)) {
@@ -2175,16 +2176,16 @@ class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
     final flattenedTypeExprs = new List<TypeExpr>(flattenedTypeArgs.length);
 
     bool createConcreteType = true;
-    bool allAnyType = true;
+    bool allUnknown = true;
     for (int i = 0; i < flattenedTypeArgs.length; ++i) {
       final typeExpr =
           translate(substitution.substituteType(flattenedTypeArgs[i]));
-      if (typeExpr != const AnyType()) allAnyType = false;
+      if (typeExpr is! UnknownType) allUnknown = false;
       if (typeExpr is Statement) createConcreteType = false;
       flattenedTypeExprs[i] = typeExpr;
     }
 
-    if (allAnyType) return type;
+    if (allUnknown) return type;
 
     if (createConcreteType) {
       return new ConcreteType(
@@ -2199,7 +2200,7 @@ class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
   // Creates a TypeExpr representing the set of types which can flow through a
   // given DartType.
   //
-  // Will return AnyType, RuntimeType or Statement.
+  // Will return UnknownType, RuntimeType or Statement.
   TypeExpr translate(DartType type) {
     final cached = typesCache[type];
     if (cached != null) return cached;
@@ -2209,18 +2210,19 @@ class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
     //   class A<T> extends Comparable<A<T>> {}
     //
     // Creating the factored type arguments of A will lead to an infinite loop.
-    // We break such loops by inserting an 'AnyType' in place of the currently
+    // We break such loops by inserting an 'UnknownType' in place of the currently
     // processed type, ensuring we try to build 'A<T>' in the process of
     // building 'A<T>'.
-    typesCache[type] = const AnyType();
+    typesCache[type] = const UnknownType();
     final result = type.accept(this);
-    assertx(result is AnyType || result is RuntimeType || result is Statement);
+    assertx(
+        result is UnknownType || result is RuntimeType || result is Statement);
     typesCache[type] = result;
     return result;
   }
 
   @override
-  TypeExpr defaultDartType(DartType node) => const AnyType();
+  TypeExpr defaultDartType(DartType node) => const UnknownType();
 
   @override
   TypeExpr visitDynamicType(DynamicType type) => new RuntimeType(type, null);
@@ -2248,7 +2250,7 @@ class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
     for (var i = 0; i < flattenedTypeArgs.length; ++i) {
       final typeExpr =
           translate(substitution.substituteType(flattenedTypeArgs[i]));
-      if (typeExpr == const AnyType()) return const AnyType();
+      if (typeExpr == const UnknownType()) return const UnknownType();
       if (typeExpr is! RuntimeType) createRuntimeType = false;
       flattenedTypeExprs[i] = typeExpr;
     }
@@ -2271,7 +2273,7 @@ class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
       final result = functionTypeVariables[type.parameter];
       if (result != null) return result;
     }
-    if (type.parameter.parent is! Class) return const AnyType();
+    if (type.parameter.parent is! Class) return const UnknownType();
     final interfaceClass = type.parameter.parent as Class;
     assertx(receiver != null);
     // Undetermined nullability is equivalent to nonNullable when

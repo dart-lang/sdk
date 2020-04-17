@@ -116,7 +116,7 @@ class _SuggestionBuilder extends SimpleElementVisitor<void> {
       relevance = _computeRelevance(
           contextType: contextType, hasDeprecated: hasDeprecated);
     }
-    var suggestion = createSuggestion(element,
+    var suggestion = createSuggestion(request, element,
         completion: completion,
         relevance: relevance,
         useNewRelevance: useNewRelevance);

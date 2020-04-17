@@ -60,13 +60,6 @@ class RegionRenderer {
       path: unitInfo.path,
       line: region.lineNumber,
       explanation: region.explanation,
-      details: [
-        for (var detail in region.details)
-          EditRationale(
-              description: detail.description,
-              link:
-                  detail.target == null ? null : linkForTarget(detail.target)),
-      ],
       edits: supportsIncrementalWorkflow
           ? [
               for (var edit in region.edits) linkForEdit(edit),

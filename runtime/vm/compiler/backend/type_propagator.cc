@@ -370,6 +370,11 @@ void FlowGraphTypePropagator::VisitAssertAssignable(
             new (zone()) CompileType(instr->ComputeType()));
 }
 
+void FlowGraphTypePropagator::VisitAssertBoolean(AssertBooleanInstr* instr) {
+  SetTypeOf(instr->value()->definition(),
+            new (zone()) CompileType(CompileType::Bool()));
+}
+
 void FlowGraphTypePropagator::VisitAssertSubtype(AssertSubtypeInstr* instr) {}
 
 void FlowGraphTypePropagator::VisitBranch(BranchInstr* instr) {
@@ -640,7 +645,8 @@ CompileType CompileType::Create(intptr_t cid, const AbstractType& type) {
 
 CompileType CompileType::FromAbstractType(const AbstractType& type,
                                           bool is_nullable) {
-  return CompileType(is_nullable, kIllegalCid, &type);
+  return CompileType(is_nullable && !type.IsStrictlyNonNullable(), kIllegalCid,
+                     &type);
 }
 
 CompileType CompileType::FromCid(intptr_t cid) {
@@ -672,7 +678,7 @@ CompileType CompileType::Int32() {
 }
 
 CompileType CompileType::NullableInt() {
-  return FromAbstractType(Type::ZoneHandle(Type::IntType()), kNullable);
+  return FromAbstractType(Type::ZoneHandle(Type::NullableIntType()), kNullable);
 }
 
 CompileType CompileType::Smi() {
@@ -684,7 +690,7 @@ CompileType CompileType::Double() {
 }
 
 CompileType CompileType::NullableDouble() {
-  return FromAbstractType(Type::ZoneHandle(Type::Double()), kNullable);
+  return FromAbstractType(Type::ZoneHandle(Type::NullableDouble()), kNullable);
 }
 
 CompileType CompileType::String() {
@@ -1053,7 +1059,7 @@ CompileType ParameterInstr::ComputeType() const {
         graph_entry->parsed_function().RawParameterVariable(0)->type();
     if (type.IsObjectType() || type.IsNullType()) {
       // Receiver can be null.
-      return CompileType::FromAbstractType(type, CompileType::kNullable);
+      return CompileType::FromAbstractType(type);
     }
 
     // Receiver can't be null but can be an instance of a subclass.
@@ -1391,10 +1397,10 @@ CompileType LoadStaticFieldInstr::ComputeType() const {
     TraceStrongModeType(this, *abstract_type);
   }
   ASSERT(field.is_static());
-  if (field.is_final() && !FLAG_fields_may_be_reset) {
+  const bool is_initialized = IsFieldInitialized() && !FLAG_fields_may_be_reset;
+  if (field.is_final() && is_initialized) {
     const Instance& obj = Instance::Handle(field.StaticValue());
-    if ((obj.raw() != Object::sentinel().raw()) &&
-        (obj.raw() != Object::transition_sentinel().raw()) && !obj.IsNull()) {
+    if (!obj.IsNull()) {
       is_nullable = CompileType::kNonNullable;
       cid = obj.GetClassId();
       abstract_type = nullptr;  // Cid is known, calculate abstract type lazily.
@@ -1410,10 +1416,6 @@ CompileType LoadStaticFieldInstr::ComputeType() const {
     // Should be kept in sync with Slot::Get.
     DEBUG_ASSERT(Isolate::Current()->HasAttemptedReload());
     return CompileType::Dynamic();
-  }
-  if (field.is_late()) {
-    // TODO(dartbug.com/40796): Extend CompileType to handle lateness.
-    is_nullable = CompileType::kNullable;
   }
   return CompileType(is_nullable, cid, abstract_type);
 }

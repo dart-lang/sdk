@@ -7,6 +7,8 @@ import 'dart:convert' show HtmlEscape, HtmlEscapeMode, LineSplitter;
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/path_mapper.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/web/file_details.dart';
+import 'package:meta/meta.dart';
+import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:path/path.dart' as path;
 
 /// Instrumentation display output for a library that was migrated to use
@@ -16,6 +18,24 @@ class UnitRenderer {
   /// text, between HTML elements.
   static const HtmlEscape _htmlEscape =
       HtmlEscape(HtmlEscapeMode(escapeLtGt: true));
+
+  /// List of kinds of nullability fixes that should be displayed in the
+  /// "proposed edits" area, in the order in which they should be displayed.
+  @visibleForTesting
+  static const List<NullabilityFixKind> kindPriorityOrder = [
+    NullabilityFixKind.removeDeadCode,
+    NullabilityFixKind.otherCastExpression,
+    NullabilityFixKind.checkExpression,
+    NullabilityFixKind.addRequired,
+    NullabilityFixKind.makeTypeNullable,
+    NullabilityFixKind.downcastExpression,
+    NullabilityFixKind.addType,
+    NullabilityFixKind.replaceVar,
+    NullabilityFixKind.removeAs,
+    NullabilityFixKind.checkExpressionDueToHint,
+    NullabilityFixKind.makeTypeNullableDueToHint,
+    NullabilityFixKind.removeLanguageVersionComment
+  ];
 
   /// Displays information for a compilation unit.
   final UnitInfo unitInfo;
@@ -44,13 +64,26 @@ class UnitRenderer {
   }
 
   /// Returns the list of edits, as JSON.
-  List<EditListItem> _computeEditList() {
-    return unitInfo.fixRegions.map((RegionInfo region) {
-      return EditListItem(
-          line: region.lineNumber,
-          explanation: region.explanation,
-          offset: region.offset);
-    }).toList();
+  Map<String, List<EditListItem>> _computeEditList() {
+    var editListsByKind = <NullabilityFixKind, List<EditListItem>>{};
+    for (var region in unitInfo.fixRegions) {
+      var kind = region.kind;
+      if (kind != null) {
+        (editListsByKind[kind] ??= []).add(EditListItem(
+            line: region.lineNumber,
+            explanation: region.explanation,
+            offset: region.offset));
+      }
+    }
+    // Order the lists and filter out empty categories.
+    var result = <String, List<EditListItem>>{};
+    for (var kind in kindPriorityOrder) {
+      var edits = editListsByKind[kind];
+      if (edits != null) {
+        result[_headerForKind(kind, edits.length)] = edits;
+      }
+    }
+    return result;
   }
 
   /// Returns the content of the file with navigation links and anchors added.
@@ -188,8 +221,8 @@ class UnitRenderer {
       if (offset > previousOffset) {
         // Display a region of unmodified content.
         writeSplitLines(content.substring(previousOffset, offset));
-        previousOffset = offset + length;
       }
+      previousOffset = offset + length;
       var regionClass = classForRegion(region.regionType);
       var regionSpanTag = '<span class="region $regionClass" '
           'data-offset="$offset" data-line="$lineNumber">';
@@ -202,6 +235,43 @@ class UnitRenderer {
     }
     regions.write('</td></tr></tbody></table>');
     return regions.toString();
+  }
+
+  String _headerForKind(NullabilityFixKind kind, int count) {
+    var s = count == 1 ? '' : 's';
+    switch (kind) {
+      case NullabilityFixKind.addRequired:
+        return '$count required keyword$s added';
+      case NullabilityFixKind.downcastExpression:
+        return '$count downcast$s added';
+      case NullabilityFixKind.otherCastExpression:
+        return '$count cast$s (non-downcast) added';
+      case NullabilityFixKind.checkExpression:
+        return '$count null check$s added';
+      case NullabilityFixKind.checkExpressionDueToHint:
+        return '$count null check hint$s converted to null check$s';
+      case NullabilityFixKind.addType:
+        return '$count type$s added';
+      case NullabilityFixKind.makeTypeNullable:
+        return '$count type$s made nullable';
+      case NullabilityFixKind.makeTypeNullableDueToHint:
+        return '$count nullability hint$s converted to ?$s';
+      case NullabilityFixKind.removeAs:
+        return '$count cast$s now unnecessary';
+      case NullabilityFixKind.removeDeadCode:
+        // TODO(paulberry): when we change to not removing dead code, change
+        // this description string.
+        return '$count dead code removal$s';
+      case NullabilityFixKind.removeLanguageVersionComment:
+        return '$count language version comment$s removed';
+      case NullabilityFixKind.replaceVar:
+        return "$count 'var' declaration$s replaced";
+      case NullabilityFixKind.typeNotMadeNullable:
+        return '$count type$s not made nullable';
+      case NullabilityFixKind.typeNotMadeNullableDueToHint:
+        return '$count type$s not made nullable due to hint$s';
+    }
+    throw StateError('Null kind');
   }
 
   /// Returns the URL that will navigate to the given [target] in the file at

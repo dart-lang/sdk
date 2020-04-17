@@ -3,7 +3,7 @@ library catch_errors;
 import 'dart:async';
 
 Stream catchErrors(dynamic body()) {
-  StreamController controller;
+  late StreamController controller;
 
   bool onError(e, st) {
     controller.add(e);
@@ -19,16 +19,16 @@ Stream catchErrors(dynamic body()) {
 }
 
 runZonedScheduleMicrotask(body(),
-    {void onScheduleMicrotask(void callback()), Function? onError}) {
+    {void onScheduleMicrotask(void callback())?, Function? onError}) {
   if (onScheduleMicrotask == null) {
-    return runZonedGuarded(body, onError);
+    return runZonedGuarded(body, onError as void Function(Object, StackTrace));
   }
-  HandleUncaughtErrorHandler errorHandler;
+  HandleUncaughtErrorHandler? errorHandler;
   if (onError != null) {
     errorHandler = (Zone self, ZoneDelegate parent, Zone zone, error,
         StackTrace stackTrace) {
       try {
-        return self.parent.runUnary(onError, error);
+        return self.parent!.runUnary(onError as void Function(Object), error);
       } catch (e, s) {
         if (identical(e, error)) {
           return parent.handleUncaughtError(zone, error, stackTrace);
@@ -38,10 +38,10 @@ runZonedScheduleMicrotask(body(),
       }
     };
   }
-  ScheduleMicrotaskHandler asyncHandler;
+  ScheduleMicrotaskHandler? asyncHandler;
   if (onScheduleMicrotask != null) {
     asyncHandler = (Zone self, ZoneDelegate parent, Zone zone, f()) {
-      self.parent.runUnary(onScheduleMicrotask, () => zone.runGuarded(f));
+      self.parent!.runUnary(onScheduleMicrotask, () => zone.runGuarded(f));
     };
   }
   ZoneSpecification specification = new ZoneSpecification(

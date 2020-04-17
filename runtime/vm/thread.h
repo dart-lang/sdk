@@ -116,15 +116,29 @@ class Thread;
     StubCode::NullArgErrorSharedWithoutFPURegs().raw(), nullptr)               \
   V(RawCode*, null_arg_error_shared_with_fpu_regs_stub_,                       \
     StubCode::NullArgErrorSharedWithFPURegs().raw(), nullptr)                  \
+  V(RawCode*, range_error_shared_without_fpu_regs_stub_,                       \
+    StubCode::RangeErrorSharedWithoutFPURegs().raw(), nullptr)                 \
+  V(RawCode*, range_error_shared_with_fpu_regs_stub_,                          \
+    StubCode::RangeErrorSharedWithFPURegs().raw(), nullptr)                    \
   V(RawCode*, allocate_mint_with_fpu_regs_stub_,                               \
-    StubCode::AllocateMintWithFPURegs().raw(), NULL)                           \
+    StubCode::AllocateMintSharedWithFPURegs().raw(), NULL)                     \
   V(RawCode*, allocate_mint_without_fpu_regs_stub_,                            \
-    StubCode::AllocateMintWithoutFPURegs().raw(), NULL)                        \
+    StubCode::AllocateMintSharedWithoutFPURegs().raw(), NULL)                  \
+  V(RawCode*, allocate_object_stub_, StubCode::AllocateObject().raw(),         \
+    nullptr)                                                                   \
+  V(RawCode*, allocate_object_parameterized_stub_,                             \
+    StubCode::AllocateObjectParameterized().raw(), nullptr)                    \
+  V(RawCode*, allocate_object_slow_stub_,                                      \
+    StubCode::AllocateObjectSlow().raw(), nullptr)                             \
   V(RawCode*, stack_overflow_shared_without_fpu_regs_stub_,                    \
     StubCode::StackOverflowSharedWithoutFPURegs().raw(), NULL)                 \
   V(RawCode*, stack_overflow_shared_with_fpu_regs_stub_,                       \
     StubCode::StackOverflowSharedWithFPURegs().raw(), NULL)                    \
-  V(RawCode*, monomorphic_miss_stub_, StubCode::MonomorphicMiss().raw(), NULL) \
+  V(RawCode*, switchable_call_miss_stub_,                                      \
+    StubCode::SwitchableCallMiss().raw(), NULL)                                \
+  V(RawCode*, throw_stub_, StubCode::Throw().raw(), NULL)                      \
+  V(RawCode*, re_throw_stub_, StubCode::Throw().raw(), NULL)                   \
+  V(RawCode*, assert_boolean_stub_, StubCode::AssertBoolean().raw(), NULL)     \
   V(RawCode*, optimize_stub_, StubCode::OptimizeFunction().raw(), NULL)        \
   V(RawCode*, deoptimize_stub_, StubCode::Deoptimize().raw(), NULL)            \
   V(RawCode*, lazy_deopt_from_return_stub_,                                    \
@@ -163,26 +177,24 @@ class Thread;
     StubCode::ArrayWriteBarrier().EntryPoint(), 0)                             \
   V(uword, call_to_runtime_entry_point_,                                       \
     StubCode::CallToRuntime().EntryPoint(), 0)                                 \
-  V(uword, null_error_shared_without_fpu_regs_entry_point_,                    \
-    StubCode::NullErrorSharedWithoutFPURegs().EntryPoint(), 0)                 \
-  V(uword, null_error_shared_with_fpu_regs_entry_point_,                       \
-    StubCode::NullErrorSharedWithFPURegs().EntryPoint(), 0)                    \
-  V(uword, null_arg_error_shared_without_fpu_regs_entry_point_,                \
-    StubCode::NullArgErrorSharedWithoutFPURegs().EntryPoint(), 0)              \
-  V(uword, null_arg_error_shared_with_fpu_regs_entry_point_,                   \
-    StubCode::NullArgErrorSharedWithFPURegs().EntryPoint(), 0)                 \
   V(uword, allocate_mint_with_fpu_regs_entry_point_,                           \
-    StubCode::AllocateMintWithFPURegs().EntryPoint(), 0)                       \
+    StubCode::AllocateMintSharedWithFPURegs().EntryPoint(), 0)                 \
   V(uword, allocate_mint_without_fpu_regs_entry_point_,                        \
-    StubCode::AllocateMintWithoutFPURegs().EntryPoint(), 0)                    \
+    StubCode::AllocateMintSharedWithoutFPURegs().EntryPoint(), 0)              \
+  V(uword, allocate_object_entry_point_,                                       \
+    StubCode::AllocateObject().EntryPoint(), 0)                                \
+  V(uword, allocate_object_parameterized_entry_point_,                         \
+    StubCode::AllocateObjectParameterized().EntryPoint(), 0)                   \
+  V(uword, allocate_object_slow_entry_point_,                                  \
+    StubCode::AllocateObjectSlow().EntryPoint(), 0)                            \
   V(uword, stack_overflow_shared_without_fpu_regs_entry_point_,                \
     StubCode::StackOverflowSharedWithoutFPURegs().EntryPoint(), 0)             \
   V(uword, stack_overflow_shared_with_fpu_regs_entry_point_,                   \
     StubCode::StackOverflowSharedWithFPURegs().EntryPoint(), 0)                \
   V(uword, megamorphic_call_checked_entry_,                                    \
     StubCode::MegamorphicCall().EntryPoint(), 0)                               \
-  V(uword, monomorphic_miss_entry_, StubCode::MonomorphicMiss().EntryPoint(),  \
-    0)                                                                         \
+  V(uword, switchable_call_miss_entry_,                                        \
+    StubCode::SwitchableCallMiss().EntryPoint(), 0)                            \
   V(uword, optimize_entry_, StubCode::OptimizeFunction().EntryPoint(), 0)      \
   V(uword, deoptimize_entry_, StubCode::Deoptimize().EntryPoint(), 0)          \
   V(uword, call_native_through_safepoint_entry_point_,                         \
@@ -238,6 +250,7 @@ class Thread : public ThreadState {
     kMarkerTask = 0x4,
     kSweeperTask = 0x8,
     kCompactorTask = 0x10,
+    kScavengerTask = 0x20,
   };
   // Converts a TaskKind to its corresponding C-String name.
   static const char* TaskKindToCString(TaskKind kind);

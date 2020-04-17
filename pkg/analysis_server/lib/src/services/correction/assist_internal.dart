@@ -1922,9 +1922,7 @@ class AssistProcessor extends BaseProcessor {
 
           builder.write(eol);
           builder.write(indentNew1);
-          builder.write('children: <');
-          builder.writeReference(widgetClassElement);
-          builder.write('>[');
+          builder.write('children: [');
           builder.write(eol);
 
           var newSrc = _replaceSourceIndent(src, indentOld, indentNew2);

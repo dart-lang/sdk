@@ -282,73 +282,22 @@ void Precompiler::DoCompileAll() {
         global_object_pool_builder()->Reset();
         stub_pool.CopyInto(global_object_pool_builder());
 
-        // We have two global code objects we need to re-generate with the new
-        // global object pool, namely the
-        //   - megamorphic miss handler code and the
-        //   - build method extractor code
-        MegamorphicCacheTable::ReInitMissHandlerCode(
-            isolate_, global_object_pool_builder());
-
+        // We have various stubs we would like to generate inside the isolate,
+        // to ensure the rest of the AOT compilation will use the
+        // isolate-specific stubs (callable via pc-relative calls).
         auto& stub_code = Code::Handle();
-
+#define DO(member, name)                                                       \
+  stub_code = StubCode::BuildIsolateSpecific##name##Stub(                      \
+      global_object_pool_builder());                                           \
+  I->object_store()->set_##member(stub_code);
+        OBJECT_STORE_STUB_CODE_LIST(DO)
+#undef DO
         stub_code =
             StubCode::GetBuildMethodExtractorStub(global_object_pool_builder());
         I->object_store()->set_build_method_extractor_code(stub_code);
 
-        stub_code = StubCode::BuildIsolateSpecificDispatchTableNullErrorStub(
-            global_object_pool_builder());
-        I->object_store()->set_dispatch_table_null_error_stub(stub_code);
-
-        stub_code =
-            StubCode::BuildIsolateSpecificNullErrorSharedWithFPURegsStub(
-                global_object_pool_builder());
-        I->object_store()->set_null_error_stub_with_fpu_regs_stub(stub_code);
-
-        stub_code =
-            StubCode::BuildIsolateSpecificNullErrorSharedWithoutFPURegsStub(
-                global_object_pool_builder());
-        I->object_store()->set_null_error_stub_without_fpu_regs_stub(stub_code);
-
-        stub_code =
-            StubCode::BuildIsolateSpecificNullArgErrorSharedWithFPURegsStub(
-                global_object_pool_builder());
-        I->object_store()->set_null_arg_error_stub_with_fpu_regs_stub(
-            stub_code);
-
-        stub_code =
-            StubCode::BuildIsolateSpecificNullArgErrorSharedWithoutFPURegsStub(
-                global_object_pool_builder());
-        I->object_store()->set_null_arg_error_stub_without_fpu_regs_stub(
-            stub_code);
-
-        stub_code = StubCode::BuildIsolateSpecificAllocateMintWithFPURegsStub(
-            global_object_pool_builder());
-        I->object_store()->set_allocate_mint_with_fpu_regs_stub(stub_code);
-
-        stub_code =
-            StubCode::BuildIsolateSpecificAllocateMintWithoutFPURegsStub(
-                global_object_pool_builder());
-        I->object_store()->set_allocate_mint_without_fpu_regs_stub(stub_code);
-
-        stub_code =
-            StubCode::BuildIsolateSpecificStackOverflowSharedWithFPURegsStub(
-                global_object_pool_builder());
-        I->object_store()->set_stack_overflow_stub_with_fpu_regs_stub(
-            stub_code);
-
-        stub_code =
-            StubCode::BuildIsolateSpecificStackOverflowSharedWithoutFPURegsStub(
-                global_object_pool_builder());
-        I->object_store()->set_stack_overflow_stub_without_fpu_regs_stub(
-            stub_code);
-
-        stub_code = StubCode::BuildIsolateSpecificWriteBarrierWrappersStub(
-            global_object_pool_builder());
-        I->object_store()->set_write_barrier_wrappers_stub(stub_code);
-
-        stub_code = StubCode::BuildIsolateSpecificArrayWriteBarrierStub(
-            global_object_pool_builder());
-        I->object_store()->set_array_write_barrier_stub(stub_code);
+        MegamorphicCacheTable::ReInitMissHandlerCode(
+            isolate_, global_object_pool_builder());
       }
 
       CollectDynamicFunctionNames();
@@ -484,7 +433,7 @@ void Precompiler::DoCompileAll() {
              non_visited.ToFullyQualifiedCString());
     }
 #endif
-    ProgramVisitor::Dedup();
+    ProgramVisitor::Dedup(T);
 
     zone_ = NULL;
   }
@@ -519,7 +468,7 @@ void Precompiler::PrecompileConstructors() {
    public:
     explicit ConstructorVisitor(Precompiler* precompiler, Zone* zone)
         : precompiler_(precompiler), zone_(zone) {}
-    void Visit(const Function& function) {
+    void VisitFunction(const Function& function) {
       if (!function.IsGenerativeConstructor()) return;
       if (function.HasCode()) {
         // Const constructors may have been visited before. Recompile them here
@@ -538,8 +487,8 @@ void Precompiler::PrecompileConstructors() {
   };
 
   HANDLESCOPE(T);
-  ConstructorVisitor visitor(this, zone_);
-  ProgramVisitor::VisitFunctions(&visitor);
+  ConstructorVisitor visitor(this, Z);
+  ProgramVisitor::WalkProgram(Z, I, &visitor);
 }
 
 void Precompiler::AddRoots() {
@@ -917,6 +866,9 @@ void Precompiler::AddType(const AbstractType& abstype) {
     const AbstractType& type =
         AbstractType::Handle(Z, TypeParameter::Cast(abstype).bound());
     AddType(type);
+    const auto& function = Function::Handle(
+        Z, TypeParameter::Cast(abstype).parameterized_function());
+    AddTypesOf(function);
     const Class& cls =
         Class::Handle(Z, TypeParameter::Cast(abstype).parameterized_class());
     AddTypesOf(cls);
@@ -2182,14 +2134,14 @@ RawFunction* Precompiler::FindUnvisitedRetainedFunction() {
 
     const CodeSet& visited() const { return visited_code_; }
 
-    void Visit(const Code& code) { visited_code_.Insert(code); }
+    void VisitCode(const Code& code) { visited_code_.Insert(code); }
 
    private:
     CodeSet visited_code_;
   };
 
   CodeChecker visitor;
-  ProgramVisitor::VisitCode(&visitor);
+  ProgramVisitor::WalkProgram(Z, I, &visitor);
   const CodeSet& visited = visitor.visited();
 
   FunctionSet::Iterator it(&functions_to_retain_);

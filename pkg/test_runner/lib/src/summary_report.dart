@@ -6,6 +6,7 @@ library summary_report;
 
 import "package:status_file/expectation.dart";
 
+import "terminal.dart";
 import "test_case.dart";
 
 final summaryReport = SummaryReport();
@@ -125,6 +126,6 @@ class SummaryReport {
 
   void printReport() {
     if (_total == 0) return;
-    print(report);
+    Terminal.print(report);
   }
 }

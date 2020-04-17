@@ -1,7 +1,6 @@
 library test;
 import self as self;
 import "dart:core" as core;
-import "dart:_internal" as _in;
 
 class A extends core::Object {
   synthetic constructor •() → self::A*
@@ -17,7 +16,7 @@ class C extends core::Object {
   method test() → void {
     self::A* aLocal;
     {
-      core::Iterator<self::A*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<self::A*>*>(self::f<core::Iterable<self::A*>*>()).{core::Iterable::iterator};
+      core::Iterator<self::A*>* :sync-for-iterator = self::f<core::Iterable<self::A*>*>().{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final self::A* #t1 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -26,7 +25,7 @@ class C extends core::Object {
       }
     }
     {
-      core::Iterator<self::A*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<self::A*>*>(self::f<core::Iterable<self::A*>*>()).{core::Iterable::iterator};
+      core::Iterator<self::A*>* :sync-for-iterator = self::f<core::Iterable<self::A*>*>().{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final self::A* #t2 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -35,7 +34,7 @@ class C extends core::Object {
       }
     }
     {
-      core::Iterator<self::A*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<self::A*>*>(self::f<core::Iterable<self::A*>*>()).{core::Iterable::iterator};
+      core::Iterator<self::A*>* :sync-for-iterator = self::f<core::Iterable<self::A*>*>().{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final self::A* #t3 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -44,7 +43,7 @@ class C extends core::Object {
       }
     }
     {
-      core::Iterator<self::A*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<self::A*>*>(self::f<core::Iterable<self::A*>*>()).{core::Iterable::iterator};
+      core::Iterator<self::A*>* :sync-for-iterator = self::f<core::Iterable<self::A*>*>().{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final self::A* #t4 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -53,7 +52,7 @@ class C extends core::Object {
       }
     }
     {
-      core::Iterator<self::A*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<self::A*>*>(self::f<core::Iterable<self::A*>*>()).{core::Iterable::iterator};
+      core::Iterator<self::A*>* :sync-for-iterator = self::f<core::Iterable<self::A*>*>().{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final self::A* #t5 = :sync-for-iterator.{core::Iterator::current};
         {

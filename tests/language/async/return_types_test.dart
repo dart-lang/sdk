@@ -41,8 +41,6 @@ foo5() async {
 // [error line 40, column 1]
 // [cfe] Functions marked 'async' must have a return type assignable to 'Future'.
   return 3;
-  //     ^
-  // [analyzer] STATIC_TYPE_WARNING.RETURN_OF_INVALID_TYPE
 }
 
 Future<int> foo6() async {

@@ -7,7 +7,7 @@ import 'package:test/test.dart';
 import '../utils.dart';
 
 void main() {
-  group('pub', pub);
+  group('pub', pub, timeout: longTimeout);
 }
 
 void pub() {

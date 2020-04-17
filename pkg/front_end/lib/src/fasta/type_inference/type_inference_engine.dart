@@ -236,7 +236,7 @@ class FlowAnalysisResult {
 
   /// The list of [Expression]s representing variable accesses that occur before
   /// the corresponding variable has been definitely assigned.
-  final List<TreeNode> unassignedNodes = [];
+  final List<TreeNode> potentiallyUnassignedNodes = [];
 
   /// The list of [Expression]s representing variable accesses that occur when
   /// the corresponding variable has been definitely unassigned.

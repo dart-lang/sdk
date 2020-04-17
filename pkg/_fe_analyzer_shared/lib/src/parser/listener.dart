@@ -1247,6 +1247,12 @@ class Listener implements UnescapeErrorListener {
     logEvent("WhileStatement");
   }
 
+  void beginAsOperatorType(Token operator) {}
+
+  void endAsOperatorType(Token operator) {
+    logEvent("AsOperatorType");
+  }
+
   void handleAsOperator(Token operator) {
     logEvent("AsOperator");
   }
@@ -1356,6 +1362,12 @@ class Listener implements UnescapeErrorListener {
   void handleIndexedExpression(
       Token question, Token openSquareBracket, Token closeSquareBracket) {
     logEvent("IndexedExpression");
+  }
+
+  void beginIsOperatorType(Token operator) {}
+
+  void endIsOperatorType(Token operator) {
+    logEvent("IsOperatorType");
   }
 
   void handleIsOperator(Token isOperator, Token not) {

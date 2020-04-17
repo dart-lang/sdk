@@ -148,11 +148,19 @@ void CodeRelocator::FindInstructionAndCallLimits() {
         // A call site can decide to jump not to the beginning of a function but
         // rather jump into it at a certain (positive) offset.
         int32_t offset_into_target = 0;
-        const intptr_t call_instruction_offset =
-            return_pc_offset - PcRelativeCallPattern::kLengthInBytes;
-        {
+        if (kind == Code::kPcRelativeCall) {
+          const intptr_t call_instruction_offset =
+              return_pc_offset - PcRelativeCallPattern::kLengthInBytes;
           PcRelativeCallPattern call(current_caller.PayloadStart() +
                                      call_instruction_offset);
+          ASSERT(call.IsValid());
+          offset_into_target = call.distance();
+        } else {
+          ASSERT(kind == Code::kPcRelativeTailCall);
+          const intptr_t call_instruction_offset =
+              return_pc_offset - PcRelativeTailCallPattern::kLengthInBytes;
+          PcRelativeTailCallPattern call(current_caller.PayloadStart() +
+                                         call_instruction_offset);
           ASSERT(call.IsValid());
           offset_into_target = call.distance();
         }
@@ -263,12 +271,24 @@ void CodeRelocator::ScanCallTargets(const Code& code,
     // A call site can decide to jump not to the beginning of a function but
     // rather jump into it at a certain offset.
     int32_t offset_into_target = 0;
-    const intptr_t call_instruction_offset =
-        return_pc_offset - PcRelativeCallPattern::kLengthInBytes;
-    {
+    bool is_tail_call;
+    intptr_t call_instruction_offset;
+    if (kind == Code::kPcRelativeCall) {
+      call_instruction_offset =
+          return_pc_offset - PcRelativeCallPattern::kLengthInBytes;
       PcRelativeCallPattern call(code.PayloadStart() + call_instruction_offset);
       ASSERT(call.IsValid());
       offset_into_target = call.distance();
+      is_tail_call = false;
+    } else {
+      ASSERT(kind == Code::kPcRelativeTailCall);
+      call_instruction_offset =
+          return_pc_offset - PcRelativeTailCallPattern::kLengthInBytes;
+      PcRelativeTailCallPattern call(code.PayloadStart() +
+                                     call_instruction_offset);
+      ASSERT(call.IsValid());
+      offset_into_target = call.distance();
+      is_tail_call = true;
     }
 
     const uword destination_payload = destination_.PayloadStart();
@@ -283,7 +303,7 @@ void CodeRelocator::ScanCallTargets(const Code& code,
 
     UnresolvedCall unresolved_call(code.raw(), call_instruction_offset,
                                    text_offset, destination_.raw(),
-                                   offset_into_target);
+                                   offset_into_target, is_tail_call);
     if (!TryResolveBackwardsCall(&unresolved_call)) {
       EnqueueUnresolvedCall(new UnresolvedCall(unresolved_call));
     }
@@ -373,10 +393,17 @@ void CodeRelocator::ResolveCallToDestination(UnresolvedCall* unresolved_call,
     if (FLAG_write_protect_code) {
       addr -= HeapPage::Of(Code::InstructionsOf(caller))->AliasOffset();
     }
-    PcRelativeCallPattern call(addr);
-    ASSERT(call.IsValid());
-    call.set_distance(static_cast<int32_t>(distance));
-    ASSERT(call.distance() == distance);
+    if (unresolved_call->is_tail_call) {
+      PcRelativeTailCallPattern call(addr);
+      ASSERT(call.IsValid());
+      call.set_distance(static_cast<int32_t>(distance));
+      ASSERT(call.distance() == distance);
+    } else {
+      PcRelativeCallPattern call(addr);
+      ASSERT(call.IsValid());
+      call.set_distance(static_cast<int32_t>(distance));
+      ASSERT(call.distance() == distance);
+    }
   }
 
   unresolved_call->caller = nullptr;
@@ -405,8 +432,13 @@ bool CodeRelocator::IsTargetInRangeFor(UnresolvedCall* unresolved_call,
                                        intptr_t target_text_offset) {
   const auto forward_distance =
       target_text_offset - unresolved_call->text_offset;
-  return PcRelativeCallPattern::kLowerCallingRange < forward_distance &&
-         forward_distance < PcRelativeCallPattern::kUpperCallingRange;
+  if (unresolved_call->is_tail_call) {
+    return PcRelativeTailCallPattern::kLowerCallingRange < forward_distance &&
+           forward_distance < PcRelativeTailCallPattern::kUpperCallingRange;
+  } else {
+    return PcRelativeCallPattern::kLowerCallingRange < forward_distance &&
+           forward_distance < PcRelativeCallPattern::kUpperCallingRange;
+  }
 }
 
 static void MarkAsFreeListElement(uint8_t* trampoline_bytes,

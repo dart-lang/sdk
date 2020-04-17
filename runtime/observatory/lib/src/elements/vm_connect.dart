@@ -25,7 +25,7 @@ class VMConnectElement extends CustomElement implements Renderable {
     VMConnectTargetElement.tag
   ]);
 
-  RenderingScheduler _r;
+  RenderingScheduler<VMConnectElement> _r;
 
   Stream<RenderedEvent<VMConnectElement>> get onRendered => _r.onRendered;
 

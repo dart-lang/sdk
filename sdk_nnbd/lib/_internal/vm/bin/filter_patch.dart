@@ -7,7 +7,7 @@
 class _FilterImpl extends NativeFieldWrapperClass1 implements RawZLibFilter {
   void process(List<int> data, int start, int end) native "Filter_Process";
 
-  List<int> processed({bool flush: true, bool end: false})
+  List<int>? processed({bool flush: true, bool end: false})
       native "Filter_Processed";
 }
 

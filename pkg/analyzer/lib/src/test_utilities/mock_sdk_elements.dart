@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
@@ -18,9 +19,9 @@ class MockSdkElements {
 
   factory MockSdkElements(
     engine.AnalysisContext analysisContext,
-    NullabilitySuffix nullabilitySuffix,
+    AnalysisSessionImpl analysisSession,
   ) {
-    var builder = _MockSdkElementsBuilder(analysisContext, nullabilitySuffix);
+    var builder = _MockSdkElementsBuilder(analysisContext, analysisSession);
     var coreLibrary = builder._buildCore();
     var asyncLibrary = builder._buildAsync();
     return MockSdkElements._(coreLibrary, asyncLibrary);
@@ -31,7 +32,7 @@ class MockSdkElements {
 
 class _MockSdkElementsBuilder {
   final engine.AnalysisContext analysisContext;
-  final NullabilitySuffix nullabilitySuffix;
+  final AnalysisSessionImpl analysisSession;
 
   ClassElementImpl _boolElement;
   ClassElementImpl _comparableElement;
@@ -67,7 +68,10 @@ class _MockSdkElementsBuilder {
   InterfaceType _stringType;
   InterfaceType _typeType;
 
-  _MockSdkElementsBuilder(this.analysisContext, this.nullabilitySuffix);
+  _MockSdkElementsBuilder(
+    this.analysisContext,
+    this.analysisSession,
+  );
 
   ClassElementImpl get boolElement {
     if (_boolElement != null) return _boolElement;
@@ -815,11 +819,11 @@ class _MockSdkElementsBuilder {
   LibraryElementImpl _buildAsync() {
     var asyncLibrary = LibraryElementImpl(
       analysisContext,
-      null,
+      analysisSession,
       'dart.async',
       0,
       0,
-      nullabilitySuffix == NullabilitySuffix.none,
+      true,
     );
 
     var asyncUnit = CompilationUnitElementImpl();
@@ -908,11 +912,11 @@ class _MockSdkElementsBuilder {
 
     var coreLibrary = LibraryElementImpl(
       analysisContext,
-      null,
+      analysisSession,
       'dart.core',
       0,
       0,
-      nullabilitySuffix == NullabilitySuffix.none,
+      true,
     );
     coreLibrary.definingCompilationUnit = coreUnit;
 
@@ -976,7 +980,7 @@ class _MockSdkElementsBuilder {
       typeFormals: typeFormals,
       parameters: parameters,
       returnType: returnType,
-      nullabilitySuffix: nullabilitySuffix,
+      nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
@@ -1009,7 +1013,7 @@ class _MockSdkElementsBuilder {
     return InterfaceTypeImpl(
       element: element,
       typeArguments: typeArguments,
-      nullabilitySuffix: nullabilitySuffix,
+      nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
@@ -1077,7 +1081,7 @@ class _MockSdkElementsBuilder {
   TypeParameterType _typeParameterType(TypeParameterElement element) {
     return TypeParameterTypeImpl(
       element: element,
-      nullabilitySuffix: nullabilitySuffix,
+      nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 }

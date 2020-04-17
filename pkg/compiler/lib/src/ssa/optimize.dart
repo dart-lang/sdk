@@ -903,7 +903,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       // @Native methods have conversion code for function arguments. Rather
       // than insert that code at the inlined call site, call the target on the
       // interceptor.
-      if (parameterType is FunctionType) return true;
+      if (parameterType.withoutNullability is FunctionType) return true;
     }
 
     if (!_closedWorld.annotationsData
@@ -2185,11 +2185,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
       }
 
       if (specialization != null) {
-        AbstractValueWithPrecision checkedType =
-            _abstractValueDomain.createFromStaticType(dartType,
-                nullable: _abstractValueDomain
-                    .isNull(node.checkedAbstractValue.abstractValue)
-                    .isPotentiallyTrue);
+        AbstractValueWithPrecision checkedType = _abstractValueDomain
+            .createFromStaticType(dartType, nullable: false);
         return HIsTestSimple(dartType, checkedType, specialization,
             node.checkedInput, _abstractValueDomain.boolType);
       }

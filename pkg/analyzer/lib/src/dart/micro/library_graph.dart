@@ -61,6 +61,7 @@ class FileState {
   final Set<FileState> directReferencedLibraries = Set();
   final List<FileState> libraryFiles = [];
 
+  List<int> _digest;
   bool _exists;
   List<int> _apiSignature;
   UnlinkedUnit2 unlinked2;
@@ -69,6 +70,8 @@ class FileState {
   FileState._(this._fsState, this.path, this.uri, this.source);
 
   List<int> get apiSignature => _apiSignature;
+
+  List<int> get digest => _digest;
 
   bool get exists => _exists;
 
@@ -80,6 +83,8 @@ class FileState {
     }
     return _libraryCycle;
   }
+
+  LineInfo get lineInfo => LineInfo(unlinked2.lineStarts);
 
   /// Return the [uri] string.
   String get uriStr => uri.toString();
@@ -123,8 +128,8 @@ class FileState {
   }
 
   void refresh() {
-    var digest = utf8.encode(_fsState.getFileDigest(path));
-    _exists = digest.isNotEmpty;
+    _digest = utf8.encode(_fsState.getFileDigest(path));
+    _exists = _digest.isNotEmpty;
     String unlinkedKey = path;
 
     // Prepare bytes of the unlinked bundle - existing or new.
@@ -136,7 +141,7 @@ class FileState {
       if (bytes != null) {
         var ciderUnlinkedUnit = CiderUnlinkedUnit.fromBuffer(bytes);
         if (!const ListEquality()
-            .equals(ciderUnlinkedUnit.contentDigest, digest)) {
+            .equals(ciderUnlinkedUnit.contentDigest, _digest)) {
           bytes = null;
         }
       }
@@ -150,7 +155,7 @@ class FileState {
         }
         var unit = parse(AnalysisErrorListener.NULL_LISTENER, content);
         _fsState._logger.run('Create unlinked for $path', () {
-          var unlinkedBuilder = serializeAstCiderUnlinked(digest, unit);
+          var unlinkedBuilder = serializeAstCiderUnlinked(_digest, unit);
           bytes = unlinkedBuilder.toBuffer();
           _fsState._byteStore.put(unlinkedKey, bytes);
         });
@@ -420,7 +425,7 @@ class LibraryCycle {
   /// files that [libraries] reference (but we don't compute these files).
   List<int> signature;
 
-  // The hash for all the paths of the files in this cycle.
+  /// The hash of all the paths of the files in this cycle.
   String cyclePathsHash;
 
   LibraryCycle();

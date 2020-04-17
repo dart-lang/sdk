@@ -59,7 +59,6 @@ AnalysisOptions _buildAnalyzerOptions(LinterOptions options) {
 
   analysisOptions.hint = false;
   analysisOptions.lint = options.enableLints;
-  analysisOptions.generateSdkErrors = options.showSdkWarnings;
   analysisOptions.enableTiming = options.enableTiming;
   analysisOptions.lintRules = options.enabledLints?.toList(growable: false);
   return analysisOptions;
@@ -84,9 +83,6 @@ class DriverOptions {
 
   /// The path to the package root.
   String packageRootPath;
-
-  /// Whether to show SDK warnings.
-  bool showSdkWarnings = false;
 
   /// Whether to use Dart's Strong Mode analyzer.
   bool strongMode = true;

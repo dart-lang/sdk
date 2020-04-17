@@ -39,8 +39,8 @@ class AnalysisSessionImpl implements AnalysisSession {
   /// The cache of libraries for URIs.
   final Map<String, LibraryElement> _uriToLibraryCache = {};
 
-  final ClassHierarchy classHierarchy = ClassHierarchy();
-  final InheritanceManager3 inheritanceManager = InheritanceManager3();
+  ClassHierarchy classHierarchy = ClassHierarchy();
+  InheritanceManager3 inheritanceManager = InheritanceManager3();
 
   /// Initialize a newly created analysis session.
   AnalysisSessionImpl(this._driver);
@@ -92,6 +92,12 @@ class AnalysisSessionImpl implements AnalysisSession {
   @override
   UriConverter get uriConverter {
     return _uriConverter ??= DriverBasedUriConverter(_driver);
+  }
+
+  /// Clear hierarchies, to reduce memory consumption.
+  void clearHierarchies() {
+    classHierarchy = ClassHierarchy();
+    inheritanceManager = InheritanceManager3();
   }
 
   @deprecated

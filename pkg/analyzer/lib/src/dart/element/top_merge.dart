@@ -51,26 +51,26 @@ class TopMergeHelper {
       return VoidTypeImpl.instance;
     }
 
-    // NNBD_TOP_MERGE(void, Object?) = void
     // NNBD_TOP_MERGE(Object?, void) = void
-    if (T_isVoid && S_isObjectQuestion || T_isObjectQuestion && S_isVoid) {
-      return VoidTypeImpl.instance;
+    // NNBD_TOP_MERGE(void, Object?) = void
+    if (T_isObjectQuestion && S_isVoid || T_isVoid && S_isObjectQuestion) {
+      return typeSystem.objectQuestion;
     }
 
-    // NNBD_TOP_MERGE(void, Object*) = void
     // NNBD_TOP_MERGE(Object*, void) = void
+    // NNBD_TOP_MERGE(void, Object*) = void
     var T_isObjectStar =
         T_nullability == NullabilitySuffix.star && T.isDartCoreObject;
     var S_isObjectStar =
         S_nullability == NullabilitySuffix.star && S.isDartCoreObject;
-    if (T_isVoid && S_isObjectStar || T_isObjectStar && S_isVoid) {
-      return VoidTypeImpl.instance;
+    if (T_isObjectStar && S_isVoid || T_isVoid && S_isObjectStar) {
+      return typeSystem.objectQuestion;
     }
 
-    // NNBD_TOP_MERGE(void, dynamic) = void
     // NNBD_TOP_MERGE(dynamic, void) = void
-    if (T_isVoid && S_isDynamic || T_isDynamic && S_isVoid) {
-      return VoidTypeImpl.instance;
+    // NNBD_TOP_MERGE(void, dynamic) = void
+    if (T_isDynamic && S_isVoid || T_isVoid && S_isDynamic) {
+      return typeSystem.objectQuestion;
     }
 
     // NNBD_TOP_MERGE(Object?, dynamic) = Object?

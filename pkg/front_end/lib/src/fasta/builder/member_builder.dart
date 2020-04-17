@@ -249,6 +249,9 @@ abstract class BuilderClassMember implements ClassMember {
   bool get isSynthesized => false;
 
   @override
+  bool get isInternalImplementation => false;
+
+  @override
   bool get isInheritableConflict => false;
 
   @override

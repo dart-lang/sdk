@@ -430,7 +430,6 @@ intptr_t Assembler::FindImmediate(int64_t imm) {
 
 bool Assembler::CanLoadFromObjectPool(const Object& object) const {
   ASSERT(IsOriginalObject(object));
-  ASSERT(!target::CanLoadFromThread(object));
   if (!constant_pool_allowed()) {
     return false;
   }
@@ -464,20 +463,36 @@ void Assembler::LoadObjectHelper(Register dst,
                                  const Object& object,
                                  bool is_unique) {
   ASSERT(IsOriginalObject(object));
-  word offset = 0;
-  if (IsSameObject(compiler::NullObject(), object)) {
-    mov(dst, NULL_REG);
-  } else if (target::CanLoadFromThread(object, &offset)) {
-    ldr(dst, Address(THR, offset));
-  } else if (CanLoadFromObjectPool(object)) {
+  // `is_unique == true` effectively means object has to be patchable.
+  // (even if the object is null)
+  if (!is_unique) {
+    if (IsSameObject(compiler::NullObject(), object)) {
+      mov(dst, NULL_REG);
+      return;
+    }
+    if (IsSameObject(CastHandle<Object>(compiler::TrueObject()), object)) {
+      AddImmediate(dst, NULL_REG, kTrueOffsetFromNull);
+      return;
+    }
+    if (IsSameObject(CastHandle<Object>(compiler::FalseObject()), object)) {
+      AddImmediate(dst, NULL_REG, kFalseOffsetFromNull);
+      return;
+    }
+    word offset = 0;
+    if (target::CanLoadFromThread(object, &offset)) {
+      ldr(dst, Address(THR, offset));
+      return;
+    }
+  }
+  if (CanLoadFromObjectPool(object)) {
     const int32_t offset = target::ObjectPool::element_offset(
         is_unique ? object_pool_builder().AddObject(object)
                   : object_pool_builder().FindObject(object));
     LoadWordFromPoolOffset(dst, offset);
-  } else {
-    ASSERT(target::IsSmi(object));
-    LoadImmediate(dst, target::ToRawSmi(object));
+    return;
   }
+  ASSERT(target::IsSmi(object));
+  LoadImmediate(dst, target::ToRawSmi(object));
 }
 
 void Assembler::LoadObject(Register dst, const Object& object) {
@@ -634,27 +649,6 @@ void Assembler::BranchLinkWithEquivalence(const Code& target,
   ldr(TMP,
       FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
   blr(TMP);
-}
-
-void Assembler::CallNullErrorShared(bool save_fpu_registers) {
-  uword entry_point_offset =
-      save_fpu_registers
-          ? target::Thread::null_error_shared_with_fpu_regs_entry_point_offset()
-          : target::Thread::
-                null_error_shared_without_fpu_regs_entry_point_offset();
-  ldr(LR, Address(THR, entry_point_offset));
-  blr(LR);
-}
-
-void Assembler::CallNullArgErrorShared(bool save_fpu_registers) {
-  const uword entry_point_offset =
-      save_fpu_registers
-          ? target::Thread::
-                null_arg_error_shared_with_fpu_regs_entry_point_offset()
-          : target::Thread::
-                null_arg_error_shared_without_fpu_regs_entry_point_offset();
-  ldr(LR, Address(THR, entry_point_offset));
-  blr(LR);
 }
 
 void Assembler::AddImmediate(Register dest, Register rn, int64_t imm) {
@@ -1133,6 +1127,21 @@ void Assembler::StoreInternalPointer(Register object,
   str(value, dest);
 }
 
+void Assembler::ExtractClassIdFromTags(Register result, Register tags) {
+  ASSERT(target::RawObject::kClassIdTagPos == 16);
+  ASSERT(target::RawObject::kClassIdTagSize == 16);
+  ASSERT(sizeof(classid_t) == sizeof(uint16_t));
+  LsrImmediate(result, tags, target::RawObject::kClassIdTagPos, kWord);
+}
+
+void Assembler::ExtractInstanceSizeFromTags(Register result, Register tags) {
+  ASSERT(target::RawObject::kSizeTagPos == 8);
+  ASSERT(target::RawObject::kSizeTagSize == 8);
+  ubfx(result, tags, target::RawObject::kSizeTagPos,
+       target::RawObject::kSizeTagSize);
+  LslImmediate(result, result, target::ObjectAlignment::kObjectAlignmentLog2);
+}
+
 void Assembler::LoadClassId(Register result, Register object) {
   ASSERT(target::RawObject::kClassIdTagPos == 16);
   ASSERT(target::RawObject::kClassIdTagSize == 16);
@@ -1549,7 +1558,7 @@ void Assembler::MonomorphicCheckedEntryJIT() {
 
   Label immediate, miss;
   Bind(&miss);
-  ldr(IP0, Address(THR, target::Thread::monomorphic_miss_entry_offset()));
+  ldr(IP0, Address(THR, target::Thread::switchable_call_miss_entry_offset()));
   br(IP0);
 
   Comment("MonomorphicCheckedEntry");
@@ -1567,7 +1576,7 @@ void Assembler::MonomorphicCheckedEntryJIT() {
   cmp(R1, Operand(IP0, LSL, 1));
   b(&miss, NE);
   str(R2, FieldAddress(R5, count_offset));
-  LoadImmediate(R4, 0);  // GC-safe for OptimizeInvokedFunction.
+  LoadImmediate(R4, 0);  // GC-safe for OptimizeInvokedFunction
 
   // Fall through to unchecked entry.
   ASSERT_EQUAL(CodeSize() - start,
@@ -1587,7 +1596,7 @@ void Assembler::MonomorphicCheckedEntryAOT() {
 
   Label immediate, miss;
   Bind(&miss);
-  ldr(IP0, Address(THR, target::Thread::monomorphic_miss_entry_offset()));
+  ldr(IP0, Address(THR, target::Thread::switchable_call_miss_entry_offset()));
   br(IP0);
 
   Comment("MonomorphicCheckedEntry");
@@ -1734,6 +1743,15 @@ void Assembler::GenerateUnRelocatedPcRelativeCall(intptr_t offset_into_target) {
 
   PcRelativeCallPattern pattern(buffer_.contents() + buffer_.Size() -
                                 PcRelativeCallPattern::kLengthInBytes);
+  pattern.set_distance(offset_into_target);
+}
+
+void Assembler::GenerateUnRelocatedPcRelativeTailCall(
+    intptr_t offset_into_target) {
+  // Emit "b <offset>".
+  EmitUnconditionalBranchOp(B, 0);
+  PcRelativeTailCallPattern pattern(buffer_.contents() + buffer_.Size() -
+                                    PcRelativeTailCallPattern::kLengthInBytes);
   pattern.set_distance(offset_into_target);
 }
 

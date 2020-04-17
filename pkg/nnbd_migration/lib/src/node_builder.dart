@@ -16,7 +16,6 @@ import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:nnbd_migration/src/nullability_node_target.dart';
-import 'package:nnbd_migration/src/potential_modification.dart';
 import 'package:nnbd_migration/src/utilities/completeness_tracker.dart';
 import 'package:nnbd_migration/src/utilities/hint_utils.dart';
 import 'package:nnbd_migration/src/utilities/permissive_mode.dart';
@@ -203,7 +202,6 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
           '(${node.parent.parent.toSource()}) offset=${node.offset}');
     }
     decoratedType.node.trackPossiblyOptional();
-    _variables.recordPossiblyOptional(source, node, decoratedType.node);
     return null;
   }
 
@@ -421,8 +419,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (type.isVoid || type.isDynamic) {
       var nullabilityNode = NullabilityNode.forTypeAnnotation(target);
       var decoratedType = DecoratedType(type, nullabilityNode);
-      _variables.recordDecoratedTypeAnnotation(
-          source, node, decoratedType, null);
+      _variables.recordDecoratedTypeAnnotation(source, node, decoratedType);
       return decoratedType;
     }
     var typeArguments = const <DecoratedType>[];
@@ -495,20 +492,17 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
           positionalParameters: positionalParameters,
           namedParameters: namedParameters);
     }
-    _variables.recordDecoratedTypeAnnotation(
-        source,
-        node,
-        decoratedType,
-        PotentiallyAddQuestionSuffix(
-            nullabilityNode, decoratedType.type, node.end));
-    switch (getPostfixHint(node)) {
+    _variables.recordDecoratedTypeAnnotation(source, node, decoratedType);
+    switch (getPostfixHint(node.endToken)) {
       case NullabilityComment.bang:
         _graph.makeNonNullableUnion(
             decoratedType.node, NullabilityCommentOrigin(source, node, false));
+        _variables.recordNullabilityHint(source, node);
         break;
       case NullabilityComment.question:
         _graph.makeNullableUnion(
             decoratedType.node, NullabilityCommentOrigin(source, node, true));
+        _variables.recordNullabilityHint(source, node);
         break;
       case NullabilityComment.none:
         break;

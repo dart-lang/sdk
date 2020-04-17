@@ -339,7 +339,7 @@ class Extract extends Statement {
 
     void extractType(ConcreteType c) {
       if (c.typeArgs == null) {
-        extractedType = const AnyType();
+        extractedType = const UnknownType();
       } else {
         final interfaceOffset = typeHierarchy.genericInterfaceOffsetFor(
             c.cls.classNode, referenceClass);
@@ -364,12 +364,12 @@ class Extract extends Statement {
             }
           }
         } else {
-          assertx(typeArg is AnyType);
+          assertx(typeArg is UnknownType);
         }
         if (extractedType == null || extracted == extractedType) {
           extractedType = extracted;
         } else {
-          extractedType = const AnyType();
+          extractedType = const UnknownType();
         }
       }
     }
@@ -381,7 +381,7 @@ class Extract extends Statement {
       argType.types.forEach(extractType);
     }
 
-    return extractedType ?? const AnyType();
+    return extractedType ?? const UnknownType();
   }
 }
 
@@ -414,7 +414,7 @@ class CreateConcreteType extends Statement {
     final types = new List<Type>(flattenedTypeArgs.length);
     for (int i = 0; i < types.length; ++i) {
       final computed = flattenedTypeArgs[i].getComputedType(computedTypes);
-      assertx(computed is RuntimeType || computed is AnyType);
+      assertx(computed is RuntimeType || computed is UnknownType);
       if (computed is RuntimeType) hasRuntimeType = true;
       types[i] = computed;
     }
@@ -424,7 +424,7 @@ class CreateConcreteType extends Statement {
 
 // Similar to "CreateConcreteType", but creates a "RuntimeType" rather than a
 // "ConcreteType". Unlike a "ConcreteType", none of the type arguments can be
-// missing ("AnyType").
+// missing ("UnknownType").
 class CreateRuntimeType extends Statement {
   final Class klass;
   final Nullability nullability;
@@ -446,8 +446,8 @@ class CreateRuntimeType extends Statement {
     final types = new List<RuntimeType>(flattenedTypeArgs.length);
     for (int i = 0; i < types.length; ++i) {
       final computed = flattenedTypeArgs[i].getComputedType(computedTypes);
-      assertx(computed is RuntimeType || computed is AnyType);
-      if (computed is AnyType) return const AnyType();
+      assertx(computed is RuntimeType || computed is UnknownType);
+      if (computed is UnknownType) return const UnknownType();
       types[i] = computed;
     }
     return new RuntimeType(new InterfaceType(klass, nullability), types);
@@ -501,11 +501,11 @@ class TypeCheck extends Statement {
     Type argType = arg.getComputedType(computedTypes);
     Type checkType = type.getComputedType(computedTypes);
     // TODO(sjindel/tfa): Narrow the result if possible.
-    assertx(checkType is AnyType || checkType is RuntimeType);
+    assertx(checkType is UnknownType || checkType is RuntimeType);
 
     bool canSkip = true; // Can this check be skipped on this invocation.
 
-    if (checkType is AnyType) {
+    if (checkType is UnknownType) {
       // If we don't know what the RHS of the check is going to be, we can't
       // guarantee that it will pass.
       canSkip = false;

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -79,6 +80,9 @@ class OpType {
 
   /// The suggested completion kind.
   CompletionSuggestionKind suggestKind = CompletionSuggestionKind.INVOCATION;
+
+  /// An representation of the location at which completion was requested.
+  String completionLocation;
 
   /// The type that is required by the context in which the completion was
   /// activated, or `null` if there is no such type, or it cannot be determined.
@@ -226,9 +230,9 @@ class OpType {
 }
 
 class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
-  /// The entity (AstNode or Token) which will be replaced or displaced by the
+  /// The entity (AstNode or Token) that will be replaced or displaced by the
   /// added text.
-  final Object entity;
+  final SyntacticEntity entity;
 
   /// The offset within the source at which the completion is requested.
   final int offset;
@@ -241,9 +245,16 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitAnnotation(Annotation node) {
     if (identical(entity, node.name)) {
+      optype.completionLocation = 'Annotation_name';
       optype.includeTypeNameSuggestions = true;
       optype.includeReturnValueSuggestions = true;
     } else if (identical(entity, node.constructorName)) {
+      // There is no location for the constructor name because only named
+      // constructors are valid.
+      // TODO(brianwilkerson) The following looks wrong. I think we want to set
+      //  includeConstructorSuggestions = true, but not type names or return
+      //  values. On the other hand, I can't construct a test case that reaches
+      //  this point, so perhaps we should just remove this branch.
       optype.includeTypeNameSuggestions = true;
       optype.includeReturnValueSuggestions = true;
       optype.isPrefixed = true;
@@ -282,6 +293,18 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
           optype.includeNamedArgumentSuggestions = true;
         }
       }
+    } else if (parent is SuperConstructorInvocation) {
+      parameters = parent.staticElement?.parameters;
+    } else if (parent is RedirectingConstructorInvocation) {
+      parameters = parent.staticElement?.parameters;
+    } else if (parent is Annotation) {
+      var constructor = parent.element;
+      if (constructor is ConstructorElement) {
+        parameters = constructor.parameters;
+      } else if (constructor == null) {
+        // If unresolved, then include named arguments
+        optype.includeNamedArgumentSuggestions = true;
+      }
     }
     // Based upon the insertion location and declared parameters
     // determine whether only named arguments should be suggested
@@ -303,11 +326,15 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       if (0 <= index && index < parameters.length) {
         var param = parameters[index];
         if (param?.isNamed == true) {
+          var context = _argumentListContext(node);
+          optype.completionLocation = 'ArgumentList_${context}_named';
           optype.includeNamedArgumentSuggestions = true;
           return;
         }
       }
     }
+    var context = _argumentListContext(node);
+    optype.completionLocation = 'ArgumentList_${context}_unnamed';
     optype.includeReturnValueSuggestions = true;
     optype.includeTypeNameSuggestions = true;
   }
@@ -315,6 +342,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitAsExpression(AsExpression node) {
     if (identical(entity, node.type)) {
+      optype.completionLocation = 'AsExpression_type';
       optype.includeTypeNameSuggestions = true;
       optype.typeNameSuggestionsFilter = (DartType dartType, int relevance) {
         var staticType = node.expression.staticType;
@@ -333,22 +361,33 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitAssertInitializer(AssertInitializer node) {
     if (identical(entity, node.condition)) {
+      optype.completionLocation = 'AssertInitializer_condition';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
+    } else if (identical(entity, node.message)) {
+      optype.completionLocation = 'AssertInitializer_message';
+      // TODO(brianwilkerson) Consider including return value suggestions and
+      //  type name suggestions here.
     }
   }
 
   @override
   void visitAssertStatement(AssertStatement node) {
     if (identical(entity, node.condition)) {
+      optype.completionLocation = 'AssertStatement_condition';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
+    } else if (identical(entity, node.message)) {
+      optype.completionLocation = 'AssertStatement_message';
+      // TODO(brianwilkerson) Consider including return value suggestions and
+      //  type name suggestions here.
     }
   }
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
     if (identical(entity, node.rightHandSide)) {
+      optype.completionLocation = 'AssignmentExpression_rightHandSide';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     }
@@ -357,6 +396,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitAwaitExpression(AwaitExpression node) {
     if (identical(entity, node.expression)) {
+      optype.completionLocation = 'AwaitExpression_expression';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     }
@@ -365,6 +405,8 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitBinaryExpression(BinaryExpression node) {
     if (identical(entity, node.rightOperand)) {
+      optype.completionLocation =
+          'BinaryExpression_${node.operator}_rightOperand';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     }
@@ -372,6 +414,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitBlock(Block node) {
+    optype.completionLocation = 'Block_statement';
     var prevStmt = OpType.getPreviousStatement(node, entity);
     if (prevStmt is TryStatement) {
       if (prevStmt.catchClauses.isEmpty && prevStmt.finallyBlock == null) {
@@ -393,6 +436,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitCascadeExpression(CascadeExpression node) {
     if (node.cascadeSections.contains(entity)) {
+      optype.completionLocation = 'CascadeExpression_cascadeSection';
       optype.includeReturnValueSuggestions = true;
       optype.includeVoidReturnSuggestions = true;
       optype.isPrefixed = true;
@@ -402,6 +446,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitCatchClause(CatchClause node) {
     if (identical(entity, node.exceptionType)) {
+      optype.completionLocation = 'CatchClause_exceptionType';
       optype.includeTypeNameSuggestions = true;
     }
   }
@@ -410,6 +455,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   void visitClassDeclaration(ClassDeclaration node) {
     // Make suggestions in the body of the class declaration
     if (node.members.contains(entity) || identical(entity, node.rightBracket)) {
+      optype.completionLocation = 'ClassDeclaration_member';
       optype.includeTypeNameSuggestions = true;
     }
   }
@@ -418,7 +464,16 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   void visitClassMember(ClassMember node) {}
 
   @override
+  void visitClassTypeAlias(ClassTypeAlias node) {
+    if (identical(entity, node.superclass)) {
+      optype.completionLocation = 'ClassTypeAlias_superclass';
+      optype.includeTypeNameSuggestions = true;
+    }
+  }
+
+  @override
   void visitCommentReference(CommentReference node) {
+    optype.completionLocation = 'CommentReference_identifier';
     optype.includeReturnValueSuggestions = true;
     optype.includeTypeNameSuggestions = true;
     optype.includeVoidReturnSuggestions = true;
@@ -428,19 +483,54 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitCompilationUnit(CompilationUnit node) {
     if (entity is! CommentToken) {
+      int declarationStart() {
+        var declarations = node.declarations;
+        if (declarations.isNotEmpty) {
+          return declarations[0].offset;
+        }
+        var directives = node.directives;
+        if (directives.isNotEmpty) {
+          return directives.last.end;
+        }
+        return node.end;
+      }
+
+      if (entity != null) {
+        if (entity.offset <= declarationStart()) {
+          optype.completionLocation = 'CompilationUnit_declaration';
+        } else {
+          optype.completionLocation = 'CompilationUnit_declaration';
+        }
+      }
       optype.includeTypeNameSuggestions = true;
     }
   }
 
   @override
   void visitConditionalExpression(ConditionalExpression node) {
+    if (identical(entity, node.thenExpression)) {
+      optype.completionLocation = 'ConditionalExpression_thenExpression';
+    } else if (identical(entity, node.elseExpression)) {
+      optype.completionLocation = 'ConditionalExpression_elseExpression';
+    }
     optype.includeReturnValueSuggestions = true;
     optype.includeTypeNameSuggestions = true;
   }
 
   @override
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
+    if (identical(entity, node.returnType)) {
+      optype.completionLocation = 'ConstructorDeclaration_returnType';
+      optype.includeTypeNameSuggestions = true;
+    } else if (node.initializers.contains(entity)) {
+      optype.completionLocation = 'ConstructorDeclaration_initializer';
+    }
+  }
+
+  @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     if (identical(entity, node.expression)) {
+      optype.completionLocation = 'ConstructorFieldInitializer_expression';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     }
@@ -473,6 +563,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
     if (identical(entity, node.defaultValue)) {
+      optype.completionLocation = 'DefaultFormalParameter_defaultValue';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     }
@@ -480,7 +571,10 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitDoStatement(DoStatement node) {
-    if (identical(entity, node.condition)) {
+    if (identical(entity, node.body)) {
+      optype.completionLocation = 'DoStatement_body';
+    } else if (identical(entity, node.condition)) {
+      optype.completionLocation = 'DoStatement_condition';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     }
@@ -503,6 +597,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
     if (identical(entity, node.expression)) {
+      optype.completionLocation = 'ExpressionFunctionBody_expression';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     }
@@ -510,6 +605,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitExpressionStatement(ExpressionStatement node) {
+    optype.completionLocation = 'ExpressionStatement_expression';
     // Given f[], the parser drops the [] from the expression statement
     // but the [] token is the CompletionTarget entity
     if (entity is Token) {
@@ -528,6 +624,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitExtendsClause(ExtendsClause node) {
     if (identical(entity, node.superclass)) {
+      optype.completionLocation = 'ExtendsClause_superclass';
       optype.includeTypeNameSuggestions = true;
       optype.typeNameSuggestionsFilter = _nonMixinClasses;
     }
@@ -535,8 +632,12 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
-    // Make suggestions in the body of the extension declaration
-    if (node.members.contains(entity) || identical(entity, node.rightBracket)) {
+    if (identical(entity, node.extendedType)) {
+      optype.completionLocation = 'ExtensionDeclaration_extendedType';
+    } else if (node.members.contains(entity) ||
+        identical(entity, node.rightBracket)) {
+      // Make suggestions in the body of the extension declaration
+      optype.completionLocation = 'ExtensionDeclaration_member';
       optype.includeTypeNameSuggestions = true;
     }
   }
@@ -545,6 +646,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   void visitFieldDeclaration(FieldDeclaration node) {
     if (offset <= node.semicolon.offset) {
       optype.includeVarNameSuggestions = true;
+    }
+    if (offset <= node.fields.offset) {
+      optype.includeTypeNameSuggestions = true;
     }
   }
 
@@ -560,24 +664,38 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitForEachParts(ForEachParts node) {
-    if (node is ForEachPartsWithIdentifier &&
-        identical(entity, node.identifier)) {
-      optype.includeTypeNameSuggestions = true;
-    }
-    if (node is ForEachPartsWithDeclaration &&
-        identical(entity, node.loopVariable)) {
-      optype.includeTypeNameSuggestions = true;
-    }
     if (identical(entity, node.inKeyword) && offset <= node.inKeyword.offset) {
       if (!(node is ForEachPartsWithIdentifier && node.identifier != null ||
           node is ForEachPartsWithDeclaration && node.loopVariable != null)) {
         optype.includeTypeNameSuggestions = true;
       }
     }
-    if (identical(entity, node.iterable)) {
+  }
+
+  @override
+  void visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
+    if (identical(entity, node.loopVariable)) {
+      optype.completionLocation = 'ForEachPartsWithDeclaration_loopVariable';
+      optype.includeTypeNameSuggestions = true;
+    } else if (identical(entity, node.iterable)) {
+      optype.completionLocation = 'ForEachPartsWithDeclaration_iterable';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     }
+    visitForEachParts(node);
+  }
+
+  @override
+  void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
+    if (identical(entity, node.identifier)) {
+      optype.completionLocation = 'ForEachPartsWithIdentifier_identifier';
+      optype.includeTypeNameSuggestions = true;
+    } else if (identical(entity, node.iterable)) {
+      optype.completionLocation = 'ForEachPartsWithIdentifier_iterable';
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+    }
+    visitForEachParts(node);
   }
 
   @override
@@ -588,9 +706,8 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
     // but for any practical use we need only types.
     if (entity == node.forLoopParts) {
       optype.includeTypeNameSuggestions = true;
-    }
-
-    if (entity == node.body) {
+    } else if (entity == node.body) {
+      optype.completionLocation = 'ForElement_body';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     }
@@ -598,7 +715,8 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitFormalParameterList(FormalParameterList node) {
-    dynamic entity = this.entity;
+    optype.completionLocation = 'FormalParameterList_parameter';
+    var entity = this.entity;
     if (entity is Token) {
       var previous = node.findPrevious(entity);
       if (previous != null) {
@@ -646,13 +764,14 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       //                    ^
       optype.includeVarNameSuggestions = true;
     } else {
-      // for (; ^) {}
       if (entity == node.condition) {
+        // for (; ^) {}
+        optype.completionLocation = 'ForParts_condition';
         optype.includeTypeNameSuggestions = true;
         optype.includeReturnValueSuggestions = true;
-      }
-      // for (; ; ^) {}
-      if (node.updaters.contains(entity)) {
+      } else if (node.updaters.contains(entity)) {
+        // for (; ; ^) {}
+        optype.completionLocation = 'ForParts_updater';
         optype.includeTypeNameSuggestions = true;
         optype.includeReturnValueSuggestions = true;
         optype.includeVoidReturnSuggestions = true;
@@ -668,6 +787,8 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
     // but for any practical use we need only types.
     if (entity == node.forLoopParts) {
       optype.includeTypeNameSuggestions = true;
+    } else if (entity == node.body) {
+      optype.completionLocation = 'ForElement_body';
     }
   }
 
@@ -694,12 +815,32 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitGenericTypeAlias(GenericTypeAlias node) {
+    if (entity == node.functionType) {
+      optype.completionLocation = 'GenericTypeAlias_functionType';
+    }
+  }
+
+  @override
+  void visitHideCombinator(HideCombinator node) {
+    if (node.hiddenNames.contains(entity)) {
+      optype.completionLocation = 'HideCombinator_hiddenName';
+    }
+  }
+
+  @override
   void visitIfElement(IfElement node) {
     if (identical(entity, node.condition)) {
+      optype.completionLocation = 'IfElement_condition';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
-    } else if (identical(entity, node.thenElement) ||
-        identical(entity, node.elseElement)) {
+    } else if (identical(entity, node.thenElement)) {
+      optype.completionLocation = 'IfElement_thenElement';
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+      optype.includeVoidReturnSuggestions = true;
+    } else if (identical(entity, node.elseElement)) {
+      optype.completionLocation = 'IfElement_elseElement';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
       optype.includeVoidReturnSuggestions = true;
@@ -712,10 +853,16 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       // Actual: if (var v i^)
       // Parsed: if (v) i^;
     } else if (identical(entity, node.condition)) {
+      optype.completionLocation = 'IfStatement_condition';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
-    } else if (identical(entity, node.thenStatement) ||
-        identical(entity, node.elseStatement)) {
+    } else if (identical(entity, node.thenStatement)) {
+      optype.completionLocation = 'IfStatement_thenElement';
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+      optype.includeVoidReturnSuggestions = true;
+    } else if (identical(entity, node.elseStatement)) {
+      optype.completionLocation = 'IfStatement_elseElement';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
       optype.includeVoidReturnSuggestions = true;
@@ -724,11 +871,13 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitImplementsClause(ImplementsClause node) {
+    optype.completionLocation = 'ImplementsClause_interface';
     optype.includeTypeNameSuggestions = true;
   }
 
   @override
   void visitIndexExpression(IndexExpression node) {
+    optype.completionLocation = 'IndexExpression_index';
     optype.includeReturnValueSuggestions = true;
     optype.includeTypeNameSuggestions = true;
   }
@@ -743,6 +892,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitInterpolationExpression(InterpolationExpression node) {
     if (identical(entity, node.expression)) {
+      optype.completionLocation = 'InterpolationExpression_expression';
       optype.includeReturnValueSuggestions = true;
       // Only include type names in a ${ } expression
       optype.includeTypeNameSuggestions =
@@ -753,6 +903,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitIsExpression(IsExpression node) {
     if (identical(entity, node.type)) {
+      optype.completionLocation = 'IsExpression_type';
       optype.includeTypeNameSuggestions = true;
       optype.typeNameSuggestionsFilter = (DartType dartType, int relevance) {
         var staticType = node.expression.staticType;
@@ -769,12 +920,26 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitLabeledStatement(LabeledStatement node) {
+    optype.completionLocation = 'LabeledStatement_statement';
+  }
+
+  @override
   void visitLibraryIdentifier(LibraryIdentifier node) {
     // No suggestions.
   }
 
   @override
+  void visitListLiteral(ListLiteral node) {
+    if (node.elements.contains(entity)) {
+      optype.completionLocation = 'ListLiteral_element';
+    }
+    visitTypedLiteral(node);
+  }
+
+  @override
   void visitMapLiteralEntry(MapLiteralEntry node) {
+    optype.completionLocation = 'MapLiteralEntry_value';
     optype.includeReturnValueSuggestions = true;
     optype.includeTypeNameSuggestions = true;
   }
@@ -811,6 +976,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   void visitMixinDeclaration(MixinDeclaration node) {
     // Make suggestions in the body of the mixin declaration
     if (node.members.contains(entity) || identical(entity, node.rightBracket)) {
+      optype.completionLocation = 'MixinDeclaration_member';
       optype.includeTypeNameSuggestions = true;
     }
   }
@@ -818,6 +984,8 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitNamedExpression(NamedExpression node) {
     if (identical(entity, node.expression)) {
+      var context = _argumentListContext(node.parent);
+      optype.completionLocation = 'ArgumentList_${context}_named';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
 
@@ -857,12 +1025,14 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitOnClause(OnClause node) {
+    optype.completionLocation = 'OnClause_superclassConstraint';
     optype.includeTypeNameSuggestions = true;
   }
 
   @override
   void visitParenthesizedExpression(ParenthesizedExpression node) {
     if (identical(entity, node.expression)) {
+      optype.completionLocation = 'ParenthesizedExpression_expression';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     }
@@ -891,6 +1061,8 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       optype.isPrefixed = true;
       if (node.parent is TypeName && node.parent.parent is ConstructorName) {
         optype.includeConstructorSuggestions = true;
+      } else if (node.parent is Annotation) {
+        optype.includeConstructorSuggestions = true;
       } else {
         optype.includeReturnValueSuggestions = true;
         optype.includeTypeNameSuggestions = true;
@@ -903,6 +1075,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitPrefixExpression(PrefixExpression node) {
     if (identical(entity, node.operand)) {
+      optype.completionLocation = 'PrefixExpression_${node.operator}_operand';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     }
@@ -919,11 +1092,13 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
     if (identical(entity, node.operator) && offset > node.operator.offset) {
       // The cursor is between the two dots of a ".." token, so we need to
       // generate the completions we would generate after a "." token.
+      optype.completionLocation = 'PropertyAccess_propertyName';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = !isThis;
       optype.includeVoidReturnSuggestions = true;
       optype.isPrefixed = true;
     } else if (identical(entity, node.propertyName)) {
+      optype.completionLocation = 'PropertyAccess_propertyName';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions =
           !isThis && (node.parent is! CascadeExpression);
@@ -935,8 +1110,24 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitReturnStatement(ReturnStatement node) {
     if (identical(entity, node.expression)) {
+      optype.completionLocation = 'ReturnStatement_expression';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
+    }
+  }
+
+  @override
+  void visitSetOrMapLiteral(SetOrMapLiteral node) {
+    if (node.elements.contains(entity)) {
+      optype.completionLocation = 'SetOrMapLiteral_element';
+    }
+    visitTypedLiteral(node);
+  }
+
+  @override
+  void visitShowCombinator(ShowCombinator node) {
+    if (node.shownNames.contains(entity)) {
+      optype.completionLocation = 'ShowCombinator_shownName';
     }
   }
 
@@ -1006,6 +1197,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitSpreadElement(SpreadElement node) {
     if (identical(entity, node.expression)) {
+      optype.completionLocation = 'SpreadElement_expression';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     }
@@ -1019,9 +1211,11 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitSwitchCase(SwitchCase node) {
     if (identical(entity, node.expression)) {
+      optype.completionLocation = 'SwitchCase_expression';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     } else if (node.statements.contains(entity)) {
+      optype.completionLocation = 'SwitchCase_statement';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
       optype.includeVoidReturnSuggestions = true;
@@ -1031,11 +1225,13 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitSwitchStatement(SwitchStatement node) {
     if (identical(entity, node.expression)) {
+      optype.completionLocation = 'SwitchStatement_expression';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     }
     if (identical(entity, node.rightBracket)) {
       if (node.members.isNotEmpty) {
+        optype.completionLocation = 'SwitchMember_statement';
         optype.includeReturnValueSuggestions = true;
         optype.includeTypeNameSuggestions = true;
         optype.includeVoidReturnSuggestions = true;
@@ -1044,6 +1240,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
     if (entity is SwitchMember && entity != node.members.first) {
       var member = entity as SwitchMember;
       if (offset <= member.offset) {
+        optype.completionLocation = 'SwitchMember_statement';
         optype.includeReturnValueSuggestions = true;
         optype.includeTypeNameSuggestions = true;
         optype.includeVoidReturnSuggestions = true;
@@ -1053,6 +1250,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitThrowExpression(ThrowExpression node) {
+    optype.completionLocation = 'ThrowExpression_expression';
     optype.includeReturnValueSuggestions = true;
     optype.includeTypeNameSuggestions = true;
   }
@@ -1065,6 +1263,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
         optype.includeVarNameSuggestions = true;
       }
     }
+    if (offset <= node.variables.offset) {
+      optype.includeTypeNameSuggestions = true;
+    }
   }
 
   @override
@@ -1072,6 +1273,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
     var arguments = node.arguments;
     for (var type in arguments) {
       if (identical(entity, type)) {
+        optype.completionLocation = 'TypeArgumentList_argument';
         optype.includeTypeNameSuggestions = true;
         break;
       }
@@ -1096,6 +1298,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitTypeParameter(TypeParameter node) {
+    if (entity == node.bound) {
+      optype.completionLocation = 'TypeParameter_bound';
+    }
     optype.includeTypeNameSuggestions = true;
   }
 
@@ -1103,6 +1308,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   void visitVariableDeclaration(VariableDeclaration node) {
     // Make suggestions for the RHS of a variable declaration
     if (identical(entity, node.initializer)) {
+      optype.completionLocation = 'VariableDeclaration_initializer';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     }
@@ -1125,22 +1331,61 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitWhileStatement(WhileStatement node) {
     if (identical(entity, node.condition)) {
+      optype.completionLocation = 'WhileStatement_condition';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
+    } else if (identical(entity, node.body)) {
+      optype.completionLocation = 'WhileStatement_body';
     }
   }
 
   @override
   void visitWithClause(WithClause node) {
+    if (node.mixinTypes.contains(entity)) {
+      optype.completionLocation = 'WithClause_mixinType';
+    }
     optype.includeTypeNameSuggestions = true;
   }
 
   @override
   void visitYieldStatement(YieldStatement node) {
     if (identical(entity, node.expression)) {
+      optype.completionLocation = 'YieldStatement_expression';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     }
+  }
+
+  /// Return the context in which the [node] occurs. The [node] is expected to
+  /// be the parent of the argument expression.
+  String _argumentListContext(AstNode node) {
+    if (node is ArgumentList) {
+      var parent = node.parent;
+      if (parent is InstanceCreationExpression) {
+        // TODO(brianwilkerson) Enable this case.
+//        if (flutter.isWidgetType(parent.staticType)) {
+//          return 'widgetConstructor';
+//        }
+        return 'constructor';
+      } else if (parent is MethodInvocation) {
+        return 'method';
+      } else if (parent is FunctionExpressionInvocation) {
+        return 'function';
+      } else if (parent is SuperConstructorInvocation ||
+          parent is RedirectingConstructorInvocation) {
+        return 'constructorRedirect';
+      } else if (parent is Annotation) {
+        return 'annotation';
+      }
+    } else if (node is IndexExpression) {
+      return 'index';
+    } else if (node is AssignmentExpression ||
+        node is BinaryExpression ||
+        node is PrefixExpression ||
+        node is PostfixExpression) {
+      return 'operator';
+    }
+    throw ArgumentError('Unknown parent of ${node.runtimeType}');
   }
 
   bool _isEntityPrevTokenSynthetic() {

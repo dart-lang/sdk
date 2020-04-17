@@ -119,18 +119,18 @@ Try calling using ?. instead.
                         ^" in a as{TypeError} () →? void;
 }
 static method ok<T extends core::Object? = core::Object?>(core::String? s, self::A? a, self::ok::T% t, self::B? b, core::Invocation i) → dynamic {
-  s.{core::String::==}(s);
+  s.{core::Object::==}(s);
   a.{core::Object::==}(a);
   t.{core::Object::==}(t);
   b.{core::Object::==}(b);
-  s.{core::String::hashCode};
+  s.{core::Object::hashCode};
   a.{core::Object::hashCode};
   t.{core::Object::hashCode};
   b.{core::Object::hashCode};
   s.{core::Object::toString}();
   a.{core::Object::toString}();
   t.{core::Object::toString}();
-  b.{self::B::toString}();
+  b.{core::Object::toString}();
   try {
     s.{core::Object::noSuchMethod}(i);
   }

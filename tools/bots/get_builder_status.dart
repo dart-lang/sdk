@@ -120,7 +120,6 @@ void printResults() async {
   if (builder.endsWith('-try')) return;
   configurations = await getConfigurations();
   await printActiveFailures();
-  await printResultsFeedLink();
 }
 
 Future<List<String>> getConfigurations() async {
@@ -196,20 +195,6 @@ Future<void> printActiveFailures() async {
       ].join(''));
     }
   }
-}
-
-void printResultsFeedLink() async {
-  if (builder.endsWith('-try')) return;
-  final groups = {
-    for (final configuration in configurations) configuration.split('-').first
-  };
-  String fragment = [
-    'showLatestFailures=true',
-    'showUnapprovedOnly=true',
-    if (groups.isNotEmpty) 'configurationGroups=${groups.join(',')}'
-  ].join('&');
-  final link = 'https://dart-ci.firebaseapp.com/#$fragment';
-  print('\nFailures link: $link');
 }
 
 Future<http.Response> runFirestoreQuery(String query) {

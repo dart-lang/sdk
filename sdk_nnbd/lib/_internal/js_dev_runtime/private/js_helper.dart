@@ -190,7 +190,6 @@ class Primitives {
     if (timerFrequency != 0) return;
     // Start with low-resolution. We overwrite the fields if we find better.
     timerFrequency = 1000;
-    timerTicks = dateNow;
     if (JS<bool>('!', 'typeof window == "undefined"')) return;
     var jsWindow = JS('var', 'window');
     if (jsWindow == null) return;
@@ -203,7 +202,7 @@ class Primitives {
 
   /// 0 frequency indicates the default uninitialized state.
   static int timerFrequency = 0;
-  static late int Function() timerTicks;
+  static int Function() timerTicks = dateNow; // Low-resolution version.
 
   static bool get isD8 {
     return JS(

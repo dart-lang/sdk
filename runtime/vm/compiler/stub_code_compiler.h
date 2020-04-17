@@ -8,14 +8,38 @@
 #include "vm/allocation.h"
 #include "vm/compiler/runtime_api.h"
 #include "vm/constants.h"
+#include "vm/growable_array.h"
 #include "vm/stub_code_list.h"
 
 namespace dart {
+
+// Forward declarations.
+class Code;
 
 namespace compiler {
 
 // Forward declarations.
 class Assembler;
+
+// Represents an unresolved PC-relative Call/TailCall.
+class UnresolvedPcRelativeCall : public ZoneAllocated {
+ public:
+  UnresolvedPcRelativeCall(intptr_t offset,
+                           const dart::Code& target,
+                           bool is_tail_call)
+      : offset_(offset), target_(target), is_tail_call_(is_tail_call) {}
+
+  intptr_t offset() const { return offset_; }
+  const dart::Code& target() const { return target_; }
+  bool is_tail_call() const { return is_tail_call_; }
+
+ private:
+  const intptr_t offset_;
+  const dart::Code& target_;
+  const bool is_tail_call_;
+};
+
+using UnresolvedPcRelativeCalls = GrowableArray<UnresolvedPcRelativeCall*>;
 
 class StubCodeCompiler : public AllStatic {
  public:
@@ -27,14 +51,22 @@ class StubCodeCompiler : public AllStatic {
 #endif
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+  static RawArray* BuildStaticCallsTable(
+      Zone* zone,
+      compiler::UnresolvedPcRelativeCalls* unresolved_calls);
+
 #define STUB_CODE_GENERATE(name)                                               \
   static void Generate##name##Stub(Assembler* assembler);
   VM_STUB_CODE_LIST(STUB_CODE_GENERATE)
 #undef STUB_CODE_GENERATE
 
-  static void GenerateMegamorphicMissStub(Assembler* assembler);
-  static void GenerateAllocationStubForClass(Assembler* assembler,
-                                             const Class& cls);
+  static void GenerateMegamorphicCallMissStub(Assembler* assembler);
+  static void GenerateAllocationStubForClass(
+      Assembler* assembler,
+      UnresolvedPcRelativeCalls* unresolved_calls,
+      const Class& cls,
+      const dart::Code& allocate_object,
+      const dart::Code& allocat_object_parametrized);
 
   enum Optimized {
     kUnoptimized,

@@ -135,12 +135,12 @@ void _call(initPort) {
 void testUnsendable(name, func) {
   asyncStart();
   Isolate.spawnUri(Uri.parse("function_send_test.dart"), [], func)
-      .then((v) => throw "allowed spawn direct?", onError: (e, s) {
+      .then<void>((v) => throw "allowed spawn direct?", onError: (e, s) {
     asyncEnd();
   });
   asyncStart();
   Isolate.spawnUri(Uri.parse("function_send_test.dart"), [], [func])
-      .then((v) => throw "allowed spawn wrapped?", onError: (e, s) {
+      .then<void>((v) => throw "allowed spawn wrapped?", onError: (e, s) {
     asyncEnd();
   });
 }

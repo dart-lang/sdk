@@ -447,15 +447,8 @@ class ContextsPage extends DiagnosticPageWithNav {
     b.write(writeOption('Feature set', options.contextFeatures.toString()));
     b.write('<br>');
 
-    b.write(
-        writeOption('Analyze function bodies', options.analyzeFunctionBodies));
     b.write(writeOption('Generate dart2js hints', options.dart2jsHint));
-    b.write(writeOption(
-        'Generate errors in implicit files', options.generateImplicitErrors));
-    b.write(
-        writeOption('Generate errors in SDK files', options.generateSdkErrors));
     b.write(writeOption('Generate hints', options.hint));
-    b.write(writeOption('Preserve comments', options.preserveComments));
 
     return b.toString();
   }

@@ -16,6 +16,14 @@ typedef T<X extends A> = X;
 
 // Use the aliased type.
 
+class C {
+  final T v12;
+
+  C(): v12 = T();
+  //         ^
+  // [analyzer] unspecified
+  // [cfe] unspecified
+}
 
 abstract class D2 extends C with T {}
 //             ^
@@ -28,6 +36,22 @@ abstract class D4 = C with T;
 // [cfe] unspecified
 
 main() {
+  var v14 = <Set<T>, Set<T>>{{}: {}};
+  v14[{}] = {T()};
+  //         ^
+  // [analyzer] unspecified
+  // [cfe] unspecified
+
+  T();
+//^
+// [analyzer] unspecified
+// [cfe] unspecified
+
+  T v17 = foo<T>(T());
+  //             ^
+  // [analyzer] unspecified
+  // [cfe] unspecified
+
   T.named();
 //^
 // [analyzer] unspecified

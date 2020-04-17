@@ -4477,6 +4477,48 @@ TEST_CASE(IsolateReload_PatchStaticInitializerWithClosure) {
   EXPECT_STREQ("ac", SimpleInvokeStr(lib, "main"));
 }
 
+TEST_CASE(IsolateReload_StaticTargetArityChange) {
+  const char* kScript = R"(
+    class A {
+      final x;
+      final y;
+      const A(this.x, this.y);
+    }
+
+    dynamic closure;
+
+    main() {
+      closure = () => A(1, 2);
+      return "okay";
+    }
+  )";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript = R"(
+    class A {
+      final x;
+      const A(this.x);
+    }
+
+    dynamic closure;
+
+    main() {
+      // Call the old closure, which will try to call A(1, 2).
+      closure();
+
+      return "okay";
+    }
+  )";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_ERROR(SimpleInvokeError(lib, "main"),
+               "Unimplemented handling of static target arity change");
+}
+
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace dart

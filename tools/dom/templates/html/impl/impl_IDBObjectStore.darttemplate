@@ -141,7 +141,7 @@ $!MEMBERS
     request.onError.listen(controller.addError);
 
     request.onSuccess.listen((e) {
-      T cursor = request.result as dynamic;
+      T$NULLABLE cursor = request.result as dynamic;
       if (cursor == null) {
         controller.close();
       } else {

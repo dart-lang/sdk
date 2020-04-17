@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/protocol_server.dart'
     hide Element, ElementKind;
@@ -19,7 +20,8 @@ import 'package:meta/meta.dart';
 
 /// Return a suggestion based upon the given element or `null` if a suggestion
 /// is not appropriate for the given element.
-CompletionSuggestion createSuggestion(Element element,
+CompletionSuggestion createSuggestion(
+    DartCompletionRequest request, Element element,
     {String completion,
     CompletionSuggestionKind kind,
     int relevance = DART_RELEVANCE_DEFAULT,
@@ -41,9 +43,12 @@ CompletionSuggestion createSuggestion(Element element,
       kind, relevance, completion, completion.length, 0, isDeprecated, false);
 
   // Attach docs.
-  var doc = getDartDocPlainText(element.documentationComment);
-  suggestion.docComplete = doc;
-  suggestion.docSummary = getDartDocSummary(doc);
+  var doc = DartUnitHoverComputer.computeDocumentation(
+      request.dartdocDirectiveInfo, element);
+  if (doc != null) {
+    suggestion.docComplete = doc;
+    suggestion.docSummary = getDartDocSummary(doc);
+  }
 
   suggestion.element = protocol.convertElement(element);
   var enclosingElement = element.enclosingElement;
@@ -96,6 +101,9 @@ mixin ElementSuggestionBuilder {
   /// Return the kind of suggestions that should be built.
   CompletionSuggestionKind get kind;
 
+  /// Return the completion request for which suggestions are being built.
+  DartCompletionRequest get request;
+
   /// Add a suggestion based upon the given element.
   CompletionSuggestion addSuggestion(Element element,
       {String prefix,
@@ -118,7 +126,7 @@ mixin ElementSuggestionBuilder {
     if (completion == null || completion.isEmpty) {
       return null;
     }
-    var suggestion = createSuggestion(element,
+    var suggestion = createSuggestion(request, element,
         completion: completion,
         kind: kind,
         relevance: relevance,
@@ -168,7 +176,7 @@ mixin ElementSuggestionBuilder {
 /// This class creates suggestions based on top-level elements.
 class LibraryElementSuggestionBuilder extends SimpleElementVisitor<void>
     with ElementSuggestionBuilder {
-  /// The completion request for which suggestions are being built.
+  @override
   final DartCompletionRequest request;
 
   @override
@@ -495,7 +503,7 @@ class MemberSuggestionBuilder {
       assert(false);
       return null;
     }
-    var suggestion = createSuggestion(element,
+    var suggestion = createSuggestion(request, element,
         kind: kind, relevance: relevance, useNewRelevance: useNewRelevance);
     if (suggestion != null) {
       addCompletionSuggestion(suggestion);

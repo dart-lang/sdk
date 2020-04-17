@@ -167,6 +167,11 @@ class RawObject {
       return SizeBits::update(SizeToTagValue(size), tag);
     }
 
+    static UNLESS_DEBUG(constexpr) bool SizeFits(intptr_t size) {
+      DEBUG_ASSERT(Utils::IsAligned(size, kObjectAlignment));
+      return (size <= kMaxSizeTag);
+    }
+
    private:
     // The actual unscaled bit field used within the tag field.
     class SizeBits
@@ -174,7 +179,7 @@ class RawObject {
 
     static UNLESS_DEBUG(constexpr) intptr_t SizeToTagValue(intptr_t size) {
       DEBUG_ASSERT(Utils::IsAligned(size, kObjectAlignment));
-      return (size > kMaxSizeTag) ? 0 : (size >> kObjectAlignmentLog2);
+      return !SizeFits(size) ? 0 : (size >> kObjectAlignmentLog2);
     }
     static constexpr intptr_t TagValueToSize(intptr_t value) {
       return value << kObjectAlignmentLog2;
@@ -437,7 +442,7 @@ class RawObject {
       // leading to inconsistency between HeapSizeFromClass() and
       // SizeTag::decode(tags). We are working around it by reloading tags_ and
       // recomputing size from tags.
-      const intptr_t size_from_class = HeapSizeFromClass();
+      const intptr_t size_from_class = HeapSizeFromClass(tags);
       if ((result > size_from_class) && (GetClassId() == kArrayCid) &&
           (ptr()->tags_) != tags) {
         result = SizeTag::decode(ptr()->tags_);
@@ -446,7 +451,19 @@ class RawObject {
 #endif
       return result;
     }
-    result = HeapSizeFromClass();
+    result = HeapSizeFromClass(tags);
+    ASSERT(result > SizeTag::kMaxSizeTag);
+    return result;
+  }
+
+  // This variant must not deference ptr()->tags_.
+  intptr_t HeapSize(uint32_t tags) const {
+    ASSERT(IsHeapObject());
+    intptr_t result = SizeTag::decode(tags);
+    if (result != 0) {
+      return result;
+    }
+    result = HeapSizeFromClass(tags);
     ASSERT(result > SizeTag::kMaxSizeTag);
     return result;
   }
@@ -605,7 +622,7 @@ class RawObject {
   intptr_t VisitPointersPredefined(ObjectPointerVisitor* visitor,
                                    intptr_t class_id);
 
-  intptr_t HeapSizeFromClass() const;
+  intptr_t HeapSizeFromClass(uint32_t tags) const;
 
   void SetClassId(intptr_t new_cid) {
     ptr()->tags_.UpdateUnsynchronized<ClassIdTag>(new_cid);
@@ -761,7 +778,8 @@ class RawObject {
   friend class OneByteString;  // StoreSmi
   friend class RawInstance;
   friend class Scavenger;
-  friend class ScavengerVisitor;
+  template <bool>
+  friend class ScavengerVisitorBase;
   friend class ImageReader;  // tags_ check
   friend class ImageWriter;
   friend class AssemblyImageWriter;
@@ -781,6 +799,7 @@ class RawObject {
   friend class ObjectLocator;
   friend class WriteBarrierUpdateVisitor;  // CheckHeapPointerStore
   friend class OffsetsTable;
+  friend class Object;
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(RawObject);
@@ -2095,13 +2114,21 @@ class RawMonomorphicSmiableCall : public RawObject {
   RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 };
 
-class RawICData : public RawObject {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(ICData);
-
-  VISIT_FROM(RawObject*, entries_);
-  RawArray* entries_;          // Contains class-ids, target and count.
+// Abstract base class for RawICData/RawMegamorphicCache
+class RawCallSiteData : public RawObject {
+ protected:
   RawString* target_name_;     // Name of target function.
+  // arg_descriptor in RawICData and in RawMegamorphicCache should be
+  // in the same position so that NoSuchMethod can access it.
   RawArray* args_descriptor_;  // Arguments descriptor.
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(CallSiteData)
+};
+
+class RawICData : public RawCallSiteData {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(ICData);
+  VISIT_FROM(RawObject*, target_name_);
+  RawArray* entries_;  // Contains class-ids, target and count.
   // Static type of the receiver, if instance call and available.
   NOT_IN_PRECOMPILED(RawAbstractType* receivers_static_type_);
   RawObject* owner_;  // Parent/calling function or original IC of cloned IC.
@@ -2109,7 +2136,7 @@ class RawICData : public RawObject {
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:
-        return reinterpret_cast<RawObject**>(&ptr()->args_descriptor_);
+        return reinterpret_cast<RawObject**>(&ptr()->entries_);
       case Snapshot::kFull:
       case Snapshot::kFullJIT:
         return to();
@@ -2125,15 +2152,12 @@ class RawICData : public RawObject {
   uint32_t state_bits_;  // Number of arguments tested in IC, deopt reasons.
 };
 
-class RawMegamorphicCache : public RawObject {
+class RawMegamorphicCache : public RawCallSiteData {
   RAW_HEAP_OBJECT_IMPLEMENTATION(MegamorphicCache);
-
-  VISIT_FROM(RawObject*, buckets_)
+  VISIT_FROM(RawObject*, target_name_)
   RawArray* buckets_;
   RawSmi* mask_;
-  RawString* target_name_;     // Name of target function.
-  RawArray* args_descriptor_;  // Arguments descriptor.
-  VISIT_TO(RawObject*, args_descriptor_)
+  VISIT_TO(RawObject*, mask_)
   RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 
   int32_t filled_entry_count_;
@@ -2596,7 +2620,8 @@ class RawTypedDataView : public RawTypedDataBase {
   friend class ObjectPoolSerializationCluster;
   friend class RawObjectPool;
   friend class GCCompactor;
-  friend class ScavengerVisitor;
+  template <bool>
+  friend class ScavengerVisitorBase;
   friend class SnapshotReader;
 };
 
@@ -2623,6 +2648,8 @@ class RawBool : public RawInstance {
   VISIT_NOTHING();
 
   bool value_;
+
+  friend class Object;
 };
 
 class RawArray : public RawInstance {
@@ -2888,7 +2915,8 @@ class RawWeakProperty : public RawInstance {
   template <bool>
   friend class MarkingVisitorBase;
   friend class Scavenger;
-  friend class ScavengerVisitor;
+  template <bool>
+  friend class ScavengerVisitorBase;
 };
 
 // MirrorReferences are used by mirrors to hold reflectees that are VM

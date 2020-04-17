@@ -133,7 +133,7 @@ import '../kernel/metadata_collector.dart';
 import '../kernel/type_algorithms.dart'
     show
         calculateBounds,
-        computeVariance,
+        computeTypeVariableBuilderVariance,
         findGenericFunctionTypes,
         getNonSimplicityIssuesForDeclaration,
         getNonSimplicityIssuesForTypeVariables,
@@ -410,6 +410,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     'language_2/',
     'lib_2/',
     'standalone_2/',
+    'vm/dart/', // in runtime/tests
   ];
 
   LanguageVersion get languageVersion => _languageVersion;
@@ -2729,8 +2730,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (declaration is TypeAliasBuilder &&
           declaration.typeVariablesCount > 0) {
         for (TypeVariableBuilder typeParameter in declaration.typeVariables) {
-          typeParameter.variance =
-              computeVariance(typeParameter, declaration.type, this);
+          typeParameter.variance = computeTypeVariableBuilderVariance(
+              typeParameter, declaration.type, this);
           ++count;
         }
       }
@@ -3105,13 +3106,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           ? const NeverType(Nullability.nonNullable)
           : typeEnvironment.nullType;
       Set<TypeArgumentIssue> issues = {};
-      issues.addAll(findTypeArgumentIssues(returnType, typeEnvironment,
+      issues.addAll(findTypeArgumentIssues(library, returnType, typeEnvironment,
               SubtypeCheckMode.ignoringNullabilities, bottomType,
               allowSuperBounded: true) ??
           const []);
       if (isNonNullableByDefault) {
-        issues.addAll(findTypeArgumentIssues(returnType, typeEnvironment,
-                SubtypeCheckMode.withNullabilities, bottomType,
+        issues.addAll(findTypeArgumentIssues(library, returnType,
+                typeEnvironment, SubtypeCheckMode.withNullabilities, bottomType,
                 allowSuperBounded: true) ??
             const []);
       }
@@ -3187,12 +3188,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         ? const NeverType(Nullability.nonNullable)
         : typeEnvironment.nullType;
     Set<TypeArgumentIssue> issues = {};
-    issues.addAll(findTypeArgumentIssues(type, typeEnvironment,
+    issues.addAll(findTypeArgumentIssues(library, type, typeEnvironment,
             SubtypeCheckMode.ignoringNullabilities, bottomType,
             allowSuperBounded: allowSuperBounded) ??
         const []);
     if (isNonNullableByDefault) {
-      issues.addAll(findTypeArgumentIssues(type, typeEnvironment,
+      issues.addAll(findTypeArgumentIssues(library, type, typeEnvironment,
               SubtypeCheckMode.withNullabilities, bottomType,
               allowSuperBounded: allowSuperBounded) ??
           const []);
@@ -3255,6 +3256,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         : typeEnvironment.nullType;
     Set<TypeArgumentIssue> issues = {};
     issues.addAll(findTypeArgumentIssuesForInvocation(
+            library,
             parameters,
             arguments,
             typeEnvironment,
@@ -3263,6 +3265,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         const []);
     if (isNonNullableByDefault) {
       issues.addAll(findTypeArgumentIssuesForInvocation(
+              library,
               parameters,
               arguments,
               typeEnvironment,
@@ -3340,6 +3343,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         : typeEnvironment.nullType;
     Set<TypeArgumentIssue> issues = {};
     issues.addAll(findTypeArgumentIssuesForInvocation(
+            library,
             instantiatedMethodParameters,
             arguments.types,
             typeEnvironment,
@@ -3348,6 +3352,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         const []);
     if (isNonNullableByDefault) {
       issues.addAll(findTypeArgumentIssuesForInvocation(
+              library,
               instantiatedMethodParameters,
               arguments.types,
               typeEnvironment,
@@ -3373,7 +3378,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         if (declaration.formals != null) {
           checkInitializersInFormals(declaration.formals, typeEnvironment);
         }
-      } else if (declaration is ClassBuilder) {
+      } else if (declaration is SourceClassBuilder) {
         declaration.checkTypesInOutline(typeEnvironment);
       }
     }

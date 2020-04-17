@@ -717,12 +717,14 @@ class TypeInferrerImpl implements TypeInferrer {
       DartType expectedType, ExpressionInferenceResult result,
       {int fileOffset,
       bool isVoidAllowed: false,
-      bool isReturnFromAsync: false}) {
+      bool isReturnFromAsync: false,
+      Template<Message Function(DartType, DartType, bool)> errorTemplate}) {
     return ensureAssignable(
         expectedType, result.inferredType, result.expression,
         fileOffset: fileOffset,
         isVoidAllowed: isVoidAllowed,
-        isReturnFromAsync: isReturnFromAsync);
+        isReturnFromAsync: isReturnFromAsync,
+        errorTemplate: errorTemplate);
   }
 
   /// Ensures that [expressionType] is assignable to [contextType].
@@ -1034,23 +1036,10 @@ class TypeInferrerImpl implements TypeInferrer {
 
     if (receiverType is FunctionType && name == callName) {
       return const ObjectAccessTarget.callFunction();
-    }
-
-    Class classNode = receiverType is InterfaceType
-        ? receiverType.classNode
-        : coreTypes.objectClass;
-    Member interfaceMember =
-        _getInterfaceMember(classNode, name, setter, fileOffset);
-    ObjectAccessTarget target;
-    if (interfaceMember != null) {
-      target = new ObjectAccessTarget.interfaceMember(interfaceMember);
-    } else if (receiverType is DynamicType) {
-      target = const ObjectAccessTarget.dynamic();
     } else if (receiverType is NeverType) {
       switch (receiverType.nullability) {
         case Nullability.nonNullable:
-          target = const ObjectAccessTarget.never();
-          break;
+          return const ObjectAccessTarget.never();
         case Nullability.nullable:
         case Nullability.legacy:
           // Never? and Never* are equivalent to Null.
@@ -1064,6 +1053,17 @@ class TypeInferrerImpl implements TypeInferrer {
               fileOffset,
               library.fileUri);
       }
+    }
+    Class classNode = receiverType is InterfaceType
+        ? receiverType.classNode
+        : coreTypes.objectClass;
+    Member interfaceMember =
+        _getInterfaceMember(classNode, name, setter, fileOffset);
+    ObjectAccessTarget target;
+    if (interfaceMember != null) {
+      target = new ObjectAccessTarget.interfaceMember(interfaceMember);
+    } else if (receiverType is DynamicType) {
+      target = const ObjectAccessTarget.dynamic();
     } else if (receiverType is InvalidType) {
       target = const ObjectAccessTarget.invalid();
     } else if (receiverType is InterfaceType &&
@@ -1211,6 +1211,54 @@ class TypeInferrerImpl implements TypeInferrer {
       }
     }
     return target;
+  }
+
+  /// Returns the Object member by given [name] if [receiverType] is potentially
+  /// nullable.
+  ///
+  /// This method is used to infer nullable calls to Object member against the
+  /// Object member signature and not the overridden signature.
+  ///
+  /// If the member is procedure that isn't applicable with the provided
+  /// [arguments], `null` is returned. This is a special casing that ensures
+  /// that calls that wouldn't match the Object member regardless of typing
+  /// will be reported as nullable access of the overridden member instead of
+  /// inapplicable access to the Object member.
+  ObjectAccessTarget getObjectMemberIfNullableReceiver(
+      DartType receiverType, Name name,
+      [Arguments arguments]) {
+    if (isNonNullableByDefault &&
+        receiverType is! DynamicType &&
+        receiverType is! InvalidType &&
+        isPotentiallyNullable(receiverType, coreTypes.futureOrClass)) {
+      ObjectAccessTarget target = findInterfaceMember(
+          coreTypes.objectNonNullableRawType, name, -1,
+          instrumented: false);
+      if (target.isUnresolved) {
+        // No member found.
+        return null;
+      }
+      Member member = target.member;
+      if (arguments != null &&
+          member is Procedure &&
+          member.kind == ProcedureKind.Method) {
+        // A method is called.
+        FunctionNode function = member.function;
+        if (arguments.positional.length >
+            function.positionalParameters.length) {
+          // The call is not going to match the Object member so we report
+          // a problem on the nullable access instead.
+          return null;
+        }
+        if (arguments.named.isNotEmpty && function.namedParameters.isEmpty) {
+          // The call is not going to match the Object member so we report
+          // a problem on the nullable access instead.
+          return null;
+        }
+      }
+      return target;
+    }
+    return null;
   }
 
   /// True if [Object]'s member called [name] can be called with the arguments.
@@ -1890,6 +1938,10 @@ class TypeInferrerImpl implements TypeInferrer {
     Member equalsMember =
         findInterfaceMember(variable.type, equalsName, variable.fileOffset)
             .member;
+    // Ensure operator == member even for `Never`.
+    equalsMember ??= findInterfaceMember(const DynamicType(), equalsName, -1,
+            instrumented: false)
+        .member;
     return new NullAwareGuard(
         variable, variable.fileOffset, equalsMember, this);
   }
@@ -2686,7 +2738,7 @@ class TypeInferrerImpl implements TypeInferrer {
         isImplicitCall: isImplicitCall);
     assert(name != equalsName);
     return createNullAwareExpressionInferenceResult(
-        result.inferredType,
+        const NeverType(Nullability.nonNullable),
         result.applyResult(new MethodInvocation(receiver, name, arguments)
           ..fileOffset = fileOffset),
         nullAwareGuards);
@@ -3115,9 +3167,13 @@ class TypeInferrerImpl implements TypeInferrer {
       List<VariableDeclaration> hoistedExpressions}) {
     assert(isExpressionInvocation != null);
     assert(isImplicitCall != null);
-    ObjectAccessTarget target = findInterfaceMember(
-        receiverType, name, fileOffset,
-        instrumented: true, includeExtensionMethods: true);
+
+    ObjectAccessTarget objectReadTarget =
+        getObjectMemberIfNullableReceiver(receiverType, name, arguments);
+
+    ObjectAccessTarget target = objectReadTarget ??
+        findInterfaceMember(receiverType, name, fileOffset,
+            instrumented: true, includeExtensionMethods: true);
     switch (target.kind) {
       case ObjectAccessTargetKind.instanceMember:
         Member member = target.member;

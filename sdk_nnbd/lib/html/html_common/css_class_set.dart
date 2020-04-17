@@ -108,7 +108,7 @@ abstract class CssClassSetImpl extends SetBase<String> implements CssClassSet {
     _validateToken(value);
     // TODO - figure out if we need to do any validation here
     // or if the browser natively does enough.
-    return modify((s) => s.add(value));
+    return modify((s) => s.add(value)) ?? false;
   }
 
   /**

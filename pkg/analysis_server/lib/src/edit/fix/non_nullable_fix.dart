@@ -28,6 +28,8 @@ class NonNullableFix extends FixCodeTask {
   /// mature enough.
   static const bool _usePermissiveMode = true;
 
+  final int preferredPort;
+
   final DartFixListener listener;
 
   /// The root of the included paths.
@@ -59,7 +61,8 @@ class NonNullableFix extends FixCodeTask {
 
   Future<void> Function([List<String>]) rerunFunction;
 
-  NonNullableFix(this.listener, {List<String> included = const []})
+  NonNullableFix(this.listener,
+      {List<String> included = const [], this.preferredPort})
       : includedRoot =
             _getIncludedRoot(included, listener.server.resourceProvider) {
     reset();
@@ -70,6 +73,7 @@ class NonNullableFix extends FixCodeTask {
 
   /// Return a list of the URLs corresponding to the included roots.
   List<String> get previewUrls => [
+        // TODO(jcollins-g): Change protocol to only return a single string.
         Uri(
             scheme: 'http',
             host: 'localhost',
@@ -85,7 +89,7 @@ class NonNullableFix extends FixCodeTask {
     await state.refresh();
 
     if (server == null) {
-      server = HttpPreviewServer(state, rerun);
+      server = HttpPreviewServer(state, rerun, preferredPort);
       server.serveHttp();
       port = await server.boundPort;
       authToken = await server.authToken;
@@ -243,8 +247,8 @@ analyzer:
 
   static void task(DartFixRegistrar registrar, DartFixListener listener,
       EditDartfixParams params) {
-    registrar
-        .registerCodeTask(NonNullableFix(listener, included: params.included));
+    registrar.registerCodeTask(NonNullableFix(listener,
+        included: params.included, preferredPort: params.port));
   }
 
   /// Get the "root" of all [included] paths. See [includedRoot] for its

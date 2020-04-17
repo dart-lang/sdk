@@ -49,13 +49,16 @@ class InstrumentationRenderer {
   /// Whether the migration has been applied already or not.
   final bool hasBeenApplied;
 
+  /// Whether the migration needs to be rerun due to disk changes.
+  final bool needsRerun;
+
   /// An object used to map the file paths of analyzed files to the file paths
   /// of the HTML files used to view the content of those files.
   final PathMapper pathMapper;
 
   /// Creates an output object for the given library info.
-  InstrumentationRenderer(
-      this.migrationInfo, this.pathMapper, this.hasBeenApplied);
+  InstrumentationRenderer(this.migrationInfo, this.pathMapper,
+      this.hasBeenApplied, this.needsRerun);
 
   /// Returns the path context used to manipulate paths.
   path.Context get pathContext => migrationInfo.pathContext;
@@ -70,6 +73,7 @@ class InstrumentationRenderer {
       'highlightStylePath': migrationInfo.highlightStylePath,
       'sdkVersion': _dartSdkVersion,
       'migrationAppliedStyle': hasBeenApplied ? 'applied' : 'proposed',
+      'needsRerunStyle': needsRerun ? 'needs-rerun' : '',
     };
 
     return substituteVariables(resources.index_html, variables);

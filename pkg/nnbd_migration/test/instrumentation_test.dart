@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
+import 'package:nnbd_migration/fix_reason_target.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
@@ -217,7 +218,7 @@ f(List<int> x) {}
         var info = edit.info;
         expect(info.description,
             NullabilityFixDescription.addRequired(null, '_f', 'i'));
-        expect(info.fixReasons.single,
+        expect(info.fixReasons[FixReasonTarget.root],
             same(explicitTypeNullability[intAnnotation]));
       }
     }
@@ -233,7 +234,7 @@ f(List<int> x) {}
         var info = edit.info;
         expect(info.description,
             NullabilityFixDescription.addRequired('C', '_f', 'i'));
-        expect(info.fixReasons.single,
+        expect(info.fixReasons[FixReasonTarget.root],
             same(explicitTypeNullability[intAnnotation]));
       }
     }
@@ -254,7 +255,7 @@ _f(int/*!*/ i) {
       for (var edit in change) {
         var info = edit.info;
         expect(info.description, NullabilityFixDescription.discardCondition);
-        expect(info.fixReasons.single,
+        expect(info.fixReasons[FixReasonTarget.root],
             same(explicitTypeNullability[intAnnotation]));
       }
     }
@@ -273,7 +274,7 @@ _f(int/*!*/ i) {
       for (var edit in change) {
         var info = edit.info;
         expect(info.description, NullabilityFixDescription.discardCondition);
-        expect(info.fixReasons.single,
+        expect(info.fixReasons[FixReasonTarget.root],
             same(explicitTypeNullability[intAnnotation]));
       }
     }
@@ -296,13 +297,13 @@ _f(int/*!*/ i) {
     expect(dropCondition.isDeletion, true);
     expect(dropCondition.info.description,
         NullabilityFixDescription.discardCondition);
-    expect(dropCondition.info.fixReasons.single,
+    expect(dropCondition.info.fixReasons[FixReasonTarget.root],
         same(explicitTypeNullability[intAnnotation]));
     // Change #2: drop the else.
     var dropElse = changes[findNode.statement('return i').end].single;
     expect(dropElse.isDeletion, true);
     expect(dropElse.info.description, NullabilityFixDescription.discardElse);
-    expect(dropElse.info.fixReasons.single,
+    expect(dropElse.info.fixReasons[FixReasonTarget.root],
         same(explicitTypeNullability[intAnnotation]));
   }
 
@@ -321,7 +322,7 @@ _f(int/*!*/ i) {
       for (var edit in change) {
         var info = edit.info;
         expect(info.description, NullabilityFixDescription.discardIf);
-        expect(info.fixReasons.single,
+        expect(info.fixReasons[FixReasonTarget.root],
             same(explicitTypeNullability[intAnnotation]));
       }
     }
@@ -344,7 +345,7 @@ _f(int/*!*/ i) {
       for (var edit in change) {
         var info = edit.info;
         expect(info.description, NullabilityFixDescription.discardThen);
-        expect(info.fixReasons.single,
+        expect(info.fixReasons[FixReasonTarget.root],
             same(explicitTypeNullability[intAnnotation]));
       }
     }
@@ -365,7 +366,7 @@ _f(int/*!*/ i) {
       for (var edit in change) {
         var info = edit.info;
         expect(info.description, NullabilityFixDescription.discardIf);
-        expect(info.fixReasons.single,
+        expect(info.fixReasons[FixReasonTarget.root],
             same(explicitTypeNullability[intAnnotation]));
       }
     }
@@ -393,7 +394,7 @@ main() {
     expect(info.description, NullabilityFixDescription.checkExpression);
     var reasons = info.fixReasons;
     expect(reasons, hasLength(1));
-    var edge = reasons[0] as EdgeInfo;
+    var edge = reasons[FixReasonTarget.root] as EdgeInfo;
     expect(edge.sourceNode,
         same(explicitTypeNullability[findNode.typeAnnotation('int y')]));
     expect(edge.destinationNode,
@@ -417,7 +418,8 @@ int x = null;
     expect(info.description, NullabilityFixDescription.makeTypeNullable('int'));
     var reasons = info.fixReasons;
     expect(reasons, hasLength(1));
-    expect(reasons.single, same(explicitTypeNullability[intAnnotation]));
+    expect(reasons[FixReasonTarget.root],
+        same(explicitTypeNullability[intAnnotation]));
   }
 
   Future<void> test_fix_reason_remove_question_from_question_dot() async {
@@ -489,7 +491,7 @@ _f({@required int i}) {}
         var info = edit.info;
         expect(info.description,
             NullabilityFixDescription.addRequired(null, '_f', 'i'));
-        expect(info.fixReasons.single,
+        expect(info.fixReasons[FixReasonTarget.root],
             same(explicitTypeNullability[intAnnotation]));
       }
     }
@@ -991,8 +993,8 @@ abstract class Derived extends Base {
             .node;
     expect(
         edges.where((e) =>
-            e.sourceNode == derivedParamArgNode &&
-            e.destinationNode == baseParamArgNode),
+            e.sourceNode == baseParamArgNode &&
+            e.destinationNode == derivedParamArgNode),
         hasLength(1));
   }
 

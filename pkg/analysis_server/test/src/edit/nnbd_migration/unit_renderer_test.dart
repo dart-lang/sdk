@@ -6,6 +6,7 @@ import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/path_mapper.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/unit_renderer.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/web/file_details.dart';
+import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -57,15 +58,35 @@ int? a = null;
 bool  b = a!.isEven;
 ''');
     var output = renderUnits()[0];
-    expect(output.edits, hasLength(2));
-    expect(output.edits[0].line, equals(1));
-    expect(output.edits[0].offset, equals(3));
-    expect(output.edits[0].explanation,
+    // The null checks are higher priority than the assertions.
+    expect(output.edits.keys,
+        orderedEquals(['1 null check added', '1 type made nullable']));
+    var typesMadeNullable = output.edits['1 type made nullable'];
+    expect(typesMadeNullable, hasLength(1));
+    var typeMadeNullable = typesMadeNullable.single;
+    expect(typeMadeNullable.line, equals(1));
+    expect(typeMadeNullable.offset, equals(3));
+    expect(typeMadeNullable.explanation,
         equals("Changed type 'int' to be nullable"));
-    expect(output.edits[1].line, equals(2));
-    expect(output.edits[1].offset, equals(26));
-    expect(output.edits[1].explanation,
+    var nullChecks = output.edits['1 null check added'];
+    expect(nullChecks, hasLength(1));
+    var nullCheck = nullChecks.single;
+    expect(nullCheck.line, equals(2));
+    expect(nullCheck.offset, equals(26));
+    expect(nullCheck.explanation,
         equals('Added a non-null assertion to nullable expression'));
+  }
+
+  Future<void> test_editList_pluralHeader() async {
+    await buildInfoForSingleTestFile('''
+int a = null;
+int b = null;
+''', migratedContent: '''
+int? a = null;
+int? b = null;
+''');
+    var output = renderUnits()[0];
+    expect(output.edits.keys.toList(), ['2 types made nullable']);
   }
 
   Future<void> test_handle_large_deleted_region_near_top_of_file() async {
@@ -135,8 +156,21 @@ class <span id="...">C</span> {
   }
 }
 
-<a href="..." class="nav-link">List</a>&lt;<a href="..." class="nav-link">int</a>?&gt;  <span id="...">x</span> = <span id="...">[null]</span>;
+<a href="..." class="nav-link">List</a>&lt;<a href="..." class="nav-link">int</a>?&gt;  <span id="...">x</span> = [null];
 ''');
+  }
+
+  void test_kindPriorityOrder() {
+    var nonDisplayedKinds = NullabilityFixKind.values.toSet();
+    for (var kind in UnitRenderer.kindPriorityOrder) {
+      expect(nonDisplayedKinds.remove(kind), isTrue);
+    }
+    // The only kinds that should not be displayed are those associated with a
+    // place where nothing interesting occurred.
+    expect(nonDisplayedKinds, {
+      NullabilityFixKind.typeNotMadeNullable,
+      NullabilityFixKind.typeNotMadeNullableDueToHint
+    });
   }
 
   Future<void> test_navContentContainsEscapedHtml() async {
@@ -150,7 +184,57 @@ class <span id="...">C</span> {
         navContent,
         contains(r'<a href="..." class="nav-link">List</a>'
             r'&lt;<a href="..." class="nav-link">String</a> &gt;? '
-            r'<span id="o13">a</span> = <span id="o17">null</span>;'));
+            r'<span id="o13">a</span> = null;'));
+  }
+
+  Future<void> test_outputContains_addedType() async {
+    await buildInfoForSingleTestFile('''
+void f() {
+  final a = <List<int>>[];
+  a.add([null]);
+}
+''', migratedContent: '''
+void f() {
+  final List<List<int?>> a = <List<int > >[];
+  a.add([null]);
+}
+''');
+    var output = renderUnits()[0];
+    var regions = _stripDataAttributes(output.regions);
+    expect(
+        regions,
+        contains('final '
+            '<span class="region added-region">List&lt;List&lt;int?&gt;&gt;</span>'
+            ' a = &lt;List&lt;int'
+            '<span class="region informative-region"> </span>'
+            '&gt;'
+            '<span class="region informative-region"> </span>'
+            '&gt;[];'));
+  }
+
+  Future<void> test_outputContains_replacedVar() async {
+    await buildInfoForSingleTestFile('''
+void f() {
+  var a = <List<int>>[];
+  a.add([null]);
+}
+''', migratedContent: '''
+void f() {
+  varList<List<int?>> a = <List<int > >[];
+  a.add([null]);
+}
+''');
+    var output = renderUnits()[0];
+    var regions = _stripDataAttributes(output.regions);
+    expect(
+        regions,
+        contains('<span class="region removed-region">var</span>'
+            '<span class="region added-region">List&lt;List&lt;int?&gt;&gt;</span>'
+            ' a = &lt;List&lt;int'
+            '<span class="region informative-region"> </span>'
+            '&gt;'
+            '<span class="region informative-region"> </span>'
+            '&gt;[];'));
   }
 
   Future<void> test_outputContainsModifiedAndUnmodifiedRegions() async {

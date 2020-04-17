@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
-import "symbol_map_helper.dart";
 
 // Testing Function.apply calls correctly.
 // This test is not testing error handling, only that correct parameters

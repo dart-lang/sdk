@@ -11778,6 +11778,10 @@ class _ChildrenElementList extends ListBase<Element>
     }
   }
 
+  void insertAll(int index, Iterable<Element> iterable) {
+    throw new UnimplementedError();
+  }
+
   void setAll(int index, Iterable<Element> iterable) {
     throw new UnimplementedError();
   }
@@ -11796,9 +11800,7 @@ class _ChildrenElementList extends ListBase<Element>
 
   Element removeLast() {
     final result = this.last;
-    if (result != null) {
-      _element._removeChild(result);
-    }
+    _element._removeChild(result);
     return result;
   }
 
@@ -15381,7 +15383,7 @@ class ErrorEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
-@Native("Event,InputEvent")
+@Native("Event,InputEvent,SubmitEvent")
 class Event extends Interceptor {
   // In JS, canBubble and cancelable are technically required parameters to
   // init*Event. In practice, though, if they aren't provided they simply
@@ -36052,7 +36054,8 @@ abstract class CssClassSet implements Set<String> {
    * after the operation, and returns `false` if [value] is absent after the
    * operation.
    *
-   * If this corresponds to many elements, `null` is always returned.
+   * If this CssClassSet corresponds to many elements, `false` is always
+   * returned.
    *
    * [value] must be a valid 'token' representing a single class, i.e. a
    * non-empty string containing no whitespace.  To toggle multiple classes, use
@@ -36086,7 +36089,8 @@ abstract class CssClassSet implements Set<String> {
    * If this CssClassSet corresponds to one element. Returns true if [value] was
    * added to the set, otherwise false.
    *
-   * If this corresponds to many elements, `null` is always returned.
+   * If this CssClassSet corresponds to many elements, `false` is always
+   * returned.
    *
    * [value] must be a valid 'token' representing a single class, i.e. a
    * non-empty string containing no whitespace.  To add multiple classes use

@@ -223,9 +223,8 @@ abstract class Future<T> {
       if (result is Future<T>) {
         return result;
       } else {
-        if (result is! T)
-          throw "unreachable"; // TODO(lrn): Remove when type promotion works.
-        return new _Future<T>.value(result);
+        // TODO(40014): Remove cast when type promotion works.
+        return new _Future<T>.value(result as dynamic);
       }
     } catch (error, stackTrace) {
       var future = new _Future<T>();

@@ -954,4 +954,44 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_RedundantStoresAndLoads) {
   EXPECT_EQ(1, aft_stores);
 }
 
+ISOLATE_UNIT_TEST_CASE(CSE_RedundantInitStaticField) {
+  const char* kScript = R"(
+    int getX() => 2;
+    int x = getX();
+
+    foo() => x + x;
+
+    main() {
+      foo();
+    }
+  )";
+
+  // Make sure InitStaticField is not removed because
+  // field is already initialized.
+  SetFlagScope<bool> sfs(&FLAG_fields_may_be_reset, true);
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  Invoke(root_library, "main");
+  const auto& function = Function::Handle(GetFunction(root_library, "foo"));
+  TestPipeline pipeline(function, CompilerPass::kJIT);
+  FlowGraph* flow_graph = pipeline.RunPasses({});
+  ASSERT(flow_graph != nullptr);
+
+  auto entry = flow_graph->graph_entry()->normal_entry();
+  EXPECT(entry != nullptr);
+
+  ILMatcher cursor(flow_graph, entry);
+  RELEASE_ASSERT(cursor.TryMatch({
+      kMatchAndMoveFunctionEntry,
+      kMatchAndMoveCheckStackOverflow,
+      kMatchAndMoveInitStaticField,
+      kMatchAndMoveLoadStaticField,
+      kMatchAndMoveCheckSmi,
+      kMoveParallelMoves,
+      kMatchAndMoveBinarySmiOp,
+      kMoveParallelMoves,
+      kMatchReturn,
+  }));
+}
+
 }  // namespace dart

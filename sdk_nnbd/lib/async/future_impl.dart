@@ -511,8 +511,11 @@ class _Future<T> implements Future<T> {
       }
     } else {
       _FutureListener? listeners = _removeListeners();
-      // TODO(lrn): Remove cast when type promotion works.
-      _setValue(value as T); // Value promoted to T.
+      // TODO(40014): Remove cast when type promotion works.
+      // This would normally be `as T` but we use `as dynamic` to make the
+      // unneeded check be implict to match dart2js unsound optimizations in the
+      // user code.
+      _setValue(value as dynamic); // Value promoted to T.
       _propagateToListeners(this, listeners);
     }
   }
@@ -553,8 +556,11 @@ class _Future<T> implements Future<T> {
     }
     _setPendingComplete();
     _zone.scheduleMicrotask(() {
-      // TODO(lrn): Remove cast when type promotion works.
-      _completeWithValue(value as T); // Value promoted to T.
+      // TODO(40014): Remove cast when type promotion works.
+      // This would normally be `as T` but we use `as dynamic` to make the
+      // unneeded check be implict to match dart2js unsound optimizations in the
+      // user code.
+      _completeWithValue(value as dynamic); // Value promoted to T.
     });
   }
 

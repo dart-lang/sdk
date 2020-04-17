@@ -477,6 +477,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.useNewSourceInfo, passThrough),
     new OptionHandler(Flags.useOldRti, passThrough),
     new OptionHandler(Flags.testMode, passThrough),
+    new OptionHandler('${Flags.dumpSsa}=.+', passThrough),
 
     // Experimental features.
     // We don't provide documentation for these yet.

@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:meta/meta.dart';
+import 'package:nnbd_migration/fix_reason_target.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 
@@ -128,7 +129,7 @@ class AtomicEditInfo {
   final NullabilityFixDescription description;
 
   /// The reasons for the edit.
-  final List<FixReasonInfo> fixReasons;
+  final Map<FixReasonTarget, FixReasonInfo> fixReasons;
 
   AtomicEditInfo(this.description, this.fixReasons);
 }
@@ -500,16 +501,10 @@ class EditPlanner {
   /// text.
   ///
   /// [parentNode] should be the innermost AST node containing [token].
-  EditPlan replaceToken(
-      AstNode parentNode, Token token, List<AtomicEdit> replacement,
+  EditPlan replaceToken(AstNode parentNode, Token token, String replacement,
       {AtomicEditInfo info}) {
-    assert(!replacement.any((edit) => !edit.isInsertion),
-        'All edits should be insertions');
     return _TokenChangePlan(parentNode, {
-      token.offset: [
-        AtomicEdit.delete(token.length, info: info),
-        ...replacement
-      ]
+      token.offset: [AtomicEdit.replace(token.length, replacement, info: info)]
     });
   }
 
@@ -554,10 +549,10 @@ class EditPlanner {
     var innerChanges =
         innerPlan._getChanges(parensNeeded) ?? <int, List<AtomicEdit>>{};
     if (prefix != null) {
-      (innerChanges[innerPlan.sourceNode.offset] ??= []).insertAll(0, prefix);
+      (innerChanges[innerPlan.offset] ??= []).insertAll(0, prefix);
     }
     if (suffix != null) {
-      (innerChanges[innerPlan.sourceNode.end] ??= []).addAll(suffix);
+      (innerChanges[innerPlan.end] ??= []).addAll(suffix);
     }
     return _SimpleEditPlan(
         innerPlan.sourceNode,
@@ -715,10 +710,16 @@ abstract class NodeProducingEditPlan extends EditPlan {
 
   NodeProducingEditPlan._(this.sourceNode) : super._();
 
+  /// Offset just past the end of the source text affected by this plan.
+  int get end => sourceNode.end;
+
   /// If the result of executing this [EditPlan] will be an expression,
   /// indicates whether the expression will end in an unparenthesized cascade.
   @visibleForTesting
   bool get endsInCascade;
+
+  /// Offset of the start of the source text affected by this plan.
+  int get offset => sourceNode.offset;
 
   @override
   AstNode get parentNode => sourceNode.parent;
@@ -748,8 +749,8 @@ abstract class NodeProducingEditPlan extends EditPlan {
   Map<int, List<AtomicEdit>> _createAddParenChanges(
       Map<int, List<AtomicEdit>> changes) {
     changes ??= {};
-    (changes[sourceNode.offset] ??= []).insert(0, const AtomicEdit.insert('('));
-    (changes[sourceNode.end] ??= []).add(const AtomicEdit.insert(')'));
+    (changes[offset] ??= []).insert(0, const AtomicEdit.insert('('));
+    (changes[end] ??= []).add(const AtomicEdit.insert(')'));
     return changes;
   }
 
@@ -829,16 +830,16 @@ class _ExtractEditPlan extends _NestedEditPlan {
     // Extract the inner expression.
     // TODO(paulberry): don't remove comments
     changes = _removeCode(
-            sourceNode.offset,
-            innerPlan.sourceNode.offset,
+            offset,
+            innerPlan.offset,
             _planner.removeViaComments
                 ? _RemovalStyle.commentSpace
                 : _RemovalStyle.delete,
             _infoBefore) +
         changes +
         _removeCode(
-            innerPlan.sourceNode.end,
-            sourceNode.end,
+            innerPlan.end,
+            end,
             _planner.removeViaComments
                 ? _RemovalStyle.spaceComment
                 : _RemovalStyle.delete,
@@ -1203,6 +1204,9 @@ class _PassThroughBuilderImpl implements PassThroughBuilder {
       }
     }
     changes += innerPlan._getChanges(parensNeeded);
+    // Note: we use innerPlan.sourceNode.end here instead of innerPlan.end,
+    // because what we care about is the input grammar, so we don't want to be
+    // fooled by any whitespace or comments included in the innerPlan.
     if (endsInCascade == null && innerPlan.sourceNode.end == node.end) {
       endsInCascade = !parensNeeded && innerPlan.endsInCascade;
     }
@@ -1415,8 +1419,8 @@ class _ProvisionalParenEditPlan extends _NestedEditPlan {
     var changes = innerPlan._getChanges(false);
     if (!parens) {
       changes ??= {};
-      (changes[sourceNode.offset] ??= []).insert(0, const AtomicEdit.delete(1));
-      (changes[sourceNode.end - 1] ??= []).add(const AtomicEdit.delete(1));
+      (changes[offset] ??= []).insert(0, const AtomicEdit.delete(1));
+      (changes[end - 1] ??= []).add(const AtomicEdit.delete(1));
     }
     return changes;
   }

@@ -139,7 +139,7 @@ main() {
   test('listAdd', () {
     var elements = elementsSetup();
     var added = elements.classes.add('lassie');
-    expect(added, isNull);
+    expect(added, isFalse);
 
     expect(view(elements.classes), '[classy, foo, lassie, quux, qux, yes]');
     expect(

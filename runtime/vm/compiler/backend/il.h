@@ -3587,6 +3587,8 @@ class AssertBooleanInstr : public TemplateDefinition<1, Throws, Pure> {
 
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
+  virtual Value* RedefinedValue() const;
+
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
@@ -4226,6 +4228,16 @@ class StrictCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
   ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT;
 
  private:
+  Condition EmitComparisonCodeRegConstant(FlowGraphCompiler* compiler,
+                                          BranchLabels labels,
+                                          Register reg,
+                                          const Object& obj);
+  bool TryEmitBoolTest(FlowGraphCompiler* compiler,
+                       BranchLabels labels,
+                       intptr_t input_index,
+                       const Object& obj,
+                       Condition* condition_out);
+
   // True if the comparison must check for double or Mint and
   // use value comparison instead.
   bool needs_number_check_;
@@ -6340,6 +6352,13 @@ class InitStaticFieldInstr : public TemplateInstruction<0, Throws> {
   virtual bool HasUnknownSideEffects() const { return true; }
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
+  // Two InitStaticField instructions can be canonicalized into one
+  // instruction if both are initializing the same field.
+  virtual bool AllowsCSE() const { return true; }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return other->AsInitStaticField()->field().raw() == field().raw();
+  }
+
  private:
   const Field& field_;
 
@@ -8314,7 +8333,7 @@ class CheckNullInstr : public TemplateDefinition<1, Throws, Pure> {
   bool IsArgumentCheck() const { return exception_type_ == kArgumentError; }
   ExceptionType exception_type() const { return exception_type_; }
 
-  bool UseSharedSlowPathStub(bool is_optimizing) const {
+  virtual bool UseSharedSlowPathStub(bool is_optimizing) const {
     return SlowPathSharingSupported(is_optimizing);
   }
 
@@ -8473,6 +8492,10 @@ class GenericCheckBoundInstr : public CheckBoundBase {
   }
 
   virtual bool MayThrow() const { return true; }
+
+  virtual bool UseSharedSlowPathStub(bool is_optimizing) const {
+    return SlowPathSharingSupported(is_optimizing);
+  }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(GenericCheckBoundInstr);

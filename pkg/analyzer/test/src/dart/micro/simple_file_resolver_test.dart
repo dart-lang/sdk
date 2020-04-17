@@ -2,1301 +2,243 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/lint/registry.dart';
+import 'package:matcher/matcher.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'file_resolution.dart';
-import '../../../generated/resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(SimpleFileResolverTest);
+    defineReflectiveTests(FileResolverTest);
   });
 }
 
 @reflectiveTest
-class SimpleFileResolverTest extends FileResolutionTest {
-  test_argumentResolution_required_matching() async {
-    await resolveTestCode(r'''
-class A {
-  void f() {
-    g(1, 2, 3);
-  }
-  void g(a, b, c) {}
-}''');
-    await _validateArgumentResolution([0, 1, 2]);
+class FileResolverTest extends FileResolutionTest {
+  test_analysisOptions_default_fromPackageUri() async {
+    newFile('/workspace/dart/analysis_options/lib/default.yaml', content: r'''
+analyzer:
+  strong-mode:
+    implicit-casts: false
+''');
+
+    await assertErrorsInCode(r'''
+num a = 0;
+int b = a;
+''', [
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 19, 1),
+    ]);
   }
 
-  test_argumentResolution_required_tooFew() async {
-    await resolveTestCode(r'''
-class A {
-  void f() {
-    g(1, 2);
-  }
-  void g(a, b, c) {}
-}''');
-    await _validateArgumentResolution([0, 1]);
+  test_analysisOptions_file_inPackage() async {
+    newFile('/workspace/dart/test/analysis_options.yaml', content: r'''
+analyzer:
+  strong-mode:
+    implicit-casts: false
+''');
+
+    await assertErrorsInCode(r'''
+num a = 0;
+int b = a;
+''', [
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 19, 1),
+    ]);
   }
 
-  test_argumentResolution_required_tooMany() async {
-    await resolveTestCode(r'''
-class A {
-  void f() {
-    g(1, 2, 3);
-  }
-  void g(a, b) {}
-}''');
-    await _validateArgumentResolution([0, 1, -1]);
-  }
+  test_analysisOptions_lints() async {
+    newFile('/workspace/dart/analysis_options/lib/default.yaml', content: r'''
+linter:
+  rules:
+    - omit_local_variable_types
+''');
 
-  test_argumentResolution_requiredAndNamed_extra() async {
-    await resolveTestCode('''
-class A {
-  void f() {
-    g(1, 2, c: 3, d: 4);
-  }
-  void g(a, b, {c}) {}
-}''');
-    await _validateArgumentResolution([0, 1, 2, -1]);
-  }
+    var rule = Registry.ruleRegistry.getRule('omit_local_variable_types');
 
-  test_argumentResolution_requiredAndNamed_matching() async {
-    await resolveTestCode(r'''
-class A {
-  void f() {
-    g(1, 2, c: 3);
-  }
-  void g(a, b, {c}) {}
-}''');
-    await _validateArgumentResolution([0, 1, 2]);
-  }
-
-  test_argumentResolution_requiredAndNamed_missing() async {
-    await resolveTestCode('''
-class A {
-  void f() {
-    g(1, 2, d: 3);
-  }
-  void g(a, b, {c, d}) {}
-}''');
-    await _validateArgumentResolution([0, 1, 3]);
-  }
-
-  test_argumentResolution_requiredAndPositional_fewer() async {
-    await resolveTestCode('''
-class A {
-  void f() {
-    g(1, 2, 3);
-  }
-  void g(a, b, [c, d]) {}
-}''');
-    await _validateArgumentResolution([0, 1, 2]);
-  }
-
-  test_argumentResolution_requiredAndPositional_matching() async {
-    await resolveTestCode(r'''
-class A {
-  void f() {
-    g(1, 2, 3, 4);
-  }
-  void g(a, b, [c, d]) {}
-}''');
-    await _validateArgumentResolution([0, 1, 2, 3]);
-  }
-
-  test_argumentResolution_requiredAndPositional_more() async {
-    await resolveTestCode(r'''
-class A {
-  void f() {
-    g(1, 2, 3, 4);
-  }
-  void g(a, b, [c]) {}
-}''');
-    await _validateArgumentResolution([0, 1, 2, -1]);
-  }
-
-  test_argumentResolution_setter_propagated() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 main() {
-  var a = new A();
-  a.sss = 0;
+  int a = 0;
+  a;
 }
-class A {
-  set sss(x) {}
-}''');
-    var rhs = findNode.assignment(' = 0;').rightHandSide;
-    expect(
-      rhs.staticParameterElement,
-      findElement.parameter('x'),
-    );
+''', [
+      error(rule.lintCode, 11, 9),
+    ]);
   }
 
-  test_argumentResolution_setter_propagated_propertyAccess() async {
-    await resolveTestCode(r'''
-main() {
-  var a = new A();
-  a.b.sss = 0;
-}
-class A {
-  B b = new B();
-}
-class B {
-  set sss(x) {}
-}''');
-    var rhs = findNode.assignment(' = 0;').rightHandSide;
-    expect(
-      rhs.staticParameterElement,
-      findElement.parameter('x'),
-    );
-  }
-
-  test_argumentResolution_setter_static() async {
-    await resolveTestCode(r'''
-main() {
-  A a = new A();
-  a.sss = 0;
-}
-class A {
-  set sss(x) {}
-}''');
-    var rhs = findNode.assignment(' = 0;').rightHandSide;
-    expect(
-      rhs.staticParameterElement,
-      findElement.parameter('x'),
-    );
-  }
-
-  test_argumentResolution_setter_static_propertyAccess() async {
-    await resolveTestCode(r'''
-main() {
-  A a = new A();
-  a.b.sss = 0;
-}
-class A {
-  B b = new B();
-}
-class B {
-  set sss(x) {}
-}''');
-    var rhs = findNode.assignment(' = 0;').rightHandSide;
-    expect(
-      rhs.staticParameterElement,
-      findElement.parameter('x'),
-    );
-  }
-
-  test_breakTarget_labeled() async {
-    // Verify that the target of the label is correctly found and is recorded
-    // as the unlabeled portion of the statement.
-    await resolveTestCode(r'''
-void f() {
-  loop1: while (true) {
-    loop2: for (int i = 0; i < 10; i++) {
-      break loop1;
-      break loop2;
-    }
-  }
-}
-''');
-    var break1 = findNode.breakStatement('break loop1;');
-    var whileStatement = findNode.whileStatement('while (');
-    expect(break1.target, same(whileStatement));
-
-    var break2 = findNode.breakStatement('break loop2;');
-    var forStatement = findNode.forStatement('for (');
-    expect(break2.target, same(forStatement));
-  }
-
-  test_breakTarget_unlabeledBreakFromDo() async {
-    await resolveTestCode('''
-void f() {
-  do {
-    break;
-  } while (true);
-}
-''');
-    var doStatement = findNode.doStatement('do {');
-    var breakStatement = findNode.breakStatement('break;');
-    expect(breakStatement.target, same(doStatement));
-  }
-
-  test_breakTarget_unlabeledBreakFromFor() async {
-    await resolveTestCode(r'''
-void f() {
-  for (int i = 0; i < 10; i++) {
-    break;
-  }
-}
-''');
-    var forStatement = findNode.forStatement('for (');
-    var breakStatement = findNode.breakStatement('break;');
-    expect(breakStatement.target, same(forStatement));
-  }
-
-  test_breakTarget_unlabeledBreakFromForEach() async {
-    await resolveTestCode('''
-void f() {
-  for (x in []) {
-    break;
-  }
-}
-''');
-    var forStatement = findNode.forStatement('for (');
-    var breakStatement = findNode.breakStatement('break;');
-    expect(breakStatement.target, same(forStatement));
-  }
-
-  test_breakTarget_unlabeledBreakFromSwitch() async {
-    await resolveTestCode(r'''
-void f() {
-  while (true) {
-    switch (0) {
-      case 0:
-        break;
-    }
-  }
-}
-''');
-    var switchStatement = findNode.switchStatement('switch (');
-    var breakStatement = findNode.breakStatement('break;');
-    expect(breakStatement.target, same(switchStatement));
-  }
-
-  test_breakTarget_unlabeledBreakFromWhile() async {
-    await resolveTestCode(r'''
-void f() {
-  while (true) {
-    break;
-  }
-}
-''');
-    var whileStatement = findNode.whileStatement('while (');
-    var breakStatement = findNode.breakStatement('break;');
-    expect(breakStatement.target, same(whileStatement));
-  }
-
-  test_breakTarget_unlabeledBreakToOuterFunction() async {
-    // Verify that unlabeled break statements can't resolve to loops in an
-    // outer function.
-    await resolveTestCode(r'''
-void f() {
-  while (true) {
-    void g() {
-      break;
-    }
-  }
-}
-''');
-    var breakStatement = findNode.breakStatement('break;');
-    expect(breakStatement.target, isNull);
-  }
-
-  test_class_definesCall() async {
+  test_analysisOptions_no() async {
     await assertNoErrorsInCode(r'''
-class A {
-  int call(int x) { return x; }
-}
-int f(A a) {
-  return a(0);
-}''');
+num a = 0;
+int b = a;
+''');
   }
 
-  test_class_extends_implements() async {
+  test_basic() async {
     await assertNoErrorsInCode(r'''
-class A extends B implements C {}
-class B {}
-class C {}''');
-  }
-
-  test_continueTarget_labeled() async {
-    // Verify that the target of the label is correctly found and is recorded
-    // as the unlabeled portion of the statement.
-    await resolveTestCode('''
-void f() {
-  loop1: while (true) {
-    loop2: for (int i = 0; i < 10; i++) {
-      continue loop1;
-      continue loop2;
-    }
-  }
-}
+int a = 0;
+var b = 1 + 2;
 ''');
-    var continue1 = findNode.continueStatement('continue loop1');
-    var whileStatement = findNode.whileStatement('while (');
-    expect(continue1.target, same(whileStatement));
+    assertType(findElement.topVar('a').type, 'int');
+    assertElement(findNode.simple('int a'), intElement);
 
-    var continue2 = findNode.continueStatement('continue loop2');
-    var forStatement = findNode.forStatement('for (');
-    expect(continue2.target, same(forStatement));
+    assertType(findElement.topVar('b').type, 'int');
   }
 
-  test_continueTarget_unlabeledContinueFromDo() async {
-    await resolveTestCode('''
-void f() {
-  do {
-    continue;
-  } while (true);
-}
-''');
-    var doStatement = findNode.doStatement('do {');
-    var continueStatement = findNode.continueStatement('continue;');
-    expect(continueStatement.target, same(doStatement));
-  }
-
-  test_continueTarget_unlabeledContinueFromFor() async {
-    await resolveTestCode('''
-void f() {
-  for (int i = 0; i < 10; i++) {
-    continue;
-  }
-}
-''');
-    var forStatement = findNode.forStatement('for (');
-    var continueStatement = findNode.continueStatement('continue;');
-    expect(continueStatement.target, same(forStatement));
-  }
-
-  test_continueTarget_unlabeledContinueFromForEach() async {
-    await resolveTestCode(r'''
-void f() {
-  for (x in []) {
-    continue;
-  }
-}
-''');
-    var forStatement = findNode.forStatement('for (');
-    var continueStatement = findNode.continueStatement('continue;');
-    expect(continueStatement.target, same(forStatement));
-  }
-
-  test_continueTarget_unlabeledContinueFromWhile() async {
-    await resolveTestCode(r'''
-void f() {
-  while (true) {
-    continue;
-  }
-}
-''');
-    var whileStatement = findNode.whileStatement('while (');
-    var continueStatement = findNode.continueStatement('continue;');
-    expect(continueStatement.target, same(whileStatement));
-  }
-
-  test_continueTarget_unlabeledContinueSkipsSwitch() async {
-    await resolveTestCode(r'''
-void f() {
-  while (true) {
-    switch (0) {
-      case 0:
-        continue;
-    }
-  }
-}
-''');
-    var whileStatement = findNode.whileStatement('while (');
-    var continueStatement = findNode.continueStatement('continue;');
-    expect(continueStatement.target, same(whileStatement));
-  }
-
-  test_continueTarget_unlabeledContinueToOuterFunction() async {
-    // Verify that unlabeled continue statements can't resolve to loops in an
-    // outer function.
-    await resolveTestCode(r'''
-void f() {
-  while (true) {
-    void g() {
-      continue;
-    }
-  }
-}
-''');
-    var continueStatement = findNode.continueStatement('continue;');
-    expect(continueStatement.target, isNull);
-  }
-
-  test_empty() async {
-    await assertNoErrorsInCode('');
-  }
-
-  test_entryPoint_exported() async {
-    newFile('/test/lib/a.dart', content: r'''
-main() {}
+  test_getErrors() {
+    addTestFile(r'''
+var a = b;
+var foo = 0;
 ''');
 
-    await assertNoErrorsInCode(r'''
-export 'a.dart';
-''');
-
-    var library = result.libraryElement;
-    var main = library.entryPoint;
-
-    expect(main, isNotNull);
-    expect(main.library, isNot(same(library)));
+    var result = getTestErrors();
+    expect(result.path, convertPath('/workspace/dart/test/lib/test.dart'));
+    expect(result.uri.toString(), 'package:dart.test/test.dart');
+    assertErrorsInList(result.errors, [
+      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 8, 1),
+    ]);
+    expect(result.lineInfo.lineStarts, [0, 11, 24]);
   }
 
-  test_entryPoint_local() async {
-    await assertNoErrorsInCode(r'''
-main() {}
-''');
+  test_getErrors_reuse() {
+    addTestFile('var a = b;');
 
-    var library = result.libraryElement;
-    var main = library.entryPoint;
+    var path = convertPath('/workspace/dart/test/lib/test.dart');
 
-    expect(main, isNotNull);
-    expect(main.library, same(library));
+    // No resolved files yet.
+    expect(fileResolver.testView.resolvedFiles, isEmpty);
+
+    // No cached, will resolve once.
+    expect(getTestErrors().errors, hasLength(1));
+    expect(fileResolver.testView.resolvedFiles, [path]);
+
+    // Has cached, will be not resolved again.
+    expect(getTestErrors().errors, hasLength(1));
+    expect(fileResolver.testView.resolvedFiles, [path]);
+
+    // New resolver.
+    // Still has cached, will be not resolved.
+    createFileResolver();
+    expect(getTestErrors().errors, hasLength(1));
+    expect(fileResolver.testView.resolvedFiles, []);
+
+    // Change the file, new resolver.
+    // With changed file the previously cached result cannot be used.
+    addTestFile('var a = c;');
+    createFileResolver();
+    expect(getTestErrors().errors, hasLength(1));
+    expect(fileResolver.testView.resolvedFiles, [path]);
+
+    // New resolver.
+    // Still has cached, will be not resolved.
+    createFileResolver();
+    expect(getTestErrors().errors, hasLength(1));
+    expect(fileResolver.testView.resolvedFiles, []);
   }
 
-  test_entryPoint_none() async {
-    await assertNoErrorsInCode('');
-
-    var library = result.libraryElement;
-    expect(library.entryPoint, isNull);
-  }
-
-  test_enum_externalLibrary() async {
-    newFile('/test/lib/a.dart', content: r'''
-enum EEE {A, B, C}
+  test_getErrors_reuse_changeDependency() {
+    newFile('/workspace/dart/test/lib/a.dart', content: r'''
+var a = 0;
 ''');
-    await assertNoErrorsInCode(r'''
+
+    addTestFile(r'''
 import 'a.dart';
-
-void f(EEE e) {}
+var b = a.foo;
 ''');
-    verifyTestResolved();
+
+    var path = convertPath('/workspace/dart/test/lib/test.dart');
+
+    // No resolved files yet.
+    expect(fileResolver.testView.resolvedFiles, isEmpty);
+
+    // No cached, will resolve once.
+    expect(getTestErrors().errors, hasLength(1));
+    expect(fileResolver.testView.resolvedFiles, [path]);
+
+    // Has cached, will be not resolved again.
+    expect(getTestErrors().errors, hasLength(1));
+    expect(fileResolver.testView.resolvedFiles, [path]);
+
+    // Change the dependency, new resolver.
+    // The signature of the result is different.
+    // The previously cached result cannot be used.
+    newFile('/workspace/dart/test/lib/a.dart', content: r'''
+var a = 4.2;
+''');
+    createFileResolver();
+    expect(getTestErrors().errors, hasLength(1));
+    expect(fileResolver.testView.resolvedFiles, [path]);
+
+    // New resolver.
+    // Still has cached, will be not resolved.
+    createFileResolver();
+    expect(getTestErrors().errors, hasLength(1));
+    expect(fileResolver.testView.resolvedFiles, []);
   }
 
-  test_extractedMethodAsConstant() async {
-    await assertNoErrorsInCode(r'''
-abstract class Comparable<T> {
-  int compareTo(T other);
-  static int compare(Comparable a, Comparable b) => a.compareTo(b);
-}
-class A {
-  void sort([compare = Comparable.compare]) {}
-}''');
-    verifyTestResolved();
-  }
-
-  test_fieldFormalParameter() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  int x;
-  int y;
-  A(this.x) : y = x {}
-}''');
-    verifyTestResolved();
-
-    var xParameter = findNode.fieldFormalParameter('this.x');
-
-    var xParameterElement =
-        xParameter.declaredElement as FieldFormalParameterElement;
-    expect(xParameterElement.field, findElement.field('x'));
-
-    assertElement(
-      findNode.simple('x {}'),
-      xParameterElement,
-    );
-  }
-
-  test_forEachLoops_nonConflicting() async {
+  test_hint() async {
     await assertErrorsInCode(r'''
-f() {
-  List list = [1,2,3];
-  for (int x in list) {}
-  for (int x in list) {}
-}
+import 'dart:math';
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 40, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 65, 1),
+      error(HintCode.UNUSED_IMPORT, 7, 11),
     ]);
-    verifyTestResolved();
   }
 
-  test_forLoops_nonConflicting() async {
-    await assertNoErrorsInCode(r'''
-f() {
-  for (int i = 0; i < 3; i++) {
-  }
-  for (int i = 0; i < 3; i++) {
-  }
-}''');
-    verifyTestResolved();
+  test_reuse_compatibleOptions() async {
+    var aPath = '/workspace/dart/aaa/lib/a.dart';
+    var aResult = await assertErrorsInFile(aPath, r'''
+num a = 0;
+int b = a;
+''', []);
+
+    var bPath = '/workspace/dart/bbb/lib/a.dart';
+    var bResult = await assertErrorsInFile(bPath, r'''
+num a = 0;
+int b = a;
+''', []);
+
+    // Both files use the same (default) analysis options.
+    // So, when we resolve 'bbb', we can reuse the context after 'aaa'.
+    expect(
+      aResult.libraryElement.context,
+      same(bResult.libraryElement.context),
+    );
   }
 
-  test_functionTypeAlias() async {
-    await assertNoErrorsInCode(r'''
-typedef bool P(e);
-class A {
-  P p;
-  m(e) {
-    if (p(e)) {}
-  }
-}''');
-    verifyTestResolved();
-  }
-
-  test_getter_and_setter_fromMixins_bare_identifier() async {
-    await assertNoErrorsInCode('''
-class B {}
-class M1 {
-  get x => null;
-  set x(value) {}
-}
-class M2 {
-  get x => null;
-  set x(value) {}
-}
-class C extends B with M1, M2 {
-  void f() {
-    x += 1;
-  }
-}
+  test_reuse_incompatibleOptions_implicitCasts() async {
+    newFile('/workspace/dart/aaa/analysis_options.yaml', content: r'''
+analyzer:
+  strong-mode:
+    implicit-casts: false
 ''');
-    verifyTestResolved();
 
-    // Verify that both the getter and setter for "x" in C.f() refer to the
-    // accessors defined in M2.
-    var leftHandSide = findNode.simple('x +=');
-    expect(
-      leftHandSide.staticElement,
-      findElement.setter('x', of: 'M2'),
-    );
-    expect(
-      leftHandSide.auxiliaryElements.staticElement,
-      findElement.getter('x', of: 'M2'),
-    );
-  }
-
-  test_getter_and_setter_fromMixins_property_access() async {
-    await assertNoErrorsInCode(r'''
-class B {}
-class M1 {
-  get x => null;
-  set x(value) {}
-}
-class M2 {
-  get x => null;
-  set x(value) {}
-}
-class C extends B with M1, M2 {}
-void main() {
-  new C().x += 1;
-}
+    newFile('/workspace/dart/bbb/analysis_options.yaml', content: r'''
+analyzer:
+  strong-mode:
+    implicit-casts: true
 ''');
-    verifyTestResolved();
 
-    // Verify that both the getter and setter for "x" in "new C().x" refer to
-    // the accessors defined in M2.
-    var leftHandSide = findNode.simple('x +=');
-    expect(
-      leftHandSide.staticElement,
-      findElement.setter('x', of: 'M2'),
-    );
-    expect(
-      leftHandSide.auxiliaryElements.staticElement,
-      findElement.getter('x', of: 'M2'),
-    );
-  }
-
-  test_getter_fromMixins_bare_identifier() async {
-    await assertNoErrorsInCode('''
-class B {}
-class M1 {
-  get x => null;
-}
-class M2 {
-  get x => null;
-}
-class C extends B with M1, M2 {
-  f() {
-    return x;
-  }
-}
-''');
-    verifyTestResolved();
-
-    // Verify that the getter for "x" in C.f() refers to the getter defined in
-    // M2.
-    expect(
-      findNode.simple('x;').staticElement,
-      findElement.getter('x', of: 'M2'),
-    );
-  }
-
-  test_getter_fromMixins_property_access() async {
-    await assertErrorsInCode('''
-class B {}
-class M1 {
-  get x => null;
-}
-class M2 {
-  get x => null;
-}
-class C extends B with M1, M2 {}
-void main() {
-  var y = new C().x;
-}
+    // Implicit casts are disabled in 'aaa'.
+    var aPath = '/workspace/dart/aaa/lib/a.dart';
+    var aResult = await assertErrorsInFile(aPath, r'''
+num a = 0;
+int b = a;
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 124, 1),
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 19, 1),
     ]);
-    verifyTestResolved();
 
-    // Verify that the getter for "x" in "new C().x" refers to the getter
-    // defined in M2.
+    // Implicit casts are enabled in 'bbb'.
+    var bPath = '/workspace/dart/bbb/lib/a.dart';
+    var bResult = await assertErrorsInFile(bPath, r'''
+num a = 0;
+int b = a;
+''', []);
+
+    // Packages 'aaa' and 'bbb' have different options affecting type system.
+    // So, we cannot share the same context.
     expect(
-      findNode.simple('x;').staticElement,
-      findElement.getter('x', of: 'M2'),
+      aResult.libraryElement.context,
+      isNot(same(bResult.libraryElement.context)),
     );
-  }
-
-  test_hasReferenceToSuper() async {
-    await assertNoErrorsInCode(r'''
-class A {}
-class B {toString() => super.toString();}''');
-    verifyTestResolved();
-
-    var a = findElement.class_('A');
-    expect(a.hasReferenceToSuper, isFalse);
-
-    var b = findElement.class_('B');
-    expect(b.hasReferenceToSuper, isTrue);
-  }
-
-  test_import_hide() async {
-    newFile('/test/lib/lib1.dart', content: r'''
-set foo(value) {}
-class A {}''');
-
-    newFile('/test/lib/lib2.dart', content: r'''
-set foo(value) {}''');
-
-    await assertNoErrorsInCode(r'''
-import 'lib1.dart' hide foo;
-import 'lib2.dart';
-
-main() {
-  foo = 0;
-}
-A a;''');
-    verifyTestResolved();
-  }
-
-  test_import_prefix() async {
-    newFile('/test/lib/a.dart', content: r'''
-f(int x) {
-  return x * x;
-}''');
-
-    await assertNoErrorsInCode(r'''
-import 'a.dart' as _a;
-main() {
-  _a.f(0);
-}''');
-    verifyTestResolved();
-  }
-
-  test_import_prefix_doesNotExist() async {
-    //
-    // The primary purpose of this test is to ensure that we are only getting a
-    // single error generated when the only problem is that an imported file
-    // does not exist.
-    //
-    await assertErrorsInCode('''
-import 'missing.dart' as p;
-int a = p.q + p.r.s;
-String b = p.t(a) + p.u(v: 0);
-p.T c = new p.T();
-class D<E> extends p.T {
-  D(int i) : super(i);
-  p.U f = new p.V();
-}
-class F implements p.T {
-  p.T m(p.U u) => null;
-}
-class G extends Object with p.V {}
-class H extends D<p.W> {
-  H(int i) : super(i);
-}
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 14),
-    ]);
-    verifyTestResolved();
-  }
-
-  test_import_show_doesNotExist() async {
-    //
-    // The primary purpose of this test is to ensure that we are only getting a
-    // single error generated when the only problem is that an imported file
-    // does not exist.
-    //
-    await assertErrorsInCode('''
-import 'missing.dart' show q, r, t, u, T, U, V, W;
-int a = q + r.s;
-String b = t(a) + u(v: 0);
-T c = new T();
-class D<E> extends T {
-  D(int i) : super(i);
-  U f = new V();
-}
-class F implements T {
-  T m(U u) => null;
-}
-class G extends Object with V {}
-class H extends D<W> {
-  H(int i) : super(i);
-}
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 14),
-    ]);
-  }
-
-  @failingTest
-  test_import_spaceInUri() async {
-    // TODO(scheglov) Fix this. The problem is in `package` URI resolver.
-    newFile('/test/lib/sub folder/a.dart', content: r'''
-foo() {}''');
-
-    await assertNoErrorsInCode(r'''
-import 'sub folder/a.dart';
-
-main() {
-  foo();
-}''');
-    verifyTestResolved();
-  }
-
-  test_indexExpression_typeParameters() async {
-    await assertNoErrorsInCode(r'''
-f() {
-  List<int> a;
-  a[0];
-  List<List<int>> b;
-  b[0][0];
-  List<List<List<int>>> c;
-  c[0][0][0];
-}''');
-    verifyTestResolved();
-  }
-
-  test_indexExpression_typeParameters_invalidAssignmentWarning() async {
-    await assertErrorsInCode(r'''
-f() {
-  List<List<int>> b;
-  b[0][0] = 'hi';
-}''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 39, 4),
-    ]);
-    verifyTestResolved();
-  }
-
-  test_indirectOperatorThroughCall() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  B call() { return new B(); }
-}
-
-class B {
-  int operator [](int i) { return i; }
-}
-
-A f = new A();
-
-g(int x) {}
-
-main() {
-  g(f()[0]);
-}''');
-    verifyTestResolved();
-  }
-
-  test_invoke_dynamicThroughGetter() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  List get X => [() => 0];
-  m(A a) {
-    X.last;
-  }
-}''');
-    verifyTestResolved();
-  }
-
-  test_isValidMixin_badSuperclass() async {
-    await assertErrorsInCode(r'''
-class A extends B {}
-class B {}
-class C = Object with A;''', [
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 54, 1),
-    ]);
-    verifyTestResolved();
-
-    var a = findElement.class_('A');
-    expect(a.isValidMixin, isFalse);
-  }
-
-  test_isValidMixin_constructor() async {
-    await assertErrorsInCode(r'''
-class A {
-  A() {}
-}
-class C = Object with A;''', [
-      error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 43, 1),
-    ]);
-    verifyTestResolved();
-
-    var a = findElement.class_('A');
-    expect(a.isValidMixin, isFalse);
-  }
-
-  test_isValidMixin_factoryConstructor() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  factory A() => throw 0;
-}
-class C = Object with A;''');
-    verifyTestResolved();
-
-    var a = findElement.class_('A');
-    expect(a.isValidMixin, isTrue);
-  }
-
-  test_isValidMixin_super() async {
-    await assertErrorsInCode(r'''
-class A {
-  toString() {
-    return super.toString();
-  }
-}
-class C = Object with A;''', [
-      error(CompileTimeErrorCode.MIXIN_REFERENCES_SUPER, 82, 1),
-    ]);
-    verifyTestResolved();
-
-    var a = findElement.class_('A');
-    expect(a.isValidMixin, isFalse);
-  }
-
-  test_isValidMixin_valid() async {
-    await assertNoErrorsInCode('''
-class A {}
-class C = Object with A;''');
-    verifyTestResolved();
-
-    var a = findElement.class_('A');
-    expect(a.isValidMixin, isTrue);
-  }
-
-  test_labels_switch() async {
-    await assertNoErrorsInCode(r'''
-void doSwitch(int target) {
-  switch (target) {
-    l0: case 0:
-      continue l1;
-    l1: case 1:
-      continue l0;
-    default:
-      continue l1;
-  }
-}''');
-    verifyTestResolved();
-  }
-
-  test_localVariable_types_invoked() async {
-    await resolveTestCode(r'''
-const A = null;
-main() {
-  var myVar = (int p) => 'foo';
-  myVar(42);
-}''');
-    var node = findNode.simple('myVar(42)');
-    assertType(node, 'String Function(int)');
-  }
-
-  test_metadata_class() async {
-    await assertNoErrorsInCode(r'''
-const A = null;
-@A class C<A> {}''');
-    verifyTestResolved();
-
-    var annotations = findElement.class_('C').metadata;
-    expect(annotations, hasLength(1));
-
-    var cDeclaration = findNode.classDeclaration('C<A>');
-    assertElement(
-      cDeclaration.metadata[0].name,
-      findElement.topGet('A'),
-    );
-  }
-
-  test_metadata_field() async {
-    await assertNoErrorsInCode(r'''
-const A = null;
-class C {
-  @A int f;
-}''');
-    verifyTestResolved();
-
-    var metadata = findElement.field('f').metadata;
-    expect(metadata, hasLength(1));
-  }
-
-  test_metadata_fieldFormalParameter() async {
-    await assertNoErrorsInCode(r'''
-const A = null;
-class C {
-  int f;
-  C(@A this.f);
-}''');
-    verifyTestResolved();
-
-    var metadata = findElement.fieldFormalParameter('f').metadata;
-    expect(metadata, hasLength(1));
-  }
-
-  test_metadata_function() async {
-    await assertNoErrorsInCode(r'''
-const A = null;
-@A f() {}''');
-    verifyTestResolved();
-
-    var annotations = findElement.topFunction('f').metadata;
-    expect(annotations, hasLength(1));
-  }
-
-  test_metadata_functionTypedParameter() async {
-    await assertNoErrorsInCode(r'''
-const A = null;
-f(@A int p(int x)) {}''');
-    verifyTestResolved();
-
-    var metadata = findElement.parameter('p').metadata;
-    expect(metadata, hasLength(1));
-  }
-
-  test_metadata_libraryDirective() async {
-    await assertNoErrorsInCode(r'''
-@A library lib;
-const A = null;''');
-    verifyTestResolved();
-
-    var metadata = result.libraryElement.metadata;
-    expect(metadata, hasLength(1));
-  }
-
-  test_metadata_method() async {
-    await assertNoErrorsInCode(r'''
-const A = null;
-class C {
-  @A void m() {}
-}''');
-    verifyTestResolved();
-
-    var metadata = findElement.method('m').metadata;
-    expect(metadata, hasLength(1));
-  }
-
-  test_metadata_namedParameter() async {
-    await assertNoErrorsInCode(r'''
-const A = null;
-f({@A int p : 0}) {}''');
-    verifyTestResolved();
-
-    var metadata = findElement.parameter('p').metadata;
-    expect(metadata, hasLength(1));
-  }
-
-  test_metadata_positionalParameter() async {
-    await assertNoErrorsInCode(r'''
-const A = null;
-f([@A int p = 0]) {}''');
-    verifyTestResolved();
-
-    var metadata = findElement.parameter('p').metadata;
-    expect(metadata, hasLength(1));
-  }
-
-  test_metadata_simpleParameter() async {
-    await assertNoErrorsInCode(r'''
-const A = null;
-f(@A p1, @A int p2) {}''');
-    verifyTestResolved();
-
-    expect(findElement.parameter('p1').metadata, hasLength(1));
-    expect(findElement.parameter('p2').metadata, hasLength(1));
-  }
-
-  test_metadata_typedef() async {
-    await assertNoErrorsInCode(r'''
-const A = null;
-@A typedef F<A>();''');
-    verifyTestResolved();
-
-    expect(
-      findElement.functionTypeAlias('F').metadata,
-      hasLength(1),
-    );
-
-    var actualElement = findNode.annotation('@A').name.staticElement;
-    expect(actualElement, findElement.topGet('A'));
-  }
-
-  test_method_fromMixin() async {
-    await assertNoErrorsInCode(r'''
-class B {
-  bar() => 1;
-}
-class A {
-  foo() => 2;
-}
-
-class C extends B with A {
-  bar() => super.bar();
-  foo() => super.foo();
-}''');
-    verifyTestResolved();
-  }
-
-  test_method_fromMixins() async {
-    await assertNoErrorsInCode('''
-class B {}
-class M1 {
-  void f() {}
-}
-class M2 {
-  void f() {}
-}
-class C extends B with M1, M2 {}
-void main() {
-  new C().f();
-}
-''');
-    verifyTestResolved();
-
-    expect(
-      findNode.simple('f();').staticElement,
-      findElement.method('f', of: 'M2'),
-    );
-  }
-
-  test_method_fromMixins_bare_identifier() async {
-    await assertNoErrorsInCode('''
-class B {}
-class M1 {
-  void f() {}
-}
-class M2 {
-  void f() {}
-}
-class C extends B with M1, M2 {
-  void g() {
-    f();
-  }
-}
-''');
-    verifyTestResolved();
-
-    expect(
-      findNode.simple('f();').staticElement,
-      findElement.method('f', of: 'M2'),
-    );
-  }
-
-  test_method_fromMixins_invoked_from_outside_class() async {
-    await assertNoErrorsInCode('''
-class B {}
-class M1 {
-  void f() {}
-}
-class M2 {
-  void f() {}
-}
-class C extends B with M1, M2 {}
-void main() {
-  new C().f();
-}
-''');
-    verifyTestResolved();
-
-    expect(
-      findNode.simple('f();').staticElement,
-      findElement.method('f', of: 'M2'),
-    );
-  }
-
-  test_method_fromSuperclassMixin() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  void m1() {}
-}
-class B extends Object with A {
-}
-class C extends B {
-}
-f(C c) {
-  c.m1();
-}''');
-    verifyTestResolved();
-  }
-
-  test_methodCascades() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  void m1() {}
-  void m2() {}
-  void m() {
-    A a = new A();
-    a..m1()
-     ..m2();
-  }
-}''');
-    verifyTestResolved();
-  }
-
-  test_methodCascades_withSetter() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  String name;
-  void m1() {}
-  void m2() {}
-  void m() {
-    A a = new A();
-    a..m1()
-     ..name = 'name'
-     ..m2();
-  }
-}''');
-    verifyTestResolved();
-  }
-
-  test_resolveAgainstNull() async {
-    await assertNoErrorsInCode(r'''
-f(var p) {
-  return null == p;
-}''');
-    verifyTestResolved();
-  }
-
-  test_setter_fromMixins_bare_identifier() async {
-    await resolveTestCode('''
-class B {}assertNoErrorsInCode
-class M1 {
-  set x(value) {}
-}
-class M2 {
-  set x(value) {}
-}
-class C extends B with M1, M2 {
-  void f() {
-    x = 1;
-  }
-}
-''');
-    verifyTestResolved();
-
-    expect(
-      findNode.simple('x = ').staticElement,
-      findElement.setter('x', of: 'M2'),
-    );
-  }
-
-  test_setter_fromMixins_property_access() async {
-    await assertNoErrorsInCode('''
-class B {}
-class M1 {
-  set x(value) {}
-}
-class M2 {
-  set x(value) {}
-}
-class C extends B with M1, M2 {}
-void main() {
-  new C().x = 1;
-}
-''');
-    verifyTestResolved();
-
-    expect(
-      findNode.simple('x = ').staticElement,
-      findElement.setter('x', of: 'M2'),
-    );
-  }
-
-  test_setter_inherited() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  int get x => 0;
-  set x(int p) {}
-}
-class B extends A {
-  int get x => super.x == null ? 0 : super.x;
-  int f() => x = 1;
-}''');
-    verifyTestResolved();
-  }
-
-  test_setter_static() async {
-    await assertNoErrorsInCode(r'''
-set s(x) {
-}
-
-main() {
-  s = 123;
-}''');
-    verifyTestResolved();
-  }
-
-  /**
-   * Verify that all of the identifiers in the [result] have been resolved.
-   */
-  void verifyTestResolved() {
-    var verifier = ResolutionVerifier();
-    result.unit.accept(verifier);
-    verifier.assertResolved();
-  }
-
-  /**
-   * Resolve the test file and verify that the arguments in a specific method
-   * invocation were correctly resolved.
-   *
-   * The file is expected to define a method named `g`, and has exactly one
-   * [MethodInvocation] in a statement ending with `);`. It is the arguments to
-   * that method invocation that are tested. The method invocation can contain
-   * errors.
-   *
-   * The arguments were resolved correctly if the number of expressions in the list matches the
-   * length of the array of indices and if, for each index in the array of indices, the parameter to
-   * which the argument expression was resolved is the parameter in the invoked method's list of
-   * parameters at that index. Arguments that should not be resolved to a parameter because of an
-   * error can be denoted by including a negative index in the array of indices.
-   *
-   * @param indices the array of indices used to associate arguments with parameters
-   * @throws Exception if the source could not be resolved or if the structure of the source is not
-   *           valid
-   */
-  Future<void> _validateArgumentResolution(List<int> indices) async {
-    var g = findElement.method('g');
-    var parameters = g.parameters;
-
-    var invocation = findNode.methodInvocation(');');
-
-    var arguments = invocation.argumentList.arguments;
-
-    var argumentCount = arguments.length;
-    expect(argumentCount, indices.length);
-
-    for (var i = 0; i < argumentCount; i++) {
-      var argument = arguments[i];
-      var actualParameter = argument.staticParameterElement;
-
-      var index = indices[i];
-      if (index < 0) {
-        expect(actualParameter, isNull);
-      } else {
-        var expectedParameter = parameters[index];
-        expect(actualParameter, same(expectedParameter));
-      }
-    }
   }
 }

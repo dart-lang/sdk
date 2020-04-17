@@ -86,6 +86,15 @@ class ConflictingGenericInterfacesWithNnbdTest
     ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
 
+  test_class_extends_implements_never() async {
+    await assertNoErrorsInCode('''
+class I<T> {}
+class A implements I<Never> {}
+class B implements I<Never> {}
+class C extends A implements B {}
+''');
+  }
+
   test_class_extends_implements_nullability() async {
     await assertErrorsInCode('''
 class I<T> {}
@@ -122,6 +131,30 @@ class B extends A<int> {}
 import 'a.dart';
 
 class C extends B implements A<int> {}
+''');
+  }
+
+  test_class_mixed_viaLegacy() async {
+    newFile('/test/lib/a.dart', content: r'''
+class A<T> {}
+
+class Bi implements A<int> {}
+
+class Biq implements A<int?> {}
+''');
+
+    // Both `Bi` and `Biq` implement `A<int*>` in legacy, so identical.
+    newFile('/test/lib/b.dart', content: r'''
+// @dart = 2.7
+import 'a.dart';
+
+class C extends Bi implements Biq {}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'b.dart';
+
+abstract class D implements C {}
 ''');
   }
 

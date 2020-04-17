@@ -217,19 +217,16 @@ void handlePostLinkClick(MouseEvent event) async {
   // Don't navigate on link click.
   event.preventDefault();
 
-  document.body.classes.add('rerunning');
-
   try {
     // Directing the server to produce an edit; request it, then do work with the
     // response.
     await doPost(path);
+    // TODO(mfairhurst): Only refresh the regions/dart code, not the window.
     (document.window.location as Location).reload();
   } catch (e, st) {
     logError('handlePostLinkClick: $e', st);
 
     window.alert('Could not load $path ($e).');
-  } finally {
-    document.body.classes.remove('rerunning');
   }
 }
 
@@ -446,40 +443,42 @@ void populateEditDetails([EditDetails response]) {
   explanation.scrollIntoView();
   _populateEditTraces(response, editPanel, parentDirectory);
   _populateEditLinks(response, editPanel);
-  _populateEditRationale(response, editPanel, parentDirectory);
 }
 
 /// Write the contents of the Edit List, from JSON data [editListData].
 void populateProposedEdits(
-    String path, List<EditListItem> edits, bool clearEditDetails) {
+    String path, Map<String, List<EditListItem>> edits, bool clearEditDetails) {
   editListElement.innerHtml = '';
 
-  Element p = editListElement.append(document.createElement('p'));
   var editCount = edits.length;
   if (editCount == 0) {
+    Element p = editListElement.append(document.createElement('p'));
     p.append(Text('No proposed edits'));
   } else {
-    p.append(Text('$editCount proposed ${pluralize(editCount, 'edit')}:'));
-  }
+    for (var entry in edits.entries) {
+      Element p = editListElement.append(document.createElement('p'));
+      p.append(Text('${entry.key}:'));
 
-  Element list = editListElement.append(document.createElement('ul'));
-  for (var edit in edits) {
-    Element item = list.append(document.createElement('li'));
-    item.classes.add('edit');
-    AnchorElement anchor = item.append(document.createElement('a'));
-    anchor.classes.add('edit-link');
-    var offset = edit.offset;
-    anchor.dataset['offset'] = '$offset';
-    var line = edit.line;
-    anchor.dataset['line'] = '$line';
-    anchor.append(Text('line $line'));
-    anchor.onClick.listen((MouseEvent event) {
-      navigate(window.location.pathname, offset, line, true, callback: () {
-        pushState(window.location.pathname, offset, line);
-      });
-      loadAndPopulateEditDetails(path, offset, line);
-    });
-    item.append(Text(': ${edit.explanation}'));
+      Element list = editListElement.append(document.createElement('ul'));
+      for (var edit in entry.value) {
+        Element item = list.append(document.createElement('li'));
+        item.classes.add('edit');
+        AnchorElement anchor = item.append(document.createElement('a'));
+        anchor.classes.add('edit-link');
+        var offset = edit.offset;
+        anchor.dataset['offset'] = '$offset';
+        var line = edit.line;
+        anchor.dataset['line'] = '$line';
+        anchor.append(Text('line $line'));
+        anchor.onClick.listen((MouseEvent event) {
+          navigate(window.location.pathname, offset, line, true, callback: () {
+            pushState(window.location.pathname, offset, line);
+          });
+          loadAndPopulateEditDetails(path, offset, line);
+        });
+        item.append(Text(': ${edit.explanation}'));
+      }
+    }
   }
 
   if (clearEditDetails) {
@@ -609,36 +608,12 @@ AnchorElement _aElementForLink(TargetLink link, String parentDirectory) {
 
 void _populateEditLinks(EditDetails response, Element editPanel) {
   if (response.edits != null) {
+    Element editParagraph = editPanel.append(document.createElement('p'));
     for (var edit in response.edits) {
-      Element editParagraph = editPanel.append(document.createElement('p'));
       Element a = editParagraph.append(document.createElement('a'));
       a.append(Text(edit.description));
       a.setAttribute('href', edit.href);
       a.classes = ['post-link', 'before-apply'];
-    }
-  }
-}
-
-void _populateEditRationale(
-    EditDetails response, Element editPanel, String parentDirectory) {
-  var detailCount = response.details.length;
-  if (detailCount == 0) {
-    // Having 0 details is not necessarily an expected possibility, but handling
-    // the possibility prevents awkward text, "for 0 reasons:".
-  } else {
-    editPanel
-        .append(ParagraphElement()..text = 'Edit rationale (experimental):');
-
-    Element detailList = editPanel.append(document.createElement('ul'));
-    for (var detail in response.details) {
-      var detailItem = detailList.append(document.createElement('li'));
-      detailItem.append(Text(detail.description));
-      var link = detail.link;
-      if (link != null) {
-        detailItem.append(Text(' ('));
-        detailItem.append(_aElementForLink(link, parentDirectory));
-        detailItem.append(Text(')'));
-      }
     }
   }
 }
@@ -655,10 +630,11 @@ void _populateEditTraces(
     var ul = traceParagraph
         .append(document.createElement('ul')..classes = ['trace']);
     for (var entry in trace.entries) {
-      var li = ul.append(document.createElement('li')..innerHtml = '&#x274F; ');
+      Element li =
+          ul.append(document.createElement('li')..innerHtml = '&#x274F; ');
       li.append(document.createElement('span')
         ..classes = ['function']
-        ..append(Text(entry.function ?? 'unknown')));
+        ..appendTextWithBreaks(entry.function ?? 'unknown'));
       var link = entry.link;
       if (link != null) {
         li.append(Text(' ('));
@@ -666,7 +642,7 @@ void _populateEditTraces(
         li.append(Text(')'));
       }
       li.append(Text(': '));
-      li.append(Text(entry.description));
+      li.appendTextWithBreaks(entry.description ?? 'unknown');
     }
   }
 }
@@ -686,5 +662,19 @@ class _PermissiveNodeValidator implements NodeValidator {
 
   static void setInnerHtml(Element element, String html) {
     element.setInnerHtml(html, validator: instance);
+  }
+}
+
+/// An extension on Element that fits into cascades.
+extension on Element {
+  /// Append [text] to this, inserting a word break before each '.' character.
+  void appendTextWithBreaks(String text) {
+    var textParts = text.split('.');
+    append(Text(textParts.first));
+    for (var substring in textParts.skip(1)) {
+      // Replace the '.' with a zero-width space and a '.'.
+      appendHtml('&#8203;.');
+      append(Text(substring));
+    }
   }
 }

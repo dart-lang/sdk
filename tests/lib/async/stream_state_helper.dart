@@ -12,35 +12,38 @@ import 'package:async_helper/async_minitest.dart';
 class SubscriptionProtocolTest {
   final StreamProtocolTest _streamTest;
   final int id;
-  StreamSubscription _subscription;
+  StreamSubscription? _subscription;
 
   SubscriptionProtocolTest(this.id, this._subscription, this._streamTest);
 
-  void pause([Future resumeSignal]) {
-    if (_subscription == null) throw new StateError("Not subscribed");
-    _subscription.pause(resumeSignal);
+  void pause([Future? resumeSignal]) {
+    var subscription = _subscription;
+    if (subscription == null) throw new StateError("Not subscribed");
+    subscription.pause(resumeSignal);
   }
 
   void resume() {
-    if (_subscription == null) throw new StateError("Not subscribed");
-    _subscription.resume();
+    var subscription = _subscription;
+    if (subscription == null) throw new StateError("Not subscribed");
+    subscription.resume();
   }
 
   void cancel() {
-    if (_subscription == null) throw new StateError("Not subscribed");
-    _subscription.cancel();
+    var subscription = _subscription;
+    if (subscription == null) throw new StateError("Not subscribed");
+    subscription.cancel();
     _subscription = null;
   }
 
-  void expectData(var data, [void action()]) {
+  void expectData(var data, [void action()?]) {
     _streamTest._expectData(this, data, action);
   }
 
-  void expectError(var error, [void action()]) {
+  void expectError(var error, [void action()?]) {
     _streamTest._expectError(this, error, action);
   }
 
-  void expectDone([void action()]) {
+  void expectDone([void action()?]) {
     _streamTest._expectDone(this, action);
   }
 }
@@ -49,14 +52,14 @@ class StreamProtocolTest {
   bool trace = false;
   final bool isBroadcast;
   final bool isAsBroadcast;
-  StreamController _controller;
-  Stream _controllerStream;
+  late StreamController _controller;
+  late Stream _controllerStream;
   // Most recent subscription created. Used as default for pause/resume.
-  SubscriptionProtocolTest _latestSubscription;
-  List<Event> _expectations = new List<Event>();
+  SubscriptionProtocolTest? _latestSubscription;
+  List<Event> _expectations = <Event>[];
   int _nextExpectationIndex = 0;
   int _subscriptionIdCounter = 0;
-  Function _onComplete;
+  Function? _onComplete;
 
   StreamProtocolTest.broadcast({bool sync: false})
       : isBroadcast = true,
@@ -128,20 +131,20 @@ class StreamProtocolTest {
     if (trace) {
       print("[Listen #$subscriptionId(#${_latestSubscription.hashCode})]");
     }
-    return _latestSubscription;
+    return _latestSubscription!;
   }
 
   // Actions on the most recently created subscription.
-  void pause([Future resumeSignal]) {
-    _latestSubscription.pause(resumeSignal);
+  void pause([Future? resumeSignal]) {
+    _latestSubscription!.pause(resumeSignal);
   }
 
   void resume() {
-    _latestSubscription.resume();
+    _latestSubscription!.resume();
   }
 
   void cancel() {
-    _latestSubscription.cancel();
+    _latestSubscription!.cancel();
     _latestSubscription = null;
   }
 
@@ -155,7 +158,7 @@ class StreamProtocolTest {
             "Found   : Early termination.\n${expect._stackTrace}");
       });
     }
-    _onComplete();
+    _onComplete!();
   }
 
   // Handling of stream events.
@@ -260,75 +263,75 @@ class StreamProtocolTest {
   }
 
   // Adds _expectations.
-  void expectAny([void action()]) {
+  void expectAny([void action()?]) {
     if (_onComplete == null) {
       _fail("Adding expectation after completing");
     }
     _expectations.add(new LogAnyEvent(action));
   }
 
-  void expectData(var data, [void action()]) {
+  void expectData(var data, [void action()?]) {
     _expectData(null, data, action);
   }
 
-  void _expectData(SubscriptionProtocolTest sub, var data, void action()) {
+  void _expectData(SubscriptionProtocolTest? sub, var data, void action()?) {
     if (_onComplete == null) {
       _fail("Adding expectation after completing");
     }
     _expectations.add(new DataEvent(sub, data, action));
   }
 
-  void expectError(var error, [void action()]) {
+  void expectError(var error, [void action()?]) {
     _expectError(null, error, action);
   }
 
-  void _expectError(SubscriptionProtocolTest sub, var error, void action()) {
+  void _expectError(SubscriptionProtocolTest? sub, var error, void action()?) {
     if (_onComplete == null) {
       _fail("Adding expectation after completing");
     }
     _expectations.add(new ErrorEvent(sub, error, action));
   }
 
-  void expectDone([void action()]) {
+  void expectDone([void action()?]) {
     _expectDone(null, action);
   }
 
-  void _expectDone(SubscriptionProtocolTest sub, [void action()]) {
+  void _expectDone(SubscriptionProtocolTest? sub, [void action()?]) {
     if (_onComplete == null) {
       _fail("Adding expectation after completing");
     }
     _expectations.add(new DoneEvent(sub, action));
   }
 
-  void expectPause([void action()]) {
+  void expectPause([void action()?]) {
     if (_onComplete == null) {
       _fail("Adding expectation after completing");
     }
     _expectations.add(new PauseCallbackEvent(action));
   }
 
-  void expectResume([void action()]) {
+  void expectResume([void action()?]) {
     if (_onComplete == null) {
       _fail("Adding expectation after completing");
     }
     _expectations.add(new ResumeCallbackEvent(action));
   }
 
-  void expectListen([void action()]) {
+  void expectListen([void action()?]) {
     if (_onComplete == null) {
       _fail("Adding expectation after completing");
     }
     _expectations.add(new SubscriptionCallbackEvent(action));
   }
 
-  void expectCancel([void action()]) {
+  void expectCancel([void action()?]) {
     if (_onComplete == null) {
       _fail("Adding expectation after completing");
     }
     _expectations.add(new CancelCallbackEvent(action));
   }
 
-  void expectBroadcastListen([void action(StreamSubscription sub)]) {
+  void expectBroadcastListen([void action(StreamSubscription sub)?]) {
     if (_onComplete == null) {
       _fail("Adding expectation after completing");
     }
@@ -336,7 +339,7 @@ class StreamProtocolTest {
     _expectations.add(new BroadcastListenCallbackEvent(action));
   }
 
-  void expectBroadcastCancel([void action(StreamSubscription sub)]) {
+  void expectBroadcastCancel([void action(StreamSubscription sub)?]) {
     if (_onComplete == null) {
       _fail("Adding expectation after completing");
     }
@@ -344,7 +347,7 @@ class StreamProtocolTest {
     _expectations.add(new BroadcastCancelCallbackEvent(action));
   }
 
-  void expectBroadcastListenOpt([void action(StreamSubscription sub)]) {
+  void expectBroadcastListenOpt([void action(StreamSubscription sub)?]) {
     if (_onComplete == null) {
       _fail("Adding expectation after completing");
     }
@@ -352,7 +355,7 @@ class StreamProtocolTest {
     _expectations.add(new BroadcastListenCallbackEvent(action));
   }
 
-  void expectBroadcastCancelOpt([void action(StreamSubscription sub)]) {
+  void expectBroadcastCancelOpt([void action(StreamSubscription sub)?]) {
     if (_onComplete == null) {
       _fail("Adding expectation after completing");
     }
@@ -379,9 +382,9 @@ class StreamProtocolTest {
 }
 
 class Event {
-  Function _action;
-  StackTrace _stackTrace;
-  Event(void action())
+  Function? _action;
+  StackTrace? _stackTrace;
+  Event(void action()?)
       : _action = (action == null) ? null : expectAsync(action) {
     try {
       throw 0;
@@ -389,7 +392,7 @@ class Event {
       _stackTrace = s;
     }
   }
-  Event.broadcast(void action(StreamSubscription sub))
+  Event.broadcast(void action(StreamSubscription sub)?)
       : _action = (action == null) ? null : expectAsync(action) {
     try {
       throw 0;
@@ -412,37 +415,37 @@ class Event {
 
   bool matchPause() {
     if (!_testPause()) return false;
-    if (_action != null) _action();
+    _action?.call();
     return true;
   }
 
   bool matchResume() {
     if (!_testResume()) return false;
-    if (_action != null) _action();
+    _action?.call();
     return true;
   }
 
   bool matchSubscribe() {
     if (!_testSubscribe()) return false;
-    if (_action != null) _action();
+    _action?.call();
     return true;
   }
 
   bool matchCancel() {
     if (!_testCancel()) return false;
-    if (_action != null) _action();
+    _action?.call();
     return true;
   }
 
   bool matchBroadcastListen(StreamSubscription sub) {
     if (!_testBroadcastListen()) return false;
-    if (_action != null) _action(sub);
+    _action?.call(sub);
     return true;
   }
 
   bool matchBroadcastCancel(StreamSubscription sub) {
     if (!_testBroadcastCancel()) return false;
-    if (_action != null) _action(sub);
+    _action?.call(sub);
     return true;
   }
 
@@ -458,31 +461,31 @@ class Event {
 }
 
 class SubscriptionEvent extends Event {
-  SubscriptionProtocolTest subscription;
-  SubscriptionEvent(this.subscription, void action()) : super(action);
+  SubscriptionProtocolTest? subscription;
+  SubscriptionEvent(this.subscription, void action()?) : super(action);
 
   bool matchData(int id, var data) {
-    if (subscription != null && subscription.id != id) return false;
+    if (subscription != null && subscription!.id != id) return false;
     if (!_testData(data)) return false;
-    if (_action != null) _action();
+    _action?.call();
     return true;
   }
 
   bool matchError(int id, e) {
-    if (subscription != null && subscription.id != id) return false;
+    if (subscription != null && subscription!.id != id) return false;
     if (!_testError(e)) return false;
-    if (_action != null) _action();
+    _action?.call();
     return true;
   }
 
   bool matchDone(int id) {
-    if (subscription != null && subscription.id != id) return false;
+    if (subscription != null && subscription!.id != id) return false;
     if (!_testDone()) return false;
-    if (_action != null) _action();
+    _action?.call();
     return true;
   }
 
-  String get _id => (subscription == null) ? "" : "#${subscription.id}";
+  String get _id => (subscription == null) ? "" : "#${subscription!.id}";
 }
 
 class MismatchEvent extends Event {
@@ -492,7 +495,7 @@ class MismatchEvent extends Event {
 
 class DataEvent extends SubscriptionEvent {
   final data;
-  DataEvent(SubscriptionProtocolTest sub, this.data, void action())
+  DataEvent(SubscriptionProtocolTest? sub, this.data, void action()?)
       : super(sub, action);
   bool _testData(var data) => this.data == data;
   String toString() => "[Data$_id: $data]";
@@ -500,51 +503,51 @@ class DataEvent extends SubscriptionEvent {
 
 class ErrorEvent extends SubscriptionEvent {
   final error;
-  ErrorEvent(SubscriptionProtocolTest sub, this.error, void action())
+  ErrorEvent(SubscriptionProtocolTest? sub, this.error, void action()?)
       : super(sub, action);
   bool _testError(error) => this.error == error;
   String toString() => "[Error$_id: $error]";
 }
 
 class DoneEvent extends SubscriptionEvent {
-  DoneEvent(SubscriptionProtocolTest sub, void action()) : super(sub, action);
+  DoneEvent(SubscriptionProtocolTest? sub, void action()?) : super(sub, action);
   bool _testDone() => true;
   String toString() => "[Done$_id]";
 }
 
 class PauseCallbackEvent extends Event {
-  PauseCallbackEvent(void action()) : super(action);
+  PauseCallbackEvent(void action()?) : super(action);
   bool _testPause() => true;
   String toString() => "[Paused]";
 }
 
 class ResumeCallbackEvent extends Event {
-  ResumeCallbackEvent(void action()) : super(action);
+  ResumeCallbackEvent(void action()?) : super(action);
   bool _testResume() => true;
   String toString() => "[Resumed]";
 }
 
 class SubscriptionCallbackEvent extends Event {
-  SubscriptionCallbackEvent(void action()) : super(action);
+  SubscriptionCallbackEvent(void action()?) : super(action);
   bool _testSubscribe() => true;
   String toString() => "[Subscribed]";
 }
 
 class CancelCallbackEvent extends Event {
-  CancelCallbackEvent(void action()) : super(action);
+  CancelCallbackEvent(void action()?) : super(action);
   bool _testCancel() => true;
   String toString() => "[Cancelled]";
 }
 
 class BroadcastCancelCallbackEvent extends Event {
-  BroadcastCancelCallbackEvent(void action(StreamSubscription sub))
+  BroadcastCancelCallbackEvent(void action(StreamSubscription sub)?)
       : super.broadcast(action);
   bool _testBroadcastCancel() => true;
   String toString() => "[BroadcastCancel]";
 }
 
 class BroadcastListenCallbackEvent extends Event {
-  BroadcastListenCallbackEvent(void action(StreamSubscription sub))
+  BroadcastListenCallbackEvent(void action(StreamSubscription sub)?)
       : super.broadcast(action);
   bool _testBroadcastListen() => true;
   String toString() => "[BroadcastListen]";
@@ -554,7 +557,7 @@ class BroadcastListenCallbackEvent extends Event {
 class LogAnyEvent extends Event {
   String _actual = "*Not matched yet*";
 
-  LogAnyEvent(void action()) : super(action);
+  LogAnyEvent(void action()?) : super(action);
 
   bool _testData(var data) {
     _actual = "*[Data $data]";

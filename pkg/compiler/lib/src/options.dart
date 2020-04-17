@@ -199,6 +199,10 @@ class CompilerOptions implements DiagnosticOptions {
   /// after a transitional period.
   bool useDumpInfoBinaryFormat = false;
 
+  /// If set, SSA intermediate form is dumped for methods with names matching
+  /// this RegExp pattern.
+  String dumpSsaPattern = null;
+
   /// Whether we allow passing an extra argument to `assert`, containing a
   /// reason for why an assertion fails. (experimental)
   ///
@@ -332,9 +336,12 @@ class CompilerOptions implements DiagnosticOptions {
   /// Whether to use the new RTI representation (default).
   bool useNewRti = true;
 
-  /// Whether null-safety (non-nullable types) are enabled.
-  bool get useNullSafety =>
-      languageExperiments[fe.ExperimentalFlag.nonNullable];
+  /// Whether null-safety (non-nullable types) are enabled in the sdk.
+  ///
+  /// This may be true either when `--enable-experiment=non-nullable` is
+  /// provided on the command-line, or when the provided .dill file for the sdk
+  /// was built with null-safety enabled.
+  bool useNullSafety = false;
 
   /// When null-safety is enabled, whether the compiler should emit code with
   /// weak or strong semantics.
@@ -376,22 +383,11 @@ class CompilerOptions implements DiagnosticOptions {
       void Function(String) onWarning}) {
     Map<fe.ExperimentalFlag, bool> languageExperiments =
         _extractExperiments(options, onError: onError, onWarning: onWarning);
-    if (equalMaps(languageExperiments, fe.defaultExperimentalFlags)) {
-      platformBinaries ??= fe.computePlatformBinariesLocation();
-    } else {
-      // TODO(sigmund): change these defaults before we unfork the sdk.
-      // To unfork the plan is to accept the same platform files regardless of
-      // the experiment flag (it will be enabled in the sdk regardless).
-      if (_hasOption(options, Flags.testMode) &&
-          languageExperiments[fe.ExperimentalFlag.nonNullable]) {
-        var experimentWithoutNullability = Map.of(languageExperiments);
-        experimentWithoutNullability[fe.ExperimentalFlag.nonNullable] = false;
-        if (equalMaps(
-            experimentWithoutNullability, fe.defaultExperimentalFlags)) {
-          platformBinaries ??= fe.computePlatformBinariesLocation();
-        }
-      }
-    }
+
+    // The null safety experiment can result in requiring different experiments
+    // for compiling user code vs. the sdk. To simplify things, we prebuild the
+    // sdk with the correct flags.
+    platformBinaries ??= fe.computePlatformBinariesLocation();
     return new CompilerOptions()
       ..librariesSpecificationUri = librariesSpecificationUri
       ..allowMockCompilation = _hasOption(options, Flags.allowMockCompilation)
@@ -423,6 +419,8 @@ class CompilerOptions implements DiagnosticOptions {
       ..dumpInfo = _hasOption(options, Flags.dumpInfo)
       ..useDumpInfoBinaryFormat =
           _hasOption(options, "${Flags.dumpInfo}=binary")
+      ..dumpSsaPattern =
+          _extractStringOption(options, '${Flags.dumpSsa}=', null)
       ..enableMinification = _hasOption(options, Flags.minify)
       .._disableMinification = _hasOption(options, Flags.noMinify)
       ..enableNativeLiveTypeAnalysis =
@@ -441,8 +439,7 @@ class CompilerOptions implements DiagnosticOptions {
       ..useNewRti = !_hasOption(options, Flags.useOldRti)
       ..generateSourceMap = !_hasOption(options, Flags.noSourceMaps)
       ..outputUri = _extractUriOption(options, '--out=')
-      ..platformBinaries =
-          platformBinaries ?? _extractUriOption(options, '--platform-binaries=')
+      ..platformBinaries = platformBinaries
       ..printLegacyStars = _hasOption(options, Flags.printLegacyStars)
       ..sourceMapUri = _extractUriOption(options, '--source-map=')
       ..omitImplicitChecks = _hasOption(options, Flags.omitImplicitChecks)
@@ -512,6 +509,10 @@ class CompilerOptions implements DiagnosticOptions {
 
     if (_noLegacyJavaScript) legacyJavaScript = false;
     if (_legacyJavaScript) legacyJavaScript = true;
+
+    if (languageExperiments[fe.ExperimentalFlag.nonNullable]) {
+      useNullSafety = true;
+    }
 
     if (optimizationLevel != null) {
       if (optimizationLevel == 0) {

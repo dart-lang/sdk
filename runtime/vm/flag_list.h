@@ -143,6 +143,9 @@ constexpr bool kDartUseBackgroundCompilation = true;
   P(link_natives_lazily, bool, false, "Link native calls lazily")              \
   R(log_marker_tasks, false, bool, false,                                      \
     "Log debugging information for old gen GC marking tasks.")                 \
+  P(scavenger_tasks, int, 2,                                                   \
+    "The number of tasks to spawn during scavenging (0 means "                 \
+    "perform all marking on main thread).")                                    \
   P(marker_tasks, int, 2,                                                      \
     "The number of tasks to spawn during old gen GC marking (0 means "         \
     "perform all marking on main thread).")                                    \
