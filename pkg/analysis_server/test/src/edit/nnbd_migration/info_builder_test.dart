@@ -293,6 +293,68 @@ class InfoBuilderTest extends NnbdMigrationTestBase {
             replacement: ''));
   }
 
+  Future<void> test_conditionFalseInStrongMode() async {
+    var unit = await buildInfoForSingleTestFile('''
+int f(String s) {
+  if (s == null) {
+    return 0;
+  } else {
+    return s.length;
+  }
+}
+''', migratedContent: '''
+int  f(String  s) {
+  if (s == null /* == false */) {
+    return 0;
+  } else {
+    return s.length;
+  }
+}
+''', warnOnWeakCode: true);
+    var insertedComment = '/* == false */';
+    var insertedCommentOffset = unit.content.indexOf(insertedComment);
+    var region = unit.regions
+        .where((region) => region.offset == insertedCommentOffset)
+        .single;
+    assertRegion(
+        region: region,
+        length: insertedComment.length,
+        explanation: 'Condition will always be false in strong checking mode',
+        kind: NullabilityFixKind.conditionFalseInStrongMode,
+        edits: isEmpty);
+  }
+
+  Future<void> test_conditionTrueInStrongMode() async {
+    var unit = await buildInfoForSingleTestFile('''
+int f(String s) {
+  if (s != null) {
+    return s.length;
+  } else {
+    return 0;
+  }
+}
+''', migratedContent: '''
+int  f(String  s) {
+  if (s != null /* == true */) {
+    return s.length;
+  } else {
+    return 0;
+  }
+}
+''', warnOnWeakCode: true);
+    var insertedComment = '/* == true */';
+    var insertedCommentOffset = unit.content.indexOf(insertedComment);
+    var region = unit.regions
+        .where((region) => region.offset == insertedCommentOffset)
+        .single;
+    assertRegion(
+        region: region,
+        length: insertedComment.length,
+        explanation: 'Condition will always be true in strong checking mode',
+        kind: NullabilityFixKind.conditionTrueInStrongMode,
+        edits: isEmpty);
+  }
+
   Future<void> test_discardCondition() async {
     var unit = await buildInfoForSingleTestFile('''
 void g(int i) {
@@ -563,6 +625,25 @@ C/*!*/ _f(C  c) => (c + c)!;
         length: 1,
         explanation: 'Added a non-null assertion to nullable expression',
         kind: NullabilityFixKind.checkExpression);
+  }
+
+  void test_nullAwarenessUnnecessaryInStrongMode() async {
+    var unit = await buildInfoForSingleTestFile('''
+int f(String s) => s?.length;
+''', migratedContent: '''
+int  f(String  s) => s?.length;
+''', warnOnWeakCode: true);
+    var question = '?';
+    var questionOffset = unit.content.indexOf(question);
+    var region =
+        unit.regions.where((region) => region.offset == questionOffset).single;
+    assertRegion(
+        region: region,
+        length: question.length,
+        explanation:
+            'Null-aware access will be unnecessary in strong checking mode',
+        kind: NullabilityFixKind.nullAwarenessUnnecessaryInStrongMode,
+        edits: isEmpty);
   }
 
   Future<void> test_nullCheck_dueToHint() async {

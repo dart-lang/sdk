@@ -133,13 +133,15 @@ abstract class _InstrumentationTestBase extends AbstractContextTest {
 
   Source source;
 
-  Future<void> analyze(String content, {bool removeViaComments = false}) async {
+  Future<void> analyze(String content,
+      {bool removeViaComments = false, bool warnOnWeakCode = true}) async {
     var sourcePath = convertPath('/home/test/lib/test.dart');
     newFile(sourcePath, content: content);
     var listener = new TestMigrationListener();
     var migration = NullabilityMigration(listener,
         instrumentation: _InstrumentationClient(this),
-        removeViaComments: removeViaComments);
+        removeViaComments: removeViaComments,
+        warnOnWeakCode: warnOnWeakCode);
     var result = await session.getResolvedUnit(sourcePath);
     source = result.unit.declaredElement.source;
     findNode = FindNode(content, result.unit);
@@ -251,7 +253,7 @@ _f(int/*!*/ i) {
   }
 }
 ''';
-    await analyze(content);
+    await analyze(content, warnOnWeakCode: false);
     var intAnnotation = findNode.typeAnnotation('int');
     var commentPos = content.indexOf('/*');
     var ifPos = content.indexOf('if');
@@ -274,7 +276,7 @@ _f(int/*!*/ i) {
   if (i != null) return i;
 }
 ''';
-    await analyze(content);
+    await analyze(content, warnOnWeakCode: false);
     var intAnnotation = findNode.typeAnnotation('int');
     var commentPos = content.indexOf('/*');
     var ifPos = content.indexOf('if');
@@ -296,7 +298,7 @@ _f(int/*!*/ i) {
   }
 }
 ''';
-    await analyze(content);
+    await analyze(content, warnOnWeakCode: false);
     var intAnnotation = findNode.typeAnnotation('int');
     var commentPos = content.indexOf('/*');
     var ifPos = content.indexOf('if');
@@ -321,7 +323,7 @@ _f(int/*!*/ i) {
   }
 }
 ''';
-    await analyze(content);
+    await analyze(content, warnOnWeakCode: false);
     var intAnnotation = findNode.typeAnnotation('int');
     var commentPos = content.indexOf('/*');
     var bodyPos = content.indexOf('i) {') + 4;
@@ -343,7 +345,7 @@ _f(int/*!*/ i) {
   }
 }
 ''';
-    await analyze(content);
+    await analyze(content, warnOnWeakCode: false);
     var intAnnotation = findNode.typeAnnotation('int');
     var commentPos = content.indexOf('/*');
     var ifPos = content.indexOf('if');
@@ -368,7 +370,7 @@ _f(int/*!*/ i) {
   }
 }
 ''';
-    await analyze(content);
+    await analyze(content, warnOnWeakCode: false);
     var intAnnotation = findNode.typeAnnotation('int');
     var commentPos = content.indexOf('/*');
     var bodyPos = content.indexOf('i) {') + 4;
@@ -432,7 +434,7 @@ int x = null;
 
   Future<void> test_fix_reason_remove_question_from_question_dot() async {
     var content = '_f(int/*!*/ i) => i?.isEven;';
-    await analyze(content);
+    await analyze(content, warnOnWeakCode: false);
     var commentPos = content.indexOf('/*');
     var questionDotPos = content.indexOf('?.');
     expect(changes.keys, unorderedEquals([commentPos, questionDotPos]));
@@ -444,7 +446,7 @@ int x = null;
   Future<void>
       test_fix_reason_remove_question_from_question_dot_method() async {
     var content = '_f(int/*!*/ i) => i?.abs();';
-    await analyze(content);
+    await analyze(content, warnOnWeakCode: false);
     var commentPos = content.indexOf('/*');
     var questionDotPos = content.indexOf('?.');
     expect(changes.keys, unorderedEquals([commentPos, questionDotPos]));

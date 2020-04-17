@@ -47,6 +47,8 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   /// code that is removed.
   final bool removeViaComments;
 
+  final bool warnOnWeakCode;
+
   final _decoratedTypeParameterBounds = DecoratedTypeParameterBounds();
 
   /// If not `null`, the object that will be used to write out post-mortem
@@ -61,17 +63,22 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   /// complete.  TODO(paulberry): remove this mode once the migration algorithm
   /// is fully implemented.
   ///
-  /// Optional parameter [removeViaComments] indicates whether dead code should
-  /// be removed in its entirety (the default) or removed by commenting it out.
+  /// Optional parameter [removeViaComments] indicates whether code that the
+  /// migration tool wishes to remove should instead be commenting it out.
+  ///
+  /// Optional parameter [warnOnWeakCode] indicates whether weak-only code
+  /// should be warned about or removed (in the way specified by
+  /// [removeViaComments]).
   NullabilityMigrationImpl(NullabilityMigrationListener listener,
       {bool permissive: false,
       NullabilityMigrationInstrumentation instrumentation,
-      bool removeViaComments = true})
+      bool removeViaComments = true,
+      bool warnOnWeakCode = true})
       : this._(listener, NullabilityGraph(instrumentation: instrumentation),
-            permissive, instrumentation, removeViaComments);
+            permissive, instrumentation, removeViaComments, warnOnWeakCode);
 
   NullabilityMigrationImpl._(this.listener, this._graph, this._permissive,
-      this._instrumentation, this.removeViaComments) {
+      this._instrumentation, this.removeViaComments, this.warnOnWeakCode) {
     _instrumentation?.immutableNodes(_graph.never, _graph.always);
     _postmortemFileWriter?.graph = _graph;
   }
@@ -106,7 +113,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
       DecoratedTypeParameterBounds.current = null;
     }
     var changes = FixAggregator.run(unit, result.content, fixBuilder.changes,
-        removeViaComments: removeViaComments);
+        removeViaComments: removeViaComments, warnOnWeakCode: warnOnWeakCode);
     _instrumentation?.changes(source, changes);
     final lineInfo = LineInfo.fromContent(source.contents.data);
     var offsets = changes.keys.toList();

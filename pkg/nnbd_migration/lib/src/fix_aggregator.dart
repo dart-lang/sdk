@@ -33,7 +33,9 @@ class FixAggregator extends UnifyingAstVisitor<void> {
   /// refers to it.
   final Map<LibraryElement, String> _importPrefixes = {};
 
-  FixAggregator._(this.planner, this._changes,
+  final bool _warnOnWeakCode;
+
+  FixAggregator._(this.planner, this._changes, this._warnOnWeakCode,
       CompilationUnitElement compilationUnitElement) {
     for (var importElement in compilationUnitElement.library.imports) {
       // TODO(paulberry): the `??=` should ensure that if there are two imports,
@@ -175,10 +177,11 @@ class FixAggregator extends UnifyingAstVisitor<void> {
   /// Runs the [FixAggregator] on a [unit] and returns the resulting edits.
   static Map<int, List<AtomicEdit>> run(
       CompilationUnit unit, String sourceText, Map<AstNode, NodeChange> changes,
-      {bool removeViaComments: false}) {
+      {bool removeViaComments = true, bool warnOnWeakCode = false}) {
     var planner = EditPlanner(unit.lineInfo, sourceText,
         removeViaComments: removeViaComments);
-    var aggregator = FixAggregator._(planner, changes, unit.declaredElement);
+    var aggregator =
+        FixAggregator._(planner, changes, warnOnWeakCode, unit.declaredElement);
     unit.accept(aggregator);
     if (aggregator._plans.isEmpty) return {};
     EditPlan plan;
@@ -313,9 +316,27 @@ mixin NodeChangeForConditional<N extends AstNode> on NodeChange<N> {
   /// If dead code removal is warranted for [node], returns an [EditPlan] that
   /// removes the dead code (and performs appropriate updates within any
   /// descendant AST nodes that remain).  Otherwise returns `null`.
-  EditPlan _applyConditional(
-      N node, FixAggregator aggregator, AstNode thenNode, AstNode elseNode) {
+  EditPlan _applyConditional(N node, FixAggregator aggregator,
+      AstNode conditionNode, AstNode thenNode, AstNode elseNode) {
     if (conditionValue == null) return null;
+    if (aggregator._warnOnWeakCode) {
+      List<EditPlan> innerPlans = [];
+      var conditionPlan = aggregator.innerPlanForNode(conditionNode);
+      var info = AtomicEditInfo(
+          conditionValue
+              ? NullabilityFixDescription.conditionTrueInStrongMode
+              : NullabilityFixDescription.conditionFalseInStrongMode,
+          {FixReasonTarget.root: conditionReason});
+      var commentedConditionPlan = aggregator.planner.addCommentPostfix(
+          conditionPlan, '/* == $conditionValue */',
+          info: info, isInformative: true);
+      innerPlans.add(commentedConditionPlan);
+      innerPlans.addAll(aggregator.innerPlansForNode(thenNode));
+      if (elseNode != null) {
+        innerPlans.addAll(aggregator.innerPlansForNode(elseNode));
+      }
+      return aggregator.planner.passThrough(node, innerPlans: innerPlans);
+    }
     AstNode nodeToKeep;
     NullabilityFixDescription descriptionBefore, descriptionAfter;
     if (conditionValue) {
@@ -385,8 +406,8 @@ class NodeChangeForConditionalExpression
     with NodeChangeForConditional {
   @override
   EditPlan _apply(ConditionalExpression node, FixAggregator aggregator) {
-    return _applyConditional(
-            node, aggregator, node.thenExpression, node.elseExpression) ??
+    return _applyConditional(node, aggregator, node.condition,
+            node.thenExpression, node.elseExpression) ??
         super._apply(node, aggregator);
   }
 }
@@ -497,8 +518,8 @@ class NodeChangeForIfElement extends NodeChange<IfElement>
 
   @override
   EditPlan _apply(IfElement node, FixAggregator aggregator) {
-    return _applyConditional(
-            node, aggregator, node.thenElement, node.elseElement) ??
+    return _applyConditional(node, aggregator, node.condition, node.thenElement,
+            node.elseElement) ??
         aggregator.innerPlanForNode(node);
   }
 }
@@ -511,8 +532,8 @@ class NodeChangeForIfStatement extends NodeChange<IfStatement>
 
   @override
   EditPlan _apply(IfStatement node, FixAggregator aggregator) {
-    return _applyConditional(
-            node, aggregator, node.thenStatement, node.elseStatement) ??
+    return _applyConditional(node, aggregator, node.condition,
+            node.thenStatement, node.elseStatement) ??
         aggregator.innerPlanForNode(node);
   }
 }
@@ -555,9 +576,12 @@ mixin NodeChangeForNullAware<N extends Expression> on NodeChange<N> {
   /// Otherwise returns `null`.
   EditPlan _applyNullAware(N node, FixAggregator aggregator) {
     if (!removeNullAwareness) return null;
+    var description = aggregator._warnOnWeakCode
+        ? NullabilityFixDescription.nullAwarenessUnnecessaryInStrongMode
+        : NullabilityFixDescription.removeNullAwareness;
     return aggregator.planner.removeNullAwareness(node,
-        info: AtomicEditInfo(
-            NullabilityFixDescription.removeNullAwareness, const {}));
+        info: AtomicEditInfo(description, const {}),
+        isInformative: aggregator._warnOnWeakCode);
   }
 }
 
