@@ -130,8 +130,13 @@ abstract class DartType {
   @override
   String toString() => toStructuredText();
 
-  String toStructuredText({bool printLegacyStars = true}) =>
-      _DartTypeToStringVisitor(printLegacyStars).run(this);
+  String toStructuredText(
+          {bool printLegacyStars = true,
+          bool useNullSafety = true,
+          bool useLegacySubtyping = false}) =>
+      _DartTypeToStringVisitor(
+              printLegacyStars, useNullSafety, useLegacySubtyping)
+          .run(this);
 }
 
 /// Pairs of [FunctionTypeVariable]s that are currently assumed to be
@@ -1502,13 +1507,16 @@ class _DeferredName {
 
 class _DartTypeToStringVisitor extends DartTypeVisitor<void, void> {
   final bool _printLegacyStars;
+  final bool _useNullSafety;
+  final bool _useLegacySubtyping;
   final List _fragments = []; // Strings and _DeferredNames
   bool _lastIsIdentifier = false;
   List<FunctionTypeVariable> _boundVariables;
   Map<FunctionTypeVariable, _DeferredName> _variableToName;
   Set<FunctionType> _genericFunctions;
 
-  _DartTypeToStringVisitor(this._printLegacyStars);
+  _DartTypeToStringVisitor(
+      this._printLegacyStars, this._useNullSafety, this._useLegacySubtyping);
 
   String run(DartType type) {
     _visit(type);
@@ -1660,9 +1668,10 @@ class _DartTypeToStringVisitor extends DartTypeVisitor<void, void> {
         needsComma = _comma(needsComma);
         _visit(typeVariable);
         DartType bound = typeVariable.bound;
-        if (!bound.isObject) {
+        if (!bound._isTop(_useNullSafety) &&
+            (!_useLegacySubtyping || !bound.isObject)) {
           _token(' extends ');
-          _visit(typeVariable.bound);
+          _visit(bound);
         }
       }
       _token('>');
