@@ -9,10 +9,7 @@ import "package:expect/expect.dart";
 void main() {
   // Growable lists. Initial length 0.
   testConcurrentModification(<int>[].toList());
-  testConcurrentModification(
-      new List<int>.filled(0, null, growable: true).toList());
-  testConcurrentModification(new List<int?>.filled(0, null).toList());
-  testConcurrentModification(new List.filled(0, null, growable: true));
+  testConcurrentModification(new List.filled(0, 0, growable: true));
   testConcurrentModification([]);
   testConcurrentModification(new List.from(const []));
   testConcurrentModification(new MyList([]));
@@ -29,7 +26,7 @@ void main() {
   testConcurrentAddSelf([1, 2, 3]);
 }
 
-void testConcurrentModification(List<int?> list) {
+void testConcurrentModification(List<int> list) {
   // add, removeLast.
   list.clear();
   list.addAll([1, 2, 3, 2, 7, 9, 9, 7, 2, 3, 2, 1]);
@@ -92,6 +89,10 @@ class MyList<E> extends ListBase<E> {
   int get length => _source.length;
   void set length(int length) {
     _source.length = length;
+  }
+
+  void add(E element) {
+    _source.add(element);
   }
 
   E operator [](int index) => _source[index];
