@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+- Fixed issue where RPC format did not conform to the JSON-RPC 2.0
+  specification.
+
 ## 4.0.1
 - Improved documentation.
 - Fixed analysis issues.

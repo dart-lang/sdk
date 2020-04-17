@@ -46,7 +46,8 @@ final serviceAuthToken = _makeAuthToken();
 // the cleanup method will be invoked after being removed from the map.
 final isolateEmbedderData = <int, IsolateEmbedderData>{};
 
-// These must be kept in sync with the declarations in vm/json_stream.h.
+// These must be kept in sync with the declarations in vm/json_stream.h and
+// pkg/dds/lib/src/stream_manager.dart.
 const kParseError = -32700;
 const kInvalidRequest = -32600;
 const kMethodNotFound = -32601;

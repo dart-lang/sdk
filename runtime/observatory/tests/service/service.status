@@ -29,6 +29,7 @@ get_isolate_after_language_error_test: SkipByDesign
 *: SkipByDesign
 
 [ $system == windows ]
+*: Slow
 async_generator_breakpoint_test: Skip # Issue 29145
 dev_fs_http_put_weird_char_test: Skip # Windows disallows carriage returns in paths
 dev_fs_weird_char_test: Skip # Windows disallows question mark in paths
