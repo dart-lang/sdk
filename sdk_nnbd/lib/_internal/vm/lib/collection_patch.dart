@@ -13,6 +13,10 @@ import "dart:_internal" show patch, IterableElementError;
 
 import "dart:typed_data" show Uint32List;
 
+class _TypeTest<T> {
+  bool test(v) => v is T;
+}
+
 /// These are the additional parts of this patch library:
 // part "compact_hash.dart";
 
@@ -914,36 +918,4 @@ class LinkedHashSet<E> {
 
   @patch
   factory LinkedHashSet.identity() => new _CompactLinkedIdentityHashSet<E>();
-}
-
-@patch
-abstract class _SplayTree<K, Node extends _SplayTreeNode<K>> {
-  // We override _splayMin and _splayMax to optimize type-checks.
-  @patch
-  Node _splayMin(Node node) {
-    Node current = node;
-    Object? nextLeft = current.left;
-    while (nextLeft != null) {
-      Node left = internal.unsafeCast<Node>(nextLeft);
-      current.left = left.right;
-      left.right = current;
-      current = left;
-      nextLeft = current.left;
-    }
-    return current;
-  }
-
-  @patch
-  Node _splayMax(Node node) {
-    Node current = node;
-    Object? nextRight = current.right;
-    while (nextRight != null) {
-      Node right = internal.unsafeCast<Node>(nextRight);
-      current.right = right.left;
-      right.left = current;
-      current = right;
-      nextRight = current.right;
-    }
-    return current;
-  }
 }
