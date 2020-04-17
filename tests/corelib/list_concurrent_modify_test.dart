@@ -8,9 +8,10 @@ import "package:expect/expect.dart";
 
 void main() {
   // Growable lists. Initial length 0.
-  testConcurrentModification(new List());
-  testConcurrentModification(new List<int>().toList());
-  testConcurrentModification(new List<int?>(0).toList());
+  testConcurrentModification(<int>[].toList());
+  testConcurrentModification(
+      new List<int>.filled(0, null, growable: true).toList());
+  testConcurrentModification(new List<int?>.filled(0, null).toList());
   testConcurrentModification(new List.filled(0, null, growable: true));
   testConcurrentModification([]);
   testConcurrentModification(new List.from(const []));
