@@ -23,6 +23,7 @@ import '../../../protocol_server.dart'
 /// the source in which the completions are being requested.
 class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
     with ElementSuggestionBuilder {
+  @override
   final DartCompletionRequest request;
 
   final OpType optype;

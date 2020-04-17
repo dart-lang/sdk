@@ -26,6 +26,7 @@ void main() {
 
 @reflectiveTest
 class PreviewSiteTest with ResourceProviderMixin, PreviewSiteTestMixin {
+  @override
   Future<void> performEdit(String path, int offset, String replacement) {
     final pathUri = Uri.file(path).path;
     return site

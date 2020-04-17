@@ -23,11 +23,11 @@ class DartFixListenerTest {
 
   void test_clear_clears_edits() {
     listener.addSourceChange(
-        "Example",
+        'Example',
         null,
-        SourceChange("foo")
+        SourceChange('foo')
           ..edits = [
-            SourceFileEdit("foo", 2, edits: [SourceEdit(0, 0, "foo")])
+            SourceFileEdit('foo', 2, edits: [SourceEdit(0, 0, 'foo')])
           ]);
     expect(listener.sourceChange.edits, hasLength(1));
     listener.reset();
