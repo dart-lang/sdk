@@ -48,6 +48,33 @@ class PreviewSiteTest with ResourceProviderMixin, PreviewSiteTestMixin {
     });
   }
 
+  void test_apply_regress41391() async {
+    final path = convertPath('/test.dart');
+    final file = getFile(path);
+    final analysisOptionsPath = convertPath('/analysis_options.yaml');
+    final analysisOptions = getFile(analysisOptionsPath);
+    analysisOptions.writeAsStringSync('analyzer:');
+    final content = 'void main() {}';
+    file.writeAsStringSync(content);
+    site.unitInfoMap[path] = UnitInfo(path)..diskContent = content;
+    // Add a source change for analysis_options, which has no UnitInfo.
+    dartfixListener.addSourceChange(
+        'enable experiment',
+        Location(analysisOptionsPath, 9, 0, 1, 9),
+        SourceChange('enable experiment', edits: [
+          SourceFileEdit(analysisOptionsPath, 0, edits: [
+            SourceEdit(9, 0, '\n  enable-experiment:\n  - non-nullable')
+          ])
+        ]));
+    // This should not crash.
+    site.performApply();
+    expect(analysisOptions.readAsStringSync(), '''
+analyzer:
+  enable-experiment:
+  - non-nullable''');
+    expect(state.hasBeenApplied, true);
+  }
+
   void test_applyChangesEmpty() {
     final file = getFile('/test.dart');
     file.writeAsStringSync('void main() {}');

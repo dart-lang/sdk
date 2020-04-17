@@ -200,6 +200,9 @@ class PreviewSite extends Site
     // Perform a full check that no files have changed before touching the disk.
     for (final fileEdit in edits) {
       final file = pathMapper.provider.getFile(fileEdit.file);
+      if (!file.path.endsWith('.dart')) {
+        continue;
+      }
       var code = file.exists ? file.readAsStringSync() : '';
       if (!unitInfoMap[file.path].hadDiskContent(code)) {
         throw StateError('${file.path} has changed, rerun migration to apply.');
