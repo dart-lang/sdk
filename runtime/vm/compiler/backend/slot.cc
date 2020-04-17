@@ -225,11 +225,6 @@ const Slot& Slot::Get(const Field& field,
     is_nullable = false;
   }
 
-  if (field.is_late()) {
-    // TODO(dartbug.com/40796): Extend CompileType to handle lateness.
-    is_nullable = true;
-  }
-
   const Slot& slot = SlotCache::Instance(thread).Canonicalize(Slot(
       Kind::kDartField,
       IsImmutableBit::encode((field.is_final() && !field.is_late()) ||

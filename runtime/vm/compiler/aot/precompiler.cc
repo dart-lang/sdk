@@ -894,6 +894,11 @@ void Precompiler::AddConstObject(const class Instance& instance) {
     return;
   }
 
+  if (instance.raw() == Object::sentinel().raw() ||
+      instance.raw() == Object::transition_sentinel().raw()) {
+    return;
+  }
+
   const Class& cls = Class::Handle(Z, instance.clazz());
   AddInstantiatedClass(cls);
 
@@ -971,14 +976,16 @@ void Precompiler::AddField(const Field& field) {
 
   if (field.is_static()) {
     const Object& value = Object::Handle(Z, field.StaticValue());
-    if (value.IsInstance()) {
+    // Should not be in the middle of initialization while precompiling.
+    ASSERT(value.raw() != Object::transition_sentinel().raw());
+
+    if (value.raw() != Object::sentinel().raw() &&
+        value.raw() != Object::null()) {
+      ASSERT(value.IsInstance());
       AddConstObject(Instance::Cast(value));
     }
 
     if (field.has_nontrivial_initializer()) {
-      // Should not be in the middle of initialization while precompiling.
-      ASSERT(value.raw() != Object::transition_sentinel().raw());
-
       if (!field.HasInitializerFunction() ||
           !Function::Handle(Z, field.InitializerFunction()).HasCode()) {
         if (FLAG_trace_precompiler) {
