@@ -87,15 +87,16 @@ uword Heap::AllocateNew(intptr_t size) {
   if (LIKELY(addr != 0)) {
     return addr;
   }
+  if (new_space_.GrowthControlState()) {
+    // This call to CollectGarbage might end up "reusing" a collection spawned
+    // from a different thread and will be racing to allocate the requested
+    // memory with other threads being released after the collection.
+    CollectGarbage(kNew);
 
-  // This call to CollectGarbage might end up "reusing" a collection spawned
-  // from a different thread and will be racing to allocate the requested
-  // memory with other threads being released after the collection.
-  CollectGarbage(kNew);
-
-  addr = new_space_.TryAllocate(thread, size);
-  if (LIKELY(addr != 0)) {
-    return addr;
+    addr = new_space_.TryAllocate(thread, size);
+    if (LIKELY(addr != 0)) {
+      return addr;
+    }
   }
 
   // It is possible a GC doesn't clear enough space.
@@ -651,14 +652,17 @@ void Heap::UpdateGlobalMaxUsed() {
 }
 
 void Heap::InitGrowthControl() {
+  new_space_.InitGrowthControl();
   old_space_.InitGrowthControl();
 }
 
 void Heap::SetGrowthControlState(bool state) {
+  new_space_.SetGrowthControlState(state);
   old_space_.SetGrowthControlState(state);
 }
 
 bool Heap::GrowthControlState() {
+  ASSERT(new_space_.GrowthControlState() == old_space_.GrowthControlState());
   return old_space_.GrowthControlState();
 }
 
@@ -720,6 +724,11 @@ void Heap::MergeOtherHeap(Heap* other) {
 
 void Heap::CollectForDebugging() {
   if (gc_on_nth_allocation_ == kNoForcedGarbageCollection) return;
+  if (Thread::Current()->IsAtSafepoint()) {
+    // CollectAllGarbage is not supported when we are at a safepoint.
+    // Allocating when at a safepoint is not a common case.
+    return;
+  }
   gc_on_nth_allocation_--;
   if (gc_on_nth_allocation_ == 0) {
     CollectAllGarbage(kDebugging);

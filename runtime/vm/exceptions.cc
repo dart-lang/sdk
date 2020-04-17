@@ -69,8 +69,9 @@ class PreallocatedStackTraceBuilder : public StackTraceBuilder {
       : stacktrace_(StackTrace::Cast(stacktrace)),
         cur_index_(0),
         dropped_frames_(0) {
-    ASSERT(stacktrace_.raw() ==
-           Isolate::Current()->object_store()->preallocated_stack_trace());
+    ASSERT(
+        stacktrace_.raw() ==
+        Isolate::Current()->isolate_object_store()->preallocated_stack_trace());
   }
   ~PreallocatedStackTraceBuilder() {}
 
@@ -815,11 +816,12 @@ static void ThrowExceptionHelper(Thread* thread,
       ASSERT(incoming_exception.raw() ==
              isolate->object_store()->out_of_memory());
       const UnhandledException& error = UnhandledException::Handle(
-          zone, isolate->object_store()->preallocated_unhandled_exception());
+          zone,
+          isolate->isolate_object_store()->preallocated_unhandled_exception());
       thread->long_jump_base()->Jump(1, error);
       UNREACHABLE();
     }
-    stacktrace = isolate->object_store()->preallocated_stack_trace();
+    stacktrace = isolate->isolate_object_store()->preallocated_stack_trace();
     PreallocatedStackTraceBuilder frame_builder(stacktrace);
     ASSERT(existing_stacktrace.IsNull() ||
            (existing_stacktrace.raw() == stacktrace.raw()));

@@ -202,6 +202,16 @@ class Scavenger {
   void MakeNewSpaceIterable() const;
   int64_t FreeSpaceInWords(Isolate* isolate) const;
 
+  void InitGrowthControl() {
+    growth_control_ = true;
+  }
+
+  void SetGrowthControlState(bool state) {
+    growth_control_ = state;
+  }
+
+  bool GrowthControlState() { return growth_control_; }
+
   bool scavenging() const { return scavenging_; }
 
  private:
@@ -312,6 +322,8 @@ class Scavenger {
   RelaxedAtomic<intptr_t> external_size_;
 
   bool failed_to_promote_;
+
+  bool growth_control_;
 
   // Protects new space during the allocation of new TLABs
   mutable Mutex space_lock_;
