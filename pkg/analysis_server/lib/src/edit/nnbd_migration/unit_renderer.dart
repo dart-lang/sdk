@@ -32,6 +32,7 @@ class UnitRenderer {
     NullabilityFixKind.addType,
     NullabilityFixKind.replaceVar,
     NullabilityFixKind.removeAs,
+    NullabilityFixKind.addLateDueToHint,
     NullabilityFixKind.checkExpressionDueToHint,
     NullabilityFixKind.makeTypeNullableDueToHint,
     NullabilityFixKind.removeLanguageVersionComment
@@ -240,6 +241,8 @@ class UnitRenderer {
   String _headerForKind(NullabilityFixKind kind, int count) {
     var s = count == 1 ? '' : 's';
     switch (kind) {
+      case NullabilityFixKind.addLateDueToHint:
+        return '$count late hint$s converted to late keyword$s';
       case NullabilityFixKind.addRequired:
         return '$count required keyword$s added';
       case NullabilityFixKind.downcastExpression:

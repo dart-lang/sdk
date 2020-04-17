@@ -104,17 +104,36 @@ class HintComment {
   /// its contents and fix up whitespace).
   Map<int, List<AtomicEdit>> changesToAccept(String sourceText,
       {AtomicEditInfo info}) {
+    bool prependSpace = false;
+    bool appendSpace = false;
+    var removeOffset = _removeOffset;
+    var removeEnd = _removeEnd;
+    if (_isAlphaNumericBeforeOffset(sourceText, removeOffset) &&
+        _isAlphaNumericAtOffset(sourceText, _keepOffset)) {
+      if (sourceText[removeOffset] == ' ') {
+        // We can just keep this space.
+        removeOffset++;
+      } else {
+        prependSpace = true;
+      }
+    }
+    if (_isAlphaNumericBeforeOffset(sourceText, _keepEnd) &&
+        _isAlphaNumericAtOffset(sourceText, removeEnd)) {
+      if (sourceText[removeEnd - 1] == ' ') {
+        // We can just keep this space.
+        removeEnd--;
+      } else {
+        appendSpace = true;
+      }
+    }
+
     return {
-      _removeOffset: [
-        if (_isAlphaNumericBeforeOffset(sourceText, _removeOffset) &&
-            _isAlphaNumericAtOffset(sourceText, _keepOffset))
-          AtomicEdit.insert(' '),
-        AtomicEdit.delete(_keepOffset - _removeOffset, info: info)
+      removeOffset: [
+        if (prependSpace) AtomicEdit.insert(' '),
+        AtomicEdit.delete(_keepOffset - removeOffset, info: info)
       ],
-      _keepEnd: [AtomicEdit.delete(_removeEnd - _keepEnd, info: info)],
-      if (_isAlphaNumericBeforeOffset(sourceText, _keepEnd) &&
-          _isAlphaNumericAtOffset(sourceText, _removeEnd))
-        _removeEnd: [AtomicEdit.insert(' ')]
+      _keepEnd: [AtomicEdit.delete(removeEnd - _keepEnd, info: info)],
+      if (appendSpace) removeEnd: [AtomicEdit.insert(' ')]
     };
   }
 

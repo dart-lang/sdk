@@ -713,7 +713,9 @@ class NodeChangeForVariableDeclarationList
     innerPlans.addAll(aggregator.innerPlansForNode(node));
     var plan = aggregator.planner.passThrough(node, innerPlans: innerPlans);
     if (lateHint != null) {
-      plan = aggregator.planner.acceptLateHint(plan, lateHint);
+      plan = aggregator.planner.acceptLateHint(plan, lateHint,
+          info: AtomicEditInfo(NullabilityFixDescription.addLateDueToHint, {},
+              hintComment: lateHint));
     }
     return plan;
   }

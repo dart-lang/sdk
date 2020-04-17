@@ -26,6 +26,12 @@ class NullabilityFixDescription {
     kind: NullabilityFixKind.removeDeadCode,
   );
 
+  /// A variable declaration needs to be marked as "late" due to the presence of
+  /// a `/*late*/` hint.
+  static const addLateDueToHint = const NullabilityFixDescription._(
+      appliedMessage: 'Added a late keyword, due to a hint',
+      kind: NullabilityFixKind.addLateDueToHint);
+
   /// An if-test or conditional expression needs to have its condition
   /// discarded.
   static const discardCondition = const NullabilityFixDescription._(
@@ -174,6 +180,7 @@ class NullabilityFixDescription {
 
 /// An enumeration of the various kinds of nullability fixes.
 enum NullabilityFixKind {
+  addLateDueToHint,
   addRequired,
   checkExpression,
   checkExpressionDueToHint,

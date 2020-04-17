@@ -89,6 +89,14 @@ bool  b = a!.isEven;
         ]));
   }
 
+  Future<void> test_editList_countsHintAcceptanceSingly_late() async {
+    await buildInfoForSingleTestFile('/*late*/ int x = 0;',
+        migratedContent: '/*late*/ int  x = 0;');
+    var output = renderUnits()[0];
+    expect(output.edits.keys,
+        unorderedEquals(['1 late hint converted to late keyword']));
+  }
+
   Future<void> test_editList_pluralHeader() async {
     await buildInfoForSingleTestFile('''
 int a = null;

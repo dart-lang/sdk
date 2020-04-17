@@ -142,6 +142,9 @@ class InfoBuilder {
     var edits = <EditDetail>[];
     var fixKind = fixInfo.description.kind;
     switch (fixKind) {
+      case NullabilityFixKind.addLateDueToHint:
+        edits.add(_removeHint('Remove /*late*/ hint'));
+        break;
       case NullabilityFixKind.addRequired:
         // TODO(brianwilkerson) This doesn't verify that the meta package has
         //  been imported.

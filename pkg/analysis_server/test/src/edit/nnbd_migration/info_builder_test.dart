@@ -271,6 +271,28 @@ class InfoBuilderTest extends NnbdMigrationTestBase {
         .toList();
   }
 
+  Future<void> test_addLate_dueToHint() async {
+    var content = '/*late*/ int x = 0;';
+    var migratedContent = '/*late*/ int  x = 0;';
+    var unit = await buildInfoForSingleTestFile(content,
+        migratedContent: migratedContent);
+    var regions = unit.fixRegions;
+    expect(regions, hasLength(2));
+    var textToRemove = '/*late*/ ';
+    assertRegionPair(regions, 0,
+        offset1: migratedContent.indexOf('/*'),
+        length1: 2,
+        offset2: migratedContent.indexOf('*/'),
+        length2: 2,
+        explanation: 'Added a late keyword, due to a hint',
+        kind: NullabilityFixKind.addLateDueToHint,
+        edits: (edits) => assertEdit(
+            edit: edits.single,
+            offset: content.indexOf(textToRemove),
+            length: textToRemove.length,
+            replacement: ''));
+  }
+
   Future<void> test_discardCondition() async {
     var unit = await buildInfoForSingleTestFile('''
 void g(int i) {

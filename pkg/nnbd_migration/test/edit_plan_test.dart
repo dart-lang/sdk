@@ -63,10 +63,13 @@ class EditPlanTest extends AbstractSingleUnitTest {
     var code = '/* late */ int x = 0;';
     await analyze(code);
     var hint = getPrefixHint(findNode.simple('int').token);
-    checkPlan(
+    var changes = checkPlan(
         planner.acceptLateHint(
             planner.passThrough(findNode.simple('int')), hint),
         'late int x = 0;');
+    expect(changes.keys, unorderedEquals([0, 7]));
+    expect(changes[7], hasLength(1));
+    expect(changes[7][0].length, 3);
   }
 
   Future<void> test_acceptLateHint_space_needed_after() async {
