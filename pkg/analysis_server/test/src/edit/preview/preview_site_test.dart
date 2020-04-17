@@ -222,6 +222,11 @@ int/*?*/? y = x;
         targets: targets,
         offset: unitInfo.content.indexOf('y'),
         offsetMapper: unitInfo.offsetMapper);
+    var trace = unitInfo.regions[1].traces[0];
+    assertTraceEntry(unitInfo, trace.entries[0], null,
+        unitInfo.content.indexOf('int/*?*/? y'), contains('explicit type'));
+    assertTraceEntry(unitInfo, trace.entries[1], 'y',
+        unitInfo.content.indexOf('= x;') + '= '.length, contains('data flow'));
     expect(state.hasBeenApplied, false);
     expect(state.needsRerun, true);
     expect(reranPaths, null);

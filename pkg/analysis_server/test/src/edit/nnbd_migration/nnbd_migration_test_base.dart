@@ -9,6 +9,7 @@ import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_listener
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/offset_mapper.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:test/test.dart';
@@ -91,6 +92,18 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
         edits: edits,
         traces: traces,
         kind: kind);
+  }
+
+  void assertTraceEntry(UnitInfo unit, TraceEntryInfo entryInfo,
+      String function, int offset, Object descriptionMatcher) {
+    assert(offset >= 0);
+    var lineInfo = LineInfo.fromContent(unit.content);
+    var expectedLocation = lineInfo.getLocation(offset);
+    expect(entryInfo.target.filePath, unit.path);
+    expect(entryInfo.target.line, expectedLocation.lineNumber);
+    expect(unit.offsetMapper.map(entryInfo.target.offset), offset);
+    expect(entryInfo.function, function);
+    expect(entryInfo.description, descriptionMatcher);
   }
 
   /// Uses the InfoBuilder to build information for [testFile].

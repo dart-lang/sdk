@@ -286,7 +286,9 @@ class UnitInfo {
         if (region.offset < offset) {
           return region;
         }
-        // TODO: adjust traces
+        // TODO: perhaps this should be handled by offset mapper instead, since
+        // offset mapper handles navigation, edits, and traces, and this is the
+        // odd ball out.
         return RegionInfo(
             region.regionType,
             region.offset + length,

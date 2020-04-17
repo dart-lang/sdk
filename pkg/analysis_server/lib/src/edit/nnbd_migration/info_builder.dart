@@ -391,7 +391,7 @@ class InfoBuilder {
         codeReference?.function,
         codeReference == null
             ? null
-            : NavigationTarget(codeReference.path, codeReference.column,
+            : NavigationTarget(codeReference.path, codeReference.offset,
                 codeReference.line, length));
   }
 

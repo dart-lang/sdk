@@ -6,7 +6,6 @@ import 'package:analysis_server/src/edit/nnbd_migration/info_builder.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/source/line_info.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:test/test.dart';
@@ -251,18 +250,6 @@ class InfoBuilderTest extends NnbdMigrationTestBase {
     return true;
   }
 
-  void assertTraceEntry(UnitInfo unit, TraceEntryInfo entryInfo,
-      String function, int offset, Object descriptionMatcher) {
-    assert(offset >= 0);
-    var lineInfo = LineInfo.fromContent(unit.content);
-    var expectedLocation = lineInfo.getLocation(offset);
-    expect(entryInfo.target.filePath, unit.path);
-    expect(entryInfo.target.line, expectedLocation.lineNumber);
-    expect(entryInfo.target.offset, expectedLocation.columnNumber);
-    expect(entryInfo.function, function);
-    expect(entryInfo.description, descriptionMatcher);
-  }
-
   List<RegionInfo> getNonInformativeRegions(List<RegionInfo> regions) {
     return regions
         .where((region) =>
@@ -480,13 +467,11 @@ void g(int  i) {
       for (var trace in region.traces)
         trace.description: trace.entries[0].target.offset
     };
-    // Note: +1's below are because trace offsets are actually column numbers.
     expect(traceDescriptionToOffset, {
-      'Nullability reason': content.indexOf('List<int/*?*/>/*?*/') + 1,
-      'Non-nullability reason': content.indexOf('List<int/*!*/>/*!*/') + 1,
-      'Nullability reason for type argument 0': content.indexOf('int/*?*/') + 1,
-      'Non-nullability reason for type argument 0':
-          content.indexOf('int/*!*/') + 1
+      'Nullability reason': content.indexOf('List<int/*?*/>/*?*/'),
+      'Non-nullability reason': content.indexOf('List<int/*!*/>/*!*/'),
+      'Nullability reason for type argument 0': content.indexOf('int/*?*/'),
+      'Non-nullability reason for type argument 0': content.indexOf('int/*!*/')
     });
   }
 
@@ -919,17 +904,12 @@ void h() {
     var entries = trace.entries;
     expect(entries, hasLength(2));
     // Entry 0 is the nullability of the type of i.
-    // TODO(paulberry): -1 is a bug.
-    assertTraceEntry(unit, entries[0], 'f',
-        unit.content.indexOf('int/*?*/') - 1, contains('parameter 0 of f'));
+    assertTraceEntry(unit, entries[0], 'f', unit.content.indexOf('int/*?*/'),
+        contains('parameter 0 of f'));
     // Entry 1 is the edge from always to the type of i.
     // TODO(paulberry): this edge provides no additional useful information and
     // shouldn't be included in the trace.
-    assertTraceEntry(
-        unit,
-        entries[1],
-        'f',
-        unit.content.indexOf('int/*?*/') - 1,
+    assertTraceEntry(unit, entries[1], 'f', unit.content.indexOf('int/*?*/'),
         'explicitly hinted to be nullable');
   }
 
@@ -997,9 +977,8 @@ void h(int/*?*/ i) {
     var trace = region.traces.single;
     expect(trace.description, 'Reason');
     expect(trace.entries, hasLength(1));
-    // TODO(paulberry): -1 is a bug.
     assertTraceEntry(unit, trace.entries.single, 'f',
-        unit.content.indexOf('i/*!*/') - 1, 'Null check hint');
+        unit.content.indexOf('i/*!*/'), 'Null check hint');
   }
 
   Future<void> test_trace_substitutionNode() async {
