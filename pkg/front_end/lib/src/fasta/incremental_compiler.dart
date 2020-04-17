@@ -11,6 +11,7 @@ import 'package:kernel/binary/ast_from_binary.dart'
         BinaryBuilderWithMetadata,
         CanonicalNameError,
         CanonicalNameSdkError,
+        CompilationModeError,
         InvalidKernelVersionError,
         SubComponentView;
 
@@ -1010,7 +1011,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
             if (e is InvalidKernelVersionError ||
                 e is PackageChangedError ||
-                e is CanonicalNameSdkError) {
+                e is CanonicalNameSdkError ||
+                e is CompilationModeError) {
               // Don't report any warning.
             } else {
               Uri gzInitializedFrom;

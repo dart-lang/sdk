@@ -8454,6 +8454,8 @@ class Component extends TreeNode {
     return _mode ?? NonNullableByDefaultCompiledMode.Disabled;
   }
 
+  NonNullableByDefaultCompiledMode get modeRaw => _mode;
+
   Component(
       {CanonicalName nameRoot,
       List<Library> libraries,

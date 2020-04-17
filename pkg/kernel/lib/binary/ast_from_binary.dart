@@ -34,6 +34,12 @@ class InvalidKernelVersionError {
   }
 }
 
+class CompilationModeError {
+  final String message;
+
+  CompilationModeError(this.message);
+}
+
 class CanonicalNameError {
   final String message;
 
@@ -679,10 +685,22 @@ class BinaryBuilder {
     // Read component index from the end of this ComponentFiles serialized data.
     _ComponentIndex index = _readComponentIndex(componentFileSize);
     if (compilationMode == null) {
+      compilationMode = component.modeRaw;
+    }
+    if (compilationMode == null) {
       compilationMode = index.compiledMode;
     } else if (compilationMode != index.compiledMode) {
-      throw fail("Mixed compilation mode found: $compilationMode "
-          "and ${index.compiledMode}.");
+      if (compilationMode == NonNullableByDefaultCompiledMode.Agnostic) {
+        compilationMode = index.compiledMode;
+      } else if (index.compiledMode ==
+          NonNullableByDefaultCompiledMode.Agnostic) {
+        // Keep as-is.
+      } else {
+        // Mixed mode where agnostic isn't involved.
+        throw new CompilationModeError(
+            "Mixed compilation mode found: $compilationMode "
+            "and ${index.compiledMode}.");
+      }
     }
 
     _byteOffset = index.binaryOffsetForStringTable;
@@ -722,7 +740,7 @@ class BinaryBuilder {
 
     Reference mainMethod =
         getMemberReferenceFromInt(index.mainMethodReference, allowNull: true);
-    component.setMainMethodAndMode(mainMethod, false, index.compiledMode);
+    component.setMainMethodAndMode(mainMethod, false, compilationMode);
 
     _byteOffset = _componentStartOffset + componentFileSize;
 
