@@ -528,6 +528,28 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/41551')
+  Future<void> test_conditional_expression_guard_subexpression() async {
+    var content = '''
+void f(String s, int x) {
+  s == null ? (x = null) : (x = s.length);
+}
+''';
+    var expected = '''
+void f(String s, int x) {
+  s == null ? (x = null!) : (x = s.length);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/41551')
+  Future<void> test_conditional_expression_guard_value() async {
+    var content = 'int f(String s) => s == null ? null : s.length;';
+    var expected = 'int f(String s) => s == null ? null! : s.length;';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void>
       test_conditional_non_null_usage_does_not_imply_non_null_intent() async {
     var content = '''
