@@ -578,30 +578,3 @@ abstract class _InternalSet<E> extends _SetBase<E> {
         iterator);
   }
 }
-
-@patch
-abstract class _SplayTree<K, Node extends _SplayTreeNode<K>> {
-  @patch
-  Node _splayMin(Node node) {
-    var current = node;
-    while (current.left != null) {
-      var left = current.left!;
-      current.left = left.right;
-      left.right = current;
-      current = left as Node;
-    }
-    return current;
-  }
-
-  @patch
-  Node _splayMax(Node node) {
-    var current = node;
-    while (current.right != null) {
-      var right = current.right!;
-      current.right = right.left;
-      right.left = current;
-      current = right as Node;
-    }
-    return current;
-  }
-}

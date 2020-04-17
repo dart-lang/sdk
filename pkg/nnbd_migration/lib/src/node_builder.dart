@@ -493,19 +493,22 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
           namedParameters: namedParameters);
     }
     _variables.recordDecoratedTypeAnnotation(source, node, decoratedType);
-    switch (getPostfixHint(node.endToken)) {
-      case NullabilityComment.bang:
-        _graph.makeNonNullableUnion(
-            decoratedType.node, NullabilityCommentOrigin(source, node, false));
-        _variables.recordNullabilityHint(source, node);
-        break;
-      case NullabilityComment.question:
-        _graph.makeNullableUnion(
-            decoratedType.node, NullabilityCommentOrigin(source, node, true));
-        _variables.recordNullabilityHint(source, node);
-        break;
-      case NullabilityComment.none:
-        break;
+    var hint = getPostfixHint(node.endToken);
+    if (hint != null) {
+      switch (hint.kind) {
+        case HintCommentKind.bang:
+          _graph.makeNonNullableUnion(decoratedType.node,
+              NullabilityCommentOrigin(source, node, false));
+          _variables.recordNullabilityHint(source, node, hint);
+          break;
+        case HintCommentKind.question:
+          _graph.makeNullableUnion(
+              decoratedType.node, NullabilityCommentOrigin(source, node, true));
+          _variables.recordNullabilityHint(source, node, hint);
+          break;
+        default:
+          break;
+      }
     }
     return decoratedType;
   }
@@ -539,12 +542,9 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     node.metadata.accept(this);
     var typeAnnotation = node.type;
     var type = typeAnnotation?.accept(this);
-    switch (getPrefixHint(node.firstTokenAfterCommentAndMetadata)) {
-      case PrefixHintComment.late_:
-        _variables.recordLateHint(source, node);
-        break;
-      case PrefixHintComment.none:
-        break;
+    var hint = getPrefixHint(node.firstTokenAfterCommentAndMetadata);
+    if (hint != null && hint.kind == HintCommentKind.late_) {
+      _variables.recordLateHint(source, node, hint);
     }
     for (var variable in node.variables) {
       variable.metadata.accept(this);

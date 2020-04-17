@@ -5,8 +5,6 @@
 #include "vm/compiler/assembler/disassembler.h"
 
 #include "vm/code_patcher.h"
-#include "vm/compiler/assembler/assembler.h"
-#include "vm/compiler/backend/il_printer.h"
 #include "vm/deopt_instructions.h"
 #include "vm/globals.h"
 #include "vm/instructions.h"
@@ -18,7 +16,10 @@ namespace dart {
 
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 DECLARE_FLAG(bool, trace_inlining_intervals);
+#endif
+
 DEFINE_FLAG(bool, trace_source_positions, false, "Source position diagnostics");
 
 void DisassembleToStdout::ConsumeInstruction(char* hex_buffer,
@@ -416,9 +417,12 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
   }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
   if (optimized && FLAG_trace_inlining_intervals) {
     code.DumpInlineIntervals();
   }
+#endif
+
   if (FLAG_trace_source_positions) {
     code.DumpSourcePositions();
   }

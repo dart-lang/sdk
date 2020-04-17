@@ -26,6 +26,7 @@ import 'package:nnbd_migration/src/fix_builder.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:nnbd_migration/src/nullability_node_target.dart';
 import 'package:nnbd_migration/src/postmortem_file.dart';
+import 'package:nnbd_migration/src/utilities/hint_utils.dart';
 
 /// Data structure used by [Variables.spanForUniqueIdentifier] to return an
 /// offset/end pair.
@@ -56,11 +57,11 @@ class Variables {
 
   final _expressionChecks = <Source, Map<int, ExpressionChecks>>{};
 
-  final _lateHints = <Source, Set<int>>{};
+  final _lateHints = <Source, Map<int, HintComment>>{};
 
-  final _nullCheckHints = <Source, Set<int>>{};
+  final _nullCheckHints = <Source, Map<int, HintComment>>{};
 
-  final _nullabilityHints = <Source, Set<int>>{};
+  final _nullabilityHints = <Source, Map<int, HintComment>>{};
 
   final _unnecessaryCasts = <Source, Set<int>>{};
 
@@ -166,24 +167,26 @@ class Variables {
   ConditionalDiscard getConditionalDiscard(Source source, AstNode node) =>
       (_conditionalDiscards[source] ?? {})[node.offset];
 
-  /// Queries whether the given [node] is preceded by a `/*?*/` hint.  See
+  /// If the given [node] is preceded by a `/*late*/` hint, returns the
+  /// HintComment for it; otherwise returns `null`.  See [recordLateHint].
+  HintComment getLateHint(Source source, VariableDeclarationList node) {
+    return (_lateHints[source] ?? {})[node.offset];
+  }
+
+  /// If the given [node] is followed by a `/*?*/` or /*!*/ hint, returns the
+  /// HintComment for it; otherwise returns `null`.  See
   /// [recordNullabilityHint].
-  bool hasNullabilityHint(Source source, TypeAnnotation node) {
-    return (_nullabilityHints[source] ?? {})
-        .contains(uniqueIdentifierForSpan(node.offset, node.end));
+  HintComment getNullabilityHint(Source source, TypeAnnotation node) {
+    return (_nullabilityHints[source] ??
+        {})[uniqueIdentifierForSpan(node.offset, node.end)];
   }
 
-  /// Queries whether the given [expression] is followed by a null check hint
-  /// (`/*!*/`).  See [recordNullCheckHint].
-  bool hasNullCheckHint(Source source, Expression expression) {
-    return (_nullCheckHints[source] ?? {})
-        .contains(uniqueIdentifierForSpan(expression.offset, expression.end));
-  }
-
-  /// Queries whether the given [node] is preceded by a `/*late*/` hint.  See
-  /// [recordLateHint].
-  bool isLateHinted(Source source, VariableDeclarationList node) {
-    return (_lateHints[source] ?? {}).contains(node.offset);
+  /// If the given [expression] is followed by a null check hint (`/*!*/`),
+  /// returns the HintComment for it; otherwise returns `null`.  See
+  /// [recordNullCheckHint].
+  HintComment getNullCheckHint(Source source, Expression expression) {
+    return (_nullCheckHints[source] ??
+        {})[(uniqueIdentifierForSpan(expression.offset, expression.end))];
   }
 
   /// Records conditional discard information for the given AST node (which is
@@ -238,21 +241,25 @@ class Variables {
   }
 
   /// Records that the given [node] was preceded by a `/*late*/` hint.
-  void recordLateHint(Source source, VariableDeclarationList node) {
-    (_lateHints[source] ??= {}).add(node.offset);
+  void recordLateHint(
+      Source source, VariableDeclarationList node, HintComment hint) {
+    (_lateHints[source] ??= {})[node.offset] = hint;
   }
 
   /// Records that the given [node] was followed by a `/*?*/` or `/*!*/` hint.
-  void recordNullabilityHint(Source source, TypeAnnotation node) {
-    (_nullabilityHints[source] ??= {})
-        .add(uniqueIdentifierForSpan(node.offset, node.end));
+  void recordNullabilityHint(
+      Source source, TypeAnnotation node, HintComment hintComment) {
+    (_nullabilityHints[source] ??=
+        {})[uniqueIdentifierForSpan(node.offset, node.end)] = hintComment;
   }
 
   /// Records that the given [expression] is followed by a null check hint
   /// (`/*!*/`), for later recall by [hasNullCheckHint].
-  void recordNullCheckHint(Source source, Expression expression) {
-    (_nullCheckHints[source] ??= {})
-        .add(uniqueIdentifierForSpan(expression.offset, expression.end));
+  void recordNullCheckHint(
+      Source source, Expression expression, HintComment hintComment) {
+    (_nullCheckHints[source] ??=
+            {})[uniqueIdentifierForSpan(expression.offset, expression.end)] =
+        hintComment;
   }
 
   /// Records the fact that prior to migration, an unnecessary cast existed at

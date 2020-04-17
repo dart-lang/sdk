@@ -1064,6 +1064,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       } else if (node.parent is Annotation) {
         optype.includeConstructorSuggestions = true;
       } else {
+        optype.completionLocation = 'PropertyAccess_propertyName';
         optype.includeReturnValueSuggestions = true;
         optype.includeTypeNameSuggestions = true;
         optype.includeVoidReturnSuggestions =

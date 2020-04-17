@@ -353,42 +353,38 @@ void Precompiler::DoCompileAll() {
           // We don't want the Array backing for any mappings in the snapshot,
           // only the pools themselves.
           I->object_store()->set_llvm_constant_hash_table(Array::null_array());
+
+          // Keep any functions, classes, etc. referenced from the LLVM pools,
+          // even if they could have been dropped due to not being otherwise
+          // needed at runtime.
+          const auto& constant_pool = GrowableObjectArray::Handle(
+              Z, I->object_store()->llvm_constant_pool());
+          auto& object = Object::Handle(Z);
+          for (intptr_t i = 0; i < constant_pool.Length(); i++) {
+            object = constant_pool.At(i);
+            if (object.IsNull()) continue;
+            if (object.IsInstance()) {
+              AddConstObject(Instance::Cast(object));
+            } else if (object.IsField()) {
+              AddField(Field::Cast(object));
+            } else if (object.IsFunction()) {
+              AddFunction(Function::Cast(object));
+            }
+          }
+
+          const auto& function_pool = GrowableObjectArray::Handle(
+              Z, I->object_store()->llvm_function_pool());
+          auto& function = Function::Handle(Z);
+          for (intptr_t i = 0; i < function_pool.Length(); i++) {
+            function ^= function_pool.At(i);
+            AddFunction(function);
+          }
         }
       }
 
       TraceForRetainedFunctions();
-
-      if (FLAG_use_bare_instructions && FLAG_use_table_dispatch) {
-        // Build the entries used to serialize the dispatch table before
-        // dropping functions, as we may clear references to Code objects.
-        const auto& entries =
-            Array::Handle(Z, dispatch_table_generator_->BuildCodeArray());
-        I->object_store()->set_dispatch_table_code_entries(entries);
-        // Delete the dispatch table generator to ensure there's no attempt
-        // to add new entries after this point.
-        delete dispatch_table_generator_;
-        dispatch_table_generator_ = nullptr;
-        if (!FLAG_retain_dispatched_functions && FLAG_trace_precompiler) {
-          FunctionSet printed(
-              HashTables::New<FunctionSet>(/*initial_capacity=*/1024));
-          auto& code = Code::Handle(Z);
-          auto& function = Function::Handle(Z);
-          for (intptr_t i = 0; i < entries.Length(); i++) {
-            code = Code::RawCast(entries.At(i));
-            if (code.IsNull()) continue;
-            if (!code.IsFunctionCode()) continue;
-            function = code.function();
-            ASSERT(!function.IsNull());
-            if (printed.ContainsKey(function)) continue;
-            if (functions_to_retain_.ContainsKey(function)) continue;
-            THR_Print(
-                "Dispatch table references code for function to drop: %s\n",
-                function.ToLibNamePrefixedQualifiedCString());
-            printed.Insert(function);
-          }
-          printed.Release();
-        }
-      }
+      FinalizeDispatchTable();
+      ReplaceFunctionPCRelativeCallEntries();
 
       DropFunctions();
       DropFields();
@@ -682,7 +678,9 @@ void Precompiler::AddCalleesOf(const Function& function, intptr_t gop_offset) {
   for (auto& view : static_calls) {
     entry = view.Get<Code::kSCallTableFunctionTarget>();
     if (entry.IsFunction()) {
-      AddFunction(Function::Cast(entry));
+      AddFunction(Function::Cast(entry), FLAG_retain_function_objects);
+      ASSERT(view.Get<Code::kSCallTableCodeTarget>() == Code::null());
+      continue;
     }
     entry = view.Get<Code::kSCallTableCodeTarget>();
     if (entry.IsCode() && Code::Cast(entry).IsAllocationStubCode()) {
@@ -1304,7 +1302,7 @@ void Precompiler::CheckForNewDynamicFunctions() {
           AddFunction(function);
         }
         if (IsHitByTableSelector(function)) {
-          AddFunction(function, FLAG_retain_dispatched_functions);
+          AddFunction(function, FLAG_retain_function_objects);
         }
 
         bool found_metadata = false;
@@ -1526,6 +1524,85 @@ void Precompiler::TraceForRetainedFunctions() {
       }
     }
   }
+}
+
+void Precompiler::FinalizeDispatchTable() {
+  if (!FLAG_use_bare_instructions || !FLAG_use_table_dispatch) return;
+  // Build the entries used to serialize the dispatch table before
+  // dropping functions, as we may clear references to Code objects.
+  const auto& entries =
+      Array::Handle(Z, dispatch_table_generator_->BuildCodeArray());
+  I->object_store()->set_dispatch_table_code_entries(entries);
+  // Delete the dispatch table generator to ensure there's no attempt
+  // to add new entries after this point.
+  delete dispatch_table_generator_;
+  dispatch_table_generator_ = nullptr;
+
+  if (FLAG_retain_function_objects || !FLAG_trace_precompiler) return;
+
+  FunctionSet printed(HashTables::New<FunctionSet>(/*initial_capacity=*/1024));
+  auto& code = Code::Handle(Z);
+  auto& function = Function::Handle(Z);
+  for (intptr_t i = 0; i < entries.Length(); i++) {
+    code = Code::RawCast(entries.At(i));
+    if (code.IsNull()) continue;
+    if (!code.IsFunctionCode()) continue;
+    function = code.function();
+    ASSERT(!function.IsNull());
+    if (printed.ContainsKey(function)) continue;
+    if (functions_to_retain_.ContainsKey(function)) continue;
+    THR_Print("Dispatch table references code for function to drop: %s\n",
+              function.ToLibNamePrefixedQualifiedCString());
+    printed.Insert(function);
+  }
+  printed.Release();
+}
+
+void Precompiler::ReplaceFunctionPCRelativeCallEntries() {
+  class StaticCallTableEntryFixer : public CodeVisitor {
+   public:
+    explicit StaticCallTableEntryFixer(Zone* zone)
+        : table_(Array::Handle(zone)),
+          kind_and_offset_(Smi::Handle(zone)),
+          target_function_(Function::Handle(zone)),
+          target_code_(Code::Handle(zone)) {}
+
+    void VisitCode(const Code& code) {
+      if (!code.IsFunctionCode()) return;
+      table_ = code.static_calls_target_table();
+      StaticCallsTable static_calls(table_);
+      for (auto& view : static_calls) {
+        kind_and_offset_ = view.Get<Code::kSCallTableKindAndOffset>();
+        auto const kind = Code::KindField::decode(kind_and_offset_.Value());
+        if (kind != Code::kPcRelativeCall) continue;
+
+        target_function_ = view.Get<Code::kSCallTableFunctionTarget>();
+        if (target_function_.IsNull()) continue;
+
+        ASSERT(view.Get<Code::kSCallTableCodeTarget>() == Code::null());
+        ASSERT(target_function_.HasCode());
+        target_code_ = target_function_.CurrentCode();
+        ASSERT(!target_code_.IsStubCode());
+        view.Set<Code::kSCallTableCodeTarget>(target_code_);
+        view.Set<Code::kSCallTableFunctionTarget>(Object::null_function());
+        if (FLAG_trace_precompiler) {
+          THR_Print("Updated static call entry to %s in \"%s\"\n",
+                    target_function_.ToFullyQualifiedCString(),
+                    code.ToCString());
+        }
+      }
+    }
+
+   private:
+    Array& table_;
+    Smi& kind_and_offset_;
+    Function& target_function_;
+    Code& target_code_;
+  };
+
+  HANDLESCOPE(T);
+  StaticCallTableEntryFixer visitor(Z);
+  ProgramVisitor::WalkProgram(Z, I, &visitor);
 }
 
 void Precompiler::DropFunctions() {
@@ -2006,7 +2083,6 @@ void Precompiler::DropLibraryEntries() {
 void Precompiler::DropClasses() {
   Class& cls = Class::Handle(Z);
   Array& constants = Array::Handle(Z);
-  const Script& null_script = Script::Handle(Z);
 
   // We are about to remove classes from the class table. For this to be safe,
   // there must be no instances of these classes on the heap, not even
@@ -2049,7 +2125,6 @@ void Precompiler::DropClasses() {
 
     class_table->Unregister(cid);
     cls.set_id(kIllegalCid);  // We check this when serializing.
-    cls.set_script(null_script);
   }
 }
 
@@ -2060,7 +2135,6 @@ void Precompiler::DropLibraries() {
       Library::Handle(Z, I->object_store()->root_library());
   Library& lib = Library::Handle(Z);
   Class& toplevel_class = Class::Handle(Z);
-  const Script& null_script = Script::Handle(Z);
 
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
@@ -2098,7 +2172,6 @@ void Precompiler::DropLibraries() {
 
       I->class_table()->Unregister(toplevel_class.id());
       toplevel_class.set_id(kIllegalCid);  // We check this when serializing.
-      toplevel_class.set_script(null_script);
 
       dropped_library_count_++;
       lib.set_index(-1);

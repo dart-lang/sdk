@@ -6,11 +6,14 @@
 #define RUNTIME_VM_STUB_CODE_H_
 
 #include "vm/allocation.h"
-#include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/runtime_api.h"
-#include "vm/compiler/stub_code_compiler.h"
 #include "vm/object.h"
 #include "vm/stub_code_list.h"
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/stub_code_compiler.h"
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 
@@ -66,12 +69,14 @@ class StubCode : public AllStatic {
       compiler::ObjectPoolBuilder* pool);
 #endif
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
   // Generate the stub and finalize the generated code into the stub
   // code executable area.
   static RawCode* Generate(
       const char* name,
       compiler::ObjectPoolBuilder* object_pool_builder,
       void (*GenerateStub)(compiler::Assembler* assembler));
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   static const Code& UnoptimizedStaticCallEntry(intptr_t num_args_tested);
 

@@ -589,8 +589,6 @@ class Assembler : public AssemblerBase {
            B4 | (imm16 & 0xf);
   }
 
-  static uword GetBreakInstructionFiller() { return BkptEncoding(0); }
-
   // Floating point instructions (VFPv3-D16 and VFPv3-D32 profiles).
   void vmovsr(SRegister sn, Register rt, Condition cond = AL);
   void vmovrs(Register rt, SRegister sn, Condition cond = AL);

@@ -44,7 +44,7 @@ def _CheckSdkDdcRuntimeSync(input_api, output_api):
     runtime_lib = 'lib/_internal/js_dev_runtime/private/ddc_runtime/'
     for nnbd_file in files:
         if nnbd_file.startswith('sdk_nnbd/' + runtime_lib):
-            file = 'sdk/' + runtime_lib + nnbd_file[4:]
+            file = 'sdk/' + nnbd_file[9:]
             if not file in files:
                 unsynchronized_files.append(file)
     if unsynchronized_files:

@@ -4,7 +4,7 @@
 
 #include "vm/code_descriptors.h"
 
-#include "vm/compiler/compiler_state.h"
+#include "vm/compiler/api/deopt_id.h"
 #include "vm/log.h"
 #include "vm/object_store.h"
 #include "vm/zone_text_buffer.h"

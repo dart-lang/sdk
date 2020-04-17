@@ -4,7 +4,6 @@
 
 #include "vm/heap/sweeper.h"
 
-#include "vm/compiler/assembler/assembler.h"
 #include "vm/globals.h"
 #include "vm/heap/freelist.h"
 #include "vm/heap/heap.h"
@@ -52,8 +51,7 @@ bool GCSweeper::SweepPage(HeapPage* page, FreeList* freelist, bool locked) {
         uword cursor = current;
         uword end = current + obj_size;
         while (cursor < end) {
-          *reinterpret_cast<uword*>(cursor) =
-              compiler::Assembler::GetBreakInstructionFiller();
+          *reinterpret_cast<uword*>(cursor) = kBreakInstructionFiller;
           cursor += kWordSize;
         }
       } else {

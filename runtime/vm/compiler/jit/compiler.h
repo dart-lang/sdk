@@ -6,7 +6,7 @@
 #define RUNTIME_VM_COMPILER_JIT_COMPILER_H_
 
 #include "vm/allocation.h"
-#include "vm/compiler/compiler_state.h"
+#include "vm/compiler/api/deopt_id.h"
 #include "vm/growable_array.h"
 #include "vm/runtime_entry.h"
 #include "vm/thread_pool.h"

@@ -45,8 +45,12 @@ class ConstantPropagator : public FlowGraphVisitor {
   void SetReachable(BlockEntryInstr* block);
   bool SetValue(Definition* definition, const Object& value);
 
+  // Phi might be viewed as redundant based on current reachability of
+  // predecessor blocks (i.e. the same definition is flowing from all
+  // reachable predecessors). We can use this information to constant
+  // fold phi(x) == x and phi(x) != x comparisons.
   Definition* UnwrapPhi(Definition* defn);
-  void MarkPhi(Definition* defn);
+  void MarkUnwrappedPhi(Definition* defn);
 
   // Assign the join (least upper bound) of a pair of abstract values to the
   // first one.
@@ -67,7 +71,18 @@ class ConstantPropagator : public FlowGraphVisitor {
 
 #define DECLARE_VISIT(type, attrs) virtual void Visit##type(type##Instr* instr);
   FOR_EACH_INSTRUCTION(DECLARE_VISIT)
+
 #undef DECLARE_VISIT
+  // Structure tracking visit counts for phis. Used to detect infinite loops.
+  struct PhiInfo {
+    PhiInstr* phi;
+    intptr_t visit_count;
+  };
+
+  // Returns PhiInfo associated with the given phi. Note that this
+  // pointer can be invalidated by subsequent call to GetPhiInfo and
+  // thus should not be stored anywhere.
+  PhiInfo* GetPhiInfo(PhiInstr* phi);
 
   Isolate* isolate() const { return graph_->isolate(); }
 
@@ -84,7 +99,15 @@ class ConstantPropagator : public FlowGraphVisitor {
   // preorder number.
   BitVector* reachable_;
 
-  BitVector* marked_phis_;
+  // Bitvector of phis that were "unwrapped" into one of their inputs
+  // when visiting one of their uses. These uses of these phis
+  // should be revisited if reachability of the predecessor blocks
+  // changes even if that does not change constant value of the phi.
+  BitVector* unwrapped_phis_;
+
+  // List of visited phis indexed by their id (stored as pass specific id on
+  // a phi instruction).
+  GrowableArray<PhiInfo> phis_;
 
   // Worklists of blocks and definitions.
   GrowableArray<BlockEntryInstr*> block_worklist_;

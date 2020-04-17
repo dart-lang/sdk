@@ -44,7 +44,7 @@ void BytecodeRegExpMacroAssembler::BindBlock(BlockLabel* l) {
       *reinterpret_cast<uint32_t*>(buffer_->data() + fixup) = pc_;
     }
   }
-  l->bind_to(pc_);
+  l->BindTo(pc_);
 }
 
 void BytecodeRegExpMacroAssembler::EmitOrLink(BlockLabel* l) {
@@ -56,7 +56,7 @@ void BytecodeRegExpMacroAssembler::EmitOrLink(BlockLabel* l) {
     if (l->is_linked()) {
       pos = l->pos();
     }
-    l->link_to(pc_);
+    l->LinkTo(pc_);
     Emit32(pos);
   }
 }

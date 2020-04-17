@@ -581,12 +581,31 @@ RawString* Symbols::NewSymbol(Thread* thread, const StringType& str) {
     table.Release();
   }
   if (symbol.IsNull()) {
+    IsolateGroup* group = thread->isolate_group();
     Isolate* isolate = thread->isolate();
-    SafepointMutexLocker ml(isolate->symbols_mutex());
-    data = isolate->object_store()->symbol_table();
-    SymbolTable table(&key, &value, &data);
-    symbol ^= table.InsertNewOrGet(str);
-    isolate->object_store()->set_symbol_table(table.Release());
+    // in JIT object_store lives on isolate, not on isolate group.
+    ObjectStore* object_store = group->object_store() == nullptr
+                                    ? isolate->object_store()
+                                    : group->object_store();
+    // in AOT no need to worry about background compiler, only about
+    // other mutators.
+#if defined(DART_PRECOMPILED_RUNTIME)
+    group->RunWithStoppedMutators(
+        [&]() {
+#else
+    SafepointRwLock* symbols_lock = group->object_store() == nullptr
+                                        ? isolate->symbols_lock()
+                                        : group->symbols_lock();
+    SafepointWriteRwLocker sl(thread, symbols_lock);
+#endif
+          data = object_store->symbol_table();
+          SymbolTable table(&key, &value, &data);
+          symbol ^= table.InsertNewOrGet(str);
+          object_store->set_symbol_table(table.Release());
+#if defined(DART_PRECOMPILED_RUNTIME)
+        },
+        /*use_force_growth=*/true);
+#endif
   }
   ASSERT(symbol.IsSymbol());
   ASSERT(symbol.HasHash());
@@ -610,9 +629,21 @@ RawString* Symbols::Lookup(Thread* thread, const StringType& str) {
     table.Release();
   }
   if (symbol.IsNull()) {
+    IsolateGroup* group = thread->isolate_group();
     Isolate* isolate = thread->isolate();
-    SafepointMutexLocker ml(isolate->symbols_mutex());
-    data = isolate->object_store()->symbol_table();
+    // in JIT object_store lives on isolate, not on isolate group.
+    ObjectStore* object_store = group->object_store() == nullptr
+                                    ? isolate->object_store()
+                                    : group->object_store();
+    // in AOT no need to worry about background compiler, only about
+    // other mutators.
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    SafepointRwLock* symbols_lock = group->object_store() == nullptr
+                                        ? isolate->symbols_lock()
+                                        : group->symbols_lock();
+    SafepointReadRwLocker sl(thread, symbols_lock);
+#endif
+    data = object_store->symbol_table();
     SymbolTable table(&key, &value, &data);
     symbol ^= table.GetOrNull(str);
     table.Release();

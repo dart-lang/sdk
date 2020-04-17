@@ -14,11 +14,14 @@
 #include "vm/dart_entry.h"
 #include "vm/regexp_assembler.h"
 #include "vm/regexp_assembler_bytecode.h"
-#include "vm/regexp_assembler_ir.h"
 #include "vm/regexp_ast.h"
 #include "vm/symbols.h"
 #include "vm/thread.h"
 #include "vm/unibrow-inl.h"
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/regexp_assembler_ir.h"
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 #define Z (zone())
 
@@ -701,7 +704,7 @@ void NegativeSubmatchSuccess::Emit(RegExpCompiler* compiler, Trace* trace) {
 
   // Omit flushing the trace. We discard the entire stack frame anyway.
 
-  if (!label()->IsBound()) {
+  if (!label()->is_bound()) {
     // We are completely independent of the trace, since we ignore it,
     // so this code can be used as the generic version.
     assembler->BindBlock(label());
@@ -728,7 +731,7 @@ void EndNode::Emit(RegExpCompiler* compiler, Trace* trace) {
     return;
   }
   RegExpMacroAssembler* assembler = compiler->macro_assembler();
-  if (!label()->IsBound()) {
+  if (!label()->is_bound()) {
     assembler->BindBlock(label());
   }
   switch (action_) {
@@ -1126,7 +1129,7 @@ static void CutOutRange(RegExpMacroAssembler* masm,
   EmitDoubleBoundaryTest(masm, ranges->At(cut_index),
                          ranges->At(cut_index + 1) - 1, &dummy, in_range_label,
                          &dummy);
-  ASSERT(!dummy.IsLinked());
+  ASSERT(!dummy.is_linked());
   // Cut out the single range by rewriting the array.  This creates a new
   // range that is a merger of the two ranges on either side of the one we
   // are cutting out.  The oddity of the labels is preserved.
@@ -1314,7 +1317,7 @@ static void GenerateBranches(RegExpMacroAssembler* masm,
   GenerateBranches(masm, ranges, start_index, new_end_index, min_char,
                    border - 1, &dummy, even_label, odd_label);
 
-  if (handle_rest.IsLinked()) {
+  if (handle_rest.is_linked()) {
     masm->BindBlock(&handle_rest);
     bool flip = (new_start_index & 1) != (start_index & 1);
     GenerateBranches(masm, ranges, new_start_index, end_index, border, max_char,
@@ -1432,7 +1435,7 @@ RegExpNode::LimitResult RegExpNode::LimitVersions(RegExpCompiler* compiler,
 
   RegExpMacroAssembler* macro_assembler = compiler->macro_assembler();
   if (trace->is_trivial()) {
-    if (label_.IsBound()) {
+    if (label_.is_bound()) {
       // We are being asked to generate a generic version, but that's already
       // been done so just go to it.
       macro_assembler->GoTo(&label_);
@@ -3352,7 +3355,7 @@ void ChoiceNode::EmitOutOfLineContinuation(RegExpCompiler* compiler,
                                            AlternativeGeneration* alt_gen,
                                            intptr_t preload_characters,
                                            bool next_expects_preload) {
-  if (!alt_gen->possible_success.IsLinked()) return;
+  if (!alt_gen->possible_success.is_linked()) return;
 
   RegExpMacroAssembler* macro_assembler = compiler->macro_assembler();
   macro_assembler->BindBlock(&alt_gen->possible_success);
@@ -3621,7 +3624,7 @@ void DotPrinter::PrintAttributes(RegExpNode* that) {
   printer.PrintBit("WI", info->follows_word_interest);
   printer.PrintBit("SI", info->follows_start_interest);
   BlockLabel* label = that->label();
-  if (label->IsBound()) printer.PrintPositive("@", label->Position());
+  if (label->is_bound()) printer.PrintPositive("@", label->pos());
   OS::PrintErr(
       "}\"];\n"
       "  a%p -> n%p [style=dashed, color=grey, arrowhead=none];\n",

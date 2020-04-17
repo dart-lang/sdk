@@ -10,7 +10,6 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 #include "vm/allocation.h"
-#include "vm/compiler/backend/slot.h"
 #include "vm/growable_array.h"
 #include "vm/object.h"
 #include "vm/raw_object.h"
@@ -21,6 +20,7 @@ namespace dart {
 
 class CompileType;
 class LocalScope;
+class Slot;
 
 // Indices of [LocalVariable]s are abstract and have little todo with the
 // actual frame layout!

@@ -13,101 +13,199 @@
 
 namespace dart {
 
-class ProgramWalker : public CodeVisitor {
+class WorklistElement : public ZoneAllocated {
  public:
-  ProgramWalker(Zone* zone, ClassVisitor* visitor)
-      : visitor_(visitor),
-        object_(Object::Handle(zone)),
-        fields_(Array::Handle(zone)),
-        field_(Field::Handle(zone)),
-        functions_(Array::Handle(zone)),
-        function_(Function::Handle(zone)),
-        code_(Code::Handle(zone)) {}
+  WorklistElement(Zone* zone, const Object& object)
+      : object_(Object::Handle(zone, object.raw())), next_(nullptr) {}
 
+  RawObject* value() const { return object_.raw(); }
+
+  void set_next(WorklistElement* elem) { next_ = elem; }
+  WorklistElement* next() const { return next_; }
+
+ private:
+  const Object& object_;
+  WorklistElement* next_;
+
+  DISALLOW_COPY_AND_ASSIGN(WorklistElement);
+};
+
+// Implements a FIFO queue, using IsEmpty, Add, Remove operations.
+class Worklist : public ValueObject {
+ public:
+  explicit Worklist(Zone* zone)
+      : zone_(zone), first_(nullptr), last_(nullptr) {}
+
+  bool IsEmpty() const { return first_ == nullptr; }
+
+  void Add(const Object& value) {
+    auto element = new (zone_) WorklistElement(zone_, value);
+    if (first_ == nullptr) {
+      first_ = element;
+      ASSERT(last_ == nullptr);
+    } else {
+      ASSERT(last_ != nullptr);
+      last_->set_next(element);
+    }
+    last_ = element;
+    ASSERT(first_ != nullptr && last_ != nullptr);
+  }
+
+  RawObject* Remove() {
+    ASSERT(first_ != nullptr);
+    WorklistElement* result = first_;
+    first_ = first_->next();
+    if (first_ == nullptr) {
+      last_ = nullptr;
+    }
+    return result->value();
+  }
+
+ private:
+  Zone* const zone_;
+  WorklistElement* first_;
+  WorklistElement* last_;
+
+  DISALLOW_COPY_AND_ASSIGN(Worklist);
+};
+
+// Walks through the classes, functions, and code for the current program.
+//
+// Uses the heap object ID table to determine whether or not a given object
+// has been visited already.
+class ProgramWalker : public ValueObject {
+ public:
+  ProgramWalker(Zone* zone, Heap* heap, ClassVisitor* visitor)
+      : heap_(heap),
+        visitor_(visitor),
+        worklist_(zone),
+        class_object_(Object::Handle(zone)),
+        class_fields_(Array::Handle(zone)),
+        class_field_(Field::Handle(zone)),
+        class_functions_(Array::Handle(zone)),
+        class_function_(Function::Handle(zone)),
+        class_code_(Code::Handle(zone)),
+        function_code_(Code::Handle(zone)),
+        static_calls_array_(Array::Handle(zone)),
+        static_call_code_(Code::Handle(zone)),
+        worklist_entry_(Object::Handle(zone)) {}
+
+  ~ProgramWalker() { heap_->ResetObjectIdTable(); }
+
+  // Adds the given object to the worklist if it's an object type that the
+  // visitor can visit.
+  void AddToWorklist(const Object& object) {
+    // We don't visit null, non-heap objects, or objects in the VM heap.
+    if (object.IsNull() || object.IsSmi() || object.InVMIsolateHeap()) return;
+    // Check and set visited, even if we don't end up adding this to the list.
+    if (heap_->GetObjectId(object.raw()) != 0) return;
+    heap_->SetObjectId(object.raw(), 1);
+    if (object.IsClass() ||
+        (object.IsFunction() && visitor_->IsFunctionVisitor()) ||
+        (object.IsCode() && visitor_->IsCodeVisitor())) {
+      worklist_.Add(object);
+    }
+  }
+
+  void VisitWorklist() {
+    while (!worklist_.IsEmpty()) {
+      worklist_entry_ = worklist_.Remove();
+      if (worklist_entry_.IsClass()) {
+        VisitClass(Class::Cast(worklist_entry_));
+      } else if (worklist_entry_.IsFunction()) {
+        VisitFunction(Function::Cast(worklist_entry_));
+      } else if (worklist_entry_.IsCode()) {
+        VisitCode(Code::Cast(worklist_entry_));
+      } else {
+        FATAL1("Got unexpected object %s", worklist_entry_.ToCString());
+      }
+    }
+  }
+
+ private:
   void VisitClass(const Class& cls) {
-    ASSERT(!cls.IsNull());
-    if (cls.InVMIsolateHeap()) return;
     visitor_->VisitClass(cls);
 
     if (!visitor_->IsFunctionVisitor()) return;
 
-    functions_ = cls.functions();
-    for (intptr_t j = 0; j < functions_.Length(); j++) {
-      function_ ^= functions_.At(j);
-      VisitFunction(function_);
-      if (function_.HasImplicitClosureFunction()) {
-        function_ = function_.ImplicitClosureFunction();
-        VisitFunction(function_);
+    class_functions_ = cls.functions();
+    for (intptr_t j = 0; j < class_functions_.Length(); j++) {
+      class_function_ ^= class_functions_.At(j);
+      AddToWorklist(class_function_);
+      if (class_function_.HasImplicitClosureFunction()) {
+        class_function_ = class_function_.ImplicitClosureFunction();
+        AddToWorklist(class_function_);
       }
     }
 
-    functions_ = cls.invocation_dispatcher_cache();
-    for (intptr_t j = 0; j < functions_.Length(); j++) {
-      object_ = functions_.At(j);
-      if (object_.IsFunction()) {
-        function_ ^= functions_.At(j);
-        VisitFunction(function_);
+    class_functions_ = cls.invocation_dispatcher_cache();
+    for (intptr_t j = 0; j < class_functions_.Length(); j++) {
+      class_object_ = class_functions_.At(j);
+      if (class_object_.IsFunction()) {
+        class_function_ ^= class_functions_.At(j);
+        AddToWorklist(class_function_);
       }
     }
 
-    fields_ = cls.fields();
-    for (intptr_t j = 0; j < fields_.Length(); j++) {
-      field_ ^= fields_.At(j);
-      if (field_.is_static() && field_.HasInitializerFunction()) {
-        function_ = field_.InitializerFunction();
-        VisitFunction(function_);
+    class_fields_ = cls.fields();
+    for (intptr_t j = 0; j < class_fields_.Length(); j++) {
+      class_field_ ^= class_fields_.At(j);
+      if (class_field_.is_static() && class_field_.HasInitializerFunction()) {
+        class_function_ = class_field_.InitializerFunction();
+        AddToWorklist(class_function_);
       }
     }
 
     if (!visitor_->IsCodeVisitor()) return;
 
-    code_ = cls.allocation_stub();
-    if (!code_.IsNull()) VisitCode(code_);
+    class_code_ = cls.allocation_stub();
+    if (!class_code_.IsNull()) AddToWorklist(class_code_);
   }
 
   void VisitFunction(const Function& function) {
     ASSERT(visitor_->IsFunctionVisitor());
-    ASSERT(!function.IsNull());
-    if (function.InVMIsolateHeap()) return;
     visitor_->AsFunctionVisitor()->VisitFunction(function);
     if (!visitor_->IsCodeVisitor() || !function.HasCode()) return;
-    code_ = function.CurrentCode();
-    VisitCode(code_);
+    function_code_ = function.CurrentCode();
+    AddToWorklist(function_code_);
   }
 
   void VisitCode(const Code& code) {
     ASSERT(visitor_->IsCodeVisitor());
-    ASSERT(!code.IsNull());
-    if (code.InVMIsolateHeap()) return;
     visitor_->AsCodeVisitor()->VisitCode(code);
-  }
 
-  void VisitObject(const Object& object) {
-    if (object.IsNull()) return;
-    if (object.IsClass()) {
-      VisitClass(Class::Cast(object));
-    } else if (visitor_->IsFunctionVisitor() && object.IsFunction()) {
-      VisitFunction(Function::Cast(object));
-    } else if (visitor_->IsCodeVisitor() && object.IsCode()) {
-      VisitCode(Code::Cast(object));
+    // If the precompiler can drop function objects not needed at runtime,
+    // then some entries in the static calls table may need to be visited.
+    static_calls_array_ = code.static_calls_target_table();
+    if (static_calls_array_.IsNull()) return;
+    StaticCallsTable static_calls(static_calls_array_);
+    for (auto& view : static_calls) {
+      static_call_code_ = view.Get<Code::kSCallTableCodeTarget>();
+      AddToWorklist(static_call_code_);
     }
   }
 
- private:
+  Heap* const heap_;
   ClassVisitor* const visitor_;
-  Object& object_;
-  Array& fields_;
-  Field& field_;
-  Array& functions_;
-  Function& function_;
-  Code& code_;
+  Worklist worklist_;
+  Object& class_object_;
+  Array& class_fields_;
+  Field& class_field_;
+  Array& class_functions_;
+  Function& class_function_;
+  Code& class_code_;
+  Code& function_code_;
+  Array& static_calls_array_;
+  Code& static_call_code_;
+  Object& worklist_entry_;
 };
 
 void ProgramVisitor::WalkProgram(Zone* zone,
                                  Isolate* isolate,
                                  ClassVisitor* visitor) {
   auto const object_store = isolate->object_store();
-  ProgramWalker walker(zone, visitor);
+  auto const heap = isolate->heap();
+  ProgramWalker walker(zone, heap, visitor);
 
   // Walk through the libraries and patches, looking for visitable objects.
   const auto& libraries =
@@ -122,29 +220,16 @@ void ProgramVisitor::WalkProgram(Zone* zone,
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
-      walker.VisitClass(cls);
+      walker.AddToWorklist(cls);
     }
     patches = lib.used_scripts();
     for (intptr_t j = 0; j < patches.Length(); j++) {
       entry = patches.At(j);
-      walker.VisitObject(entry);
+      walker.AddToWorklist(entry);
     }
   }
 
-  if (!visitor->IsFunctionVisitor()) return;
-
-  // Function objects not necessarily reachable from classes.
-  auto& function = Function::Handle(zone);
-  const auto& closures =
-      GrowableObjectArray::Handle(zone, object_store->closure_functions());
-  ASSERT(!closures.IsNull());
-  for (intptr_t i = 0; i < closures.Length(); i++) {
-    function ^= closures.At(i);
-    walker.VisitFunction(function);
-    ASSERT(!function.HasImplicitClosureFunction());
-  }
-
-  // If there's a global object pool, check for functions like FfiTrampolines.
+  // If there's a global object pool, add any visitable objects.
   const auto& global_object_pool =
       ObjectPool::Handle(zone, object_store->global_object_pool());
   if (!global_object_pool.IsNull()) {
@@ -153,25 +238,38 @@ void ProgramVisitor::WalkProgram(Zone* zone,
       auto const type = global_object_pool.TypeAt(i);
       if (type != ObjectPool::EntryType::kTaggedObject) continue;
       object = global_object_pool.ObjectAt(i);
-      if (object.IsFunction() && visitor->IsFunctionVisitor()) {
-        walker.VisitFunction(Function::Cast(object));
+      walker.AddToWorklist(object);
+    }
+  }
+
+  if (visitor->IsFunctionVisitor()) {
+    // Function objects not necessarily reachable from classes.
+    auto& function = Function::Handle(zone);
+    const auto& closures =
+        GrowableObjectArray::Handle(zone, object_store->closure_functions());
+    ASSERT(!closures.IsNull());
+    for (intptr_t i = 0; i < closures.Length(); i++) {
+      function ^= closures.At(i);
+      walker.AddToWorklist(function);
+      ASSERT(!function.HasImplicitClosureFunction());
+    }
+  }
+
+  if (visitor->IsCodeVisitor()) {
+    // Code objects not necessarily reachable from functions.
+    auto& code = Code::Handle(zone);
+    const auto& dispatch_table_entries =
+        Array::Handle(zone, object_store->dispatch_table_code_entries());
+    if (!dispatch_table_entries.IsNull()) {
+      for (intptr_t i = 0; i < dispatch_table_entries.Length(); i++) {
+        code ^= dispatch_table_entries.At(i);
+        walker.AddToWorklist(code);
       }
     }
   }
 
-  if (!visitor->IsCodeVisitor()) return;
-
-  // Code objects not necessarily reachable from functions.
-  auto& code = Code::Handle(zone);
-  const auto& dispatch_table_entries =
-      Array::Handle(zone, object_store->dispatch_table_code_entries());
-  if (!dispatch_table_entries.IsNull()) {
-    for (intptr_t i = 0; i < dispatch_table_entries.Length(); i++) {
-      code ^= dispatch_table_entries.At(i);
-      if (code.IsNull()) continue;
-      walker.VisitCode(code);
-    }
-  }
+  // Walk the program starting from any roots we added to the worklist.
+  walker.VisitWorklist();
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -710,6 +808,7 @@ void ProgramVisitor::DedupDeoptEntries(Zone* zone, Isolate* isolate) {
     Smi& reason_and_flags_;
   };
 
+  if (FLAG_precompiled_mode) return;
   DedupDeoptEntriesVisitor visitor(zone);
   WalkProgram(zone, isolate, &visitor);
 }
@@ -1072,9 +1171,13 @@ void ProgramVisitor::DedupInstructions(Zone* zone, Isolate* isolate) {
     void VisitCode(const Code& code) {
       instructions_ = code.instructions();
       instructions_ = Dedup(instructions_);
+      code.set_instructions(instructions_);
+      if (code.IsDisabled()) {
+        instructions_ = code.active_instructions();
+        instructions_ = Dedup(instructions_);
+      }
       code.SetActiveInstructions(instructions_,
                                  code.UncheckedEntryPointOffset());
-      code.set_instructions(instructions_);
       if (!code.IsFunctionCode()) return;
       function_ = code.function();
       if (function_.IsNull()) return;
@@ -1147,7 +1250,7 @@ void ProgramVisitor::Dedup(Thread* thread) {
   ShareMegamorphicBuckets(zone, isolate);
   NormalizeAndDedupCompressedStackMaps(zone, isolate);
   DedupPcDescriptors(zone, isolate);
-  NOT_IN_PRECOMPILED(DedupDeoptEntries(zone, isolate));
+  DedupDeoptEntries(zone, isolate);
 #if defined(DART_PRECOMPILER)
   DedupCatchEntryMovesMaps(zone, isolate);
   DedupUnlinkedCalls(zone, isolate);

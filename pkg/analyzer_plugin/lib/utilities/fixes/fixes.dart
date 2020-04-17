@@ -91,8 +91,9 @@ class FixGenerator {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FixKind {
-  /// The name of this kind of fix, used for debugging.
-  final String name;
+  /// The unique identifier of this kind of assist. May be used by client editors,
+  /// for example to allow key-binding specific fixes (or groups of).
+  final String id;
 
   /// The priority of this kind of fix for the kind of error being addressed
   /// where a higher integer value indicates a higher priority and relevance.
@@ -108,21 +109,21 @@ class FixKind {
   /// kind of 'applied together' fix.
   final String appliedTogetherMessage;
 
-  /// Initialize a newly created kind of fix to have the given [name],
+  /// Initialize a newly created kind of fix to have the given [id],
   /// [priority], [message], and optionally [canBeAppliedTogether] and
   /// [appliedTogetherMessage].
-  const FixKind(this.name, this.priority, this.message,
+  const FixKind(this.id, this.priority, this.message,
       {this.appliedTogetherMessage});
 
   @override
-  int get hashCode => name.hashCode;
+  int get hashCode => id.hashCode;
 
   @override
-  bool operator ==(o) => o is FixKind && o.name == name;
+  bool operator ==(o) => o is FixKind && o.id == id;
 
   /// The change can be made with other fixes of this [FixKind].
   bool canBeAppliedTogether() => appliedTogetherMessage != null;
 
   @override
-  String toString() => name;
+  String toString() => id;
 }

@@ -11,6 +11,7 @@
 #endif
 #include "vm/flags.h"
 #include "vm/heap/safepoint.h"
+#include "vm/log.h"
 #include "vm/native_arguments.h"
 #include "vm/runtime_entry_list.h"
 

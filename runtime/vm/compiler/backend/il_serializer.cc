@@ -835,9 +835,6 @@ void Instruction::AddExtraInfoToSExpression(SExpList* sexp,
   if (!token_pos().IsNoSource()) {
     s->AddExtraInteger(sexp, "token_pos", token_pos().value());
   }
-  if (lifetime_position() != kNoPlaceId) {
-    s->AddExtraInteger(sexp, "lifetime_position", lifetime_position());
-  }
 }
 
 SExpression* Range::ToSExpression(FlowGraphSerializer* s) {

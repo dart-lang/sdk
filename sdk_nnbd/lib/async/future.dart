@@ -311,7 +311,7 @@ abstract class Future<T> {
    * later time that isn't necessarily after a known fixed duration.
    */
   factory Future.delayed(Duration duration, [FutureOr<T> computation()?]) {
-    if (computation == null && null is! T) {
+    if (computation == null && const <Null>[] is! List<T>) {
       throw ArgumentError.value(
           null, "computation", "The type parameter is not nullable");
     }

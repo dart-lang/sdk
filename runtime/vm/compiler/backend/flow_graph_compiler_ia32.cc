@@ -8,6 +8,7 @@
 #include "vm/compiler/backend/flow_graph_compiler.h"
 
 #include "vm/code_patcher.h"
+#include "vm/compiler/api/type_check_mode.h"
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/locations.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"

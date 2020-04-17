@@ -5,9 +5,8 @@
 #include "vm/stack_frame.h"
 
 #include "platform/memory_sanitizer.h"
-#include "vm/compiler/assembler/assembler.h"
+#include "vm/code_descriptors.h"
 #include "vm/compiler/runtime_api.h"
-#include "vm/deopt_instructions.h"
 #include "vm/heap/become.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
@@ -20,6 +19,10 @@
 #include "vm/scopes.h"
 #include "vm/stub_code.h"
 #include "vm/visitor.h"
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/deopt_instructions.h"
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 
@@ -847,6 +850,7 @@ void InlinedFunctionsIterator::Advance() {
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 // Finds the potential offset for the current function's FP if the
 // current frame were to be deoptimized.
 intptr_t InlinedFunctionsIterator::GetDeoptFpOffset() const {
@@ -860,6 +864,7 @@ intptr_t InlinedFunctionsIterator::GetDeoptFpOffset() const {
   UNREACHABLE();
   return 0;
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 #if defined(DEBUG)
 void ValidateFrames() {

@@ -115,7 +115,7 @@ class CompilerPass {
   };
 
 #define ADD_ONE(name) +1
-  static const intptr_t kNumPasses = 0 COMPILER_PASS_LIST(ADD_ONE);
+  static constexpr intptr_t kNumPasses = 0 COMPILER_PASS_LIST(ADD_ONE);
 #undef ADD_ONE
 
   CompilerPass(Id id, const char* name) : name_(name), flags_(0) {

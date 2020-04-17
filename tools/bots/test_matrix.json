@@ -630,6 +630,7 @@
           "--libraries-spec=sdk_nnbd/lib/libraries.json",
           "--platform-binaries=out/ReleaseX64NNBD/"
         ],
+        "timeout": 240,
         "host-checked": true
       }
     },
@@ -644,6 +645,7 @@
           "--libraries-spec=sdk_nnbd/lib/libraries.json",
           "--platform-binaries=xcodebuild/ReleaseX64NNBD/"
         ],
+        "timeout": 240,
         "host-checked": true
       }
     },
@@ -658,6 +660,7 @@
           "--libraries-spec=sdk_nnbd/lib/libraries.json",
           "--platform-binaries=out/ReleaseX64NNBD/"
         ],
+        "timeout": 240,
         "host-checked": true
       }
     },
@@ -672,6 +675,7 @@
           "--libraries-spec=sdk_nnbd/lib/libraries.json",
           "--platform-binaries=xcodebuild/ReleaseX64NNBD/"
         ],
+        "timeout": 240,
         "host-checked": true
       }
     },
@@ -1655,7 +1659,6 @@
           "arguments": [
             "-ndartkp-${sanitizer}-${system}-${mode}-${arch}",
             "vm",
-            "standalone",
             "standalone_2"
           ]
         }

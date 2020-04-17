@@ -96,6 +96,9 @@ void declareCompilerOptions(ArgParser args) {
       help:
           'Enable global type flow analysis and related transformations in AOT mode.',
       defaultsTo: true);
+  args.addFlag('tree-shake-write-only-fields',
+      help: 'Enable tree shaking of fields which are only written in AOT mode.',
+      defaultsTo: false);
   args.addFlag('protobuf-tree-shaker',
       help: 'Enable protobuf tree shaker transformation in AOT mode.',
       defaultsTo: false);
@@ -170,6 +173,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final bool useProtobufTreeShaker = options['protobuf-tree-shaker'];
   final bool splitOutputByPackages = options['split-output-by-packages'];
   final bool minimalKernel = options['minimal-kernel'];
+  final bool treeShakeWriteOnlyFields = options['tree-shake-write-only-fields'];
   final List<String> experimentalFlags = options['enable-experiment'];
   final Map<String, String> environmentDefines = {};
 
@@ -246,7 +250,8 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       bytecodeOptions: bytecodeOptions,
       dropAST: dropAST && !splitOutputByPackages,
       useProtobufTreeShaker: useProtobufTreeShaker,
-      minimalKernel: minimalKernel);
+      minimalKernel: minimalKernel,
+      treeShakeWriteOnlyFields: treeShakeWriteOnlyFields);
 
   errorPrinter.printCompilationMessages();
 
@@ -322,7 +327,8 @@ Future<KernelCompilationResults> compileToKernel(
     BytecodeOptions bytecodeOptions,
     bool dropAST: false,
     bool useProtobufTreeShaker: false,
-    bool minimalKernel: false}) async {
+    bool minimalKernel: false,
+    bool treeShakeWriteOnlyFields: false}) async {
   // Replace error handler to detect if there are compilation errors.
   final errorDetector =
       new ErrorDetector(previousErrorHandler: options.onDiagnostic);
@@ -348,7 +354,8 @@ Future<KernelCompilationResults> compileToKernel(
         enableAsserts,
         useProtobufTreeShaker,
         errorDetector,
-        minimalKernel: minimalKernel);
+        minimalKernel: minimalKernel,
+        treeShakeWriteOnlyFields: treeShakeWriteOnlyFields);
 
     if (minimalKernel) {
       // compiledSources is component.uriToSource.keys.
@@ -424,7 +431,8 @@ Future runGlobalTransformations(
     bool enableAsserts,
     bool useProtobufTreeShaker,
     ErrorDetector errorDetector,
-    {bool minimalKernel: false}) async {
+    {bool minimalKernel: false,
+    bool treeShakeWriteOnlyFields: false}) async {
   if (errorDetector.hasCompilationErrors) return;
 
   final coreTypes = new CoreTypes(component);
@@ -443,7 +451,8 @@ Future runGlobalTransformations(
 
   if (useGlobalTypeFlowAnalysis) {
     globalTypeFlow.transformComponent(target, coreTypes, component,
-        treeShakeSignatures: !minimalKernel);
+        treeShakeSignatures: !minimalKernel,
+        treeShakeWriteOnlyFields: treeShakeWriteOnlyFields);
   } else {
     devirtualization.transformComponent(coreTypes, component);
     no_dynamic_invocations_annotator.transformComponent(component);
@@ -458,7 +467,8 @@ Future runGlobalTransformations(
         component, coreTypes, null);
 
     globalTypeFlow.transformComponent(target, coreTypes, component,
-        treeShakeSignatures: !minimalKernel);
+        treeShakeSignatures: !minimalKernel,
+        treeShakeWriteOnlyFields: treeShakeWriteOnlyFields);
   }
 
   // TODO(35069): avoid recomputing CSA by reading it from the platform files.

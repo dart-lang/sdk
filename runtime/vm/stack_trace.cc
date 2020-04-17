@@ -4,10 +4,13 @@
 
 #include "vm/stack_trace.h"
 
-#include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/dart_api_impl.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/compiler/frontend/bytecode_reader.h"
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 

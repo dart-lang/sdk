@@ -682,15 +682,15 @@ void FlowGraphAllocator::ProcessInitialDefinition(
       range->set_assigned_location(loc);
       AssignSafepoints(defn, range);
       range->finger()->Initialize(range);
-      SplitInitialDefinitionAt(range, block->lifetime_position() + 1);
+      SplitInitialDefinitionAt(range, GetLifetimePosition(block) + 1);
       ConvertAllUses(range);
 
       // We have exception/stacktrace in a register and need to
       // ensure this register is not available for register allocation during
       // the [CatchBlockEntry] to ensure it's not overwritten.
       if (loc.IsRegister()) {
-        BlockLocation(loc, block->lifetime_position(),
-                      block->lifetime_position() + 1);
+        BlockLocation(loc, GetLifetimePosition(block),
+                      GetLifetimePosition(block) + 1);
       }
       return;
     }
@@ -745,12 +745,12 @@ void FlowGraphAllocator::ProcessInitialDefinition(
     range->set_assigned_location(loc);
     if (loc.IsRegister()) {
       AssignSafepoints(defn, range);
-      if (range->End() > (block->lifetime_position() + 2)) {
-        SplitInitialDefinitionAt(range, block->lifetime_position() + 2);
+      if (range->End() > (GetLifetimePosition(block) + 2)) {
+        SplitInitialDefinitionAt(range, GetLifetimePosition(block) + 2);
       }
       ConvertAllUses(range);
-      BlockLocation(loc, block->lifetime_position(),
-                    block->lifetime_position() + 2);
+      BlockLocation(loc, GetLifetimePosition(block),
+                    GetLifetimePosition(block) + 2);
       return;
     }
   } else {
@@ -837,7 +837,7 @@ Instruction* FlowGraphAllocator::ConnectOutgoingPhiMoves(
   ParallelMoveInstr* parallel_move = goto_instr->parallel_move();
 
   // All uses are recorded at the position of parallel move preceding goto.
-  const intptr_t pos = goto_instr->lifetime_position();
+  const intptr_t pos = GetLifetimePosition(goto_instr);
 
   JoinEntryInstr* join = goto_instr->successor();
   ASSERT(join != NULL);
@@ -975,7 +975,7 @@ void FlowGraphAllocator::ProcessEnvironmentUses(BlockEntryInstr* block,
     }
 
     const intptr_t block_start_pos = block->start_pos();
-    const intptr_t use_pos = current->lifetime_position() + 1;
+    const intptr_t use_pos = GetLifetimePosition(current) + 1;
 
     Location* locations = flow_graph_.zone()->Alloc<Location>(env->Length());
 
@@ -1306,7 +1306,7 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
     }
   }
 
-  const intptr_t pos = current->lifetime_position();
+  const intptr_t pos = GetLifetimePosition(current);
   ASSERT(IsInstructionStartPosition(pos));
 
   ASSERT(locs->input_count() == current->InputCount());
@@ -1524,11 +1524,12 @@ static ParallelMoveInstr* CreateParallelMoveBefore(Instruction* instr,
   ASSERT(pos > 0);
   Instruction* prev = instr->previous();
   ParallelMoveInstr* move = prev->AsParallelMove();
-  if ((move == NULL) || (move->lifetime_position() != pos)) {
+  if ((move == NULL) ||
+      (FlowGraphAllocator::GetLifetimePosition(move) != pos)) {
     move = new ParallelMoveInstr();
     prev->LinkTo(move);
     move->LinkTo(instr);
-    move->set_lifetime_position(pos);
+    FlowGraphAllocator::SetLifetimePosition(move, pos);
   }
   return move;
 }
@@ -1536,7 +1537,8 @@ static ParallelMoveInstr* CreateParallelMoveBefore(Instruction* instr,
 static ParallelMoveInstr* CreateParallelMoveAfter(Instruction* instr,
                                                   intptr_t pos) {
   Instruction* next = instr->next();
-  if (next->IsParallelMove() && (next->lifetime_position() == pos)) {
+  if (next->IsParallelMove() &&
+      (FlowGraphAllocator::GetLifetimePosition(next) == pos)) {
     return next->AsParallelMove();
   }
   return CreateParallelMoveBefore(next, pos);
@@ -1558,7 +1560,7 @@ void FlowGraphAllocator::NumberInstructions() {
     instructions_.Add(block);
     block_entries_.Add(block);
     block->set_start_pos(pos);
-    block->set_lifetime_position(pos);
+    SetLifetimePosition(block, pos);
     pos += 2;
 
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
@@ -1567,7 +1569,7 @@ void FlowGraphAllocator::NumberInstructions() {
       if (!current->IsParallelMove()) {
         instructions_.Add(current);
         block_entries_.Add(block);
-        current->set_lifetime_position(pos);
+        SetLifetimePosition(current, pos);
         pos += 2;
       }
     }
@@ -1832,7 +1834,7 @@ LiveRange* FlowGraphAllocator::SplitBetween(LiveRange* range,
   BlockEntryInstr* split_block_entry = BlockEntryAt(to);
   ASSERT(split_block_entry == InstructionAt(to)->GetBlock());
 
-  if (from < split_block_entry->lifetime_position()) {
+  if (from < GetLifetimePosition(split_block_entry)) {
     // Interval [from, to) spans multiple blocks.
 
     // If the last block is inside a loop, prefer splitting at the outermost
@@ -1863,16 +1865,16 @@ LiveRange* FlowGraphAllocator::SplitBetween(LiveRange* range,
       }
     }
     while ((loop_info != nullptr) &&
-           (from < loop_info->header()->lifetime_position())) {
+           (from < GetLifetimePosition(loop_info->header()))) {
       split_block_entry = loop_info->header();
       loop_info = loop_info->outer();
       TRACE_ALLOC(THR_Print("  move back to loop header B%" Pd " at %" Pd "\n",
                             split_block_entry->block_id(),
-                            split_block_entry->lifetime_position()));
+                            GetLifetimePosition(split_block_entry)));
     }
 
     // Split at block's start.
-    split_pos = split_block_entry->lifetime_position();
+    split_pos = GetLifetimePosition(split_block_entry);
   } else {
     // Interval [from, to) is contained inside a single block.
 
@@ -2587,7 +2589,7 @@ void FlowGraphAllocator::AssignSafepoints(Definition* defn, LiveRange* range) {
       continue;
     }
 
-    const intptr_t pos = safepoint_instr->lifetime_position();
+    const intptr_t pos = GetLifetimePosition(safepoint_instr);
     if (range->End() <= pos) break;
 
     if (range->Contains(pos)) {

@@ -6,8 +6,6 @@
 
 #include "platform/safe_stack.h"
 #include "vm/class_finalizer.h"
-#include "vm/compiler/frontend/bytecode_reader.h"
-#include "vm/compiler/jit/compiler.h"
 #include "vm/debugger.h"
 #include "vm/dispatch_table.h"
 #include "vm/heap/safepoint.h"
@@ -18,6 +16,11 @@
 #include "vm/simulator.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/compiler/frontend/bytecode_reader.h"
+#include "vm/compiler/jit/compiler.h"
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 

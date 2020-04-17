@@ -125,10 +125,26 @@ class InfoBuilder {
   }
 
   /// Return an edit that can be applied.
-  List<EditDetail> _computeEdits(AtomicEditInfo fixInfo, int offset) {
+  List<EditDetail> _computeEdits(
+      AtomicEditInfo fixInfo, int offset, String content) {
+    EditDetail _removeHint(String description) => EditDetail.fromSourceEdit(
+        description,
+        fixInfo.hintComment.changesToRemove(content).toSourceEdits().single);
+
+    EditDetail _changeHint(String description, String replacement) =>
+        EditDetail.fromSourceEdit(
+            description,
+            fixInfo.hintComment
+                .changesToReplace(content, replacement)
+                .toSourceEdits()
+                .single);
+
     var edits = <EditDetail>[];
     var fixKind = fixInfo.description.kind;
     switch (fixKind) {
+      case NullabilityFixKind.addLateDueToHint:
+        edits.add(_removeHint('Remove /*late*/ hint'));
+        break;
       case NullabilityFixKind.addRequired:
         // TODO(brianwilkerson) This doesn't verify that the meta package has
         //  been imported.
@@ -141,7 +157,7 @@ class InfoBuilder {
         edits.add(EditDetail('Add /*!*/ hint', offset, 0, '/*!*/'));
         break;
       case NullabilityFixKind.checkExpressionDueToHint:
-        edits.add(EditDetail('Remove /*!*/ hint', offset, 5, ''));
+        edits.add(_removeHint('Remove /*!*/ hint'));
         break;
       case NullabilityFixKind.downcastExpression:
       case NullabilityFixKind.otherCastExpression:
@@ -162,12 +178,12 @@ class InfoBuilder {
         edits.add(EditDetail('Add /*?*/ hint', offset, 0, '/*?*/'));
         break;
       case NullabilityFixKind.makeTypeNullableDueToHint:
-        edits.add(EditDetail('Add /*!*/ hint', offset, 5, '/*!*/'));
-        edits.add(EditDetail('Remove /*?*/ hint', offset, 5, ''));
+        edits.add(_changeHint('Change to /*!*/ hint', '/*!*/'));
+        edits.add(_removeHint('Remove /*?*/ hint'));
         break;
       case NullabilityFixKind.typeNotMadeNullableDueToHint:
-        edits.add(EditDetail('Remove /*!*/ hint', offset, 5, ''));
-        edits.add(EditDetail('Add /*?*/ hint', offset, 5, '/*?*/'));
+        edits.add(_removeHint('Remove /*!*/ hint'));
+        edits.add(_changeHint('Change to /*?*/ hint', '/*?*/'));
         break;
     }
     return edits;
@@ -275,6 +291,7 @@ class InfoBuilder {
     var regions = unitInfo.regions;
     var lineInfo = result.unit.lineInfo;
     var insertions = <int, List<AtomicEdit>>{};
+    var hintsSeen = <HintComment>{};
 
     // Apply edits and build the regions.
     var changes = sourceInfo.changes ?? {};
@@ -296,31 +313,35 @@ class InfoBuilder {
           (insertions[sourceOffset] ??= []).add(AtomicEdit.insert(replacement));
         }
         var info = edit.info;
-        var edits = info != null ? _computeEdits(info, sourceOffset) : [];
+        var edits = info != null
+            ? _computeEdits(info, sourceOffset, result.content)
+            : [];
         var lineNumber = lineInfo.getLocation(sourceOffset).lineNumber;
         var traces = info == null ? const [] : _computeTraces(info.fixReasons);
         var description = info?.description;
+        var hint = info?.hintComment;
+        var isCounted = hint == null || hintsSeen.add(hint);
         if (description != null) {
           var explanation = description.appliedMessage;
           var kind = description.kind;
           if (edit.isInformative) {
             regions.add(RegionInfo(RegionType.informative, offset,
-                replacement.length, lineNumber, explanation, kind,
+                replacement.length, lineNumber, explanation, kind, isCounted,
                 edits: edits, traces: traces));
           } else if (edit.isInsertion) {
             regions.add(RegionInfo(RegionType.add, offset, replacement.length,
-                lineNumber, explanation, kind,
+                lineNumber, explanation, kind, isCounted,
                 edits: edits, traces: traces));
           } else if (edit.isDeletion) {
             regions.add(RegionInfo(RegionType.remove, offset, length,
-                lineNumber, explanation, kind,
+                lineNumber, explanation, kind, isCounted,
                 edits: edits, traces: traces));
           } else if (edit.isReplacement) {
             regions.add(RegionInfo(RegionType.remove, offset, length,
-                lineNumber, explanation, kind,
+                lineNumber, explanation, kind, isCounted,
                 edits: edits, traces: traces));
             regions.add(RegionInfo(RegionType.add, end, replacement.length,
-                lineNumber, explanation, kind,
+                lineNumber, explanation, kind, isCounted,
                 edits: edits, traces: traces));
           } else {
             throw StateError(

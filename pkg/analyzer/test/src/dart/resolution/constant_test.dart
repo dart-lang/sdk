@@ -328,6 +328,24 @@ const c = b;
     _assertIntValue(c, 42);
   }
 
+  test_topLevelVariable_optOut3() async {
+    newFile('/test/lib/a.dart', content: r'''
+// @dart = 2.7
+const a = int.fromEnvironment('a', defaultValue: 42);
+''');
+
+    await assertNoErrorsInCode(r'''
+// @dart = 2.7
+import 'a.dart';
+
+const b = a;
+''');
+
+    var c = findElement.topVar('b');
+    assertType(c.type, 'int*');
+    _assertIntValue(c, 42);
+  }
+
   void _assertIntValue(VariableElement element, int value) {
     expect(element.constantValue.toIntValue(), value);
   }

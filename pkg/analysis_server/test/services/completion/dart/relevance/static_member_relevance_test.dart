@@ -41,6 +41,27 @@ void g() {
     ]);
   }
 
+  Future<void> test_elementKind() async {
+    await addTestFile('''
+class C {
+  static int f = 0;
+  static void get g {}
+  static set s(int x) {}
+  static void m() {}
+}
+
+void g() {
+  C.^
+}
+''');
+    assertOrder([
+      suggestionWith(completion: 'g'),
+      suggestionWith(completion: 's'),
+      suggestionWith(completion: 'm'),
+      suggestionWith(completion: 'f'),
+    ]);
+  }
+
   Future<void> test_hasDeprecated() async {
     await addTestFile('''
 class C {

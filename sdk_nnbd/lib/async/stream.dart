@@ -263,7 +263,7 @@ abstract class Stream<T> {
    */
   factory Stream.periodic(Duration period,
       [T computation(int computationCount)?]) {
-    if (computation == null && null is! T) {
+    if (computation == null && const <Null>[] is! List<T>) {
       throw ArgumentError.value(null, "computation",
           "Must not be omitted when the event type is non-nullable");
     }

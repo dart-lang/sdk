@@ -682,10 +682,10 @@ void IRRegExpMacroAssembler::Backtrack() {
 // If the BlockLabel does not yet contain a block, it is created.
 // If there is a current instruction, append a goto to the bound block.
 void IRRegExpMacroAssembler::BindBlock(BlockLabel* label) {
-  ASSERT(!label->IsBound());
+  ASSERT(!label->is_bound());
   ASSERT(label->block()->next() == NULL);
 
-  label->SetBound(block_id_.Alloc());
+  label->BindTo(block_id_.Alloc());
   blocks_.Add(label->block());
 
   if (current_instruction_ != NULL) {

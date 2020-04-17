@@ -13,6 +13,8 @@ import 'package:meta/meta.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/nullability_migration_impl.dart';
 
+export 'package:nnbd_migration/src/utilities/hint_utils.dart' show HintComment;
+
 /// Description of fixes that might be performed by nullability migration.
 class NullabilityFixDescription {
   /// An if-test or conditional expression needs to have its condition and
@@ -23,6 +25,12 @@ class NullabilityFixDescription {
         'that follows',
     kind: NullabilityFixKind.removeDeadCode,
   );
+
+  /// A variable declaration needs to be marked as "late" due to the presence of
+  /// a `/*late*/` hint.
+  static const addLateDueToHint = const NullabilityFixDescription._(
+      appliedMessage: 'Added a late keyword, due to a hint',
+      kind: NullabilityFixKind.addLateDueToHint);
 
   /// An if-test or conditional expression needs to have its condition
   /// discarded.
@@ -172,6 +180,7 @@ class NullabilityFixDescription {
 
 /// An enumeration of the various kinds of nullability fixes.
 enum NullabilityFixKind {
+  addLateDueToHint,
   addRequired,
   checkExpression,
   checkExpressionDueToHint,

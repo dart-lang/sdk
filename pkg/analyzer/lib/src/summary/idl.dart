@@ -1839,6 +1839,9 @@ enum LinkedNodeTypeKind {
 
 /// Information about a type substitution.
 abstract class LinkedNodeTypeSubstitution extends base.SummaryClass {
+  @Id(2)
+  bool get isLegacy;
+
   @Id(1)
   List<LinkedNodeType> get typeArguments;
 

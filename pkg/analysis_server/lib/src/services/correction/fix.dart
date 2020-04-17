@@ -85,6 +85,9 @@ bool hasFix(ErrorCode errorCode) =>
             errorCode.name == LintNames.null_closures ||
             errorCode.name == LintNames.prefer_collection_literals ||
             errorCode.name == LintNames.prefer_conditional_assignment ||
+            errorCode.name == LintNames.prefer_const_constructors ||
+            errorCode.name ==
+                LintNames.prefer_const_constructors_in_immutables ||
             errorCode.name == LintNames.prefer_const_declarations ||
             errorCode.name == LintNames.prefer_equal_for_default_values ||
             errorCode.name == LintNames.prefer_final_fields ||
@@ -103,7 +106,8 @@ bool hasFix(ErrorCode errorCode) =>
 /// An enumeration of quick fix kinds for the errors found in an analysis
 /// options file.
 class AnalysisOptionsFixKind {
-  static const REMOVE_SETTING = FixKind('REMOVE_SETTING', 50, "Remove '{0}'");
+  static const REMOVE_SETTING =
+      FixKind('analysisOptions.fix.removeSetting', 50, "Remove '{0}'");
 }
 
 /// The implementation of [DartFixContext].
@@ -131,295 +135,332 @@ class DartFixContextImpl implements DartFixContext {
 
 /// An enumeration of quick fix kinds found in a Dart file.
 class DartFixKind {
-  static const ADD_ASYNC = FixKind('ADD_ASYNC', 50, "Add 'async' modifier");
-  static const ADD_AWAIT = FixKind('ADD_AWAIT', 50, "Add 'await' keyword");
-  static const ADD_EXPLICIT_CAST = FixKind('ADD_EXPLICIT_CAST', 50, 'Add cast',
+  static const ADD_ASYNC =
+      FixKind('dart.fix.add.async', 50, "Add 'async' modifier");
+  static const ADD_AWAIT =
+      FixKind('dart.fix.add.await', 50, "Add 'await' keyword");
+  static const ADD_EXPLICIT_CAST = FixKind(
+      'dart.fix.add.explicitCast', 50, 'Add cast',
       appliedTogetherMessage: 'Add all casts in file');
-  static const ADD_CONST = FixKind('ADD_CONST', 50, "Add 'const' modifier");
+  static const ADD_CONST =
+      FixKind('dart.fix.add.const', 50, "Add 'const' modifier");
   static const ADD_CURLY_BRACES =
-      FixKind('ADD_CURLY_BRACES', 50, 'Add curly braces');
+      FixKind('dart.fix.add.curlyBraces', 50, 'Add curly braces');
   static const ADD_DIAGNOSTIC_PROPERTY_REFERENCE = FixKind(
-      'ADD_DIAGNOSTIC_PROPERTY_REFERENCE',
+      'dart.fix.add.diagnosticPropertyReference',
       50,
       'Add a debug reference to this property');
   static const ADD_FIELD_FORMAL_PARAMETERS = FixKind(
-      'ADD_FIELD_FORMAL_PARAMETERS', 70, 'Add final field formal parameters');
-  static const ADD_MISSING_ENUM_CASE_CLAUSES =
-      FixKind('ADD_MISSING_ENUM_CASE_CLAUSES', 50, 'Add missing case clauses');
-  static const ADD_MISSING_PARAMETER_NAMED =
-      FixKind('ADD_MISSING_PARAMETER_NAMED', 70, "Add named parameter '{0}'");
+      'dart.fix.add.fieldFormalParameters',
+      70,
+      'Add final field formal parameters');
+  static const ADD_MISSING_ENUM_CASE_CLAUSES = FixKind(
+      'dart.fix.add.missingEnumCaseClauses', 50, 'Add missing case clauses');
+  static const ADD_MISSING_PARAMETER_NAMED = FixKind(
+      'dart.fix.add.missingParameterNamed', 70, "Add named parameter '{0}'");
   static const ADD_MISSING_PARAMETER_POSITIONAL = FixKind(
-      'ADD_MISSING_PARAMETER_POSITIONAL',
+      'dart.fix.add.missingParameterPositional',
       69,
       'Add optional positional parameter');
-  static const ADD_MISSING_PARAMETER_REQUIRED =
-      FixKind('ADD_MISSING_PARAMETER_REQUIRED', 70, 'Add required parameter');
+  static const ADD_MISSING_PARAMETER_REQUIRED = FixKind(
+      'dart.fix.add.missingParameterRequired', 70, 'Add required parameter');
   static const ADD_MISSING_REQUIRED_ARGUMENT = FixKind(
-      'ADD_MISSING_REQUIRED_ARGUMENT', 70, "Add required argument '{0}'");
-  static const ADD_NE_NULL = FixKind('ADD_NE_NULL', 50, 'Add != null',
+      'dart.fix.add.missingRequiredArgument',
+      70,
+      "Add required argument '{0}'");
+  static const ADD_NE_NULL = FixKind('dart.fix.add.neNull', 50, 'Add != null',
       appliedTogetherMessage: 'Add != null everywhere in file');
   static const ADD_OVERRIDE =
-      FixKind('ADD_OVERRIDE', 50, "Add '@override' annotation");
+      FixKind('dart.fix.add.override', 50, "Add '@override' annotation");
   static const ADD_REQUIRED =
-      FixKind('ADD_REQUIRED', 50, "Add '@required' annotation");
+      FixKind('dart.fix.add.required', 50, "Add '@required' annotation");
   static const ADD_RETURN_TYPE =
-      FixKind('ADD_RETURN_TYPE', 50, 'Add return type');
-  static const ADD_STATIC = FixKind('ADD_STATIC', 50, "Add 'static' modifier");
+      FixKind('dart.fix.add.returnType', 50, 'Add return type');
+  static const ADD_STATIC =
+      FixKind('dart.fix.add.static', 50, "Add 'static' modifier");
   static const ADD_SUPER_CONSTRUCTOR_INVOCATION = FixKind(
-      'ADD_SUPER_CONSTRUCTOR_INVOCATION',
+      'dart.fix.add.superConstructorInvocation',
       50,
       'Add super constructor {0} invocation');
   static const ADD_TYPE_ANNOTATION =
-      FixKind('ADD_TYPE_ANNOTATION', 50, 'Add type annotation');
+      FixKind('dart.fix.add.typeAnnotation', 50, 'Add type annotation');
   static const CHANGE_ARGUMENT_NAME =
-      FixKind('CHANGE_ARGUMENT_NAME', 60, "Change to '{0}'");
-  static const CHANGE_TO = FixKind('CHANGE_TO', 51, "Change to '{0}'");
+      FixKind('dart.fix.change.argumentName', 60, "Change to '{0}'");
+  static const CHANGE_TO = FixKind('dart.fix.change.to', 51, "Change to '{0}'");
   static const CHANGE_TO_NEAREST_PRECISE_VALUE = FixKind(
-      'CHANGE_TO_NEAREST_PRECISE_VALUE',
+      'dart.fix.change.toNearestPreciseValue',
       50,
       'Change to nearest precise int-as-double value: {0}');
   static const CHANGE_TO_STATIC_ACCESS = FixKind(
-      'CHANGE_TO_STATIC_ACCESS', 50, "Change access to static using '{0}'");
+      'dart.fix.change.toStaticAccess',
+      50,
+      "Change access to static using '{0}'");
   static const CHANGE_TYPE_ANNOTATION = FixKind(
-      'CHANGE_TYPE_ANNOTATION', 50, "Change '{0}' to '{1}' type annotation");
-  static const CONVERT_FLUTTER_CHILD =
-      FixKind('CONVERT_FLUTTER_CHILD', 50, 'Convert to children:');
-  static const CONVERT_FLUTTER_CHILDREN =
-      FixKind('CONVERT_FLUTTER_CHILDREN', 50, 'Convert to child:');
-  static const CONVERT_INTO_EXPRESSION_BODY =
-      FixKind('CONVERT_INTO_EXPRESSION_BODY', 50, 'Convert to expression body');
+      'dart.fix.change.typeAnnotation',
+      50,
+      "Change '{0}' to '{1}' type annotation");
+  static const CONVERT_FLUTTER_CHILD = FixKind(
+      'dart.fix.flutter.convert.childToChildren', 50, 'Convert to children:');
+  static const CONVERT_FLUTTER_CHILDREN = FixKind(
+      'dart.fix.flutter.convert.childrenToChild', 50, 'Convert to child:');
+  static const CONVERT_INTO_EXPRESSION_BODY = FixKind(
+      'dart.fix.convert.toExpressionBody', 50, 'Convert to expression body');
   static const CONVERT_TO_CONTAINS =
-      FixKind('CONVERT_TO_CONTAINS', 50, "Convert to using 'contains'");
-  static const CONVERT_TO_FOR_ELEMENT =
-      FixKind('CONVERT_TO_FOR_ELEMENT', 50, "Convert to a 'for' element");
+      FixKind('dart.fix.convert.toContains', 50, "Convert to using 'contains'");
+  static const CONVERT_TO_FOR_ELEMENT = FixKind(
+      'dart.fix.convert.toForElement', 50, "Convert to a 'for' element");
   static const CONVERT_TO_GENERIC_FUNCTION_SYNTAX = FixKind(
-      'CONVERT_TO_GENERIC_FUNCTION_SYNTAX',
+      'dart.fix.convert.toGenericFunctionSyntax',
       50,
       "Convert into 'Function' syntax");
   static const CONVERT_TO_IF_ELEMENT =
-      FixKind('CONVERT_TO_IF_ELEMENT', 50, "Convert to an 'if' element");
+      FixKind('dart.fix.convert.toIfElement', 50, "Convert to an 'if' element");
   static const CONVERT_TO_IF_NULL =
-      FixKind('CONVERT_TO_IF_NULL', 50, "Convert to use '??'");
+      FixKind('dart.fix.convert.toIfNull', 50, "Convert to use '??'");
   static const CONVERT_TO_INT_LITERAL =
-      FixKind('CONVERT_TO_INT_LITERAL', 50, 'Convert to an int literal');
+      FixKind('dart.fix.convert.toIntLiteral', 50, 'Convert to an int literal');
   static const CONVERT_TO_LINE_COMMENT = FixKind(
-      'CONVERT_TO_LINE_COMMENT', 50, 'Convert to line documentation comment');
+      'dart.fix.convert.toLineComment',
+      50,
+      'Convert to line documentation comment');
   static const CONVERT_TO_LIST_LITERAL =
-      FixKind('CONVERT_TO_LIST_LITERAL', 50, 'Convert to list literal');
+      FixKind('dart.fix.convert.toListLiteral', 50, 'Convert to list literal');
   static const CONVERT_TO_MAP_LITERAL =
-      FixKind('CONVERT_TO_MAP_LITERAL', 50, 'Convert to map literal');
-  static const CONVERT_TO_NAMED_ARGUMENTS =
-      FixKind('CONVERT_TO_NAMED_ARGUMENTS', 50, 'Convert to named arguments');
+      FixKind('dart.fix.convert.toMapLiteral', 50, 'Convert to map literal');
+  static const CONVERT_TO_NAMED_ARGUMENTS = FixKind(
+      'dart.fix.convert.toNamedArguments', 50, 'Convert to named arguments');
   static const CONVERT_TO_NULL_AWARE =
-      FixKind('CONVERT_TO_NULL_AWARE', 50, "Convert to use '?.'");
-  static const CONVERT_TO_PACKAGE_IMPORT =
-      FixKind('CONVERT_TO_PACKAGE_IMPORT', 50, "Convert to 'package:' import");
-  static const CONVERT_TO_RELATIVE_IMPORT =
-      FixKind('CONVERT_TO_RELATIVE_IMPORT', 50, 'Convert to relative import');
+      FixKind('dart.fix.convert.toNullAware', 50, "Convert to use '?.'");
+  static const CONVERT_TO_PACKAGE_IMPORT = FixKind(
+      'dart.fix.convert.toPackageImport', 50, "Convert to 'package:' import");
+  static const CONVERT_TO_RELATIVE_IMPORT = FixKind(
+      'dart.fix.convert.toRelativeImport', 50, 'Convert to relative import');
   static const CONVERT_TO_SET_LITERAL =
-      FixKind('CONVERT_TO_SET_LITERAL', 50, 'Convert to set literal');
+      FixKind('dart.fix.convert.toSetLiteral', 50, 'Convert to set literal');
   static const CONVERT_TO_SINGLE_QUOTED_STRING = FixKind(
-      'CONVERT_TO_SINGLE_QUOTED_STRING', 50, 'Convert to single quoted string');
+      'dart.fix.convert.toSingleQuotedString',
+      50,
+      'Convert to single quoted string');
   static const CONVERT_TO_SPREAD =
-      FixKind('CONVERT_TO_SPREAD', 50, 'Convert to a spread');
-  static const CONVERT_TO_WHERE_TYPE =
-      FixKind('CONVERT_TO_WHERE_TYPE', 50, "Convert to a use 'whereType'");
-  static const CREATE_CLASS = FixKind('CREATE_CLASS', 50, "Create class '{0}'");
+      FixKind('dart.fix.convert.toSpread', 50, 'Convert to a spread');
+  static const CONVERT_TO_WHERE_TYPE = FixKind(
+      'dart.fix.convert.toWhereType', 50, "Convert to a use 'whereType'");
+  static const CREATE_CLASS =
+      FixKind('dart.fix.create.class', 50, "Create class '{0}'");
   static const CREATE_CONSTRUCTOR =
-      FixKind('CREATE_CONSTRUCTOR', 50, "Create constructor '{0}'");
+      FixKind('dart.fix.create.constructor', 50, "Create constructor '{0}'");
   static const CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS = FixKind(
-      'CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS',
+      'dart.fix.create.constructorForFinalFields',
       50,
       'Create constructor for final fields');
-  static const CREATE_CONSTRUCTOR_SUPER =
-      FixKind('CREATE_CONSTRUCTOR_SUPER', 50, 'Create constructor to call {0}');
-  static const CREATE_FIELD = FixKind('CREATE_FIELD', 49, "Create field '{0}'");
-  static const CREATE_FILE = FixKind('CREATE_FILE', 50, "Create file '{0}'");
+  static const CREATE_CONSTRUCTOR_SUPER = FixKind(
+      'dart.fix.create.constructorSuper', 50, 'Create constructor to call {0}');
+  static const CREATE_FIELD =
+      FixKind('dart.fix.create.field', 49, "Create field '{0}'");
+  static const CREATE_FILE =
+      FixKind('dart.fix.create.file', 50, "Create file '{0}'");
   static const CREATE_FUNCTION =
-      FixKind('CREATE_FUNCTION', 49, "Create function '{0}'");
+      FixKind('dart.fix.create.function', 49, "Create function '{0}'");
   static const CREATE_GETTER =
-      FixKind('CREATE_GETTER', 50, "Create getter '{0}'");
-  static const CREATE_LOCAL_VARIABLE =
-      FixKind('CREATE_LOCAL_VARIABLE', 50, "Create local variable '{0}'");
+      FixKind('dart.fix.create.getter', 50, "Create getter '{0}'");
+  static const CREATE_LOCAL_VARIABLE = FixKind(
+      'dart.fix.create.localVariable', 50, "Create local variable '{0}'");
   static const CREATE_METHOD =
-      FixKind('CREATE_METHOD', 50, "Create method '{0}'");
-  static const CREATE_MISSING_OVERRIDES =
-      FixKind('CREATE_MISSING_OVERRIDES', 51, 'Create {0} missing override(s)');
-  static const CREATE_MIXIN = FixKind('CREATE_MIXIN', 50, "Create mixin '{0}'");
-  static const CREATE_NO_SUCH_METHOD =
-      FixKind('CREATE_NO_SUCH_METHOD', 49, "Create 'noSuchMethod' method");
+      FixKind('dart.fix.create.method', 50, "Create method '{0}'");
+  static const CREATE_MISSING_OVERRIDES = FixKind(
+      'dart.fix.create.missingOverrides', 51, 'Create {0} missing override(s)');
+  static const CREATE_MIXIN =
+      FixKind('dart.fix.create.mixin', 50, "Create mixin '{0}'");
+  static const CREATE_NO_SUCH_METHOD = FixKind(
+      'dart.fix.create.noSuchMethod', 49, "Create 'noSuchMethod' method");
   static const CREATE_SETTER =
-      FixKind('CREATE_SETTER', 50, "Create setter '{0}'");
+      FixKind('dart.fix.create.setter', 50, "Create setter '{0}'");
   static const EXTEND_CLASS_FOR_MIXIN =
-      FixKind('EXTEND_CLASS_FOR_MIXIN', 50, "Extend the class '{0}'");
+      FixKind('dart.fix.extendClassForMixin', 50, "Extend the class '{0}'");
   static const IMPORT_ASYNC =
-      FixKind('IMPORT_ASYNC', 49, "Import 'dart:async'");
-  static const IMPORT_LIBRARY_PREFIX = FixKind('IMPORT_LIBRARY_PREFIX', 49,
-      "Use imported library '{0}' with prefix '{1}'");
+      FixKind('dart.fix.import.async', 49, "Import 'dart:async'");
+  static const IMPORT_LIBRARY_PREFIX = FixKind('dart.fix.import.libraryPrefix',
+      49, "Use imported library '{0}' with prefix '{1}'");
   static const IMPORT_LIBRARY_PROJECT1 =
-      FixKind('IMPORT_LIBRARY_PROJECT1', 53, "Import library '{0}'");
+      FixKind('dart.fix.import.libraryProject1', 53, "Import library '{0}'");
   static const IMPORT_LIBRARY_PROJECT2 =
-      FixKind('IMPORT_LIBRARY_PROJECT2', 52, "Import library '{0}'");
+      FixKind('dart.fix.import.libraryProject2', 52, "Import library '{0}'");
   static const IMPORT_LIBRARY_PROJECT3 =
-      FixKind('IMPORT_LIBRARY_PROJECT3', 51, "Import library '{0}'");
+      FixKind('dart.fix.import.libraryProject3', 51, "Import library '{0}'");
   static const IMPORT_LIBRARY_SDK =
-      FixKind('IMPORT_LIBRARY_SDK', 54, "Import library '{0}'");
+      FixKind('dart.fix.import.librarySdk', 54, "Import library '{0}'");
   static const IMPORT_LIBRARY_SHOW =
-      FixKind('IMPORT_LIBRARY_SHOW', 55, "Update library '{0}' import");
+      FixKind('dart.fix.import.libraryShow', 55, "Update library '{0}' import");
   static const INLINE_INVOCATION =
-      FixKind('INLINE_INVOCATION', 30, "Inline invocation of '{0}'");
+      FixKind('dart.fix.inlineInvocation', 30, "Inline invocation of '{0}'");
   static const INLINE_TYPEDEF =
-      FixKind('INLINE_TYPEDEF', 30, "Inline the definition of '{0}'");
-  static const INSERT_SEMICOLON = FixKind('INSERT_SEMICOLON', 50, "Insert ';'");
+      FixKind('dart.fix.inlineTypedef', 30, "Inline the definition of '{0}'");
+  static const INSERT_SEMICOLON =
+      FixKind('dart.fix.insertSemicolon', 50, "Insert ';'");
   static const MAKE_CLASS_ABSTRACT =
-      FixKind('MAKE_CLASS_ABSTRACT', 50, "Make class '{0}' abstract");
+      FixKind('dart.fix.makeClassAbstract', 50, "Make class '{0}' abstract");
   static const MAKE_FIELD_NOT_FINAL =
-      FixKind('MAKE_FIELD_NOT_FINAL', 50, "Make field '{0}' not final");
-  static const MAKE_FINAL = FixKind('MAKE_FINAL', 50, 'Make final');
+      FixKind('dart.fix.makeFieldNotFinal', 50, "Make field '{0}' not final");
+  static const MAKE_FINAL = FixKind('dart.fix.makeFinal', 50, 'Make final');
   static const MOVE_TYPE_ARGUMENTS_TO_CLASS = FixKind(
-      'MOVE_TYPE_ARGUMENTS_TO_CLASS',
+      'dart.fix.moveTypeArgumentsToClass',
       50,
       'Move type arguments to after class name');
-  static const MAKE_VARIABLE_NOT_FINAL =
-      FixKind('MAKE_VARIABLE_NOT_FINAL', 50, "Make variable '{0}' not final");
+  static const MAKE_VARIABLE_NOT_FINAL = FixKind(
+      'dart.fix.makeVariableNotFinal', 50, "Make variable '{0}' not final");
   static const QUALIFY_REFERENCE =
-      FixKind('QUALIFY_REFERENCE', 50, "Use '{0}'");
+      FixKind('dart.fix.qualifyReference', 50, "Use '{0}'");
   static const REMOVE_ANNOTATION =
-      FixKind('REMOVE_ANNOTATION', 50, "Remove the '{0}' annotation");
+      FixKind('dart.fix.remove.annotation', 50, "Remove the '{0}' annotation");
   static const REMOVE_ARGUMENT =
-      FixKind('REMOVE_ARGUMENT', 50, 'Remove argument');
-  static const REMOVE_AWAIT = FixKind('REMOVE_AWAIT', 50, 'Remove await');
-  static const REMOVE_CONST = FixKind('REMOVE_CONST', 50, 'Remove const');
+      FixKind('dart.fix.remove.argument', 50, 'Remove argument');
+  static const REMOVE_AWAIT =
+      FixKind('dart.fix.remove.await', 50, 'Remove await');
+  static const REMOVE_CONST =
+      FixKind('dart.fix.remove.const', 50, 'Remove const');
   static const REMOVE_DEAD_CODE =
-      FixKind('REMOVE_DEAD_CODE', 50, 'Remove dead code');
-  static const REMOVE_DUPLICATE_CASE =
-      FixKind('REMOVE_DUPLICATE_CASE', 50, 'Remove duplicate case statement');
+      FixKind('dart.fix.remove.deadCode', 50, 'Remove dead code');
+  static const REMOVE_DUPLICATE_CASE = FixKind(
+      'dart.fix.remove.duplicateCase', 50, 'Remove duplicate case statement');
   static const REMOVE_EMPTY_CATCH =
-      FixKind('REMOVE_EMPTY_CATCH', 50, 'Remove empty catch clause');
+      FixKind('dart.fix.remove.emptyCatch', 50, 'Remove empty catch clause');
   static const REMOVE_EMPTY_CONSTRUCTOR_BODY = FixKind(
-      'REMOVE_EMPTY_CONSTRUCTOR_BODY', 50, 'Remove empty constructor body');
+      'dart.fix.remove.emptyConstructorBody',
+      50,
+      'Remove empty constructor body');
   static const REMOVE_EMPTY_ELSE =
-      FixKind('REMOVE_EMPTY_ELSE', 50, 'Remove empty else clause');
+      FixKind('dart.fix.remove.emptyElse', 50, 'Remove empty else clause');
   static const REMOVE_EMPTY_STATEMENT =
-      FixKind('REMOVE_EMPTY_STATEMENT', 50, 'Remove empty statement');
+      FixKind('dart.fix.remove.emptyStatement', 50, 'Remove empty statement');
   static const REMOVE_IF_NULL_OPERATOR =
-      FixKind('REMOVE_IF_NULL_OPERATOR', 50, "Remove the '??' operator");
+      FixKind('dart.fix.remove.ifNullOperator', 50, "Remove the '??' operator");
   static const REMOVE_INITIALIZER =
-      FixKind('REMOVE_INITIALIZER', 50, 'Remove initializer');
+      FixKind('dart.fix.remove.initializer', 50, 'Remove initializer');
   static const REMOVE_INTERPOLATION_BRACES = FixKind(
-      'REMOVE_INTERPOLATION_BRACES',
+      'dart.fix.remove.interpolationBraces',
       50,
       'Remove unnecessary interpolation braces');
-  static const REMOVE_METHOD_DECLARATION =
-      FixKind('REMOVE_METHOD_DECLARATION', 50, 'Remove method declaration');
-  static const REMOVE_NAME_FROM_COMBINATOR =
-      FixKind('REMOVE_NAME_FROM_COMBINATOR', 50, "Remove name from '{0}'");
+  static const REMOVE_METHOD_DECLARATION = FixKind(
+      'dart.fix.remove.methodDeclaration', 50, 'Remove method declaration');
+  static const REMOVE_NAME_FROM_COMBINATOR = FixKind(
+      'dart.fix.remove.nameFromCombinator', 50, "Remove name from '{0}'");
   static const REMOVE_OPERATOR =
-      FixKind('REMOVE_OPERATOR', 50, 'Remove the operator');
+      FixKind('dart.fix.remove.operator', 50, 'Remove the operator');
   static const REMOVE_PARAMETERS_IN_GETTER_DECLARATION = FixKind(
-      'REMOVE_PARAMETERS_IN_GETTER_DECLARATION',
+      'dart.fix.remove.parametersInGetterDeclaration',
       50,
       'Remove parameters in getter declaration');
   static const REMOVE_PARENTHESIS_IN_GETTER_INVOCATION = FixKind(
-      'REMOVE_PARENTHESIS_IN_GETTER_INVOCATION',
+      'dart.fix.remove.parenthesisInGetterInvocation',
       50,
       'Remove parentheses in getter invocation');
   static const REMOVE_THIS_EXPRESSION =
-      FixKind('REMOVE_THIS_EXPRESSION', 50, 'Remove this expression');
+      FixKind('dart.fix.remove.thisExpression', 50, 'Remove this expression');
   static const REMOVE_TYPE_ANNOTATION =
-      FixKind('REMOVE_TYPE_ANNOTATION', 50, 'Remove type annotation');
+      FixKind('dart.fix.remove.typeAnnotation', 50, 'Remove type annotation');
   static const REMOVE_TYPE_ARGUMENTS =
-      FixKind('REMOVE_TYPE_ARGUMENTS', 49, 'Remove type arguments');
+      FixKind('dart.fix.remove.typeArguments', 49, 'Remove type arguments');
   static const REMOVE_UNNECESSARY_CAST = FixKind(
-      'REMOVE_UNNECESSARY_CAST', 50, 'Remove unnecessary cast',
+      'dart.fix.remove.unnecessaryCast', 50, 'Remove unnecessary cast',
       appliedTogetherMessage: 'Remove all unnecessary casts in file');
   static const REMOVE_UNNECESSARY_CONST = FixKind(
-      'REMOVE_UNNECESSARY_CONST', 50, 'Remove unnecessary const keyword');
-  static const REMOVE_UNNECESSARY_NEW =
-      FixKind('REMOVE_UNNECESSARY_NEW', 50, 'Remove unnecessary new keyword');
-  static const REMOVE_UNUSED_CATCH_CLAUSE =
-      FixKind('REMOVE_UNUSED_CATCH_CLAUSE', 50, "Remove unused 'catch' clause");
+      'dart.fix.remove.unnecessaryConst',
+      50,
+      'Remove unnecessary const keyword');
+  static const REMOVE_UNNECESSARY_NEW = FixKind(
+      'dart.fix.remove.unnecessaryNew', 50, 'Remove unnecessary new keyword');
+  static const REMOVE_UNUSED_CATCH_CLAUSE = FixKind(
+      'dart.fix.remove.unusedCatchClause', 50, "Remove unused 'catch' clause");
   static const REMOVE_UNUSED_CATCH_STACK = FixKind(
-      'REMOVE_UNUSED_CATCH_STACK', 50, 'Remove unused stack trace variable');
+      'dart.fix.remove.unusedCatchStack',
+      50,
+      'Remove unused stack trace variable');
   static const REMOVE_UNUSED_ELEMENT =
-      FixKind('REMOVE_UNUSED_ELEMENT', 50, 'Remove unused element');
+      FixKind('dart.fix.remove.unusedElement', 50, 'Remove unused element');
   static const REMOVE_UNUSED_FIELD =
-      FixKind('REMOVE_UNUSED_FIELD', 50, 'Remove unused field');
+      FixKind('dart.fix.remove.unusedField', 50, 'Remove unused field');
   static const REMOVE_UNUSED_IMPORT = FixKind(
-      'REMOVE_UNUSED_IMPORT', 50, 'Remove unused import',
+      'dart.fix.remove.unusedImport', 50, 'Remove unused import',
       appliedTogetherMessage: 'Remove all unused imports in this file');
   static const REMOVE_UNUSED_LABEL =
-      FixKind('REMOVE_UNUSED_LABEL', 50, 'Remove unused label');
+      FixKind('dart.fix.remove.unusedLabel', 50, 'Remove unused label');
   static const REMOVE_UNUSED_LOCAL_VARIABLE = FixKind(
-      'REMOVE_UNUSED_LOCAL_VARIABLE', 50, 'Remove unused local variable');
+      'dart.fix.remove.unusedLocalVariable',
+      50,
+      'Remove unused local variable');
   static const RENAME_TO_CAMEL_CASE =
-      FixKind('RENAME_TO_CAMEL_CASE', 50, "Rename to '{0}'");
+      FixKind('dart.fix.rename.toCamelCase', 50, "Rename to '{0}'");
   static const REPLACE_BOOLEAN_WITH_BOOL = FixKind(
-      'REPLACE_BOOLEAN_WITH_BOOL', 50, "Replace 'boolean' with 'bool'",
+      'dart.fix.replace.booleanWithBool', 50, "Replace 'boolean' with 'bool'",
       appliedTogetherMessage: "Replace all 'boolean' with 'bool' in file");
   static const REPLACE_COLON_WITH_EQUALS =
-      FixKind('REPLACE_COLON_WITH_EQUALS', 50, "Replace ':' with '='");
-  static const REPLACE_FINAL_WITH_CONST =
-      FixKind('REPLACE_FINAL_WITH_CONST', 50, "Replace 'final' with 'const'");
-  static const REPLACE_NEW_WITH_CONST =
-      FixKind('REPLACE_NEW_WITH_CONST', 50, "Replace 'new' with 'const'");
-  static const REPLACE_NULL_WITH_CLOSURE =
-      FixKind('REPLACE_NULL_WITH_CLOSURE', 50, "Replace 'null' with a closure");
+      FixKind('dart.fix.replace.colonWithEquals', 50, "Replace ':' with '='");
+  static const REPLACE_FINAL_WITH_CONST = FixKind(
+      'dart.fix.replace.finalWithConst', 50, "Replace 'final' with 'const'");
+  static const REPLACE_NEW_WITH_CONST = FixKind(
+      'dart.fix.replace.newWithConst', 50, "Replace 'new' with 'const'");
+  static const REPLACE_NULL_WITH_CLOSURE = FixKind(
+      'dart.fix.replace.nullWithClosure', 50, "Replace 'null' with a closure");
   static const REPLACE_RETURN_TYPE_FUTURE = FixKind(
-      'REPLACE_RETURN_TYPE_FUTURE',
+      'dart.fix.replace.returnTypeFuture',
       50,
       "Return 'Future' from 'async' function");
-  static const REPLACE_VAR_WITH_DYNAMIC =
-      FixKind('REPLACE_VAR_WITH_DYNAMIC', 50, "Replace 'var' with 'dynamic'");
+  static const REPLACE_VAR_WITH_DYNAMIC = FixKind(
+      'dart.fix.replace.varWithDynamic', 50, "Replace 'var' with 'dynamic'");
   static const REPLACE_WITH_EIGHT_DIGIT_HEX =
-      FixKind('REPLACE_WITH_EIGHT_DIGIT_HEX', 50, "Replace with '{0}'");
+      FixKind('dart.fix.replace.withEightDigitHex', 50, "Replace with '{0}'");
   static const REPLACE_WITH_BRACKETS =
-      FixKind('REPLACE_WITH_BRACKETS', 50, 'Replace with { }');
-  static const REPLACE_WITH_CONDITIONAL_ASSIGNMENT =
-      FixKind('REPLACE_WITH_CONDITIONAL_ASSIGNMENT', 50, 'Replace with ??=');
+      FixKind('dart.fix.replace.withBrackets', 50, 'Replace with { }');
+  static const REPLACE_WITH_CONDITIONAL_ASSIGNMENT = FixKind(
+      'dart.fix.replace.withConditionalAssignment', 50, 'Replace with ??=');
   static const REPLACE_WITH_EXTENSION_NAME =
-      FixKind('REPLACE_WITH_EXTENSION_NAME', 50, "Replace with '{0}'");
+      FixKind('dart.fix.replace.withExtensionName', 50, "Replace with '{0}'");
   static const REPLACE_WITH_IDENTIFIER =
-      FixKind('REPLACE_WITH_IDENTIFIER', 50, 'Replace with identifier');
-  static const REPLACE_WITH_INTERPOLATION =
-      FixKind('REPLACE_WITH_INTERPOLATION', 50, 'Replace with interpolation');
+      FixKind('dart.fix.replace.withIdentifier', 50, 'Replace with identifier');
+  static const REPLACE_WITH_INTERPOLATION = FixKind(
+      'dart.fix.replace.withInterpolation', 50, 'Replace with interpolation');
   static const REPLACE_WITH_IS_EMPTY =
-      FixKind('REPLACE_WITH_IS_EMPTY', 50, "Replace with 'isEmpty'");
-  static const REPLACE_WITH_IS_NOT_EMPTY =
-      FixKind('REPLACE_WITH_IS_NOT_EMPTY', 50, "Replace with 'isNotEmpty'");
-  static const REPLACE_WITH_NULL_AWARE = FixKind('REPLACE_WITH_NULL_AWARE', 50,
+      FixKind('dart.fix.replace.withIsEmpty', 50, "Replace with 'isEmpty'");
+  static const REPLACE_WITH_IS_NOT_EMPTY = FixKind(
+      'dart.fix.replace.withIsNotEmpty', 50, "Replace with 'isNotEmpty'");
+  static const REPLACE_WITH_NULL_AWARE = FixKind(
+      'dart.fix.replace.withNullAware',
+      50,
       "Replace the '.' with a '?.' in the invocation");
-  static const REPLACE_WITH_TEAR_OFF = FixKind(
-      'REPLACE_WITH_TEAR_OFF', 50, 'Replace function literal with tear-off');
-  static const REPLACE_WITH_VAR =
-      FixKind('REPLACE_WITH_VAR', 50, "Replace type annotation with 'var'");
-  static const SORT_CHILD_PROPERTY_LAST = FixKind('SORT_CHILD_PROPERTY_LAST',
-      50, 'Move child property to end of arguments');
+  static const REPLACE_WITH_TEAR_OFF = FixKind('dart.fix.replace.withTearOff',
+      50, 'Replace function literal with tear-off');
+  static const REPLACE_WITH_VAR = FixKind(
+      'dart.fix.replace.withVar', 50, "Replace type annotation with 'var'");
+  static const SORT_CHILD_PROPERTY_LAST = FixKind(
+      'dart.fix.sort.childPropertyLast',
+      50,
+      'Move child property to end of arguments');
   static const SORT_DIRECTIVES =
-      FixKind('SORT_DIRECTIVES', 50, 'Sort directives');
-  static const UPDATE_SDK_CONSTRAINTS =
-      FixKind('UPDATE_SDK_CONSTRAINTS', 50, 'Update the SDK constraints');
-  static const USE_CONST = FixKind('USE_CONST', 50, 'Change to constant');
+      FixKind('dart.fix.sort.directives', 50, 'Sort directives');
+  static const UPDATE_SDK_CONSTRAINTS = FixKind(
+      'dart.fix.updateSdkConstraints', 50, 'Update the SDK constraints');
+  static const USE_CONST =
+      FixKind('dart.fix.use.const', 50, 'Change to constant');
   static const USE_EFFECTIVE_INTEGER_DIVISION = FixKind(
-      'USE_EFFECTIVE_INTEGER_DIVISION',
+      'dart.fix.use.effectiveIntegerDivision',
       50,
       'Use effective integer division ~/');
   static const USE_EQ_EQ_NULL = FixKind(
-      'USE_EQ_EQ_NULL', 50, "Use == null instead of 'is Null'",
+      'dart.fix.use.eqEqNull', 50, "Use == null instead of 'is Null'",
       appliedTogetherMessage:
           "Use == null instead of 'is Null' everywhere in file");
-  static const USE_IS_NOT_EMPTY = FixKind(
-      'USE_IS_NOT_EMPTY', 50, "Use x.isNotEmpty instead of '!x.isEmpty'");
+  static const USE_IS_NOT_EMPTY = FixKind('dart.fix.use.isNotEmpty', 50,
+      "Use x.isNotEmpty instead of '!x.isEmpty'");
   static const USE_NOT_EQ_NULL = FixKind(
-      'USE_NOT_EQ_NULL', 50, "Use != null instead of 'is! Null'",
+      'dart.fix.use.notEqNull', 50, "Use != null instead of 'is! Null'",
       appliedTogetherMessage:
           "Use != null instead of 'is! Null' everywhere in file");
   static const USE_RETHROW =
-      FixKind('USE_RETHROW', 50, 'Replace throw with rethrow');
+      FixKind('dart.fix.use.rethrow', 50, 'Replace throw with rethrow');
   static const WRAP_IN_FUTURE =
-      FixKind('WRAP_IN_FUTURE', 50, "Wrap in 'Future.value'");
+      FixKind('dart.fix.wrap.future', 50, "Wrap in 'Future.value'");
   static const WRAP_IN_TEXT =
-      FixKind('WRAP_IN_TEXT', 50, "Wrap in a 'Text' widget");
+      FixKind('dart.fix.flutter.wrap.text', 50, "Wrap in a 'Text' widget");
 }
 
 /// An enumeration of quick fix kinds for the errors found in an Android

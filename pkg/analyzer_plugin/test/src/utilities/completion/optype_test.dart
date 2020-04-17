@@ -271,7 +271,11 @@ class A {
     // SimpleIdentifier  PrefixedIdentifier  ArgumentList
     addTestSource('void main() {expect(aa.^)}');
     await assertOpType(
-        constructors: true, returnValue: true, typeNames: true, prefixed: true);
+        completionLocation: 'PropertyAccess_propertyName',
+        constructors: true,
+        prefixed: true,
+        returnValue: true,
+        typeNames: true);
   }
 
   Future<void> test_argumentList_resolved() async {
@@ -614,6 +618,7 @@ class A {
   Future<void> test_block_keyword() async {
     addTestSource('class C { static C get instance => null; } main() {C.in^}');
     await assertOpType(
+        completionLocation: 'PropertyAccess_propertyName',
         constructors: true,
         prefixed: true,
         returnValue: true,
@@ -1194,33 +1199,33 @@ main() {new core.String.from^CharCodes([]);}
     // FormalParameterList MethodDeclaration
     addTestSource('class A {a(b.^ f) { }}');
     await assertOpType(
-      constructors: true,
-      returnValue: true,
-      typeNames: true,
-      prefixed: true,
-    );
+        completionLocation: 'PropertyAccess_propertyName',
+        constructors: true,
+        prefixed: true,
+        returnValue: true,
+        typeNames: true);
   }
 
   Future<void> test_formalParameter_partialType2() async {
     // FormalParameterList MethodDeclaration
     addTestSource('class A {a(b.z^ f) { }}');
     await assertOpType(
-      constructors: true,
-      returnValue: true,
-      typeNames: true,
-      prefixed: true,
-    );
+        completionLocation: 'PropertyAccess_propertyName',
+        constructors: true,
+        prefixed: true,
+        returnValue: true,
+        typeNames: true);
   }
 
   Future<void> test_formalParameter_partialType3() async {
     // FormalParameterList MethodDeclaration
     addTestSource('class A {a(b.^) { }}');
     await assertOpType(
-      constructors: true,
-      returnValue: true,
-      typeNames: true,
-      prefixed: true,
-    );
+        completionLocation: 'PropertyAccess_propertyName',
+        constructors: true,
+        prefixed: true,
+        returnValue: true,
+        typeNames: true);
   }
 
   Future<void> test_formalParameterList_empty() async {
@@ -1551,7 +1556,11 @@ main() {
     // SimpleIdentifier  PrefixIdentifier  IfStatement
     addTestSource('main() {var a; if (a.^) something}');
     await assertOpType(
-        constructors: true, returnValue: true, typeNames: true, prefixed: true);
+        completionLocation: 'PropertyAccess_propertyName',
+        constructors: true,
+        prefixed: true,
+        returnValue: true,
+        typeNames: true);
   }
 
   Future<void> test_implementsClause_beginning() async {
@@ -1654,7 +1663,11 @@ main() {
     // SimpleIdentifier  PrefixedIdentifier  InterpolationExpression
     addTestSource('main() {String name; print("hello \${name.^}");}');
     await assertOpType(
-        constructors: true, returnValue: true, typeNames: true, prefixed: true);
+        completionLocation: 'PropertyAccess_propertyName',
+        constructors: true,
+        prefixed: true,
+        returnValue: true,
+        typeNames: true);
   }
 
   Future<void> test_interpolationExpression_prefix_target() async {
@@ -2025,22 +2038,24 @@ void f(int a, {int b}) {}
     // SimpleIdentifier PrefixedIdentifier ExpressionStatement Block
     addTestSource('main() {A.^}');
     await assertOpType(
+        completionLocation: 'PropertyAccess_propertyName',
         constructors: true,
+        prefixed: true,
         returnValue: true,
         typeNames: true,
-        voidReturn: true,
-        prefixed: true);
+        voidReturn: true);
   }
 
   Future<void> test_prefixedIdentifier_class_imported() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('main() {A a; a.^}');
     await assertOpType(
+        completionLocation: 'PropertyAccess_propertyName',
         constructors: true,
+        prefixed: true,
         returnValue: true,
         typeNames: true,
-        voidReturn: true,
-        prefixed: true);
+        voidReturn: true);
   }
 
   Future<void> test_prefixedIdentifier_prefix() async {

@@ -54,8 +54,6 @@ class FlowGraphPrinter : public ValueObject {
 
   static bool ShouldPrint(const Function& function);
 
-  static bool PassesFilter(const char* filter, const Function& function);
-
  private:
   const Function& function_;
   const GrowableArray<BlockEntryInstr*>& block_order_;

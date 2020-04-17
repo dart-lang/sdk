@@ -112,9 +112,13 @@ class _SuggestionBuilder extends SimpleElementVisitor<void> {
     if (useNewRelevance) {
       var contextType = request.featureComputer
           .contextTypeFeature(request.contextType, elementType);
+      var elementKind = request.featureComputer
+          .elementKindFeature(element, request.opType.completionLocation);
       var hasDeprecated = request.featureComputer.hasDeprecatedFeature(element);
       relevance = _computeRelevance(
-          contextType: contextType, hasDeprecated: hasDeprecated);
+          contextType: contextType,
+          elementKind: elementKind,
+          hasDeprecated: hasDeprecated);
     }
     var suggestion = createSuggestion(request, element,
         completion: completion,
@@ -128,16 +132,15 @@ class _SuggestionBuilder extends SimpleElementVisitor<void> {
   /// Compute a relevance value from the given feature scores:
   /// - [contextType] is higher if the type of the element matches the context
   ///   type,
-  /// - [hasDeprecated] is higher if the element is not deprecated,
-  /// - [inheritanceDistance] is higher if the element is defined closer to the
-  ///   target type,
-  /// - [startsWithDollar] is higher if the element's name doe _not_ start with
-  ///   a dollar sign, and
-  /// - [superMatches] is higher if the element is being invoked through `super`
-  ///   and the element's name matches the name of the enclosing method.
+  /// - [elementKind] is higher if the kind of element occurs more frequently in
+  ///   the given location, and
+  /// - [hasDeprecated] is higher if the element is not deprecated.
   int _computeRelevance(
-      {@required double contextType, @required double hasDeprecated}) {
-    var score = weightedAverage([contextType, hasDeprecated], [1.0, 0.5]);
+      {@required double contextType,
+      @required double elementKind,
+      @required double hasDeprecated}) {
+    var score = weightedAverage(
+        [contextType, elementKind, hasDeprecated], [1.0, 0.75, 0.5]);
     return toRelevance(score, Relevance.member);
   }
 

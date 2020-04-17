@@ -13,17 +13,10 @@
 #include "vm/bootstrap.h"
 #include "vm/class_finalizer.h"
 #include "vm/code_comments.h"
+#include "vm/code_descriptors.h"
 #include "vm/code_observers.h"
-#include "vm/compiler/aot/precompiler.h"
-#include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/compiler/assembler/disassembler_kbc.h"
-#include "vm/compiler/compiler_state.h"
-#include "vm/compiler/frontend/bytecode_fingerprints.h"
-#include "vm/compiler/frontend/bytecode_reader.h"
-#include "vm/compiler/frontend/kernel_fingerprints.h"
-#include "vm/compiler/frontend/kernel_translation_helper.h"
-#include "vm/compiler/intrinsifier.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/cpu.h"
 #include "vm/dart.h"
@@ -62,6 +55,18 @@
 #include "vm/type_table.h"
 #include "vm/type_testing_stubs.h"
 #include "vm/zone_text_buffer.h"
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/compiler/aot/precompiler.h"
+#include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/backend/code_statistics.h"
+#include "vm/compiler/compiler_state.h"
+#include "vm/compiler/frontend/bytecode_fingerprints.h"
+#include "vm/compiler/frontend/bytecode_reader.h"
+#include "vm/compiler/frontend/kernel_fingerprints.h"
+#include "vm/compiler/frontend/kernel_translation_helper.h"
+#include "vm/compiler/intrinsifier.h"
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 
@@ -1631,6 +1636,8 @@ RawError* Object::Init(Isolate* isolate,
 #if !defined(DART_PRECOMPILED_RUNTIME)
     // Object::Init version when we are bootstrapping from source or from a
     // Kernel binary.
+    // This will initialize isolate group object_store, shared by all isolates
+    // running in the isolate group.
     ObjectStore* object_store = isolate->object_store();
 
     Class& cls = Class::Handle(zone);
@@ -1642,6 +1649,7 @@ RawError* Object::Init(Isolate* isolate,
     // All RawArray fields will be initialized to an empty array, therefore
     // initialize array class first.
     cls = Class::New<Array, RTN::Array>(isolate);
+    ASSERT(object_store->array_class() == Class::null());
     object_store->set_array_class(cls);
 
     // VM classes that are parameterized (Array, ImmutableArray,
@@ -2530,8 +2538,7 @@ void Object::InitializeObject(uword address, intptr_t class_id, intptr_t size) {
   uword cur = address + sizeof(RawObject);
   uword end = address + size;
   if (class_id == kInstructionsCid) {
-    compiler::target::uword initial_value =
-        compiler::Assembler::GetBreakInstructionFiller();
+    compiler::target::uword initial_value = kBreakInstructionFiller;
     while (cur < end) {
       *reinterpret_cast<compiler::target::uword*>(cur) = initial_value;
       cur += compiler::target::kWordSize;
@@ -2630,7 +2637,7 @@ RawObject* Object::Allocate(intptr_t cls_id, intptr_t size, Heap::Space space) {
     }
   }
 #ifndef PRODUCT
-  auto class_table = thread->isolate_group()->class_table();
+  auto class_table = thread->isolate_group()->shared_class_table();
   if (class_table->TraceAllocationFor(cls_id)) {
     Profiler::SampleAllocation(thread, cls_id);
   }
@@ -3287,9 +3294,10 @@ UnboxedFieldBitmap Class::CalculateFieldOffsets() const {
     set_num_native_fields(super.num_native_fields());
 
     if (FLAG_precompiled_mode) {
-      host_bitmap =
-          Isolate::Current()->group()->class_table()->GetUnboxedFieldsMapAt(
-              super.id());
+      host_bitmap = Isolate::Current()
+                        ->group()
+                        ->shared_class_table()
+                        ->GetUnboxedFieldsMapAt(super.id());
     }
   }
   // If the super class is parameterized, use the same type_arguments field,
@@ -3752,8 +3760,8 @@ void Class::Finalize() const {
       // Sets the new size in the class table.
       isolate->class_table()->SetAt(id(), raw());
       if (FLAG_precompiled_mode) {
-        isolate->group()->class_table()->SetUnboxedFieldsMapAt(id(),
-                                                               host_bitmap);
+        isolate->group()->shared_class_table()->SetUnboxedFieldsMapAt(
+            id(), host_bitmap);
       }
     }
   }
@@ -3848,7 +3856,7 @@ void Class::DisableAllCHAOptimizedCode() {
 
 bool Class::TraceAllocation(Isolate* isolate) const {
 #ifndef PRODUCT
-  auto class_table = isolate->group()->class_table();
+  auto class_table = isolate->group()->shared_class_table();
   return class_table->TraceAllocationFor(id());
 #else
   return false;
@@ -3860,7 +3868,7 @@ void Class::SetTraceAllocation(bool trace_allocation) const {
   Isolate* isolate = Isolate::Current();
   const bool changed = trace_allocation != this->TraceAllocation(isolate);
   if (changed) {
-    auto class_table = isolate->group()->class_table();
+    auto class_table = isolate->group()->shared_class_table();
     class_table->SetTraceAllocationFor(id(), trace_allocation);
     DisableAllocationStub();
   }
@@ -7469,6 +7477,7 @@ void Function::SetIsOptimizable(bool value) const {
   }
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 bool Function::CanBeInlined() const {
   // Our force-optimized functions cannot deoptimize to an unoptimized frame.
   // If the instructions of the force-optimized function body get moved via
@@ -7479,14 +7488,17 @@ bool Function::CanBeInlined() const {
   if (ForceOptimize()) {
     return CompilerState::Current().is_aot();
   }
-#if defined(PRODUCT)
-  return is_inlinable() && !is_external() && !is_generated_body();
-#else
+
+#if !defined(PRODUCT)
   Thread* thread = Thread::Current();
-  return is_inlinable() && !is_external() && !is_generated_body() &&
-         !thread->isolate()->debugger()->HasBreakpoint(*this, thread->zone());
-#endif
+  if (thread->isolate()->debugger()->HasBreakpoint(*this, thread->zone())) {
+    return false;
+  }
+#endif  // !defined(PRODUCT)
+
+  return is_inlinable() && !is_external() && !is_generated_body();
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 intptr_t Function::NumParameters() const {
   return num_fixed_parameters() + NumOptionalParameters();
@@ -17545,7 +17557,7 @@ uint32_t Instance::CanonicalizeHash() const {
   Instance& member = Instance::Handle();
 
   const auto unboxed_fields_bitmap =
-      thread->isolate()->group()->class_table()->GetUnboxedFieldsMapAt(
+      thread->isolate()->group()->shared_class_table()->GetUnboxedFieldsMapAt(
           GetClassId());
 
   for (intptr_t offset = Instance::NextFieldOffset(); offset < instance_size;
@@ -17597,7 +17609,7 @@ bool Instance::CheckAndCanonicalizeFields(Thread* thread,
     const intptr_t instance_size = SizeFromClass();
     ASSERT(instance_size != 0);
     const auto unboxed_fields_bitmap =
-        thread->isolate()->group()->class_table()->GetUnboxedFieldsMapAt(
+        thread->isolate()->group()->shared_class_table()->GetUnboxedFieldsMapAt(
             GetClassId());
     for (intptr_t offset = Instance::NextFieldOffset(); offset < instance_size;
          offset += kWordSize) {
@@ -23529,25 +23541,66 @@ RawStackTrace* StackTrace::New(const Array& code_array,
   return result.raw();
 }
 
+#if defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
+static void PrintStackTraceFrameBodyFromDSO(ZoneTextBuffer* buffer,
+                                            uword call_addr,
+                                            bool print_virtual_address) {
+  uword dso_base;
+  char* dso_name;
+  if (NativeSymbolResolver::LookupSharedObject(call_addr, &dso_base,
+                                               &dso_name)) {
+    uword dso_offset = call_addr - dso_base;
+    if (print_virtual_address) {
+      buffer->Printf(" virt %" Pp "", dso_offset);
+    }
+    uword symbol_start;
+    if (auto const symbol_name =
+            NativeSymbolResolver::LookupSymbolName(call_addr, &symbol_start)) {
+      uword symbol_offset = call_addr - symbol_start;
+      buffer->Printf(" %s+0x%" Px "", symbol_name, symbol_offset);
+      NativeSymbolResolver::FreeSymbolName(symbol_name);
+    } else {
+      buffer->Printf(" %s", dso_name);
+    }
+    NativeSymbolResolver::FreeSymbolName(dso_name);
+  } else {
+    buffer->Printf(" <unknown>");
+  }
+  buffer->Printf("\n");
+}
+#endif
+
+static void PrintStackTraceFrameIndex(ZoneTextBuffer* buffer,
+                                      intptr_t frame_index) {
+  buffer->Printf("#%-6" Pd "", frame_index);
+}
+
+static void PrintStackTraceFrameBody(ZoneTextBuffer* buffer,
+                                     const char* function_name,
+                                     const char* url,
+                                     intptr_t line = -1,
+                                     intptr_t column = -1) {
+  buffer->Printf(" %s (%s", function_name, url);
+  if (line >= 0) {
+    buffer->Printf(":%" Pd "", line);
+    if (column >= 0) {
+      buffer->Printf(":%" Pd "", column);
+    }
+  }
+  buffer->Printf(")\n");
+}
+
 static void PrintStackTraceFrame(Zone* zone,
                                  ZoneTextBuffer* buffer,
                                  const Function& function,
                                  TokenPosition token_pos,
                                  intptr_t frame_index) {
-  auto& script = Script::Handle(zone);
-  const char* function_name;
-  const char* url;
-
-  if (!function.IsNull()) {
-    script = function.script();
-    auto& handle = String::Handle(zone, function.QualifiedUserVisibleName());
-    function_name = handle.ToCString();
-    handle = script.IsNull() ? String::New("Kernel") : script.url();
-    url = handle.ToCString();
-  } else {
-    function_name = Symbols::OptimizedOut().ToCString();
-    url = function_name;
-  }
+  ASSERT(!function.IsNull());
+  const auto& script = Script::Handle(zone, function.script());
+  auto& handle = String::Handle(zone, function.QualifiedUserVisibleName());
+  auto const function_name = handle.ToCString();
+  handle = script.IsNull() ? String::New("Kernel") : script.url();
+  auto url = handle.ToCString();
 
   // If the URI starts with "data:application/dart;" this is a URI encoded
   // script so we shouldn't print the entire URI because it could be very long.
@@ -23559,30 +23612,13 @@ static void PrintStackTraceFrame(Zone* zone,
   intptr_t column = -1;
   if (FLAG_precompiled_mode) {
     line = token_pos.value();
-  } else if (!script.IsNull() && token_pos.IsSourcePosition()) {
+  } else if (token_pos.IsSourcePosition()) {
+    ASSERT(!script.IsNull());
     script.GetTokenLocation(token_pos.SourcePosition(), &line, &column);
   }
 
-  buffer->Printf("#%-6" Pd " %s (%s", frame_index, function_name, url);
-  if (line >= 0) {
-    buffer->Printf(":%" Pd "", line);
-    if (column >= 0) {
-      buffer->Printf(":%" Pd "", column);
-    }
-  }
-  buffer->Printf(")\n");
-}
-
-static inline bool ShouldPrintFrame(const Function& function) {
-  // TODO(dartbug.com/41052): Currently, we print frames where the function
-  // object was optimized out in the precompiled runtime, even if the original
-  // function was not visible. We may want to either elide such frames, or
-  // instead store additional information in the WSR that allows us to determine
-  // the original visibility.
-#if defined(DART_PRECOMPILED_RUNTIME)
-  if (function.IsNull()) return true;
-#endif
-  return FLAG_show_invisible_frames || function.is_visible();
+  PrintStackTraceFrameIndex(buffer, frame_index);
+  PrintStackTraceFrameBody(buffer, function_name, url, line, column);
 }
 
 const char* StackTrace::ToDartCString(const StackTrace& stack_trace_in) {
@@ -23621,32 +23657,39 @@ const char* StackTrace::ToDartCString(const StackTrace& stack_trace_in) {
         if (code_object.IsCode()) {
           code ^= code_object.raw();
           ASSERT(code.IsFunctionCode());
-          if (code.is_optimized() && stack_trace.expand_inlined()) {
+          function = code.function();
+          const uword pc = code.PayloadStart() + pc_offset;
+          if (function.IsNull()) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+            PrintStackTraceFrameIndex(&buffer, frame_index);
+            PrintStackTraceFrameBodyFromDSO(&buffer, pc - 1,
+                                            /*print_virtual_address=*/false);
+            frame_index++;
+#else
+            UNREACHABLE();
+#endif
+          } else if (code.is_optimized() && stack_trace.expand_inlined()) {
             code.GetInlinedFunctionsAtReturnAddress(
                 pc_offset, &inlined_functions, &inlined_token_positions);
             ASSERT(inlined_functions.length() >= 1);
             for (intptr_t j = inlined_functions.length() - 1; j >= 0; j--) {
               const auto& inlined = *inlined_functions[j];
               auto const pos = inlined_token_positions[j];
-              if (ShouldPrintFrame(inlined)) {
+              if (FLAG_show_invisible_frames || function.is_visible()) {
                 PrintStackTraceFrame(zone, &buffer, inlined, pos, frame_index);
                 frame_index++;
               }
             }
-          } else {
-            function = code.function();
-            if (ShouldPrintFrame(function)) {
-              uword pc = code.PayloadStart() + pc_offset;
-              auto const pos = code.GetTokenIndexOfPC(pc);
-              PrintStackTraceFrame(zone, &buffer, function, pos, frame_index);
-              frame_index++;
-            }
+          } else if (FLAG_show_invisible_frames || function.is_visible()) {
+            auto const pos = code.GetTokenIndexOfPC(pc);
+            PrintStackTraceFrame(zone, &buffer, function, pos, frame_index);
+            frame_index++;
           }
         } else {
           ASSERT(code_object.IsBytecode());
           bytecode ^= code_object.raw();
           function = bytecode.function();
-          if (ShouldPrintFrame(function)) {
+          if (FLAG_show_invisible_frames || function.is_visible()) {
             uword pc = bytecode.PayloadStart() + pc_offset;
             auto const pos = bytecode.GetTokenIndexOfPC(pc);
             PrintStackTraceFrame(zone, &buffer, function, pos, frame_index);
@@ -23724,26 +23767,8 @@ const char* StackTrace::ToDwarfCString(const StackTrace& stack_trace_in) {
         uword return_addr = start + pc_offset;
         uword call_addr = return_addr - 1;
         buffer.Printf("    #%02" Pd " abs %" Pp "", frame_index, call_addr);
-        uword dso_base;
-        char* dso_name;
-        if (NativeSymbolResolver::LookupSharedObject(call_addr, &dso_base,
-                                                     &dso_name)) {
-          uword dso_offset = call_addr - dso_base;
-          buffer.Printf(" virt %" Pp "", dso_offset);
-          uword symbol_start;
-          if (auto const symbol_name = NativeSymbolResolver::LookupSymbolName(
-                  call_addr, &symbol_start)) {
-            uword symbol_offset = call_addr - symbol_start;
-            buffer.Printf(" %s+0x%" Px "", symbol_name, symbol_offset);
-            NativeSymbolResolver::FreeSymbolName(symbol_name);
-          } else {
-            buffer.Printf(" %s", dso_name);
-          }
-          NativeSymbolResolver::FreeSymbolName(dso_name);
-        } else {
-          buffer.Printf(" <unknown>");
-        }
-        buffer.Printf("\n");
+        PrintStackTraceFrameBodyFromDSO(&buffer, call_addr,
+                                        /*print_virtual_address=*/true);
         frame_index++;
       }
     }
@@ -23761,9 +23786,27 @@ const char* StackTrace::ToDwarfCString(const StackTrace& stack_trace_in) {
 #endif  // defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
 }
 
+static void DwarfStackTracesHandler(bool value) {
+  FLAG_dwarf_stack_traces_mode = value;
+
+#if defined(PRODUCT)
+  // We can safely remove function objects in precompiled snapshots if the
+  // runtime will generate DWARF stack traces and we don't have runtime
+  // debugging options like the observatory available.
+  if (value) {
+    FLAG_retain_function_objects = false;
+  }
+#endif
+}
+
+DEFINE_FLAG_HANDLER(DwarfStackTracesHandler,
+                    dwarf_stack_traces,
+                    "Emit DWARF line number and inlining info in dylib "
+                    "snapshots and don't symbolize stack traces.");
+
 const char* StackTrace::ToCString() const {
 #if defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
-  if (FLAG_dwarf_stack_traces) {
+  if (FLAG_dwarf_stack_traces_mode) {
     return ToDwarfCString(*this);
   }
 #endif

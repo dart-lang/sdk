@@ -15,6 +15,7 @@ import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/fix_builder.dart';
+import 'package:nnbd_migration/src/utilities/hint_utils.dart';
 
 /// Visitor that combines together the changes produced by [FixBuilder] into a
 /// concrete set of source code edits using the infrastructure of [EditPlan].
@@ -419,6 +420,8 @@ class NodeChangeForExpression<N extends Expression> extends NodeChange<N> {
 
   AtomicEditInfo _addNullCheckInfo;
 
+  HintComment _addNullCheckHint;
+
   DartType _introducesAsType;
 
   AtomicEditInfo _introduceAsInfo;
@@ -439,10 +442,11 @@ class NodeChangeForExpression<N extends Expression> extends NodeChange<N> {
   DartType get introducesAsType => _introducesAsType;
 
   /// Causes a null check to be added to this expression, with the given [info].
-  void addNullCheck(AtomicEditInfo info) {
+  void addNullCheck(AtomicEditInfo info, {HintComment hint}) {
     assert(!_addsNullCheck);
     _addsNullCheck = true;
     _addNullCheckInfo = info;
+    _addNullCheckHint = hint;
   }
 
   /// Causes a cast to the given [type] to be added to this expression, with
@@ -467,8 +471,14 @@ class NodeChangeForExpression<N extends Expression> extends NodeChange<N> {
       FixAggregator aggregator, NodeProducingEditPlan innerPlan) {
     var plan = innerPlan;
     if (_addsNullCheck) {
-      plan = aggregator.planner
-          .addUnaryPostfix(plan, TokenType.BANG, info: _addNullCheckInfo);
+      var hint = _addNullCheckHint;
+      if (hint != null) {
+        plan = aggregator.planner.acceptNullabilityOrNullCheckHint(plan, hint,
+            info: _addNullCheckInfo);
+      } else {
+        plan = aggregator.planner
+            .addUnaryPostfix(plan, TokenType.BANG, info: _addNullCheckInfo);
+      }
     }
     if (_introducesAsType != null) {
       plan = aggregator.planner.addBinaryPostfix(
@@ -599,7 +609,7 @@ class NodeChangeForSimpleFormalParameter
 class NodeChangeForTypeAnnotation extends NodeChange<TypeAnnotation> {
   bool _makeNullable = false;
 
-  bool _nullabilityDueToHint = false;
+  HintComment _nullabilityHint;
 
   /// The decorated type of the type annotation, or `null` if there is no
   /// decorated type info of interest.  If [makeNullable] is `true`, the node
@@ -616,14 +626,15 @@ class NodeChangeForTypeAnnotation extends NodeChange<TypeAnnotation> {
   /// Indicates whether the type should be made nullable by adding a `?`.
   bool get makeNullable => _makeNullable;
 
-  /// Indicates whether we are making the type nullable due to a hint.
-  bool get makeNullableDueToHint => _nullabilityDueToHint;
+  /// If we are making the type nullable due to a hint, the comment that caused
+  /// it.
+  HintComment get nullabilityHint => _nullabilityHint;
 
   void recordNullability(DecoratedType decoratedType, bool makeNullable,
-      {bool nullabilityDueToHint: false}) {
+      {HintComment nullabilityHint}) {
     _decoratedType = decoratedType;
     _makeNullable = makeNullable;
-    _nullabilityDueToHint = nullabilityDueToHint;
+    _nullabilityHint = nullabilityHint;
   }
 
   @override
@@ -633,25 +644,35 @@ class NodeChangeForTypeAnnotation extends NodeChange<TypeAnnotation> {
     var typeName = _decoratedType.type.getDisplayString(withNullability: false);
     var fixReasons = {FixReasonTarget.root: _decoratedType.node};
     if (_makeNullable) {
-      NullabilityFixDescription description;
-      if (_nullabilityDueToHint) {
-        description =
-            NullabilityFixDescription.makeTypeNullableDueToHint(typeName);
+      var hint = _nullabilityHint;
+      if (hint != null) {
+        return aggregator.planner.acceptNullabilityOrNullCheckHint(
+            innerPlan, hint,
+            info: AtomicEditInfo(
+                NullabilityFixDescription.makeTypeNullableDueToHint(typeName),
+                fixReasons,
+                hintComment: hint));
       } else {
-        description = NullabilityFixDescription.makeTypeNullable(typeName);
+        return aggregator.planner.makeNullable(innerPlan,
+            info: AtomicEditInfo(
+                NullabilityFixDescription.makeTypeNullable(typeName),
+                fixReasons));
       }
-      return aggregator.planner.makeNullable(innerPlan,
-          info: AtomicEditInfo(description, fixReasons));
     } else {
-      NullabilityFixDescription description;
-      if (_nullabilityDueToHint) {
-        description =
-            NullabilityFixDescription.typeNotMadeNullableDueToHint(typeName);
+      var hint = _nullabilityHint;
+      if (hint != null) {
+        return aggregator.planner.dropNullabilityHint(innerPlan, hint,
+            info: AtomicEditInfo(
+                NullabilityFixDescription.typeNotMadeNullableDueToHint(
+                    typeName),
+                fixReasons,
+                hintComment: hint));
       } else {
-        description = NullabilityFixDescription.typeNotMadeNullable(typeName);
+        return aggregator.planner.explainNonNullable(innerPlan,
+            info: AtomicEditInfo(
+                NullabilityFixDescription.typeNotMadeNullable(typeName),
+                fixReasons));
       }
-      return aggregator.planner.explainNonNullable(innerPlan,
-          info: AtomicEditInfo(description, fixReasons));
     }
   }
 }
@@ -664,21 +685,15 @@ class NodeChangeForVariableDeclarationList
   /// that should be added.  Otherwise `null`.
   DartType addExplicitType;
 
-  /// Indicates whether a "late" annotation should be added to this variable
-  /// declaration.
-  bool addLate = false;
+  /// If a "late" annotation should be added to this variable  declaration, the
+  /// hint that caused it.  Otherwise `null`.
+  HintComment lateHint;
 
   NodeChangeForVariableDeclarationList() : super._();
 
   @override
   EditPlan _apply(VariableDeclarationList node, FixAggregator aggregator) {
     List<EditPlan> innerPlans = [];
-    if (addLate) {
-      innerPlans.add(aggregator.planner.insertText(
-          node,
-          node.firstTokenAfterCommentAndMetadata.offset,
-          [AtomicEdit.insert('late'), AtomicEdit.insert(' ')]));
-    }
     if (addExplicitType != null) {
       var typeText = addExplicitType.getDisplayString(withNullability: true);
       if (node.keyword?.keyword == Keyword.VAR) {
@@ -696,7 +711,13 @@ class NodeChangeForVariableDeclarationList
       }
     }
     innerPlans.addAll(aggregator.innerPlansForNode(node));
-    return aggregator.planner.passThrough(node, innerPlans: innerPlans);
+    var plan = aggregator.planner.passThrough(node, innerPlans: innerPlans);
+    if (lateHint != null) {
+      plan = aggregator.planner.acceptLateHint(plan, lateHint,
+          info: AtomicEditInfo(NullabilityFixDescription.addLateDueToHint, {},
+              hintComment: lateHint));
+    }
+    return plan;
   }
 }
 

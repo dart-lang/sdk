@@ -1478,6 +1478,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       var elementIndex = _indexOfElement(element.declaration);
       var substitution = element.substitution.map;
       var substitutionBuilder = LinkedNodeTypeSubstitutionBuilder(
+        isLegacy: element.isLegacy,
         typeParameters: substitution.keys.map(_indexOfElement).toList(),
         typeArguments: substitution.values.map(_writeType).toList(),
       );

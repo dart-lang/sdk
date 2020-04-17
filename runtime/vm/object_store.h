@@ -34,6 +34,9 @@ class ObjectPointerVisitor;
 // TODO(liama): Once NNBD is enabled, *_type will be deleted and all uses will
 // be replaced with *_type_non_nullable. Later, once we drop support for opted
 // out code, *_type_legacy will be deleted.
+//
+// R_ - needs getter only
+// RW - needs getter and setter
 #define OBJECT_STORE_FIELD_LIST(R_, RW)                                        \
   RW(Class, object_class)                                                      \
   RW(Type, object_type)                                                        \
@@ -149,8 +152,6 @@ class ObjectPointerVisitor;
   RW(GrowableObjectArray, pending_classes)                                     \
   RW(Instance, stack_overflow)                                                 \
   RW(Instance, out_of_memory)                                                  \
-  RW(UnhandledException, preallocated_unhandled_exception)                     \
-  RW(StackTrace, preallocated_stack_trace)                                     \
   RW(Function, lookup_port_handler)                                            \
   RW(Function, handle_message_function)                                        \
   RW(Function, growable_list_factory)                                          \
@@ -163,7 +164,6 @@ class ObjectPointerVisitor;
   RW(Function, complete_on_async_return)                                       \
   RW(Class, async_star_stream_controller)                                      \
   RW(Array, bytecode_attributes)                                               \
-  RW(Array, saved_unlinked_calls)                                              \
   RW(GrowableObjectArray, llvm_constant_pool)                                  \
   RW(GrowableObjectArray, llvm_function_pool)                                  \
   RW(Array, llvm_constant_hash_table)                                          \
@@ -198,12 +198,10 @@ class ObjectPointerVisitor;
   RW(Code, call_closure_no_such_method_stub)                                   \
   R_(Code, megamorphic_call_miss_code)                                         \
   R_(Function, megamorphic_call_miss_function)                                 \
-  R_(GrowableObjectArray, resume_capabilities)                                 \
-  R_(GrowableObjectArray, exit_listeners)                                      \
-  R_(GrowableObjectArray, error_listeners)                                     \
   RW(Array, dispatch_table_code_entries)                                       \
   RW(Array, code_order_table)                                                  \
   RW(Array, obfuscation_map)                                                   \
+  RW(Array, saved_initial_field_values)                                        \
   RW(Class, ffi_pointer_class)                                                 \
   RW(Class, ffi_native_type_class)                                             \
   RW(Class, ffi_struct_class)                                                  \
@@ -238,8 +236,80 @@ class ObjectPointerVisitor;
   DO(init_static_field_stub, InitStaticField)                                  \
   DO(instance_of_stub, InstanceOf)
 
-// The object store is a per isolate instance which stores references to
-// objects used by the VM.
+#define ISOLATE_OBJECT_STORE_FIELD_LIST(R_, RW)                                \
+  RW(UnhandledException, preallocated_unhandled_exception)                     \
+  RW(StackTrace, preallocated_stack_trace)                                     \
+  R_(GrowableObjectArray, resume_capabilities)                                 \
+  R_(GrowableObjectArray, exit_listeners)                                      \
+  R_(GrowableObjectArray, error_listeners)
+// Please remember the last entry must be referred in the 'to' function below.
+
+class IsolateObjectStore {
+ public:
+  explicit IsolateObjectStore(ObjectStore* object_store);
+  ~IsolateObjectStore();
+
+#define DECLARE_GETTER(Type, name)                                             \
+  Raw##Type* name() const { return name##_; }                                  \
+  static intptr_t name##_offset() {                                            \
+    return OFFSET_OF(IsolateObjectStore, name##_);                             \
+  }
+
+#define DECLARE_GETTER_AND_SETTER(Type, name)                                  \
+  DECLARE_GETTER(Type, name)                                                   \
+  void set_##name(const Type& value) { name##_ = value.raw(); }
+  ISOLATE_OBJECT_STORE_FIELD_LIST(DECLARE_GETTER, DECLARE_GETTER_AND_SETTER)
+#undef DECLARE_GETTER
+#undef DECLARE_GETTER_AND_SETTER
+
+  // Visit all object pointers.
+  void VisitObjectPointers(ObjectPointerVisitor* visitor);
+
+  // Called to initialize objects required by the vm but which invoke
+  // dart code.  If an error occurs the error object is returned otherwise
+  // a null object is returned.
+  RawError* PreallocateObjects();
+
+  void Init();
+  void PostLoad();
+
+  ObjectStore* object_store() const { return object_store_; }
+  void set_object_store(ObjectStore* object_store) {
+    ASSERT(object_store_ == nullptr);
+    object_store_ = object_store;
+  }
+
+  static intptr_t object_store_offset() {
+    return OFFSET_OF(IsolateObjectStore, object_store_);
+  }
+
+#ifndef PRODUCT
+  void PrintToJSONObject(JSONObject* jsobj);
+#endif
+
+ private:
+  // Finds a core library private method in Object.
+  RawFunction* PrivateObjectLookup(const String& name);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&preallocated_unhandled_exception_);
+  }
+#define DECLARE_OBJECT_STORE_FIELD(type, name) Raw##type* name##_;
+  ISOLATE_OBJECT_STORE_FIELD_LIST(DECLARE_OBJECT_STORE_FIELD,
+                                  DECLARE_OBJECT_STORE_FIELD)
+#undef DECLARE_OBJECT_STORE_FIELD
+  RawObject** to() { return reinterpret_cast<RawObject**>(&error_listeners_); }
+
+  ObjectStore* object_store_;
+
+  friend class Serializer;
+  friend class Deserializer;
+
+  DISALLOW_COPY_AND_ASSIGN(IsolateObjectStore);
+};
+
+// The object store is a per isolate group instance which stores references to
+// objects used by the VM shared by all isolates in a group.
 class ObjectStore {
  public:
   enum BootstrapLibraryId {
@@ -249,6 +319,7 @@ class ObjectStore {
 #undef MAKE_ID
   };
 
+  ObjectStore();
   ~ObjectStore();
 
 #define DECLARE_GETTER(Type, name)                                             \
@@ -306,17 +377,13 @@ class ObjectStore {
 
   void InitKnownObjects();
 
-  void PostLoad();
-
-  static void Init(Isolate* isolate);
+  void InitStubs();
 
 #ifndef PRODUCT
   void PrintToJSONObject(JSONObject* jsobj);
 #endif
 
  private:
-  ObjectStore();
-
   // Finds a core library private method in Object.
   RawFunction* PrivateObjectLookup(const String& name);
 

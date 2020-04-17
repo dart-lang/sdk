@@ -947,6 +947,8 @@ float ReciprocalStep(float op1, float op2);
 float ReciprocalSqrtEstimate(float op);
 float ReciprocalSqrtStep(float op1, float op2);
 
+constexpr uword kBreakInstructionFiller = 0xE1200070;  // bkpt #0
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_CONSTANTS_ARM_H_

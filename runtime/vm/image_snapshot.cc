@@ -6,7 +6,6 @@
 
 #include "platform/assert.h"
 #include "vm/class_id.h"
-#include "vm/compiler/backend/code_statistics.h"
 #include "vm/compiler/runtime_api.h"
 #include "vm/dwarf.h"
 #include "vm/elf.h"
@@ -21,6 +20,10 @@
 #include "vm/stub_code.h"
 #include "vm/timeline.h"
 #include "vm/type_testing_stubs.h"
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/compiler/backend/code_statistics.h"
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 
@@ -849,8 +852,7 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
                 compiler::target::ObjectAlignment::kObjectAlignment) -
             unaligned_size;
         while (alignment_size > 0) {
-          WriteWordLiteralText(
-              compiler::Assembler::GetBreakInstructionFiller());
+          WriteWordLiteralText(kBreakInstructionFiller);
           alignment_size -= sizeof(compiler::target::uword);
           text_offset += sizeof(compiler::target::uword);
         }

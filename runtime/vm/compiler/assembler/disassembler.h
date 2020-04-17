@@ -6,10 +6,13 @@
 #define RUNTIME_VM_COMPILER_ASSEMBLER_DISASSEMBLER_H_
 
 #include "vm/allocation.h"
-#include "vm/compiler/assembler/assembler.h"
 #include "vm/globals.h"
 #include "vm/log.h"
 #include "vm/object.h"
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/compiler/assembler/assembler.h"
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 

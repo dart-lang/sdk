@@ -817,6 +817,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
         break;
 
       case CallKind.PropertySet:
+      case CallKind.SetFieldInConstructor:
         args.add(new Type.nullableAny());
         break;
 
@@ -2088,8 +2089,11 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   TypeExpr visitFieldInitializer(FieldInitializer node) {
     final value = _visit(node.value);
     final args = new Args<TypeExpr>([_receiver, value]);
-    _makeCall(node,
-        new DirectSelector(node.field, callKind: CallKind.PropertySet), args);
+    _makeCall(
+        node,
+        new DirectSelector(node.field,
+            callKind: CallKind.SetFieldInConstructor),
+        args);
     return null;
   }
 

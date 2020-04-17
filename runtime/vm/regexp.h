@@ -7,9 +7,6 @@
 
 #include "platform/unicode.h"
 
-#include "vm/compiler/assembler/assembler.h"
-#include "vm/compiler/backend/flow_graph_compiler.h"
-#include "vm/compiler/backend/il.h"
 #include "vm/object.h"
 #include "vm/regexp_assembler.h"
 #include "vm/splay-tree.h"

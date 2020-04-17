@@ -49,13 +49,12 @@ class FixBuilderTest extends EdgeBuilderTestBase {
 
   static final isMakeNullable = TypeMatcher<NodeChangeForTypeAnnotation>()
       .having((c) => c.makeNullable, 'makeNullable', true)
-      .having((c) => c.makeNullableDueToHint, 'makeNullableDueToHint', false);
+      .having((c) => c.nullabilityHint, 'nullabilityHint', isNull);
 
   static final isMakeNullableDueToHint =
       TypeMatcher<NodeChangeForTypeAnnotation>()
           .having((c) => c.makeNullable, 'makeNullable', true)
-          .having(
-              (c) => c.makeNullableDueToHint, 'makeNullableDueToHint', true);
+          .having((c) => c.nullabilityHint, 'nullabilityHint', isNotNull);
 
   static const isEdge = TypeMatcher<NullabilityEdge>();
 

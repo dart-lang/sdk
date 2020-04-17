@@ -185,6 +185,19 @@ class DartBool extends TextSerializer<bool> {
   }
 }
 
+class UriSerializer extends TextSerializer<Uri> {
+  const UriSerializer();
+
+  Uri readFrom(Iterator<Object> stream, DeserializationState state) {
+    String uriAsString = const DartString().readFrom(stream, state);
+    return Uri.parse(uriAsString);
+  }
+
+  void writeTo(StringBuffer buffer, Uri object, SerializationState state) {
+    const DartString().writeTo(buffer, object.toString(), state);
+  }
+}
+
 // == Serializers for tagged (disjoint) unions.
 //
 // They require a function mapping serializables to a tag string.  This is
@@ -195,7 +208,7 @@ class Case<T extends Node> extends TextSerializer<T> {
   final List<String> tags;
   final List<TextSerializer<T>> serializers;
 
-  Case(this.tagger, this.tags, this.serializers);
+  const Case(this.tagger, this.tags, this.serializers);
 
   Case.uninitialized(this.tagger)
       : tags = [],
@@ -249,7 +262,7 @@ class Wrapped<S, K> extends TextSerializer<K> {
   final K Function(S) wrap;
   final TextSerializer<S> contents;
 
-  Wrapped(this.unwrap, this.wrap, this.contents);
+  const Wrapped(this.unwrap, this.wrap, this.contents);
 
   K readFrom(Iterator<Object> stream, DeserializationState state) {
     return wrap(contents.readFrom(stream, state));

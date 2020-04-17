@@ -236,7 +236,7 @@ int i;
 @reflectiveTest
 class InfoBuilderTest extends NnbdMigrationTestBase {
   /// Assert various properties of the given [edit].
-  void assertEdit(
+  bool assertEdit(
       {@required EditDetail edit, int offset, int length, String replacement}) {
     expect(edit, isNotNull);
     if (offset != null) {
@@ -248,6 +248,7 @@ class InfoBuilderTest extends NnbdMigrationTestBase {
     if (replacement != null) {
       expect(edit.replacement, replacement);
     }
+    return true;
   }
 
   void assertTraceEntry(UnitInfo unit, TraceEntryInfo entryInfo,
@@ -268,6 +269,28 @@ class InfoBuilderTest extends NnbdMigrationTestBase {
             region.kind != NullabilityFixKind.typeNotMadeNullable &&
             region.kind != NullabilityFixKind.typeNotMadeNullableDueToHint)
         .toList();
+  }
+
+  Future<void> test_addLate_dueToHint() async {
+    var content = '/*late*/ int x = 0;';
+    var migratedContent = '/*late*/ int  x = 0;';
+    var unit = await buildInfoForSingleTestFile(content,
+        migratedContent: migratedContent);
+    var regions = unit.fixRegions;
+    expect(regions, hasLength(2));
+    var textToRemove = '/*late*/ ';
+    assertRegionPair(regions, 0,
+        offset1: migratedContent.indexOf('/*'),
+        length1: 2,
+        offset2: migratedContent.indexOf('*/'),
+        length2: 2,
+        explanation: 'Added a late keyword, due to a hint',
+        kind: NullabilityFixKind.addLateDueToHint,
+        edits: (edits) => assertEdit(
+            edit: edits.single,
+            offset: content.indexOf(textToRemove),
+            length: textToRemove.length,
+            replacement: ''));
   }
 
   Future<void> test_discardCondition() async {
@@ -298,7 +321,7 @@ void g(int  i) {
 
   Future<void> test_downcast_nonNullable() async {
     var content = 'int/*!*/ f(num/*!*/ n) => n;';
-    var migratedContent = 'int /*!*/ f(num /*!*/ n) => n as int;';
+    var migratedContent = 'int/*!*/ f(num/*!*/ n) => n as int;';
     var unit = await buildInfoForSingleTestFile(content,
         migratedContent: migratedContent);
     var regions = getNonInformativeRegions(unit.regions);
@@ -318,7 +341,7 @@ void g(int  i) {
     var content = 'int/*?*/ f(num/*!*/ n) => n;';
     // TODO(paulberry): we should actually cast to `int`, not `int?`, because we
     // know `n` is non-nullable.
-    var migratedContent = 'int?/*?*/ f(num /*!*/ n) => n as int?;';
+    var migratedContent = 'int/*?*/ f(num/*!*/ n) => n as int?;';
     var unit = await buildInfoForSingleTestFile(content,
         migratedContent: migratedContent);
     var regions = getNonInformativeRegions(unit.regions);
@@ -339,7 +362,7 @@ void g(int  i) {
 
   Future<void> test_downcast_nullable() async {
     var content = 'int/*?*/ f(num/*?*/ n) => n;';
-    var migratedContent = 'int?/*?*/ f(num?/*?*/ n) => n as int?;';
+    var migratedContent = 'int/*?*/ f(num/*?*/ n) => n as int?;';
     var unit = await buildInfoForSingleTestFile(content,
         migratedContent: migratedContent);
     var regions = getNonInformativeRegions(unit.regions);
@@ -357,7 +380,7 @@ void g(int  i) {
 
   Future<void> test_downcast_nullable_to_nonNullable() async {
     var content = 'int/*!*/ f(num/*?*/ n) => n;';
-    var migratedContent = 'int /*!*/ f(num?/*?*/ n) => n as int;';
+    var migratedContent = 'int/*!*/ f(num/*?*/ n) => n as int;';
     var unit = await buildInfoForSingleTestFile(content,
         migratedContent: migratedContent);
     var regions = getNonInformativeRegions(unit.regions);
@@ -376,7 +399,7 @@ void g(int  i) {
   Future<void> test_downcast_with_traces() async {
     var content = 'List<int/*!*/>/*!*/ f(List<int/*?*/>/*?*/ x) => x;';
     var migratedContent =
-        'List<int /*!*/> /*!*/ f(List<int?/*?*/>?/*?*/ x) => x as List<int>;';
+        'List<int/*!*/>/*!*/ f(List<int/*?*/>/*?*/ x) => x as List<int>;';
     var unit = await buildInfoForSingleTestFile(content,
         migratedContent: migratedContent);
     var regions = unit.regions.where(
@@ -517,12 +540,12 @@ C/*!*/ _f(C c) => c + c;
 class C {
   C? operator+(C  c) => null;
 }
-C /*!*/ _f(C  c) => (c + c)!;
+C/*!*/ _f(C  c) => (c + c)!;
 ''';
     var unit = await buildInfoForSingleTestFile(originalContent,
         migratedContent: migratedContent);
     var regions = unit.fixRegions;
-    expect(regions, hasLength(2));
+    expect(regions, hasLength(3));
     assertRegion(
         region: regions[0],
         offset: migratedContent.indexOf('? operator'),
@@ -530,6 +553,12 @@ C /*!*/ _f(C  c) => (c + c)!;
         explanation: "Changed type 'C' to be nullable");
     assertRegion(
         region: regions[1],
+        offset: migratedContent.indexOf('/*!*/'),
+        length: 5,
+        explanation: "Type 'C' was not made nullable due to a hint",
+        kind: NullabilityFixKind.typeNotMadeNullableDueToHint);
+    assertRegion(
+        region: regions[2],
         offset: migratedContent.indexOf('!;'),
         length: 1,
         explanation: 'Added a non-null assertion to nullable expression',
@@ -538,26 +567,27 @@ C /*!*/ _f(C  c) => (c + c)!;
 
   Future<void> test_nullCheck_dueToHint() async {
     var content = 'int f(int/*?*/ x) => x/*!*/;';
-    var migratedContent = 'int  f(int?/*?*/ x) => x!/*!*/;';
+    var migratedContent = 'int  f(int/*?*/ x) => x/*!*/;';
     var unit = await buildInfoForSingleTestFile(content,
         migratedContent: migratedContent);
     var regions = unit.fixRegions;
-    expect(regions, hasLength(2));
-    // regions[0] is `int?`.
-    var region = regions[1];
-    assertRegion(
-        region: region,
-        offset: migratedContent.indexOf('!/*!*/'),
+    expect(regions, hasLength(4));
+    assertRegionPair(regions, 0,
+        kind: NullabilityFixKind.makeTypeNullableDueToHint);
+    var hintText = '/*!*/';
+    assertRegionPair(regions, 2,
+        offset1: migratedContent.indexOf(hintText),
+        length1: 2,
+        offset2: migratedContent.indexOf(hintText) + 3,
+        length2: 2,
         explanation: 'Accepted a null check hint',
-        kind: NullabilityFixKind.checkExpressionDueToHint);
-    // Note that traces are still included.
-    expect(region.traces, isNotEmpty);
-    var textToRemove = '/*!*/';
-    assertEdit(
-        edit: region.edits.single,
-        offset: content.indexOf(textToRemove),
-        length: textToRemove.length,
-        replacement: '');
+        kind: NullabilityFixKind.checkExpressionDueToHint,
+        traces: isNotEmpty,
+        edits: ((edits) => assertEdit(
+            edit: edits.single,
+            offset: content.indexOf(hintText),
+            length: hintText.length,
+            replacement: '')));
   }
 
   Future<void> test_nullCheck_onMemberAccess() async {
@@ -642,7 +672,7 @@ void f(num n, int/*?*/ i) {
     // Note: even though `as int` is removed, it still shows up in the
     // preview, since we show deleted text.
     var migratedContent = '''
-void f(num  n, int?/*?*/ i) {
+void f(num  n, int/*?*/ i) {
   if (n is! int ) return;
   print((n as int).isEven);
   print(i! + 1);
@@ -651,16 +681,17 @@ void f(num  n, int?/*?*/ i) {
     var unit = await buildInfoForSingleTestFile(originalContent,
         migratedContent: migratedContent, removeViaComments: false);
     var regions = unit.fixRegions;
-    expect(regions, hasLength(3));
-    // regions[0] is the addition of `?` to the type of `i`.
+    expect(regions, hasLength(4));
+    assertRegionPair(regions, 0,
+        kind: NullabilityFixKind.makeTypeNullableDueToHint);
     assertRegion(
-        region: regions[1],
+        region: regions[2],
         offset: migratedContent.indexOf(' as int'),
         length: ' as int'.length,
         explanation: 'Discarded a downcast that is now unnecessary',
         kind: NullabilityFixKind.removeAs);
     assertRegion(
-        region: regions[2],
+        region: regions[3],
         offset: migratedContent.indexOf('! + 1'),
         explanation: 'Added a non-null assertion to nullable expression',
         kind: NullabilityFixKind.checkExpression);
@@ -718,7 +749,7 @@ void f(int/*!*/ i) {
   if (i == null) return;
 }
 ''', migratedContent: '''
-void f(int /*!*/ i) {
+void f(int/*!*/ i) {
   /* if (i == null) return; */
 }
 ''');
@@ -797,7 +828,7 @@ void h() {
 
   Future<void> test_trace_nullCheck() async {
     var unit = await buildInfoForSingleTestFile('int f(int/*?*/ i) => i + 1;',
-        migratedContent: 'int  f(int?/*?*/ i) => i! + 1;');
+        migratedContent: 'int  f(int/*?*/ i) => i! + 1;');
     var region = unit.regions
         .where((regionInfo) => regionInfo.offset == unit.content.indexOf('! +'))
         .single;
@@ -808,12 +839,16 @@ void h() {
     expect(entries, hasLength(2));
     // Entry 0 is the nullability of the type of i.
     // TODO(paulberry): -1 is a bug.
-    assertTraceEntry(unit, entries[0], 'f', unit.content.indexOf('int?') - 1,
-        contains('parameter 0 of f'));
+    assertTraceEntry(unit, entries[0], 'f',
+        unit.content.indexOf('int/*?*/') - 1, contains('parameter 0 of f'));
     // Entry 1 is the edge from always to the type of i.
     // TODO(paulberry): this edge provides no additional useful information and
     // shouldn't be included in the trace.
-    assertTraceEntry(unit, entries[1], 'f', unit.content.indexOf('int?') - 1,
+    assertTraceEntry(
+        unit,
+        entries[1],
+        'f',
+        unit.content.indexOf('int/*?*/') - 1,
         'explicitly hinted to be nullable');
   }
 
@@ -835,7 +870,7 @@ void f(int  i) { // f
 void g(int  i) { // g
   f(i); // call f
 }
-void h(int?/*?*/ i) {
+void h(int/*?*/ i) {
   g(i!);
 }
 ''');
@@ -872,18 +907,18 @@ void h(int?/*?*/ i) {
 
   Future<void> test_trace_nullCheckHint() async {
     var unit = await buildInfoForSingleTestFile('int f(int/*?*/ i) => i/*!*/;',
-        migratedContent: 'int  f(int?/*?*/ i) => i!/*!*/;');
+        migratedContent: 'int  f(int/*?*/ i) => i/*!*/;');
     var region = unit.regions
         .where(
-            (regionInfo) => regionInfo.offset == unit.content.indexOf('!/*!*/'))
+            (regionInfo) => regionInfo.offset == unit.content.indexOf('/*!*/'))
         .single;
     expect(region.traces, hasLength(1));
     var trace = region.traces.single;
     expect(trace.description, 'Reason');
     expect(trace.entries, hasLength(1));
-    // TODO(paulberry): -2 is a bug.
+    // TODO(paulberry): -1 is a bug.
     assertTraceEntry(unit, trace.entries.single, 'f',
-        unit.content.indexOf('i!/*!*/') - 2, 'Null check hint');
+        unit.content.indexOf('i/*!*/') - 1, 'Null check hint');
   }
 
   Future<void> test_trace_substitutionNode() async {
@@ -895,12 +930,12 @@ C<int /*?*/ > c;
 Map<int, String> x = {};
 String/*!*/ y = x[0];
 ''', migratedContent: '''
-class C<T extends Object /*!*/> {}
+class C<T extends Object/*!*/> {}
 
-C<int? /*?*/ >? c;
+C<int /*?*/ >? c;
 
 Map<int , String >  x = {};
-String /*!*/ y = x[0]!;
+String/*!*/ y = x[0]!;
 ''');
     var region = unit.regions
         .where((regionInfo) => regionInfo.offset == unit.content.indexOf('!;'))
@@ -930,32 +965,35 @@ String? g() => 1 == 2 ? "Hello" : null;
 
   Future<void> test_type_made_nullable_due_to_hint() async {
     var content = 'int/*?*/ x = 0;';
-    var migratedContent = 'int?/*?*/ x = 0;';
+    var migratedContent = 'int/*?*/ x = 0;';
     var unit = await buildInfoForSingleTestFile(content,
         migratedContent: migratedContent);
-    var region = unit.fixRegions.single;
-    assertRegion(
-        region: region,
-        offset: migratedContent.indexOf('?/*?*/'),
+    var regions = unit.fixRegions;
+    expect(regions, hasLength(2));
+    var textToRemove = '/*?*/';
+    assertRegionPair(regions, 0,
+        offset1: migratedContent.indexOf(textToRemove),
+        length1: 2,
+        offset2: migratedContent.indexOf(textToRemove) + 3,
+        length2: 2,
         explanation:
             "Changed type 'int' to be nullable, due to a nullability hint",
-        kind: NullabilityFixKind.makeTypeNullableDueToHint);
-    // Note that traces are still included.
-    expect(region.traces, isNotNull);
-    var textToRemove = '/*?*/';
-    var edits = region.edits;
-    expect(edits, hasLength(2));
-    var editsByDescription = {for (var edit in edits) edit.description: edit};
-    assertEdit(
-        edit: editsByDescription['Add /*!*/ hint'],
-        offset: content.indexOf(textToRemove),
-        length: textToRemove.length,
-        replacement: '/*!*/');
-    assertEdit(
-        edit: editsByDescription['Remove /*?*/ hint'],
-        offset: content.indexOf(textToRemove),
-        length: textToRemove.length,
-        replacement: '');
+        kind: NullabilityFixKind.makeTypeNullableDueToHint,
+        traces: isNotNull, edits: (List<EditDetail> edits) {
+      expect(edits, hasLength(2));
+      var editsByDescription = {for (var edit in edits) edit.description: edit};
+      assertEdit(
+          edit: editsByDescription['Change to /*!*/ hint'],
+          offset: content.indexOf(textToRemove),
+          length: textToRemove.length,
+          replacement: '/*!*/');
+      assertEdit(
+          edit: editsByDescription['Remove /*?*/ hint'],
+          offset: content.indexOf(textToRemove),
+          length: textToRemove.length,
+          replacement: '');
+      return true;
+    });
   }
 
   Future<void> test_type_not_made_nullable() async {
@@ -975,33 +1013,35 @@ String? g() => 1 == 2 ? "Hello" : null;
 
   Future<void> test_type_not_made_nullable_due_to_hint() async {
     var content = 'int/*!*/ i = 0;';
-    var migratedContent = 'int /*!*/ i = 0;';
+    var migratedContent = 'int/*!*/ i = 0;';
     var unit = await buildInfoForSingleTestFile(content,
         migratedContent: migratedContent);
-    var region = unit.regions
-        .where((regionInfo) =>
-            regionInfo.offset == migratedContent.indexOf(' /*!*/ i'))
-        .single;
-    assertRegion(
-        region: region,
-        offset: migratedContent.indexOf(' /*!*/ i'),
-        explanation: "Type 'int' was not made nullable due to a hint",
-        kind: NullabilityFixKind.typeNotMadeNullableDueToHint);
-    // Note that traces are still included.
-    expect(region.traces, isNotNull);
+    var regions = unit.regions;
+    expect(regions, hasLength(1));
     var textToRemove = '/*!*/';
-    var edits = region.edits;
-    expect(edits, hasLength(2));
-    var editsByDescription = {for (var edit in edits) edit.description: edit};
-    assertEdit(
-        edit: editsByDescription['Add /*?*/ hint'],
-        offset: content.indexOf(textToRemove),
-        length: textToRemove.length,
-        replacement: '/*?*/');
-    assertEdit(
-        edit: editsByDescription['Remove /*!*/ hint'],
-        offset: content.indexOf(textToRemove),
-        length: textToRemove.length,
-        replacement: '');
+    assertRegion(
+        region: regions[0],
+        offset: migratedContent.indexOf(textToRemove),
+        length: 5,
+        explanation: "Type 'int' was not made nullable due to a hint",
+        kind: NullabilityFixKind.typeNotMadeNullableDueToHint,
+        traces: isNotNull,
+        edits: (List<EditDetail> edits) {
+          expect(edits, hasLength(2));
+          var editsByDescription = {
+            for (var edit in edits) edit.description: edit
+          };
+          assertEdit(
+              edit: editsByDescription['Change to /*?*/ hint'],
+              offset: content.indexOf(textToRemove),
+              length: textToRemove.length,
+              replacement: '/*?*/');
+          assertEdit(
+              edit: editsByDescription['Remove /*!*/ hint'],
+              offset: content.indexOf(textToRemove),
+              length: textToRemove.length,
+              replacement: '');
+          return true;
+        });
   }
 }

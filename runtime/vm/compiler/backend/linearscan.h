@@ -63,6 +63,20 @@ class FlowGraphAllocator : public ValueObject {
   // Map a virtual register number to its live range.
   LiveRange* GetLiveRange(intptr_t vreg);
 
+  DART_FORCE_INLINE static void SetLifetimePosition(Instruction* instr,
+                                                    intptr_t pos) {
+    instr->SetPassSpecificId(CompilerPass::kAllocateRegisters, pos);
+  }
+
+  DART_FORCE_INLINE static bool HasLifetimePosition(Instruction* instr) {
+    return instr->HasPassSpecificId(CompilerPass::kAllocateRegisters);
+  }
+
+  DART_FORCE_INLINE static intptr_t GetLifetimePosition(
+      const Instruction* instr) {
+    return instr->GetPassSpecificId(CompilerPass::kAllocateRegisters);
+  }
+
  private:
   void CollectRepresentations();
 

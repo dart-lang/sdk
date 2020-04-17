@@ -54,15 +54,21 @@ main(List<String> args) async {
     // Run the AOT compiler with/without Dwarf stack traces.
     final scriptDwarfSnapshot = path.join(tempDir, 'dwarf.so');
     final scriptNonDwarfSnapshot = path.join(tempDir, 'non_dwarf.so');
+    final scriptDwarfDebugInfo = path.join(tempDir, 'debug_info.so');
     await Future.wait(<Future>[
       run(genSnapshot, <String>[
-        '--dwarf-stack-traces',
+        // We test --dwarf-stack-traces-mode, not --dwarf-stack-traces, because
+        // the latter is a handler that sets the former and also may change
+        // other flags. This way, we limit the difference between the two
+        // snapshots and also directly test the flag saved as a VM global flag.
+        '--dwarf-stack-traces-mode',
+        '--save-debugging-info=$scriptDwarfDebugInfo',
         '--snapshot-kind=app-aot-elf',
         '--elf=$scriptDwarfSnapshot',
         scriptDill,
       ]),
       run(genSnapshot, <String>[
-        '--no-dwarf-stack-traces',
+        '--no-dwarf-stack-traces-mode',
         '--snapshot-kind=app-aot-elf',
         '--elf=$scriptNonDwarfSnapshot',
         scriptDill,
@@ -71,24 +77,24 @@ main(List<String> args) async {
 
     // Run the resulting Dwarf-AOT compiled script.
     final dwarfTrace1 = await runError(aotRuntime, <String>[
-      '--dwarf-stack-traces',
+      '--dwarf-stack-traces-mode',
       scriptDwarfSnapshot,
       scriptDill,
     ]);
     final dwarfTrace2 = await runError(aotRuntime, <String>[
-      '--no-dwarf-stack-traces',
+      '--no-dwarf-stack-traces-mode',
       scriptDwarfSnapshot,
       scriptDill,
     ]);
 
     // Run the resulting non-Dwarf-AOT compiled script.
     final nonDwarfTrace1 = await runError(aotRuntime, <String>[
-      '--dwarf-stack-traces',
+      '--dwarf-stack-traces-mode',
       scriptNonDwarfSnapshot,
       scriptDill,
     ]);
     final nonDwarfTrace2 = await runError(aotRuntime, <String>[
-      '--no-dwarf-stack-traces',
+      '--no-dwarf-stack-traces-mode',
       scriptNonDwarfSnapshot,
       scriptDill,
     ]);
@@ -105,9 +111,7 @@ main(List<String> args) async {
 
     // Check that translating the DWARF stack trace (without internal frames)
     // matches the symbolic stack trace.
-    final dwarf = Dwarf.fromFile(scriptDwarfSnapshot);
-    // We are generating unstripped snapshots, so the snapshot should include
-    // the appropriate DWARF information.
+    final dwarf = Dwarf.fromFile(scriptDwarfDebugInfo);
     assert(dwarf != null);
     final translatedDwarfTrace1 = await Stream.fromIterable(dwarfTrace1)
         .transform(DwarfStackTraceDecoder(dwarf))

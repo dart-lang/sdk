@@ -133,17 +133,12 @@ void CodeRelocator::FindInstructionAndCallLimits() {
         }
         num_calls++;
 
-        target_ = call.Get<Code::kSCallTableFunctionTarget>();
-        if (target_.IsFunction()) {
-          auto& fun = Function::Cast(target_);
-          ASSERT(fun.HasCode());
-          destination_ = fun.CurrentCode();
-          ASSERT(!destination_.IsStubCode());
-        } else {
-          target_ = call.Get<Code::kSCallTableCodeTarget>();
-          ASSERT(target_.IsCode());
-          destination_ = Code::Cast(target_).raw();
-        }
+        // The precompiler should have already replaced all function entries
+        // with code entries.
+        ASSERT(call.Get<Code::kSCallTableFunctionTarget>() == Function::null());
+        target_ = call.Get<Code::kSCallTableCodeTarget>();
+        ASSERT(target_.IsCode());
+        destination_ = Code::Cast(target_).raw();
 
         // A call site can decide to jump not to the beginning of a function but
         // rather jump into it at a certain (positive) offset.
@@ -256,17 +251,12 @@ void CodeRelocator::ScanCallTargets(const Code& code,
       continue;
     }
 
-    target_ = call.Get<Code::kSCallTableFunctionTarget>();
-    if (target_.IsFunction()) {
-      auto& fun = Function::Cast(target_);
-      ASSERT(fun.HasCode());
-      destination_ = fun.CurrentCode();
-      ASSERT(!destination_.IsStubCode());
-    } else {
-      target_ = call.Get<Code::kSCallTableCodeTarget>();
-      ASSERT(target_.IsCode());
-      destination_ = Code::Cast(target_).raw();
-    }
+    // The precompiler should have already replaced all function entries
+    // with code entries.
+    ASSERT(call.Get<Code::kSCallTableFunctionTarget>() == Function::null());
+    target_ = call.Get<Code::kSCallTableCodeTarget>();
+    ASSERT(target_.IsCode());
+    destination_ = Code::Cast(target_).raw();
 
     // A call site can decide to jump not to the beginning of a function but
     // rather jump into it at a certain offset.

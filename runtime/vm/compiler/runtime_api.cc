@@ -4,6 +4,20 @@
 
 #include "vm/compiler/runtime_api.h"
 
+#include "vm/object.h"
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/compiler/runtime_offsets_list.h"
+#include "vm/dart_entry.h"
+#include "vm/longjump.h"
+#include "vm/native_arguments.h"
+#include "vm/native_entry.h"
+#include "vm/object_store.h"
+#include "vm/runtime_entry.h"
+#include "vm/symbols.h"
+#include "vm/timeline.h"
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
 namespace dart {
 namespace compiler {
 namespace target {
@@ -14,22 +28,22 @@ bool IsSmi(int64_t v) {
   return Utils::IsInt(kSmiBits + 1, v);
 }
 
+bool WillAllocateNewOrRememberedContext(intptr_t num_context_variables) {
+  if (!dart::Context::IsValidLength(num_context_variables)) return false;
+  return dart::Heap::IsAllocatableInNewSpace(
+      dart::Context::InstanceSize(num_context_variables));
+}
+
+bool WillAllocateNewOrRememberedArray(intptr_t length) {
+  if (!dart::Array::IsValidLength(length)) return false;
+  return !dart::Array::UseCardMarkingForAllocation(length);
+}
+
 }  // namespace target
 }  // namespace compiler
 }  // namespace dart
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-
-#include "vm/compiler/runtime_offsets_list.h"
-#include "vm/dart_entry.h"
-#include "vm/longjump.h"
-#include "vm/native_arguments.h"
-#include "vm/native_entry.h"
-#include "vm/object.h"
-#include "vm/object_store.h"
-#include "vm/runtime_entry.h"
-#include "vm/symbols.h"
-#include "vm/timeline.h"
 
 namespace dart {
 namespace compiler {

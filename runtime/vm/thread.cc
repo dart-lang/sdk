@@ -5,7 +5,6 @@
 #include "vm/thread.h"
 
 #include "vm/dart_api_state.h"
-#include "vm/ffi_callback_trampolines.h"
 #include "vm/growable_array.h"
 #include "vm/heap/safepoint.h"
 #include "vm/isolate.h"
@@ -24,6 +23,10 @@
 #include "vm/thread_registry.h"
 #include "vm/timeline.h"
 #include "vm/zone.h"
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/ffi_callback_trampolines.h"
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 
