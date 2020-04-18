@@ -1793,27 +1793,60 @@ class VariableModel<Type> {
     // supertype of writtenType and a proper subtype of the currently-promoted
     // type).  If at any point we find an exact match, we take it immediately.
     Type currentlyPromotedType = promotedTypes?.last;
+
+    List<Type> result;
     List<Type> candidates = null;
-    for (int i = 0; i < tested.length; i++) {
-      Type type = tested[i];
+
+    void handleTypeOfInterest(Type type) {
+      // The written type must be a subtype of the type.
       if (!typeOperations.isSubtypeOf(writtenType, type)) {
-        // Can't promote to this type; the type written is not a subtype of
-        // it.
-      } else if (currentlyPromotedType != null &&
-          !typeOperations.isSubtypeOf(type, currentlyPromotedType)) {
-        // Can't promote to this type; it's less specific than the currently
-        // promoted type.
-      } else if (currentlyPromotedType != null &&
-          typeOperations.isSameType(type, currentlyPromotedType)) {
-        // Can't promote to this type; it's the same as the currently
-        // promoted type.
-      } else if (typeOperations.isSameType(type, writtenType)) {
-        // This is precisely the type we want to promote to; take it.
-        return _addToPromotedTypes(promotedTypes, writtenType);
-      } else {
-        (candidates ??= []).add(type);
+        return;
+      }
+
+      // Must be more specific that the currently promoted type.
+      if (currentlyPromotedType != null) {
+        if (typeOperations.isSameType(type, currentlyPromotedType)) {
+          return;
+        }
+        if (!typeOperations.isSubtypeOf(type, currentlyPromotedType)) {
+          return;
+        }
+      }
+
+      // This is precisely the type we want to promote to; take it.
+      if (typeOperations.isSameType(type, writtenType)) {
+        result = _addToPromotedTypes(promotedTypes, writtenType);
+      }
+
+      if (candidates == null) {
+        candidates = [type];
+        return;
+      }
+
+      // Add only unique candidates.
+      if (!_typeListContains(typeOperations, candidates, type)) {
+        candidates.add(type);
+        return;
       }
     }
+
+    for (int i = 0; i < tested.length; i++) {
+      Type type = tested[i];
+
+      handleTypeOfInterest(type);
+      if (result != null) {
+        return result;
+      }
+
+      var typeNonNull = typeOperations.promoteToNonNull(type);
+      if (!typeOperations.isSameType(typeNonNull, type)) {
+        handleTypeOfInterest(typeNonNull);
+        if (result != null) {
+          return result;
+        }
+      }
+    }
+
     if (candidates != null) {
       // Figure out if we have a unique promotion candidate that's a subtype
       // of all the others.
