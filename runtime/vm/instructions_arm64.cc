@@ -557,13 +557,23 @@ bool PcRelativeTrampolineJumpPattern::IsValid() const {
 
 intptr_t TypeTestingStubCallPattern::GetSubtypeTestCachePoolIndex() {
   // Calls to the type testing stubs look like:
+  //   ldr R9, ...
   //   ldr R3, [PP+idx]
   //   blr R9
+  // or
+  //   ldr R3, [PP+idx]
+  //   blr pc+<offset>
 
   // Ensure the caller of the type testing stub (whose return address is [pc_])
-  // branched via the `blr R9` instruction.
-  ASSERT(*reinterpret_cast<uint32_t*>(pc_ - Instr::kInstrSize) == 0xd63f0120);
-  const uword load_instr_end = pc_ - Instr::kInstrSize;
+  // branched via `blr R9` or a pc-relative call.
+  uword pc = pc_ - Instr::kInstrSize;
+  const uword blr_r9 = 0xd63f0120;
+  if (*reinterpret_cast<uint32_t*>(pc) != blr_r9) {
+    PcRelativeCallPattern pattern(pc);
+    RELEASE_ASSERT(pattern.IsValid());
+  }
+
+  const uword load_instr_end = pc;
 
   Register reg;
   intptr_t pool_index = -1;

@@ -818,7 +818,7 @@ class Assembler : public AssemblerBase {
   void LoadWordFromPoolOffset(Register rd,
                               int32_t offset,
                               Register pp,
-                              Condition cond);
+                              Condition cond = AL);
 
   void LoadObject(Register rd, const Object& object, Condition cond = AL);
   void LoadUniqueObject(Register rd, const Object& object, Condition cond = AL);

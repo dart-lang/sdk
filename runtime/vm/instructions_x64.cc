@@ -86,20 +86,36 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
 }
 
 intptr_t TypeTestingStubCallPattern::GetSubtypeTestCachePoolIndex() {
+  static int16_t indirect_call_pattern[] = {
+      0xff, -1 /* 0x53 or 0x56 */, 0x07,  // callq [RBX/RSI + 0x7]
+  };
+  static int16_t direct_call_pattern[] = {
+      0xe8, -1, -1, -1, -1,  // callq [PC + <offset>]
+  };
   static int16_t pattern_disp8[] = {
       0x4d, 0x8b, 0x4f, -1,               // movq R9, [PP + offset]
-      0xff, -1 /* 0x53 or 0x56 */, 0x07,  // callq [RBX/RSI + 0x7]
   };
   static int16_t pattern_disp32[] = {
       0x4d, 0x8b, 0x8f, -1, -1, -1, -1,   // movq R9, [PP + offset]
-      0xff, -1 /* 0x53 or 0x56 */, 0x07,  // callq [RBX/RSI + 0x7]
   };
-  if (MatchesPattern(pc_, pattern_disp8, ARRAY_SIZE(pattern_disp8))) {
-    return IndexFromPPLoadDisp8(pc_ - 4);
-  } else if (MatchesPattern(pc_, pattern_disp32, ARRAY_SIZE(pattern_disp32))) {
-    return IndexFromPPLoadDisp32(pc_ - 7);
+
+  uword pc = pc_;
+  if (MatchesPattern(pc, direct_call_pattern,
+                     ARRAY_SIZE(direct_call_pattern))) {
+    pc -= ARRAY_SIZE(direct_call_pattern);
+  } else if (MatchesPattern(pc, indirect_call_pattern,
+                            ARRAY_SIZE(indirect_call_pattern))) {
+    pc -= ARRAY_SIZE(indirect_call_pattern);
   } else {
     FATAL1("Failed to decode at %" Px, pc_);
+  }
+
+  if (MatchesPattern(pc, pattern_disp8, ARRAY_SIZE(pattern_disp8))) {
+    return IndexFromPPLoadDisp8(pc - 1);
+  } else if (MatchesPattern(pc, pattern_disp32, ARRAY_SIZE(pattern_disp32))) {
+    return IndexFromPPLoadDisp32(pc - 4);
+  } else {
+    FATAL1("Failed to decode at %" Px, pc);
   }
 }
 

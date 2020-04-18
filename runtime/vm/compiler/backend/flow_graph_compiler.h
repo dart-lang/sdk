@@ -977,6 +977,7 @@ class FlowGraphCompiler : public ValueObject {
                                Code::EntryKind entry_kind);
   void AddPcRelativeCallStubTarget(const Code& stub_code);
   void AddPcRelativeTailCallStubTarget(const Code& stub_code);
+  void AddPcRelativeTTSCallTypeTarget(const AbstractType& type);
   void AddStaticCallTarget(const Function& function,
                            Code::EntryKind entry_kind);
 
@@ -1154,21 +1155,27 @@ class FlowGraphCompiler : public ValueObject {
     Code::CallKind call_kind;
     Code::CallEntryPoint entry_point;
     const intptr_t offset;
-    const Function* function;  // Can be NULL.
-    const Code* code;          // Can be NULL.
+    const Function* function;      // Can be nullptr.
+    const Code* code;              // Can be nullptr.
+    const AbstractType* dst_type;  // Can be nullptr.
     StaticCallsStruct(Code::CallKind call_kind,
                       Code::CallEntryPoint entry_point,
                       intptr_t offset_arg,
                       const Function* function_arg,
-                      const Code* code_arg)
+                      const Code* code_arg,
+                      const AbstractType* dst_type)
         : call_kind(call_kind),
           entry_point(entry_point),
           offset(offset_arg),
           function(function_arg),
-          code(code_arg) {
-      ASSERT((function == NULL) || function->IsZoneHandle());
-      ASSERT((code == NULL) || code->IsZoneHandle() ||
+          code(code_arg),
+          dst_type(dst_type) {
+      ASSERT(function == nullptr || function->IsZoneHandle());
+      ASSERT(code == nullptr || code->IsZoneHandle() ||
              code->IsReadOnlyHandle());
+      ASSERT(dst_type == nullptr || dst_type->IsZoneHandle() ||
+             dst_type->IsReadOnlyHandle());
+      ASSERT(code == nullptr || dst_type == nullptr);
     }
 
    private:

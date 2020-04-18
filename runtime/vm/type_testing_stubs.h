@@ -10,10 +10,10 @@
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/backend/il.h"
+#include "vm/compiler/stub_code_compiler.h"
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
-
 
 class TypeTestingStubNamer {
  public:
@@ -58,10 +58,13 @@ class TypeTestingStubGenerator {
 #if !defined(TARGET_ARCH_IA32)
 #if !defined(DART_PRECOMPILED_RUNTIME)
   RawCode* BuildCodeForType(const Type& type);
-  static void BuildOptimizedTypeTestStub(compiler::Assembler* assembler,
-                                         HierarchyInfo* hi,
-                                         const Type& type,
-                                         const Class& type_class);
+  static void BuildOptimizedTypeTestStub(
+      compiler::Assembler* assembler,
+      compiler::UnresolvedPcRelativeCalls* unresolved_calls,
+      const Code& slow_type_test_stub,
+      HierarchyInfo* hi,
+      const Type& type,
+      const Class& type_class);
 
   static void BuildOptimizedTypeTestStubFastCases(
       compiler::Assembler* assembler,

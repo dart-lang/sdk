@@ -773,17 +773,17 @@ void FlowGraphCompiler::AddPcRelativeCallTarget(const Function& function,
   const auto entry_point = entry_kind == Code::EntryKind::kUnchecked
                                ? Code::kUncheckedEntry
                                : Code::kDefaultEntry;
-  static_calls_target_table_.Add(
-      new (zone()) StaticCallsStruct(Code::kPcRelativeCall, entry_point,
-                                     assembler()->CodeSize(), &function, NULL));
+  static_calls_target_table_.Add(new (zone()) StaticCallsStruct(
+      Code::kPcRelativeCall, entry_point, assembler()->CodeSize(), &function,
+      nullptr, nullptr));
 }
 
 void FlowGraphCompiler::AddPcRelativeCallStubTarget(const Code& stub_code) {
   ASSERT(stub_code.IsZoneHandle() || stub_code.IsReadOnlyHandle());
   ASSERT(!stub_code.IsNull());
   static_calls_target_table_.Add(new (zone()) StaticCallsStruct(
-      Code::kPcRelativeCall, Code::kDefaultEntry, assembler()->CodeSize(), NULL,
-      &stub_code));
+      Code::kPcRelativeCall, Code::kDefaultEntry, assembler()->CodeSize(),
+      nullptr, &stub_code, nullptr));
 }
 
 void FlowGraphCompiler::AddPcRelativeTailCallStubTarget(const Code& stub_code) {
@@ -791,7 +791,16 @@ void FlowGraphCompiler::AddPcRelativeTailCallStubTarget(const Code& stub_code) {
   ASSERT(!stub_code.IsNull());
   static_calls_target_table_.Add(new (zone()) StaticCallsStruct(
       Code::kPcRelativeTailCall, Code::kDefaultEntry, assembler()->CodeSize(),
-      nullptr, &stub_code));
+      nullptr, &stub_code, nullptr));
+}
+
+void FlowGraphCompiler::AddPcRelativeTTSCallTypeTarget(
+    const AbstractType& dst_type) {
+  ASSERT(dst_type.IsZoneHandle() || dst_type.IsReadOnlyHandle());
+  ASSERT(!dst_type.IsNull());
+  static_calls_target_table_.Add(new (zone()) StaticCallsStruct(
+      Code::kPcRelativeTTSCall, Code::kDefaultEntry, assembler()->CodeSize(),
+      nullptr, nullptr, &dst_type));
 }
 
 void FlowGraphCompiler::AddStaticCallTarget(const Function& func,
@@ -801,14 +810,15 @@ void FlowGraphCompiler::AddStaticCallTarget(const Function& func,
                                ? Code::kUncheckedEntry
                                : Code::kDefaultEntry;
   static_calls_target_table_.Add(new (zone()) StaticCallsStruct(
-      Code::kCallViaCode, entry_point, assembler()->CodeSize(), &func, NULL));
+      Code::kCallViaCode, entry_point, assembler()->CodeSize(), &func, nullptr,
+      nullptr));
 }
 
 void FlowGraphCompiler::AddStubCallTarget(const Code& code) {
   ASSERT(code.IsZoneHandle() || code.IsReadOnlyHandle());
-  static_calls_target_table_.Add(
-      new (zone()) StaticCallsStruct(Code::kCallViaCode, Code::kDefaultEntry,
-                                     assembler()->CodeSize(), NULL, &code));
+  static_calls_target_table_.Add(new (zone()) StaticCallsStruct(
+      Code::kCallViaCode, Code::kDefaultEntry, assembler()->CodeSize(), nullptr,
+      &code, nullptr));
 }
 
 void FlowGraphCompiler::AddDispatchTableCallTarget(
@@ -1218,11 +1228,17 @@ void FlowGraphCompiler::FinalizeStaticCallTargetsTable(const Code& code) {
     view.Set<Code::kSCallTableKindAndOffset>(kind_type_and_offset);
     const Object* target = nullptr;
     if (entry->function != nullptr) {
-      view.Set<Code::kSCallTableFunctionTarget>(*calls[i]->function);
+      target = entry->function;
+      view.Set<Code::kSCallTableFunctionTarget>(*entry->function);
     }
-    if (entry->code != NULL) {
+    if (entry->code != nullptr) {
       ASSERT(target == nullptr);
-      view.Set<Code::kSCallTableCodeTarget>(*calls[i]->code);
+      target = entry->code;
+      view.Set<Code::kSCallTableCodeOrTypeTarget>(*entry->code);
+    }
+    if (entry->dst_type != nullptr) {
+      ASSERT(target == nullptr);
+      view.Set<Code::kSCallTableCodeOrTypeTarget>(*entry->dst_type);
     }
   }
   code.set_static_calls_target_table(targets);
@@ -2358,8 +2374,9 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
   // We "dereference" the type parameter for the TTS call but leave the type
   // parameter in the TypeTestABI::kDstTypeReg for fallback into
   // SubtypeTestCache.
-  ASSERT(dst_type.IsTypeParameter() ==
-         (TypeTestABI::kDstTypeReg != dst_type_reg_to_call));
+  ASSERT(dst_type_reg_to_call == kNoRegister ||
+         (dst_type.IsTypeParameter() ==
+          (TypeTestABI::kDstTypeReg != dst_type_reg_to_call)));
 
   // We can handle certain types very efficiently on the call site (with a
   // bailout to the normal stub, which will do a runtime call).

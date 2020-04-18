@@ -15717,7 +15717,7 @@ void Code::SetStaticCallTargetCodeAt(uword pc, const Code& code) const {
   StaticCallsTable entries(array);
   ASSERT(code.IsNull() ||
          (code.function() == entries[i].Get<kSCallTableFunctionTarget>()));
-  return entries[i].Set<kSCallTableCodeTarget>(code);
+  return entries[i].Set<kSCallTableCodeOrTypeTarget>(code);
 #endif
 }
 
@@ -15737,7 +15737,7 @@ void Code::SetStubCallTargetCodeAt(uword pc, const Code& code) const {
            (code.function() == entries[i].Get<kSCallTableFunctionTarget>()));
   }
 #endif
-  return entries[i].Set<kSCallTableCodeTarget>(code);
+  return entries[i].Set<kSCallTableCodeOrTypeTarget>(code);
 #endif
 }
 
