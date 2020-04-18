@@ -45,7 +45,7 @@ abstract class int extends num {
    * integers, the result is a number with only the bits set that are set in
    * both `this` and [other]
    *
-   * Of both operands are negative, the result is negative, otherwise
+   * If both operands are negative, the result is negative, otherwise
    * the result is non-negative.
    */
   int operator &(int other);
