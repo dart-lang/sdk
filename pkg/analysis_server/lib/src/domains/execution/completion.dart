@@ -84,7 +84,9 @@ class RuntimeCompletionComputer {
       targetResult = await analysisDriver.getResult(contextPath);
     });
 
-    CompletionContributor contributor = DartCompletionManager();
+    CompletionContributor contributor = DartCompletionManager(
+        // dartdocDirectiveInfo: server.getDartdocDirectiveInfoFor(targetResult)
+        );
     var request = CompletionRequestImpl(
       targetResult,
       targetOffset,
