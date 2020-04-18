@@ -1086,20 +1086,50 @@ bool _isBool(Object? object) {
 
 // TODO(fishythefish): Change `dynamic` to `Object?` below once promotion works.
 
-/// Specialization for 'as bool?'.
+/// Specialization for 'as bool'.
 /// Called from generated code.
-bool? _asBoolNullable(dynamic object) {
+bool _asBool(Object? object) {
+  if (_isBool(object)) return _Utils.asBool(object);
+  throw _TypeError.forType(object, 'bool');
+}
+
+/// Specialization for 'as bool*'.
+/// Called from generated code.
+bool? _asBoolS(dynamic object) {
   if (_isBool(object)) return _Utils.asBool(object);
   if (object == null) return object;
   throw _TypeError.forType(object, 'bool');
 }
 
-/// Specialization for 'as double?'.
+/// Specialization for 'as bool?'.
 /// Called from generated code.
-double? _asDoubleNullable(dynamic object) {
+bool? _asBoolQ(dynamic object) {
+  if (_isBool(object)) return _Utils.asBool(object);
+  if (object == null) return object;
+  throw _TypeError.forType(object, 'bool?');
+}
+
+/// Specialization for 'as double'.
+/// Called from generated code.
+double _asDouble(Object? object) {
+  if (_isNum(object)) return _Utils.asDouble(object);
+  throw _TypeError.forType(object, 'double');
+}
+
+/// Specialization for 'as double*'.
+/// Called from generated code.
+double? _asDoubleS(dynamic object) {
   if (_isNum(object)) return _Utils.asDouble(object);
   if (object == null) return object;
   throw _TypeError.forType(object, 'double');
+}
+
+/// Specialization for 'as double?'.
+/// Called from generated code.
+double? _asDoubleQ(dynamic object) {
+  if (_isNum(object)) return _Utils.asDouble(object);
+  if (object == null) return object;
+  throw _TypeError.forType(object, 'double?');
 }
 
 /// Specialization for 'is int'.
@@ -1109,12 +1139,27 @@ bool _isInt(Object? object) {
       JS('bool', 'Math.floor(#) === #', object, object);
 }
 
-/// Specialization for 'as int?'.
+/// Specialization for 'as int'.
 /// Called from generated code.
-int? _asIntNullable(dynamic object) {
+int _asInt(Object? object) {
+  if (_isInt(object)) return _Utils.asInt(object);
+  throw _TypeError.forType(object, 'int');
+}
+
+/// Specialization for 'as int*'.
+/// Called from generated code.
+int? _asIntS(dynamic object) {
   if (_isInt(object)) return _Utils.asInt(object);
   if (object == null) return object;
   throw _TypeError.forType(object, 'int');
+}
+
+/// Specialization for 'as int?'.
+/// Called from generated code.
+int? _asIntQ(dynamic object) {
+  if (_isInt(object)) return _Utils.asInt(object);
+  if (object == null) return object;
+  throw _TypeError.forType(object, 'int?');
 }
 
 /// Specialization for 'is num' and 'is double'.
@@ -1123,12 +1168,27 @@ bool _isNum(Object? object) {
   return JS('bool', 'typeof # == "number"', object);
 }
 
-/// Specialization for 'as num?'.
+/// Specialization for 'as num'.
 /// Called from generated code.
-num? _asNumNullable(dynamic object) {
+num _asNum(Object? object) {
+  if (_isNum(object)) return _Utils.asNum(object);
+  throw _TypeError.forType(object, 'num');
+}
+
+/// Specialization for 'as num*'.
+/// Called from generated code.
+num? _asNumS(dynamic object) {
   if (_isNum(object)) return _Utils.asNum(object);
   if (object == null) return object;
   throw _TypeError.forType(object, 'num');
+}
+
+/// Specialization for 'as num?'.
+/// Called from generated code.
+num? _asNumQ(dynamic object) {
+  if (_isNum(object)) return _Utils.asNum(object);
+  if (object == null) return object;
+  throw _TypeError.forType(object, 'num?');
 }
 
 /// Specialization for 'is String'.
@@ -1137,12 +1197,27 @@ bool _isString(Object? object) {
   return JS('bool', 'typeof # == "string"', object);
 }
 
-/// Specialization for 'as String?'.
+/// Specialization for 'as String'.
 /// Called from generated code.
-String? _asStringNullable(dynamic object) {
+String _asString(Object? object) {
+  if (_isString(object)) return _Utils.asString(object);
+  throw _TypeError.forType(object, 'String');
+}
+
+/// Specialization for 'as String*'.
+/// Called from generated code.
+String? _asStringS(dynamic object) {
   if (_isString(object)) return _Utils.asString(object);
   if (object == null) return object;
   throw _TypeError.forType(object, 'String');
+}
+
+/// Specialization for 'as String?'.
+/// Called from generated code.
+String? _asStringQ(dynamic object) {
+  if (_isString(object)) return _Utils.asString(object);
+  if (object == null) return object;
+  throw _TypeError.forType(object, 'String?');
 }
 
 String _rtiArrayToString(Object? array, List<String>? genericContext) {
