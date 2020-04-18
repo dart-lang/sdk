@@ -5,13 +5,19 @@
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../constant/potentially_constant_test.dart';
 import 'driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TryStatementTest);
+    defineReflectiveTests(TryStatementNullSafetyTest);
   });
 }
+
+@reflectiveTest
+class TryStatementNullSafetyTest extends TryStatementTest
+    with WithNullSafetyMixin {}
 
 @reflectiveTest
 class TryStatementTest extends DriverResolutionTest {
@@ -26,7 +32,10 @@ main() {
 
     var e = findElement.localVar('e');
     expect(e.isFinal, isTrue);
-    assertTypeDynamic(e.type);
+    assertType(
+      e.type,
+      typeStringByNullability(nullable: 'Object', legacy: 'dynamic'),
+    );
 
     var st = findElement.localVar('st');
     expect(st.isFinal, isTrue);

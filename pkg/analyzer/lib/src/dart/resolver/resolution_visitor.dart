@@ -181,8 +181,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         element.isFinal = true;
         if (exceptionTypeNode == null) {
           element.hasImplicitType = true;
-          element.type = _dynamicType;
-          exceptionNode.staticType = _dynamicType;
+          var type =
+              _isNonNullableByDefault ? _typeProvider.objectType : _dynamicType;
+          element.type = type;
+          exceptionNode.staticType = type;
         } else {
           element.type = exceptionTypeNode.type;
           exceptionNode.staticType = exceptionTypeNode.type;
