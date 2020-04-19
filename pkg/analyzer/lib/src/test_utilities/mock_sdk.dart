@@ -27,11 +27,11 @@ import 'dart:math';
 part 'stream.dart';
 
 abstract class Future<T> {
-  factory Future(computation()) {
+  factory Future(FutureOr<T> computation()) {
     throw 0;
   }
 
-  factory Future.delayed(Duration duration, [T computation()?]) {
+  factory Future.delayed(Duration duration, [FutureOr<T> computation()?]) {
     throw 0;
   }
 
