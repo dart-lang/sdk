@@ -251,6 +251,10 @@ external bool identical(Object? a, Object? b);
 
 void print(Object? object) {}
 
+class ArgumentError extends Error {
+  ArgumentError([message]);
+}
+
 abstract class bool extends Object {
   external const factory bool.fromEnvironment(String name,
       {bool defaultValue: false});
