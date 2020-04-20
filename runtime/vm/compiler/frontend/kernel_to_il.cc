@@ -435,60 +435,6 @@ Fragment FlowGraphBuilder::LoadLocal(LocalVariable* variable) {
   }
 }
 
-Fragment FlowGraphBuilder::LoadLateField(const Field& field,
-                                         LocalVariable* instance) {
-  Fragment instructions;
-  TargetEntryInstr *is_uninitialized, *is_initialized;
-  const TokenPosition position = field.token_pos();
-  ASSERT(!field.is_static());
-
-  // Check whether the field has been initialized already.
-  instructions += LoadLocal(instance);
-  instructions += LoadField(field);
-
-  LocalVariable* temp = parsed_function_->expression_temp_var();
-  instructions += StoreLocal(position, temp);
-  instructions += Constant(Object::sentinel());
-  instructions += BranchIfStrictEqual(&is_uninitialized, &is_initialized);
-
-  JoinEntryInstr* join = BuildJoinEntry();
-
-  if (field.has_initializer()) {
-    // has_nontrivial_initializer is required for EnsureInitializerFunction. The
-    // trivial initializer case is treated as a normal field.
-    ASSERT(field.has_nontrivial_initializer());
-
-    // If the field isn't initialized, call the initializer and set the field.
-    Function& init_function =
-        Function::ZoneHandle(Z, field.EnsureInitializerFunction());
-    Fragment initialize(is_uninitialized);
-    initialize += LoadLocal(instance);
-    initialize += StaticCall(position, init_function,
-                             /* argument_count = */ 1, ICData::kNoRebind);
-    initialize += StoreLocal(position, temp);
-    initialize += Drop();
-    initialize += StoreLateField(field, instance, temp);
-    initialize += Goto(join);
-  } else {
-    // The field has no initializer, so throw a LateInitializationError.
-    Fragment initialize(is_uninitialized);
-    initialize += ThrowLateInitializationError(
-        position, String::ZoneHandle(Z, field.name()));
-    initialize += Goto(join);
-  }
-
-  {
-    // Already initialized, so there's nothing to do.
-    Fragment already_initialized(is_initialized);
-    already_initialized += Goto(join);
-  }
-
-  // Now that the field has been initialized, load it.
-  instructions = Fragment(instructions.entry, join);
-  instructions += LoadLocal(temp);
-  return instructions;
-}
-
 Fragment FlowGraphBuilder::ThrowLateInitializationError(TokenPosition position,
                                                         const String& name) {
   const Class& klass = Class::ZoneHandle(
@@ -564,7 +510,7 @@ Fragment FlowGraphBuilder::StoreLateField(const Field& field,
 
 Fragment FlowGraphBuilder::InitInstanceField(const Field& field) {
   ASSERT(field.is_instance());
-  ASSERT(field.needs_load_guard());
+  ASSERT(field.NeedsInitializationCheckOnLoad());
   InitInstanceFieldInstr* init = new (Z)
       InitInstanceFieldInstr(Pop(), MayCloneField(field), GetNextDeoptId());
   return Fragment(init);
@@ -2615,24 +2561,22 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
     }
     body += NullConstant();
   } else if (is_method) {
+    ASSERT(!field.needs_load_guard()
+                NOT_IN_PRODUCT(|| I->HasAttemptedReload()));
+    if (field.NeedsInitializationCheckOnLoad()) {
+      body += LoadLocal(parsed_function_->ParameterVariable(0));
+      body += InitInstanceField(field);
+    }
+
+    body += LoadLocal(parsed_function_->ParameterVariable(0));
+    body += LoadField(field);
     if (field.needs_load_guard()) {
 #if defined(PRODUCT)
       UNREACHABLE();
 #else
-      ASSERT(Isolate::Current()->HasAttemptedReload());
-      body += LoadLocal(parsed_function_->ParameterVariable(0));
-      body += InitInstanceField(field);
-
-      body += LoadLocal(parsed_function_->ParameterVariable(0));
-      body += LoadField(field);
       body += CheckAssignable(AbstractType::Handle(Z, field.type()),
                               Symbols::FunctionResult());
 #endif
-    } else if (field.is_late() && !field.has_trivial_initializer()) {
-      body += LoadLateField(field, parsed_function_->ParameterVariable(0));
-    } else {
-      body += LoadLocal(parsed_function_->ParameterVariable(0));
-      body += LoadField(field);
     }
   } else if (field.is_const()) {
     // If the parser needs to know the value of an uninitialized constant field

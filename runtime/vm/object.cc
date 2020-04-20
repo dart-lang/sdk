@@ -9920,6 +9920,10 @@ RawError* Field::InitializeInstance(const Instance& instance) const {
       return Error::Cast(value).raw();
     }
   } else {
+    if (is_late() && !has_initializer()) {
+      Exceptions::ThrowLateInitializationError(String::Handle(name()));
+      UNREACHABLE();
+    }
 #if defined(DART_PRECOMPILED_RUNTIME)
     UNREACHABLE();
 #else
@@ -9927,6 +9931,11 @@ RawError* Field::InitializeInstance(const Instance& instance) const {
 #endif
   }
   ASSERT(value.IsNull() || value.IsInstance());
+  if (is_late() && is_final() &&
+      (instance.GetField(*this) != Object::sentinel().raw())) {
+    Exceptions::ThrowLateInitializationError(String::Handle(name()));
+    UNREACHABLE();
+  }
   instance.SetField(*this, value);
   return Error::null();
 }

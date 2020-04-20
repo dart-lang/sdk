@@ -4111,7 +4111,12 @@ void InitInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ LoadObject(InitInstanceFieldABI::kFieldReg,
                 Field::ZoneHandle(field().Original()));
-  compiler->GenerateStubCall(token_pos(), StubCode::InitInstanceField(),
+  const auto& stub = Code::ZoneHandle(
+      compiler->isolate()->object_store()->init_instance_field_stub());
+  // Instruction inputs are popped from the stack at this point,
+  // so deoptimization environment has to be adjusted.
+  // This adjustment is done in FlowGraph::AttachEnvironment.
+  compiler->GenerateStubCall(token_pos(), stub,
                              /*kind=*/RawPcDescriptors::kOther, locs(),
                              deopt_id());
   __ Bind(&no_call);

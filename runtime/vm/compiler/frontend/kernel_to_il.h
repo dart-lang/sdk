@@ -136,7 +136,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment ThrowException(TokenPosition position);
   Fragment RethrowException(TokenPosition position, int catch_try_index);
   Fragment LoadLocal(LocalVariable* variable);
-  Fragment LoadLateField(const Field& field, LocalVariable* instance);
   Fragment StoreLateField(const Field& field,
                           LocalVariable* instance,
                           LocalVariable* setter_value);

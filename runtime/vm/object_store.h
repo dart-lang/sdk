@@ -195,6 +195,7 @@ class ObjectPointerVisitor;
   RW(Code, assert_boolean_stub)                                                \
   RW(Code, instance_of_stub)                                                   \
   RW(Code, init_static_field_stub)                                             \
+  RW(Code, init_instance_field_stub)                                           \
   RW(Code, call_closure_no_such_method_stub)                                   \
   RW(Code, default_tts_stub)                                                   \
   RW(Code, default_nullable_tts_stub)                                          \
@@ -244,6 +245,7 @@ class ObjectPointerVisitor;
   DO(re_throw_stub, ReThrow)                                                   \
   DO(assert_boolean_stub, AssertBoolean)                                       \
   DO(init_static_field_stub, InitStaticField)                                  \
+  DO(init_instance_field_stub, InitInstanceField)                              \
   DO(instance_of_stub, InstanceOf)
 
 #define ISOLATE_OBJECT_STORE_FIELD_LIST(R_, RW)                                \

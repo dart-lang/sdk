@@ -4132,6 +4132,10 @@ class Field : public Object {
   bool NeedsSetter() const;
   bool NeedsGetter() const;
 
+  bool NeedsInitializationCheckOnLoad() const {
+    return needs_load_guard() || (is_late() && !has_trivial_initializer());
+  }
+
   const char* GuardedPropertiesAsCString() const;
 
   intptr_t UnboxedFieldCid() const { return guarded_cid(); }

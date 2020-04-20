@@ -150,7 +150,7 @@ class ProgramWalker : public ValueObject {
     class_fields_ = cls.fields();
     for (intptr_t j = 0; j < class_fields_.Length(); j++) {
       class_field_ ^= class_fields_.At(j);
-      if (class_field_.is_static() && class_field_.HasInitializerFunction()) {
+      if (class_field_.HasInitializerFunction()) {
         class_function_ = class_field_.InitializerFunction();
         AddToWorklist(class_function_);
       }
