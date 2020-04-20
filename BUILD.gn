@@ -74,13 +74,13 @@ group("runtime_precompiled") {
   ]
 }
 
-if (dont_use_nnbd) {
+if (use_nnbd) {
   group("create_sdk") {
-    public_deps = [ "sdk:create_sdk" ]
+    public_deps = [ "sdk_nnbd:create_sdk" ]
   }
 } else {
   group("create_sdk") {
-    public_deps = [ "sdk_nnbd:create_sdk" ]
+    public_deps = [ "sdk:create_sdk" ]
   }
 }
 

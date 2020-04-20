@@ -383,46 +383,6 @@ ConstantPool {
   [1] = Reserved
 }
 
-
-Function 'get:_identityHashCode', getter, abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::int
-
-Function '_instanceOf', abstract, debuggable
-    parameters [dynamic 'instantiatorTypeArguments', dynamic 'functionTypeArguments', dynamic 'type'] (required: 3)
-    return-type dart:core::bool
-
-Function '_simpleInstanceOf', abstract, debuggable
-    parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
-
-Function '_simpleInstanceOfTrue', abstract, debuggable
-    parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
-
-Function '_simpleInstanceOfFalse', abstract, debuggable
-    parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
-
-Function '==', abstract, debuggable
-    parameters [dynamic 'other'] (required: 1)
-    return-type dart:core::bool
-
-Function 'get:hashCode', getter, abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::int
-
-Function 'toString', abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::String
-
-Function 'noSuchMethod', abstract, debuggable
-    parameters [dart:core::Invocation 'invocation'] (required: 1)
-    return-type dynamic
-
-Function 'get:runtimeType', getter, abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::Type
 Class 'C2', script = '#lib'
     extends dart:core::Object
 
@@ -445,46 +405,6 @@ ConstantPool {
   [1] = Reserved
 }
 
-
-Function 'get:_identityHashCode', getter, abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::int
-
-Function '_instanceOf', abstract, debuggable
-    parameters [dynamic 'instantiatorTypeArguments', dynamic 'functionTypeArguments', dynamic 'type'] (required: 3)
-    return-type dart:core::bool
-
-Function '_simpleInstanceOf', abstract, debuggable
-    parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
-
-Function '_simpleInstanceOfTrue', abstract, debuggable
-    parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
-
-Function '_simpleInstanceOfFalse', abstract, debuggable
-    parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
-
-Function '==', abstract, debuggable
-    parameters [dynamic 'other'] (required: 1)
-    return-type dart:core::bool
-
-Function 'get:hashCode', getter, abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::int
-
-Function 'toString', abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::String
-
-Function 'noSuchMethod', abstract, debuggable
-    parameters [dart:core::Invocation 'invocation'] (required: 1)
-    return-type dynamic
-
-Function 'get:runtimeType', getter, abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::Type
 Class 'C3', script = '#lib'
     extends dart:core::Object
 
@@ -507,46 +427,6 @@ ConstantPool {
   [1] = Reserved
 }
 
-
-Function 'get:_identityHashCode', getter, abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::int
-
-Function '_instanceOf', abstract, debuggable
-    parameters [dynamic 'instantiatorTypeArguments', dynamic 'functionTypeArguments', dynamic 'type'] (required: 3)
-    return-type dart:core::bool
-
-Function '_simpleInstanceOf', abstract, debuggable
-    parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
-
-Function '_simpleInstanceOfTrue', abstract, debuggable
-    parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
-
-Function '_simpleInstanceOfFalse', abstract, debuggable
-    parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
-
-Function '==', abstract, debuggable
-    parameters [dynamic 'other'] (required: 1)
-    return-type dart:core::bool
-
-Function 'get:hashCode', getter, abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::int
-
-Function 'toString', abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::String
-
-Function 'noSuchMethod', abstract, debuggable
-    parameters [dart:core::Invocation 'invocation'] (required: 1)
-    return-type dynamic
-
-Function 'get:runtimeType', getter, abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::Type
 Class 'C4', script = '#lib'
     extends dart:core::Object
 
@@ -569,46 +449,6 @@ ConstantPool {
   [1] = Reserved
 }
 
-
-Function 'get:_identityHashCode', getter, abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::int
-
-Function '_instanceOf', abstract, debuggable
-    parameters [dynamic 'instantiatorTypeArguments', dynamic 'functionTypeArguments', dynamic 'type'] (required: 3)
-    return-type dart:core::bool
-
-Function '_simpleInstanceOf', abstract, debuggable
-    parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
-
-Function '_simpleInstanceOfTrue', abstract, debuggable
-    parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
-
-Function '_simpleInstanceOfFalse', abstract, debuggable
-    parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
-
-Function '==', abstract, debuggable
-    parameters [dynamic 'other'] (required: 1)
-    return-type dart:core::bool
-
-Function 'get:hashCode', getter, abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::int
-
-Function 'toString', abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::String
-
-Function 'noSuchMethod', abstract, debuggable
-    parameters [dart:core::Invocation 'invocation'] (required: 1)
-    return-type dynamic
-
-Function 'get:runtimeType', getter, abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::Type
 Class 'C5', script = '#lib'
     extends dart:core::Object
 
@@ -631,46 +471,6 @@ ConstantPool {
   [1] = Reserved
 }
 
-
-Function 'get:_identityHashCode', getter, abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::int
-
-Function '_instanceOf', abstract, debuggable
-    parameters [dynamic 'instantiatorTypeArguments', dynamic 'functionTypeArguments', dynamic 'type'] (required: 3)
-    return-type dart:core::bool
-
-Function '_simpleInstanceOf', abstract, debuggable
-    parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
-
-Function '_simpleInstanceOfTrue', abstract, debuggable
-    parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
-
-Function '_simpleInstanceOfFalse', abstract, debuggable
-    parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
-
-Function '==', abstract, debuggable
-    parameters [dynamic 'other'] (required: 1)
-    return-type dart:core::bool
-
-Function 'get:hashCode', getter, abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::int
-
-Function 'toString', abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::String
-
-Function 'noSuchMethod', abstract, debuggable
-    parameters [dart:core::Invocation 'invocation'] (required: 1)
-    return-type dynamic
-
-Function 'get:runtimeType', getter, abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::Type
 Class 'C6', script = '#lib'
     extends dart:core::Object
 
@@ -693,46 +493,6 @@ ConstantPool {
   [1] = Reserved
 }
 
-
-Function 'get:_identityHashCode', getter, abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::int
-
-Function '_instanceOf', abstract, debuggable
-    parameters [dynamic 'instantiatorTypeArguments', dynamic 'functionTypeArguments', dynamic 'type'] (required: 3)
-    return-type dart:core::bool
-
-Function '_simpleInstanceOf', abstract, debuggable
-    parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
-
-Function '_simpleInstanceOfTrue', abstract, debuggable
-    parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
-
-Function '_simpleInstanceOfFalse', abstract, debuggable
-    parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
-
-Function '==', abstract, debuggable
-    parameters [dynamic 'other'] (required: 1)
-    return-type dart:core::bool
-
-Function 'get:hashCode', getter, abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::int
-
-Function 'toString', abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::String
-
-Function 'noSuchMethod', abstract, debuggable
-    parameters [dart:core::Invocation 'invocation'] (required: 1)
-    return-type dynamic
-
-Function 'get:runtimeType', getter, abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::Type
 Class 'C7', script = '#lib'
     extends dart:core::Object
 
@@ -755,46 +515,6 @@ ConstantPool {
   [1] = Reserved
 }
 
-
-Function 'get:_identityHashCode', getter, abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::int
-
-Function '_instanceOf', abstract, debuggable
-    parameters [dynamic 'instantiatorTypeArguments', dynamic 'functionTypeArguments', dynamic 'type'] (required: 3)
-    return-type dart:core::bool
-
-Function '_simpleInstanceOf', abstract, debuggable
-    parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
-
-Function '_simpleInstanceOfTrue', abstract, debuggable
-    parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
-
-Function '_simpleInstanceOfFalse', abstract, debuggable
-    parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
-
-Function '==', abstract, debuggable
-    parameters [dynamic 'other'] (required: 1)
-    return-type dart:core::bool
-
-Function 'get:hashCode', getter, abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::int
-
-Function 'toString', abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::String
-
-Function 'noSuchMethod', abstract, debuggable
-    parameters [dart:core::Invocation 'invocation'] (required: 1)
-    return-type dynamic
-
-Function 'get:runtimeType', getter, abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::Type
 Class 'C8', script = '#lib'
     extends dart:core::Object
 
@@ -817,46 +537,6 @@ ConstantPool {
   [1] = Reserved
 }
 
-
-Function 'get:_identityHashCode', getter, abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::int
-
-Function '_instanceOf', abstract, debuggable
-    parameters [dynamic 'instantiatorTypeArguments', dynamic 'functionTypeArguments', dynamic 'type'] (required: 3)
-    return-type dart:core::bool
-
-Function '_simpleInstanceOf', abstract, debuggable
-    parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
-
-Function '_simpleInstanceOfTrue', abstract, debuggable
-    parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
-
-Function '_simpleInstanceOfFalse', abstract, debuggable
-    parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
-
-Function '==', abstract, debuggable
-    parameters [dynamic 'other'] (required: 1)
-    return-type dart:core::bool
-
-Function 'get:hashCode', getter, abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::int
-
-Function 'toString', abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::String
-
-Function 'noSuchMethod', abstract, debuggable
-    parameters [dart:core::Invocation 'invocation'] (required: 1)
-    return-type dynamic
-
-Function 'get:runtimeType', getter, abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::Type
 Class 'A', script = '#lib'
     type-params <dart:core::Object T1, dart:core::Object T2> (args: 2)
     extends dart:core::Object
@@ -1166,46 +846,6 @@ ClosureCode {
   ReturnTOS
 }
 
-
-Function 'get:_identityHashCode', getter, abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::int
-
-Function '_instanceOf', abstract, debuggable
-    parameters [dynamic 'instantiatorTypeArguments', dynamic 'functionTypeArguments', dynamic 'type'] (required: 3)
-    return-type dart:core::bool
-
-Function '_simpleInstanceOf', abstract, debuggable
-    parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
-
-Function '_simpleInstanceOfTrue', abstract, debuggable
-    parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
-
-Function '_simpleInstanceOfFalse', abstract, debuggable
-    parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
-
-Function '==', abstract, debuggable
-    parameters [dynamic 'other'] (required: 1)
-    return-type dart:core::bool
-
-Function 'get:hashCode', getter, abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::int
-
-Function 'toString', abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::String
-
-Function 'noSuchMethod', abstract, debuggable
-    parameters [dart:core::Invocation 'invocation'] (required: 1)
-    return-type dynamic
-
-Function 'get:runtimeType', getter, abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::Type
 Class 'B', script = '#lib'
     extends dart:core::Object
 
@@ -1461,46 +1101,6 @@ ClosureCode {
   ReturnTOS
 }
 
-
-Function 'get:_identityHashCode', getter, abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::int
-
-Function '_instanceOf', abstract, debuggable
-    parameters [dynamic 'instantiatorTypeArguments', dynamic 'functionTypeArguments', dynamic 'type'] (required: 3)
-    return-type dart:core::bool
-
-Function '_simpleInstanceOf', abstract, debuggable
-    parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
-
-Function '_simpleInstanceOfTrue', abstract, debuggable
-    parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
-
-Function '_simpleInstanceOfFalse', abstract, debuggable
-    parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
-
-Function '==', abstract, debuggable
-    parameters [dynamic 'other'] (required: 1)
-    return-type dart:core::bool
-
-Function 'get:hashCode', getter, abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::int
-
-Function 'toString', abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::String
-
-Function 'noSuchMethod', abstract, debuggable
-    parameters [dart:core::Invocation 'invocation'] (required: 1)
-    return-type dynamic
-
-Function 'get:runtimeType', getter, abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::Type
 Class 'C', script = '#lib'
     extends dart:core::Object
 
@@ -1780,46 +1380,6 @@ ClosureCode {
   ReturnTOS
 }
 
-
-Function 'get:_identityHashCode', getter, abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::int
-
-Function '_instanceOf', abstract, debuggable
-    parameters [dynamic 'instantiatorTypeArguments', dynamic 'functionTypeArguments', dynamic 'type'] (required: 3)
-    return-type dart:core::bool
-
-Function '_simpleInstanceOf', abstract, debuggable
-    parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
-
-Function '_simpleInstanceOfTrue', abstract, debuggable
-    parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
-
-Function '_simpleInstanceOfFalse', abstract, debuggable
-    parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
-
-Function '==', abstract, debuggable
-    parameters [dynamic 'other'] (required: 1)
-    return-type dart:core::bool
-
-Function 'get:hashCode', getter, abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::int
-
-Function 'toString', abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::String
-
-Function 'noSuchMethod', abstract, debuggable
-    parameters [dart:core::Invocation 'invocation'] (required: 1)
-    return-type dynamic
-
-Function 'get:runtimeType', getter, abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::Type
 Class 'D', script = '#lib'
     type-params <dart:core::Object T> (args: 1)
     extends dart:core::Object
@@ -2005,46 +1565,6 @@ ClosureCode {
   ReturnTOS
 }
 
-
-Function 'get:_identityHashCode', getter, abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::int
-
-Function '_instanceOf', abstract, debuggable
-    parameters [dynamic 'instantiatorTypeArguments', dynamic 'functionTypeArguments', dynamic 'type'] (required: 3)
-    return-type dart:core::bool
-
-Function '_simpleInstanceOf', abstract, debuggable
-    parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
-
-Function '_simpleInstanceOfTrue', abstract, debuggable
-    parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
-
-Function '_simpleInstanceOfFalse', abstract, debuggable
-    parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
-
-Function '==', abstract, debuggable
-    parameters [dynamic 'other'] (required: 1)
-    return-type dart:core::bool
-
-Function 'get:hashCode', getter, abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::int
-
-Function 'toString', abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::String
-
-Function 'noSuchMethod', abstract, debuggable
-    parameters [dart:core::Invocation 'invocation'] (required: 1)
-    return-type dynamic
-
-Function 'get:runtimeType', getter, abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::Type
 Class 'E', script = '#lib', abstract
     extends dart:core::Object
 
@@ -2195,46 +1715,6 @@ ConstantPool {
 }
 
 
-Function 'get:_identityHashCode', getter, abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::int
-
-Function '_instanceOf', abstract, debuggable
-    parameters [dynamic 'instantiatorTypeArguments', dynamic 'functionTypeArguments', dynamic 'type'] (required: 3)
-    return-type dart:core::bool
-
-Function '_simpleInstanceOf', abstract, debuggable
-    parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
-
-Function '_simpleInstanceOfTrue', abstract, debuggable
-    parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
-
-Function '_simpleInstanceOfFalse', abstract, debuggable
-    parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
-
-Function '==', abstract, debuggable
-    parameters [dynamic 'other'] (required: 1)
-    return-type dart:core::bool
-
-Function 'get:hashCode', getter, abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::int
-
-Function 'toString', abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::String
-
-Function 'noSuchMethod', abstract, debuggable
-    parameters [dart:core::Invocation 'invocation'] (required: 1)
-    return-type dynamic
-
-Function 'get:runtimeType', getter, abstract, debuggable
-    parameters [] (required: 0)
-    return-type dart:core::Type
-
 }
 ]library #lib from "#lib" as #lib {
 
@@ -2243,121 +1723,41 @@ Function 'get:runtimeType', getter, abstract, debuggable
     synthetic constructor •() → #lib::C1*
       : super dart.core::Object::•()
       ;
-    abstract member-signature get _identityHashCode() → dart.core::int*;
-    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*;
-    abstract member-signature operator ==(dynamic other) → dart.core::bool*;
-    abstract member-signature get hashCode() → dart.core::int*;
-    abstract member-signature method toString() → dart.core::String*;
-    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic;
-    abstract member-signature get runtimeType() → dart.core::Type*;
   }
   class C2 extends dart.core::Object {
     synthetic constructor •() → #lib::C2*
       : super dart.core::Object::•()
       ;
-    abstract member-signature get _identityHashCode() → dart.core::int*;
-    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*;
-    abstract member-signature operator ==(dynamic other) → dart.core::bool*;
-    abstract member-signature get hashCode() → dart.core::int*;
-    abstract member-signature method toString() → dart.core::String*;
-    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic;
-    abstract member-signature get runtimeType() → dart.core::Type*;
   }
   class C3 extends dart.core::Object {
     synthetic constructor •() → #lib::C3*
       : super dart.core::Object::•()
       ;
-    abstract member-signature get _identityHashCode() → dart.core::int*;
-    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*;
-    abstract member-signature operator ==(dynamic other) → dart.core::bool*;
-    abstract member-signature get hashCode() → dart.core::int*;
-    abstract member-signature method toString() → dart.core::String*;
-    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic;
-    abstract member-signature get runtimeType() → dart.core::Type*;
   }
   class C4 extends dart.core::Object {
     synthetic constructor •() → #lib::C4*
       : super dart.core::Object::•()
       ;
-    abstract member-signature get _identityHashCode() → dart.core::int*;
-    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*;
-    abstract member-signature operator ==(dynamic other) → dart.core::bool*;
-    abstract member-signature get hashCode() → dart.core::int*;
-    abstract member-signature method toString() → dart.core::String*;
-    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic;
-    abstract member-signature get runtimeType() → dart.core::Type*;
   }
   class C5 extends dart.core::Object {
     synthetic constructor •() → #lib::C5*
       : super dart.core::Object::•()
       ;
-    abstract member-signature get _identityHashCode() → dart.core::int*;
-    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*;
-    abstract member-signature operator ==(dynamic other) → dart.core::bool*;
-    abstract member-signature get hashCode() → dart.core::int*;
-    abstract member-signature method toString() → dart.core::String*;
-    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic;
-    abstract member-signature get runtimeType() → dart.core::Type*;
   }
   class C6 extends dart.core::Object {
     synthetic constructor •() → #lib::C6*
       : super dart.core::Object::•()
       ;
-    abstract member-signature get _identityHashCode() → dart.core::int*;
-    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*;
-    abstract member-signature operator ==(dynamic other) → dart.core::bool*;
-    abstract member-signature get hashCode() → dart.core::int*;
-    abstract member-signature method toString() → dart.core::String*;
-    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic;
-    abstract member-signature get runtimeType() → dart.core::Type*;
   }
   class C7 extends dart.core::Object {
     synthetic constructor •() → #lib::C7*
       : super dart.core::Object::•()
       ;
-    abstract member-signature get _identityHashCode() → dart.core::int*;
-    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*;
-    abstract member-signature operator ==(dynamic other) → dart.core::bool*;
-    abstract member-signature get hashCode() → dart.core::int*;
-    abstract member-signature method toString() → dart.core::String*;
-    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic;
-    abstract member-signature get runtimeType() → dart.core::Type*;
   }
   class C8 extends dart.core::Object {
     synthetic constructor •() → #lib::C8*
       : super dart.core::Object::•()
       ;
-    abstract member-signature get _identityHashCode() → dart.core::int*;
-    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*;
-    abstract member-signature operator ==(dynamic other) → dart.core::bool*;
-    abstract member-signature get hashCode() → dart.core::int*;
-    abstract member-signature method toString() → dart.core::String*;
-    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic;
-    abstract member-signature get runtimeType() → dart.core::Type*;
   }
   class A<T1 extends dart.core::Object* = dynamic, T2 extends dart.core::Object* = dynamic> extends dart.core::Object {
     synthetic constructor •() → #lib::A<#lib::A::T1*, #lib::A::T2*>*
@@ -2378,16 +1778,6 @@ Function 'get:runtimeType', getter, abstract, debuggable
       [@vm.call-site-attributes.metadata=receiverType:FunctionType(void Function<T5, T6>()*)] nested1.call<#lib::C5*, #lib::C6*>();
       [@vm.call-site-attributes.metadata=receiverType:FunctionType(void Function<T5, T6>()*)] nested1.call<dart.core::List<#lib::C5*>*, dart.core::List<#lib::C6*>*>();
     }
-    abstract member-signature get _identityHashCode() → dart.core::int*;
-    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*;
-    abstract member-signature operator ==(dynamic other) → dart.core::bool*;
-    abstract member-signature get hashCode() → dart.core::int*;
-    abstract member-signature method toString() → dart.core::String*;
-    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic;
-    abstract member-signature get runtimeType() → dart.core::Type*;
   }
   class B extends dart.core::Object {
     field dart.core::int* foo = null;
@@ -2427,16 +1817,6 @@ Function 'get:runtimeType', getter, abstract, debuggable
         [@vm.call-site-attributes.metadata=receiverType:FunctionType(Null? Function()*)] closure3.call();
       }
     }
-    abstract member-signature get _identityHashCode() → dart.core::int*;
-    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*;
-    abstract member-signature operator ==(dynamic other) → dart.core::bool*;
-    abstract member-signature get hashCode() → dart.core::int*;
-    abstract member-signature method toString() → dart.core::String*;
-    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic;
-    abstract member-signature get runtimeType() → dart.core::Type*;
   }
   class C extends dart.core::Object {
     synthetic constructor •() → #lib::C*
@@ -2468,16 +1848,6 @@ Function 'get:runtimeType', getter, abstract, debuggable
         }
       }
     }
-    abstract member-signature get _identityHashCode() → dart.core::int*;
-    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*;
-    abstract member-signature operator ==(dynamic other) → dart.core::bool*;
-    abstract member-signature get hashCode() → dart.core::int*;
-    abstract member-signature method toString() → dart.core::String*;
-    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic;
-    abstract member-signature get runtimeType() → dart.core::Type*;
   }
   class D<T extends dart.core::Object* = dynamic> extends dart.core::Object {
     synthetic constructor •() → #lib::D<#lib::D::T*>*
@@ -2492,16 +1862,6 @@ Function 'get:runtimeType', getter, abstract, debuggable
         [@vm.call-site-attributes.metadata=receiverType:FunctionType(Null? Function()*)] inner.call();
       };
     }
-    abstract member-signature get _identityHashCode() → dart.core::int*;
-    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*;
-    abstract member-signature operator ==(dynamic other) → dart.core::bool*;
-    abstract member-signature get hashCode() → dart.core::int*;
-    abstract member-signature method toString() → dart.core::String*;
-    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic;
-    abstract member-signature get runtimeType() → dart.core::Type*;
   }
   abstract class E extends dart.core::Object {
     field (dart.core::int*, dart.core::int*) →* dart.core::int* foo1 = null;
@@ -2518,16 +1878,6 @@ Function 'get:runtimeType', getter, abstract, debuggable
       return let final dart.core::int* #t3 = this.{#lib::E::evalArg1}() in let final dart.core::int* #t4 = this.{#lib::E::evalArg2}() in [@vm.call-site-attributes.metadata=receiverType:FunctionType(int* Function<T>(T*, T*)*)] this.{#lib::E::foo2}.call<dart.core::int*>(#t3, #t4);
     method testCallThroughGetter3() → dart.core::int*
       return let final #lib::E* #t5 = this.{#lib::E::getE}() in let final dart.core::int* #t6 = this.{#lib::E::evalArg1}() in let final dart.core::int* #t7 = this.{#lib::E::evalArg2}() in [@vm.call-site-attributes.metadata=receiverType:FunctionType(int* Function<T>(T*, T*)*)] #t5.{#lib::E::foo2}.call<dart.core::int*>(#t6, #t7);
-    abstract member-signature get _identityHashCode() → dart.core::int*;
-    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*;
-    abstract member-signature operator ==(dynamic other) → dart.core::bool*;
-    abstract member-signature get hashCode() → dart.core::int*;
-    abstract member-signature method toString() → dart.core::String*;
-    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic;
-    abstract member-signature get runtimeType() → dart.core::Type*;
   }
   static method simpleClosure() → dart.core::int* {
     dart.core::int* x = 5;

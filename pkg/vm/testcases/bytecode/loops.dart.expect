@@ -26,13 +26,12 @@ L2:
   Push                 r1
   Push                 FP[-5]
   InterfaceCall        CP#0, 1
-  InterfaceCall        CP#2, 2
-  AssertBoolean        0
+  CompareIntLt
   JumpIfFalse          L1
   Push                 r0
   Push                 FP[-5]
   Push                 r1
-  InterfaceCall        CP#4, 2
+  InterfaceCall        CP#2, 2
   AddInt
   PopLocal             r0
   Push                 r1
@@ -48,10 +47,8 @@ L1:
 ConstantPool {
   [0] = InterfaceCall 'dart:core::List::get:length', ArgDesc num-args 1, num-type-args 0, names []
   [1] = Reserved
-  [2] = InterfaceCall 'dart:core::num::<', ArgDesc num-args 2, num-type-args 0, names []
+  [2] = InterfaceCall 'dart:core::List::[]', ArgDesc num-args 2, num-type-args 0, names []
   [3] = Reserved
-  [4] = InterfaceCall 'dart:core::List::[]', ArgDesc num-args 2, num-type-args 0, names []
-  [5] = Reserved
 }
 
 
@@ -75,15 +72,14 @@ L3:
   Push                 r1
   Push                 FP[-5]
   InterfaceCall        CP#0, 1
-  InterfaceCall        CP#2, 2
-  AssertBoolean        0
+  CompareIntGe
   JumpIfFalse          L2
   Jump                 L1
 L2:
   Push                 r0
   Push                 FP[-5]
   Push                 r1
-  InterfaceCall        CP#4, 2
+  InterfaceCall        CP#2, 2
   AddInt
   PopLocal             r0
   Push                 r1
@@ -99,10 +95,8 @@ L1:
 ConstantPool {
   [0] = InterfaceCall 'dart:core::List::get:length', ArgDesc num-args 1, num-type-args 0, names []
   [1] = Reserved
-  [2] = InterfaceCall 'dart:core::num::>=', ArgDesc num-args 2, num-type-args 0, names []
+  [2] = InterfaceCall 'dart:core::List::[]', ArgDesc num-args 2, num-type-args 0, names []
   [3] = Reserved
-  [4] = InterfaceCall 'dart:core::List::[]', ArgDesc num-args 2, num-type-args 0, names []
-  [5] = Reserved
 }
 
 
@@ -123,8 +117,7 @@ L4:
   Push                 r1
   Push                 FP[-5]
   InterfaceCall        CP#0, 1
-  InterfaceCall        CP#2, 2
-  AssertBoolean        0
+  CompareIntLt
   JumpIfFalse          L1
   Push                 r1
   PushInt              0
@@ -135,7 +128,7 @@ L2:
   Push                 r0
   Push                 FP[-5]
   Push                 r1
-  InterfaceCall        CP#4, 2
+  InterfaceCall        CP#2, 2
   AddInt
   PopLocal             r0
 L3:
@@ -152,10 +145,8 @@ L1:
 ConstantPool {
   [0] = InterfaceCall 'dart:core::List::get:length', ArgDesc num-args 1, num-type-args 0, names []
   [1] = Reserved
-  [2] = InterfaceCall 'dart:core::num::<', ArgDesc num-args 2, num-type-args 0, names []
+  [2] = InterfaceCall 'dart:core::List::[]', ArgDesc num-args 2, num-type-args 0, names []
   [3] = Reserved
-  [4] = InterfaceCall 'dart:core::List::[]', ArgDesc num-args 2, num-type-args 0, names []
-  [5] = Reserved
 }
 
 
@@ -175,8 +166,7 @@ L2:
   Push                 r1
   Push                 FP[-5]
   InterfaceCall        CP#0, 1
-  InterfaceCall        CP#2, 2
-  AssertBoolean        0
+  CompareIntLt
   JumpIfFalse          L1
   Push                 r0
   Push                 FP[-5]
@@ -188,7 +178,7 @@ L2:
   StoreLocal           r1
   PopLocal             r3
   Push                 r2
-  InterfaceCall        CP#4, 2
+  InterfaceCall        CP#2, 2
   AddInt
   PopLocal             r0
   Jump                 L2
@@ -199,10 +189,8 @@ L1:
 ConstantPool {
   [0] = InterfaceCall 'dart:core::List::get:length', ArgDesc num-args 1, num-type-args 0, names []
   [1] = Reserved
-  [2] = InterfaceCall 'dart:core::num::<', ArgDesc num-args 2, num-type-args 0, names []
+  [2] = InterfaceCall 'dart:core::List::[]', ArgDesc num-args 2, num-type-args 0, names []
   [3] = Reserved
-  [4] = InterfaceCall 'dart:core::List::[]', ArgDesc num-args 2, num-type-args 0, names []
-  [5] = Reserved
 }
 
 
@@ -232,8 +220,7 @@ L1:
   Push                 r1
   Push                 FP[-5]
   InterfaceCall        CP#2, 1
-  InterfaceCall        CP#4, 2
-  AssertBoolean        0
+  CompareIntLt
   JumpIfTrue           L1
   Push                 r0
   ReturnTOS
@@ -243,8 +230,6 @@ ConstantPool {
   [1] = Reserved
   [2] = InterfaceCall 'dart:core::List::get:length', ArgDesc num-args 1, num-type-args 0, names []
   [3] = Reserved
-  [4] = InterfaceCall 'dart:core::num::<', ArgDesc num-args 2, num-type-args 0, names []
-  [5] = Reserved
 }
 
 

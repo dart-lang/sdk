@@ -129,7 +129,7 @@ t2 = _Call direct [foo] (t1)
 RESULT: _T {}?
 ------------ if9 ------------
 %x = _Parameter #0 [_T (#lib::TestEnum)+?]
-t1* = _Call [TestEnum::==] (%x, _T (#lib::TestEnum, #lib::TestEnum {index: 0, #lib::_name: TestEnum.v1, }))
+t1* = _Call [Object::==] (%x, _T (#lib::TestEnum, #lib::TestEnum {index: 0, #lib::_name: TestEnum.v1, }))
 t2 = _Call direct [foo] (_T (#lib::TestEnum, #lib::TestEnum {index: 0, #lib::_name: TestEnum.v1, }))
 RESULT: _T {}?
 ------------ conditional1 ------------
