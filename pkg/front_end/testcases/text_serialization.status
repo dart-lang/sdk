@@ -1199,6 +1199,7 @@ regress/issue_39091_2: TextSerializationFailure
 regress/issue_39682: TextSerializationFailure
 regress/issue_41265.crash: TextSerializationFailure
 runtime_checks/call_kinds: TextSerializationFailure # Was: Pass
+regress/utf_16_le_content.crash: Crash
 runtime_checks/call_kinds_get: TextSerializationFailure # Was: Pass
 runtime_checks/call_kinds_set: TextSerializationFailure # Was: Pass
 runtime_checks/call_method_implicit_tear_off: TextSerializationFailure # Was: Pass

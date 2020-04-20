@@ -630,7 +630,7 @@ abstract class AbstractScanner implements Scanner {
       if (atEndOfFile()) {
         appendEofToken();
       } else {
-        unexpected($EOF);
+        unexpectedEof();
       }
     }
 
@@ -1776,6 +1776,11 @@ abstract class AbstractScanner implements Scanner {
       prependErrorToken(errorToken);
       return advanceAfterError(true);
     }
+  }
+
+  void unexpectedEof() {
+    ErrorToken errorToken = buildUnexpectedCharacterToken($EOF, tokenStart);
+    prependErrorToken(errorToken);
   }
 
   void unterminatedString(int quoteChar, int quoteStart, int start,
