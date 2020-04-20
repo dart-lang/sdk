@@ -101,6 +101,8 @@ class FixBuilder {
   /// that type should be.
   final Map<ParameterElement, DartType> _addedParameterTypes = {};
 
+  final bool warnOnWeakCode;
+
   factory FixBuilder(
       Source source,
       DecoratedClassHierarchy decoratedClassHierarchy,
@@ -109,7 +111,8 @@ class FixBuilder {
       Variables variables,
       LibraryElement definingLibrary,
       NullabilityMigrationListener listener,
-      CompilationUnit unit) {
+      CompilationUnit unit,
+      bool warnOnWeakCode) {
     var migrationResolutionHooks = MigrationResolutionHooksImpl();
     return FixBuilder._(
         decoratedClassHierarchy,
@@ -122,7 +125,8 @@ class FixBuilder {
         definingLibrary,
         listener,
         unit,
-        migrationResolutionHooks);
+        migrationResolutionHooks,
+        warnOnWeakCode);
   }
 
   FixBuilder._(
@@ -133,7 +137,8 @@ class FixBuilder {
       LibraryElement definingLibrary,
       this.listener,
       this.unit,
-      this.migrationResolutionHooks)
+      this.migrationResolutionHooks,
+      this.warnOnWeakCode)
       : typeProvider = _typeSystem.typeProvider {
     migrationResolutionHooks._fixBuilder = this;
     // TODO(paulberry): make use of decoratedClassHierarchy
@@ -304,7 +309,9 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
           (_fixBuilder._getChange(node) as NodeChangeForConditional)
             ..conditionValue = conditionValue
             ..conditionReason = conditionalDiscard.reason;
-          return conditionValue;
+          // If we're just issuing warnings, instruct the resolver to go ahead
+          // and visit both branches of the conditional.
+          return _fixBuilder.warnOnWeakCode ? null : conditionValue;
         }
       });
 

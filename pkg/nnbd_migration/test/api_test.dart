@@ -41,7 +41,8 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
   Future<void> _checkMultipleFileChanges(
       Map<String, String> input, Map<String, String> expectedOutput,
       {Map<String, String> migratedInput = const {},
-      bool removeViaComments = false}) async {
+      bool removeViaComments = false,
+      bool warnOnWeakCode = false}) async {
     for (var path in migratedInput.keys) {
       driver.getFileSync(newFile(path, content: migratedInput[path]).path);
     }
@@ -52,7 +53,7 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
     var migration = NullabilityMigration(listener,
         permissive: _usePermissiveMode,
         removeViaComments: removeViaComments,
-        warnOnWeakCode: false);
+        warnOnWeakCode: warnOnWeakCode);
     for (var path in input.keys) {
       if (!(await session.getFile(path)).isPart) {
         for (var unit in (await session.getResolvedLibrary(path)).units) {
@@ -98,11 +99,14 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
   /// be removed in its entirety (the default) or removed by commenting it out.
   Future<void> _checkSingleFileChanges(String content, String expected,
       {Map<String, String> migratedInput = const {},
-      bool removeViaComments = false}) async {
+      bool removeViaComments = false,
+      bool warnOnWeakCode = false}) async {
     var sourcePath = convertPath('/home/test/lib/test.dart');
     await _checkMultipleFileChanges(
         {sourcePath: content}, {sourcePath: expected},
-        migratedInput: migratedInput, removeViaComments: removeViaComments);
+        migratedInput: migratedInput,
+        removeViaComments: removeViaComments,
+        warnOnWeakCode: warnOnWeakCode);
   }
 }
 
@@ -5583,6 +5587,28 @@ _f(Object x) {
 }
 ''';
     await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_weak_if_visit_weak_subexpression() async {
+    var content = '''
+int f(int x, int/*?*/ y) {
+  if (x == null) {
+    print(y.toDouble());
+  } else {
+    print(y.toDouble());
+  }
+}
+''';
+    var expected = '''
+int f(int x, int? y) {
+  if (x == null) {
+    print(y!.toDouble());
+  } else {
+    print(y!.toDouble());
+  }
+}
+''';
+    await _checkSingleFileChanges(content, expected, warnOnWeakCode: true);
   }
 }
 

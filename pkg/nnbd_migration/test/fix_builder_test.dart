@@ -2882,7 +2882,8 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
         variables,
         definingLibrary,
         null,
-        scope.thisOrAncestorOfType<CompilationUnit>());
+        scope.thisOrAncestorOfType<CompilationUnit>(),
+        false);
   }
 
   bool _isInScope(AstNode node, AstNode scope) {
